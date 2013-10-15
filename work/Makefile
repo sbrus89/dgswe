@@ -86,5 +86,5 @@ swe_tri.o : swe_tri.f90 globals.f90
 
 .PHONY : clean
 clean : 
-	rm dgswe $(objects) *.mod
+	rm dgswe *.o *.mod
 
