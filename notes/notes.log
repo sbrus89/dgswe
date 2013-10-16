@@ -1,11 +1,17 @@
-This is pdfTeX, Version 3.1415926-1.40.10 (TeX Live 2009/Debian) (format=latex 2012.5.28)  24 JUN 2013 10:05
+This is pdfTeX, Version 3.1415926-1.40.10 (TeX Live 2009/Debian) (format=latex 2013.9.12)  16 OCT 2013 18:01
 entering extended mode
  %&-line parsing enabled.
 **notes.tex
 (./notes.tex
 LaTeX2e <2009/09/24>
 Babel <v3.8l> and hyphenation patterns for english, usenglishmax, dumylang, noh
-yphenation, loaded.
+yphenation, farsi, arabic, croatian, bulgarian, ukrainian, russian, czech, slov
+ak, danish, dutch, finnish, french, basque, ngerman, german, german-x-2009-06-1
+9, ngerman-x-2009-06-19, ibycus, monogreek, greek, ancientgreek, hungarian, san
+skrit, italian, latin, latvian, lithuanian, mongolian2a, mongolian, bokmal, nyn
+orsk, romanian, irish, coptic, serbian, turkish, welsh, esperanto, uppersorbian
+, estonian, indonesian, interlingua, icelandic, kurmanji, slovenian, polish, po
+rtuguese, spanish, galician, catalan, swedish, ukenglish, pinyin, loaded.
 (/usr/share/texmf-texlive/tex/latex/base/article.cls
 Document Class: article 2007/10/19 v1.4h Standard LaTeX document class
 (/usr/share/texmf-texlive/tex/latex/base/size11.clo
@@ -245,14 +251,22 @@ Overfull \hbox (43.95802pt too wide) detected at line 169
 File: ./pascal.eps Graphic file (type eps)
  <./pascal.eps> [12
 
-] [13] [14] (./notes.aux) ) 
-Here is how much of TeX's memory you used:
- 1717 strings out of 495062
- 19553 string characters out of 1182644
- 106521 words of memory out of 3000000
- 4879 multiletter control sequences out of 15000+50000
- 15690 words of font info for 58 fonts, out of 3000000 for 9000
- 28 hyphenation exceptions out of 8191
- 27i,21n,22p,4196b,315s stack positions out of 5000i,500n,10000p,200000b,50000s
+] [13] [14] [15]
+Overfull \hbox (4.74867pt too wide) detected at line 339
+ []$[]   [][] []\OML/cmm/m/it/10.95 w[]d\OT1/cmr/m/n/10.95 
+[] \OMS/cmsy/m/n/10.95 ^^@ [][] [] \OML/cmm/m/it/10.95 d\OT1/cmr/m/n/10.95 
+[] + [][] [] \OML/cmm/m/it/10.95 w[]d@\OT1/cmr/m/n/10.95 
+[]$ 
+ []
 
-Output written on notes.dvi (14 pages, 112904 bytes).
+[16] [17] (./notes.aux) ) 
+Here is how much of TeX's memory you used:
+ 1717 strings out of 493849
+ 19553 string characters out of 1152846
+ 108029 words of memory out of 3000000
+ 4978 multiletter control sequences out of 15000+50000
+ 15690 words of font info for 58 fonts, out of 3000000 for 9000
+ 714 hyphenation exceptions out of 8191
+ 27i,21n,22p,4195b,315s stack positions out of 5000i,500n,10000p,200000b,50000s
+
+Output written on notes.dvi (17 pages, 126988 bytes).
