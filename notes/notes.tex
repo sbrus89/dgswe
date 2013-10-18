@@ -296,17 +296,17 @@ With the addition of the eddy viscosity terms, the shallow water equations becom
 \end{gather}
 There are two different formulations used for $H\tau_{xx}$, $H\tau_{yx}$, $H\tau_{xy}$ and $H\tau_{yy}$.  The following is currently implemented in the CG version of ADCIRC
 \begin{align}
-H\tau_{xx} &= 2E_h\frac{\partial U}{\partial x}, \\
-H\tau_{yx} &= E_h\left(\frac{\partial U}{\partial y} + \frac{\partial V}{\partial x} \right), \\
-H\tau_{xy} &= E_h\left(\frac{\partial U}{\partial y} + \frac{\partial V}{\partial x} \right), \\
-H\tau_{yy} &= 2E_h\frac{\partial V}{\partial y}.
+H\tau_{xx} &= 2e_v\frac{\partial U}{\partial x}, \\
+H\tau_{yx} &= e_v\left(\frac{\partial U}{\partial y} + \frac{\partial V}{\partial x} \right), \\
+H\tau_{xy} &= e_v\left(\frac{\partial U}{\partial y} + \frac{\partial V}{\partial x} \right), \\
+H\tau_{yy} &= 2e_v\frac{\partial V}{\partial y}.
 \end{align}
 The second is the old formulation used in CG ADCIRC and currently implemented in DG ADCIRC
 \begin{align}
-H\tau_{xx} &= E_h\frac{\partial U}{\partial x}, \\
-H\tau_{yx} &= E_h\frac{\partial U}{\partial y}, \\
-H\tau_{xy} &= E_h\frac{\partial V}{\partial x}, \\
-H\tau_{yy} &= E_h\frac{\partial V}{\partial y}.
+H\tau_{xx} &= e_v\frac{\partial U}{\partial x}, \\
+H\tau_{yx} &= e_v\frac{\partial U}{\partial y}, \\
+H\tau_{xy} &= e_v\frac{\partial V}{\partial x}, \\
+H\tau_{yy} &= e_v\frac{\partial V}{\partial y}.
 \end{align}
 Auxiliary variables are defined so the system can be written in terms of first derivatives only. (note that the order of subscripts indicates the momentum variable direction and then the independent variable it is differentiated with respect to)
 \begin{align}
@@ -322,45 +322,116 @@ The vector form the shallow water equations is
 \end{gather}
 where
 \begin{align}
-\mathbf{D} = \begin{bmatrix} 0 \\ 2E_h\frac{\partial U}{\partial x} \\ E_h\left(\frac{\partial U}{\partial y} + \frac{\partial V}{\partial x}\right) \end{bmatrix}, \quad \quad \mathbf{E} = \begin{bmatrix} 0 \\ E_h\left(\frac{\partial U}{\partial y} + \frac{\partial V}{\partial x}\right) \\ 2E_h\frac{\partial V}{\partial y} \end{bmatrix}.
+\mathbf{D} = \begin{bmatrix} 0 \\ 2e_v\frac{\partial U}{\partial x} \\ e_v\left(\frac{\partial U}{\partial y} + \frac{\partial V}{\partial x}\right) \end{bmatrix}, \quad \quad \mathbf{E} = \begin{bmatrix} 0 \\ e_v\left(\frac{\partial U}{\partial y} + \frac{\partial V}{\partial x}\right) \\ 2e_v\frac{\partial V}{\partial y} \end{bmatrix}.
 \end{align}
 or after substituting the auxiliary variables
 \begin{align}
-\mathbf{D} = \begin{bmatrix} 0 \\ 2E_hE_{xx} \\ E_h\left(E_{xy} + E_{yx}\right) \end{bmatrix}, \quad \quad \mathbf{E} = \begin{bmatrix} 0 \\ E_h\left(E_{xy} + E_{yx}\right) \\ 2E_hE_{yy} \end{bmatrix}.
+\mathbf{D} = \begin{bmatrix} 0 \\ 2e_vE_{xx} \\ e_v\left(E_{xy} + E_{yx}\right) \end{bmatrix}, \quad \quad \mathbf{E} = \begin{bmatrix} 0 \\ e_v\left(E_{xy} + E_{yx}\right) \\ 2e_vE_{yy} \end{bmatrix}.
 \end{align}
+Multiply by a test function, $w_h \in \mathcal{V}_h^p$ and integrate over an arbitrary element domain, $\Omega_i$
 \begin{gather}
 \int_{\Omega_i}\frac{\partial \mathbf{Q}}{\partial t} w_h d\Omega_i+ \int_{\Omega_i}\frac{\partial }{\partial x}\left(\mathbf{F}-\mathbf{D}\right) w_h d\Omega_i+ \int_{\Omega_i}\frac{\partial }{\partial y}\left(\mathbf{G} - \mathbf{E} \right) w_h d\Omega_i= \int_{\Omega_i}\mathbf{S}w_h d\Omega_i.
 \end{gather}
+Integrate the spatial derivative terms by parts
 \begin{multline}
 \int_{\Omega_i}\frac{\partial \mathbf{Q}}{\partial t} w_h d\Omega_i - \int_{\Omega_i}\left(\mathbf{F}-\mathbf{D}\right) \frac{\partial w_h}{\partial x} d\Omega_i - \int_{\Omega_i}\left(\mathbf{G} - \mathbf{E} \right) \frac{\partial w_h}{\partial y} d\Omega_i \\ + \int_{\partial \Omega_i} n_x (\mathbf{F}-\mathbf{D})w_h d\partial\Omega_i + \int_{\partial \Omega_i} n_y (\mathbf{G}-\mathbf{E})w_h d\partial\Omega_i= \int_{\Omega_i}\mathbf{S}w_h d\Omega_i.
 \end{multline}
+Grouping terms
 \begin{multline}
 \int_{\Omega_i}\frac{\partial \mathbf{Q}}{\partial t} w_h d\Omega_i - \int_{\Omega_i}\left(\left(\mathbf{F}-\mathbf{D}\right) \frac{\partial w_h}{\partial x}  + \left(\mathbf{G} - \mathbf{E} \right) \frac{\partial w_h}{\partial y} \right)d\Omega_i + \int_{\partial \Omega_i} \left(n_x (\mathbf{F}-\mathbf{D})  +  n_y (\mathbf{G}-\mathbf{E}) \right)w_h d\partial\Omega_i \\ = \int_{\Omega_i}\mathbf{S}w_h d\Omega_i.
 \end{multline}
+Substitute approximate solutions $H_h$, $U_h$, $V_h$, $E_{xx,h}$, $E_{xy,h}$, $E_{yx,h}$, $E_{yy,h}\in \mathcal{V}_h^p$ and choose $w_h= \phi_i^{(l)},\quad l = 1,\ldots,K$
 \begin{multline}
-\int_{\Omega_i}\frac{\partial \mathbf{Q}_h}{\partial t} \phi_i^{(l)} d\Omega_i - \int_{\Omega_i}\left(\left(\mathbf{F}_h-\mathbf{D}_h\right) \frac{\partial \phi_i^{(l)}}{\partial x}  + \left(\mathbf{G}_h - \mathbf{E}_h \right) \frac{\partial \phi_i^{(l)}}{\partial y} \right)d\Omega_i \\ + \int_{\partial \Omega_i} \left(n_x (\widehat{\mathbf{F}}_h-\widehat{\mathbf{D}}_h)  +  n_y (\widehat{\mathbf{G}}_h-\widehat{\mathbf{E}}_h) \right)\phi_i^{(l)} d\partial\Omega_i  = \int_{\Omega_i}\mathbf{S}\phi_i^{(l)} d\Omega_i.
+\int_{\Omega_i}\frac{\partial \mathbf{Q}_h}{\partial t} \phi_i^{(l)} d\Omega_i - \int_{\Omega_i}\left(\left(\mathbf{F}_h-\mathbf{D}_h\right) \frac{\partial \phi_i^{(l)}}{\partial x}  + \left(\mathbf{G}_h - \mathbf{E}_h \right) \frac{\partial \phi_i^{(l)}}{\partial y} \right)d\Omega_i \\ + \int_{\partial \Omega_i} \left(n_x (\widehat{\mathbf{F}}_h-\widehat{\mathbf{D}}_h)  +  n_y (\widehat{\mathbf{G}}_h-\widehat{\mathbf{E}}_h) \right)\phi_i^{(l)} d\partial\Omega_i  = \int_{\Omega_i}\mathbf{S}\phi_i^{(l)} d\Omega_i \\ \quad l = 1,\ldots,K.
 \end{multline}
+where $\widehat{\mathbf{F}}_h$, $\widehat{\mathbf{G}}_h$, $\widehat{\mathbf{D}}_h$, and $\widehat{\mathbf{E}}_h$ are the numerical fluxes.  As before the Local Lax-Friedrichs flux is used for $(n_x\mathbf{F}_h + n_y\mathbf{G}_h)^*$ while $\widehat{\mathbf{D}}_h = \mathbf{D}_h^{(in)}$ and $\widehat{\mathbf{E}}_h = \mathbf{E}_h^{(in)}$
 \begin{multline}
-\int_{\Omega_i}\frac{\partial \mathbf{Q}_h}{\partial t} \phi_i^{(l)} d\Omega_i - \int_{\Omega_i}\left(\left(\mathbf{F}_h-\mathbf{D}_h\right) \frac{\partial \phi_i^{(l)}}{\partial x}  + \left(\mathbf{G}_h - \mathbf{E}_h \right) \frac{\partial \phi_i^{(l)}}{\partial y} \right)d\Omega_i \\ + \int_{\partial \Omega_i} \left( (n_x\mathbf{F}_h + n_y\mathbf{G}_h)^*-n_x\widehat{\mathbf{D}}_h  -n_y\widehat{\mathbf{E}}_h) \right)\phi_i^{(l)} d\partial\Omega_i  = \int_{\Omega_i}\mathbf{S}\phi_i^{(l)} d\Omega_i.
+\int_{\Omega_i}\frac{\partial \mathbf{Q}_h}{\partial t} \phi_i^{(l)} d\Omega_i - \int_{\Omega_i}\left(\left(\mathbf{F}_h-\mathbf{D}_h\right) \frac{\partial \phi_i^{(l)}}{\partial x}  + \left(\mathbf{G}_h - \mathbf{E}_h \right) \frac{\partial \phi_i^{(l)}}{\partial y} \right)d\Omega_i \\ + \int_{\partial \Omega_i} \left( (n_x\mathbf{F}_h + n_y\mathbf{G}_h)^*-n_x\mathbf{D}_h^{(in)}  -n_y\mathbf{E}_h^{(in)} \right)\phi_i^{(l)} d\partial\Omega_i  = \int_{\Omega_i}\mathbf{S}\phi_i^{(l)} d\Omega_i \\ \quad l = 1,\ldots,K.
 \end{multline}
+To discretize the auxiliary variable equations, multiply by $w_h$ and integrate over an arbitrary element $\Omega_i$
 \begin{align}
 \int_{\Omega_i}E_{xx} w_h d\Omega_i - \int_{\Omega_i}\frac{\partial U}{\partial x} w_h d\Omega_i= 0, \\
 \int_{\Omega_i}E_{xy} w_h d\Omega_i - \int_{\Omega_i}\frac{\partial U}{\partial y} w_h d\Omega_i= 0, \\
 \int_{\Omega_i}E_{yx} w_h d\Omega_i - \int_{\Omega_i}\frac{\partial V}{\partial x} w_h d\Omega_i= 0, \\
 \int_{\Omega_i}E_{yy} w_h d\Omega_i - \int_{\Omega_i}\frac{\partial V}{\partial y} w_h d\Omega_i= 0.
 \end{align}
+Integrate the spatial derivative terms by parts
 \begin{align}
 \int_{\Omega_i}E_{xx} w_h d\Omega_i + \int_{\Omega_i} U \frac{\partial w_h}{\partial x} d\Omega_i - \int_{\partial\Omega_i}n_x Uw_h d\partial\Omega_i= 0, \\
 \int_{\Omega_i}E_{xy} w_h d\Omega_i + \int_{\Omega_i} U \frac{\partial w_h}{\partial y} d\Omega_i - \int_{\partial\Omega_i}n_y Uw_h d\partial\Omega_i= 0, \\
 \int_{\Omega_i}E_{yx} w_h d\Omega_i + \int_{\Omega_i} V \frac{\partial w_h}{\partial x} d\Omega_i - \int_{\partial\Omega_i}n_x Vw_h d\partial\Omega_i= 0, \\
 \int_{\Omega_i}E_{yy} w_h d\Omega_i + \int_{\Omega_i} V \frac{\partial w_h}{\partial y} d\Omega_i - \int_{\partial\Omega_i}n_y vw_h d\partial\Omega_i= 0.
 \end{align}
+Substitute approximate solutions $U_h$, $V_h$, $E_{xx,h}$, $E_{xy,h}$, $E_{yx,h}$, $E_{yy,h}\in \mathcal{V}_h^p$
 \begin{align}
-\int_{\Omega_i}E_{xx,h} \phi_i^{(l)} d\Omega_i + \int_{\Omega_i} U_h \frac{\partial \phi_i^{(l)}}{\partial x} d\Omega_i - \int_{\partial\Omega_i}n_x \widehat{U}_h\phi_i^{(l)} d\partial\Omega_i= 0, \\
-\int_{\Omega_i}E_{xy,h} \phi_i^{(l)} d\Omega_i + \int_{\Omega_i} U_h \frac{\partial \phi_i^{(l)}}{\partial y} d\Omega_i - \int_{\partial\Omega_i}n_y \widehat{U}_h\phi_i^{(l)} d\partial\Omega_i= 0, \\
-\int_{\Omega_i}E_{yx,h} \phi_i^{(l)} d\Omega_i + \int_{\Omega_i} V_h \frac{\partial \phi_i^{(l)}}{\partial x} d\Omega_i - \int_{\partial\Omega_i}n_x \widehat{V}_h\phi_i^{(l)} d\partial\Omega_i= 0, \\
-\int_{\Omega_i}E_{yy,h} \phi_i^{(l)} d\Omega_i + \int_{\Omega_i} V_h \frac{\partial \phi_i^{(l)}}{\partial y} d\Omega_i - \int_{\partial\Omega_i}n_y \widehat{V}_h\phi_i^{(l)} d\partial\Omega_i= 0.
+\int_{\Omega_i}E_{xx,h} \phi_i^{(l)} d\Omega_i + \int_{\Omega_i} U_h \frac{\partial \phi_i^{(l)}}{\partial x} d\Omega_i - \int_{\partial\Omega_i}n_x \widehat{U}_h\phi_i^{(l)} d\partial\Omega_i&= 0, \\
+\int_{\Omega_i}E_{xy,h} \phi_i^{(l)} d\Omega_i + \int_{\Omega_i} U_h \frac{\partial \phi_i^{(l)}}{\partial y} d\Omega_i - \int_{\partial\Omega_i}n_y \widehat{U}_h\phi_i^{(l)} d\partial\Omega_i&= 0, \\
+\int_{\Omega_i}E_{yx,h} \phi_i^{(l)} d\Omega_i + \int_{\Omega_i} V_h \frac{\partial \phi_i^{(l)}}{\partial x} d\Omega_i - \int_{\partial\Omega_i}n_x \widehat{V}_h\phi_i^{(l)} d\partial\Omega_i&= 0, \\
+\int_{\Omega_i}E_{yy,h} \phi_i^{(l)} d\Omega_i + \int_{\Omega_i} V_h \frac{\partial \phi_i^{(l)}}{\partial y} d\Omega_i - \int_{\partial\Omega_i}n_y \widehat{V}_h\phi_i^{(l)} d\partial\Omega_i&= 0, \\ &\quad\quad l = 1,\ldots,K. \nonumber
 \end{align}
+Again, $\widehat{U}_h$ and $\widehat{V}_h$ are numerical fluxes which are chosen as $\widehat{U}_h = U_h^{(ex)}$ and $\widehat{V}_h = V_h^{(ex)}$
+\begin{align}
+\int_{\Omega_i}E_{xx,h} \phi_i^{(l)} d\Omega_i + \int_{\Omega_i} U_h \frac{\partial \phi_i^{(l)}}{\partial x} d\Omega_i - \int_{\partial\Omega_i}n_x U_h^{(ex)}\phi_i^{(l)} d\partial\Omega_i&= 0, \\
+\int_{\Omega_i}E_{xy,h} \phi_i^{(l)} d\Omega_i + \int_{\Omega_i} U_h \frac{\partial \phi_i^{(l)}}{\partial y} d\Omega_i - \int_{\partial\Omega_i}n_y U_h^{(ex)}\phi_i^{(l)} d\partial\Omega_i&= 0, \\
+\int_{\Omega_i}E_{yx,h} \phi_i^{(l)} d\Omega_i + \int_{\Omega_i} V_h \frac{\partial \phi_i^{(l)}}{\partial x} d\Omega_i - \int_{\partial\Omega_i}n_x V_h^{(ex)}\phi_i^{(l)} d\partial\Omega_i&= 0, \\
+\int_{\Omega_i}E_{yy,h} \phi_i^{(l)} d\Omega_i + \int_{\Omega_i} V_h \frac{\partial \phi_i^{(l)}}{\partial y} d\Omega_i - \int_{\partial\Omega_i}n_y V_h^{(ex)}\phi_i^{(l)} d\partial\Omega_i&= 0,\\ &\quad\quad l = 1,\ldots,K. \nonumber
+\end{align}
+Substituting the expansions for the components of the $\mathbf{Q}_h$ vector and auxiliary variables
+\begin{multline}
+\displaystyle\sum_{m=1}^K \frac{\partial H_i^{(m)}}{\partial t}\int_{\Omega_i} \phi_i^{(m)}\phi_i^{(l)} d\Omega_i - \int_{\Omega_i}\left(U_h \frac{\partial \phi_i^{(l)}}{\partial x}  + V_h \frac{\partial \phi_i^{(l)}}{\partial y} \right)d\Omega_i  + \int_{\partial \Omega_i} \left(n_xU_h + n_yV_h\right)^* \phi_i^{(l)} d\partial\Omega_i  = 0 \\ \quad l = 1,\ldots,K.
+\end{multline}
+\begin{multline}
+\displaystyle\sum_{m=1}^K\frac{\partial U_i^{(m)}}{\partial t}\int_{\Omega_i}\phi_i^{(m)}\phi_i^{(l)} d\Omega_i \\ - \int_{\Omega_i}\left(\left(\frac{U_h^2}{H_h} + \frac{1}{2}gH_h^2 - 2e_vE_{xx,h}\right) \frac{\partial \phi_i^{(l)}}{\partial x}  + \left(\frac{U_hV_h}{H_h} - e_v\left(E_{xy,h} + E_{yx,h}\right) \right) \frac{\partial \phi_i^{(l)}}{\partial y} \right)d\Omega_i \\ + \int_{\partial \Omega_i} \left( \left(n_x\left(\frac{U_h^2}{H_h} + \frac{1}{2}gH_h^2 \right)+ n_y\frac{U_hV_h}{H_h}\right)^*-n_x\left(2e_vE_{xx,h}^{(in)}\right) -n_y\left(e_v\left( E_{xy,h}^{(in)} + E_{yx,h}^{(in)}\right) \right) \right)\phi_i^{(l)} d\partial\Omega_i  \\ = \int_{\Omega_i}\left(gH_h\frac{\partial b_h}{\partial x} - \tau U_h \right)\phi_i^{(l)} d\Omega_i \\ \quad l = 1,\ldots,K.
+\end{multline}
+\begin{multline}
+\displaystyle\sum_{m=1}^K\frac{\partial V_i^{(m)}}{\partial t}\int_{\Omega_i}\phi_i^{(m)}\phi_i^{(l)} d\Omega_i \\ - \int_{\Omega_i}\left(\left(\frac{U_hV_h}{H_h}-e_v\left(E_{xy,h} + E_{yx,h} \right)\right) \frac{\partial \phi_i^{(l)}}{\partial x}  + \left(\frac{V_h^2}{H_h} + \frac{1}{2}gH_h^2 - 2e_vE_{yy,h} \right) \frac{\partial \phi_i^{(l)}}{\partial y} \right)d\Omega_i \\ + \int_{\partial \Omega_i} \left( \left(n_x\frac{U_hV_h}{H_h} + n_y\left(\frac{V_h^2}{H_h}+\frac{1}{2}gH_h^2 \right)\right)^*-n_x\left(e_v\left(E_{xy,h}^{(in)} + E_{yx,h}^{(in)} \right) \right) -n_y \left(2e_vE_{yy,h}^{(in)} \right)\right)\phi_i^{(l)} d\partial\Omega_i  \\ = \int_{\Omega_i}\left(gH_h\frac{\partial b_h}{\partial y} - \tau V_h \right)\phi_i^{(l)} d\Omega_i \\ \quad l = 1,\ldots,K.
+\end{multline}
+\begin{align}
+\displaystyle\sum_{m=1}^K E_{xx,i}^{(m)}\int_{\Omega_i}\phi_i^{(m)} \phi_i^{(l)} d\Omega_i + \int_{\Omega_i} U_h \frac{\partial \phi_i^{(l)}}{\partial x} d\Omega_i - \int_{\partial\Omega_i}n_x U_h^{(ex)}\phi_i^{(l)} d\partial\Omega_i&= 0, \\
+\displaystyle\sum_{m=1}^K E_{xy,i}^{(m)}\int_{\Omega_i}\phi_i^{(m)} \phi_i^{(l)} d\Omega_i + \int_{\Omega_i} U_h \frac{\partial \phi_i^{(l)}}{\partial y} d\Omega_i - \int_{\partial\Omega_i}n_y U_h^{(ex)}\phi_i^{(l)} d\partial\Omega_i&= 0, \\
+\displaystyle\sum_{m=1}^K E_{yx,i}^{(m)}\int_{\Omega_i}\phi_i^{(m)} \phi_i^{(l)} d\Omega_i + \int_{\Omega_i} V_h \frac{\partial \phi_i^{(l)}}{\partial x} d\Omega_i - \int_{\partial\Omega_i}n_x V_h^{(ex)}\phi_i^{(l)} d\partial\Omega_i&= 0, \\
+\displaystyle\sum_{m=1}^K E_{yy,i}^{(m)}\int_{\Omega_i}\phi_i^{(m)} \phi_i^{(l)} d\Omega_i + \int_{\Omega_i} V_h \frac{\partial \phi_i^{(l)}}{\partial y} d\Omega_i - \int_{\partial\Omega_i}n_y V_h^{(ex)}\phi_i^{(l)} d\partial\Omega_i&= 0,\\ &\quad\quad l = 1,\ldots,K. \nonumber
+\end{align}
+Transforming to local coordinates
+{\footnotesize
+\begin{multline}
+\frac{A_i}{2}\displaystyle\sum_{m=1}^K \frac{\partial H_i^{(m)}}{\partial t}\int_{\Delta} \phi^{(m)}\phi^{(l)} d\Delta \\ - \frac{A_i}{2}\int_{\Delta}\left(U_h \frac{1}{A_i}\left(\frac{\partial \phi^{(l)}}{\partial r}\left(y_i^{(3)}-y_i^{(1)}\right) + \frac{\partial \phi^{(l)}}{\partial s}\left(y_i^{(1)}-y_i^{(2)}\right) \right)  + V_h \frac{1}{A_i}\left(\frac{\partial \phi^{(l)}}{\partial r}\left(x_i^{(1)}-x_i^{(3)}\right) + \frac{\partial \phi^{(l)}}{\partial s}\left(x_i^{(2)}-x_i^{(1)}\right) \right) \right)d\Delta  \\ + \displaystyle\sum_{k=1}^3\frac{l_{i,k}}{2}\int_{-1}^{1} \left(n_xU_h + n_yV_h\right)^* \phi^{(l)} d\xi  = 0 \\ \quad l = 1,\ldots,K. 
+\end{multline}}
+{\footnotesize
+\begin{multline}
+\frac{A_i}{2}\displaystyle\sum_{m=1}^K\frac{\partial U_i^{(m)}}{\partial t}\int_{\Delta}\phi^{(m)}\phi^{(l)} d\Delta \\ - \frac{A_i}{2}\int_{\Delta}\left(\left(\frac{U_h^2}{H_h} + \frac{1}{2}gH_h^2 - 2e_vE_{xx,h}\right) \frac{1}{A_i}\left(\frac{\partial \phi^{(l)}}{\partial r}\left(y_i^{(3)}-y_i^{(1)}\right) + \frac{\partial \phi^{(l)}}{\partial s}\left(y_i^{(1)}-y_i^{(2)}\right) \right) \right. \\  \left. + \left(\frac{U_hV_h}{H_h} - e_v\left(E_{xy,h} + E_{yx,h}\right) \right) \frac{1}{A_i}\left(\frac{\partial \phi^{(l)}}{\partial r}\left(x_i^{(1)}-x_i^{(3)}\right) + \frac{\partial \phi^{(l)}}{\partial s}\left(x_i^{(2)}-x_i^{(1)}\right) \right) \right)d\Delta \\ + \displaystyle\sum_{k=1}^3 \frac{l_{i,k}}{2}\int_{-1}^1 \left( \left(n_x\left(\frac{U_h^2}{H_h} + \frac{1}{2}gH_h^2 \right)+ n_y\frac{U_hV_h}{H_h}\right)^*-n_x\left(2e_vE_{xx,h}^{(in)}\right) -n_y\left(e_v\left( E_{xy,h}^{(in)} + E_{yx,h}^{(in)}\right) \right) \right)\phi^{(l)} d\xi  \\ = \frac{A_i}{2}\int_{\Delta}\left(gH_h\frac{\partial b_h}{\partial x} - \tau U_h \right)\phi^{(l)} d\Delta \\ \quad l = 1,\ldots,K. 
+\end{multline}}
+{\footnotesize
+\begin{multline}
+\frac{A_i}{2}\displaystyle\sum_{m=1}^K\frac{\partial V_i^{(m)}}{\partial t}\int_{\Delta}\phi^{(m)}\phi^{(l)} d\Delta \\ - \frac{A_i}{2}\int_{\Delta}\left(\left(\frac{U_hV_h}{H_h}-e_v\left(E_{xy,h} + E_{yx,h} \right)\right) \frac{1}{A_i}\left(\frac{\partial \phi^{(l)}}{\partial r}\left(y_i^{(3)}-y_i^{(1)}\right) + \frac{\partial \phi^{(l)}}{\partial s}\left(y_i^{(1)}-y_i^{(2)}\right) \right)  \right. \\ + \left. \left(\frac{V_h^2}{H_h} + \frac{1}{2}gH_h^2 - 2e_vE_{yy,h} \right)  \frac{1}{A_i}\left(\frac{\partial \phi^{(l)}}{\partial r}\left(x_i^{(1)}-x_i^{(3)}\right) + \frac{\partial \phi^{(l)}}{\partial s}\left(x_i^{(2)}-x_i^{(1)}\right) \right) \right)d\Delta \\ + \displaystyle\sum_{k=1}^3 \frac{l_{i,k}}{2}\int_{-1}^1 \left( \left(n_x\frac{U_hV_h}{H_h} + n_y\left(\frac{V_h^2}{H_h}+\frac{1}{2}gH_h^2 \right)\right)^*-n_x\left(e_v\left(E_{xy,h}^{(in)} + E_{yx,h}^{(in)} \right) \right) -n_y \left(2e_vE_{yy,h}^{(in)} \right)\right)\phi^{(l)} d\xi  \\ = \frac{A_i}{2}\int_{\Delta}\left(gH_h\frac{\partial b_h}{\partial y} - \tau V_h \right)\phi^{(l)} d\Delta \\ \quad l = 1,\ldots,K. 
+\end{multline}}
+{\footnotesize
+\begin{gather}
+\frac{A_i}{2}\displaystyle\sum_{m=1}^K E_{xx,i}^{(m)}\int_{\Delta}\phi^{(m)} \phi^{(l)} d\Delta + \frac{A_i}{2}\int_{\Delta} U_h \frac{1}{A_i}\left(\frac{\partial \phi^{(l)}}{\partial r}\left(y_i^{(3)}-y_i^{(1)}\right) + \frac{\partial \phi^{(l)}}{\partial s}\left(y_i^{(1)}-y_i^{(2)}\right) \right) d\Delta - \displaystyle\sum_{k=1}^3 \frac{l_{i,k}}{2}\int_{-1}^1 n_x U_h^{(ex)}\phi^{(l)} d\xi= 0, \\
+\frac{A_i}{2}\displaystyle\sum_{m=1}^K E_{xy,i}^{(m)}\int_{\Delta}\phi^{(m)} \phi^{(l)} d\Delta + \frac{A_i}{2}\int_{\Delta} U_h \frac{1}{A_i}\left(\frac{\partial \phi^{(l)}}{\partial r}\left(x_i^{(1)}-x_i^{(3)}\right) + \frac{\partial \phi^{(l)}}{\partial s}\left(x_i^{(2)}-x_i^{(1)}\right) \right) d\Delta - \displaystyle\sum_{k=1}^3 \frac{l_{i,k}}{2}\int_{-1}^1 n_y U_h^{(ex)}\phi^{(l)} d\xi= 0, \\
+\frac{A_i}{2}\displaystyle\sum_{m=1}^K E_{yx,i}^{(m)}\int_{\Delta}\phi^{(m)} \phi^{(l)} d\Delta + \frac{A_i}{2}\int_{\Delta} V_h \frac{1}{A_i}\left(\frac{\partial \phi^{(l)}}{\partial r}\left(y_i^{(3)}-y_i^{(1)}\right) + \frac{\partial \phi^{(l)}}{\partial s}\left(y_i^{(1)}-y_i^{(2)}\right) \right) d\Delta - \displaystyle\sum_{k=1}^3 \frac{l_{i,k}}{2}\int_{-1}^1 n_x V_h^{(ex)}\phi^{(l)} d\xi= 0, \\
+\frac{A_i}{2}\displaystyle\sum_{m=1}^K E_{yy,i}^{(m)}\int_{\Delta}\phi^{(m)} \phi^{(l)} d\Delta + \frac{A_i}{2}\int_{\Delta} V_h \frac{1}{A_i}\left(\frac{\partial \phi^{(l)}}{\partial r}\left(x_i^{(1)}-x_i^{(3)}\right) + \frac{\partial \phi^{(l)}}{\partial s}\left(x_i^{(2)}-x_i^{(1)}\right) \right) d\Delta - \displaystyle\sum_{k=1}^3 \frac{l_{i,k}}{2}\int_{-1}^1 n_y V_h^{(ex)}\phi^{(l)} d\xi= 0 \\ l = 1,\ldots,K. \nonumber
+\end{gather}}
+Rearranging 
+{\footnotesize
+\begin{multline}
+\displaystyle\sum_{m=1}^K \frac{\partial H_i^{(m)}}{\partial t}\int_{\Delta} \phi^{(m)}\phi^{(l)} d\Delta \\= \int_{\Delta}\left(U_h \frac{1}{A_i}\left(\frac{\partial \phi^{(l)}}{\partial r}\left(y_i^{(3)}-y_i^{(1)}\right) + \frac{\partial \phi^{(l)}}{\partial s}\left(y_i^{(1)}-y_i^{(2)}\right) \right)  + V_h \frac{1}{A_i}\left(\frac{\partial \phi^{(l)}}{\partial r}\left(x_i^{(1)}-x_i^{(3)}\right) + \frac{\partial \phi^{(l)}}{\partial s}\left(x_i^{(2)}-x_i^{(1)}\right) \right) \right)d\Delta  \\ - \displaystyle\sum_{k=1}^3\frac{l_{i,k}}{A_i}\int_{-1}^{1} \left(n_xU_h + n_yV_h\right)^* \phi^{(l)} d\xi  \\ \quad l = 1,\ldots,K.
+\end{multline}}
+{\footnotesize
+\begin{multline}
+\displaystyle\sum_{m=1}^K\frac{\partial U_i^{(m)}}{\partial t}\int_{\Delta}\phi^{(m)}\phi^{(l)} d\Delta \\ = \int_{\Delta}\left(\left(\frac{U_h^2}{H_h} + \frac{1}{2}gH_h^2 - 2e_vE_{xx,h}\right) \frac{1}{A_i}\left(\frac{\partial \phi^{(l)}}{\partial r}\left(y_i^{(3)}-y_i^{(1)}\right) + \frac{\partial \phi^{(l)}}{\partial s}\left(y_i^{(1)}-y_i^{(2)}\right) \right) \right. \\  \left. + \left(\frac{U_hV_h}{H_h} - e_v\left(E_{xy,h} + E_{yx,h}\right) \right) \frac{1}{A_i}\left(\frac{\partial \phi^{(l)}}{\partial r}\left(x_i^{(1)}-x_i^{(3)}\right) + \frac{\partial \phi^{(l)}}{\partial s}\left(x_i^{(2)}-x_i^{(1)}\right) \right) +\left(gH_h\frac{\partial b_h}{\partial x} - \tau U_h \right)\phi^{(l)}\right)d\Delta \\ - \displaystyle\sum_{k=1}^3 \frac{l_{i,k}}{A_i}\int_{-1}^1 \left( \left(n_x\left(\frac{U_h^2}{H_h} + \frac{1}{2}gH_h^2 \right)+ n_y\frac{U_hV_h}{H_h}\right)^*-n_x\left(2e_vE_{xx,h}^{(in)}\right) -n_y\left(e_v\left( E_{xy,h}^{(in)} + E_{yx,h}^{(in)}\right) \right) \right)\phi^{(l)} d\xi   \\ \quad l = 1,\ldots,K.
+\end{multline}}
+{\footnotesize
+\begin{multline}
+\displaystyle\sum_{m=1}^K\frac{\partial V_i^{(m)}}{\partial t}\int_{\Delta}\phi^{(m)}\phi^{(l)} d\Delta \\ = \int_{\Delta}\left(\left(\frac{U_hV_h}{H_h}-e_v\left(E_{xy,h} + E_{yx,h} \right)\right) \frac{1}{A_i}\left(\frac{\partial \phi^{(l)}}{\partial r}\left(y_i^{(3)}-y_i^{(1)}\right) + \frac{\partial \phi^{(l)}}{\partial s}\left(y_i^{(1)}-y_i^{(2)}\right) \right)  \right. \\ + \left. \left(\frac{V_h^2}{H_h} + \frac{1}{2}gH_h^2 - 2e_vE_{yy,h} \right)  \frac{1}{A_i}\left(\frac{\partial \phi^{(l)}}{\partial r}\left(x_i^{(1)}-x_i^{(3)}\right) + \frac{\partial \phi^{(l)}}{\partial s}\left(x_i^{(2)}-x_i^{(1)}\right) \right) + \left(gH_h\frac{\partial b_h}{\partial y} - \tau V_h \right)\phi^{(l)} \right)d\Delta \\ - \displaystyle\sum_{k=1}^3 \frac{l_{i,k}}{A_i}\int_{-1}^1 \left( \left(n_x\frac{U_hV_h}{H_h} + n_y\left(\frac{V_h^2}{H_h}+\frac{1}{2}gH_h^2 \right)\right)^*-n_x\left(e_v\left(E_{xy,h}^{(in)} + E_{yx,h}^{(in)} \right) \right) -n_y \left(2e_vE_{yy,h}^{(in)} \right)\right)\phi^{(l)} d\xi   \\  l = 1,\ldots,K.
+\end{multline}}
+{\footnotesize
+\begin{gather}
+\displaystyle\sum_{m=1}^K E_{xx,i}^{(m)}\int_{\Delta}\phi^{(m)} \phi^{(l)} d\Delta = - \int_{\Delta} U_h \frac{1}{A_i}\left(\frac{\partial \phi^{(l)}}{\partial r}\left(y_i^{(3)}-y_i^{(1)}\right) + \frac{\partial \phi^{(l)}}{\partial s}\left(y_i^{(1)}-y_i^{(2)}\right) \right) d\Delta + \displaystyle\sum_{k=1}^3 \frac{l_{i,k}}{A_i}\int_{-1}^1 n_x U_h^{(ex)}\phi^{(l)} d\xi, \\
+\displaystyle\sum_{m=1}^K E_{xy,i}^{(m)}\int_{\Delta}\phi^{(m)} \phi^{(l)} d\Delta = - \int_{\Delta} U_h \frac{1}{A_i}\left(\frac{\partial \phi^{(l)}}{\partial r}\left(x_i^{(1)}-x_i^{(3)}\right) + \frac{\partial \phi^{(l)}}{\partial s}\left(x_i^{(2)}-x_i^{(1)}\right) \right) d\Delta + \displaystyle\sum_{k=1}^3 \frac{l_{i,k}}{A_i}\int_{-1}^1 n_y U_h^{(ex)}\phi^{(l)} d\xi, \\
+\displaystyle\sum_{m=1}^K E_{yx,i}^{(m)}\int_{\Delta}\phi^{(m)} \phi^{(l)} d\Delta = - \int_{\Delta} V_h \frac{1}{A_i}\left(\frac{\partial \phi^{(l)}}{\partial r}\left(y_i^{(3)}-y_i^{(1)}\right) + \frac{\partial \phi^{(l)}}{\partial s}\left(y_i^{(1)}-y_i^{(2)}\right) \right) d\Delta + \displaystyle\sum_{k=1}^3 \frac{l_{i,k}}{A_i}\int_{-1}^1 n_x V_h^{(ex)}\phi^{(l)} d\xi, \\
+\displaystyle\sum_{m=1}^K E_{yy,i}^{(m)}\int_{\Delta}\phi^{(m)} \phi^{(l)} d\Delta = - \int_{\Delta} V_h \frac{1}{A_i}\left(\frac{\partial \phi^{(l)}}{\partial r}\left(x_i^{(1)}-x_i^{(3)}\right) + \frac{\partial \phi^{(l)}}{\partial s}\left(x_i^{(2)}-x_i^{(1)}\right) \right) d\Delta + \displaystyle\sum_{k=1}^3 \frac{l_{i,k}}{A_i}\int_{-1}^1 n_y V_h^{(ex)}\phi^{(l)} d\xi, \\ l = 1,\ldots,K. \nonumber
+\end{gather}}
 \end{document}
 
 
