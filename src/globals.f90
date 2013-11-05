@@ -18,6 +18,8 @@
       CHARACTER(24) :: grid_file ! name of fort.14 file
       CHARACTER(24) :: forcing_file ! name of fort.15 file
       
+      INTEGER :: sp,sp2
+      INTEGER :: nsp,nsp2
       INTEGER, ALLOCATABLE, DIMENSION(:,:) :: split,split2
       
       INTEGER :: npart ! number of element partitions
@@ -98,9 +100,14 @@
       INTEGER :: nnfbed ! total number of no normal flow boundary edges
       INTEGER, ALLOCATABLE, DIMENSION(:) :: nfbedn ! array of no normal flow boundary edge numbers
 
-      REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: H,Hold,Hinit ! degrees of freedom for water column height
-      REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: Qx,Qxold,Qxinit ! degrees of freedom for x momentum
-      REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: Qy,Qyold,Qyinit ! degrees of freedom for y momentum
+      REAL(pres), ALLOCATABLE, TARGET, DIMENSION(:,:) :: H ! degrees of freedom for water column height
+      REAL(pres), ALLOCATABLE, TARGET, DIMENSION(:,:) :: Qx ! degrees of freedom for x momentum
+      REAL(pres), ALLOCATABLE, TARGET, DIMENSION(:,:) :: Qy ! degrees of freedom for y momentum
+      
+      REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: Hold,Hinit ! degrees of freedom for water column height
+      REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: Qxold,Qxinit ! degrees of freedom for x momentum
+      REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: Qyold,Qyinit ! degrees of freedom for y momentum
+
 
       REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: rhsH,rhsQx,rhsQy ! right hand side evaluation arrays
 
@@ -141,6 +148,7 @@
       REAL(pres), ALLOCATABLE, DIMENSION(:) :: const
       REAL(pres), ALLOCATABLE, DIMENSION(:) :: inx,iny,len_area_in,len_area_ex
       REAL(pres), ALLOCATABLE, DIMENSION(:) :: Hhatv,Qxhatv,Qyhatv
+     
 
       TYPE :: edge_ptr_array
         REAL(pres), POINTER :: ptr

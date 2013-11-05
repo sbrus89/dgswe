@@ -22,9 +22,9 @@
       
       OPEN(UNIT=80,FILE="fort.80")
       
-      READ(80,"A80")
-      READ(80,"A80")
-      READ(80,"A80")
+      READ(80,"(A80)")
+      READ(80,"(A80)")
+      READ(80,"(A80)")
       
       READ(80,*) nelg,nnodg ! total number of elements and nodes
       READ(80,*) npart ! number of element partitions
@@ -56,7 +56,7 @@
         IF (pn /= part-1) THEN
           PRINT*, "Error reading fort.80"
           STOP
-        ENDDO
+        ENDIF
         READ(80,1130) (peln(el,part), el=1,tnpel(part))
       ENDDO
       
@@ -82,7 +82,7 @@
       DO part = 1,npart
       
         READ(18,3010) pn,npresel(part)
-        IF (np /= part-1) THEN
+        IF (pn /= part-1) THEN
           PRINT*, "Error reading DG.18"
           STOP
         ENDIF
@@ -123,14 +123,14 @@
       
       SUBROUTINE align_partitions
 
-      USE globals, ONLY: ndof,npart,tnpel,npel,mnelpp, &
+      USE globals, ONLY: ne,ndof,npart,tnpel,npel,peln,mnelpp,preln, &
                          lel2gel,gel2ael,ael2gel, &
                          H,Hinit,Qx,Qxinit,Qy,Qyinit, &
                          Hwrite,Qxwrite,Qywrite
       
       IMPLICIT NONE
       
-      INTEGER :: part,el
+      INTEGER :: part,el,dof
       INTEGER :: el_cnt
       INTEGER :: alloc_status
       
@@ -144,7 +144,7 @@
         el_cnt = 0
         DO el = 1,tnpel(part)
         
-          IF (ANY(preln(:,part) == el) THEN
+          IF( ANY(preln(:,part).eq.el) ) THEN
           
           ELSE
             el_cnt = el_cnt + 1
@@ -196,8 +196,9 @@
       SUBROUTINE edge_partition()
       
       USE globals, ONLY: npart,nied, &
-                         ged2el,lel2gel, &
-                         inx,iny,len_area_in,len_area_ex, &
+                         iedn,ged2el,lel2gel, &
+                         normal,edlen_area, &
+                         inx,iny,len_area_in,len_area_ex
                          
       
       IMPLICIT NONE
@@ -206,7 +207,7 @@
       INTEGER :: ged,el_in,el_ex
       INTEGER :: edcnt
       
-      
+      INTEGER, ALLOCATABLE, DIMENSION(:) :: edflag, nied_part     
       
       ALLOCATE(edflag(nied),nied_part(npart+1))
       
@@ -225,7 +226,7 @@
           el_ex = ged2el(2,ged)
             
           ! check if both elements are in the partition
-          IF(ANY(lel2gel(:,part).eq.el_in) .and. ANY(lel2gel(:,part)).eq.el_ex) THEN
+          IF(ANY(lel2gel(:,part).eq.el_in) .and. ANY(lel2gel(:,part).eq.el_ex)) THEN
             
               edflag(ed) = 1
               edcnt = edcnt + 1

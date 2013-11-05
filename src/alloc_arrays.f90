@@ -4,9 +4,6 @@
                          H,Hold,Hinit,rhsH,Qx,Qxold,Qxinit,rhsQx,Qy,Qyold,Qyinit, &
                          rhsQy,Hqpt,Qxqpt,Qyqpt,xmom,ymom,xymom, &
                          Hflux,Qxflux,Qyflux,tau,src_x,src_y,pressa,recipHa, &
-                         Hn,Qxn,Qyn,egnval, &
-                         Hin,Hex,Qxin,Qxex,Qyin,Qyex, &
-                         xmin,xmex,ymin,ymex,xymin,xymex , &
                          nsp,nsp2,split,split2
                          
 
@@ -94,20 +91,6 @@
         PRINT*, 'Allocation error: pressa,recipHa'
       ENDIF
 
-      ALLOCATE(Hn(ne,3*nqpte),Qxn(ne,3*nqpte),Qyn(ne,3*nqpte),egnval(ne,3*nqpte),STAT = alloc_status)
-      IF(alloc_status /= 0) THEN
-        PRINT*, 'Allocation error: Hn,Qxn,Qyn,egnval'
-      ENDIF 
-
-      ALLOCATE(Hin(nied),Qxin(nied),Qyin(nied),Hex(nied),Qxex(nied),Qyex(nied),STAT = alloc_status)
-      IF(alloc_status /= 0) THEN
-        PRINT*, 'Allocation error: Hin,Qxin,Qyin,Hex,Qxex,Qyex'
-      ENDIF 
-      
-      ALLOCATE(xmin(nied),ymin(nied),xymin(nied),xmex(nied),ymex(nied),xymex(nied),STAT = alloc_status)
-      IF(alloc_status /= 0) THEN
-        PRINT*, 'Allocation error: xmin,ymin,xymin,xmex,ymex,xymex'
-      ENDIF 
       
       RETURN
       END SUBROUTINE alloc_arrays

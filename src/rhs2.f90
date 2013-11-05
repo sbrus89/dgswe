@@ -23,12 +23,7 @@
                           xmi,xme,ymi,yme,xymi,xyme, &
                           Hfi,Hfe,Qxfi,Qxfe,Qyfi,Qyfe, &
                           const,inx,iny,len_area_in,len_area_ex, &
-                          Hhatv,Qxhatv,Qyhatv, &
-                          nxv,nyv,Hn,Qxn,Qyn,egnval, &
-                          Hni,Hne,Qxni,Qxne,Qyni,Qyne,EVi,EVe, &
-                          Hp,Qxp,Qyp,xmp,ymp,xymp, &
-                          Hin,Hex,Qxin,Qxex,Qyin,Qyex, &
-                          xmin,xmex,ymin,ymex,xymin,xymex 
+                          Hhatv,Qxhatv,Qyhatv
                           
                    
       IMPLICIT NONE
