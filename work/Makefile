@@ -2,7 +2,7 @@ FC = ifort
 
 VPATH := ../src
 
-CFLAGS_VEC =  -O3 -xHost -vec-report6 -fno-alias -c
+CFLAGS_VEC =  -O3 -xHost -vec-report6 -c
 CFLAGS =  -O3 -xHost -c 
 CFLAGS_LINK = -O3 -xHost -o 
 
