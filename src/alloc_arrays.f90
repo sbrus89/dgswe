@@ -4,7 +4,7 @@
                          H,Hold,Hinit,rhsH,Qx,Qxold,Qxinit,rhsQx,Qy,Qyold,Qyinit, &
                          rhsQy,Hqpt,Qxqpt,Qyqpt,xmom,ymom,xymom, &
                          Hflux,Qxflux,Qyflux,tau,src_x,src_y,pressa,recipHa, &
-                         nsp,nsp2,split,split2
+                         nsp,nsp2,split
                          
 
       IMPLICIT NONE
@@ -23,18 +23,18 @@
       ENDDO
       PRINT*, ' '
       
-      ALLOCATE(split2(2,nsp2))
-      
-      DO sp = 1,nsp2
-        split2(1,sp) = (sp-1)*(nied/nsp2) + 1
-        split2(2,sp) = sp*(nied/nsp2)
-      ENDDO
-      split2(2,nsp2) = nied
-
-      DO sp = 1,nsp2
-        PRINT*, split2(1,sp),split2(2,sp) 
-      ENDDO
-      PRINT*, ' '
+!       ALLOCATE(split2(2,nsp2))
+!       
+!       DO sp = 1,nsp2
+!         split2(1,sp) = (sp-1)*(nied/nsp2) + 1
+!         split2(2,sp) = sp*(nied/nsp2)
+!       ENDDO
+!       split2(2,nsp2) = nied
+! 
+!       DO sp = 1,nsp2
+!         PRINT*, split2(1,sp),split2(2,sp) 
+!       ENDDO
+!       PRINT*, ' '
 
       ! Solution arrays
       

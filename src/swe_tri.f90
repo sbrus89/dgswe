@@ -20,19 +20,19 @@
 !       dt = 1d-4
 !       tf = .5d0
 
-!       grid_file = "../grids/inlet1.grd"
-!       forcing_file = "../grids/inlet1.bfr"
-!       dt = 1d0!/2d0      ! 1d0 for p=1,2, .5d0 for p=3
-!       tf = 1d0*86400d0
-!       dramp = .5d0
-!       cf = .003d0
-
-      grid_file = "../grids/inlet2.grd"
-      forcing_file = "../grids/inlet2.bfr"
-      dt = .5d0
+      grid_file = "../grids/inlet1.grd"
+      forcing_file = "../grids/inlet1.bfr"
+      dt = 1d0!/2d0      ! 1d0 for p=1,2, .5d0 for p=3
       tf = 1d0*86400d0
       dramp = .5d0
       cf = .003d0
+
+!       grid_file = "../grids/inlet2.grd"
+!       forcing_file = "../grids/inlet2.bfr"
+!       dt = .5d0
+!       tf = 1d0*86400d0
+!       dramp = .5d0
+!       cf = .003d0
 
 !       grid_file = "../grids/converge.grd"
 !       forcing_file = "../grids/converge.bfr"
@@ -55,7 +55,7 @@
 !       dramp = .08d0
 !       cf = .0025d0
 
-      p = 2
+      p = 1
     
       nsp = 21
       nsp2 = 40
@@ -102,6 +102,12 @@
 
       ! Compute initial condition, boundary forcing interpolation
       CALL initial()
+      
+      CALL read_partitions()
+      
+      CALL align_partitions()
+      
+      CALL edge_partition()
 
       CALL CPU_TIME(t_start)
 
@@ -130,17 +136,17 @@
 
            WRITE(63,"(e24.17)") t
            DO dof = 1,ndof
-             WRITE(63,"(16000(e24.17,1x))") H(:,dof)
+             WRITE(63,"(16000(e24.17,1x))") (Hwrite(el,dof)%ptr, el = 1,ne)
            ENDDO
 
            WRITE(641,"(e24.17)") t
            DO dof = 1,ndof
-             WRITE(641,"(16000(e24.17,1x))") Qx(:,dof)
+             WRITE(641,"(16000(e24.17,1x))") (Qxwrite(el,dof)%ptr, el = 1,ne)
            ENDDO
 
            WRITE(642,"(e24.17)") t
            DO dof = 1,ndof
-             WRITE(642,"(16000(e24.17,1x))") Qy(:,dof)
+             WRITE(642,"(16000(e24.17,1x))") (Qywrite(el,dof)%ptr, el = 1,ne)
            ENDDO
              
            cnt = 0

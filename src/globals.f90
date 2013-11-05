@@ -20,8 +20,9 @@
       
       INTEGER :: sp,sp2
       INTEGER :: nsp,nsp2
-      INTEGER, ALLOCATABLE, DIMENSION(:,:) :: split,split2
+      INTEGER, ALLOCATABLE, DIMENSION(:,:) :: split,psplit,esplit
       
+      INTEGER :: part
       INTEGER :: npart ! number of element partitions
       INTEGER :: mnelpp ! max number of elements per partition
       INTEGER, ALLOCATABLE, DIMENSION(:) :: tnpel ! total number of elements in each partition (including recv)
@@ -166,17 +167,6 @@
       TYPE(edge_ptr_array), ALLOCATABLE, DIMENSION(:,:) :: Hwrite
       TYPE(edge_ptr_array), ALLOCATABLE, DIMENSION(:,:) :: Qxwrite
       TYPE(edge_ptr_array), ALLOCATABLE, DIMENSION(:,:) :: Qywrite
-
-      REAL(pres) :: esl,Exx_in,Exy_in,Eyx_in,Eyy_in
-      REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: Exx,Exy,Eyx,Eyy
-      REAL(pres), ALLOCATABLE, TARGET, DIMENSION(:,:) :: Exxqpt,Exyqpt,Eyxqpt,Eyyqpt
-      TYPE(edge_ptr_array), ALLOCATABLE, DIMENSION(:,:) :: Exxi,Exyi,Eyxi,Eyyi
-      TYPE(edge_ptr_array), ALLOCATABLE, DIMENSION(:,:) :: Exxe,Exye,Eyxe,Eyye
-      REAL(pres), ALLOCATABLE, TARGET, DIMENSION(:,:) :: Exxflux,Exyflux,Eyxflux,Eyyflux
-      TYPE(edge_ptr_array), ALLOCATABLE, DIMENSION(:,:) :: Exxfi,Exyfi,Eyxfi,Eyyfi
-      TYPE(edge_ptr_array), ALLOCATABLE, DIMENSION(:,:) :: Exxfe,Exyfe,Eyxfe,Eyyfe
      
-
-
       END MODULE globals
 

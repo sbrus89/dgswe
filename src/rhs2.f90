@@ -1,6 +1,7 @@
       SUBROUTINE rhs2()
 
-      USE globals,  ONLY: l,ind,el,ne,pt,led,ed,dof,ndof,split,sp,nsp,split2,nsp2, &
+      USE globals,  ONLY: l,ind,el,ne,pt,led,ed,dof,ndof, &
+                          split,sp,nsp,psplit,esplit,part,npart, &
                           g,pt5g,tstage,ramp,arg,bfr, & 
                           H,Qx,Qy, &
                           rhsH,rhsQx,rhsQy, &
@@ -107,12 +108,12 @@ a_points: DO pt = 1,nqpta
      
 
 
-       DO sp = 1,nsp
+       DO part = 1,npart
 
 ed_points: DO pt = 1,3*nqpte
 
 !DIR$ VECTOR ALIGNED               
-              DO el = split(1,sp),split(2,sp)
+              DO el = psplit(1,part),psplit(2,part)
                 Hqpt(el,pt) = H(el,1)
                 Qxqpt(el,pt) = Qx(el,1)
                 Qyqpt(el,pt) = Qy(el,1)
@@ -120,7 +121,7 @@ ed_points: DO pt = 1,3*nqpte
 
     ed_basis: DO dof = 2,ndof     
 !DIR$ VECTOR ALIGNED
-                DO el = split(1,sp),split(2,sp) ! Compute solutions at edge quadrature points
+                DO el = psplit(1,part),psplit(2,part) ! Compute solutions at edge quadrature points
                   Hqpt(el,pt) = Hqpt(el,pt) + H(el,dof)*phie(dof,pt)            
                   Qxqpt(el,pt) = Qxqpt(el,pt) + Qx(el,dof)*phie(dof,pt)            
                   Qyqpt(el,pt) = Qyqpt(el,pt) + Qy(el,dof)*phie(dof,pt)            
@@ -129,7 +130,7 @@ ed_points: DO pt = 1,3*nqpte
               ENDDO ed_basis
 
 !DIR$ VECTOR ALIGNED
-              DO el = split(1,sp),split(2,sp) ! Compute momentum terms
+              DO el = psplit(1,part),psplit(2,part) ! Compute momentum terms
                 recipHa(el) = 1d0/Hqpt(el,pt)
                 
                 xmom(el,pt) = pt5g*Hqpt(el,pt)*Hqpt(el,pt) + Qxqpt(el,pt)*Qxqpt(el,pt)*recipHa(el) 
@@ -138,22 +139,18 @@ ed_points: DO pt = 1,3*nqpte
               ENDDO
 
           ENDDO ed_points
-
-       ENDDO
-     
-     
-          DO sp = 1,nsp2
+          
 ed_points2: DO pt = 1,nqpte ! Compute numerical fluxes for all edges
 
               
 !DIR$ VECTOR ALIGNED
-              DO ed = split2(1,sp),split2(2,sp)
+              DO ed = esplit(1,part),eplit(2,part)
                 const(ed) = max(abs(Qxi(ed,pt)%ptr*inx(ed) + Qyi(ed,pt)%ptr*iny(ed))/Hi(ed,pt)%ptr + sqrt(g*Hi(ed,pt)%ptr), &
                                 abs(Qxe(ed,pt)%ptr*inx(ed) + Qye(ed,pt)%ptr*iny(ed))/He(ed,pt)%ptr + sqrt(g*He(ed,pt)%ptr))
               ENDDO
 !DIR$ IVDEP
 !DIR$ VECTOR ALIGNED
-              DO ed = split2(1,sp),split2(2,sp)
+              DO ed = esplit(1,part),esplit(2,part)
                 Hhatv(ed) = .5d0*(inx(ed)*(Qxi(ed,pt)%ptr + Qxe(ed,pt)%ptr) + iny(ed)*(Qyi(ed,pt)%ptr + Qye(ed,pt)%ptr) &
                                         - const(ed)*(He(ed,pt)%ptr - Hi(ed,pt)%ptr))
                                         
@@ -162,7 +159,7 @@ ed_points2: DO pt = 1,nqpte ! Compute numerical fluxes for all edges
               ENDDO      
 !DIR$ IVDEP
 !DIR$ VECTOR ALIGNED
-              DO ed = split2(1,sp),split2(2,sp)
+              DO ed = esplit(1,part),seplit(2,part)
                 Qxhatv(ed) = .5d0*(inx(ed)*(xmi(ed,pt)%ptr + xme(ed,pt)%ptr) + iny(ed)*(xymi(ed,pt)%ptr + xyme(ed,pt)%ptr)  &
                                         - const(ed)*(Qxe(ed,pt)%ptr - Qxi(ed,pt)%ptr))
                                         
@@ -171,7 +168,7 @@ ed_points2: DO pt = 1,nqpte ! Compute numerical fluxes for all edges
               ENDDO   
 !DIR$ IVDEP
 !DIR$ VECTOR ALIGNED
-              DO ed = split2(1,sp),split2(2,sp)
+              DO ed = esplit(1,part),esplit2(2,part)
                 Qyhatv(ed) = .5d0*(inx(ed)*(xymi(ed,pt)%ptr + xyme(ed,pt)%ptr) + iny(ed)*(ymi(ed,pt)%ptr + yme(ed,pt)%ptr)  &
                                         - const(ed)*(Qye(ed,pt)%ptr - Qyi(ed,pt)%ptr))
                 Qyfe(ed,pt)%ptr = -len_area_ex(ed)*Qyhatv(ed)
@@ -179,8 +176,47 @@ ed_points2: DO pt = 1,nqpte ! Compute numerical fluxes for all edges
               ENDDO
 
 
-     ENDDO ed_points2
-   ENDDO
+        ENDDO ed_points2
+     
+     ENDDO
+     
+                 
+       DO pt = 1,nqpte
+!DIR$ VECTOR ALIGNED
+              DO ed = esplit(1,npart+1),esplit(2,npart+1)
+                const(ed) = max(abs(Qxi(ed,pt)%ptr*inx(ed) + Qyi(ed,pt)%ptr*iny(ed))/Hi(ed,pt)%ptr + sqrt(g*Hi(ed,pt)%ptr), &
+                                abs(Qxe(ed,pt)%ptr*inx(ed) + Qye(ed,pt)%ptr*iny(ed))/He(ed,pt)%ptr + sqrt(g*He(ed,pt)%ptr))
+              ENDDO
+!DIR$ IVDEP
+!DIR$ VECTOR ALIGNED
+              DO ed = esplit(1,npart+1),esplit(2,npart+1)
+                Hhatv(ed) = .5d0*(inx(ed)*(Qxi(ed,pt)%ptr + Qxe(ed,pt)%ptr) + iny(ed)*(Qyi(ed,pt)%ptr + Qye(ed,pt)%ptr) &
+                                        - const(ed)*(He(ed,pt)%ptr - Hi(ed,pt)%ptr))
+                                        
+                Hfe(ed,pt)%ptr = -len_area_ex(ed)*Hhatv(ed)
+                Hfi(ed,pt)%ptr =  len_area_in(ed)*Hhatv(ed)
+              ENDDO      
+!DIR$ IVDEP
+!DIR$ VECTOR ALIGNED
+              DO ed = esplit(1,npart+1),esplit(2,npart+1)
+                Qxhatv(ed) = .5d0*(inx(ed)*(xmi(ed,pt)%ptr + xme(ed,pt)%ptr) + iny(ed)*(xymi(ed,pt)%ptr + xyme(ed,pt)%ptr)  &
+                                        - const(ed)*(Qxe(ed,pt)%ptr - Qxi(ed,pt)%ptr))
+                                        
+                Qxfe(ed,pt)%ptr = -len_area_ex(ed)*Qxhatv(ed)
+                Qxfi(ed,pt)%ptr =  len_area_in(ed)*Qxhatv(ed)
+              ENDDO   
+!DIR$ IVDEP
+!DIR$ VECTOR ALIGNED
+              DO ed = esplit(1,npart+1),esplit(2,npart+1)
+                Qyhatv(ed) = .5d0*(inx(ed)*(xymi(ed,pt)%ptr + xyme(ed,pt)%ptr) + iny(ed)*(ymi(ed,pt)%ptr + yme(ed,pt)%ptr)  &
+                                        - const(ed)*(Qye(ed,pt)%ptr - Qyi(ed,pt)%ptr))
+                Qyfe(ed,pt)%ptr = -len_area_ex(ed)*Qyhatv(ed)
+                Qyfi(ed,pt)%ptr =  len_area_in(ed)*Qyhatv(ed)
+              ENDDO
+
+
+        ENDDO 
+     
           
           DO pt = 1,nqpte
             ! No normal flow boundary condition 
@@ -192,7 +228,7 @@ ed_points2: DO pt = 1,nqpte ! Compute numerical fluxes for all edges
 
               gp_in = (led_in-1)*nqpte + pt
 
-              el_in = ged2el(1,ged)
+              el_in = gel2ael(ged2el(1,ged))
 
               nx = normal(1,ged)
               ny = normal(2,ged)
@@ -241,7 +277,7 @@ ed_points2: DO pt = 1,nqpte ! Compute numerical fluxes for all edges
 
               gp_in = (led_in-1)*nqpte + pt
 
-              el_in = ged2el(1,ged)
+              el_in = gel2ael(ged2el(1,ged))
 
               nx = normal(1,ged)
               ny = normal(2,ged)
@@ -299,7 +335,7 @@ ed_points2: DO pt = 1,nqpte ! Compute numerical fluxes for all edges
 
               gp_in = (led_in-1)*nqpte + pt
 
-              el_in = ged2el(1,ged)
+              el_in = gel2ael(ged2el(1,ged))
 
               nx = normal(1,ged)
               ny = normal(2,ged)
