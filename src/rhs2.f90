@@ -111,16 +111,11 @@ a_points: DO pt = 1,nqpta
 !     ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc 
      
 
-!           Hqpt(:,:) = 0d0
-!           Qxqpt(:,:) = 0d0
-!           Qyqpt(:,:) = 0d0
 
        DO sp = 1,nsp
 
 ed_points: DO pt = 1,3*nqpte
 
-!     l_edge: DO led = 1,3
-!               ind = (led-1)*nqpte + pt
 !DIR$ VECTOR ALIGNED               
               DO el = split(1,sp),split(2,sp)
                 Hqpt(el,pt) = H(el,1)
@@ -146,20 +141,6 @@ ed_points: DO pt = 1,3*nqpte
                 ymom(el,pt) = pt5g*Hqpt(el,pt)*Hqpt(el,pt) + Qyqpt(el,pt)*Qyqpt(el,pt)*recipHa(el) 
                 xymom(el,pt) = Qxqpt(el,pt)*Qyqpt(el,pt)*recipHa(el)
               ENDDO
-              
-!               led = (pt-1)/nqpte + 1
-! !DIR$ IVDEP
-!               DO el = split(1,sp),split(2,sp)
-!                 Hn(el,pt) = nxv(el,led)*Qxqpt(el,pt) + nyv(el,led)*Qyqpt(el,pt)
-!                 Qxn(el,pt) = nxv(el,led)*xmom(el,pt) + nyv(el,led)*xymom(el,pt)
-!                 Qyn(el,pt) = nxv(el,led)*xymom(el,pt) + nyv(el,led)*ymom(el,pt)
-!               ENDDO
-! 
-!               DO el = split(1,sp),split(2,sp)
-!                 egnval(el,pt) = ABS(Hn(el,pt))*recipHa(el) + SQRT(g*Hqpt(el,pt))
-!               ENDDO
-
-!             ENDDO l_edge
 
           ENDDO ed_points
 
@@ -168,77 +149,6 @@ ed_points: DO pt = 1,3*nqpte
      
           DO sp = 1,nsp2
 ed_points2: DO pt = 1,nqpte ! Compute numerical fluxes for all edges
-
-!               ! Interior edges
-! !DIR$ VECTOR ALIGNED
-!               DO ed = split2(1,sp),split2(2,sp)
-!                 const(ed) = max(EVi(ed,pt)%ptr, EVe(ed,pt)%ptr)
-!               ENDDO
-!               
-! !DIR$ VECTOR ALIGNED
-! !DIR$ IVDEP
-!               DO ed = split2(1,sp),split2(2,sp)
-!                 Hhatv(ed) = .5d0*(Hni(ed,pt)%ptr + Hne(ed,pt)%ptr &
-!                                         - const(ed)*(He(ed,pt)%ptr - Hi(ed,pt)%ptr))
-!                 Hfe(ed,pt)%ptr = -len_area_ex(ed)*Hhatv(ed)
-!                 Hfi(ed,pt)%ptr =  len_area_in(ed)*Hhatv(ed)
-!               ENDDO
-! 
-! !DIR$ VECTOR ALIGNED
-! !DIR$ IVDEP
-!               DO ed = split2(1,sp),split2(2,sp)
-!                 Qxhatv(ed) = .5d0*(Qxni(ed,pt)%ptr + Qxne(ed,pt)%ptr  &
-!                                         - const(ed)*(Qxe(ed,pt)%ptr - Qxi(ed,pt)%ptr))
-!                 Qxfe(ed,pt)%ptr = -len_area_ex(ed)*Qxhatv(ed)
-!                 Qxfi(ed,pt)%ptr =  len_area_in(ed)*Qxhatv(ed)
-!               ENDDO
-!               
-! !DIR$ VECTOR ALIGNED
-! !DIR$ IVDEP
-!               DO ed = split2(1,sp),split2(2,sp)
-!                 Qyhatv(ed) = .5d0*(Qyni(ed,pt)%ptr + Qyne(ed,pt)%ptr  &
-!                                         - const(ed)*(Qye(ed,pt)%ptr - Qyi(ed,pt)%ptr))
-!                 Qyfe(ed,pt)%ptr = -len_area_ex(ed)*Qyhatv(ed)
-!                 Qyfi(ed,pt)%ptr =  len_area_in(ed)*Qyhatv(ed)
-!               ENDDO
-!               
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-!               ! Interior edges
-! !DIR$ VECTOR ALIGNED
-!               DO ed = split2(1,sp),split2(2,sp)
-!                 const(ed) = max(EVi(ed,pt)%ptr, EVe(ed,pt)%ptr)
-! 
-!                 Hhatv(ed) = .5d0*(Hni(ed,pt)%ptr + Hne(ed,pt)%ptr &
-!                                         - const(ed)*(He(ed,pt)%ptr - Hi(ed,pt)%ptr))
-!                 Qxhatv(ed) = .5d0*(Qxni(ed,pt)%ptr + Qxne(ed,pt)%ptr  &
-!                                         - const(ed)*(Qxe(ed,pt)%ptr - Qxi(ed,pt)%ptr))
-!                 Qyhatv(ed) = .5d0*(Qyni(ed,pt)%ptr + Qyne(ed,pt)%ptr  &
-!                                         - const(ed)*(Qye(ed,pt)%ptr - Qyi(ed,pt)%ptr))
-!               ENDDO
-!               
-! !DIR$ VECTOR ALIGNED
-! !DIR$ IVDEP
-!               DO ed = split2(1,sp),split2(2,sp)
-!                 Hfe(ed,pt)%ptr = -len_area_ex(ed)*Hhatv(ed)
-!                 Hfi(ed,pt)%ptr =  len_area_in(ed)*Hhatv(ed)
-!               ENDDO
-! 
-! !DIR$ VECTOR ALIGNED
-! !DIR$ IVDEP
-!               DO ed = split2(1,sp),split2(2,sp)
-!                 Qxfe(ed,pt)%ptr = -len_area_ex(ed)*Qxhatv(ed)
-!                 Qxfi(ed,pt)%ptr =  len_area_in(ed)*Qxhatv(ed)
-!               ENDDO
-!               
-! !DIR$ VECTOR ALIGNED
-! !DIR$ IVDEP
-!               DO ed = split2(1,sp),split2(2,sp)
-!                 Qyfe(ed,pt)%ptr = -len_area_ex(ed)*Qyhatv(ed)
-!                 Qyfi(ed,pt)%ptr =  len_area_in(ed)*Qyhatv(ed)
-!               ENDDO
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
               
 !DIR$ VECTOR ALIGNED
@@ -273,64 +183,6 @@ ed_points2: DO pt = 1,nqpte ! Compute numerical fluxes for all edges
                 Qyfi(ed,pt)%ptr =  len_area_in(ed)*Qyhatv(ed)
               ENDDO
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-              
-!              DO ed = split2(1,sp),split2(2,sp)
-!               Hin(ed) = Hi(ed,pt)%ptr
-!               Qxin(ed) = Qxi(ed,pt)%ptr
-!               Qyin(ed) = Qyi(ed,pt)%ptr
-!               xmin(ed) = xmi(ed,pt)%ptr
-!               ymin(ed) = ymi(ed,pt)%ptr
-!               xymin(ed) = xymi(ed,pt)%ptr
-! 
-!               Hex(ed) = He(ed,pt)%ptr
-!               Qxex(ed) = Qxe(ed,pt)%ptr
-!               Qyex(ed) = Qye(ed,pt)%ptr
-!               xmex(ed) = xme(ed,pt)%ptr
-!               ymex(ed) = yme(ed,pt)%ptr
-!               xymex(ed) = xyme(ed,pt)%ptr
-!             ENDDO
-! 
-!               ! Interior edges
-! !DIR$ VECTOR ALIGNED              
-!               DO ed = split2(1,sp),split2(2,sp)
-!                 const(ed) = max(abs(Qxin(ed)*inx(ed) + Qyin(ed)*iny(ed))/Hin(ed) + sqrt(g*Hin(ed)), &
-!                                 abs(Qxex(ed)*inx(ed) + Qyex(ed)*iny(ed))/Hex(ed) + sqrt(g*Hex(ed)))
-!               ENDDO
-! !DIR$ VECTOR ALIGNED              
-!               DO ed = split2(1,sp),split2(2,sp)     
-!                 Hhatv(ed) = .5d0*(inx(ed)*(Qxin(ed) + Qxex(ed)) + iny(ed)*(Qyin(ed) + Qyex(ed)) &
-!                                         - const(ed)*(Hex(ed) - Hin(ed)))
-!               ENDDO 
-! !DIR$ VECTOR ALIGNED              
-!               DO ed = split2(1,sp),split2(2,sp)              
-!                 Qxhatv(ed) = .5d0*(inx(ed)*(xmin(ed) + xmex(ed)) + iny(ed)*(xymin(ed) + xymex(ed))  &
-!                                         - const(ed)*(Qxex(ed) - Qxin(ed)))
-!               ENDDO 
-! !DIR$ VECTOR ALIGNED                                         
-!               DO ed = split2(1,sp),split2(2,sp)              
-!                 Qyhatv(ed) = .5d0*(inx(ed)*(xymin(ed) + xymex(ed)) + iny(ed)*(ymin(ed) + ymex(ed))  &
-!                                         - const(ed)*(Qyex(ed) - Qyin(ed)))
-!               ENDDO
-! 
-! !DIR$ IVDEP
-! !DIR$ VECTOR ALIGNED
-!               DO ed = split2(1,sp),split2(2,sp)
-!                 Hfe(ed,pt)%ptr = -len_area_ex(ed)*Hhatv(ed)
-!                 Hfi(ed,pt)%ptr =  len_area_in(ed)*Hhatv(ed)
-!               ENDDO
-! !DIR$ IVDEP
-! !DIR$ VECTOR ALIGNED
-!               DO ed = split2(1,sp),split2(2,sp)
-!                 Qxfe(ed,pt)%ptr = -len_area_ex(ed)*Qxhatv(ed)
-!                 Qxfi(ed,pt)%ptr =  len_area_in(ed)*Qxhatv(ed)
-!               ENDDO
-! !DIR$ IVDEP
-! !DIR$ VECTOR ALIGNED
-!               DO ed = split2(1,sp),split2(2,sp)
-!                 Qyfe(ed,pt)%ptr = -len_area_ex(ed)*Qyhatv(ed)
-!                 Qyfi(ed,pt)%ptr =  len_area_in(ed)*Qyhatv(ed)
-!               ENDDO
 
      ENDDO ed_points2
    ENDDO

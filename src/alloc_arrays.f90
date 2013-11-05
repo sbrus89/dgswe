@@ -1,7 +1,7 @@
       SUBROUTINE alloc_arrays()
 
       USE globals, ONLY: sp,ne,nied,ndof,nqpte, &
-                         H,Hold,rhsH,Qx,Qxold,rhsQx,Qy,Qyold, &
+                         H,Hold,Hinit,rhsH,Qx,Qxold,Qxinit,rhsQx,Qy,Qyold,Qyinit, &
                          rhsQy,Hqpt,Qxqpt,Qyqpt,xmom,ymom,xymom, &
                          Hflux,Qxflux,Qyflux,tau,src_x,src_y,pressa,recipHa, &
                          Hn,Qxn,Qyn,egnval, &
@@ -40,6 +40,12 @@
       PRINT*, ' '
 
       ! Solution arrays
+      
+      ALLOCATE(Hinit(ne,ndof),Qxinit(ne,ndof),Qyinit(ne,ndof),STAT = alloc_status)
+      IF(alloc_status /= 0) THEN
+        PRINT*, 'Allocation error: Hinit,Qxinit,Qyinit'
+      ENDIF
+      
       ALLOCATE(H(ne,ndof),Qx(ne,ndof),Qy(ne,ndof),STAT = alloc_status)
       IF(alloc_status /= 0) THEN
         PRINT*, 'Allocation error: H,Qx,Qy'

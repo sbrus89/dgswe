@@ -10,9 +10,6 @@
       INTEGER :: nqpte ! number of edge quadrature points
       INTEGER :: ne ! number of elements
       INTEGER :: nn ! number of nodes
-      INTEGER, ALLOCATABLE, DIMENSION(:,:) :: split,split2
-      INTEGER :: sp,nsp,nsp2
-
       REAL(pres), PARAMETER :: g = 9.81d0 ! gravitational constant
       REAL(pres), PARAMETER :: pt5g = 0.5d0*g
       REAL(pres), PARAMETER  ::  pi=3.141592653589793D0
@@ -20,6 +17,19 @@
       CHARACTER(24) :: grid_name ! name of the grid
       CHARACTER(24) :: grid_file ! name of fort.14 file
       CHARACTER(24) :: forcing_file ! name of fort.15 file
+      
+      INTEGER, ALLOCATABLE, DIMENSION(:,:) :: split,split2
+      
+      INTEGER :: npart ! number of element partitions
+      INTEGER :: mnelpp ! max number of elements per partition
+      INTEGER, ALLOCATABLE, DIMENSION(:) :: tnpel ! total number of elements in each partition (including recv)
+      INTEGER, ALLOCATABLE, DIMENSION(:) :: npel ! number of elements in each partition (without recv)      
+      INTEGER, ALLOCATABLE, DIMENSION(:,:) :: peln ! global numbers of elements in each partition
+      INTEGER, ALLOCATABLE, DIMENSION(:) :: nprel ! number of partition recv elements
+      INTEGER, ALLOCATABLE, DIMENSION(:,:) :: preln ! local numbers of rev elements 
+      INTEGER, ALLOCATABLE, DIMENSION(:,:) :: lel2gel ! gives the global element number that corresponds to a local partition element number
+      INTEGER, ALLOCATABLE, DIMENSION(:) :: gel2ael ! gives the aligned element number that corresponds to a global element number
+      INTEGER, ALLOCATABLE, DIMENSION(:) :: ael2gel ! gives the global element number that corresponds to an aligned element number      
 
       REAL(pres) :: dt ! time step
       REAL(pres) :: t ! simulation time
@@ -88,15 +98,14 @@
       INTEGER :: nnfbed ! total number of no normal flow boundary edges
       INTEGER, ALLOCATABLE, DIMENSION(:) :: nfbedn ! array of no normal flow boundary edge numbers
 
-      REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: H,Hold ! degrees of freedom for water column height
-      REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: Qx,Qxold ! degrees of freedom for x momentum
-      REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: Qy,Qyold ! degrees of freedom for y momentum
+      REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: H,Hold,Hinit ! degrees of freedom for water column height
+      REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: Qx,Qxold,Qxinit ! degrees of freedom for x momentum
+      REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: Qy,Qyold,Qyinit ! degrees of freedom for y momentum
 
       REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: rhsH,rhsQx,rhsQy ! right hand side evaluation arrays
 
       REAL(pres), ALLOCATABLE, TARGET, DIMENSION(:,:) :: Hqpt,Qxqpt,Qyqpt ! solution quadrature point evaluation arrays
       REAL(pres), ALLOCATABLE, TARGET, DIMENSION(:,:) :: xmom,ymom,xymom ! momentum terms quadrature point evaluation arrays
-      REAL(pres), ALLOCATABLE, TARGET, DIMENSION(:,:) :: egnval,Hn,Qxn,Qyn
       REAL(pres), ALLOCATABLE, DIMENSION(:) :: src_x,src_y
       REAL(pres), ALLOCATABLE, DIMENSION(:) :: tau
       REAL(pres) :: u,v
@@ -125,7 +134,6 @@
       REAL(pres) :: H_in,H_ex,Qx_in,Qx_ex,Qy_in,Qy_ex ! interior/exterior numerical flux solution variables
       REAL(pres) :: xmom_in,xmom_ex,ymom_in,ymom_ex,xymom_in,xymom_ex ! interior/exterior numerical flux momentum variables
       REAL(pres) :: nx,ny,nx2,ny2,nxny,tx,ty ! x and y edge normals
-      REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: nxv,nyv
       REAL(pres) :: Hhat,Qxhat,Qyhat ! numerical flux variables
       REAL(pres), ALLOCATABLE, TARGET, DIMENSION(:,:) :: Hflux,Qxflux,Qyflux ! numerical flux arrays
       REAL(pres) :: Qn,Qt
@@ -133,11 +141,6 @@
       REAL(pres), ALLOCATABLE, DIMENSION(:) :: const
       REAL(pres), ALLOCATABLE, DIMENSION(:) :: inx,iny,len_area_in,len_area_ex
       REAL(pres), ALLOCATABLE, DIMENSION(:) :: Hhatv,Qxhatv,Qyhatv
-      
-      REAL(pres), ALLOCATABLE, DIMENSION(:) :: Hin,Hex,Qxin,Qxex,Qyin,Qyex
-      REAL(pres), ALLOCATABLE, DIMENSION(:) :: xmin,xmex,ymin,ymex,xymin,xymex   
-      
-      INTEGER, ALLOCATABLE, DIMENSION(:) :: edpt_in,edpt_ex
 
       TYPE :: edge_ptr_array
         REAL(pres), POINTER :: ptr
@@ -151,44 +154,21 @@
       TYPE(edge_ptr_array), ALLOCATABLE, DIMENSION(:,:) :: xymi,xyme
       TYPE(edge_ptr_array), ALLOCATABLE, DIMENSION(:,:) :: Hfi,Qxfi,Qyfi
       TYPE(edge_ptr_array), ALLOCATABLE, DIMENSION(:,:) :: Hfe,Qxfe,Qyfe
-      TYPE(edge_ptr_array), ALLOCATABLE, DIMENSION(:,:) :: Hni,Qxni,Qyni
-      TYPE(edge_ptr_array), ALLOCATABLE, DIMENSION(:,:) :: Hne,Qxne,Qyne      
-      TYPE(edge_ptr_array), ALLOCATABLE, DIMENSION(:,:) :: EVi,EVe
-!      TYPE(edge_ptr_array), ALLOCATABLE, DIMENSION(:,:) :: rHi,rHe
+      
+      TYPE(edge_ptr_array), ALLOCATABLE, DIMENSION(:,:) :: Hwrite
+      TYPE(edge_ptr_array), ALLOCATABLE, DIMENSION(:,:) :: Qxwrite
+      TYPE(edge_ptr_array), ALLOCATABLE, DIMENSION(:,:) :: Qywrite
 
-      TYPE :: edge_ptr_array2
-        REAL(pres), POINTER :: in
-        REAL(pres), POINTER :: ex
-      END TYPE edge_ptr_array2
+      REAL(pres) :: esl,Exx_in,Exy_in,Eyx_in,Eyy_in
+      REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: Exx,Exy,Eyx,Eyy
+      REAL(pres), ALLOCATABLE, TARGET, DIMENSION(:,:) :: Exxqpt,Exyqpt,Eyxqpt,Eyyqpt
+      TYPE(edge_ptr_array), ALLOCATABLE, DIMENSION(:,:) :: Exxi,Exyi,Eyxi,Eyyi
+      TYPE(edge_ptr_array), ALLOCATABLE, DIMENSION(:,:) :: Exxe,Exye,Eyxe,Eyye
+      REAL(pres), ALLOCATABLE, TARGET, DIMENSION(:,:) :: Exxflux,Exyflux,Eyxflux,Eyyflux
+      TYPE(edge_ptr_array), ALLOCATABLE, DIMENSION(:,:) :: Exxfi,Exyfi,Eyxfi,Eyyfi
+      TYPE(edge_ptr_array), ALLOCATABLE, DIMENSION(:,:) :: Exxfe,Exyfe,Eyxfe,Eyyfe
+     
 
-      TYPE(edge_ptr_array2), ALLOCATABLE, DIMENSION(:,:) :: Hp
-      TYPE(edge_ptr_array2), ALLOCATABLE, DIMENSION(:,:) :: Qxp
-      TYPE(edge_ptr_array2), ALLOCATABLE, DIMENSION(:,:) :: Qyp
-      TYPE(edge_ptr_array2), ALLOCATABLE, DIMENSION(:,:) :: xmp
-      TYPE(edge_ptr_array2), ALLOCATABLE, DIMENSION(:,:) :: ymp
-      TYPE(edge_ptr_array2), ALLOCATABLE, DIMENSION(:,:) :: xymp
-
-!DIR$ ATTRIBUTES ALIGN:32 :: rhsH,rhsQx,rhsQy
-!DIR$ ATTRIBUTES ALIGN:32 :: Hqpt,Qxqpt,Qyqpt
-!DIR$ ATTRIBUTES ALIGN:32 :: H,Qx,Qy
-!DIR$ ATTRIBUTES ALIGN:32 :: Hold, Qxold,Qyold
-!DIR$ ATTRIBUTES ALIGN:32 :: phia,phie
-!DIR$ ATTRIBUTES ALIGN:32 :: recipHa
-!DIR$ ATTRIBUTES ALIGN:32 :: xmom,ymom,xymom
-!DIR$ ATTRIBUTES ALIGN:32 :: tau
-!DIR$ ATTRIBUTES ALIGN:32 :: dhbdx,dhbdy
-!DIR$ ATTRIBUTES ALIGN:32 :: src_x,src_y
-!DIR$ ATTRIBUTES ALIGN:32 :: dpdx,dpdy
-!DIR$ ATTRIBUTES ALIGN:32 :: phia_int, phie_int
-!DIR$ ATTRIBUTES ALIGN:32 :: Hflux,Qxflux,Qyflux
-!DIR$ ATTRIBUTES ALIGN:32 :: const,Hhatv,Qxhatv,Qyhatv
-!DIR$ ATTRIBUTES ALIGN:32 :: Hi,He,Qxi,Qxe,Qyi,Qye,xmi,xme,xymi,xyme,ymi,yme
-!DIR$ ATTRIBUTES ALIGN:32 :: inx,iny,len_area_ex,len_area_in
-!DIR$ ATTRIBUTES ALIGN:32 :: Hin,Hex,Qxin,Qxex,Qyin,Qyex,xmin,xmex,xymin,xymex,ymin,ymex
-!DIR$ ATTRIBUTES ALIGN:32 :: Hfe,Hfi,Qxfi,Qxfe,Qyfi,Qyfe
-!DIR$ ATTRIBUTES ALIGN:32 :: Hn,Qxn,Qyn,egnval
-!DIR$ ATTRIBUTES ALIGN:32 :: nxv,nyv
-!DIR$ ATTRIBUTES ALIGN:32 :: Hni,Hne,Qxni,Qxne,Qyni,Qyne
 
       END MODULE globals
 
