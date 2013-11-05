@@ -151,9 +151,11 @@ C-- Copy MNPROC to NPROC since they are to be the same
 C
       NPROC=MNPROC
 
-      print *, "prepare for coldstart/hotstart type 1/hotstart type 2 ",
-     &         "( prep / hotprep1 / hotprep2 )"
-      READ(*,*)  JOB
+!       print *, "prepare for coldstart/hotstart type 1/hotstart type 2 ",
+!      &         "( prep / hotprep1 / hotprep2 )"
+!       READ(*,*)  JOB
+      JOB = "prep"
+
 C
 C-- Short circuit rest of code to simply relocalize a fort.15 file for
 C     a hotstart assuming all other files are already in place.
@@ -195,8 +197,8 @@ C
 C
 C-- Read the Global Input File ( Unit 15 )
 C
-        CALL READ15()
-        print *, 'Global Input file read successfully'
+!         CALL READ15()
+!         print *, 'Global Input file read successfully'
 
 ! C
 ! C-- Read Hard Bottom File ( fort.hb )

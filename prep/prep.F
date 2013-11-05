@@ -2399,8 +2399,8 @@ C
 C--Write out the domain decomposition information into a file
 C  which will later be used in post-processing the results
 C
-      WRITE(80,80) RUNDES
-      WRITE(80,80) RUNID
+      WRITE(80,*) "RUNDES"
+      WRITE(80,*) "RUNID"
       WRITE(80,80) AGRID
       WRITE(80,'(2I8,16x,A)') NELG,NNODG,'! Total # elements & nodes'
       WRITE(80,'(I8,24x,A)') NPROC,'! Number of processors'
