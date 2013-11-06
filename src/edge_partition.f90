@@ -60,10 +60,17 @@
           PRINT*, "Error reading fort.80"
           STOP
         ENDIF
-        READ(80,1130) ((el,part), el=1,tnpel(part))
+        READ(80,1130) (peln(el,part), el=1,tnpel(part))
       ENDDO
       
       CLOSE(80)
+      
+!       PRINT*,"Partition elements"
+!       DO part = 1,npart
+!         PRINT*, part,tnpel(part)
+!         PRINT 1130, (peln(el,part), el=1,tnpel(part))
+!       ENDDO      
+!       PRINT*, " "
       
       OPEN(UNIT=18,FILE="DG.18")
       
@@ -108,6 +115,13 @@
         ENDDO
         
       ENDDO
+      
+!       PRINT*, "Partition recieve elements"
+!       DO part = 1,npart
+!         PRINT*, part,nprel(part)
+!         PRINT 1130, (preln(el,part), el = 1,nprel(part))
+!       ENDDO
+!       PRINT*, " "
       
       CLOSE(18)
       
@@ -157,7 +171,13 @@
           
         ENDDO
         npel(part) = el_cnt
+        
       ENDDO
+      
+!       PRINT*, "Total partition elements, res+send only"
+!       DO part = 1,npart
+!         PRINT*, tnpel(part),npel(part)
+!       ENDDO
       
       ! Check if sum of partition elements = number of elements in mesh
       tel = 0
@@ -216,7 +236,7 @@
       PRINT*, " "
       PRINT*, "psplit: "
       DO part = 1,npart
-        PRINT*, psplit(1,part), psplit(2,part)
+        PRINT*, psplit(1,part), psplit(2,part), npel(part)
       ENDDO
       
       RETURN
@@ -231,7 +251,7 @@
       
       SUBROUTINE edge_partition()
       
-      USE globals, ONLY: npart,nied, esplit, &
+      USE globals, ONLY: npart,nied,esplit, &
                          iedn,ged2el,lel2gel, &
                          normal,edlen_area, &
                          inx,iny,len_area_in,len_area_ex
@@ -242,6 +262,7 @@
       INTEGER :: part,ed
       INTEGER :: ged,el_in,el_ex
       INTEGER :: edcnt,ted
+      INTEGER :: alloc_status
       
       INTEGER, ALLOCATABLE, DIMENSION(:) :: edflag, npied     
       
@@ -278,13 +299,19 @@
               len_area_ex(edcnt) = edlen_area(2,ged)
                 
           ELSE
-            ! ignore edges that cotain elements from two different partitions (for now)
-            edflag(ed) = 0
+            ! ignore edges that contain elements from two different partitions (for now)
           ENDIF
 
         ENDDO
           
       ENDDO
+      
+!       PRINT*, "edge count after partitioning = ", edcnt
+!       
+!       PRINT*, " "
+!       DO ed = 1,nied
+!         PRINT*, ed, edflag(ed)
+!       ENDDO
       
       DO ed = 1,nied
         IF(edflag(ed) == 0) THEN
@@ -309,35 +336,40 @@
         ENDIF
       ENDDO
       
+      ALLOCATE(esplit(2,npart+1),STAT = alloc_status)
+      IF(alloc_status /= 0) THEN
+        PRINT*, "Allocation error: esplit"
+      ENDIF     
+      
+      ted = 0
+      esplit(1,1) = 1
+      DO part = 1,npart      
+        esplit(2,part) = ted + npied(part)
+        esplit(1,part+1) = ted + npied(part) + 1 
+        ted = ted + npied(part)
+      ENDDO
+      esplit(2,npart+1) = ted + npied(npart+1)
+      
+      PRINT*, " "
+      PRINT*, "esplit: "
+      DO part = 1,npart+1
+        PRINT*, esplit(1,part), esplit(2,part), npied(part)
+      ENDDO      
+      
       ted = 0
       DO part = 1,npart+1
         ted = ted + npied(part)
       ENDDO
       
       IF(ted /= nied) THEN
-        PRINT*, "Error: sum of partition interior edges /= total iterior edges"
+        PRINT*, "Error: sum of partition interior edges /= total interior edges"
+        PRINT*, "ted = ", ted
+        PRINT*, "nied = ", nied
         STOP
       ENDIF
+    
       
-      ALLOCATE(esplit(2,npart+1),STAT = alloc_status)
-      IF(alloc_status /= 0) THEN
-        PRINT*, "Allocation error: esplit"
-      ENDIF         
-      
-      ted = 0
-      esplit(1,1) = 1
-      DO part = 1,npart      
-        esplit(2,part) = tel + npied(part)
-        esplit(1,part+1) = tel + npied(part) + 1 
-        ted = ted + npied(part)
-      ENDDO
-      esplit(2,part+1) = ted + npied(part+1)
-      
-      PRINT*, " "
-      PRINT*, "esplit: "
-      DO part = 1,npart+1
-        PRINT*, esplit(1,part), esplit(2,part)
-      ENDDO      
+
       
       RETURN
       END SUBROUTINE edge_partition

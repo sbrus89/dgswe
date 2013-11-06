@@ -57,8 +57,7 @@
 
       p = 1
     
-      nsp = 21
-      nsp2 = 40
+      nsp = 4
 
       tstep = int(tf/dt)
       lines = 100d0

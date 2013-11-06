@@ -18,7 +18,7 @@
                           nied,iedn,nobed,obedn,nnfbed,nfbedn,nfbed,fbedn, &
                           nobfr,obfreq,obper,obnfact,obamp_qpt,obph_qpt,obeq,obdepth_qpt, &
                           nfbfr,fbfreq,fbper,fbnfact,fbamp_qpt,fbph_qpt,fbeq, &
-                          ged2led,ged2el,ged, &
+                          ged2led,ged2el,gel2ael,ged, &
                           pressa,recipHa, & 
                           Hi,He,Qxi,Qxe,Qyi,Qye, &
                           xmi,xme,ymi,yme,xymi,xyme, &
@@ -144,7 +144,7 @@ ed_points2: DO pt = 1,nqpte ! Compute numerical fluxes for all edges
 
               
 !DIR$ VECTOR ALIGNED
-              DO ed = esplit(1,part),eplit(2,part)
+              DO ed = esplit(1,part),esplit(2,part)
                 const(ed) = max(abs(Qxi(ed,pt)%ptr*inx(ed) + Qyi(ed,pt)%ptr*iny(ed))/Hi(ed,pt)%ptr + sqrt(g*Hi(ed,pt)%ptr), &
                                 abs(Qxe(ed,pt)%ptr*inx(ed) + Qye(ed,pt)%ptr*iny(ed))/He(ed,pt)%ptr + sqrt(g*He(ed,pt)%ptr))
               ENDDO
@@ -159,7 +159,7 @@ ed_points2: DO pt = 1,nqpte ! Compute numerical fluxes for all edges
               ENDDO      
 !DIR$ IVDEP
 !DIR$ VECTOR ALIGNED
-              DO ed = esplit(1,part),seplit(2,part)
+              DO ed = esplit(1,part),esplit(2,part)
                 Qxhatv(ed) = .5d0*(inx(ed)*(xmi(ed,pt)%ptr + xme(ed,pt)%ptr) + iny(ed)*(xymi(ed,pt)%ptr + xyme(ed,pt)%ptr)  &
                                         - const(ed)*(Qxe(ed,pt)%ptr - Qxi(ed,pt)%ptr))
                                         
@@ -168,7 +168,7 @@ ed_points2: DO pt = 1,nqpte ! Compute numerical fluxes for all edges
               ENDDO   
 !DIR$ IVDEP
 !DIR$ VECTOR ALIGNED
-              DO ed = esplit(1,part),esplit2(2,part)
+              DO ed = esplit(1,part),esplit(2,part)
                 Qyhatv(ed) = .5d0*(inx(ed)*(xymi(ed,pt)%ptr + xyme(ed,pt)%ptr) + iny(ed)*(ymi(ed,pt)%ptr + yme(ed,pt)%ptr)  &
                                         - const(ed)*(Qye(ed,pt)%ptr - Qyi(ed,pt)%ptr))
                 Qyfe(ed,pt)%ptr = -len_area_ex(ed)*Qyhatv(ed)
