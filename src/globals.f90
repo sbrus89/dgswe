@@ -167,6 +167,24 @@
       TYPE(edge_ptr_array), ALLOCATABLE, DIMENSION(:,:) :: Hwrite
       TYPE(edge_ptr_array), ALLOCATABLE, DIMENSION(:,:) :: Qxwrite
       TYPE(edge_ptr_array), ALLOCATABLE, DIMENSION(:,:) :: Qywrite
+      
+!DIR$ ATTRIBUTES ALIGN:32 :: rhsH,rhsQx,rhsQy
+!DIR$ ATTRIBUTES ALIGN:32 :: Hqpt,Qxqpt,Qyqpt
+!DIR$ ATTRIBUTES ALIGN:32 :: H,Qx,Qy
+!DIR$ ATTRIBUTES ALIGN:32 :: Hold, Qxold,Qyold
+!DIR$ ATTRIBUTES ALIGN:32 :: phia,phie
+!DIR$ ATTRIBUTES ALIGN:32 :: recipHa
+!DIR$ ATTRIBUTES ALIGN:32 :: xmom,ymom,xymom
+!DIR$ ATTRIBUTES ALIGN:32 :: tau
+!DIR$ ATTRIBUTES ALIGN:32 :: dhbdx,dhbdy
+!DIR$ ATTRIBUTES ALIGN:32 :: src_x,src_y
+!DIR$ ATTRIBUTES ALIGN:32 :: dpdx,dpdy
+!DIR$ ATTRIBUTES ALIGN:32 :: phia_int, phie_int
+!DIR$ ATTRIBUTES ALIGN:32 :: Hflux,Qxflux,Qyflux
+!DIR$ ATTRIBUTES ALIGN:32 :: const,Hhatv,Qxhatv,Qyhatv
+!DIR$ ATTRIBUTES ALIGN:32 :: Hi,He,Qxi,Qxe,Qyi,Qye,xmi,xme,xymi,xyme,ymi,yme
+!DIR$ ATTRIBUTES ALIGN:32 :: inx,iny,len_area_ex,len_area_in
+!DIR$ ATTRIBUTES ALIGN:32 :: Hfe,Hfi,Qxfi,Qxfe,Qyfi,Qyfe
      
       END MODULE globals
 
