@@ -38,8 +38,8 @@
       grid_file = "../grids/converge.grd"
       forcing_file = "../grids/converge.bfr"
       dt = .5d0
-      tf = 10d0
-!       tf = 86400d0
+!       tf = 10d0
+      tf = 86400d0
       dramp = .5d0
       cf = .003d0
 
@@ -62,7 +62,7 @@
       nsp = 4
 
       tstep = int(tf/dt)
-      lines = 20d0
+      lines = 100d0
       tskp = int(tf/(lines*dt)) 
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

@@ -4,7 +4,9 @@
 
       SUBROUTINE area_basis()
 
-        USE globals, ONLY: pres,nqpta,wpta,qpta,p,ndof,phia,phia_int,phil,dpdx,dpdy,ect,xy,ne,area
+        USE globals, ONLY: pres,nqpta,wpta,qpta,p,ndof, &
+                           phia,phia_int,phil,dpdx,dpdy,dpdx_init,dpdy_init, &
+                           ect,xy,ne,area
 
         IMPLICIT NONE
         INTEGER :: m,i,j,pt,el,dof,ind,jj
@@ -33,6 +35,11 @@
         IF(alloc_status /= 0) THEN
           PRINT*, 'Allocation error: dpdx,dpdy'
         ENDIF 
+        
+        ALLOCATE(dpdx_init(ne,ndof*nqpta),dpdy_init(ne,ndof*nqpta),STAT = alloc_status)
+        IF(alloc_status /= 0) THEN
+          PRINT*, 'Allocation error: dpdx_init,dpdy_init'
+        ENDIF         
 
       PRINT "(A)", "---------------------------------------------"
       PRINT "(A)", "         Basis Function Information          "
@@ -142,8 +149,8 @@
 !               dpdx(el,ind) = wpta(pt)*(dpdr(dof,pt)*(y3 - y1) + dpds(dof,pt)*(y1 - y2))/area(el)
 !               dpdy(el,ind) = wpta(pt)*(dpdr(dof,pt)*(x1 - x3) + dpds(dof,pt)*(x2 - x1))/area(el)
 
-              dpdx(el,ind) = .5d0*wpta(pt)*(dpdr(dof,pt)*(y3 - y1) + dpds(dof,pt)*(y1 - y2))/area(el)
-              dpdy(el,ind) = .5d0*wpta(pt)*(dpdr(dof,pt)*(x1 - x3) + dpds(dof,pt)*(x2 - x1))/area(el)
+              dpdx_init(el,ind) = .5d0*wpta(pt)*(dpdr(dof,pt)*(y3 - y1) + dpds(dof,pt)*(y1 - y2))/area(el)
+              dpdy_init(el,ind) = .5d0*wpta(pt)*(dpdr(dof,pt)*(x1 - x3) + dpds(dof,pt)*(x2 - x1))/area(el)
             ENDDO
           ENDDO
         ENDDO

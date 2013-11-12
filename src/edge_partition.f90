@@ -140,9 +140,11 @@
       
       SUBROUTINE align_partitions()
 
-      USE globals, ONLY: ne,ndof,npart,tnpel,npel,peln,mnelpp,preln,psplit, &
+      USE globals, ONLY: ne,ndof,nqpta,npart,tnpel,npel,peln,mnelpp,preln,psplit, &
                          lel2gel,gel2ael,ael2gel,gel2part, &
                          H,Hinit,Qx,Qxinit,Qy,Qyinit, &
+                         dpdx,dpdx_init,dpdy,dpdy_init, &
+                         dhbdx,dhbdx_init,dhbdy,dhbdy_init, &
                          Hwrite,Qxwrite,Qywrite
       
       IMPLICIT NONE
@@ -214,12 +216,22 @@
           Qx(el_cnt,1:ndof) = Qxinit(lel2gel(el,part),1:ndof)
           Qy(el_cnt,1:ndof) = Qyinit(lel2gel(el,part),1:ndof)
           
+          dpdx(el_cnt,1:ndof*nqpta) = dpdx_init(lel2gel(el,part),1:ndof*nqpta)
+          dpdy(el_cnt,1:ndof*nqpta) = dpdy_init(lel2gel(el,part),1:ndof*nqpta)      
+          
+          dhbdx(el_cnt) = dhbdx_init(lel2gel(el,part))
+          dhbdy(el_cnt) = dhbdy_init(lel2gel(el,part))
+          
           ael2gel(el_cnt) = lel2gel(el,part)
           gel2ael(lel2gel(el,part)) = el_cnt
           
           el_cnt = el_cnt + 1
         ENDDO
       ENDDO
+      
+      DEALLOCATE(Hinit,Qxinit,Qyinit)
+      DEALLOCATE(dpdx_init,dpdy_init)
+      DEALLOCATE(dhbdx_init,dhbdy_init)
       
 !       PRINT*, " "
 !       PRINT*, "Aligned element, global element"
@@ -461,9 +473,6 @@
 
         Hi(ed,pt)%ptr => Hqpt(ael_in,gp_in)
         He(ed,pt)%ptr => Hqpt(ael_ex,gp_ex)
-        
-        Hi(ed,pt)%ptr = 0d0
-        He(ed,pt)%ptr = 0d0
 
         Qxi(ed,pt)%ptr => Qxqpt(ael_in,gp_in)
         Qxe(ed,pt)%ptr => Qxqpt(ael_ex,gp_ex)

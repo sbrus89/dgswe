@@ -1,7 +1,8 @@
       SUBROUTINE element_data()
 
       USE globals, ONLY: pres,ect,xy,depth,ne,nn,ned, &
-                         area,edlen,edlen_area,normal,ged2nn,ged2el,ged2led,dhbdx,dhbdy
+                         area,edlen,edlen_area,normal,ged2nn,ged2el,ged2led, &
+                         dhbdx,dhbdy,dhbdx_init,dhbdy_init
 
       IMPLICIT NONE
       INTEGER :: el,ed,led
@@ -102,6 +103,11 @@
       IF(alloc_status /= 0) THEN
         PRINT*, 'Allocation error: dhbdx,dhbdy'
       ENDIF
+      
+      ALLOCATE(dhbdx_init(ne),dhbdy_init(ne),STAT = alloc_status)
+      IF(alloc_status /= 0) THEN
+        PRINT*, 'Allocation error: dhbdx_init,dhbdy_init'
+      ENDIF      
 
       DO el = 1,ne
         x1 = xy(1,ect(1,el))
@@ -117,8 +123,8 @@
         hb2 = depth(ect(2,el))
         hb3 = depth(ect(3,el))
 
-        dhbdx(el) = ( -(.5d0*(y3-y1)+.5d0*(y1-y2))*hb1 + .5d0*(y3-y1)*hb2 + .5d0*(y1-y2)*hb3 )/area(el)
-        dhbdy(el) = ( -(.5d0*(x1-x3)+.5d0*(x2-x1))*hb1 + .5d0*(x1-x3)*hb2 + .5d0*(x2-x1)*hb3 )/area(el)
+        dhbdx_init(el) = ( -(.5d0*(y3-y1)+.5d0*(y1-y2))*hb1 + .5d0*(y3-y1)*hb2 + .5d0*(y1-y2)*hb3 )/area(el)
+        dhbdy_init(el) = ( -(.5d0*(x1-x3)+.5d0*(x2-x1))*hb1 + .5d0*(x1-x3)*hb2 + .5d0*(x2-x1)*hb3 )/area(el)
  
         WRITE(64,*) dhbdx(el),dhbdy(el)
 

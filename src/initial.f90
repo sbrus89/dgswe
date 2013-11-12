@@ -56,8 +56,9 @@
 !             qint = qint + wpta(pt)*f*phia(l,pt)
             qint = qint + .5d0*wpta(pt)*f*phia(l,pt)
           ENDDO
-!           Hinit(el,l) = qint
-          Hinit(el,1) = el
+          Hinit(el,l) = qint
+          
+!           Hinit(el,1) = el ! for debugging
 !            H(el,l) = qint
         ENDDO
       ENDDO

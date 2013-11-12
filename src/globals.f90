@@ -88,6 +88,7 @@
       REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: edlen_area
       REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: normal ! element edge normals
       REAL(pres), ALLOCATABLE, DIMENSION(:) :: dhbdx,dhbdy ! elemental x and y derivatives of linear bathymetry
+      REAL(pres), ALLOCATABLE, DIMENSION(:) :: dhbdx_init,dhbdy_init      
 
       INTEGER :: ned ! total number of edges
       INTEGER, ALLOCATABLE, DIMENSION(:,:) :: ged2nn ! gives the two node numbers that make up a global edge number
@@ -130,6 +131,7 @@
       REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: phie_int 
       REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: phil ! linear nodal basis functions evaluated at area quadrature points
       REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: dpdx,dpdy ! basis function derivatives evaluated at area quadrature points
+      REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: dpdx_init,dpdy_init
 
       REAL(pres), ALLOCATABLE, DIMENSION(:) :: pressa,recipHa ! temporary variables for momentum term calculation
       REAL(pres) :: press,recipH ! temporary variables for momentum term calculation
