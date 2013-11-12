@@ -20,12 +20,13 @@
 !       dt = 1d-4
 !       tf = .5d0
 
-      grid_file = "../grids/inlet1.grd"
-      forcing_file = "../grids/inlet1.bfr"
-      dt = 1d0!/2d0      ! 1d0 for p=1,2, .5d0 for p=3
-      tf = 1d0*86400d0
-      dramp = .5d0
-      cf = .003d0
+!       grid_file = "../grids/inlet1.grd"
+!       forcing_file = "../grids/inlet1.bfr"
+!       dt = 1d0!/2d0      ! 1d0 for p=1,2, .5d0 for p=3
+!       tf = 10d0
+! !       tf = 1d0*86400d0
+!       dramp = .5d0
+!       cf = .003d0
 
 !       grid_file = "../grids/inlet2.grd"
 !       forcing_file = "../grids/inlet2.bfr"
@@ -34,12 +35,13 @@
 !       dramp = .5d0
 !       cf = .003d0
 
-!       grid_file = "../grids/converge.grd"
-!       forcing_file = "../grids/converge.bfr"
-!       dt = .5d0
+      grid_file = "../grids/converge.grd"
+      forcing_file = "../grids/converge.bfr"
+      dt = .5d0
+      tf = 10d0
 !       tf = 86400d0
-!       dramp = .5d0
-!       cf = .003d0
+      dramp = .5d0
+      cf = .003d0
 
 !       grid_file = "../grids/converge3.grd"
 !       forcing_file = "../grids/converge3.bfr"
@@ -60,7 +62,7 @@
       nsp = 4
 
       tstep = int(tf/dt)
-      lines = 100d0
+      lines = 20d0
       tskp = int(tf/(lines*dt)) 
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -147,6 +149,21 @@
            DO dof = 1,ndof
              WRITE(642,"(16000(e24.17,1x))") (Qywrite(el,dof)%ptr, el = 1,ne)
            ENDDO
+           
+!            WRITE(63,"(e24.17)") t
+!            DO dof = 1,ndof
+!              WRITE(63,"(16000(e24.17,1x))") (H(el,dof), el = 1,ne)
+!            ENDDO
+! 
+!            WRITE(641,"(e24.17)") t
+!            DO dof = 1,ndof
+!              WRITE(641,"(16000(e24.17,1x))") (Qx(el,dof), el = 1,ne)
+!            ENDDO
+! 
+!            WRITE(642,"(e24.17)") t
+!            DO dof = 1,ndof
+!              WRITE(642,"(16000(e24.17,1x))") (Qy(el,dof), el = 1,ne)
+!            ENDDO
              
            cnt = 0
 

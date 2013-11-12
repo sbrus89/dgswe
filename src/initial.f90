@@ -3,6 +3,7 @@
       USE globals, ONLY: pres,ne,nn,ndof, &
                          ect,xy,depth, &
                          nqpta,qpta,wpta,nqpte,qpte, &
+                         H,Qx,Qy, &
                          Hinit,Qxinit,Qyinit, &
                          phia,phil, &
                          nope,obseg,nbou,fbseg, &
@@ -55,14 +56,19 @@
 !             qint = qint + wpta(pt)*f*phia(l,pt)
             qint = qint + .5d0*wpta(pt)*f*phia(l,pt)
           ENDDO
-          Hinit(el,l) = qint
+!           Hinit(el,l) = qint
+          Hinit(el,1) = el
+!            H(el,l) = qint
         ENDDO
       ENDDO
 
       Qxinit(:,:) = 0d0
       Qyinit(:,:) = 0d0
 
-      ! Write initial condition
+!       Qx(:,:) = 0d0
+!       Qy(:,:) = 0d0
+
+!       Write initial condition
       WRITE(63,"(A)") grid_file
       WRITE(63,"(e24.17)") 0d0
       DO dof = 1,ndof
@@ -80,6 +86,24 @@
       DO dof = 1,ndof
         WRITE(642,"(16000(e24.17,1x))") (Qyinit(el,dof),el=1,ne)
       ENDDO
+
+!       WRITE(63,"(A)") grid_file
+!       WRITE(63,"(e24.17)") 0d0
+!       DO dof = 1,ndof
+!         WRITE(63,"(16000(e24.17,1x))") (H(el,dof),el=1,ne)
+!       ENDDO
+! 
+!       WRITE(641,"(A)") grid_file
+!       WRITE(641,"(e24.17)") 0d0
+!       DO dof = 1,ndof
+!         WRITE(641,"(16000(e24.17,1x))") (Qx(el,dof),el=1,ne)
+!       ENDDO
+! 
+!       WRITE(642,"(A)") grid_file
+!       WRITE(642,"(e24.17)") 0d0
+!       DO dof = 1,ndof
+!         WRITE(642,"(16000(e24.17,1x))") (Qy(el,dof),el=1,ne)
+!       ENDDO
 
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       ! Interpolate boundary forcing data

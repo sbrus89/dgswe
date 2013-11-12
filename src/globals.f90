@@ -33,6 +33,8 @@
       INTEGER, ALLOCATABLE, DIMENSION(:,:) :: lel2gel ! gives the global element number that corresponds to a local partition element number
       INTEGER, ALLOCATABLE, DIMENSION(:) :: gel2ael ! gives the aligned element number that corresponds to a global element number
       INTEGER, ALLOCATABLE, DIMENSION(:) :: ael2gel ! gives the global element number that corresponds to an aligned element number      
+      INTEGER, ALLOCATABLE, DIMENSION(:) :: gel2part
+      INTEGER, ALLOCATABLE, DIMENSION(:) :: piedn ! global edge numbers in aligned order
 
       REAL(pres) :: dt ! time step
       REAL(pres) :: t ! simulation time

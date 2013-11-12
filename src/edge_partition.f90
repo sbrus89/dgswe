@@ -141,7 +141,7 @@
       SUBROUTINE align_partitions()
 
       USE globals, ONLY: ne,ndof,npart,tnpel,npel,peln,mnelpp,preln,psplit, &
-                         lel2gel,gel2ael,ael2gel, &
+                         lel2gel,gel2ael,ael2gel,gel2part, &
                          H,Hinit,Qx,Qxinit,Qy,Qyinit, &
                          Hwrite,Qxwrite,Qywrite
       
@@ -150,8 +150,12 @@
       INTEGER :: part,el,dof
       INTEGER :: el_cnt,tel
       INTEGER :: alloc_status
+      INTEGER, ALLOCATABLE, DIMENSION(:) :: elflag
       
-      ALLOCATE(lel2gel(mnelpp,npart),npel(npart),gel2ael(ne),ael2gel(ne),STAT = alloc_status)
+      ALLOCATE(elflag(ne))
+      elflag = 0
+      
+      ALLOCATE(lel2gel(mnelpp,npart),npel(npart),gel2ael(ne),ael2gel(ne),gel2part(ne),STAT = alloc_status)
       IF(alloc_status /= 0) THEN
         PRINT*, "Allocation error: npel,lel2gel,gel2ael,ael2gel"
       ENDIF       
@@ -167,6 +171,8 @@
           ELSE
             el_cnt = el_cnt + 1
             lel2gel(el_cnt,part) = peln(el,part)
+            gel2part(lel2gel(el_cnt,part)) = part
+            elflag(lel2gel(el_cnt,part)) = elflag(lel2gel(el_cnt,part)) + 1
           ENDIF
           
         ENDDO
@@ -177,6 +183,9 @@
 !       PRINT*, "Total partition elements, res+send only"
 !       DO part = 1,npart
 !         PRINT*, tnpel(part),npel(part)
+!         DO el = 1,npel(part)
+!           PRINT*, lel2gel(el,part)
+!         ENDDO
 !       ENDDO
       
       ! Check if sum of partition elements = number of elements in mesh
@@ -189,6 +198,13 @@
         PRINT*, "Error: Sum of partition elements /= total elements"
         STOP
       ENDIF
+      
+      DO el = 1,ne
+        IF (elflag(el) /= 1) THEN
+          PRINT*, "ELEMENT ERROR"
+          STOP
+        ENDIF
+      ENDDO
       
       ! rearrange dof arrays and genrate aligned element to global element table and global to aligned
       el_cnt = 1
@@ -205,6 +221,24 @@
         ENDDO
       ENDDO
       
+!       PRINT*, " "
+!       PRINT*, "Aligned element, global element"
+!       DO el = 1,ne
+!         PRINT*, el, ael2gel(el) !, gel2ael(el)
+!       ENDDO
+!       
+!       PRINT*, " "
+!       PRINT*, "Element, H"
+!       DO el = 1,ne
+!         PRINT*, el, H(el,1) !, gel2ael(el)
+!       ENDDO
+      
+!       PRINT*, " "
+!       PRINT*, "global element, aligned element"
+!       DO el = 1,ne
+!         PRINT*, el, gel2ael(el)
+!       ENDDO
+      
       ALLOCATE(Hwrite(ne,ndof),Qxwrite(ne,ndof),Qywrite(ne,ndof),STAT = alloc_status)
       IF(alloc_status /= 0) THEN
         PRINT*, "Allocation error: Hwrite,Qxwrite,Qywrite"
@@ -213,11 +247,17 @@
       ! set up write pointer arrays
       DO el = 1,ne
         DO dof = 1,ndof
-          Hwrite(el,dof)%ptr => H(ael2gel(el),dof)
-          Qxwrite(el,dof)%ptr => Qx(ael2gel(el),dof)
-          Qywrite(el,dof)%ptr => Qy(ael2gel(el),dof)          
+          Hwrite(el,dof)%ptr => H(gel2ael(el),dof)
+          Qxwrite(el,dof)%ptr => Qx(gel2ael(el),dof)
+          Qywrite(el,dof)%ptr => Qy(gel2ael(el),dof)          
         ENDDO
       ENDDO
+      
+!       PRINT*, " "
+!       PRINT*, "Element, Hwrite"
+!       DO el = 1,ne
+!         PRINT*, el, Hwrite(el,1)%ptr !, gel2ael(el)
+!       ENDDO
       
       ALLOCATE(psplit(2,npart),STAT = alloc_status)
       IF(alloc_status /= 0) THEN
@@ -252,9 +292,7 @@
       SUBROUTINE edge_partition()
       
       USE globals, ONLY: npart,nied,esplit, &
-                         iedn,ged2el,lel2gel, &
-                         normal,edlen_area, &
-                         inx,iny,len_area_in,len_area_ex
+                         iedn,ged2el,lel2gel,piedn
                          
       
       IMPLICIT NONE
@@ -266,7 +304,7 @@
       
       INTEGER, ALLOCATABLE, DIMENSION(:) :: edflag, npied     
       
-      ALLOCATE(edflag(nied),npied(npart+1))
+      ALLOCATE(edflag(nied),npied(npart+1),piedn(nied))
       
       edflag = 0
       npied = 0
@@ -285,18 +323,13 @@
           ! check if both elements are in the partition
           IF(ANY(lel2gel(:,part).eq.el_in) .and. ANY(lel2gel(:,part).eq.el_ex)) THEN
             
-              edflag(ed) = 1
+              edflag(ed) = edflag(ed) + 1
               edcnt = edcnt + 1
               
               npied(part) = npied(part) + 1
+              piedn(edcnt) = ged
                 
               CALL point_to_el(edcnt,ged,el_in,el_ex)
-              
-              inx(edcnt) = normal(1,ged)
-              iny(edcnt) = normal(2,ged)
-              
-              len_area_in(edcnt) = edlen_area(1,ged)
-              len_area_ex(edcnt) = edlen_area(2,ged)
                 
           ELSE
             ! ignore edges that contain elements from two different partitions (for now)
@@ -306,8 +339,8 @@
           
       ENDDO
       
-!       PRINT*, "edge count after partitioning = ", edcnt
-!       
+      PRINT*, "edge count after partitioning = ", edcnt
+      
 !       PRINT*, " "
 !       DO ed = 1,nied
 !         PRINT*, ed, edflag(ed)
@@ -316,7 +349,7 @@
       DO ed = 1,nied
         IF(edflag(ed) == 0) THEN
         
-          edflag(ed) = 1
+          edflag(ed) = edflag(ed) + 1
           edcnt = edcnt + 1
           
           npied(npart+1) = npied(npart+1) + 1
@@ -325,14 +358,22 @@
           el_in = ged2el(1,ged)
           el_ex = ged2el(2,ged)
           
+          piedn(edcnt) = ged
+          
           CALL point_to_el(edcnt,ged,el_in,el_ex)
           
-          inx(edcnt) = normal(1,ged)
-          iny(edcnt) = normal(2,ged)
-          
-          len_area_in(edcnt) = edlen_area(1,ged)
-          len_area_ex(edcnt) = edlen_area(2,ged)
-          
+        ENDIF
+      ENDDO
+      
+!       PRINT*, " "
+!       DO ed = 1,nied
+!         PRINT*, ed, edflag(ed)
+!       ENDDO
+
+      DO ed = 1,nied
+        IF(edflag(ed) /= 1) THEN
+          PRINT*, "Edge partition error: edflag /= 1"
+          STOP
         ENDIF
       ENDDO
       
@@ -361,10 +402,11 @@
         ted = ted + npied(part)
       ENDDO
       
-      IF(ted /= nied) THEN
+      IF(ted /= nied .or. edcnt /= nied) THEN
         PRINT*, "Error: sum of partition interior edges /= total interior edges"
         PRINT*, "ted = ", ted
         PRINT*, "nied = ", nied
+        PRINT*, "edcnt = ", edcnt
         STOP
       ENDIF
     
@@ -383,13 +425,15 @@
       
       SUBROUTINE point_to_el(ed,ged,el_in,el_ex)
       
-      USE globals, ONLY: nqpte,ged2led,gel2ael, &
+      USE globals, ONLY: nqpte,ged2led,gel2ael,gel2part, &
                          Hqpt,Qxqpt,Qyqpt, &
                          xmom,ymom,xymom, &
                          Hflux,Qxflux,Qyflux, &
                          Hi,He,Qxi,Qxe,Qyi,Qye, &
                          xmi,xme,ymi,yme,xymi,xyme, &
-                         Hfi,Hfe,Qxfi,Qxfe,Qyfi,Qyfe
+                         Hfi,Hfe,Qxfi,Qxfe,Qyfi,Qyfe, &
+                         normal,edlen_area, &
+                         inx,iny,len_area_in,len_area_ex
                       
       
       IMPLICIT NONE
@@ -405,6 +449,8 @@
       ael_in = gel2ael(el_in)
       ael_ex = gel2ael(el_ex)
       
+!       PRINT "(I8,8x,3(I8),8X,3(I8))", ed,el_in,ael_in,gel2part(el_in), el_ex,ael_ex,gel2part(el_ex)
+      
       DO pt = 1,nqpte
       
         led_in = ged2led(1,ged)
@@ -415,6 +461,9 @@
 
         Hi(ed,pt)%ptr => Hqpt(ael_in,gp_in)
         He(ed,pt)%ptr => Hqpt(ael_ex,gp_ex)
+        
+        Hi(ed,pt)%ptr = 0d0
+        He(ed,pt)%ptr = 0d0
 
         Qxi(ed,pt)%ptr => Qxqpt(ael_in,gp_in)
         Qxe(ed,pt)%ptr => Qxqpt(ael_ex,gp_ex)
@@ -442,6 +491,12 @@
      
       
       ENDDO
+      
+      inx(ed) = normal(1,ged)
+      iny(ed) = normal(2,ged)
+          
+      len_area_in(ed) = edlen_area(1,ged)
+      len_area_ex(ed) = edlen_area(2,ged)
       
       RETURN
       END SUBROUTINE point_to_el
