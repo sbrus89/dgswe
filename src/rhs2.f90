@@ -29,6 +29,7 @@
                           
                    
       IMPLICIT NONE
+      INTEGER :: i
 
 !     ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !     c Area Integrals
@@ -62,7 +63,6 @@ a_points: DO pt = 1,nqpta
 
             ENDDO a_basis
 
-
 !DIR$ VECTOR ALIGNED
             DO el = split(1,sp),split(2,sp) ! Compute momentum terms
               recipHa(el) = 1d0/Hqpt(el,1)
@@ -70,7 +70,6 @@ a_points: DO pt = 1,nqpta
               xmom(el,1) = pt5g*Hqpt(el,1)*Hqpt(el,1) + Qxqpt(el,1)*Qxqpt(el,1)*recipHa(el)
               ymom(el,1) = pt5g*Hqpt(el,1)*Hqpt(el,1) + Qyqpt(el,1)*Qyqpt(el,1)*recipHa(el) 
               xymom(el,1) = Qxqpt(el,1)*Qyqpt(el,1)*recipHa(el)
-
             ENDDO 
 
 !DIR$ VECTOR ALIGNED
@@ -101,6 +100,77 @@ a_points: DO pt = 1,nqpta
           ENDDO a_points
 
        ENDDO
+       
+!        DO sp = 1,nsp 
+! 
+! a_points: DO pt = 1,nqpta
+! 
+!             i = 1
+! !DIR$ VECTOR ALIGNED
+!             DO el = split(1,sp),split(2,sp)
+!               Hqpt(i,1) = H(el,1)
+!               Qxqpt(i,1) = Qx(el,1)
+!               Qyqpt(i,1) = Qy(el,1)
+!               i = i+1
+!             ENDDO
+! 
+!    a_basis: DO dof = 2,ndof
+!               i = 1
+! !DIR$ VECTOR ALIGNED
+!               DO el = split(1,sp),split(2,sp) ! Evaluate solution at area quadrature point
+!                 Hqpt(i,1) = Hqpt(i,1) + H(el,dof)*phia(dof,pt)
+!                 Qxqpt(i,1) = Qxqpt(i,1) + Qx(el,dof)*phia(dof,pt) 
+!                 Qyqpt(i,1) = Qyqpt(i,1) + Qy(el,dof)*phia(dof,pt)
+!                 i = i+1
+!               ENDDO
+! 
+!             ENDDO a_basis
+! 
+!             i = 1
+! !DIR$ VECTOR ALIGNED
+!             DO el = split(1,sp),split(2,sp) ! Compute momentum terms
+!               recipHa(i) = 1d0/Hqpt(i,1)
+! 
+!               xmom(i,1) = pt5g*Hqpt(i,1)*Hqpt(i,1) + Qxqpt(i,1)*Qxqpt(i,1)*recipHa(i)
+!               ymom(i,1) = pt5g*Hqpt(i,1)*Hqpt(i,1) + Qyqpt(i,1)*Qyqpt(i,1)*recipHa(i) 
+!               xymom(i,1) = Qxqpt(i,1)*Qyqpt(i,1)*recipHa(i)
+!               i = i+1
+!             ENDDO 
+! 
+!             i = 1
+! !DIR$ VECTOR ALIGNED
+!             DO el = split(1,sp),split(2,sp) ! Compute source terms
+!               tau(i) = cf*sqrt((Qxqpt(i,1)*recipHa(i))**2 + (Qyqpt(i,1)*recipHa(i))**2)*recipHa(i)
+!               src_x(i) = g*Hqpt(i,1)*dhbdx(el) - tau(i)*Qxqpt(i,1) 
+!               src_y(i) = g*Hqpt(i,1)*dhbdy(el) - tau(i)*Qyqpt(i,1)
+!               i = i+1
+!             ENDDO
+! 
+!             i = 1
+! !DIR$ VECTOR ALIGNED
+!             DO el = split(1,sp),split(2,sp) ! Derivatives are 0 for first dof
+!               rhsQx(el,1) = rhsQx(el,1) + src_x(i)*phia_int(1,pt)
+!               rhsQy(el,1) = rhsQy(el,1) + src_y(i)*phia_int(1,pt)
+!               i = i+1
+!             ENDDO
+! 
+!       test: DO l = 2,ndof 
+!               ind = (l-1)*nqpta+pt
+!               i = 1
+! !DIR$ VECTOR ALIGNED          
+!               DO el = split(1,sp),split(2,sp)
+!                 rhsH(el,l) = rhsH(el,l) + Qxqpt(i,1)*dpdx(el,ind) + Qyqpt(i,1)*dpdy(el,ind)
+! 
+!                 rhsQx(el,l) = rhsQx(el,l) + xmom(i,1)*dpdx(el,ind) + xymom(i,1)*dpdy(el,ind) + src_x(i)*phia_int(l,pt)
+!                 rhsQy(el,l) = rhsQy(el,l) + xymom(i,1)*dpdx(el,ind) + ymom(i,1)*dpdy(el,ind) + src_y(i)*phia_int(l,pt)
+!                 i = i+1
+!               ENDDO
+! 
+!             ENDDO test 
+! 
+!           ENDDO a_points
+! 
+!        ENDDO
 
       
 !     ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
