@@ -64,6 +64,9 @@
       READ(80,*) ignore1
       READ(80,*) ignore1,ignore2
       
+      PRINT*, " "
+      PRINT*, "Number of partitions: ", npart
+      
       
       ALLOCATE(pnodes(mnnpp,npart),STAT = alloc_status)
       IF(alloc_status /= 0) THEN
@@ -335,6 +338,7 @@
       DO part = 1,npart
         PRINT*, psplit(1,part), psplit(2,part), npel(part)
       ENDDO
+      PRINT*, "Max elements per partition: ", MAXVAL(npel(:))
       
       RETURN
       END SUBROUTINE align_partitions
@@ -411,7 +415,7 @@
           
       ENDDO
       
-      PRINT*, "edge count after partitioning = ", edcnt
+!       PRINT*, "edge count after partitioning = ", edcnt
       
 !       PRINT*, " "
 !       DO ed = 1,nied
@@ -474,7 +478,8 @@
       PRINT*, "esplit: "
       DO part = 1,npart+1
         PRINT*, esplit(1,part), esplit(2,part), npied(part)
-      ENDDO      
+      ENDDO  
+      PRINT*, "Max interior edges per partition: ", MAXVAL(npied)
       
       ted = 0
       DO part = 1,npart+1
