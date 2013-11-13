@@ -177,6 +177,7 @@
       
       INTEGER :: part,el,dof
       INTEGER :: el_cnt,tel
+      INTEGER :: yes_rel,j
       INTEGER :: alloc_status
       INTEGER, ALLOCATABLE, DIMENSION(:) :: elflag
       
@@ -194,7 +195,15 @@
         el_cnt = 0
         DO el = 1,tnpel(part)
         
-          IF( ANY(preln(:,part).eq.el) ) THEN
+          yes_rel = 0
+          DO j = 1,tnpel(part)
+            IF (el == preln(j,part)) THEN
+              yes_rel = 1
+            ENDIF
+          ENDDO
+        
+!           IF( ANY(preln(:,part).eq.el) ) THEN
+          IF (yes_rel == 1) THEN
             ! ignore if element is recv
           ELSE
             IF (elflag(peln(el,part)) < 1) THEN
