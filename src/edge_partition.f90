@@ -279,7 +279,7 @@
       
       DEALLOCATE(Hinit,Qxinit,Qyinit)
       DEALLOCATE(dpdx_init,dpdy_init)
-!       DEALLOCATE(dhbdx_init,dhbdy_init)
+      DEALLOCATE(dhbdx_init,dhbdy_init)
       
 !       PRINT*, " "
 !       PRINT*, "Aligned element, global element"
