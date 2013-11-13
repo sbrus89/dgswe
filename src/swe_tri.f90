@@ -20,19 +20,19 @@
 !       dt = 1d-4
 !       tf = .5d0
 
-!       grid_file = "../grids/inlet1.grd"
-!       forcing_file = "../grids/inlet1.bfr"
-!       dt = 1d0!/2d0      ! 1d0 for p=1,2, .5d0 for p=3
-!       tf = 1d0*86400d0
-!       dramp = .5d0
-!       cf = .003d0
-
-      grid_file = "../grids/inlet2.grd"
-      forcing_file = "../grids/inlet2.bfr"
-      dt = .5d0
+      grid_file = "../grids/inlet1.grd"
+      forcing_file = "../grids/inlet1.bfr"
+      dt = 1d0!/2d0      ! 1d0 for p=1,2, .5d0 for p=3
       tf = 1d0*86400d0
       dramp = .5d0
       cf = .003d0
+
+!       grid_file = "../grids/inlet2.grd"
+!       forcing_file = "../grids/inlet2.bfr"
+!       dt = .5d0
+!       tf = 1d0*86400d0
+!       dramp = .5d0
+!       cf = .003d0
 
 !       grid_file = "../grids/converge.grd"
 !       forcing_file = "../grids/converge.bfr"
@@ -57,7 +57,7 @@
 
       p = 1
     
-      nsp = 21
+      nsp = 5
       
 !       npart = 2
 

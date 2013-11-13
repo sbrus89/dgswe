@@ -339,14 +339,15 @@
       
       SUBROUTINE edge_partition()
       
-      USE globals, ONLY: npart,nied,esplit, &
+      USE globals, ONLY: npart,nied,esplit,npel, &
                          iedn,ged2el,lel2gel,piedn
                          
       
       IMPLICIT NONE
       
-      INTEGER :: part,ed
+      INTEGER :: part,ed,el
       INTEGER :: ged,el_in,el_ex
+      INTEGER :: yes_in,yes_ex
       INTEGER :: edcnt,ted
       INTEGER :: alloc_status
       
@@ -367,9 +368,22 @@
           ged = iedn(ed)
           el_in = ged2el(1,ged)
           el_ex = ged2el(2,ged)
+          
+          yes_in = 0
+          yes_ex = 0
+          
+          DO el = 1,npel(part)
+            IF (lel2gel(el,part) == el_in) THEN
+              yes_in = 1
+            ENDIF
+            IF (lel2gel(el,part) == el_ex) THEN
+              yes_ex = 1
+            ENDIF
+          ENDDO
             
           ! check if both elements are in the partition
-          IF(ANY(lel2gel(:,part).eq.el_in) .and. ANY(lel2gel(:,part).eq.el_ex)) THEN
+!           IF(ANY(lel2gel(:,part).eq.el_in) .and. ANY(lel2gel(:,part).eq.el_ex)) THEN
+          IF (yes_in == 1 .and. yes_ex == 1) THEN
 !             IF (edflag(ed) < 1) THEN
             
               edflag(ed) = edflag(ed) + 1
