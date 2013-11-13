@@ -125,8 +125,11 @@
 
         dhbdx_init(el) = ( -(.5d0*(y3-y1)+.5d0*(y1-y2))*hb1 + .5d0*(y3-y1)*hb2 + .5d0*(y1-y2)*hb3 )/area(el)
         dhbdy_init(el) = ( -(.5d0*(x1-x3)+.5d0*(x2-x1))*hb1 + .5d0*(x1-x3)*hb2 + .5d0*(x2-x1)*hb3 )/area(el)
+        
+!         dhbdx(el) = ( -(.5d0*(y3-y1)+.5d0*(y1-y2))*hb1 + .5d0*(y3-y1)*hb2 + .5d0*(y1-y2)*hb3 )/area(el)
+!         dhbdy(el) = ( -(.5d0*(x1-x3)+.5d0*(x2-x1))*hb1 + .5d0*(x1-x3)*hb2 + .5d0*(x2-x1)*hb3 )/area(el)
  
-        WRITE(64,*) dhbdx(el),dhbdy(el)
+!         WRITE(64,*) dhbdx(el),dhbdy(el)
 
       ENDDO
 

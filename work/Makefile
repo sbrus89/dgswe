@@ -2,9 +2,9 @@ FC = ifort
 
 VPATH := ../src
 
-# CFLAGS_VEC =  -O3 -xHost -vec-report6 -c
-# CFLAGS =  -O3 -xHost -c 
-# CFLAGS_LINK = -O3 -xHost -o 
+CFLAGS_VEC =  -O3 -xHost -vec-report6 -c
+CFLAGS =  -O3 -xHost -c 
+CFLAGS_LINK = -O3 -xHost -o 
 
 # ### Profile compilation ###
 # CFLAGS_VEC =  -O3 -xHost -vec-report3 -profile-loops=all -c 
@@ -21,10 +21,10 @@ VPATH := ../src
 # CFLAGS = -c
 # CFLAGS_LINK = -o
 
-## Debug compilation ###
-CFLAGS_VEC = -c -C -g -traceback
-CFLAGS = -c -C -g -traceback
-CFLAGS_LINK = -o
+# ## Debug compilation ###
+# CFLAGS_VEC = -c -C -g -traceback
+# CFLAGS = -c -C -g -traceback
+# CFLAGS_LINK = -o
 
 ### Other compiler flags ###
 # -no-prec-div

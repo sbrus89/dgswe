@@ -23,25 +23,23 @@
 !       grid_file = "../grids/inlet1.grd"
 !       forcing_file = "../grids/inlet1.bfr"
 !       dt = 1d0!/2d0      ! 1d0 for p=1,2, .5d0 for p=3
-!       tf = 10d0
-! !       tf = 1d0*86400d0
-!       dramp = .5d0
-!       cf = .003d0
-
-!       grid_file = "../grids/inlet2.grd"
-!       forcing_file = "../grids/inlet2.bfr"
-!       dt = .5d0
 !       tf = 1d0*86400d0
 !       dramp = .5d0
 !       cf = .003d0
 
-      grid_file = "../grids/converge.grd"
-      forcing_file = "../grids/converge.bfr"
+      grid_file = "../grids/inlet2.grd"
+      forcing_file = "../grids/inlet2.bfr"
       dt = .5d0
-!       tf = 10d0
-      tf = 86400d0
+      tf = 1d0*86400d0
       dramp = .5d0
       cf = .003d0
+
+!       grid_file = "../grids/converge.grd"
+!       forcing_file = "../grids/converge.bfr"
+!       dt = .5d0
+!       tf = 86400d0
+!       dramp = .5d0
+!       cf = .003d0
 
 !       grid_file = "../grids/converge3.grd"
 !       forcing_file = "../grids/converge3.bfr"
@@ -59,7 +57,9 @@
 
       p = 1
     
-      nsp = 4
+      nsp = 21
+      
+!       npart = 2
 
       tstep = int(tf/dt)
       lines = 100d0
@@ -103,6 +103,8 @@
 
       ! Compute initial condition, boundary forcing interpolation
       CALL initial()
+      
+!       CALL make_partitions()
       
       CALL read_partitions()
       

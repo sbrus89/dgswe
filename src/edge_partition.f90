@@ -1,3 +1,29 @@
+      SUBROUTINE make_partitions()
+      
+      USE globals, ONLY:npart,grid_file
+      
+      IMPLICIT NONE
+      
+      OPEN(UNIT=10,FILE='partition.d')
+      
+      WRITE(10,"(I4)") npart
+      WRITE(10,*) grid_file
+      CLOSE(10)
+      
+      
+      PRINT*, "Sarting ADCPREP"
+      CALL SYSTEM("./adcprep < partition.d")
+      
+      
+      END SUBROUTINE make_partitions
+      
+            
+      
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!      
+      
+            
+      
       SUBROUTINE read_partitions()
       
       USE globals, ONLY: npart,tnpel,mnelpp,peln,nprel,preln
@@ -171,10 +197,12 @@
           IF( ANY(preln(:,part).eq.el) ) THEN
             ! ignore if element is recv
           ELSE
-            el_cnt = el_cnt + 1
-            lel2gel(el_cnt,part) = peln(el,part)
-            gel2part(lel2gel(el_cnt,part)) = part
-            elflag(lel2gel(el_cnt,part)) = elflag(lel2gel(el_cnt,part)) + 1
+            IF (elflag(peln(el,part)) < 1) THEN
+              el_cnt = el_cnt + 1
+              lel2gel(el_cnt,part) = peln(el,part)
+              gel2part(lel2gel(el_cnt,part)) = part
+              elflag(lel2gel(el_cnt,part)) = elflag(lel2gel(el_cnt,part)) + 1
+            ENDIF
           ENDIF
           
         ENDDO
@@ -189,6 +217,12 @@
 !           PRINT*, lel2gel(el,part)
 !         ENDDO
 !       ENDDO
+
+!       DO el = 1,ne
+!         PRINT*, el,elflag(el),gel2part(el)
+!       ENDDO
+
+
       
       ! Check if sum of partition elements = number of elements in mesh
       tel = 0
@@ -198,6 +232,8 @@
       
       IF (tel /= ne) THEN
         PRINT*, "Error: Sum of partition elements /= total elements"
+        PRINT*, "Total partition element count ", tel
+        PRINT*, "Total number of elements", ne
         STOP
       ENDIF
       
@@ -231,7 +267,7 @@
       
       DEALLOCATE(Hinit,Qxinit,Qyinit)
       DEALLOCATE(dpdx_init,dpdy_init)
-      DEALLOCATE(dhbdx_init,dhbdy_init)
+!       DEALLOCATE(dhbdx_init,dhbdy_init)
       
 !       PRINT*, " "
 !       PRINT*, "Aligned element, global element"
@@ -334,6 +370,7 @@
             
           ! check if both elements are in the partition
           IF(ANY(lel2gel(:,part).eq.el_in) .and. ANY(lel2gel(:,part).eq.el_ex)) THEN
+!             IF (edflag(ed) < 1) THEN
             
               edflag(ed) = edflag(ed) + 1
               edcnt = edcnt + 1
@@ -342,7 +379,7 @@
               piedn(edcnt) = ged
                 
               CALL point_to_el(edcnt,ged,el_in,el_ex)
-                
+!             ENDIF    
           ELSE
             ! ignore edges that contain elements from two different partitions (for now)
           ENDIF
@@ -357,6 +394,13 @@
 !       DO ed = 1,nied
 !         PRINT*, ed, edflag(ed)
 !       ENDDO
+
+      DO ed = 1,nied
+        IF(edflag(ed) > 1) THEN
+          PRINT*, "Edge partition error: edflag > 1"
+          STOP
+        ENDIF
+      ENDDO
       
       DO ed = 1,nied
         IF(edflag(ed) == 0) THEN
