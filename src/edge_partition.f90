@@ -26,7 +26,7 @@
       
       SUBROUTINE read_partitions()
       
-      USE globals, ONLY: npart,tnpel,mnelpp,peln,nprel,preln
+      USE globals, ONLY: ne,npart,tnpel,mnelpp,peln,nprel,preln
       
       IMPLICIT NONE
       
@@ -63,6 +63,11 @@
       READ(80,*) ignore1
       READ(80,*) ignore1
       READ(80,*) ignore1,ignore2
+      
+      IF(nelg /= ne) THEN
+        PRINT*, "Number of elements from parition file /= number of elements from grid file"
+        STOP
+      ENDIF
       
       PRINT*, " "
       PRINT*, "Number of partitions: ", npart
