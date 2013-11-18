@@ -4,7 +4,8 @@
                          H,Hold,Hinit,rhsH,Qx,Qxold,Qxinit,rhsQx,Qy,Qyold,Qyinit, &
                          rhsQy,Hqpt,Qxqpt,Qyqpt,xmom,ymom,xymom, &
                          Hflux,Qxflux,Qyflux,tau,src_x,src_y,pressa,recipHa, &
-                         nsp,nsp2,split
+                         nsp,nsp2,split, &
+                         rHi,rHe,xmomi,xmome,ymomi,ymome,xymomi,xymome
                          
 
       IMPLICIT NONE
@@ -90,6 +91,16 @@
       IF(alloc_status /= 0) THEN
         PRINT*, 'Allocation error: pressa,recipHa'
       ENDIF
+      
+      ALLOCATE(rHi(nied),rHe(nied),STAT = alloc_status)
+      IF(alloc_status /= 0) THEN
+        PRINT*, 'Allocation error: rHi,rHe'
+      ENDIF      
+      
+      ALLOCATE(xmomi(nied),xmome(nied),ymomi(nied),ymome(nied),xymomi(nied),xymome(nied),STAT = alloc_status)
+      IF(alloc_status /= 0) THEN
+        PRINT*, 'Allocation error: xmomi,xmome,ymomi,ymome,xymomi,xymome'
+      ENDIF            
 
       
       RETURN

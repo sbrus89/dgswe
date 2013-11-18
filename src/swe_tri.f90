@@ -1,10 +1,11 @@
       PROGRAM swe_tri
 
+!$    USE omp_lib      
       USE globals
       USE basis
 
       IMPLICIT NONE
-      INTEGER :: it,tskp,cnt
+      INTEGER :: it,tskp,cnt,myid
       REAL(pres) :: tf,tstep,lines,t_start,t_end
 
       OPEN(unit=63,file='../output/solution_H.d')
@@ -20,19 +21,19 @@
 !       dt = 1d-4
 !       tf = .5d0
 
-      grid_file = "../grids/inlet1.grd"
-      forcing_file = "../grids/inlet1.bfr"
-      dt = 1d0!/2d0      ! 1d0 for p=1,2, .5d0 for p=3
-      tf = 1d0*86400d0
-      dramp = .5d0
-      cf = .003d0
-
-!       grid_file = "../grids/inlet2.grd"
-!       forcing_file = "../grids/inlet2.bfr"
-!       dt = .5d0
+!       grid_file = "../grids/inlet1.grd"
+!       forcing_file = "../grids/inlet1.bfr"
+!       dt = 1d0!/2d0      ! 1d0 for p=1,2, .5d0 for p=3
 !       tf = 1d0*86400d0
 !       dramp = .5d0
 !       cf = .003d0
+
+      grid_file = "../grids/inlet2.grd"
+      forcing_file = "../grids/inlet2.bfr"
+      dt = .5d0
+      tf = 1d0*86400d0
+      dramp = .5d0
+      cf = .003d0
 
 !       grid_file = "../grids/converge.grd"
 !       forcing_file = "../grids/converge.bfr"
@@ -57,9 +58,9 @@
 
       p = 1
     
-      nsp = 5
+      nsp = 21
       
-!       npart = 2
+!       npart = 3
 
       tstep = int(tf/dt)
       lines = 100d0
@@ -68,6 +69,11 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
       ndof = (p+1)*(p+2)/2
+      
+!$OMP  parallel private(myid)
+      myid = omp_get_thread_num()
+      PRINT*, myid
+!$OMP end parallel
 
       ! Read in grid file
       CALL read_grid()

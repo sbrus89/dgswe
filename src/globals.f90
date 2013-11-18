@@ -153,6 +153,8 @@
       REAL(pres), ALLOCATABLE, DIMENSION(:) :: const
       REAL(pres), ALLOCATABLE, DIMENSION(:) :: inx,iny,len_area_in,len_area_ex
       REAL(pres), ALLOCATABLE, DIMENSION(:) :: Hhatv,Qxhatv,Qyhatv
+      REAL(pres), ALLOCATABLE, DIMENSION(:) :: rHi,rHe
+      REAL(pres), ALLOCATABLE, DIMENSION(:) :: xmomi,xmome,ymomi,ymome,xymomi,xymome      
      
 
       TYPE :: edge_ptr_array

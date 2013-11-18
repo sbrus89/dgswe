@@ -2,9 +2,13 @@ FC = ifort
 
 VPATH := ../src
 
-CFLAGS_VEC =  -O3 -xHost -vec-report6 -c
-CFLAGS =  -O3 -xHost -c 
-CFLAGS_LINK = -O3 -xHost -o 
+# CFLAGS_VEC =  -O3 -xHost -vec-report6 -c
+# CFLAGS =  -O3 -xHost -c 
+# CFLAGS_LINK = -O3 -xHost -o 
+
+CFLAGS_VEC =  -O3 -xHost -vec-report6 -openmp -c
+CFLAGS =  -O3 -xHost -openmp -c 
+CFLAGS_LINK = -O3 -xHost -openmp -o 
 
 # ### Profile compilation ###
 # CFLAGS_VEC =  -O3 -xHost -vec-report3 -profile-loops=all -c 
@@ -85,7 +89,7 @@ numerical_flux.o : numerical_flux.f90 globals.f90
 	$(FC) $(CFLAGS) $<
 
 swe_tri.o : swe_tri.f90 globals.f90
-	$(FC) $(CFLAGS_VEC) $<
+	$(FC) $(CFLAGS) $<
 
 .PHONY : clean
 clean : 

@@ -8,12 +8,12 @@
         REAL(pres), POINTER :: ptr
       END TYPE ptr_array
 
-      TYPE(ptr_array), ALLOCATABLE, TARGET, DIMENSION(:) :: test
+      TYPE(ptr_array), ALLOCATABLE, DIMENSION(:) :: test
 
       REAL(pres), TARGET, DIMENSION(5,2) :: H
       REAL(pres), DIMENSION(10) :: H2
 
-      TYPE(ptr_array), POINTER :: ptr2type
+!       TYPE(ptr_array), POINTER :: ptr2type
 
       ALLOCATE(test(10))
 
@@ -66,12 +66,51 @@
       DO i = 1,10
         PRINT*, H2(i)
       ENDDO
-        
-      ptr2type => test
-
-      DO i = 1,10
-        PRINT*, ptr2type(i)
-      ENDDO
       
+      PRINT*, ' '      
+        
+!       ptr2type => test
+! 
+!       DO i = 1,10
+!         PRINT*, ptr2type(i)
+!       ENDDO
+      
+      CALL pass_test(test,H)
 
       END PROGRAM pointer_test
+      
+      SUBROUTINE pass_test(test_pass,H_pass)
+       
+      IMPLICIT NONE
+      
+      INTEGER, PARAMETER :: pres = kind(1d0)      
+      INTEGER :: i,m,j
+      
+      REAL(pres) :: H_pass(5,2)
+
+      TYPE :: ptr_array
+        REAL(pres), POINTER :: ptr
+      END TYPE ptr_array
+      
+      TYPE(ptr_array) :: test_pass(10)      
+
+      
+      m = 0
+      DO i = 1,2
+        DO j = 1,5
+          m = m+1
+          H_pass(j,i) = m
+        ENDDO
+      ENDDO
+
+      DO i = 1,5
+        PRINT*, (H_pass(i,j),j=1,2)
+      ENDDO
+      
+      DO i = 1,10
+        PRINT*, test_pass(i)%ptr
+!         PRINT*, test_pass(i)
+      ENDDO
+      
+      
+      END SUBROUTINE pass_test

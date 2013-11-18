@@ -1,6 +1,6 @@
       SUBROUTINE rhs2()
 
-      USE globals,  ONLY: l,ind,el,ne,pt,led,ed,dof,ndof, &
+      USE globals,  ONLY: pres,l,ind,el,ne,pt,led,ed,dof,ndof, &
                           split,sp,nsp,psplit,esplit,part,npart,piedn, &
                           ael2gel,lel2gel,gel2part, &
                           g,pt5g,tstage,ramp,arg,bfr, & 
@@ -25,11 +25,14 @@
                           xmi,xme,ymi,yme,xymi,xyme, &
                           Hfi,Hfe,Qxfi,Qxfe,Qyfi,Qyfe, &
                           const,inx,iny,len_area_in,len_area_ex, &
-                          Hhatv,Qxhatv,Qyhatv
+                          Hhatv,Qxhatv,Qyhatv, &
+                          rHi,rHe,xmomi,xmome,ymomi,ymome,xymomi,xymome
+!$    USE omp_lib                          
                           
                    
       IMPLICIT NONE
       INTEGER :: i
+      REAL(pres), EXTERNAL :: compute_const
 
 !     ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !     c Area Integrals
@@ -41,6 +44,28 @@
       rhsQx(:,:) = 0d0
 !DIR$ VECTOR ALIGNED
       rhsQy(:,:) = 0d0   
+      
+!$OMP parallel default(none)  &
+!$OMP             private(ind,sp,pt,dof,el,l,part,ed,ged,led_in,gp_in,el_in, &
+!$OMP                     nx,ny,tx,ty,nx2,ny2,nxny,H_in,H_ex,Qx_in,Qx_ex,Qy_in,Qy_ex, &
+!$OMP                     press,recipH,xmom_in,xmom_ex,ymom_in,ymom_ex,xymom_in,xymom_ex, &
+!$OMP                     Hhat,Qxhat,Qyhat, &
+!$OMP                     Qn,Qt,arg,bfr) &
+!$OMP             shared(nsp,nqpta,nqpte,ndof,split,psplit,esplit,npart,H,Qx,Qy,Hqpt,Qxqpt,Qyqpt, & 
+!$OMP                    phia,phie,recipHa,xmom,ymom,xymom,tau,src_x,src_y, &
+!$OMP                    dhbdx,dhbdy,cf,phia_int,phie_int,dpdx,dpdy,rhsH,rhsQx,rhsQy, &
+!$OMP                    const,Qxi,Qxe,Qyi,Qye,Hi,He,xmi,xme,ymi,yme,xymi,xyme, &
+!$OMP                    Hhatv,Qxhatv,Qyhatv,Hfi,Hfe,Qxfi,Qxfe,Qyfi,Qyfe, &
+!$OMP                    Hflux,Qxflux,Qyflux,inx,iny,len_area_in,len_area_ex, &
+!$OMP                    nnfbed,nfbedn,nfbed,fbedn,nobed,obedn, &
+!$OMP                    nfbfr,fbfreq,fbper,fbeq,fbamp_qpt,fbnfact,fbph_qpt, &
+!$OMP                    nobfr,obfreq,obper,obeq,obamp_qpt,obnfact,obph_qpt,obdepth_qpt, &
+!$OMP                    ramp,tstage, &
+!$OMP                    edlen_area,normal, &
+!$OMP                    ged2led,gel2ael,ged2el)
+
+!$OMP do
+   
 
       DO sp = 1,nsp 
 
@@ -100,6 +125,9 @@ a_points: DO pt = 1,nqpta
           ENDDO a_points
 
        ENDDO
+       
+!$OMP end do   
+! ! $OMP end parallel
        
 !        DO sp = 1,nsp 
 ! 
@@ -178,7 +206,7 @@ a_points: DO pt = 1,nqpta
 !     ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc 
      
 
-
+!$OMP do
        DO part = 1,npart
 
 ed_points: DO pt = 1,3*nqpte
@@ -210,13 +238,16 @@ ed_points: DO pt = 1,3*nqpte
               ENDDO
 
           ENDDO ed_points
-          
+                  
+        
 ed_points2: DO pt = 1,nqpte ! Compute numerical fluxes for all edges
               
 !DIR$ VECTOR ALIGNED
-              DO ed = esplit(1,part),esplit(2,part)              
+              DO ed = esplit(1,part),esplit(2,part) 
+                
                 const(ed) = max(abs(Qxi(ed,pt)%ptr*inx(ed) + Qyi(ed,pt)%ptr*iny(ed))/Hi(ed,pt)%ptr + sqrt(g*Hi(ed,pt)%ptr), &
                                 abs(Qxe(ed,pt)%ptr*inx(ed) + Qye(ed,pt)%ptr*iny(ed))/He(ed,pt)%ptr + sqrt(g*He(ed,pt)%ptr))
+!                 const(ed) = compute_const(Qxi(ed,pt)%ptr,Qxe(ed,pt)%ptr,Qyi(ed,pt)%ptr,Qye(ed,pt)%ptr,Hi(ed,pt)%ptr,He(ed,pt)%ptr,inx(ed),iny(ed),g)
               ENDDO
               
               
@@ -230,7 +261,6 @@ ed_points2: DO pt = 1,nqpte ! Compute numerical fluxes for all edges
                 Hfe(ed,pt)%ptr = -len_area_ex(ed)*Hhatv(ed)
                 Hfi(ed,pt)%ptr =  len_area_in(ed)*Hhatv(ed)
               ENDDO    
-              
               
               
 !DIR$ IVDEP
@@ -261,9 +291,12 @@ ed_points2: DO pt = 1,nqpte ! Compute numerical fluxes for all edges
         ENDDO ed_points2
      
      ENDDO
-                      
+!$OMP end do 
+!$OMP end parallel
+            
+! !$OMP single            
        DO pt = 1,nqpte
-!DIR$ VECTOR ALIGNED
+!!DIR$ VECTOR ALIGNED
               DO ed = esplit(1,npart+1),esplit(2,npart+1)
                 const(ed) = max(abs(Qxi(ed,pt)%ptr*inx(ed) + Qyi(ed,pt)%ptr*iny(ed))/Hi(ed,pt)%ptr + sqrt(g*Hi(ed,pt)%ptr), &
                                 abs(Qxe(ed,pt)%ptr*inx(ed) + Qye(ed,pt)%ptr*iny(ed))/He(ed,pt)%ptr + sqrt(g*He(ed,pt)%ptr))
@@ -272,7 +305,7 @@ ed_points2: DO pt = 1,nqpte ! Compute numerical fluxes for all edges
               
               
 !DIR$ IVDEP
-!DIR$ VECTOR ALIGNED
+!!DIR$ VECTOR ALIGNED
               DO ed = esplit(1,npart+1),esplit(2,npart+1)
                 Hhatv(ed) = .5d0*(inx(ed)*(Qxi(ed,pt)%ptr + Qxe(ed,pt)%ptr) + iny(ed)*(Qyi(ed,pt)%ptr + Qye(ed,pt)%ptr) &
                                         - const(ed)*(He(ed,pt)%ptr - Hi(ed,pt)%ptr))
@@ -284,7 +317,7 @@ ed_points2: DO pt = 1,nqpte ! Compute numerical fluxes for all edges
               
               
 !DIR$ IVDEP
-!DIR$ VECTOR ALIGNED
+!!DIR$ VECTOR ALIGNED
               DO ed = esplit(1,npart+1),esplit(2,npart+1)
                 Qxhatv(ed) = .5d0*(inx(ed)*(xmi(ed,pt)%ptr + xme(ed,pt)%ptr) + iny(ed)*(xymi(ed,pt)%ptr + xyme(ed,pt)%ptr)  &
                                         - const(ed)*(Qxe(ed,pt)%ptr - Qxi(ed,pt)%ptr))
@@ -296,7 +329,7 @@ ed_points2: DO pt = 1,nqpte ! Compute numerical fluxes for all edges
               
               
 !DIR$ IVDEP
-!DIR$ VECTOR ALIGNED
+!!DIR$ VECTOR ALIGNED
               DO ed = esplit(1,npart+1),esplit(2,npart+1)
                 Qyhatv(ed) = .5d0*(inx(ed)*(xymi(ed,pt)%ptr + xyme(ed,pt)%ptr) + iny(ed)*(ymi(ed,pt)%ptr + yme(ed,pt)%ptr)  &
                                         - const(ed)*(Qye(ed,pt)%ptr - Qyi(ed,pt)%ptr))
@@ -306,10 +339,13 @@ ed_points2: DO pt = 1,nqpte ! Compute numerical fluxes for all edges
               ENDDO
 
         ENDDO 
-     
-          DO pt = 1,nqpte
+! !$OMP end single
+
+! !$OMP single     
+!           DO pt = 1,nqpte
             ! No normal flow boundary condition 
             DO ed = 1,nnfbed
+              DO pt = 1,nqpte
 
               ged = nfbedn(ed)
 
@@ -354,11 +390,16 @@ ed_points2: DO pt = 1,nqpte ! Compute numerical fluxes for all edges
               Qxflux(el_in,gp_in) = edlen_area(1,ged)*Qxhat
 
               Qyflux(el_in,gp_in) = edlen_area(1,ged)*Qyhat
- 
+              
+              ENDDO
             ENDDO
+! !$OMP end single
+
+! !$OMP single
 
             ! Flow specified boundary edges
             DO ed = 1,nfbed
+              DO pt = 1,nqpte
 
               ged = fbedn(ed)
 
@@ -412,11 +453,17 @@ ed_points2: DO pt = 1,nqpte ! Compute numerical fluxes for all edges
               Qxflux(el_in,gp_in) = edlen_area(1,ged)*Qxhat
 
               Qyflux(el_in,gp_in) = edlen_area(1,ged)*Qyhat
-
+              
+              ENDDO
             ENDDO
+            
+! !$OMP end single
+
+! !$OMP single
 
              ! Open boundary edges (elevation specified)
             DO ed = 1,nobed
+              DO pt = 1,nqpte
 
               ged = obedn(ed)
 
@@ -464,11 +511,13 @@ ed_points2: DO pt = 1,nqpte ! Compute numerical fluxes for all edges
               Qxflux(el_in,gp_in) = edlen_area(1,ged)*Qxhat
 
               Qyflux(el_in,gp_in) = edlen_area(1,ged)*Qyhat                            
-
+              ENDDO
              ENDDO
 
-          ENDDO 
+!           ENDDO 
+! !$OMP end single        
 
+! !$OMP do          
           DO sp = 1,nsp             
             DO pt = 1,3*nqpte
                DO l = 1,ndof
@@ -481,7 +530,59 @@ ed_points2: DO pt = 1,nqpte ! Compute numerical fluxes for all edges
                ENDDO                                    
            ENDDO
          ENDDO
+! !OMP end do         
 
+! !$OMP end parallel         
 
       RETURN
       END SUBROUTINE rhs2
+      
+      
+      
+      
+      FUNCTION compute_const(Qxi,Qxe,Qyi,Qye,Hi,He,nx,ny,g) RESULT (const)
+      
+      USE globals, ONLY: pres
+      
+      IMPLICIT NONE
+      
+      REAL(pres) :: Qxi,Qxe
+      REAL(pres) :: Qyi,Qye
+      REAL(pres) :: Hi,He
+      REAL(pres) :: nx,ny
+      REAL(pres) :: g
+      REAL(pres) :: const
+      
+      const = max(abs(nx*Qxi+ny*Qyi)/Hi+sqrt(g*Hi),abs(nx*Qxe+ny*Qye)/He+sqrt(g*He))
+      
+      END FUNCTION compute_const
+      
+      
+      
+      
+      SUBROUTINE compute_flux(Qxi,Qxe,Qyi,Qye,Hi,He,xmomi,xmome,ymomi,ymome,xymomi,xymome,nx,ny,g,Hhat,Qxhat,Qyhat)
+      
+      USE globals, ONLY: pres
+      
+      IMPLICIT NONE
+      
+      REAL(pres) :: Qxi,Qxe
+      REAL(pres) :: Qyi,Qye
+      REAL(pres) :: Hi,He
+      REAL(pres) :: xmomi,xmome
+      REAL(pres) :: ymomi,ymome
+      REAL(pres) :: xymomi,xymome
+      REAL(pres) :: nx,ny
+      REAL(pres) :: g
+      REAL(pres) :: const
+      REAL(pres) :: Hhat,Qxhat,Qyhat
+      REAL(pres) :: rHi,rHe
+      
+      
+      const = max(abs(nx*Qxi+ny*Qyi)/Hi+sqrt(g*Hi),abs(nx*Qxe+ny*Qye)/He+sqrt(g*He))
+      
+      Hhat = .5d0*(nx*(Qxi+Qxe) + ny*(Qyi+Qye) - const*(He-Hi))
+      Qxhat = .5d0*(nx*(xmomi+xmome) + ny*(xymomi+xymome) - const*(Qxe-Qxi))
+      Qyhat = .5d0*(nx*(xymomi+xymome) + ny*(ymomi+ymome) - const*(Qye-Qyi))
+      
+      END SUBROUTINE compute_flux
