@@ -372,20 +372,6 @@ ed_points2: DO pt = 1,nqpte ! Compute numerical fluxes for all edges
               Qx_ex = Qx_in*(ny2-nx2) - 2d0*nxny*Qy_in
               Qy_ex = Qy_in*(nx2-ny2) - 2d0*nxny*Qx_in
 
-!               press = .5d0*g*H_ex*H_ex
-!               recipH = 1d0/H_ex
-! 
-!               xmom_in = xmom(el_in,gp_in)
-!               xmom_ex = (Qx_ex*Qx_ex)*recipH + press
-! 
-!               ymom_in = ymom(el_in,gp_in)
-!               ymom_ex = (Qy_ex*Qy_ex)*recipH + press
-! 
-!               xymom_in = xymom(el_in,gp_in)
-!               xymom_ex = (Qx_ex*Qy_ex)*recipH
-! 
-!               CALL numerical_flux()
-
               CALL numerical_flux(Qx_in,Qy_in,H_in,Qx_ex,Qy_ex,H_ex,nx,ny,Qxhat,Qyhat,Hhat)
 
               Hflux(el_in,gp_in) = edlen_area(1,ged)*Hhat
@@ -437,19 +423,6 @@ ed_points2: DO pt = 1,nqpte ! Compute numerical fluxes for all edges
               Qx_ex = ( ty*Qn - ny*Qt)/(nx*ty-ny*tx)
               Qy_ex = (-tx*Qn + nx*Qt)/(nx*ty-ny*tx)
  
-!               press = .5d0*g*H_ex*H_ex
-!               recipH = 1d0/H_ex
-! 
-!               xmom_in = xmom(el_in,gp_in)
-!               xmom_ex = (Qx_ex*Qx_ex)*recipH + press
-! 
-!               ymom_in = ymom(el_in,gp_in)
-!               ymom_ex = (Qy_ex*Qy_ex)*recipH + press
-! 
-!               xymom_in = xymom(el_in,gp_in)
-!               xymom_ex = (Qx_ex*Qy_ex)*recipH
-! 
-!               CALL numerical_flux()
               CALL numerical_flux(Qx_in,Qy_in,H_in,Qx_ex,Qy_ex,H_ex,nx,ny,Qxhat,Qyhat,Hhat)
 
               Hflux(el_in,gp_in) = edlen_area(1,ged)*Hhat
@@ -496,19 +469,6 @@ ed_points2: DO pt = 1,nqpte ! Compute numerical fluxes for all edges
               Qx_ex = Qx_in
               Qy_ex = Qy_in
  
-!               press = .5d0*g*H_ex*H_ex
-!               recipH = 1d0/H_ex
-! 
-!               xmom_in = xmom(el_in,gp_in)
-!               xmom_ex = (Qx_ex*Qx_ex)*recipH + press
-! 
-!               ymom_in = ymom(el_in,gp_in)
-!               ymom_ex = (Qy_ex*Qy_ex)*recipH + press
-! 
-!               xymom_in = xymom(el_in,gp_in)
-!               xymom_ex = (Qx_ex*Qy_ex)*recipH
-! 
-!               CALL numerical_flux()
               CALL numerical_flux(Qx_in,Qy_in,H_in,Qx_ex,Qy_ex,H_ex,nx,ny,Qxhat,Qyhat,Hhat)
 
               Hflux(el_in,gp_in) = edlen_area(1,ged)*Hhat
