@@ -68,7 +68,7 @@
    
 
       DO sp = 1,nsp 
-
+ 
 a_points: DO pt = 1,nqpta
 
 !DIR$ VECTOR ALIGNED
@@ -127,7 +127,6 @@ a_points: DO pt = 1,nqpta
        ENDDO
        
 !$OMP end do   
-! ! $OMP end parallel
        
 !        DO sp = 1,nsp 
 ! 
@@ -204,11 +203,12 @@ a_points: DO pt = 1,nqpta
 !     ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !     c Edge Integrals
 !     ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc 
-     
+!       PRINT*, " "
+      
 
 !$OMP do
        DO part = 1,npart
-
+       
 ed_points: DO pt = 1,3*nqpte
 
 !DIR$ VECTOR ALIGNED               
@@ -291,12 +291,12 @@ ed_points2: DO pt = 1,nqpte ! Compute numerical fluxes for all edges
         ENDDO ed_points2
      
      ENDDO
+   
 !$OMP end do 
-!$OMP end parallel
             
-! !$OMP single            
+!$OMP single            
        DO pt = 1,nqpte
-!!DIR$ VECTOR ALIGNED
+! !DIR$ VECTOR ALIGNED
               DO ed = esplit(1,npart+1),esplit(2,npart+1)
                 const(ed) = max(abs(Qxi(ed,pt)%ptr*inx(ed) + Qyi(ed,pt)%ptr*iny(ed))/Hi(ed,pt)%ptr + sqrt(g*Hi(ed,pt)%ptr), &
                                 abs(Qxe(ed,pt)%ptr*inx(ed) + Qye(ed,pt)%ptr*iny(ed))/He(ed,pt)%ptr + sqrt(g*He(ed,pt)%ptr))
@@ -305,7 +305,7 @@ ed_points2: DO pt = 1,nqpte ! Compute numerical fluxes for all edges
               
               
 !DIR$ IVDEP
-!!DIR$ VECTOR ALIGNED
+! !DIR$ VECTOR ALIGNED
               DO ed = esplit(1,npart+1),esplit(2,npart+1)
                 Hhatv(ed) = .5d0*(inx(ed)*(Qxi(ed,pt)%ptr + Qxe(ed,pt)%ptr) + iny(ed)*(Qyi(ed,pt)%ptr + Qye(ed,pt)%ptr) &
                                         - const(ed)*(He(ed,pt)%ptr - Hi(ed,pt)%ptr))
@@ -317,7 +317,7 @@ ed_points2: DO pt = 1,nqpte ! Compute numerical fluxes for all edges
               
               
 !DIR$ IVDEP
-!!DIR$ VECTOR ALIGNED
+! !DIR$ VECTOR ALIGNED
               DO ed = esplit(1,npart+1),esplit(2,npart+1)
                 Qxhatv(ed) = .5d0*(inx(ed)*(xmi(ed,pt)%ptr + xme(ed,pt)%ptr) + iny(ed)*(xymi(ed,pt)%ptr + xyme(ed,pt)%ptr)  &
                                         - const(ed)*(Qxe(ed,pt)%ptr - Qxi(ed,pt)%ptr))
@@ -329,7 +329,7 @@ ed_points2: DO pt = 1,nqpte ! Compute numerical fluxes for all edges
               
               
 !DIR$ IVDEP
-!!DIR$ VECTOR ALIGNED
+! !DIR$ VECTOR ALIGNED
               DO ed = esplit(1,npart+1),esplit(2,npart+1)
                 Qyhatv(ed) = .5d0*(inx(ed)*(xymi(ed,pt)%ptr + xyme(ed,pt)%ptr) + iny(ed)*(ymi(ed,pt)%ptr + yme(ed,pt)%ptr)  &
                                         - const(ed)*(Qye(ed,pt)%ptr - Qyi(ed,pt)%ptr))
@@ -339,9 +339,10 @@ ed_points2: DO pt = 1,nqpte ! Compute numerical fluxes for all edges
               ENDDO
 
         ENDDO 
-! !$OMP end single
+!$OMP end single
 
-! !$OMP single     
+
+!$OMP do     
 !           DO pt = 1,nqpte
             ! No normal flow boundary condition 
             DO ed = 1,nnfbed
@@ -371,19 +372,21 @@ ed_points2: DO pt = 1,nqpte ! Compute numerical fluxes for all edges
               Qx_ex = Qx_in*(ny2-nx2) - 2d0*nxny*Qy_in
               Qy_ex = Qy_in*(nx2-ny2) - 2d0*nxny*Qx_in
 
-              press = .5d0*g*H_ex*H_ex
-              recipH = 1d0/H_ex
+!               press = .5d0*g*H_ex*H_ex
+!               recipH = 1d0/H_ex
+! 
+!               xmom_in = xmom(el_in,gp_in)
+!               xmom_ex = (Qx_ex*Qx_ex)*recipH + press
+! 
+!               ymom_in = ymom(el_in,gp_in)
+!               ymom_ex = (Qy_ex*Qy_ex)*recipH + press
+! 
+!               xymom_in = xymom(el_in,gp_in)
+!               xymom_ex = (Qx_ex*Qy_ex)*recipH
+! 
+!               CALL numerical_flux()
 
-              xmom_in = xmom(el_in,gp_in)
-              xmom_ex = (Qx_ex*Qx_ex)*recipH + press
-
-              ymom_in = ymom(el_in,gp_in)
-              ymom_ex = (Qy_ex*Qy_ex)*recipH + press
-
-              xymom_in = xymom(el_in,gp_in)
-              xymom_ex = (Qx_ex*Qy_ex)*recipH
-
-              CALL numerical_flux()
+              CALL numerical_flux(Qx_in,Qy_in,H_in,Qx_ex,Qy_ex,H_ex,nx,ny,Qxhat,Qyhat,Hhat)
 
               Hflux(el_in,gp_in) = edlen_area(1,ged)*Hhat
 
@@ -393,9 +396,9 @@ ed_points2: DO pt = 1,nqpte ! Compute numerical fluxes for all edges
               
               ENDDO
             ENDDO
-! !$OMP end single
+!$OMP end do
 
-! !$OMP single
+!$OMP do
 
             ! Flow specified boundary edges
             DO ed = 1,nfbed
@@ -434,19 +437,20 @@ ed_points2: DO pt = 1,nqpte ! Compute numerical fluxes for all edges
               Qx_ex = ( ty*Qn - ny*Qt)/(nx*ty-ny*tx)
               Qy_ex = (-tx*Qn + nx*Qt)/(nx*ty-ny*tx)
  
-              press = .5d0*g*H_ex*H_ex
-              recipH = 1d0/H_ex
-
-              xmom_in = xmom(el_in,gp_in)
-              xmom_ex = (Qx_ex*Qx_ex)*recipH + press
-
-              ymom_in = ymom(el_in,gp_in)
-              ymom_ex = (Qy_ex*Qy_ex)*recipH + press
-
-              xymom_in = xymom(el_in,gp_in)
-              xymom_ex = (Qx_ex*Qy_ex)*recipH
-
-              CALL numerical_flux()
+!               press = .5d0*g*H_ex*H_ex
+!               recipH = 1d0/H_ex
+! 
+!               xmom_in = xmom(el_in,gp_in)
+!               xmom_ex = (Qx_ex*Qx_ex)*recipH + press
+! 
+!               ymom_in = ymom(el_in,gp_in)
+!               ymom_ex = (Qy_ex*Qy_ex)*recipH + press
+! 
+!               xymom_in = xymom(el_in,gp_in)
+!               xymom_ex = (Qx_ex*Qy_ex)*recipH
+! 
+!               CALL numerical_flux()
+              CALL numerical_flux(Qx_in,Qy_in,H_in,Qx_ex,Qy_ex,H_ex,nx,ny,Qxhat,Qyhat,Hhat)
 
               Hflux(el_in,gp_in) = edlen_area(1,ged)*Hhat
               
@@ -457,9 +461,9 @@ ed_points2: DO pt = 1,nqpte ! Compute numerical fluxes for all edges
               ENDDO
             ENDDO
             
-! !$OMP end single
+!$OMP end do
 
-! !$OMP single
+!$OMP do
 
              ! Open boundary edges (elevation specified)
             DO ed = 1,nobed
@@ -492,19 +496,20 @@ ed_points2: DO pt = 1,nqpte ! Compute numerical fluxes for all edges
               Qx_ex = Qx_in
               Qy_ex = Qy_in
  
-              press = .5d0*g*H_ex*H_ex
-              recipH = 1d0/H_ex
-
-              xmom_in = xmom(el_in,gp_in)
-              xmom_ex = (Qx_ex*Qx_ex)*recipH + press
-
-              ymom_in = ymom(el_in,gp_in)
-              ymom_ex = (Qy_ex*Qy_ex)*recipH + press
-
-              xymom_in = xymom(el_in,gp_in)
-              xymom_ex = (Qx_ex*Qy_ex)*recipH
-
-              CALL numerical_flux()
+!               press = .5d0*g*H_ex*H_ex
+!               recipH = 1d0/H_ex
+! 
+!               xmom_in = xmom(el_in,gp_in)
+!               xmom_ex = (Qx_ex*Qx_ex)*recipH + press
+! 
+!               ymom_in = ymom(el_in,gp_in)
+!               ymom_ex = (Qy_ex*Qy_ex)*recipH + press
+! 
+!               xymom_in = xymom(el_in,gp_in)
+!               xymom_ex = (Qx_ex*Qy_ex)*recipH
+! 
+!               CALL numerical_flux()
+              CALL numerical_flux(Qx_in,Qy_in,H_in,Qx_ex,Qy_ex,H_ex,nx,ny,Qxhat,Qyhat,Hhat)
 
               Hflux(el_in,gp_in) = edlen_area(1,ged)*Hhat
 
@@ -515,9 +520,10 @@ ed_points2: DO pt = 1,nqpte ! Compute numerical fluxes for all edges
              ENDDO
 
 !           ENDDO 
-! !$OMP end single        
+!$OMP end do        
 
-! !$OMP do          
+
+!$OMP do          
           DO sp = 1,nsp             
             DO pt = 1,3*nqpte
                DO l = 1,ndof
@@ -530,9 +536,11 @@ ed_points2: DO pt = 1,nqpte ! Compute numerical fluxes for all edges
                ENDDO                                    
            ENDDO
          ENDDO
-! !OMP end do         
+!$OMP end do  
 
-! !$OMP end parallel         
+
+
+!$OMP end parallel         
 
       RETURN
       END SUBROUTINE rhs2
