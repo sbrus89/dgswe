@@ -1,0 +1,203 @@
+      PROGRAM swe_tri
+
+!$    USE omp_lib      
+      USE globals
+      USE basis
+
+      IMPLICIT NONE
+      INTEGER :: it,tskp,cnt,myid
+      REAL(pres) :: tf,tstep,lines,t_start,t_end
+
+      OPEN(unit=63,file='../output/solution_H.d')
+      OPEN(unit=641,file='../output/solution_Qx.d')
+      OPEN(unit=642,file='../output/solution_Qy.d')
+      OPEN(unit=17,file='../output/edge_connect.d')
+
+      PRINT*, ' '
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+      grid_file = "../grids/inlet1.grd"
+      forcing_file = "../grids/inlet1.bfr"
+      dt = 1d0!/2d0      ! 1d0 for p=1,2, .5d0 for p=3
+      tf = 1d0*86400d0
+      dramp = .5d0
+      cf = .003d0
+      lines = 100d0
+      nsp = 5
+
+!       grid_file = "../grids/inlet2.grd"
+!       forcing_file = "../grids/inlet2.bfr"
+!       dt = .5d0
+!       tf = 1d0*86400d0
+!       dramp = .5d0
+!       cf = .003d0
+!       lines = 100d0
+!       nsp = 21
+      
+!       grid_file = "../grids/inlet3.grd"
+!       forcing_file = "../grids/inlet3.bfr"
+!       dt = .25d0
+!       tf = 1d0*86400d0
+!       dramp = .5d0
+!       cf = .003d0 
+!       lines = 20d0
+!       nsp = 80
+
+!       grid_file = "../grids/converge.grd"
+!       forcing_file = "../grids/converge.bfr"
+!       dt = .5d0
+!       tf = 86400d0
+!       dramp = .5d0
+!       cf = .003d0
+!       line = 100d0
+!       nsp = 
+
+!       grid_file = "../grids/converge3.grd"
+!       forcing_file = "../grids/converge3.bfr"
+!       dt = .125d0
+!       tf = .2d0*86400d0
+!       dramp = .08d0
+!       cf = .0025d0
+!       lines = 20d0
+!       nsp = 45
+
+
+      p = 2
+      
+!       npart = 3
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+      ndof = (p+1)*(p+2)/2
+      
+      tstep = int(tf/dt)
+      tskp = int(tf/(lines*dt)) 
+      
+#ifdef openmp      
+      PRINT*, "Thread numbers: "
+!$OMP  parallel private(myid)
+      myid = omp_get_thread_num()
+      PRINT*, myid
+!$OMP end parallel
+#endif
+
+      ! Read in grid file
+      CALL read_grid()
+
+      ! Read in forcing file
+      CALL read_forcing()
+   
+      ! Find edge connectivity
+      CALL connect()
+      
+      ! Compute element area, edge length, edge normals, and bathymetry derivatives
+      CALL element_data()
+
+      ! Get quadrature points for area integration
+      CALL area_qpts()
+
+      ! Calculate basis function and derivative values at area quadrature points
+      CALL area_basis()
+
+      ! Calculate basis function values at edge quadrature points
+      CALL edge_qpts()
+
+      ! Calculate basis function and derivative values at edge quadrature points
+      CALL edge_basis()
+
+      ! Allocate arrays needed in time-stepping and rhs evaluation
+      CALL alloc_arrays()
+
+      CALL ptr_arrays()
+      
+      ! Set up netcdf output files
+!       CALL file_setup()
+
+      ! Compute initial condition, boundary forcing interpolation
+      CALL initial()
+      
+!       CALL make_partitions()
+      
+      CALL read_partitions()
+      
+      CALL align_partitions()
+      
+      CALL edge_partition()
+      
+#ifdef openmp
+      t_start = omp_get_wtime()
+#else
+      CALL CPU_TIME(t_start)
+#endif
+      
+      PRINT "(A)", "---------------------------------------------"
+      PRINT "(A)", "               Time Stepping                 "
+      PRINT "(A)", "---------------------------------------------"
+      PRINT "(A)", " "
+
+      PRINT "(A,e12.4)", "Time step: ",dt
+      PRINT "(A,e12.4)", "Final time: ",tf
+
+      PRINT "(A)", " "
+
+      t = 0d0
+      cnt = 0
+      DO it = 1,tstep
+
+        CALL rk()
+
+         t = t + dt
+
+         cnt = cnt + 1
+         IF(cnt == tskp) THEN
+
+           PRINT("(A,e15.8)"), 't = ', t
+
+           WRITE(63,"(e24.17)") t
+           DO dof = 1,ndof
+             WRITE(63,"(16000(e24.17,1x))") (Hwrite(el,dof)%ptr, el = 1,ne)
+           ENDDO
+
+           WRITE(641,"(e24.17)") t
+           DO dof = 1,ndof
+             WRITE(641,"(16000(e24.17,1x))") (Qxwrite(el,dof)%ptr, el = 1,ne)
+           ENDDO
+
+           WRITE(642,"(e24.17)") t
+           DO dof = 1,ndof
+             WRITE(642,"(16000(e24.17,1x))") (Qywrite(el,dof)%ptr, el = 1,ne)
+           ENDDO
+           
+!            WRITE(63,"(e24.17)") t
+!            DO dof = 1,ndof
+!              WRITE(63,"(16000(e24.17,1x))") (H(el,dof), el = 1,ne)
+!            ENDDO
+! 
+!            WRITE(641,"(e24.17)") t
+!            DO dof = 1,ndof
+!              WRITE(641,"(16000(e24.17,1x))") (Qx(el,dof), el = 1,ne)
+!            ENDDO
+! 
+!            WRITE(642,"(e24.17)") t
+!            DO dof = 1,ndof
+!              WRITE(642,"(16000(e24.17,1x))") (Qy(el,dof), el = 1,ne)
+!            ENDDO
+             
+           cnt = 0
+
+         ENDIF
+
+      ENDDO
+
+#ifdef openmp      
+      t_end = omp_get_wtime()
+#else
+      CALL CPU_TIME(t_end)
+#endif
+
+      PRINT*, ' '
+      PRINT("(A,F10.5,A)"), "CPU time = ",t_end-t_start," seconds"
+
+      PRINT*, ' '
+      END PROGRAM swe_tri
