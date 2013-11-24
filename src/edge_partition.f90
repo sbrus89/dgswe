@@ -69,9 +69,6 @@
         STOP
       ENDIF
       
-      PRINT*, " "
-      PRINT*, "Number of partitions: ", npart
-      
       
       ALLOCATE(pnodes(mnnpp,npart),STAT = alloc_status)
       IF(alloc_status /= 0) THEN
@@ -179,7 +176,8 @@
                          H,Hinit,Qx,Qxinit,Qy,Qyinit, &
                          dpdx,dpdx_init,dpdy,dpdy_init, &
                          dhbdx,dhbdx_init,dhbdy,dhbdy_init, &
-                         Hwrite,Qxwrite,Qywrite
+                         Hwrite,Qxwrite,Qywrite, &
+                         sp,nsp,split
       
       IMPLICIT NONE
       
@@ -323,7 +321,28 @@
 !       DO el = 1,ne
 !         PRINT*, el, Hwrite(el,1)%ptr !, gel2ael(el)
 !       ENDDO
+
+      PRINT "(A)", "---------------------------------------------"
+      PRINT "(A)", "           Loop Blocking Information         "
+      PRINT "(A)", "---------------------------------------------"
+      PRINT "(A)", " "
+
+      ! determine integration element loop blocking info
+      PRINT*,"split: "
+      DO sp = 1,nsp
+        split(1,sp) = (sp-1)*(ne/nsp) + 1
+        split(2,sp) = sp*(ne/nsp)
+      ENDDO
+      split(2,nsp) = ne
+
+      DO sp = 1,nsp
+        PRINT*, split(1,sp),split(2,sp) 
+      ENDDO
+      PRINT*, " "
       
+      PRINT*, "Number of partitions: ", npart
+      
+      ! determine edge integration element loop blocking bounds
       ALLOCATE(psplit(2,npart),STAT = alloc_status)
       IF(alloc_status /= 0) THEN
         PRINT*, "Allocation error: psplit"
@@ -344,6 +363,7 @@
         PRINT*, psplit(1,part), psplit(2,part), npel(part)
       ENDDO
       PRINT*, "Max elements per partition: ", MAXVAL(npel(:))
+      PRINT*, " "
       
       RETURN
       END SUBROUTINE align_partitions
@@ -458,6 +478,7 @@
 !         PRINT*, ed, edflag(ed)
 !       ENDDO
 
+      ! check for errors
       DO ed = 1,nied
         IF(edflag(ed) /= 1) THEN
           PRINT*, "Edge partition error: edflag /= 1"
@@ -465,6 +486,20 @@
         ENDIF
       ENDDO
       
+      ted = 0
+      DO part = 1,npart+1
+        ted = ted + npied(part)
+      ENDDO
+      
+      IF(ted /= nied .or. edcnt /= nied) THEN
+        PRINT*, "Error: sum of partition interior edges /= total interior edges"
+        PRINT*, "ted = ", ted
+        PRINT*, "nied = ", nied
+        PRINT*, "edcnt = ", edcnt
+        STOP
+      ENDIF
+      
+      ! determine edge integration edge loop blocking bounds      
       ALLOCATE(esplit(2,npart+1),STAT = alloc_status)
       IF(alloc_status /= 0) THEN
         PRINT*, "Allocation error: esplit"
@@ -486,21 +521,6 @@
       ENDDO  
       PRINT*, "Max interior edges per partition: ", MAXVAL(npied)
       
-      ted = 0
-      DO part = 1,npart+1
-        ted = ted + npied(part)
-      ENDDO
-      
-      IF(ted /= nied .or. edcnt /= nied) THEN
-        PRINT*, "Error: sum of partition interior edges /= total interior edges"
-        PRINT*, "ted = ", ted
-        PRINT*, "nied = ", nied
-        PRINT*, "edcnt = ", edcnt
-        STOP
-      ENDIF
-    
-      
-
       
       RETURN
       END SUBROUTINE edge_partition

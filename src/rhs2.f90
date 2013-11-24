@@ -26,7 +26,11 @@
                           Hfi,Hfe,Qxfi,Qxfe,Qyfi,Qyfe, &
                           const,inx,iny,len_area_in,len_area_ex, &
                           Hhatv,Qxhatv,Qyhatv, &
-                          rHi,rHe,xmomi,xmome,ymomi,ymome,xymomi,xymome
+                          rHi,rHe,xmomi,xmome,ymomi,ymome,xymomi,xymome, &
+                          Hin,Qxin,Qyin, &
+                          Hex,Qxex,Qyex, &
+                          xmin,ymin,xymin, &
+                          xmex,ymex,xymex
 !$    USE omp_lib                          
                           
                    
@@ -283,10 +287,7 @@ ed_points2: DO pt = 1,nqpte ! Compute numerical fluxes for all edges
                                      
                 Qyfe(ed,pt)%ptr = -len_area_ex(ed)*Qyhatv(ed)
                 Qyfi(ed,pt)%ptr =  len_area_in(ed)*Qyhatv(ed)
-              ENDDO
-              
-              
-              
+              ENDDO              
 
         ENDDO ed_points2
      

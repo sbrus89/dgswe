@@ -13,30 +13,6 @@
       
       ALLOCATE(split(2,nsp))
       
-      DO sp = 1,nsp
-        split(1,sp) = (sp-1)*(ne/nsp) + 1
-        split(2,sp) = sp*(ne/nsp)
-      ENDDO
-      split(2,nsp) = ne
-
-      DO sp = 1,nsp
-        PRINT*, split(1,sp),split(2,sp) 
-      ENDDO
-      PRINT*, ' '
-      
-!       ALLOCATE(split2(2,nsp2))
-!       
-!       DO sp = 1,nsp2
-!         split2(1,sp) = (sp-1)*(nied/nsp2) + 1
-!         split2(2,sp) = sp*(nied/nsp2)
-!       ENDDO
-!       split2(2,nsp2) = nied
-! 
-!       DO sp = 1,nsp2
-!         PRINT*, split2(1,sp),split2(2,sp) 
-!       ENDDO
-!       PRINT*, ' '
-
       ! Solution arrays
       
       ALLOCATE(Hinit(ne,ndof),Qxinit(ne,ndof),Qyinit(ne,ndof),STAT = alloc_status)

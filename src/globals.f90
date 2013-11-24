@@ -174,6 +174,12 @@
       TYPE(edge_ptr_array), ALLOCATABLE, DIMENSION(:,:) :: Qxwrite
       TYPE(edge_ptr_array), ALLOCATABLE, DIMENSION(:,:) :: Qywrite
       
+      
+      REAL(pres), ALLOCATABLE, DIMENSION(:) :: Qxin,Qyin,Hin
+      REAL(pres), ALLOCATABLE, DIMENSION(:) :: Qxex,Qyex,Hex
+      REAL(pres), ALLOCATABLE, DIMENSION(:) :: xmin,ymin,xymin
+      REAL(pres), ALLOCATABLE, DIMENSION(:) :: xmex,ymex,xymex
+      
 !DIR$ ATTRIBUTES ALIGN:32 :: rhsH,rhsQx,rhsQy
 !DIR$ ATTRIBUTES ALIGN:32 :: Hqpt,Qxqpt,Qyqpt
 !DIR$ ATTRIBUTES ALIGN:32 :: H,Qx,Qy
@@ -191,6 +197,11 @@
 !DIR$ ATTRIBUTES ALIGN:32 :: Hi,He,Qxi,Qxe,Qyi,Qye,xmi,xme,xymi,xyme,ymi,yme
 !DIR$ ATTRIBUTES ALIGN:32 :: inx,iny,len_area_ex,len_area_in
 !DIR$ ATTRIBUTES ALIGN:32 :: Hfe,Hfi,Qxfi,Qxfe,Qyfi,Qyfe
+!DIR$ ATTRIBUTES ALIGN:32 :: Hin,Qxin,Qyin
+!DIR$ ATTRIBUTES ALIGN:32 :: Hex,Qxex,Qyex
+!DIR$ ATTRIBUTES ALIGN:32 :: xmin,ymin,xymin
+!DIR$ ATTRIBUTES ALIGN:32 :: xmex,ymex,xymex
+
      
       END MODULE globals
 

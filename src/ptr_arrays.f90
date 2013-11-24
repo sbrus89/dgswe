@@ -8,7 +8,11 @@
                        xmom,ymom,xymom, &
                        Hflux,Qxflux,Qyflux, &
                        inx,iny,len_area_in,len_area_ex,const, &
-                       Hhatv,Qxhatv,Qyhatv
+                       Hhatv,Qxhatv,Qyhatv, &
+                       Hin,Qxin,Qyin, &
+                       Hex,Qxex,Qyex, &
+                       xmin,ymin,xymin, &
+                       xmex,ymex,xymex
 
      IMPLICIT NONE
      INTEGER :: alloc_status
@@ -40,6 +44,26 @@
        PRINT*, "Allocation error: Hhatv,Qxhatv,Qyhatv"
      ENDIF
 
+     ALLOCATE(Qxin(nied),Qyin(nied),Hin(nied),STAT=alloc_status)
+     IF(alloc_status /= 0) THEN
+       PRINT*, "Allocation error: Qxin,Qyin,Hin"
+     ENDIF
+     
+     ALLOCATE(Qxex(nied),Qyex(nied),Hex(nied),STAT=alloc_status)
+     IF(alloc_status /= 0) THEN
+       PRINT*, "Allocation error: Qxex,Qyex,Hex"
+     ENDIF
+     
+     ALLOCATE(xmin(nied),ymin(nied),xymin(nied),STAT=alloc_status)
+     IF(alloc_status /= 0) THEN
+       PRINT*, "Allocation error: xmin,ymin,xymin"
+     ENDIF  
+
+     ALLOCATE(xmex(nied),ymex(nied),xymex(nied),STAT=alloc_status)
+     IF(alloc_status /= 0) THEN
+       PRINT*, "Allocation error: xmex,ymex,xymex"
+     ENDIF  
+     
 
 !      DO pt = 1,nqpte
 !        DO ed = 1,nied
@@ -115,6 +139,65 @@
 !        
 !      ENDDO
           
+          
+!                         !DIR$ VECTOR ALIGNED
+!               DO ed = esplit(1,part),esplit(2,part) 
+!                 Hin(ed) = Hi(ed,pt)%ptr
+!                 Hex(ed) = He(ed,pt)%ptr
+!                 Qxin(ed) = Qxi(ed,pt)%ptr
+!                 Qxex(ed) = Qxe(ed,pt)%ptr
+!                 Qyin(ed) = Qyi(ed,pt)%ptr
+!                 Qyex(ed) = Qye(ed,pt)%ptr
+!                 xmin(ed) = xmi(ed,pt)%ptr
+!                 xmex(ed) = xme(ed,pt)%ptr
+!                 ymin(ed) = ymi(ed,pt)%ptr
+!                 ymex(ed) = yme(ed,pt)%ptr
+!                 xymin(ed) = xymi(ed,pt)%ptr
+!                 xymex(ed) = xyme(ed,pt)%ptr
+!               ENDDO
+! 
+!               !DIR$ VECTOR ALIGNED
+!               DO ed = esplit(1,part),esplit(2,part) 
+!                 
+!                 const(ed) = max(abs(Qxin(ed)*inx(ed) + Qyin(ed)*iny(ed))/Hin(ed) + sqrt(g*Hin(ed)), &
+!                                 abs(Qxex(ed)*inx(ed) + Qyex(ed)*iny(ed))/Hex(ed) + sqrt(g*Hex(ed)))
+! !                 const(ed) = compute_const(Qxi(ed,pt)%ptr,Qxe(ed,pt)%ptr,Qyi(ed,pt)%ptr,Qye(ed,pt)%ptr,Hi(ed,pt)%ptr,He(ed,pt)%ptr,inx(ed),iny(ed),g)
+!               ENDDO
+!               
+!               
+!               
+! !DIR$ IVDEP
+! !DIR$ VECTOR ALIGNED
+!               DO ed = esplit(1,part),esplit(2,part)             
+!                 Hhatv(ed) = .5d0*(inx(ed)*(Qxin(ed) + Qxex(ed)) + iny(ed)*(Qyin(ed) + Qyex(ed)) &
+!                                         - const(ed)*(Hex(ed) - Hin(ed)))
+! 
+!                 Hfe(ed,pt)%ptr = -len_area_ex(ed)*Hhatv(ed)
+!                 Hfi(ed,pt)%ptr =  len_area_in(ed)*Hhatv(ed)
+!               ENDDO    
+!               
+!               
+! !DIR$ IVDEP
+! !DIR$ VECTOR ALIGNED
+!               DO ed = esplit(1,part),esplit(2,part)          
+!                 Qxhatv(ed) = .5d0*(inx(ed)*(xmin(ed) + xmex(ed)) + iny(ed)*(xymin(ed) + xymex(ed))  &
+!                                         - const(ed)*(Qxex(ed) - Qxin(ed)))
+!                                  
+!                 Qxfe(ed,pt)%ptr = -len_area_ex(ed)*Qxhatv(ed)
+!                 Qxfi(ed,pt)%ptr =  len_area_in(ed)*Qxhatv(ed)
+!               ENDDO   
+!               
+!               
+!               
+! !DIR$ IVDEP
+! !DIR$ VECTOR ALIGNED
+!               DO ed = esplit(1,part),esplit(2,part)
+!                 Qyhatv(ed) = .5d0*(inx(ed)*(xymin(ed) + xymex(ed)) + iny(ed)*(ymin(ed) + ymex(ed))  &
+!                                         - const(ed)*(Qyex(ed) - Qyin(ed)))
+!                                      
+!                 Qyfe(ed,pt)%ptr = -len_area_ex(ed)*Qyhatv(ed)
+!                 Qyfi(ed,pt)%ptr =  len_area_in(ed)*Qyhatv(ed)
+!               ENDDO
 
      RETURN
      END SUBROUTINE ptr_arrays
