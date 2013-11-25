@@ -8,7 +8,7 @@
       INTEGER :: inp_read,skipped
       CHARACTER(50) :: temp
       
-      OPEN(unit=14,file='dgswe.inp')
+      OPEN(unit=15,file='dgswe.inp')
       
       PRINT "(A)", "---------------------------------------------"
       PRINT "(A)", "             Input Information               "
@@ -19,7 +19,7 @@
       skipped = 0
       DO WHILE (inp_read < ninp)
       
-        READ(14,"(A50)") temp
+        READ(15,"(A50)") temp
                     
         IF ( INDEX(temp,"!") == 1 .or. INDEX(temp,"          ") == 1) THEN
 !           PRINT*, "input ignored"
@@ -66,7 +66,7 @@
       PRINT*, "Lines skipped: ", skipped
       PRINT*, " "
       
-      CLOSE(14)
+      CLOSE(15)
       
 
       END SUBROUTINE  read_input
