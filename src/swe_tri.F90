@@ -200,6 +200,22 @@
 
       PRINT*, ' '
       PRINT("(A,F10.5,A)"), "CPU time = ",t_end-t_start," seconds"
+      
+      OPEN(UNIT=101, FILE='CPUtime.log', STATUS='OLD', POSITION='APPEND')
+      WRITE(101,*) "grid = ", grid_file
+      WRITE(101,*) "p = ", p
+      WRITE(101,*) "dt, tf = ", dt,tf
+#ifdef rk22
+      WRITE(101,*) "RK 22"
+#endif
+#ifdef rk33
+      WRITE(101,*) "RK 33"
+#endif
+      WRITE(101,*) "nsp, npart = ", nsp, npart
+      WRITE(101,*) "CPU time = ", t_end-t_start
+      WRITE(101,*) " "
+      CLOSE(101)
+      
 
       PRINT*, ' '
       END PROGRAM swe_tri

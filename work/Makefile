@@ -5,6 +5,7 @@ VPATH := ../src
 CFLAGS_VEC =  -O3 -xHost -vec-report6 -c
 CFLAGS =  -O3 -xHost -c 
 CFLAGS_LINK = -O3 -xHost -o 
+RK = -Drk33
 
 # CFLAGS_VEC =  -O3 -xHost -vec-report6 -openmp -Dopenmp -c
 # CFLAGS =  -O3 -xHost -openmp -Dopenmp -c 
@@ -83,7 +84,7 @@ edge_partition.o : edge_partition.f90 globals.f90
 	$(FC) $(CFLAGS) $<
 
 rk.o : rk.F90 globals.f90
-	$(FC) $(CFLAGS_VEC) -Drk33 $<
+	$(FC) $(CFLAGS_VEC) $(RK) $<
 
 rhs2.o : rhs2.f90 globals.f90
 	$(FC) $(CFLAGS_VEC) $<
@@ -92,7 +93,7 @@ numerical_flux.o : numerical_flux.f90 globals.f90
 	$(FC) $(CFLAGS) $<
 
 swe_tri.o : swe_tri.F90 globals.f90
-	$(FC) $(CFLAGS) $<
+	$(FC) $(CFLAGS) $(RK) $<
 
 .PHONY : clean
 clean : 
