@@ -38,10 +38,13 @@
 
       REAL(pres) :: dt ! time step
       REAL(pres) :: t ! simulation time
+      REAL(pres) :: tf ! final time
       REAL(pres) :: tstage ! rk stage time
       REAL(pres) :: ramp ! boundary condition ramp value
       REAL(pres) :: dramp ! numer of ramp days
       REAL(pres), PARAMETER :: pt3333 = 1d0/3d0 ! 1/3 for 3rd order rk
+      
+      REAL(pres) :: lines ! number of lines in output files
       
       INTEGER, ALLOCATABLE, DIMENSION(:,:) :: ect ! element connectivity table
       REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: xy ! x,y coordinates of nodes

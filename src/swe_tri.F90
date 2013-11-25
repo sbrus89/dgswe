@@ -6,7 +6,7 @@
 
       IMPLICIT NONE
       INTEGER :: it,tskp,cnt,myid
-      REAL(pres) :: tf,tstep,lines,t_start,t_end
+      REAL(pres) :: tstep,t_start,t_end
 
       OPEN(unit=63,file='../output/solution_H.d')
       OPEN(unit=641,file='../output/solution_Qx.d')
@@ -17,14 +17,14 @@
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-      grid_file = "../grids/inlet1.grd"
-      forcing_file = "../grids/inlet1.bfr"
-      dt = 1d0!/2d0      ! 1d0 for p=1,2, .5d0 for p=3
-      tf = 1d0*86400d0
-      dramp = .5d0
-      cf = .003d0
-      lines = 100d0
-      nsp = 5
+!       grid_file = "../grids/inlet1.grd"
+!       forcing_file = "../grids/inlet1.bfr"
+!       dt = 1d0!/2d0      ! 1d0 for p=1,2, .5d0 for p=3
+!       tf = 1d0*86400d0
+!       dramp = .5d0
+!       cf = .003d0
+!       lines = 100d0
+!       nsp = 5
 
 !       grid_file = "../grids/inlet2.grd"
 !       forcing_file = "../grids/inlet2.bfr"
@@ -63,9 +63,11 @@
 !       nsp = 45
 
 
-      p = 1
+!       p = 2
       
 !       npart = 3
+
+      CALL read_input()
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

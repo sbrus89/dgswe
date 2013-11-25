@@ -519,7 +519,7 @@
       DO part = 1,npart+1
         PRINT*, esplit(1,part), esplit(2,part), npied(part)
       ENDDO  
-      PRINT*, "Max interior edges per partition: ", MAXVAL(npied)
+      PRINT*, "Max interior edges per partition: ", MAXVAL(npied(1:npart))
       
       
       RETURN

@@ -35,7 +35,7 @@ CFLAGS_LINK = -O3 -xHost -o
 # -opt-report3 -opt-report-file=opt_report 
 # -vec-report3
 
-objects = globals.o basis.o area_qpts.o edge_qpts.o read_grid.o read_forcing.o alloc_arrays.o ptr_arrays.o initial.o connect.o element_data.o edge_partition.o rk.o rhs2.o numerical_flux.o swe_tri.o
+objects = globals.o basis.o area_qpts.o edge_qpts.o read_input.o read_grid.o read_forcing.o alloc_arrays.o ptr_arrays.o initial.o connect.o element_data.o edge_partition.o rk.o rhs2.o numerical_flux.o swe_tri.o
 
 dgswe : $(objects)
 	$(FC) $(CFLAGS_LINK) dgswe $(objects)
@@ -53,6 +53,9 @@ area_qpts.o : area_qpts.f90 globals.f90
 	$(FC) $(CFLAGS) $<
 
 edge_qpts.o : edge_qpts.f90 globals.f90
+	$(FC) $(CFLAGS) $<
+
+read_input.o : read_input.f90 globals.f90
 	$(FC) $(CFLAGS) $<
 
 read_grid.o : read_grid.f90 globals.f90
