@@ -24,7 +24,9 @@
       
       INTEGER :: part
       INTEGER :: npart ! number of element partitions
-      INTEGER :: mnelpp ! max number of elements per partition
+      INTEGER :: mnelpp ! max number of elements per partition (total)
+      INTEGER :: mnpied ! max number of interior edges per partition
+      INTEGER :: mnpel !max number of elements per parition (with out recv)
       INTEGER, ALLOCATABLE, DIMENSION(:) :: tnpel ! total number of elements in each partition (including recv)
       INTEGER, ALLOCATABLE, DIMENSION(:) :: npel ! number of elements in each partition (without recv)      
       INTEGER, ALLOCATABLE, DIMENSION(:,:) :: peln ! global numbers of elements in each partition

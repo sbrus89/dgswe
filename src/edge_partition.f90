@@ -66,6 +66,8 @@
       
       IF(nelg /= ne) THEN
         PRINT*, "Number of elements from parition file /= number of elements from grid file"
+        PRINT*, "   Number of elements from partition file: ", nelg
+        PRINT*, "   Number of elements from grid file: ", ne
         STOP
       ENDIF
       
@@ -177,7 +179,7 @@
                          dpdx,dpdx_init,dpdy,dpdy_init, &
                          dhbdx,dhbdx_init,dhbdy,dhbdy_init, &
                          Hwrite,Qxwrite,Qywrite, &
-                         sp,nsp,split
+                         sp,nsp,split,mnpel
       
       IMPLICIT NONE
       
@@ -362,7 +364,8 @@
       DO part = 1,npart
         PRINT*, psplit(1,part), psplit(2,part), npel(part)
       ENDDO
-      PRINT*, "Max elements per partition: ", MAXVAL(npel(:))
+      mnpel = MAXVAL(npel(:))
+      PRINT*, "Max elements per partition: ", mnpel
       PRINT*, " "
       
       RETURN
@@ -378,7 +381,7 @@
       SUBROUTINE edge_partition()
       
       USE globals, ONLY: npart,nied,esplit,npel, &
-                         iedn,ged2el,lel2gel,piedn
+                         iedn,ged2el,lel2gel,piedn,mnpied
                          
       
       IMPLICIT NONE
@@ -519,7 +522,8 @@
       DO part = 1,npart+1
         PRINT*, esplit(1,part), esplit(2,part), npied(part)
       ENDDO  
-      PRINT*, "Max interior edges per partition: ", MAXVAL(npied(1:npart))
+      mnpied = MAXVAL(npied(1:npart)) 
+      PRINT*, "Max interior edges per partition: ", mnpied
       
       
       RETURN

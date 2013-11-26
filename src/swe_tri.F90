@@ -212,6 +212,7 @@
       WRITE(101,*) "RK 33"
 #endif
       WRITE(101,*) "nsp, npart = ", nsp, npart
+      WRITE(101,*) "mnpel, mnied = ", mnpel, mnpied
       WRITE(101,*) "CPU time = ", t_end-t_start
       WRITE(101,*) " "
       CLOSE(101)
