@@ -120,6 +120,46 @@
       ENDDO
 #endif
 
+!       CALL nan_check()
+
 
       RETURN
       END SUBROUTINE RK
+      
+      
+      
+      
+      SUBROUTINE nan_check()
+      
+      USE globals, ONLY: dof,ndof,el,ne, &
+                         H,Qx,Qy
+      
+      IMPLICIT NONE
+      
+      DO dof = 1,ndof
+      
+        DO el = 1,ne
+          IF (H(el,dof) /= H(el,dof)) THEN
+            PRINT*, "NaN detected in H solution"
+            STOP
+          ENDIF
+        ENDDO
+        
+        DO el = 1,ne
+          IF (Qx(el,dof) /= Qx(el,dof)) THEN
+            PRINT*, "NaN detected in Qx solution"
+            STOP
+          ENDIF
+        ENDDO
+        
+        DO el = 1,ne
+          IF (Qy(el,dof) /= Qy(el,dof)) THEN
+            PRINT*, "NaN detected in Qy solution"
+            STOP
+          ENDIF
+        ENDDO
+        
+      ENDDO
+      
+      RETURN
+      END SUBROUTINE nan_check
