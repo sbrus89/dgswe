@@ -76,7 +76,7 @@
 a_points: DO pt = 1,nqpta
 
 !DIR$ VECTOR ALIGNED
-            DO el = split(1,sp),split(2,sp)
+            DO el = split(1,sp),split(2,sp) ! First basis function is 1
               Hqpt(el,1) = H(el,1)
               Qxqpt(el,1) = Qx(el,1)
               Qyqpt(el,1) = Qy(el,1)

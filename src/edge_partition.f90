@@ -72,22 +72,22 @@
       ENDIF
       
       
-      ALLOCATE(pnodes(mnnpp,npart),STAT = alloc_status)
+      ALLOCATE(pnodes(mnnpp,npart),STAT = alloc_status) 
       IF(alloc_status /= 0) THEN
         PRINT*, "Allocation error: pnodes"
       ENDIF
       
-      DO part = 1,npart
+      DO part = 1,npart ! read in partion nodes (these are not needed)
         READ(80,*) pn,nnp,nres
         READ(80,1130) (pnodes(nd,part), nd = 1,nnp)
       ENDDO
       
-      ALLOCATE(tnpel(npart),peln(mnelpp,npart),STAT = alloc_status)
+      ALLOCATE(tnpel(npart),peln(mnelpp,npart),STAT = alloc_status) 
       IF(alloc_status /= 0) THEN
         PRINT*, "Allocation error: tnpel,peln"
       ENDIF
       
-      DO part = 1,npart
+      DO part = 1,npart ! read in partition elements
         READ(80,*) pn,tnpel(part)
         IF (pn /= part-1) THEN
           PRINT*, "Error reading fort.80"
@@ -197,7 +197,7 @@
         PRINT*, "Allocation error: npel,lel2gel,gel2ael,ael2gel"
       ENDIF       
       
-      ! throw out recv elements and generate local element to global element table
+      ! throw out recv (ghost or halo) elements and generate local element to global element table
       DO part = 1,npart 
       
         el_cnt = 0
