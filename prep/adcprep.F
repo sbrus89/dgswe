@@ -275,8 +275,8 @@ C
 ! C
 ! C-- Write Message-Passing File for each PE
 ! C
-!         print *, "Writing Message-Passing Info Files for each PE"
-!         CALL PREP18()
+        print *, "Writing Message-Passing Info Files for each PE"
+        CALL PREP18()
 ! Csb-DG1
 C
 C-- Write Message-Passing File for each PE

@@ -1257,12 +1257,17 @@ C
       ALLOCATE ( RES_NODE(MNPP) )
 C
 C--Write Message-Passing File for each PE
+
+!     put all fort.18 info in one file (srb)
+      OPEN(18,FILE='fort.18')
 C
       DO 1000 I = 1,NPROC
 C
-         LOCFN(1:14) = 'PE0000/fort.18'
-         CALL IWRITE(LOCFN,3,6,I-1)
-         OPEN (18,FILE=LOCFN)
+
+!          commented out (srb)
+!          LOCFN(1:14) = 'PE0000/fort.18' 
+!          CALL IWRITE(LOCFN,3,6,I-1)
+!          OPEN (18,FILE=LOCFN)
 C
 #ifdef SWAN
 Casey 121128: Need the local-to-global vertex numbering
@@ -1340,7 +1345,7 @@ c                ISEND(ISEND_TOT(J,I)) = INDEX
             WRITE(18,1130) (ISEND(K),K=1,ISEND_TOT(J,I))
          ENDDO
 
-         CLOSE(18)
+!          CLOSE(18) commented out(srb)
 C
 1000  CONTINUE
 C
@@ -1532,7 +1537,7 @@ C
           ENDIF
         ENDDO
 
-!         CLOSE(181)
+!         CLOSE(181) commented out (srb)
 C     
  1000 CONTINUE
 
