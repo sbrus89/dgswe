@@ -18,25 +18,20 @@
       CHARACTER(24) :: grid_file ! name of fort.14 file
       CHARACTER(24) :: forcing_file ! name of fort.15 file
       
-      INTEGER :: sp,sp2
-      INTEGER :: nsp,nsp2
-      INTEGER, ALLOCATABLE, DIMENSION(:,:) :: split,psplit,esplit
+      INTEGER :: blk
+      INTEGER :: nblk
+      INTEGER, ALLOCATABLE, DIMENSION(:,:) :: elblk,edblk,nfblk
+      INTEGER :: mnpartel,mnparted      
       
-      INTEGER :: part
-      INTEGER :: npart ! number of element partitions
-      INTEGER :: mnelpp ! max number of elements per partition (total)
-      INTEGER :: mnpied ! max number of interior edges per partition
-      INTEGER :: mnpel !max number of elements per parition (with out recv)
-      INTEGER, ALLOCATABLE, DIMENSION(:) :: tnpel ! total number of elements in each partition (including recv)
-      INTEGER, ALLOCATABLE, DIMENSION(:) :: npel ! number of elements in each partition (without recv)      
-      INTEGER, ALLOCATABLE, DIMENSION(:,:) :: peln ! global numbers of elements in each partition
-      INTEGER, ALLOCATABLE, DIMENSION(:) :: nprel ! number of partition recv elements
-      INTEGER, ALLOCATABLE, DIMENSION(:,:) :: preln ! local numbers of rev elements 
+      INTEGER :: npart ! number of element partitions)
+      INTEGER, ALLOCATABLE, DIMENSION(:) :: part
+      INTEGER, ALLOCATABLE, DIMENSION(:) :: npartel
+      INTEGER, ALLOCATABLE, DIMENSION(:) :: nparted
       INTEGER, ALLOCATABLE, DIMENSION(:,:) :: lel2gel ! gives the global element number that corresponds to a local partition element number
+      INTEGER, ALLOCATABLE, DIMENSION(:) :: gel2lel
+      INTEGER, ALLOCATABLE, DIMENSION(:) :: gel2part      
       INTEGER, ALLOCATABLE, DIMENSION(:) :: gel2ael ! gives the aligned element number that corresponds to a global element number
       INTEGER, ALLOCATABLE, DIMENSION(:) :: ael2gel ! gives the global element number that corresponds to an aligned element number      
-      INTEGER, ALLOCATABLE, DIMENSION(:) :: gel2part
-      INTEGER, ALLOCATABLE, DIMENSION(:) :: piedn ! global edge numbers in aligned order
 
       REAL(pres) :: dt ! time step
       REAL(pres) :: t ! simulation time

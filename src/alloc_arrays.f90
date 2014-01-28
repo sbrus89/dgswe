@@ -1,17 +1,15 @@
       SUBROUTINE alloc_arrays()
 
-      USE globals, ONLY: sp,ne,nied,ndof,nqpte, &
+      USE globals, ONLY: ne,nied,ndof,nqpte, &
                          H,Hold,Hinit,rhsH,Qx,Qxold,Qxinit,rhsQx,Qy,Qyold,Qyinit, &
                          rhsQy,Hqpt,Qxqpt,Qyqpt,xmom,ymom,xymom, &
                          Hflux,Qxflux,Qyflux,tau,src_x,src_y,pressa,recipHa, &
-                         nsp,nsp2,split, &
                          rHi,rHe,xmomi,xmome,ymomi,ymome,xymomi,xymome
                          
 
       IMPLICIT NONE
       INTEGER :: alloc_status
       
-      ALLOCATE(split(2,nsp))
       
       ! Solution arrays
       

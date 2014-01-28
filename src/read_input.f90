@@ -1,6 +1,6 @@
       SUBROUTINE read_input()
 
-      USE globals, ONLY: grid_file,forcing_file,p,dt,tf,dramp,cf,lines,nsp
+      USE globals, ONLY: grid_file,forcing_file,p,dt,tf,dramp,cf,lines,nblk
 
       IMPLICIT NONE
       
@@ -53,8 +53,8 @@
               READ(temp,*) lines
               PRINT*, "lines = ", lines
             CASE (9)
-              READ(temp,*) nsp
-              PRINT*, "nsp = ", nsp
+              READ(temp,*) nblk
+              PRINT*, "nblk = ", nblk
           END SELECT
             
         ENDIF

@@ -1,8 +1,7 @@
       SUBROUTINE rhs2()
 
       USE globals,  ONLY: pres,l,ind,el,ne,pt,led,ed,dof,ndof, &
-                          split,sp,nsp,psplit,esplit,part,npart,piedn, &
-                          ael2gel,lel2gel,gel2part, &
+                          blk,nblk,elblk,edblk,nfblk,npart, &
                           g,pt5g,tstage,ramp,arg,bfr, & 
                           H,Qx,Qy, &
                           rhsH,rhsQx,rhsQy, &
@@ -71,12 +70,12 @@
 !$OMP do
    
 
-      DO sp = 1,nsp 
+      DO blk = 1,nblk
  
 a_points: DO pt = 1,nqpta
 
 !DIR$ VECTOR ALIGNED
-            DO el = split(1,sp),split(2,sp) ! First basis function is 1
+            DO el = elblk(1,blk),elblk(2,blk) ! First basis function is 1
               Hqpt(el,1) = H(el,1)
               Qxqpt(el,1) = Qx(el,1)
               Qyqpt(el,1) = Qy(el,1)
@@ -84,7 +83,7 @@ a_points: DO pt = 1,nqpta
 
    a_basis: DO dof = 2,ndof
 !DIR$ VECTOR ALIGNED
-              DO el = split(1,sp),split(2,sp) ! Evaluate solution at area quadrature point
+              DO el = elblk(1,blk),elblk(2,blk) ! Evaluate solution at area quadrature point
                 Hqpt(el,1) = Hqpt(el,1) + H(el,dof)*phia(dof,pt)
                 Qxqpt(el,1) = Qxqpt(el,1) + Qx(el,dof)*phia(dof,pt) 
                 Qyqpt(el,1) = Qyqpt(el,1) + Qy(el,dof)*phia(dof,pt)
@@ -93,7 +92,7 @@ a_points: DO pt = 1,nqpta
             ENDDO a_basis
 
 !DIR$ VECTOR ALIGNED
-            DO el = split(1,sp),split(2,sp) ! Compute momentum terms
+            DO el = elblk(1,blk),elblk(2,blk) ! Compute momentum terms
               recipHa(el) = 1d0/Hqpt(el,1)
 
               xmom(el,1) = pt5g*Hqpt(el,1)*Hqpt(el,1) + Qxqpt(el,1)*Qxqpt(el,1)*recipHa(el)
@@ -102,14 +101,14 @@ a_points: DO pt = 1,nqpta
             ENDDO 
 
 !DIR$ VECTOR ALIGNED
-            DO el = split(1,sp),split(2,sp) ! Compute source terms
+            DO el = elblk(1,blk),elblk(2,blk) ! Compute source terms
               tau(el) = cf*sqrt((Qxqpt(el,1)*recipHa(el))**2 + (Qyqpt(el,1)*recipHa(el))**2)*recipHa(el)
               src_x(el) = g*Hqpt(el,1)*dhbdx(el) - tau(el)*Qxqpt(el,1) 
               src_y(el) = g*Hqpt(el,1)*dhbdy(el) - tau(el)*Qyqpt(el,1)
             ENDDO
 
 !DIR$ VECTOR ALIGNED
-            DO el = split(1,sp),split(2,sp) ! Derivatives are 0 for first dof
+            DO el = elblk(1,blk),elblk(2,blk) ! Derivatives are 0 for first dof
               rhsQx(el,1) = rhsQx(el,1) + src_x(el)*phia_int(1,pt)
               rhsQy(el,1) = rhsQy(el,1) + src_y(el)*phia_int(1,pt)
             ENDDO
@@ -117,7 +116,7 @@ a_points: DO pt = 1,nqpta
       test: DO l = 2,ndof 
               ind = (l-1)*nqpta+pt
 !DIR$ VECTOR ALIGNED          
-              DO el = split(1,sp),split(2,sp)
+              DO el = elblk(1,blk),elblk(2,blk)
                 rhsH(el,l) = rhsH(el,l) + Qxqpt(el,1)*dpdx(el,ind) + Qyqpt(el,1)*dpdy(el,ind)
 
                 rhsQx(el,l) = rhsQx(el,l) + xmom(el,1)*dpdx(el,ind) + xymom(el,1)*dpdy(el,ind) + src_x(el)*phia_int(l,pt)           
@@ -211,12 +210,12 @@ a_points: DO pt = 1,nqpta
       
 
 !$OMP do
-       DO part = 1,npart
+       DO blk = 1,npart
        
 ed_points: DO pt = 1,3*nqpte
 
 !DIR$ VECTOR ALIGNED               
-              DO el = psplit(1,part),psplit(2,part)
+              DO el = edblk(1,blk),edblk(2,blk)
                 Hqpt(el,pt) = H(el,1)
                 Qxqpt(el,pt) = Qx(el,1)
                 Qyqpt(el,pt) = Qy(el,1)
@@ -224,7 +223,7 @@ ed_points: DO pt = 1,3*nqpte
 
     ed_basis: DO dof = 2,ndof     
 !DIR$ VECTOR ALIGNED
-                DO el = psplit(1,part),psplit(2,part) ! Compute solutions at edge quadrature points                
+                DO el = edblk(1,blk),edblk(2,blk) ! Compute solutions at edge quadrature points                
                   Hqpt(el,pt) = Hqpt(el,pt) + H(el,dof)*phie(dof,pt)            
                   Qxqpt(el,pt) = Qxqpt(el,pt) + Qx(el,dof)*phie(dof,pt)            
                   Qyqpt(el,pt) = Qyqpt(el,pt) + Qy(el,dof)*phie(dof,pt)            
@@ -233,7 +232,7 @@ ed_points: DO pt = 1,3*nqpte
               ENDDO ed_basis
 
 !DIR$ VECTOR ALIGNED
-              DO el = psplit(1,part),psplit(2,part) ! Compute momentum terms       
+              DO el = edblk(1,blk),edblk(2,blk) ! Compute momentum terms       
                 recipHa(el) = 1d0/Hqpt(el,pt)
                 
                 xmom(el,pt) = pt5g*Hqpt(el,pt)*Hqpt(el,pt) + Qxqpt(el,pt)*Qxqpt(el,pt)*recipHa(el) 
@@ -247,7 +246,7 @@ ed_points: DO pt = 1,3*nqpte
 ed_points2: DO pt = 1,nqpte ! Compute numerical fluxes for all edges
               
 !DIR$ VECTOR ALIGNED
-              DO ed = esplit(1,part),esplit(2,part) 
+              DO ed = nfblk(1,blk),nfblk(2,blk) 
                 
                 const(ed) = max(abs(Qxi(ed,pt)%ptr*inx(ed) + Qyi(ed,pt)%ptr*iny(ed))/Hi(ed,pt)%ptr + sqrt(g*Hi(ed,pt)%ptr), &
                                 abs(Qxe(ed,pt)%ptr*inx(ed) + Qye(ed,pt)%ptr*iny(ed))/He(ed,pt)%ptr + sqrt(g*He(ed,pt)%ptr))
@@ -258,7 +257,7 @@ ed_points2: DO pt = 1,nqpte ! Compute numerical fluxes for all edges
               
 !DIR$ IVDEP
 !DIR$ VECTOR ALIGNED
-              DO ed = esplit(1,part),esplit(2,part)             
+              DO ed = nfblk(1,blk),nfblk(2,blk)             
                 Hhatv(ed) = .5d0*(inx(ed)*(Qxi(ed,pt)%ptr + Qxe(ed,pt)%ptr) + iny(ed)*(Qyi(ed,pt)%ptr + Qye(ed,pt)%ptr) &
                                         - const(ed)*(He(ed,pt)%ptr - Hi(ed,pt)%ptr))
 
@@ -269,7 +268,7 @@ ed_points2: DO pt = 1,nqpte ! Compute numerical fluxes for all edges
               
 !DIR$ IVDEP
 !DIR$ VECTOR ALIGNED
-              DO ed = esplit(1,part),esplit(2,part)          
+              DO ed = nfblk(1,blk),nfblk(2,blk)          
                 Qxhatv(ed) = .5d0*(inx(ed)*(xmi(ed,pt)%ptr + xme(ed,pt)%ptr) + iny(ed)*(xymi(ed,pt)%ptr + xyme(ed,pt)%ptr)  &
                                         - const(ed)*(Qxe(ed,pt)%ptr - Qxi(ed,pt)%ptr))
                                  
@@ -281,7 +280,7 @@ ed_points2: DO pt = 1,nqpte ! Compute numerical fluxes for all edges
               
 !DIR$ IVDEP
 !DIR$ VECTOR ALIGNED
-              DO ed = esplit(1,part),esplit(2,part)
+              DO ed = nfblk(1,blk),nfblk(2,blk)
                 Qyhatv(ed) = .5d0*(inx(ed)*(xymi(ed,pt)%ptr + xyme(ed,pt)%ptr) + iny(ed)*(ymi(ed,pt)%ptr + yme(ed,pt)%ptr)  &
                                         - const(ed)*(Qye(ed,pt)%ptr - Qyi(ed,pt)%ptr))
                                      
@@ -298,7 +297,7 @@ ed_points2: DO pt = 1,nqpte ! Compute numerical fluxes for all edges
 !$OMP single            
        DO pt = 1,nqpte
 ! !DIR$ VECTOR ALIGNED
-              DO ed = esplit(1,npart+1),esplit(2,npart+1)
+              DO ed = nfblk(1,npart+1),nfblk(2,npart+1)
                 const(ed) = max(abs(Qxi(ed,pt)%ptr*inx(ed) + Qyi(ed,pt)%ptr*iny(ed))/Hi(ed,pt)%ptr + sqrt(g*Hi(ed,pt)%ptr), &
                                 abs(Qxe(ed,pt)%ptr*inx(ed) + Qye(ed,pt)%ptr*iny(ed))/He(ed,pt)%ptr + sqrt(g*He(ed,pt)%ptr))
               ENDDO
@@ -307,7 +306,7 @@ ed_points2: DO pt = 1,nqpte ! Compute numerical fluxes for all edges
               
 !DIR$ IVDEP
 ! !DIR$ VECTOR ALIGNED
-              DO ed = esplit(1,npart+1),esplit(2,npart+1)
+              DO ed = nfblk(1,npart+1),nfblk(2,npart+1)
                 Hhatv(ed) = .5d0*(inx(ed)*(Qxi(ed,pt)%ptr + Qxe(ed,pt)%ptr) + iny(ed)*(Qyi(ed,pt)%ptr + Qye(ed,pt)%ptr) &
                                         - const(ed)*(He(ed,pt)%ptr - Hi(ed,pt)%ptr))
                                      
@@ -319,7 +318,7 @@ ed_points2: DO pt = 1,nqpte ! Compute numerical fluxes for all edges
               
 !DIR$ IVDEP
 ! !DIR$ VECTOR ALIGNED
-              DO ed = esplit(1,npart+1),esplit(2,npart+1)
+              DO ed = nfblk(1,npart+1),nfblk(2,npart+1)
                 Qxhatv(ed) = .5d0*(inx(ed)*(xmi(ed,pt)%ptr + xme(ed,pt)%ptr) + iny(ed)*(xymi(ed,pt)%ptr + xyme(ed,pt)%ptr)  &
                                         - const(ed)*(Qxe(ed,pt)%ptr - Qxi(ed,pt)%ptr))
                                    
@@ -331,7 +330,7 @@ ed_points2: DO pt = 1,nqpte ! Compute numerical fluxes for all edges
               
 !DIR$ IVDEP
 ! !DIR$ VECTOR ALIGNED
-              DO ed = esplit(1,npart+1),esplit(2,npart+1)
+              DO ed = nfblk(1,npart+1),nfblk(2,npart+1)
                 Qyhatv(ed) = .5d0*(inx(ed)*(xymi(ed,pt)%ptr + xyme(ed,pt)%ptr) + iny(ed)*(ymi(ed,pt)%ptr + yme(ed,pt)%ptr)  &
                                         - const(ed)*(Qye(ed,pt)%ptr - Qyi(ed,pt)%ptr))
                                       
@@ -485,11 +484,11 @@ ed_points2: DO pt = 1,nqpte ! Compute numerical fluxes for all edges
 
 
 !$OMP do          
-          DO sp = 1,nsp             
+          DO blk = 1,nblk             
             DO pt = 1,3*nqpte
                DO l = 1,ndof
 !DIR$ VECTOR ALIGNED
-                 DO el = split(1,sp),split(2,sp)
+                 DO el = elblk(1,blk),elblk(2,blk)
                    rhsH(el,l) = rhsH(el,l) - Hflux(el,pt)*phie_int(l,pt)
                    rhsQx(el,l) = rhsQx(el,l) - Qxflux(el,pt)*phie_int(l,pt)
                    rhsQy(el,l) = rhsQy(el,l) - Qyflux(el,pt)*phie_int(l,pt)                   

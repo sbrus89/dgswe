@@ -5,7 +5,10 @@ VPATH := ../src
 CFLAGS_VEC =  -O3 -xHost -vec-report6 -c
 CFLAGS =  -O3 -xHost -c 
 CFLAGS_LINK = -O3 -xHost -o 
+
 RK = -Drk33
+LIB_PATH = ../metis-4.0.3/
+LIB = metis
 
 # CFLAGS_VEC =  -O3 -xHost -vec-report6 -openmp -Dopenmp -c
 # CFLAGS =  -O3 -xHost -openmp -Dopenmp -c 
@@ -36,10 +39,10 @@ RK = -Drk33
 # -opt-report3 -opt-report-file=opt_report 
 # -vec-report3
 
-objects = globals.o basis.o area_qpts.o edge_qpts.o read_input.o read_grid.o read_forcing.o alloc_arrays.o ptr_arrays.o initial.o connect.o element_data.o edge_partition.o rk.o rhs2.o numerical_flux.o swe_tri.o
+objects = globals.o basis.o area_qpts.o edge_qpts.o read_input.o read_grid.o read_forcing.o alloc_arrays.o ptr_arrays.o initial.o connect.o element_data.o edge_partition2.o rk.o rhs2.o numerical_flux.o swe_tri.o
 
 dgswe : $(objects)
-	$(FC) $(CFLAGS_LINK) dgswe $(objects)
+	$(FC) $(CFLAGS_LINK) dgswe $(objects) -L $(LIB_PATH) -l$(LIB)
 
 globals.o : globals.f90
 	$(FC) $(CFLAGS) $<
@@ -80,7 +83,7 @@ connect.o : connect.f90 globals.f90
 element_data.o : element_data.f90 globals.f90
 	$(FC) $(CFLAGS) $<
 
-edge_partition.o : edge_partition.f90 globals.f90
+edge_partition2.o : edge_partition2.f90 globals.f90
 	$(FC) $(CFLAGS) $<
 
 rk.o : rk.F90 globals.f90

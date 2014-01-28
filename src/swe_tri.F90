@@ -65,7 +65,7 @@
 
 !       p = 2
       
-!       npart = 3
+      npart = 3
 
       CALL read_input()
 
@@ -119,13 +119,9 @@
       ! Compute initial condition, boundary forcing interpolation
       CALL initial()
       
-!       CALL make_partitions()
+      CALL metis2()
       
-      CALL read_partitions()
-      
-      CALL align_partitions()
-      
-      CALL edge_partition()
+      CALL decomp2()
       
 #ifdef openmp
       t_start = omp_get_wtime()
@@ -211,8 +207,8 @@
 #ifdef rk33
       WRITE(101,*) "RK 33"
 #endif
-      WRITE(101,*) "nsp, npart = ", nsp, npart
-      WRITE(101,*) "mnpel, mnied = ", mnpel, mnpied
+      WRITE(101,*) "nblk, npart = ", nblk, npart
+      WRITE(101,*) "mnpartel,mnparted = ", mnpartel,mnparted   
       WRITE(101,*) "CPU time = ", t_end-t_start
       WRITE(101,*) " "
       CLOSE(101)
