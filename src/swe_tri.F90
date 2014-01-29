@@ -67,6 +67,8 @@
       
 !       npart = 3
 
+      nrblk = 1
+
       CALL read_input()
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -81,6 +83,7 @@
 !$OMP  parallel private(myid)
       myid = omp_get_thread_num()
       PRINT*, myid
+      nrblk = omp_get_num_threads()
 !$OMP end parallel
 #endif
 

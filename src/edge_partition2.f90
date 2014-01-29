@@ -124,7 +124,7 @@
                          dpdx,dpdy,dpdx_init,dpdy_init, &
                          dhbdx,dhbdy,dhbdx_init,dhbdy_init, &
                          Hwrite,Qxwrite,Qywrite, &
-                         nblk,elblk,edblk,nfblk, &
+                         nblk,elblk,edblk,nfblk,nrblk,rnfblk, &
                          mnpartel,mnparted   
 
 
@@ -264,6 +264,7 @@
       ALLOCATE(edblk(2,npart))
       ALLOCATE(nfblk(2,npart+1))
       ALLOCATE(elblk(2,nblk))
+      ALLOCATE(rnfblk(2,nrblk))
       
       DO blk = 1,nblk
         elblk(1,blk) = (blk-1)*(ne/nblk) + 1
@@ -292,6 +293,14 @@
         nfblk(1,blk+1) = ted + 1
       ENDDO
       nfblk(2,npart+1) = ted + nparted(npart+1)
+      
+      rnfblk(1,1) = ted+1
+      DO blk = 1,nrblk
+        ted = ted + (nparted(npart+1)/nrblk)
+        rnfblk(2,blk) = ted  
+        rnfblk(1,blk+1) = ted + 1
+      ENDDO
+      rnfblk(2,nrblk) = nied
       
       
       
@@ -323,7 +332,13 @@
       ENDDO
       mnparted = MAXVAL(nparted(1:npart))
       PRINT*, "Max edges per partition: ", mnparted
-      PRINT*, " "          
+      PRINT*, " " 
+      
+      PRINT*, " "
+      PRINT*, "nfblk: "
+      DO blk = 1,nrblk
+        PRINT*, rnfblk(1,blk), rnfblk(2,blk)
+      ENDDO      
       
       END SUBROUTINE decomp2
       

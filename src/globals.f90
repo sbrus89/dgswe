@@ -19,8 +19,8 @@
       CHARACTER(24) :: forcing_file ! name of fort.15 file
       
       INTEGER :: blk
-      INTEGER :: nblk
-      INTEGER, ALLOCATABLE, DIMENSION(:,:) :: elblk,edblk,nfblk
+      INTEGER :: nblk,nrblk
+      INTEGER, ALLOCATABLE, DIMENSION(:,:) :: elblk,edblk,nfblk,rnfblk
       INTEGER :: mnpartel,mnparted      
       
       INTEGER :: npart ! number of element partitions)

@@ -2,17 +2,17 @@ FC = ifort
 
 VPATH := ../src
 
-CFLAGS_VEC =  -O3 -xHost -vec-report6 -c
-CFLAGS =  -O3 -xHost -c 
-CFLAGS_LINK = -O3 -xHost -o 
+# CFLAGS_VEC =  -O3 -xHost -vec-report6 -c
+# CFLAGS =  -O3 -xHost -c 
+# CFLAGS_LINK = -O3 -xHost -o 
 
 RK = -Drk33
 LIB_PATH = ../metis-4.0.3/
 LIB = metis
 
-# CFLAGS_VEC =  -O3 -xHost -vec-report6 -openmp -Dopenmp -c
-# CFLAGS =  -O3 -xHost -openmp -Dopenmp -c 
-# CFLAGS_LINK = -O3 -xHost -openmp -Dopenmp -o 
+CFLAGS_VEC =  -O3 -xHost -vec-report6 -openmp -Dopenmp -c
+CFLAGS =  -O3 -xHost -openmp -Dopenmp -c 
+CFLAGS_LINK = -O3 -xHost -openmp -Dopenmp -o 
 
 # ### Profile compilation ###
 # CFLAGS_VEC =  -O3 -xHost -vec-report3 -profile-loops=all -c 

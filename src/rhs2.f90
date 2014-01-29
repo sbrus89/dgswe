@@ -1,7 +1,7 @@
       SUBROUTINE rhs2()
 
       USE globals,  ONLY: pres,l,ind,el,ne,pt,led,ed,dof,ndof, &
-                          blk,nblk,elblk,edblk,nfblk,npart, &
+                          blk,nblk,elblk,edblk,nfblk,rnfblk,nrblk,npart, &
                           g,pt5g,tstage,ramp,arg,bfr, & 
                           H,Qx,Qy, &
                           rhsH,rhsQx,rhsQy, &
@@ -49,12 +49,12 @@
       rhsQy(:,:) = 0d0   
       
 !$OMP parallel default(none)  &
-!$OMP             private(ind,sp,pt,dof,el,l,part,ed,ged,led_in,gp_in,el_in, &
+!$OMP             private(ind,blk,pt,dof,el,l,ed,ged,led_in,gp_in,el_in, &
 !$OMP                     nx,ny,tx,ty,nx2,ny2,nxny,H_in,H_ex,Qx_in,Qx_ex,Qy_in,Qy_ex, &
 !$OMP                     press,recipH,xmom_in,xmom_ex,ymom_in,ymom_ex,xymom_in,xymom_ex, &
 !$OMP                     Hhat,Qxhat,Qyhat, &
 !$OMP                     Qn,Qt,arg,bfr) &
-!$OMP             shared(nsp,nqpta,nqpte,ndof,split,psplit,esplit,npart,H,Qx,Qy,Hqpt,Qxqpt,Qyqpt, & 
+!$OMP             shared(nqpta,nqpte,ndof,H,Qx,Qy,Hqpt,Qxqpt,Qyqpt, & 
 !$OMP                    phia,phie,recipHa,xmom,ymom,xymom,tau,src_x,src_y, &
 !$OMP                    dhbdx,dhbdy,cf,phia_int,phie_int,dpdx,dpdy,rhsH,rhsQx,rhsQy, &
 !$OMP                    const,Qxi,Qxe,Qyi,Qye,Hi,He,xmi,xme,ymi,yme,xymi,xyme, &
@@ -65,7 +65,8 @@
 !$OMP                    nobfr,obfreq,obper,obeq,obamp_qpt,obnfact,obph_qpt,obdepth_qpt, &
 !$OMP                    ramp,tstage, &
 !$OMP                    edlen_area,normal, &
-!$OMP                    ged2led,gel2ael,ged2el)
+!$OMP                    ged2led,gel2ael,ged2el, &
+!$OMP                    nblk,npart,nrblk,elblk,edblk,nfblk,rnfblk)
 
 !$OMP do
    
@@ -294,10 +295,12 @@ ed_points2: DO pt = 1,nqpte ! Compute numerical fluxes for all edges
    
 !$OMP end do 
             
-!$OMP single            
+!$OMP do         
+      DO blk = 1,nrblk
        DO pt = 1,nqpte
 ! !DIR$ VECTOR ALIGNED
-              DO ed = nfblk(1,npart+1),nfblk(2,npart+1)
+              DO ed = rnfblk(1,blk),rnfblk(2,blk)
+!               DO ed = nfblk(1,npart+1),nfblk(2,npart+1)
                 const(ed) = max(abs(Qxi(ed,pt)%ptr*inx(ed) + Qyi(ed,pt)%ptr*iny(ed))/Hi(ed,pt)%ptr + sqrt(g*Hi(ed,pt)%ptr), &
                                 abs(Qxe(ed,pt)%ptr*inx(ed) + Qye(ed,pt)%ptr*iny(ed))/He(ed,pt)%ptr + sqrt(g*He(ed,pt)%ptr))
               ENDDO
@@ -306,7 +309,8 @@ ed_points2: DO pt = 1,nqpte ! Compute numerical fluxes for all edges
               
 !DIR$ IVDEP
 ! !DIR$ VECTOR ALIGNED
-              DO ed = nfblk(1,npart+1),nfblk(2,npart+1)
+              DO ed = rnfblk(1,blk),rnfblk(2,blk)
+!               DO ed = nfblk(1,npart+1),nfblk(2,npart+1)
                 Hhatv(ed) = .5d0*(inx(ed)*(Qxi(ed,pt)%ptr + Qxe(ed,pt)%ptr) + iny(ed)*(Qyi(ed,pt)%ptr + Qye(ed,pt)%ptr) &
                                         - const(ed)*(He(ed,pt)%ptr - Hi(ed,pt)%ptr))
                                      
@@ -318,7 +322,8 @@ ed_points2: DO pt = 1,nqpte ! Compute numerical fluxes for all edges
               
 !DIR$ IVDEP
 ! !DIR$ VECTOR ALIGNED
-              DO ed = nfblk(1,npart+1),nfblk(2,npart+1)
+              DO ed = rnfblk(1,blk),rnfblk(2,blk)
+!               DO ed = nfblk(1,npart+1),nfblk(2,npart+1)
                 Qxhatv(ed) = .5d0*(inx(ed)*(xmi(ed,pt)%ptr + xme(ed,pt)%ptr) + iny(ed)*(xymi(ed,pt)%ptr + xyme(ed,pt)%ptr)  &
                                         - const(ed)*(Qxe(ed,pt)%ptr - Qxi(ed,pt)%ptr))
                                    
@@ -330,7 +335,8 @@ ed_points2: DO pt = 1,nqpte ! Compute numerical fluxes for all edges
               
 !DIR$ IVDEP
 ! !DIR$ VECTOR ALIGNED
-              DO ed = nfblk(1,npart+1),nfblk(2,npart+1)
+              DO ed = rnfblk(1,blk),rnfblk(2,blk)
+!               DO ed = nfblk(1,npart+1),nfblk(2,npart+1)
                 Qyhatv(ed) = .5d0*(inx(ed)*(xymi(ed,pt)%ptr + xyme(ed,pt)%ptr) + iny(ed)*(ymi(ed,pt)%ptr + yme(ed,pt)%ptr)  &
                                         - const(ed)*(Qye(ed,pt)%ptr - Qyi(ed,pt)%ptr))
                                       
@@ -339,7 +345,9 @@ ed_points2: DO pt = 1,nqpte ! Compute numerical fluxes for all edges
               ENDDO
 
         ENDDO 
-!$OMP end single
+        
+      ENDDO
+!$OMP end do
 
 
 !$OMP do     
