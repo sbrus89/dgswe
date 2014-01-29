@@ -298,7 +298,7 @@ ed_points2: DO pt = 1,nqpte ! Compute numerical fluxes for all edges
 !$OMP do         
       DO blk = 1,nrblk
        DO pt = 1,nqpte
-! !DIR$ VECTOR ALIGNED
+!DIR$ VECTOR ALIGNED
               DO ed = rnfblk(1,blk),rnfblk(2,blk)
 !               DO ed = nfblk(1,npart+1),nfblk(2,npart+1)
                 const(ed) = max(abs(Qxi(ed,pt)%ptr*inx(ed) + Qyi(ed,pt)%ptr*iny(ed))/Hi(ed,pt)%ptr + sqrt(g*Hi(ed,pt)%ptr), &
@@ -308,7 +308,7 @@ ed_points2: DO pt = 1,nqpte ! Compute numerical fluxes for all edges
               
               
 !DIR$ IVDEP
-! !DIR$ VECTOR ALIGNED
+!DIR$ VECTOR ALIGNED
               DO ed = rnfblk(1,blk),rnfblk(2,blk)
 !               DO ed = nfblk(1,npart+1),nfblk(2,npart+1)
                 Hhatv(ed) = .5d0*(inx(ed)*(Qxi(ed,pt)%ptr + Qxe(ed,pt)%ptr) + iny(ed)*(Qyi(ed,pt)%ptr + Qye(ed,pt)%ptr) &
@@ -321,7 +321,7 @@ ed_points2: DO pt = 1,nqpte ! Compute numerical fluxes for all edges
               
               
 !DIR$ IVDEP
-! !DIR$ VECTOR ALIGNED
+!DIR$ VECTOR ALIGNED
               DO ed = rnfblk(1,blk),rnfblk(2,blk)
 !               DO ed = nfblk(1,npart+1),nfblk(2,npart+1)
                 Qxhatv(ed) = .5d0*(inx(ed)*(xmi(ed,pt)%ptr + xme(ed,pt)%ptr) + iny(ed)*(xymi(ed,pt)%ptr + xyme(ed,pt)%ptr)  &
@@ -334,7 +334,7 @@ ed_points2: DO pt = 1,nqpte ! Compute numerical fluxes for all edges
               
               
 !DIR$ IVDEP
-! !DIR$ VECTOR ALIGNED
+!DIR$ VECTOR ALIGNED
               DO ed = rnfblk(1,blk),rnfblk(2,blk)
 !               DO ed = nfblk(1,npart+1),nfblk(2,npart+1)
                 Qyhatv(ed) = .5d0*(inx(ed)*(xymi(ed,pt)%ptr + xyme(ed,pt)%ptr) + iny(ed)*(ymi(ed,pt)%ptr + yme(ed,pt)%ptr)  &
