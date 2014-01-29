@@ -2,8 +2,8 @@
 
 default:
 	(cd Lib ; make ) 
-	(cd Programs ; make ) 
-	(cd Test ; make ) 
+#	(cd Programs ; make )
+#	(cd Test ; make ) 
 
 clean:
 	(cd Lib ; make clean )

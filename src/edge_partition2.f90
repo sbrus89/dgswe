@@ -295,7 +295,7 @@
       nfblk(2,npart+1) = ted + nparted(npart+1)
       
       rnfblk(1,1) = ted+1
-      DO blk = 1,nrblk
+      DO blk = 1,nrblk-1
         ted = ted + (nparted(npart+1)/nrblk)
         rnfblk(2,blk) = ted  
         rnfblk(1,blk+1) = ted + 1
