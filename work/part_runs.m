@@ -10,45 +10,33 @@ end
 fclose(input);
 
 ngrids = 2;
-ninp_lines = 10;
+ninp_lines = 11;
 
-% npart(1:19) = 2:20;
-% npart(20:26) = 25:5:55;
-
-npart = [60:5:100];
-
-% npart = [20:20 25:5:55];
+npart = [2:20 25:5:55];
 
 n = length(npart);
 
-for j = 3 %1:ngrids
+for j = 1:ngrids
     
-    inp2 = inp;
-    for line = 1:ninp_lines 
-        inp2{(j-1)*ninp_lines + line,1} = inp{(j-1)*ninp_lines + line,1}(2:end);
-    end
-    
-    input2 = fopen('dgswe.inp','w');
-    for line = 1:nl
-       fprintf(input2,'%s\n',inp2{line,1}); 
-    end
-    
-    fclose(input2);
-
-    grid = ['../grids/inlet',num2str(j),'.grd'];
-   
     for i = 1:n
         
-        file = fopen('partition.d','w');
+        inp2 = inp;
+        for line = 1:ninp_lines -2
+            inp2{(j-1)*ninp_lines + line,1} = inp{(j-1)*ninp_lines + line,1}(2:end);
+        end
+        line = line + 1;
+        inp2{(j-1)*ninp_lines + line,1} = num2str(npart(i));
         
-        fprintf(file,'%s\n',num2str(npart(i)));
-        fprintf(file,'%s\n',grid);
+        input2 = fopen('dgswe.inp','w');
+        for line = 1:nl
+            fprintf(input2,'%s\n',inp2{line,1});
+        end
         
-        !./adcprep < partition.d
+        fclose(input2);
         
         !./dgswe
         
     end
-
+    
     
 end
