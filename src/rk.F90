@@ -120,7 +120,7 @@
       ENDDO
 #endif
 
-      CALL nan_check()
+!      CALL nan_check()
 
 
       RETURN
