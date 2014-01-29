@@ -9,6 +9,7 @@ VPATH := ../src
 RK = -Drk33
 LIB_PATH = ../metis-4.0.3/
 LIB = metis
+ALIGN = -DALIGN32
 
 CFLAGS_VEC =  -O3 -xHost -vec-report6 -openmp -Dopenmp -c
 CFLAGS =  -O3 -xHost -openmp -Dopenmp -c 
@@ -44,58 +45,58 @@ objects = globals.o basis.o area_qpts.o edge_qpts.o read_input.o read_grid.o rea
 dgswe : $(objects)
 	$(FC) $(CFLAGS_LINK) dgswe $(objects) -L $(LIB_PATH) -l$(LIB)
 
-globals.o : globals.f90
+globals.o : globals.F90
+	$(FC) $(CFLAGS) $(ALIGN) $<
+
+basis.o : basis.f90 globals.F90
 	$(FC) $(CFLAGS) $<
 
-basis.o : basis.f90 globals.f90
-	$(FC) $(CFLAGS) $<
-
-#file_setup.o : file_setup.f90 globals.f90
+#file_setup.o : file_setup.f90 globals.F90
 #	$(FC) $(CFLAGS) -lnetcdf file_setup.f90
 
-area_qpts.o : area_qpts.f90 globals.f90
+area_qpts.o : area_qpts.f90 globals.F90
 	$(FC) $(CFLAGS) $<
 
-edge_qpts.o : edge_qpts.f90 globals.f90
+edge_qpts.o : edge_qpts.f90 globals.F90
 	$(FC) $(CFLAGS) $<
 
-read_input.o : read_input.f90 globals.f90
+read_input.o : read_input.f90 globals.F90
 	$(FC) $(CFLAGS) $<
 
-read_grid.o : read_grid.f90 globals.f90
+read_grid.o : read_grid.f90 globals.F90
 	$(FC) $(CFLAGS) $<
 
-read_forcing.o : read_forcing.f90 globals.f90
+read_forcing.o : read_forcing.f90 globals.F90
 	$(FC) $(CFLAGS) $<
 
-alloc_arrays.o : alloc_arrays.f90 globals.f90
+alloc_arrays.o : alloc_arrays.f90 globals.F90
 	$(FC) $(CFLAGS) $<
 
-ptr_arrays.o : ptr_arrays.f90 globals.f90
+ptr_arrays.o : ptr_arrays.f90 globals.F90
 	$(FC) $(CFLAGS) $<
 
-initial.o : initial.f90 globals.f90
+initial.o : initial.f90 globals.F90
 	$(FC) $(CFLAGS) $<
 
-connect.o : connect.f90 globals.f90
+connect.o : connect.f90 globals.F90
 	$(FC) $(CFLAGS) $<
 
-element_data.o : element_data.f90 globals.f90
+element_data.o : element_data.f90 globals.F90
 	$(FC) $(CFLAGS) $<
 
-edge_partition2.o : edge_partition2.f90 globals.f90
+edge_partition2.o : edge_partition2.f90 globals.F90
 	$(FC) $(CFLAGS) $<
 
-rk.o : rk.F90 globals.f90
+rk.o : rk.F90 globals.F90
 	$(FC) $(CFLAGS_VEC) $(RK) $<
 
-rhs2.o : rhs2.f90 globals.f90
+rhs2.o : rhs2.f90 globals.F90
 	$(FC) $(CFLAGS_VEC) $<
 
-numerical_flux.o : numerical_flux.f90 globals.f90
+numerical_flux.o : numerical_flux.f90 globals.F90
 	$(FC) $(CFLAGS) $<
 
-swe_tri.o : swe_tri.F90 globals.f90
+swe_tri.o : swe_tri.F90 globals.F90
 	$(FC) $(CFLAGS) $(RK) $<
 
 .PHONY : clean

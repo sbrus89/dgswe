@@ -180,6 +180,32 @@
       REAL(pres), ALLOCATABLE, DIMENSION(:) :: xmin,ymin,xymin
       REAL(pres), ALLOCATABLE, DIMENSION(:) :: xmex,ymex,xymex
       
+      
+#ifdef ALIGN16      
+!DIR$ ATTRIBUTES ALIGN:16 :: rhsH,rhsQx,rhsQy
+!DIR$ ATTRIBUTES ALIGN:16 :: Hqpt,Qxqpt,Qyqpt
+!DIR$ ATTRIBUTES ALIGN:16 :: H,Qx,Qy
+!DIR$ ATTRIBUTES ALIGN:16 :: Hold, Qxold,Qyold
+!DIR$ ATTRIBUTES ALIGN:16 :: phia,phie
+!DIR$ ATTRIBUTES ALIGN:16 :: recipHa
+!DIR$ ATTRIBUTES ALIGN:16 :: xmom,ymom,xymom
+!DIR$ ATTRIBUTES ALIGN:16 :: tau
+!DIR$ ATTRIBUTES ALIGN:16 :: dhbdx,dhbdy
+!DIR$ ATTRIBUTES ALIGN:16 :: src_x,src_y
+!DIR$ ATTRIBUTES ALIGN:16 :: dpdx,dpdy
+!DIR$ ATTRIBUTES ALIGN:16 :: phia_int, phie_int
+!DIR$ ATTRIBUTES ALIGN:16 :: Hflux,Qxflux,Qyflux
+!DIR$ ATTRIBUTES ALIGN:16 :: const,Hhatv,Qxhatv,Qyhatv
+!DIR$ ATTRIBUTES ALIGN:16 :: Hi,He,Qxi,Qxe,Qyi,Qye,xmi,xme,xymi,xyme,ymi,yme
+!DIR$ ATTRIBUTES ALIGN:16 :: inx,iny,len_area_ex,len_area_in
+!DIR$ ATTRIBUTES ALIGN:16 :: Hfe,Hfi,Qxfi,Qxfe,Qyfi,Qyfe
+!DIR$ ATTRIBUTES ALIGN:16 :: Hin,Qxin,Qyin
+!DIR$ ATTRIBUTES ALIGN:16 :: Hex,Qxex,Qyex
+!DIR$ ATTRIBUTES ALIGN:16 :: xmin,ymin,xymin
+!DIR$ ATTRIBUTES ALIGN:16 :: xmex,ymex,xymex      
+#endif
+
+#ifdef ALIGN32      
 !DIR$ ATTRIBUTES ALIGN:32 :: rhsH,rhsQx,rhsQy
 !DIR$ ATTRIBUTES ALIGN:32 :: Hqpt,Qxqpt,Qyqpt
 !DIR$ ATTRIBUTES ALIGN:32 :: H,Qx,Qy
@@ -201,7 +227,31 @@
 !DIR$ ATTRIBUTES ALIGN:32 :: Hex,Qxex,Qyex
 !DIR$ ATTRIBUTES ALIGN:32 :: xmin,ymin,xymin
 !DIR$ ATTRIBUTES ALIGN:32 :: xmex,ymex,xymex
+#endif
 
+#ifdef ALIGN64
+!DIR$ ATTRIBUTES ALIGN:64 :: rhsH,rhsQx,rhsQy
+!DIR$ ATTRIBUTES ALIGN:64 :: Hqpt,Qxqpt,Qyqpt
+!DIR$ ATTRIBUTES ALIGN:64 :: H,Qx,Qy
+!DIR$ ATTRIBUTES ALIGN:64 :: Hold, Qxold,Qyold
+!DIR$ ATTRIBUTES ALIGN:64 :: phia,phie
+!DIR$ ATTRIBUTES ALIGN:64 :: recipHa
+!DIR$ ATTRIBUTES ALIGN:64 :: xmom,ymom,xymom
+!DIR$ ATTRIBUTES ALIGN:64 :: tau
+!DIR$ ATTRIBUTES ALIGN:64 :: dhbdx,dhbdy
+!DIR$ ATTRIBUTES ALIGN:64 :: src_x,src_y
+!DIR$ ATTRIBUTES ALIGN:64 :: dpdx,dpdy
+!DIR$ ATTRIBUTES ALIGN:64 :: phia_int, phie_int
+!DIR$ ATTRIBUTES ALIGN:64 :: Hflux,Qxflux,Qyflux
+!DIR$ ATTRIBUTES ALIGN:64 :: const,Hhatv,Qxhatv,Qyhatv
+!DIR$ ATTRIBUTES ALIGN:64 :: Hi,He,Qxi,Qxe,Qyi,Qye,xmi,xme,xymi,xyme,ymi,yme
+!DIR$ ATTRIBUTES ALIGN:64 :: inx,iny,len_area_ex,len_area_in
+!DIR$ ATTRIBUTES ALIGN:64 :: Hfe,Hfi,Qxfi,Qxfe,Qyfi,Qyfe
+!DIR$ ATTRIBUTES ALIGN:64 :: Hin,Qxin,Qyin
+!DIR$ ATTRIBUTES ALIGN:64 :: Hex,Qxex,Qyex
+!DIR$ ATTRIBUTES ALIGN:64 :: xmin,ymin,xymin
+!DIR$ ATTRIBUTES ALIGN:64 :: xmex,ymex,xymex
+#endif
      
       END MODULE globals
 
