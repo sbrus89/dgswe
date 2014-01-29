@@ -321,7 +321,7 @@
       DO blk = 1,npart+1
         PRINT*, nfblk(1,blk), nfblk(2,blk), nparted(blk)
       ENDDO
-      mnparted = MAXVAL(nparted)
+      mnparted = MAXVAL(nparted(1:npart))
       PRINT*, "Max edges per partition: ", mnparted
       PRINT*, " "          
       
