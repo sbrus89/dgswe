@@ -65,7 +65,7 @@
 
 !       p = 2
       
-      npart = 3
+!       npart = 3
 
       CALL read_input()
 
