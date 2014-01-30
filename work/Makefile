@@ -6,10 +6,10 @@ RK = -Drk33
 LIB_PATH = ../metis-4.0.3/
 LIB = metis
 
-#CFLAGS_VEC =  -O3 -xHost -vec-report6 -c
-#CFLAGS =  -O3 -xHost -c 
-#CFLAGS_LINK = -O3 -xHost -o 
-#ALIGN = -DALIGN32
+CFLAGS_VEC =  -O3 -xHost -vec-report6 -c
+CFLAGS =  -O3 -xHost -c 
+CFLAGS_LINK = -O3 -xHost -o 
+ALIGN = -DALIGN32
 
 # ### OpenMP compilation ###
 # CFLAGS_VEC =  -O3 -xHost -vec-report6 -openmp -Dopenmp -c
@@ -17,11 +17,11 @@ LIB = metis
 # CFLAGS_LINK = -O3 -xHost -openmp -Dopenmp -o 
 # ALIGN = -DALIGN32
 
- ### Mic compilation ###
-CFLAGS_VEC =  -O3 -mmic -vec-report6 -openmp -Dopenmp -c
-CFLAGS =  -O3 -mmic -openmp -Dopenmp -c 
-CFLAGS_LINK = -O3 -mmic -openmp -Dopenmp  -o 
-ALIGN = -DALIGN64
+#  ### Mic compilation ###
+# CFLAGS_VEC =  -O3 -mmic -vec-report6 -openmp -Dopenmp -c
+# CFLAGS =  -O3 -mmic -openmp -Dopenmp -c 
+# CFLAGS_LINK = -O3 -mmic -openmp -Dopenmp  -o 
+# ALIGN = -DALIGN64
 
 # ### Profile compilation ###
 # CFLAGS_VEC =  -O3 -xHost -vec-report3 -profile-loops=all -c 

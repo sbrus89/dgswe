@@ -310,15 +310,17 @@ ed_points2: DO pt = 1,nqpte ! Compute numerical fluxes for all edges
                 Qyhatv(ed) = .5d0*(inx(ed)*(xymi(ed,pt)%ptr + xyme(ed,pt)%ptr) + iny(ed)*(ymi(ed,pt)%ptr + yme(ed,pt)%ptr)  &
                                         - const(ed)*(Qye(ed,pt)%ptr - Qyi(ed,pt)%ptr))
               ENDDO
-              
+!DIR$ IVDEP              
               DO ed = nfblk(1,blk),nfblk(2,blk) 
                 Hfe(ed,pt)%ptr = -len_area_ex(ed)*Hhatv(ed)
                 Hfi(ed,pt)%ptr =  len_area_in(ed)*Hhatv(ed)
-              ENDDO               
+              ENDDO          
+!DIR$ IVDEP              
               DO ed = nfblk(1,blk),nfblk(2,blk)                                 
                 Qxfe(ed,pt)%ptr = -len_area_ex(ed)*Qxhatv(ed)
                 Qxfi(ed,pt)%ptr =  len_area_in(ed)*Qxhatv(ed)
-              ENDDO                 
+              ENDDO   
+!DIR$ IVDEP              
               DO ed = nfblk(1,blk),nfblk(2,blk)                                     
                 Qyfe(ed,pt)%ptr = -len_area_ex(ed)*Qyhatv(ed)
                 Qyfi(ed,pt)%ptr =  len_area_in(ed)*Qyhatv(ed)
@@ -404,15 +406,17 @@ ed_points2: DO pt = 1,nqpte ! Compute numerical fluxes for all edges
                                         - const(ed)*(Qye(ed,pt)%ptr - Qyi(ed,pt)%ptr))
               ENDDO                
 
-              
+!DIR$ IVDEP              
               DO ed = rnfblk(1,blk),rnfblk(2,blk)                                     
                 Hfe(ed,pt)%ptr = -len_area_ex(ed)*Hhatv(ed)
                 Hfi(ed,pt)%ptr =  len_area_in(ed)*Hhatv(ed)               
-              ENDDO                   
+              ENDDO   
+!DIR$ IVDEP                              
               DO ed = rnfblk(1,blk),rnfblk(2,blk)                                          
                 Qxfe(ed,pt)%ptr = -len_area_ex(ed)*Qxhatv(ed)
                 Qxfi(ed,pt)%ptr =  len_area_in(ed)*Qxhatv(ed)
-              ENDDO                 
+              ENDDO   
+!DIR$ IVDEP              
               DO ed = rnfblk(1,blk),rnfblk(2,blk)                                             
                 Qyfe(ed,pt)%ptr = -len_area_ex(ed)*Qyhatv(ed)
                 Qyfi(ed,pt)%ptr =  len_area_in(ed)*Qyhatv(ed)
