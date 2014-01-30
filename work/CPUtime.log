@@ -1,7 +1,0 @@
- grid = ../grids/inlet1.grd     
- p =            1
- dt, tf =    1.00000000000000        86400.0000000000     
- RK 33
- nsp, npart =            5           4
- CPU time =    44.2840000000000     
-  
