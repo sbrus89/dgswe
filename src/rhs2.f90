@@ -28,7 +28,10 @@
                           Hni,Hne,Qxni,Qxne,Qyni,Qyne,EVi,EVe, &
                           Hp,Qxp,Qyp,xmp,ymp,xymp, &
                           Hin,Hex,Qxin,Qxex,Qyin,Qyex, &
-                          xmin,xmex,ymin,ymex,xymin,xymex 
+                          xmin,xmex,ymin,ymex,xymin,xymex, &
+                          Hai,Hae,Qxai,Qxae,Qyai,Qyae, &
+                          xmai,xmae,ymai,ymae,xymai,xymae, &
+                          Hfai,Hfae,Qxfai,Qxfae,Qyfai,Qyfae                          
                           
                    
       IMPLICIT NONE
@@ -164,6 +167,43 @@ ed_points: DO pt = 1,3*nqpte
           ENDDO ed_points
 
        ENDDO
+       
+!        DO ed = 1,nied
+!          DO pt = 1,nqpte
+!            const(pt) = max(abs(Qxai(ed)%ptr(pt)*inx(ed) + Qyai(ed)%ptr(pt)*iny(ed))/Hai(ed)%ptr(pt) + sqrt(g*Hai(ed)%ptr(pt)), &
+!                            abs(Qxae(ed)%ptr(pt)*inx(ed) + Qyae(ed)%ptr(pt)*iny(ed))/Hae(ed)%ptr(pt) + sqrt(g*Hae(ed)%ptr(pt)))
+!          ENDDO
+!          
+!          DO pt = 1,nqpte
+!            Hhatv(pt) = .5d0*(inx(ed)*(Qxai(ed)%ptr(pt) + Qxae(ed)%ptr(pt)) + iny(ed)*(Qyai(ed)%ptr(pt) + Qyae(ed)%ptr(pt)) &
+!                                      - const(pt)*(Hae(ed)%ptr(pt) - Hai(ed)%ptr(pt)))         
+!          ENDDO
+!          
+!          DO pt = 1,nqpte
+!            Qxhatv(pt) = .5d0*(inx(ed)*(xmai(ed)%ptr(pt) + xmae(ed)%ptr(pt)) + iny(ed)*(xymai(ed)%ptr(pt) + xymae(ed)%ptr(pt))  &
+!                                      - const(pt)*(Qxae(ed)%ptr(pt) - Qxai(ed)%ptr(pt)))         
+!          ENDDO
+!          
+!          DO pt = 1,nqpte
+!            Qyhatv(pt) = .5d0*(inx(ed)*(xymai(ed)%ptr(pt) + xymae(ed)%ptr(pt)) + iny(ed)*(ymai(ed)%ptr(pt) + ymae(ed)%ptr(pt))  &
+!                                      - const(pt)*(Qyae(ed)%ptr(pt) - Qyai(ed)%ptr(pt)))         
+!          ENDDO
+!          
+!          DO pt = 1,nqpte
+!            Hfae(ed)%ptr(pt) = -len_area_ex(ed)*Hhatv(pt)
+!            Hfai(ed)%ptr(pt) =  len_area_in(ed)*Hhatv(pt)         
+!          ENDDO
+!          
+!          DO pt = 1,nqpte
+!            Qxfae(ed)%ptr(pt) = -len_area_ex(ed)*Qxhatv(pt)
+!            Qxfai(ed)%ptr(pt) =  len_area_in(ed)*Qxhatv(pt)         
+!          ENDDO
+!          
+!          DO pt = 1,nqpte
+!            Qyfae(ed)%ptr(pt) = -len_area_ex(ed)*Qyhatv(pt)
+!            Qyfai(ed)%ptr(pt) =  len_area_in(ed)*Qyhatv(pt)         
+!          ENDDO         
+!        ENDDO
      
      
           DO sp = 1,nsp2

@@ -167,6 +167,19 @@
       TYPE(edge_ptr_array2), ALLOCATABLE, DIMENSION(:,:) :: xmp
       TYPE(edge_ptr_array2), ALLOCATABLE, DIMENSION(:,:) :: ymp
       TYPE(edge_ptr_array2), ALLOCATABLE, DIMENSION(:,:) :: xymp
+      
+      TYPE :: edge_ptr_array3
+        REAL(pres), DIMENSION(:),POINTER :: ptr
+      END TYPE edge_ptr_array3  
+      
+      TYPE(edge_ptr_array3), ALLOCATABLE, DIMENSION(:) :: Hai,Hae
+      TYPE(edge_ptr_array3), ALLOCATABLE, DIMENSION(:) :: Qxai,Qxae
+      TYPE(edge_ptr_array3), ALLOCATABLE, DIMENSION(:) :: Qyai,Qyae
+      TYPE(edge_ptr_array3), ALLOCATABLE, DIMENSION(:) :: xmai,xmae
+      TYPE(edge_ptr_array3), ALLOCATABLE, DIMENSION(:) :: ymai,ymae
+      TYPE(edge_ptr_array3), ALLOCATABLE, DIMENSION(:) :: xymai,xymae
+      TYPE(edge_ptr_array3), ALLOCATABLE, DIMENSION(:) :: Hfai,Qxfai,Qyfai
+      TYPE(edge_ptr_array3), ALLOCATABLE, DIMENSION(:) :: Hfae,Qxfae,Qyfae      
 
 !DIR$ ATTRIBUTES ALIGN:32 :: rhsH,rhsQx,rhsQy
 !DIR$ ATTRIBUTES ALIGN:32 :: Hqpt,Qxqpt,Qyqpt

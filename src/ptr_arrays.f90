@@ -12,7 +12,10 @@
                        nxv,nyv, & 
                        Hn,Qxn,Qyn,egnval, &
                        Hni,Qxni,Qyni,Hne,Qxne,Qyne,EVi,EVe, &
-                       Hp,Qxp,Qyp,xmp,ymp,xymp
+                       Hp,Qxp,Qyp,xmp,ymp,xymp, &
+                       Hai,Hae,Qxai,Qxae,Qyai,Qyae, &
+                       xmai,xmae,ymai,ymae,xymai,xymae, &
+                       Hfai,Hfae,Qxfai,Qxfae,Qyfai,Qyfae
 
      IMPLICIT NONE
      INTEGER :: alloc_status
@@ -83,6 +86,10 @@
      IF(alloc_status /= 0) THEN
        PRINT*, "Allocation error: xmp,ymp,xymp"
      ENDIF
+     
+     ALLOCATE(Hai(nied),Hae(nied),Qxai(nied),Qxae(nied),Qyai(nied),Qyae(nied))
+     ALLOCATE(xmai(nied),xmae(nied),ymai(nied),ymae(nied),xymai(nied),xymae(nied))
+     ALLOCATE(Hfai(nied),Hfae(nied),Qxfai(nied),Qxfae(nied),Qyfai(nied),Qyfae(nied))
 
      DO pt = 1,nqpte
        DO ed = 1,nied
@@ -161,6 +168,46 @@
          xymp(ed,pt)%ex => xymom(el_ex,gp_ex)
 
        ENDDO
+     ENDDO
+     
+     DO ed = 1,nied
+       ged = iedn(ed)
+
+       led_in = ged2led(1,ged)
+       led_ex = ged2led(2,ged)    
+       
+       gp_in = (led_in-1)*nqpte 
+       gp_ex = (led_ex-1)*nqpte       
+       
+       el_in = ged2el(1,ged)
+       el_ex = ged2el(2,ged)         
+     
+       Hai(ed)%ptr => Hqpt(el_in,gp_in+1:gp_in+nqpte)
+       Hae(ed)%ptr => Hqpt(el_ex,gp_ex+nqpte:gp_in+1:-1)
+       
+       Qxai(ed)%ptr => Qxqpt(el_in,gp_in+1:gp_in+nqpte)
+       Qxae(ed)%ptr => Qxqpt(el_ex,gp_ex+nqpte:gp_in+1:-1)   
+       
+       Qyai(ed)%ptr => Qyqpt(el_in,gp_in+1:gp_in+nqpte)
+       Qyae(ed)%ptr => Qyqpt(el_ex,gp_ex+nqpte:gp_in+1:-1)    
+       
+       xmai(ed)%ptr => xmom(el_in,gp_in+1:gp_in+nqpte)
+       xmae(ed)%ptr => xmom(el_ex,gp_ex+nqpte:gp_in+1:-1)    
+       
+       ymai(ed)%ptr => ymom(el_in,gp_in+1:gp_in+nqpte)
+       ymae(ed)%ptr => ymom(el_ex,gp_ex+nqpte:gp_in+1:-1)        
+       
+       xymai(ed)%ptr => xymom(el_in,gp_in+1:gp_in+nqpte)
+       xymae(ed)%ptr => xymom(el_ex,gp_ex+nqpte:gp_in+1:-1) 
+       
+       Hfai(ed)%ptr => Hflux(el_in,gp_in+1:gp_in+nqpte)
+       Hfae(ed)%ptr => Hflux(el_ex,gp_ex+nqpte:gp_in+1:-1)  
+       
+       Qxfai(ed)%ptr => Qxflux(el_in,gp_in+1:gp_in+nqpte)
+       Qxfae(ed)%ptr => Qxflux(el_ex,gp_ex+nqpte:gp_in+1:-1) 
+       
+       Qyfai(ed)%ptr => Qyflux(el_in,gp_in+1:gp_in+nqpte)
+       Qyfae(ed)%ptr => Qyflux(el_ex,gp_ex+nqpte:gp_in+1:-1)         
      ENDDO
 
      DO ed = 1,nied
