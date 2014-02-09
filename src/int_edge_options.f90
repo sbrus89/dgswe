@@ -189,6 +189,53 @@ ed_points2: DO pt = 1,nqpte ! Compute numerical fluxes for all edges
                 Qyfe(ed,pt)%ptr = -len_area_ex(ed)*Qyhatv(ed)
                 Qyfi(ed,pt)%ptr =  len_area_in(ed)*Qyhatv(ed)
               ENDDO
+              
+! !DIR$ IVDEP
+! !DIR$ VECTOR ALIGNED
+!               DO ed = nfblk(1,blk),nfblk(2,blk)             
+!                 Hhatv(ed) = .5d0*(inx(ed)*(Qxi(ed,pt)%ptr + Qxe(ed,pt)%ptr) + iny(ed)*(Qyi(ed,pt)%ptr + Qye(ed,pt)%ptr) &
+!                                         - const(ed)*(He(ed,pt)%ptr - Hi(ed,pt)%ptr))
+! 
+!                 Hfe(ed,pt)%ptr = -len_area_ex(ed)*Hhatv(ed)
+!                 Hfi(ed,pt)%ptr =  len_area_in(ed)*Hhatv(ed)
+!               ENDDO    
+!               
+!               DO ed = nfblk(1,blk),nfblk(2,blk)
+!                 rHi(ed) = 1d0/Hi(ed,pt)%ptr
+!                 rHe(ed) = 1d0/He(ed,pt)%ptr
+!               
+!                 xmomi(ed) = pt5g*Hi(ed,pt)%ptr*Hi(ed,pt)%ptr + Qxi(ed,pt)%ptr*Qxi(ed,pt)%ptr*rHi(ed)
+!                 xmome(ed) = pt5g*He(ed,pt)%ptr*He(ed,pt)%ptr + Qxe(ed,pt)%ptr*Qxe(ed,pt)%ptr*rHe(ed)
+!                 
+!                 ymomi(ed) = pt5g*Hi(ed,pt)%ptr*Hi(ed,pt)%ptr + Qyi(ed,pt)%ptr*Qyi(ed,pt)%ptr*rHi(ed)
+!                 ymome(ed) = pt5g*He(ed,pt)%ptr*He(ed,pt)%ptr + Qye(ed,pt)%ptr*Qye(ed,pt)%ptr*rHe(ed)
+!                 
+!                 xymomi(ed) = Qxi(ed,pt)%ptr*Qyi(ed,pt)%ptr*rHi(ed)
+!                 xymome(ed) = Qxe(ed,pt)%ptr*Qye(ed,pt)%ptr*rHe(ed)                
+!               ENDDO
+!               
+!               
+! !DIR$ IVDEP
+! !DIR$ VECTOR ALIGNED
+!               DO ed = nfblk(1,blk),nfblk(2,blk)          
+!                 Qxhatv(ed) = .5d0*(inx(ed)*(xmomi(ed) + xmome(ed)) + iny(ed)*(xymomi(ed) + xymome(ed))  &
+!                                         - const(ed)*(Qxe(ed,pt)%ptr - Qxi(ed,pt)%ptr))
+!                                  
+!                 Qxfe(ed,pt)%ptr = -len_area_ex(ed)*Qxhatv(ed)
+!                 Qxfi(ed,pt)%ptr =  len_area_in(ed)*Qxhatv(ed)
+!               ENDDO   
+!               
+!               
+!               
+! !DIR$ IVDEP
+! !DIR$ VECTOR ALIGNED
+!               DO ed = nfblk(1,blk),nfblk(2,blk)
+!                 Qyhatv(ed) = .5d0*(inx(ed)*(xymomi(ed) + xymome(ed)) + iny(ed)*(ymomi(ed) + ymome(ed))  &
+!                                         - const(ed)*(Qye(ed,pt)%ptr - Qyi(ed,pt)%ptr))
+!                                      
+!                 Qyfe(ed,pt)%ptr = -len_area_ex(ed)*Qyhatv(ed)
+!                 Qyfi(ed,pt)%ptr =  len_area_in(ed)*Qyhatv(ed)
+!               ENDDO                     
 
      ENDDO ed_points2
    ENDDO
