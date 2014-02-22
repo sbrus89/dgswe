@@ -111,3 +111,11 @@ swe_tri.o : swe_tri.F90 globals.F90
 clean : 
 	rm dgswe *.o *.mod
 
+.PHONY : metis
+metis : 
+	$(MAKE) -C ../metis-4.0.3/
+
+.PHONY : cleanmetis
+cleanmetis : 
+	$(MAKE) -C ../metis-4.0.3/ clean
+

@@ -3,7 +3,7 @@
 CC = icc
 
 # What optimization level to use
-OPTFLAGS = -O2 -mmic
+OPTFLAGS = -O2 #-mmic
 
 # What options to be used by the compiler
 COPTIONS = 
