@@ -16,8 +16,8 @@
 .5d0                                               ! dramp - ramping parameter (days)
 .003d0                                             ! cf - friction coefficient 
 100d0                                              ! lines - lines in output files
-64                                                 ! nsp - loop blocking parameter
-64
+21                                                 ! nsp - loop blocking parameter
+17
 
 ! ../grids/inlet3.grd                                ! grid file
 ! ../grids/inlet3.bfr                                ! forcing file
