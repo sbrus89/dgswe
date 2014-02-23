@@ -1,4 +1,4 @@
-      SUBROUTINE rhs2()
+      SUBROUTINE rhs3()
 
       USE globals,  ONLY: pres,l,ind,el,ne,pt,led,ed,dof,ndof, &
                           blk,nblk,elblk,edblk,nfblk,rnfblk,nrblk,npart, &
@@ -129,7 +129,80 @@ a_points: DO pt = 1,nqpta
 
           ENDDO a_points
 
-       ENDDO       
+       ENDDO
+       
+!$OMP end do   
+       
+!        DO sp = 1,nsp 
+! 
+! a_points: DO pt = 1,nqpta
+! 
+!             i = 1
+! !DIR$ VECTOR ALIGNED
+!             DO el = split(1,sp),split(2,sp)
+!               Hqpt(i,1) = H(el,1)
+!               Qxqpt(i,1) = Qx(el,1)
+!               Qyqpt(i,1) = Qy(el,1)
+!               i = i+1
+!             ENDDO
+! 
+!    a_basis: DO dof = 2,ndof
+!               i = 1
+! !DIR$ VECTOR ALIGNED
+!               DO el = split(1,sp),split(2,sp) ! Evaluate solution at area quadrature point
+!                 Hqpt(i,1) = Hqpt(i,1) + H(el,dof)*phia(dof,pt)
+!                 Qxqpt(i,1) = Qxqpt(i,1) + Qx(el,dof)*phia(dof,pt) 
+!                 Qyqpt(i,1) = Qyqpt(i,1) + Qy(el,dof)*phia(dof,pt)
+!                 i = i+1
+!               ENDDO
+! 
+!             ENDDO a_basis
+! 
+!             i = 1
+! !DIR$ VECTOR ALIGNED
+!             DO el = split(1,sp),split(2,sp) ! Compute momentum terms
+!               recipHa(i) = 1d0/Hqpt(i,1)
+! 
+!               xmom(i,1) = pt5g*Hqpt(i,1)*Hqpt(i,1) + Qxqpt(i,1)*Qxqpt(i,1)*recipHa(i)
+!               ymom(i,1) = pt5g*Hqpt(i,1)*Hqpt(i,1) + Qyqpt(i,1)*Qyqpt(i,1)*recipHa(i) 
+!               xymom(i,1) = Qxqpt(i,1)*Qyqpt(i,1)*recipHa(i)
+!               i = i+1
+!             ENDDO 
+! 
+!             i = 1
+! !DIR$ VECTOR ALIGNED
+!             DO el = split(1,sp),split(2,sp) ! Compute source terms
+!               tau(i) = cf*sqrt((Qxqpt(i,1)*recipHa(i))**2 + (Qyqpt(i,1)*recipHa(i))**2)*recipHa(i)
+!               src_x(i) = g*Hqpt(i,1)*dhbdx(el) - tau(i)*Qxqpt(i,1) 
+!               src_y(i) = g*Hqpt(i,1)*dhbdy(el) - tau(i)*Qyqpt(i,1)
+!               i = i+1
+!             ENDDO
+! 
+!             i = 1
+! !DIR$ VECTOR ALIGNED
+!             DO el = split(1,sp),split(2,sp) ! Derivatives are 0 for first dof
+!               rhsQx(el,1) = rhsQx(el,1) + src_x(i)*phia_int(1,pt)
+!               rhsQy(el,1) = rhsQy(el,1) + src_y(i)*phia_int(1,pt)
+!               i = i+1
+!             ENDDO
+! 
+!       test: DO l = 2,ndof 
+!               ind = (l-1)*nqpta+pt
+!               i = 1
+! !DIR$ VECTOR ALIGNED          
+!               DO el = split(1,sp),split(2,sp)
+!                 rhsH(el,l) = rhsH(el,l) + Qxqpt(i,1)*dpdx(el,ind) + Qyqpt(i,1)*dpdy(el,ind)
+! 
+!                 rhsQx(el,l) = rhsQx(el,l) + xmom(i,1)*dpdx(el,ind) + xymom(i,1)*dpdy(el,ind) + src_x(i)*phia_int(l,pt)
+!                 rhsQy(el,l) = rhsQy(el,l) + xymom(i,1)*dpdx(el,ind) + ymom(i,1)*dpdy(el,ind) + src_y(i)*phia_int(l,pt)
+!                 i = i+1
+!               ENDDO
+! 
+!             ENDDO test 
+! 
+!           ENDDO a_points
+! 
+!        ENDDO
 
       
 !     ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
@@ -179,44 +252,43 @@ ed_points2: DO pt = 1,nqpte ! Compute numerical fluxes for all edges
                 
                 const(ed) = max(abs(Qxi(ed,pt)%ptr*inx(ed) + Qyi(ed,pt)%ptr*iny(ed))/Hi(ed,pt)%ptr + sqrt(g*Hi(ed,pt)%ptr), &
                                 abs(Qxe(ed,pt)%ptr*inx(ed) + Qye(ed,pt)%ptr*iny(ed))/He(ed,pt)%ptr + sqrt(g*He(ed,pt)%ptr))
+!                 const(ed) = compute_const(Qxi(ed,pt)%ptr,Qxe(ed,pt)%ptr,Qyi(ed,pt)%ptr,Qye(ed,pt)%ptr,Hi(ed,pt)%ptr,He(ed,pt)%ptr,inx(ed),iny(ed),g)
               ENDDO
-                                        
+              
+              
               
 !DIR$ IVDEP
 !!DIR$ VECTOR ALIGNED
               DO ed = nfblk(1,blk),nfblk(2,blk)             
                 Hhatv(ed) = .5d0*(inx(ed)*(Qxi(ed,pt)%ptr + Qxe(ed,pt)%ptr) + iny(ed)*(Qyi(ed,pt)%ptr + Qye(ed,pt)%ptr) &
                                         - const(ed)*(He(ed,pt)%ptr - Hi(ed,pt)%ptr))
-              ENDDO
+
+                Hfe(ed,pt)%ptr = -len_area_ex(ed)*Hhatv(ed)
+                Hfi(ed,pt)%ptr =  len_area_in(ed)*Hhatv(ed)
+              ENDDO    
+              
               
 !DIR$ IVDEP
 !!DIR$ VECTOR ALIGNED
               DO ed = nfblk(1,blk),nfblk(2,blk)          
                 Qxhatv(ed) = .5d0*(inx(ed)*(xmi(ed,pt)%ptr + xme(ed,pt)%ptr) + iny(ed)*(xymi(ed,pt)%ptr + xyme(ed,pt)%ptr)  &
                                         - const(ed)*(Qxe(ed,pt)%ptr - Qxi(ed,pt)%ptr))
-              ENDDO
+                                 
+                Qxfe(ed,pt)%ptr = -len_area_ex(ed)*Qxhatv(ed)
+                Qxfi(ed,pt)%ptr =  len_area_in(ed)*Qxhatv(ed)
+              ENDDO   
+              
+              
               
 !DIR$ IVDEP
 !!DIR$ VECTOR ALIGNED
               DO ed = nfblk(1,blk),nfblk(2,blk)
                 Qyhatv(ed) = .5d0*(inx(ed)*(xymi(ed,pt)%ptr + xyme(ed,pt)%ptr) + iny(ed)*(ymi(ed,pt)%ptr + yme(ed,pt)%ptr)  &
                                         - const(ed)*(Qye(ed,pt)%ptr - Qyi(ed,pt)%ptr))
-              ENDDO
-!DIR$ IVDEP              
-              DO ed = nfblk(1,blk),nfblk(2,blk) 
-                Hfe(ed,pt)%ptr = -len_area_ex(ed)*Hhatv(ed)
-                Hfi(ed,pt)%ptr =  len_area_in(ed)*Hhatv(ed)
-              ENDDO          
-!DIR$ IVDEP              
-              DO ed = nfblk(1,blk),nfblk(2,blk)                                 
-                Qxfe(ed,pt)%ptr = -len_area_ex(ed)*Qxhatv(ed)
-                Qxfi(ed,pt)%ptr =  len_area_in(ed)*Qxhatv(ed)
-              ENDDO   
-!DIR$ IVDEP              
-              DO ed = nfblk(1,blk),nfblk(2,blk)                                     
+                                     
                 Qyfe(ed,pt)%ptr = -len_area_ex(ed)*Qyhatv(ed)
                 Qyfi(ed,pt)%ptr =  len_area_in(ed)*Qyhatv(ed)
-              ENDDO               
+              ENDDO                           
 
         ENDDO ed_points2
      
@@ -232,49 +304,47 @@ ed_points2: DO pt = 1,nqpte ! Compute numerical fluxes for all edges
 !               DO ed = nfblk(1,npart+1),nfblk(2,npart+1)
                 const(ed) = max(abs(Qxi(ed,pt)%ptr*inx(ed) + Qyi(ed,pt)%ptr*iny(ed))/Hi(ed,pt)%ptr + sqrt(g*Hi(ed,pt)%ptr), &
                                 abs(Qxe(ed,pt)%ptr*inx(ed) + Qye(ed,pt)%ptr*iny(ed))/He(ed,pt)%ptr + sqrt(g*He(ed,pt)%ptr))
-              ENDDO             
-        
+              ENDDO
+              
+                            
 !DIR$ IVDEP
 !!DIR$ VECTOR ALIGNED
               DO ed = rnfblk(1,blk),rnfblk(2,blk)
 !               DO ed = nfblk(1,npart+1),nfblk(2,npart+1)
                 Hhatv(ed) = .5d0*(inx(ed)*(Qxi(ed,pt)%ptr + Qxe(ed,pt)%ptr) + iny(ed)*(Qyi(ed,pt)%ptr + Qye(ed,pt)%ptr) &
                                         - const(ed)*(He(ed,pt)%ptr - Hi(ed,pt)%ptr))
-              ENDDO                                        
-     
+                                     
+                Hfe(ed,pt)%ptr = -len_area_ex(ed)*Hhatv(ed)
+                Hfi(ed,pt)%ptr =  len_area_in(ed)*Hhatv(ed)               
+              ENDDO     
+              
+              
+              
 !DIR$ IVDEP
 !!DIR$ VECTOR ALIGNED
               DO ed = rnfblk(1,blk),rnfblk(2,blk)
 !               DO ed = nfblk(1,npart+1),nfblk(2,npart+1)
                 Qxhatv(ed) = .5d0*(inx(ed)*(xmi(ed,pt)%ptr + xme(ed,pt)%ptr) + iny(ed)*(xymi(ed,pt)%ptr + xyme(ed,pt)%ptr)  &
                                         - const(ed)*(Qxe(ed,pt)%ptr - Qxi(ed,pt)%ptr))
-              ENDDO                                        
-            
+                                   
+                Qxfe(ed,pt)%ptr = -len_area_ex(ed)*Qxhatv(ed)
+                Qxfi(ed,pt)%ptr =  len_area_in(ed)*Qxhatv(ed)
+              ENDDO   
+              
+              
+              
 !DIR$ IVDEP
 !!DIR$ VECTOR ALIGNED
               DO ed = rnfblk(1,blk),rnfblk(2,blk)
 !               DO ed = nfblk(1,npart+1),nfblk(2,npart+1)
                 Qyhatv(ed) = .5d0*(inx(ed)*(xymi(ed,pt)%ptr + xyme(ed,pt)%ptr) + iny(ed)*(ymi(ed,pt)%ptr + yme(ed,pt)%ptr)  &
                                         - const(ed)*(Qye(ed,pt)%ptr - Qyi(ed,pt)%ptr))
-              ENDDO                
-
-!DIR$ IVDEP              
-              DO ed = rnfblk(1,blk),rnfblk(2,blk)                                     
-                Hfe(ed,pt)%ptr = -len_area_ex(ed)*Hhatv(ed)
-                Hfi(ed,pt)%ptr =  len_area_in(ed)*Hhatv(ed)               
-              ENDDO   
-!DIR$ IVDEP                              
-              DO ed = rnfblk(1,blk),rnfblk(2,blk)                                          
-                Qxfe(ed,pt)%ptr = -len_area_ex(ed)*Qxhatv(ed)
-                Qxfi(ed,pt)%ptr =  len_area_in(ed)*Qxhatv(ed)
-              ENDDO   
-!DIR$ IVDEP              
-              DO ed = rnfblk(1,blk),rnfblk(2,blk)                                             
+                                      
                 Qyfe(ed,pt)%ptr = -len_area_ex(ed)*Qyhatv(ed)
                 Qyfi(ed,pt)%ptr =  len_area_in(ed)*Qyhatv(ed)
               ENDDO
 
-        ENDDO         
+        ENDDO       
         
       ENDDO
 !$OMP end do
@@ -441,4 +511,54 @@ ed_points2: DO pt = 1,nqpte ! Compute numerical fluxes for all edges
 !$OMP end parallel         
 
       RETURN
-      END SUBROUTINE rhs2
+      END SUBROUTINE rhs3
+      
+      
+      
+      
+      FUNCTION compute_const(Qxi,Qxe,Qyi,Qye,Hi,He,nx,ny,g) RESULT (const)
+      
+      USE globals, ONLY: pres
+      
+      IMPLICIT NONE
+      
+      REAL(pres) :: Qxi,Qxe
+      REAL(pres) :: Qyi,Qye
+      REAL(pres) :: Hi,He
+      REAL(pres) :: nx,ny
+      REAL(pres) :: g
+      REAL(pres) :: const
+      
+      const = max(abs(nx*Qxi+ny*Qyi)/Hi+sqrt(g*Hi),abs(nx*Qxe+ny*Qye)/He+sqrt(g*He))
+      
+      END FUNCTION compute_const
+      
+      
+      
+      
+      SUBROUTINE compute_flux(Qxi,Qxe,Qyi,Qye,Hi,He,xmomi,xmome,ymomi,ymome,xymomi,xymome,nx,ny,g,Hhat,Qxhat,Qyhat)
+      
+      USE globals, ONLY: pres
+      
+      IMPLICIT NONE
+      
+      REAL(pres) :: Qxi,Qxe
+      REAL(pres) :: Qyi,Qye
+      REAL(pres) :: Hi,He
+      REAL(pres) :: xmomi,xmome
+      REAL(pres) :: ymomi,ymome
+      REAL(pres) :: xymomi,xymome
+      REAL(pres) :: nx,ny
+      REAL(pres) :: g
+      REAL(pres) :: const
+      REAL(pres) :: Hhat,Qxhat,Qyhat
+      REAL(pres) :: rHi,rHe
+      
+      
+      const = max(abs(nx*Qxi+ny*Qyi)/Hi+sqrt(g*Hi),abs(nx*Qxe+ny*Qye)/He+sqrt(g*He))
+      
+      Hhat = .5d0*(nx*(Qxi+Qxe) + ny*(Qyi+Qye) - const*(He-Hi))
+      Qxhat = .5d0*(nx*(xmomi+xmome) + ny*(xymomi+xymome) - const*(Qxe-Qxi))
+      Qyhat = .5d0*(nx*(xymomi+xymome) + ny*(ymomi+ymome) - const*(Qye-Qyi))
+      
+      END SUBROUTINE compute_flux

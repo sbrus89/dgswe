@@ -25,7 +25,8 @@
       ! Evalutate right hand side  
       tstage = t
       ramp = TANH((2d0*tstage)/(86400d0*dramp))
-      CALL rhs2()
+!       CALL rhs2()
+      CALL rhs3()
       
       ! First RK stage
       DO dof = 1,ndof
@@ -47,7 +48,8 @@
       ! Evaluate RHS
       tstage = t + dt
       ramp = TANH((2d0*tstage)/(86400d0*dramp))
-      CALL rhs2()
+!       CALL rhs2()
+      CALL rhs3()
       
       ! Second RK stage
       DO dof = 1,ndof
@@ -74,7 +76,8 @@
       ! Evaluate RHS
       tstage = t + dt
       ramp = TANH((2d0*tstage)/(86400d0*dramp))
-      CALL rhs2()
+!       CALL rhs2()
+      CALL rhs3()
       
       ! Second RK stage
       DO dof = 1,ndof
@@ -98,7 +101,8 @@
       ! Evaluate RHS
       tstage = t + .5d0*dt
       ramp = TANH((2d0*tstage)/(86400d0*dramp))
-      CALL rhs2()
+!       CALL rhs2()
+      CALL rhs3()
       
       ! Third RK stage
       DO dof = 1,ndof

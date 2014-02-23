@@ -48,7 +48,7 @@ ALIGN = -DALIGN32
 # -opt-report3 -opt-report-file=opt_report 
 # -vec-report3
 
-objects = globals.o basis.o area_qpts.o edge_qpts.o read_input.o read_grid.o read_forcing.o alloc_arrays.o ptr_arrays.o initial.o connect.o element_data.o edge_partition2.o rk.o rhs2.o numerical_flux.o swe_tri.o
+objects = globals.o basis.o area_qpts.o edge_qpts.o read_input.o read_grid.o read_forcing.o alloc_arrays.o ptr_arrays.o initial.o connect.o element_data.o edge_partition2.o rk.o rhs2.o rhs3.o numerical_flux.o swe_tri.o
 
 dgswe : $(objects)
 	$(FC) $(CFLAGS_LINK) dgswe $(objects) -L $(LIB_PATH) -l$(LIB)
@@ -99,6 +99,9 @@ rk.o : rk.F90 globals.F90
 	$(FC) $(CFLAGS_VEC) $(RK) $<
 
 rhs2.o : rhs2.f90 globals.F90
+	$(FC) $(CFLAGS_VEC) $<
+
+rhs3.o : rhs3.F90 globals.F90
 	$(FC) $(CFLAGS_VEC) $<
 
 numerical_flux.o : numerical_flux.f90 globals.F90
