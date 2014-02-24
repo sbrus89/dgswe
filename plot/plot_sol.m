@@ -11,7 +11,7 @@ nsnap = 100;
 % direc = '../quad_loop/';
 %direc = '../LDG/';
 %direc = '../openmp/';
-direc = '~/Dropbox/dgswe/';
+direc = '~/dgswe/';
 
 % direc = '..';
 
@@ -39,7 +39,7 @@ fid_Qy = fopen([direc,'output/solution_Qy.d']);
 line = fgetl(fid_H);
 line = fgetl(fid_Qx);
 line = fgetl(fid_Qy);
-name = 'grids/inlet1.grd';
+name = 'grids/inlet2.grd';
 
 % Read in grid file
 [EToV,VX,HB,~,~,~] = readfort14([direc,name]);
