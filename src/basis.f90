@@ -4,8 +4,8 @@
 
       SUBROUTINE area_basis()
 
-        USE globals, ONLY: pres,nqpta,wpta,qpta,p,ndof, &
-                           phia,phia_int,phil,dpdx,dpdy,dpdx_init,dpdy_init, &
+        USE globals, ONLY: pres,nqpta,nqpte,wpta,qpta,p,ndof, &
+                           phi,phia,phia_int,phil,dpdx,dpdy,dpdx_init,dpdy_init, &
                            ect,xy,ne,area
 
         IMPLICIT NONE
@@ -26,6 +26,11 @@
           PRINT*, 'Allocation error: phia,phia_int'
         ENDIF 
 
+        ALLOCATE(phi(ndof,nqpta+3*nqpte),STAT = alloc_status)
+        IF(alloc_status /= 0) THEN
+          PRINT*, 'Allocation error: phi'
+        ENDIF        
+        
         ALLOCATE(phil(3,nqpta),STAT = alloc_status)
         IF(alloc_status /= 0) THEN
           PRINT*, 'Allocation error: phil'
@@ -81,6 +86,7 @@
 !               phia_int(m,pt) = phia(m,pt)*wpta(pt)
               phia(m,pt) = 2d0*Pi(pt)*Pj(pt)*(1d0-b(pt))**i
               phia_int(m,pt) = .5d0*phia(m,pt)*wpta(pt)
+              phi(m,pt) = phia(m,pt)
             ENDDO
 
             ii = real(i,pres)
@@ -199,7 +205,7 @@
 
       SUBROUTINE edge_basis()
 
-        USE globals, ONLY: pres,ndof,nqpte,qpte,wpte,p,phie,phie_int
+        USE globals, ONLY: pres,ndof,nqpte,qpte,wpte,p,phi,phie,phie_int,nqpta
 
         IMPLICIT NONE
         INTEGER :: led,pt,m,i,j,ind
@@ -261,6 +267,7 @@
 !                 phie_int(m,ind) = phie(m,ind)*wpte(pt)
                 phie(m,ind) = 2d0*Pi(pt)*Pj(pt)*(1d0-b(pt))**i
                 phie_int(m,ind) = .5d0*phie(m,ind)*wpte(pt)
+                phi(m,nqpta+ind) = phie(m,ind)
               ENDDO
 
             ENDDO

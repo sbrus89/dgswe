@@ -69,16 +69,52 @@ for el = 1:ne
 end
 
 % Assemble global linear mass matrix
-M = zeros(nn);
+
+% M = zeros(nn);
+% for el = 1:ne
+%     for i = 1:3
+%         for j = 1:3
+%             M(EToV(el,i),EToV(el,j)) = M(EToV(el,i),EToV(el,j)) + .5*area(el)*mm(i,j);
+%         end
+%     end
+% end
+% 
+% M = sparse(M);
+
+iM = zeros(9*nn,1);
+jM = zeros(9*nn,1);
+sM = zeros(9*nn,1);
+i = 0;
 for el = 1:ne
-    for i = 1:3
-        for j = 1:3
-            M(EToV(el,i),EToV(el,j)) = M(EToV(el,i),EToV(el,j)) + .5*area(el)*mm(i,j);
-        end
-    end
+    
+    iM(i+1) = EToV(el,1);  jM(i+1) = EToV(el,1);
+    iM(i+2) = EToV(el,1);  jM(i+2) = EToV(el,2);
+    iM(i+3) = EToV(el,1);  jM(i+3) = EToV(el,3);
+    
+    iM(i+4) = EToV(el,2);  jM(i+4) = EToV(el,1);
+    iM(i+5) = EToV(el,2);  jM(i+5) = EToV(el,2);
+    iM(i+6) = EToV(el,2);  jM(i+6) = EToV(el,3);
+    
+    iM(i+7) = EToV(el,3);  jM(i+7) = EToV(el,1);
+    iM(i+8) = EToV(el,3);  jM(i+8) = EToV(el,2);
+    iM(i+9) = EToV(el,3);  jM(i+9) = EToV(el,3); 
+    
+    sM(i+1) = .5*area(el)*mm(1,1);
+    sM(i+2) = .5*area(el)*mm(1,2);
+    sM(i+3) = .5*area(el)*mm(1,3);
+    
+    sM(i+4) = .5*area(el)*mm(2,1);
+    sM(i+5) = .5*area(el)*mm(2,2);
+    sM(i+6) = .5*area(el)*mm(2,3);
+   
+    sM(i+7) = .5*area(el)*mm(3,1);
+    sM(i+8) = .5*area(el)*mm(3,2);
+    sM(i+9) = .5*area(el)*mm(3,3);
+    
+    i = i + 9;
 end
 
-M = sparse(M);
+M = sparse(iM,jM,sM,nn,nn);
 
 zeta = zeros(nn,nsnap);
 u = zeros(nn,nsnap);

@@ -102,11 +102,11 @@
       ! Get quadrature points for area integration
       CALL area_qpts()
 
+      ! Calculate basis function values at edge quadrature points
+      CALL edge_qpts()      
+      
       ! Calculate basis function and derivative values at area quadrature points
       CALL area_basis()
-
-      ! Calculate basis function values at edge quadrature points
-      CALL edge_qpts()
 
       ! Calculate basis function and derivative values at edge quadrature points
       CALL edge_basis()
