@@ -21,6 +21,7 @@
       INTEGER :: blk
       INTEGER :: nblk,nrblk
       INTEGER, ALLOCATABLE, DIMENSION(:,:) :: elblk,edblk,nfblk,rnfblk
+      INTEGER, ALLOCATABLE, DIMENSION(:,:) :: iediblk,bediblk
       INTEGER :: mnpartel,mnparted      
       
       INTEGER :: npart ! number of element partitions)

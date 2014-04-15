@@ -9,16 +9,16 @@
 !5                                                   ! nsp - loop blocking parameter
 !4                                                   ! npart - edge blocking parameter
 
-! ../grids/inlet2.grd                                ! grid file
-! ../grids/inlet2.bfr                                ! forcing file
-! 1                                                  ! p - polynomial order
-! .5d0                                               ! dt - timestep 
-! 1d0                                                ! tf - final time (days)
-! .5d0                                               ! dramp - ramping parameter (days)
-! .003d0                                             ! cf - friction coefficient 
-! 100d0                                              ! lines - lines in output files
-! 21                                                 ! nsp - loop blocking parameter
-! 14                                                 ! npart - edge blocking parameter
+!../grids/inlet2.grd                                ! grid file
+!../grids/inlet2.bfr                                ! forcing file
+!1                                                  ! p - polynomial order
+!.5d0                                               ! dt - timestep 
+!1d0                                                ! tf - final time (days)
+!.5d0                                               ! dramp - ramping parameter (days)
+!.003d0                                             ! cf - friction coefficient 
+!100d0                                              ! lines - lines in output files
+!21                                                 ! nsp - loop blocking parameter
+!14                                                 ! npart - edge blocking parameter
 
 ! ../grids/inlet3.grd                                ! grid file
 ! ../grids/inlet3.bfr                                ! forcing file

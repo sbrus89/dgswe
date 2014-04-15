@@ -26,8 +26,8 @@
       tstage = t
       ramp = TANH((2d0*tstage)/(86400d0*dramp))
 !        CALL rhs2()
-!      CALL rhs3()
-       CALL rhs4()
+      CALL rhs3()
+!        CALL rhs4()
       
       ! First RK stage
       DO dof = 1,ndof
@@ -50,8 +50,8 @@
       tstage = t + dt
       ramp = TANH((2d0*tstage)/(86400d0*dramp))
 !       CALL rhs2()
-!      CALL rhs3()
-       CALL rhs4()
+      CALL rhs3()
+!        CALL rhs4()
       
       ! Second RK stage
       DO dof = 1,ndof
@@ -79,8 +79,8 @@
       tstage = t + dt
       ramp = TANH((2d0*tstage)/(86400d0*dramp))
 !        CALL rhs2()
-!      CALL rhs3()
-       CALL rhs4()
+      CALL rhs3()
+!        CALL rhs4()
       
       ! Second RK stage
       DO dof = 1,ndof
@@ -105,8 +105,8 @@
       tstage = t + .5d0*dt
       ramp = TANH((2d0*tstage)/(86400d0*dramp))
 !       CALL rhs2()
-!      CALL rhs3()
-       CALL rhs4()
+      CALL rhs3()
+!       CALL rhs4()
       
       ! Third RK stage
       DO dof = 1,ndof
