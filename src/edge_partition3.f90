@@ -114,8 +114,8 @@
       
       SUBROUTINE decomp2()
       
-      USE globals, ONLY: nn,ne,ndof,nqpta,part,npart, &
-                         ged2el,&
+      USE globals, ONLY: nn,ne,ndof,nqpta,nqpte,part,npart, &
+                         ged2el,ged2led, &
                          npartel,nparted, &
                          gel2part,gel2lel,lel2gel, &
                          ael2gel,gel2ael, &
@@ -126,17 +126,22 @@
                          Hwrite,Qxwrite,Qywrite, &
                          nblk,elblk,edblk,nfblk,nrblk,rnfblk, &
                          iediblk,bediblk, &
-                         mnpartel,mnparted   
+                         mnpartel,mnparted, &
+                         nfbed,fbedn,nnfbed,nfbedn,nobed,obedn, &
+                         fbHf,fbQxf,fbQyf,nfbHf,nfbQxf,nfbQyf,obHf,obQxf,obQyf, &
+                         Hf,Qxf,Qyf
+                         
 
 
       IMPLICIT NONE
 
-      INTEGER :: el,pe,ed,dof,blk
+      INTEGER :: el,pe,ed,pt,dof,blk
       INTEGER :: ged
       INTEGER :: el_in,el_ex
       INTEGER :: pe_in,pe_ex
       INTEGER :: elcnt,edcnt
       INTEGER :: ted,tel
+      INTEGER :: ael_in,led_in,gp_in
       
       INTEGER, ALLOCATABLE, DIMENSION(:) :: edflag  
       INTEGER, ALLOCATABLE, DIMENSION(:) :: elflag  
@@ -156,6 +161,7 @@
         gel2part(el) = pe
       ENDDO     
       
+      ! Find edges on partition boundaires
       edflag = 0
       elflag = 0
       edcnt = 0
@@ -182,6 +188,7 @@
         ENDDO
       ENDDO
       
+      ! Find edges on partition/domain boundaries      
       DO ed = 1,nied
         IF (edflag(ed) == 0) THEN
           edflag(ed) = edflag(ed) + 1
@@ -234,6 +241,9 @@
         ENDIF      
       ENDDO
       
+      
+      
+      ! Make element lookup tables
       npartel = 0
       DO el = 1,ne
         IF (elflag(el) == 0) THEN
@@ -297,7 +307,7 @@
         ENDDO
       ENDDO      
       
-      
+      ! Point to flux arrays    
       edflag = 0
       elflag = 0
       edcnt = 0
@@ -342,7 +352,53 @@
         ENDIF
       ENDDO
       
+      DO ed = 1,nfbed
+        ged = fbedn(ed)
 
+        ael_in = gel2ael(ged2el(1,ged))
+        led_in = ged2led(1,ged)    
+        
+        DO pt = 1,nqpte
+          gp_in = (led_in-1)*nqpte + pt
+          
+          Hf(ael_in,gp_in)%ptr => fbHf(ed,pt)
+          Qxf(ael_in,gp_in)%ptr => fbQxf(ed,pt)          
+          Qyf(ael_in,gp_in)%ptr => fbQyf(ed,pt)          
+          
+        ENDDO
+      ENDDO
+      
+      DO ed = 1,nnfbed
+        ged = nfbedn(ed)
+
+        ael_in = gel2ael(ged2el(1,ged))
+        led_in = ged2led(1,ged)    
+        
+        DO pt = 1,nqpte
+          gp_in = (led_in-1)*nqpte + pt
+          
+          Hf(ael_in,gp_in)%ptr => nfbHf(ed,pt)
+          Qxf(ael_in,gp_in)%ptr => nfbQxf(ed,pt)          
+          Qyf(ael_in,gp_in)%ptr => nfbQyf(ed,pt)          
+          
+        ENDDO
+      ENDDO
+      
+      DO ed = 1,nobed
+        ged = obedn(ed)
+
+        ael_in = gel2ael(ged2el(1,ged))
+        led_in = ged2led(1,ged)    
+        
+        DO pt = 1,nqpte
+          gp_in = (led_in-1)*nqpte + pt
+          
+          Hf(ael_in,gp_in)%ptr => obHf(ed,pt)
+          Qxf(ael_in,gp_in)%ptr => obQxf(ed,pt)          
+          Qyf(ael_in,gp_in)%ptr => obQyf(ed,pt)          
+          
+        ENDDO
+      ENDDO      
       
       ! check for errors
       DO ed = 1,nied
@@ -484,7 +540,10 @@
                          xmi,xme,ymi,yme,xymi,xyme, &
                          Hfi,Hfe,Qxfi,Qxfe,Qyfi,Qyfe, &
                          normal,edlen_area, &
-                         inx,iny,len_area_in,len_area_ex
+                         inx,iny,len_area_in,len_area_ex, &
+                         Hf,Qxf,Qyf, &
+                         Hfluxi,Qxfluxi,Qyfluxi, &
+                         Hfluxe,Qxfluxe,Qyfluxe 
                       
       
       IMPLICIT NONE
@@ -536,8 +595,16 @@
 
         Qyfi(ed,pt)%ptr => Qyflux(ael_in,gp_in)
         Qyfe(ed,pt)%ptr => Qyflux(ael_ex,gp_ex)
-     
-      
+        
+        Hf(ael_in,gp_in)%ptr => Hfluxi(ed,pt)
+        Hf(ael_ex,gp_ex)%ptr => Hfluxe(ed,pt)
+        
+        Qxf(ael_in,gp_in)%ptr => Qxfluxi(ed,pt)
+        Qxf(ael_ex,gp_ex)%ptr => Qxfluxe(ed,pt) 
+        
+        Qyf(ael_in,gp_in)%ptr => Qyfluxi(ed,pt)
+        Qyf(ael_ex,gp_ex)%ptr => Qyfluxe(ed,pt)         
+           
       ENDDO
       
       inx(ed) = normal(1,ged)

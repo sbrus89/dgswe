@@ -156,8 +156,13 @@
       REAL(pres), ALLOCATABLE, DIMENSION(:) :: inx,iny,len_area_in,len_area_ex
       REAL(pres), ALLOCATABLE, DIMENSION(:) :: Hhatv,Qxhatv,Qyhatv
       REAL(pres), ALLOCATABLE, DIMENSION(:) :: rHi,rHe
-      REAL(pres), ALLOCATABLE, DIMENSION(:) :: xmomi,xmome,ymomi,ymome,xymomi,xymome      
-     
+      REAL(pres), ALLOCATABLE, DIMENSION(:) :: xmomi,xmome,ymomi,ymome,xymomi,xymome     
+      REAL(pres), ALLOCATABLE, TARGET, DIMENSION(:,:) :: fbHf,nfbHf,obHf  
+      REAL(pres), ALLOCATABLE, TARGET, DIMENSION(:,:) :: fbQxf,nfbQxf,obQxf       
+      REAL(pres), ALLOCATABLE, TARGET, DIMENSION(:,:) :: fbQyf,nfbQyf,obQyf  
+      REAL(pres), ALLOCATABLE, TARGET, DIMENSION(:,:) :: Hfluxi,Hfluxe      
+      REAL(pres), ALLOCATABLE, TARGET, DIMENSION(:,:) :: Qxfluxi,Qxfluxe
+      REAL(pres), ALLOCATABLE, TARGET, DIMENSION(:,:) :: Qyfluxi,Qyfluxe      
 
       TYPE :: edge_ptr_array
         REAL(pres), POINTER :: ptr
@@ -171,6 +176,7 @@
       TYPE(edge_ptr_array), ALLOCATABLE, DIMENSION(:,:) :: xymi,xyme
       TYPE(edge_ptr_array), ALLOCATABLE, DIMENSION(:,:) :: Hfi,Qxfi,Qyfi
       TYPE(edge_ptr_array), ALLOCATABLE, DIMENSION(:,:) :: Hfe,Qxfe,Qyfe
+      TYPE(edge_ptr_array), ALLOCATABLE, DIMENSION(:,:) :: Hf,Qxf,Qyf      
       
       TYPE(edge_ptr_array), ALLOCATABLE, DIMENSION(:,:) :: Hwrite
       TYPE(edge_ptr_array), ALLOCATABLE, DIMENSION(:,:) :: Qxwrite

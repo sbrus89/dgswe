@@ -12,7 +12,8 @@
                        Hin,Qxin,Qyin, &
                        Hex,Qxex,Qyex, &
                        xmin,ymin,xymin, &
-                       xmex,ymex,xymex
+                       xmex,ymex,xymex, &
+                       Hf,Qxf,Qyf
 
      IMPLICIT NONE
      INTEGER :: alloc_status
@@ -63,6 +64,11 @@
      IF(alloc_status /= 0) THEN
        PRINT*, "Allocation error: xmex,ymex,xymex"
      ENDIF  
+     
+     ALLOCATE(Hf(ne,3*nqpte),Qxf(ne,3*nqpte),Qyf(ne,3*nqpte),STAT=alloc_status)
+     IF(alloc_status /= 0) THEN
+       PRINT*, "Allocation error: Hf,Qxf,Qyf"
+     ENDIF     
      
 
 !      DO pt = 1,nqpte

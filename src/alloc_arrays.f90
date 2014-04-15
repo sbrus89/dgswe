@@ -1,10 +1,12 @@
       SUBROUTINE alloc_arrays()
 
-      USE globals, ONLY: ne,nied,ndof,nqpte, &
+      USE globals, ONLY: ne,nied,nfbed,nnfbed,nobed,ndof,nqpte, &
                          H,Hold,Hinit,rhsH,Qx,Qxold,Qxinit,rhsQx,Qy,Qyold,Qyinit, &
                          rhsQy,Hqpt,Qxqpt,Qyqpt,xmom,ymom,xymom, &
                          Hflux,Qxflux,Qyflux,tau,src_x,src_y,pressa,recipHa, &
-                         rHi,rHe,xmomi,xmome,ymomi,ymome,xymomi,xymome
+                         rHi,rHe,xmomi,xmome,ymomi,ymome,xymomi,xymome, &
+                         fbHf,nfbHf,obHf,fbQxf,nfbQxf,obQxf,fbQyf,nfbQyf,obQyf, &
+                         Hfluxi,Hfluxe,Qxfluxi,Qxfluxe,Qyfluxi,Qyfluxe
                          
 
       IMPLICIT NONE
@@ -76,6 +78,30 @@
         PRINT*, 'Allocation error: xmomi,xmome,ymomi,ymome,xymomi,xymome'
       ENDIF            
 
+      ALLOCATE(fbHf(nfbed,nqpte),nfbHf(nnfbed,nqpte),obHf(nobed,nqpte),STAT = alloc_status)
+      IF(alloc_status /= 0) THEN
+        PRINT*, 'Allocation error: fbHf,nfbHf,obHf'
+      ENDIF
+      
+      ALLOCATE(fbQxf(nfbed,nqpte),nfbQxf(nnfbed,nqpte),obQxf(nobed,nqpte),STAT = alloc_status)
+      IF(alloc_status /= 0) THEN
+        PRINT*, 'Allocation error: fbQxf,nfbQxf,obQxf'
+      ENDIF        
+      
+      ALLOCATE(fbQyf(nfbed,nqpte),nfbQyf(nnfbed,nqpte),obQyf(nobed,nqpte),STAT = alloc_status)
+      IF(alloc_status /= 0) THEN
+        PRINT*, 'Allocation error: fbQyf,nfbQyf,obQyf'
+      ENDIF    
+      
+      ALLOCATE(Hfluxi(nied,nqpte),Qxfluxi(nied,nqpte),Qyfluxi(nied,nqpte),STAT = alloc_status)
+      IF(alloc_status /= 0) THEN
+        PRINT*, 'Allocation error: Hfluxi,Qxfluxi,Qyfluxi'
+      ENDIF  
+      
+      ALLOCATE(Hfluxe(nied,nqpte),Qxfluxe(nied,nqpte),Qyfluxe(nied,nqpte),STAT = alloc_status)
+      IF(alloc_status /= 0) THEN
+        PRINT*, 'Allocation error: Hfluxe,Qxfluxe,Qyfluxe'
+      ENDIF                
       
       RETURN
       END SUBROUTINE alloc_arrays
