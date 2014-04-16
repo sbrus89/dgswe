@@ -24,18 +24,13 @@
                           xmi,xme,ymi,yme,xymi,xyme, &
                           Hfi,Hfe,Qxfi,Qxfe,Qyfi,Qyfe, &
                           const,inx,iny,len_area_in,len_area_ex, &
-                          Hhatv,Qxhatv,Qyhatv, &
-                          rHi,rHe,xmomi,xmome,ymomi,ymome,xymomi,xymome, &
-                          Hin,Qxin,Qyin, &
-                          Hex,Qxex,Qyex, &
-                          xmin,ymin,xymin, &
-                          xmex,ymex,xymex
+                          Hhatv,Qxhatv,Qyhatv
+
 !$    USE omp_lib                          
                           
                    
       IMPLICIT NONE
       INTEGER :: i
-      REAL(pres), EXTERNAL :: compute_const
 
 !     ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !     c Area Integrals
@@ -229,7 +224,6 @@ ed_points2: DO pt = 1,nqpte ! Compute numerical fluxes for all edges
        DO pt = 1,nqpte
 !!DIR$ VECTOR ALIGNED
               DO ed = rnfblk(1,blk),rnfblk(2,blk)
-!               DO ed = nfblk(1,npart+1),nfblk(2,npart+1)
                 const(ed) = max(abs(Qxi(ed,pt)%ptr*inx(ed) + Qyi(ed,pt)%ptr*iny(ed))/Hi(ed,pt)%ptr + sqrt(g*Hi(ed,pt)%ptr), &
                                 abs(Qxe(ed,pt)%ptr*inx(ed) + Qye(ed,pt)%ptr*iny(ed))/He(ed,pt)%ptr + sqrt(g*He(ed,pt)%ptr))
               ENDDO             
@@ -237,7 +231,6 @@ ed_points2: DO pt = 1,nqpte ! Compute numerical fluxes for all edges
 !DIR$ IVDEP
 !!DIR$ VECTOR ALIGNED
               DO ed = rnfblk(1,blk),rnfblk(2,blk)
-!               DO ed = nfblk(1,npart+1),nfblk(2,npart+1)
                 Hhatv(ed) = .5d0*(inx(ed)*(Qxi(ed,pt)%ptr + Qxe(ed,pt)%ptr) + iny(ed)*(Qyi(ed,pt)%ptr + Qye(ed,pt)%ptr) &
                                         - const(ed)*(He(ed,pt)%ptr - Hi(ed,pt)%ptr))
               ENDDO                                        
@@ -245,7 +238,6 @@ ed_points2: DO pt = 1,nqpte ! Compute numerical fluxes for all edges
 !DIR$ IVDEP
 !!DIR$ VECTOR ALIGNED
               DO ed = rnfblk(1,blk),rnfblk(2,blk)
-!               DO ed = nfblk(1,npart+1),nfblk(2,npart+1)
                 Qxhatv(ed) = .5d0*(inx(ed)*(xmi(ed,pt)%ptr + xme(ed,pt)%ptr) + iny(ed)*(xymi(ed,pt)%ptr + xyme(ed,pt)%ptr)  &
                                         - const(ed)*(Qxe(ed,pt)%ptr - Qxi(ed,pt)%ptr))
               ENDDO                                        
@@ -253,7 +245,6 @@ ed_points2: DO pt = 1,nqpte ! Compute numerical fluxes for all edges
 !DIR$ IVDEP
 !!DIR$ VECTOR ALIGNED
               DO ed = rnfblk(1,blk),rnfblk(2,blk)
-!               DO ed = nfblk(1,npart+1),nfblk(2,npart+1)
                 Qyhatv(ed) = .5d0*(inx(ed)*(xymi(ed,pt)%ptr + xyme(ed,pt)%ptr) + iny(ed)*(ymi(ed,pt)%ptr + yme(ed,pt)%ptr)  &
                                         - const(ed)*(Qye(ed,pt)%ptr - Qyi(ed,pt)%ptr))
               ENDDO                
@@ -281,7 +272,6 @@ ed_points2: DO pt = 1,nqpte ! Compute numerical fluxes for all edges
 
 
 !$OMP do     
-!           DO pt = 1,nqpte
             ! No normal flow boundary condition 
             DO ed = 1,nnfbed
               DO pt = 1,nqpte
@@ -416,8 +406,6 @@ ed_points2: DO pt = 1,nqpte ! Compute numerical fluxes for all edges
               Qyflux(el_in,gp_in) = edlen_area(1,ged)*Qyhat                            
               ENDDO
              ENDDO
-
-!           ENDDO 
 !$OMP end do        
 
 

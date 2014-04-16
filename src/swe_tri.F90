@@ -17,56 +17,6 @@
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-!       grid_file = "../grids/inlet1.grd"
-!       forcing_file = "../grids/inlet1.bfr"
-!       dt = 1d0!/2d0      ! 1d0 for p=1,2, .5d0 for p=3
-!       tf = 1d0*86400d0
-!       dramp = .5d0
-!       cf = .003d0
-!       lines = 100d0
-!       nsp = 5
-
-!       grid_file = "../grids/inlet2.grd"
-!       forcing_file = "../grids/inlet2.bfr"
-!       dt = .5d0
-!       tf = 1d0*86400d0
-!       dramp = .5d0
-!       cf = .003d0
-!       lines = 100d0
-!       nsp = 21
-      
-!       grid_file = "../grids/inlet3.grd"
-!       forcing_file = "../grids/inlet3.bfr"
-!       dt = .25d0
-!       tf = 1d0*86400d0
-!       dramp = .5d0
-!       cf = .003d0 
-!       lines = 20d0
-!       nsp = 80
-
-!       grid_file = "../grids/converge.grd"
-!       forcing_file = "../grids/converge.bfr"
-!       dt = .5d0
-!       tf = 86400d0
-!       dramp = .5d0
-!       cf = .003d0
-!       line = 100d0
-!       nsp = 
-
-!       grid_file = "../grids/converge3.grd"
-!       forcing_file = "../grids/converge3.bfr"
-!       dt = .125d0
-!       tf = .2d0*86400d0
-!       dramp = .08d0
-!       cf = .0025d0
-!       lines = 20d0
-!       nsp = 45
-
-
-!       p = 2
-      
-!       npart = 3
-
       nrblk = 1
 
       CALL read_input()
@@ -168,22 +118,7 @@
            WRITE(642,"(e24.17)") t
            DO dof = 1,ndof
              WRITE(642,"(16000(e24.17,1x))") (Qywrite(el,dof)%ptr, el = 1,ne)
-           ENDDO
-           
-!            WRITE(63,"(e24.17)") t
-!            DO dof = 1,ndof
-!              WRITE(63,"(16000(e24.17,1x))") (H(el,dof), el = 1,ne)
-!            ENDDO
-! 
-!            WRITE(641,"(e24.17)") t
-!            DO dof = 1,ndof
-!              WRITE(641,"(16000(e24.17,1x))") (Qx(el,dof), el = 1,ne)
-!            ENDDO
-! 
-!            WRITE(642,"(e24.17)") t
-!            DO dof = 1,ndof
-!              WRITE(642,"(16000(e24.17,1x))") (Qy(el,dof), el = 1,ne)
-!            ENDDO
+           ENDDO           
              
            cnt = 0
 
