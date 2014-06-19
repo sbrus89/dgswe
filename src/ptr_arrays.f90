@@ -7,7 +7,7 @@
                        Hqpt,Qxqpt,Qyqpt, &
                        xmom,ymom,xymom, &
                        Hflux,Qxflux,Qyflux, &
-                       inx,iny,len_area_in,len_area_ex,const, &
+                       inx,iny,detJe_in,detJe_ex,const, &
                        Hhatv,Qxhatv,Qyhatv, &
                        Hin,Qxin,Qyin, &
                        Hex,Qxex,Qyex, &
@@ -19,25 +19,28 @@
      INTEGER :: alloc_status
      INTEGER :: ed,ged,pt
      INTEGER :: gp_in,gp_ex,led_in,led_ex,el_in,el_ex
+     INTEGER :: mnqpte
+     
+     mnqpte = maxval(nqpte)
 
-     ALLOCATE(Hi(nied,nqpte),He(nied,nqpte),Qxi(nied,nqpte),Qxe(nied,nqpte),Qyi(nied,nqpte),Qye(nied,nqpte),STAT=alloc_status)
+     ALLOCATE(Hi(nied,mnqpte),He(nied,mnqpte),Qxi(nied,mnqpte),Qxe(nied,mnqpte),Qyi(nied,mnqpte),Qye(nied,mnqpte),STAT=alloc_status)
      IF(alloc_status /= 0) THEN
        PRINT*, "Allocation error: Hi,He,Qxi,Qxe,Qyi,Qye"
      ENDIF
 
-     ALLOCATE(xmi(nied,nqpte),xme(nied,nqpte),ymi(nied,nqpte),yme(nied,nqpte),xymi(nied,nqpte),xyme(nied,nqpte),STAT=alloc_status)
+     ALLOCATE(xmi(nied,mnqpte),xme(nied,mnqpte),ymi(nied,mnqpte),yme(nied,mnqpte),xymi(nied,mnqpte),xyme(nied,mnqpte),STAT=alloc_status)
      IF(alloc_status /= 0) THEN
        PRINT*, "Allocation error: xmi,xme,ymi,yme,xymi,xyme"
      ENDIF
 
-     ALLOCATE(Hfi(nied,nqpte),Hfe(nied,nqpte),Qxfi(nied,nqpte),Qxfe(nied,nqpte),Qyfi(nied,nqpte),Qyfe(nied,nqpte),STAT=alloc_status)
+     ALLOCATE(Hfi(nied,mnqpte),Hfe(nied,mnqpte),Qxfi(nied,mnqpte),Qxfe(nied,mnqpte),Qyfi(nied,mnqpte),Qyfe(nied,mnqpte),STAT=alloc_status)
      IF(alloc_status /= 0) THEN
        PRINT*, "Allocation error: Hfi,Hfe,Qxfi,Qxfe,Qyfi,Qyfe"
      ENDIF
 
-     ALLOCATE(const(nied),inx(nied),iny(nied),len_area_in(nied),len_area_ex(nied),STAT=alloc_status)
+     ALLOCATE(const(nied),inx(nied),iny(nied),detJe_in(nied),detJe_ex(nied),STAT=alloc_status)
      IF(alloc_status /= 0) THEN
-       PRINT*, "Allocation error: const,inx,iny,len_area_in,len_area_ex"
+       PRINT*, "Allocation error: const,inx,iny,detJe_in,detJe_ex"
      ENDIF
 
      ALLOCATE(Hhatv(nied),Qxhatv(nied),Qyhatv(nied),STAT=alloc_status)
@@ -45,30 +48,30 @@
        PRINT*, "Allocation error: Hhatv,Qxhatv,Qyhatv"
      ENDIF
 
-     ALLOCATE(Qxin(nied),Qyin(nied),Hin(nied),STAT=alloc_status)
-     IF(alloc_status /= 0) THEN
-       PRINT*, "Allocation error: Qxin,Qyin,Hin"
-     ENDIF
-     
-     ALLOCATE(Qxex(nied),Qyex(nied),Hex(nied),STAT=alloc_status)
-     IF(alloc_status /= 0) THEN
-       PRINT*, "Allocation error: Qxex,Qyex,Hex"
-     ENDIF
-     
-     ALLOCATE(xmin(nied),ymin(nied),xymin(nied),STAT=alloc_status)
-     IF(alloc_status /= 0) THEN
-       PRINT*, "Allocation error: xmin,ymin,xymin"
-     ENDIF  
-
-     ALLOCATE(xmex(nied),ymex(nied),xymex(nied),STAT=alloc_status)
-     IF(alloc_status /= 0) THEN
-       PRINT*, "Allocation error: xmex,ymex,xymex"
-     ENDIF  
-     
-     ALLOCATE(Hf(ne,3*nqpte),Qxf(ne,3*nqpte),Qyf(ne,3*nqpte),STAT=alloc_status)
-     IF(alloc_status /= 0) THEN
-       PRINT*, "Allocation error: Hf,Qxf,Qyf"
-     ENDIF     
+!      ALLOCATE(Qxin(nied),Qyin(nied),Hin(nied),STAT=alloc_status)
+!      IF(alloc_status /= 0) THEN
+!        PRINT*, "Allocation error: Qxin,Qyin,Hin"
+!      ENDIF
+!      
+!      ALLOCATE(Qxex(nied),Qyex(nied),Hex(nied),STAT=alloc_status)
+!      IF(alloc_status /= 0) THEN
+!        PRINT*, "Allocation error: Qxex,Qyex,Hex"
+!      ENDIF
+!      
+!      ALLOCATE(xmin(nied),ymin(nied),xymin(nied),STAT=alloc_status)
+!      IF(alloc_status /= 0) THEN
+!        PRINT*, "Allocation error: xmin,ymin,xymin"
+!      ENDIF  
+! 
+!      ALLOCATE(xmex(nied),ymex(nied),xymex(nied),STAT=alloc_status)
+!      IF(alloc_status /= 0) THEN
+!        PRINT*, "Allocation error: xmex,ymex,xymex"
+!      ENDIF  
+!      
+!      ALLOCATE(Hf(ne,3*nqpte),Qxf(ne,3*nqpte),Qyf(ne,3*nqpte),STAT=alloc_status)
+!      IF(alloc_status /= 0) THEN
+!        PRINT*, "Allocation error: Hf,Qxf,Qyf"
+!      ENDIF     
      
 
 !      DO pt = 1,nqpte

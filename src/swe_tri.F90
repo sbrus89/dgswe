@@ -23,7 +23,15 @@
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-      ndof = (p+1)*(p+2)/2
+      ndof(1) = (p+1)*(p+2)/2
+      ndof(2) = (p+1)**2
+      ndof(3) = ndof(1)
+      ndof(4) = ndof(2)
+      
+      ntypends(1) = 3
+      ntypends(2) = 4
+      ntypends(3) = 3
+      ntypends(4) = 4
       
       tstep = int(tf/dt)
       tskp = int(tf/(lines*dt)) 
@@ -45,21 +53,21 @@
    
       ! Find edge connectivity
       CALL connect()
-      
-      ! Compute element area, edge length, edge normals, and bathymetry derivatives
-      CALL element_data()
 
       ! Get quadrature points for area integration
       CALL area_qpts()
 
       ! Calculate basis function values at edge quadrature points
-      CALL edge_qpts()      
+      CALL edge_qpts()   
       
       ! Calculate basis function and derivative values at area quadrature points
-      CALL area_basis()
+      CALL area_basis()  
 
       ! Calculate basis function and derivative values at edge quadrature points
-      CALL edge_basis()
+      CALL edge_basis()            
+      
+      ! Compute element area, edge length, edge normals, and bathymetry derivatives
+      CALL element_data()     
 
       ! Allocate arrays needed in time-stepping and rhs evaluation
       CALL alloc_arrays()
@@ -75,6 +83,8 @@
       CALL metis2()
       
       CALL decomp2()
+      
+    
       
 #ifdef openmp
       t_start = omp_get_wtime()
@@ -105,20 +115,20 @@
 
            PRINT("(A,e15.8)"), 't = ', t
 
-           WRITE(63,"(e24.17)") t
-           DO dof = 1,ndof
-             WRITE(63,"(16000(e24.17,1x))") (Hwrite(el,dof)%ptr, el = 1,ne)
-           ENDDO
-
-           WRITE(641,"(e24.17)") t
-           DO dof = 1,ndof
-             WRITE(641,"(16000(e24.17,1x))") (Qxwrite(el,dof)%ptr, el = 1,ne)
-           ENDDO
-
-           WRITE(642,"(e24.17)") t
-           DO dof = 1,ndof
-             WRITE(642,"(16000(e24.17,1x))") (Qywrite(el,dof)%ptr, el = 1,ne)
-           ENDDO           
+!            WRITE(63,"(e24.17)") t
+!            DO dof = 1,ndof
+!              WRITE(63,"(16000(e24.17,1x))") (Hwrite(el,dof)%ptr, el = 1,ne)
+!            ENDDO
+! 
+!            WRITE(641,"(e24.17)") t
+!            DO dof = 1,ndof
+!              WRITE(641,"(16000(e24.17,1x))") (Qxwrite(el,dof)%ptr, el = 1,ne)
+!            ENDDO
+! 
+!            WRITE(642,"(e24.17)") t
+!            DO dof = 1,ndof
+!              WRITE(642,"(16000(e24.17,1x))") (Qywrite(el,dof)%ptr, el = 1,ne)
+!            ENDDO           
              
            cnt = 0
 

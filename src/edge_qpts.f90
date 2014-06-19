@@ -1,25 +1,83 @@
       SUBROUTINE edge_qpts()
 
-      USE globals, ONLY: p,nqpte,wpte,qpte
+      USE globals, ONLY: pres,p,nqpte,wpte,qpte,ctp,nel_type
 
       IMPLICIT NONE
       INTEGER :: alloc_status
-      INTEGER :: pt
+      INTEGER :: pt,i
+      INTEGER :: mnqpte
+      INTEGER :: order(nel_type),npt(nel_type)
+      REAL(pres) :: w(13,nel_type),r(13,nel_type)
+      
+      order(1) = p+1
+      order(2) = order(1)
+      order(3) = p+ctp+1
+      order(4) = order(3)
+      
+      DO i = 1,nel_type
+        CALL guass_qpts(order(i),npt(i),w(:,i),r(:,i))
+      ENDDO
+      
+      mnqpte = maxval(npt)
+      
+      ALLOCATE(wpte(mnqpte,nel_type),STAT = alloc_status)
+      IF(alloc_status /= 0) THEN
+        PRINT*, 'Allocation error: wpte'
+      ENDIF 
 
-      SELECT CASE(p+1)
+      ALLOCATE(qpte(mnqpte,nel_type),STAT = alloc_status)
+      IF(alloc_status /= 0) THEN
+        PRINT*, 'Allocation error: qpte'
+      ENDIF 
+   
+   
+      DO i = 1,nel_type   
+        nqpte(i) = npt(i)
+        DO pt = 1,mnqpte
+          wpte(pt,i) = w(pt,i)
+          qpte(pt,i) = r(pt,i)
+        ENDDO
+      ENDDO
+
+
+
+      PRINT "(A)", "---------------------------------------------"
+      PRINT "(A)", "        Edge Integration Information         "
+      PRINT "(A)", "---------------------------------------------"
+      PRINT "(A)", " "
+
+      PRINT "(A)", 'Edge quadrature weights and points'
+      
+      DO i = 1,nel_type
+        PRINT "(A,I3)", "Number of edge quadrature points",nqpte(i)      
+        DO pt = 1,nqpte(i)
+          PRINT "(2(F10.3))", wpte(pt,i),qpte(pt,i)
+        ENDDO
+        PRINT*, ' '
+      ENDDO
+
+      RETURN
+      END SUBROUTINE edge_qpts
+      
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      
+      SUBROUTINE guass_qpts(p,nqpte,wpte,qpte)
+
+      USE globals, ONLY: pres
+      
+      IMPLICIT NONE
+      INTEGER :: p
+      INTEGER :: nqpte
+      REAL(pres) :: wpte(13),qpte(13)
+
+      wpte = 0d0
+      qpte = 0d0
+      
+      SELECT CASE(p)
 
       CASE(2)
          nqpte = 2
-
-         ALLOCATE(wpte(nqpte),STAT = alloc_status)
-         IF(alloc_status /= 0) THEN
-           PRINT*, 'Allocation error: wpte'
-         ENDIF 
-
-         ALLOCATE(qpte(nqpte),STAT = alloc_status)
-         IF(alloc_status /= 0) THEN
-           PRINT*, 'Allocation error: qpte'
-         ENDIF 
 
          qpte(1) = -0.57735026918963D0
          qpte(2) =  0.57735026918963D0
@@ -29,16 +87,6 @@
          
       CASE(3)
          nqpte = 3
-
-         ALLOCATE(wpte(nqpte),STAT = alloc_status)
-         IF(alloc_status /= 0) THEN
-           PRINT*, 'Allocation error: wpte'
-         ENDIF 
-
-         ALLOCATE(qpte(nqpte),STAT = alloc_status)
-         IF(alloc_status /= 0) THEN
-           PRINT*, 'Allocation error: qpte'
-         ENDIF 
          
          qpte(1) = -0.77459666924148D0
          qpte(2) =  0.D0
@@ -50,17 +98,7 @@
          
       CASE(4)
          nqpte = 4
-
-         ALLOCATE(wpte(nqpte),STAT = alloc_status)
-         IF(alloc_status /= 0) THEN
-           PRINT*, 'Allocation error: wpte'
-         ENDIF 
-
-         ALLOCATE(qpte(nqpte),STAT = alloc_status)
-         IF(alloc_status /= 0) THEN
-           PRINT*, 'Allocation error: qpte'
-         ENDIF 
-
+         
          qpte(1) = -0.86113631159405D0
          qpte(2) = -0.33998104358486D0
          qpte(3) =  0.33998104358486D0
@@ -73,16 +111,6 @@
 
       CASE(5)
          nqpte = 5
-
-         ALLOCATE(wpte(nqpte),STAT = alloc_status)
-         IF(alloc_status /= 0) THEN
-           PRINT*, 'Allocation error: wpte'
-         ENDIF 
-
-         ALLOCATE(qpte(nqpte),STAT = alloc_status)
-         IF(alloc_status /= 0) THEN
-           PRINT*, 'Allocation error: qpte'
-         ENDIF 
 
          qpte(1) = -0.90617984593866D0
          qpte(2) = -0.53846931010568D0
@@ -98,16 +126,6 @@
 
       CASE(6)
          nqpte = 6
-
-         ALLOCATE(wpte(nqpte),STAT = alloc_status)
-         IF(alloc_status /= 0) THEN
-           PRINT*, 'Allocation error: wpte'
-         ENDIF 
-
-         ALLOCATE(qpte(nqpte),STAT = alloc_status)
-         IF(alloc_status /= 0) THEN
-           PRINT*, 'Allocation error: qpte'
-         ENDIF 
 
          qpte(1) = -0.93246951420315D0
          qpte(2) = -0.66120938646626D0
@@ -125,16 +143,6 @@
 
       CASE(7)
          nqpte = 7
-
-         ALLOCATE(wpte(nqpte),STAT = alloc_status)
-         IF(alloc_status /= 0) THEN
-           PRINT*, 'Allocation error: wpte'
-         ENDIF 
-
-         ALLOCATE(qpte(nqpte),STAT = alloc_status)
-         IF(alloc_status /= 0) THEN
-           PRINT*, 'Allocation error: qpte'
-         ENDIF 
          
          qpte(1) = -0.94910791234276D0
          qpte(2) = -0.74153118559939D0
@@ -154,16 +162,6 @@
 
       CASE(8)
          nqpte = 8
-
-         ALLOCATE(wpte(nqpte),STAT = alloc_status)
-         IF(alloc_status /= 0) THEN
-           PRINT*, 'Allocation error: wpte'
-         ENDIF 
-
-         ALLOCATE(qpte(nqpte),STAT = alloc_status)
-         IF(alloc_status /= 0) THEN
-           PRINT*, 'Allocation error: qpte'
-         ENDIF 
          
          qpte(1) = -0.96028985649754D0
          qpte(2) = -0.79666647741363D0
@@ -185,16 +183,6 @@
 
       CASE(9)
          nqpte = 9
-
-         ALLOCATE(wpte(nqpte),STAT = alloc_status)
-         IF(alloc_status /= 0) THEN
-           PRINT*, 'Allocation error: wpte'
-         ENDIF 
-
-         ALLOCATE(qpte(nqpte),STAT = alloc_status)
-         IF(alloc_status /= 0) THEN
-           PRINT*, 'Allocation error: qpte'
-         ENDIF 
          
          qpte(1) = -0.96816023950763D0
          qpte(2) = -0.83603110732664D0
@@ -218,16 +206,6 @@
          
       CASE(10)
          nqpte = 10
-
-         ALLOCATE(wpte(nqpte),STAT = alloc_status)
-         IF(alloc_status /= 0) THEN
-           PRINT*, 'Allocation error: wpte'
-         ENDIF 
-
-         ALLOCATE(qpte(nqpte),STAT = alloc_status)
-         IF(alloc_status /= 0) THEN
-           PRINT*, 'Allocation error: qpte'
-         ENDIF 
          
          qpte(1)  = -0.97390652851717D0
          qpte(2)  = -0.86506336668898D0
@@ -253,16 +231,6 @@
 
       CASE(11)
          nqpte = 11
-
-         ALLOCATE(wpte(nqpte),STAT = alloc_status)
-         IF(alloc_status /= 0) THEN
-           PRINT*, 'Allocation error: wpte'
-         ENDIF 
-
-         ALLOCATE(qpte(nqpte),STAT = alloc_status)
-         IF(alloc_status /= 0) THEN
-           PRINT*, 'Allocation error: qpte'
-         ENDIF 
          
          qpte(1)  = -0.97822865814606D0
          qpte(2)  = -0.88706259976810D0
@@ -290,16 +258,6 @@
          
       CASE(12)
          nqpte = 12
-
-         ALLOCATE(wpte(nqpte),STAT = alloc_status)
-         IF(alloc_status /= 0) THEN
-           PRINT*, 'Allocation error: wpte'
-         ENDIF 
-
-         ALLOCATE(qpte(nqpte),STAT = alloc_status)
-         IF(alloc_status /= 0) THEN
-           PRINT*, 'Allocation error: qpte'
-         ENDIF 
          
          qpte(1)  = -0.98156063424672D0
          qpte(2)  = -0.90411725637047D0
@@ -329,16 +287,6 @@
 
       CASE(13)
          nqpte = 13
-
-         ALLOCATE(wpte(nqpte),STAT = alloc_status)
-         IF(alloc_status /= 0) THEN
-           PRINT*, 'Allocation error: wpte'
-         ENDIF 
-
-         ALLOCATE(qpte(nqpte),STAT = alloc_status)
-         IF(alloc_status /= 0) THEN
-           PRINT*, 'Allocation error: qpte'
-         ENDIF 
          
          qpte(1)  = -0.98418305471859D0
          qpte(2)  = -0.91759839922298D0
@@ -376,18 +324,6 @@
 
       END SELECT
 
-      PRINT "(A)", "---------------------------------------------"
-      PRINT "(A)", "        Edge Integration Information         "
-      PRINT "(A)", "---------------------------------------------"
-      PRINT "(A)", " "
-
-      PRINT "(A,I3)", "Number of edge quadrature points",nqpte
-
-      PRINT "(A)", 'Edge quadrature weights and points'
-      DO pt = 1,nqpte
-        PRINT "(2(F10.3))", wpte(pt),qpte(pt)
-      ENDDO
-      PRINT*, ' '
 
       RETURN
-      END SUBROUTINE edge_qpts
+      END SUBROUTINE guass_qpts      

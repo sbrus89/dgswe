@@ -3,15 +3,16 @@
       USE globals, ONLY: pres,nn,ne,ned,ect, &
                          ged2nn,ged2el,ged2led, &
                          nied,iedn,nobed,obedn,nfbed,fbedn,nnfbed,nfbedn, &
-                         nope,neta,obseg,obnds,nbou,fbseg,nvel,fbnds
+                         nope,neta,obseg,obnds,nbou,fbseg,nvel,fbnds, &
+                         nelnds
                          
 
       IMPLICIT NONE
       INTEGER :: el,el1,el2,led1,led2,i,seg,m,ged,ed1,ed2,nd
-      INTEGER :: n1,n2,n3
+      INTEGER :: n1,nnds
       INTEGER :: n1ed1,n2ed1,n1ed2,n2ed2
       INTEGER :: n1bed,n2bed
-      INTEGER :: led(2,3) ! local edge nodes
+      INTEGER :: led(2,4) ! local edge nodes
       INTEGER :: segtype
       INTEGER :: alloc_status
       REAL(pres) :: x1,x2,x3,y1,y2,y3
@@ -51,13 +52,12 @@
 
       nepn(:) = 0
       DO el = 1,ne
-        n1 = ect(1,el)
-        n2 = ect(2,el)
-        n3 = ect(3,el)
-
-        nepn(n1) = nepn(n1) + 1 
-        nepn(n2) = nepn(n2) + 1
-        nepn(n3) = nepn(n3) + 1
+      
+        DO nd = 1,nelnds(el)
+          n1 = ect(nd,el)
+          nepn(n1) = nepn(n1) + 1
+        ENDDO
+        
       ENDDO
 
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -90,21 +90,16 @@
 
       nepn(:) = 0
       DO el = 1,ne
-        n1 = ect(1,el)
-        n2 = ect(2,el)
-        n3 = ect(3,el)
+      
+        DO nd = 1,nelnds(el)
+          n1 = ect(nd,el)
+          nepn(n1) = nepn(n1) + 1
+          epn(nepn(n1),n1) = el
+        ENDDO
 
-        nepn(n1) = nepn(n1) + 1 
-        epn(nepn(n1),n1) = el
-
-        nepn(n2) = nepn(n2) + 1
-        epn(nepn(n2),n2) = el
-
-        nepn(n3) = nepn(n3) + 1
-        epn(nepn(n3),n3) = el
       ENDDO
 
-      ALLOCATE(edflag(3,ne),STAT = alloc_status)
+      ALLOCATE(edflag(4,ne),STAT = alloc_status)
       IF(alloc_status /= 0) THEN
         PRINT*, 'Allocation error: edflag'
       ENDIF 
@@ -120,19 +115,13 @@
           ged2led_temp(:,:) = 0
           ged2el_temp(:,:) = 0
    elem1: DO el1 = 1,ne ! loop through trial elements
+   
+            DO led1 = 1,nelnds(el1)
+              led(1,led1) = ect(mod(led1+0,nelnds(el1))+1,el1) ! node numbers for each local edge
+              led(2,led1) = ect(mod(led1+1,nelnds(el1))+1,el1)
+            ENDDO
 
-            n1 = ect(1,el1) ! element nodes
-            n2 = ect(2,el1)
-            n3 = ect(3,el1)
-
-            led(1,1) = n2 ! nodes on local edge 1
-            led(2,1) = n3
-            led(1,2) = n3 ! nodes on local edge 2
-            led(2,2) = n1
-            led(1,3) = n1 ! nodes on local edge 3
-            led(2,3) = n2
-
- local_ed1: DO led1 = 1,3 ! loop through trial edges
+ local_ed1: DO led1 = 1,nelnds(el1) ! loop through trial edges
 
               IF(edflag(led1,el1) == 1) THEN ! skip if edge has already been flagged
                 CYCLE local_ed1
@@ -159,10 +148,10 @@
                   CYCLE elem2
                 ENDIF
 
-     local_ed2: DO led2 = 1,3 ! loop through local test edge numbers
+     local_ed2: DO led2 = 1,nelnds(el2) ! loop through local test edge numbers
                   
-                  n1ed2 = ect(MOD(led2+0,3)+1,el2) ! find nodes on test edge
-                  n2ed2 = ect(MOD(led2+1,3)+1,el2)
+                  n1ed2 = ect(MOD(led2+0,nelnds(el2))+1,el2) ! find nodes on test edge
+                  n2ed2 = ect(MOD(led2+1,nelnds(el2))+1,el2)
 
                   IF(((n1ed1 == n1ed2) .AND. (n2ed1 == n2ed2)) .OR. & ! check if nodes on trial edge matches test edge
                      ((n1ed1 == n2ed2) .AND. (n2ed1 == n1ed2))) THEN
@@ -309,8 +298,9 @@
       PRINT "(A)", ' '
 
 
-
       ! write edge connectivity information in similar format to fort.17
+      OPEN(UNIT=17,FILE='fort.17')
+      
       WRITE(17,*) ned
       DO i = 1,ned
         WRITE(17,*) i,ged2nn(1,i),ged2nn(2,i),ged2el(1,i),ged2el(2,i)
@@ -340,6 +330,8 @@
       DO i = 1,ned
         WRITE(17,*) i,ged2led(1,i),ged2led(2,i)
       ENDDO
+      
+      CLOSE(17)
 
       RETURN
       END SUBROUTINE connect

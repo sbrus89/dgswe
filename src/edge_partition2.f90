@@ -25,7 +25,7 @@
       
       ! Find the nodes adjacent each node
       ALLOCATE(nadjels(ne))
-      ALLOCATE(adjels(3,ne))
+      ALLOCATE(adjels(4,ne))
       
       nadjels = 0
       DO ed = 1,ned
@@ -114,15 +114,16 @@
       
       SUBROUTINE decomp2()
       
-      USE globals, ONLY: nn,ne,ndof,nqpta,part,npart, &
+      USE globals, ONLY: nn,ne,ndof,nqpta,part,npart,nel_type,el_type,nelnds, &
                          ged2el,&
-                         npartel,nparted, &
+                         npartel,nparted,npartet, &
                          gel2part,gel2lel,lel2gel, &
                          ael2gel,gel2ael, &
                          nied,iedn, &
                          H,Qx,Qy,Hinit,Qxinit,Qyinit, &
                          dpdx,dpdy,dpdx_init,dpdy_init, &
                          dhbdx,dhbdy,dhbdx_init,dhbdy_init, &
+                         phia_int,phia_int_init, &
                          Hwrite,Qxwrite,Qywrite, &
                          nblk,elblk,edblk,nfblk,nrblk,rnfblk, &
                          mnpartel,mnparted   
@@ -130,12 +131,13 @@
 
       IMPLICIT NONE
 
-      INTEGER :: el,pe,ed,dof,blk
+      INTEGER :: el,pe,ed,dof,blk,et
       INTEGER :: ged
       INTEGER :: el_in,el_ex
       INTEGER :: pe_in,pe_ex
       INTEGER :: elcnt,edcnt
       INTEGER :: ted,tel
+      INTEGER :: mndof,mnqpta
       
       INTEGER, ALLOCATABLE, DIMENSION(:) :: edflag      
       
@@ -143,45 +145,60 @@
       ALLOCATE(gel2part(ne))
       ALLOCATE(gel2lel(ne))
       ALLOCATE(lel2gel(ne,npart))
+      ALLOCATE(npartet(nel_type,npart))
       
       npartel = 0
-      DO el = 1,ne
-        pe = part(el) 
-        npartel(pe) = npartel(pe) + 1 ! count elements in partition pe
-        
-        gel2part(el) = pe ! global element el is in parition pe
-        gel2lel(el) = npartel(pe) ! global element el has local element number npartel(pe) in partition pe
-        lel2gel(npartel(pe),pe) = el ! local element npartel(pe) on partition pe has global element number el
+      npartet = 0
+      DO et = 1,nel_type
+        DO el = 1,ne
+          IF (el_type(el) == et) THEN
+            pe = part(el) 
+            npartel(pe) = npartel(pe) + 1 ! count elements in partition pe
+            npartet(et,pe) = npartet(et,pe) + 1  
+            
+            gel2part(el) = pe ! global element el is in parition pe
+            gel2lel(el) = npartel(pe) ! global element el has local element number npartel(pe) in partition pe
+            lel2gel(npartel(pe),pe) = el ! local element npartel(pe) on partition pe has global element number el
+          ENDIF
+        ENDDO
       ENDDO
         
         
       ALLOCATE(ael2gel(ne),gel2ael(ne))
       
+      mndof = maxval(ndof)
+      mnqpta = maxval(nqpta)
+      
       elcnt = 0 
       DO pe = 1,npart
+!       PRINT*, " "
         DO el = 1,npartel(pe)
           elcnt = elcnt + 1
         
-          H(elcnt,1:ndof) = Hinit(lel2gel(el,pe),1:ndof)
-          Qx(elcnt,1:ndof) = Qxinit(lel2gel(el,pe),1:ndof)
-          Qy(elcnt,1:ndof) = Qyinit(lel2gel(el,pe),1:ndof)  
+          H(elcnt,1:mndof) = Hinit(lel2gel(el,pe),1:mndof)
+          Qx(elcnt,1:mndof) = Qxinit(lel2gel(el,pe),1:mndof)
+          Qy(elcnt,1:mndof) = Qyinit(lel2gel(el,pe),1:mndof)  
           
-          dpdx(elcnt,1:ndof*nqpta) = dpdx_init(lel2gel(el,pe),1:ndof*nqpta)
-          dpdy(elcnt,1:ndof*nqpta) = dpdy_init(lel2gel(el,pe),1:ndof*nqpta)
+          dpdx(elcnt,1:mndof*mnqpta) = dpdx_init(lel2gel(el,pe),1:mndof*mnqpta)
+          dpdy(elcnt,1:mndof*mnqpta) = dpdy_init(lel2gel(el,pe),1:mndof*mnqpta)
           
-          dhbdx(elcnt) = dhbdx_init(lel2gel(el,pe))
-          dhbdy(elcnt) = dhbdy_init(lel2gel(el,pe))
+          phia_int(elcnt,1:mndof*mnqpta) = phia_int_init(lel2gel(el,pe),1:mndof*mnqpta)
+          
+          dhbdx(elcnt,1:mnqpta) = dhbdx_init(lel2gel(el,pe),1:mnqpta)
+          dhbdy(elcnt,1:mnqpta) = dhbdy_init(lel2gel(el,pe),1:mnqpta)
           
           ael2gel(elcnt) = lel2gel(el,pe)
           gel2ael(lel2gel(el,pe)) = elcnt
+          
+!           PRINT*, nelnds(ael2gel(elcnt))
         ENDDO
       ENDDO
       
       
-      ALLOCATE(Hwrite(ne,ndof),Qxwrite(ne,ndof),Qywrite(ne,ndof))
+      ALLOCATE(Hwrite(ne,mndof),Qxwrite(ne,mndof),Qywrite(ne,mndof))
       
       DO el = 1,ne
-        DO dof = 1,ndof
+        DO dof = 1,mndof
           Hwrite(el,dof)%ptr => H(gel2ael(el),dof)
           Qxwrite(el,dof)%ptr => Qx(gel2ael(el),dof)
           Qywrite(el,dof)%ptr => Qy(gel2ael(el),dof)
@@ -263,26 +280,37 @@
       ! Calculate blocking arrays
       ALLOCATE(edblk(2,npart))
       ALLOCATE(nfblk(2,npart+1))
-      ALLOCATE(elblk(2,nblk))
+      ALLOCATE(elblk(2,npart,nel_type))
       ALLOCATE(rnfblk(2,nrblk))
       
-      DO blk = 1,nblk
-        elblk(1,blk) = (blk-1)*(ne/nblk) + 1
-        elblk(2,blk) = blk*(ne/nblk)
-      ENDDO
-      elblk(2,nblk) = ne
+!       DO blk = 1,nblk
+!         elblk(1,blk) = (blk-1)*(ne/nblk) + 1
+!         elblk(2,blk) = blk*(ne/nblk)
+!       ENDDO
+!       elblk(2,nblk) = ne
       
 
       
-      tel = 0
-      edblk(1,1) = 1
-      DO blk = 1,npart-1
-        tel = tel + npartel(blk)
-        edblk(2,blk) = tel
-        edblk(1,blk+1) = tel + 1      
-      ENDDO
-      edblk(2,npart) = tel + npartel(npart)
+!       tel = 0
+!       edblk(1,1) = 1
+!       DO blk = 1,npart-1
+!         tel = tel + npartel(blk)
+!         edblk(2,blk) = tel
+!         edblk(1,blk+1) = tel + 1      
+!       ENDDO
+!       edblk(2,npart) = tel + npartel(npart)
       
+      tel = 0 
+      DO blk = 1,npart
+        elblk(1,blk,1) = tel + 1
+        DO et = 1,nel_type-1
+          tel = tel + npartet(et,blk)
+          elblk(2,blk,et) = tel
+          elblk(1,blk,et+1) = tel+1
+        ENDDO
+        elblk(2,blk,nel_type) = tel + npartet(nel_type,blk)        
+      ENDDO
+
 
       
       ted = 0 
@@ -310,17 +338,21 @@
       PRINT "(A)", "---------------------------------------------"
       PRINT "(A)", " "            
       
-      PRINT*, "elblk: "
-      DO blk = 1,nblk
-        PRINT*, elblk(1,blk),elblk(2,blk) 
-      ENDDO
-      PRINT*, " "      
+!       PRINT*, "elblk: "
+!       DO blk = 1,nblk
+!         PRINT*, elblk(1,blk),elblk(2,blk) 
+!       ENDDO
+!       PRINT*, " "      
       
       PRINT*, "Number of partitions: ", npart      
       PRINT*, " "
       PRINT*, "edblk: "
       DO blk = 1,npart
-        PRINT*, edblk(1,blk), edblk(2,blk), npartel(blk)
+        PRINT*, elblk(1,blk,1), elblk(2,blk,1), npartet(1,blk)
+        PRINT*, elblk(1,blk,2), elblk(2,blk,2), npartet(2,blk)
+        PRINT*, elblk(1,blk,3), elblk(2,blk,3), npartet(3,blk)
+        PRINT*, elblk(1,blk,4), elblk(2,blk,4), npartet(4,blk)    
+        PRINT*, " "
       ENDDO
       mnpartel = MAXVAL(npartel)
       PRINT*, "Max elements per partition: ", mnpartel      
@@ -354,8 +386,8 @@
                          Hi,He,Qxi,Qxe,Qyi,Qye, &
                          xmi,xme,ymi,yme,xymi,xyme, &
                          Hfi,Hfe,Qxfi,Qxfe,Qyfi,Qyfe, &
-                         normal,edlen_area, &
-                         inx,iny,len_area_in,len_area_ex
+                         nx_pt,ny_pt,detJe, &
+                         inx,iny,detJe_in,detJe_ex
                       
       
       IMPLICIT NONE
@@ -373,13 +405,13 @@
       
 !       PRINT "(I8,8x,3(I8),8X,3(I8))", ed,el_in,ael_in,gel2part(el_in), el_ex,ael_ex,gel2part(el_ex)
       
-      DO pt = 1,nqpte
+      DO pt = 1,nqpte(1)
       
         led_in = ged2led(1,ged)
         led_ex = ged2led(2,ged)
 
-        gp_in = (led_in-1)*nqpte + pt
-        gp_ex = (led_ex-1)*nqpte + nqpte - pt + 1
+        gp_in = (led_in-1)*nqpte(1) + pt
+        gp_ex = (led_ex-1)*nqpte(1) + nqpte(1) - pt + 1
 
         Hi(ed,pt)%ptr => Hqpt(ael_in,gp_in)
         He(ed,pt)%ptr => Hqpt(ael_ex,gp_ex)
@@ -411,11 +443,13 @@
       
       ENDDO
       
-      inx(ed) = normal(1,ged)
-      iny(ed) = normal(2,ged)
+      ! straight sided edges => constant normals
+      inx(ed) = nx_pt(ged,1)
+      iny(ed) = ny_pt(ged,1)
           
-      len_area_in(ed) = edlen_area(1,ged)
-      len_area_ex(ed) = edlen_area(2,ged)
+      ! straight sided edges => constant Jacobian
+      detJe_in(ed) = detJe(ged,1)
+      detJe_ex(ed) = detJe(ged,1)
       
       RETURN
       END SUBROUTINE point_to_el

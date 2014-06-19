@@ -5,9 +5,6 @@
 
       INTEGER, PARAMETER :: pres = kind(1d0) ! double precision 
       INTEGER :: p ! polynomial order
-      INTEGER :: ndof ! number of degrees of freedom
-      INTEGER :: nqpta ! number of area quadrature points
-      INTEGER :: nqpte ! number of edge quadrature points
       INTEGER :: ne ! number of elements
       INTEGER :: nn ! number of nodes
       REAL(pres), PARAMETER :: g = 9.81d0 ! gravitational constant
@@ -18,16 +15,29 @@
       CHARACTER(24) :: grid_file ! name of fort.14 file
       CHARACTER(24) :: forcing_file ! name of fort.15 file
       
+      INTEGER, PARAMETER :: nel_type = 4 !(type #s: 1 -> triangles, 2 -> quads, 3 -> curved triangles, 4-> curved quads)
+      INTEGER, PARAMETER :: ctp = 3
+      INTEGER :: ntypends(nel_type)
+      
+      
+      INTEGER, ALLOCATABLE, DIMENSION(:) :: el_type
+      
+      INTEGER, DIMENSION(nel_type) :: ndof ! number of degrees of freedom
+      INTEGER, DIMENSION(nel_type) :: nqpta ! number of area quadrature points
+      INTEGER, DIMENSION(nel_type) :: nqpte ! number of edge quadrature points      
+      
       INTEGER :: blk
       INTEGER :: nblk,nrblk
-      INTEGER, ALLOCATABLE, DIMENSION(:,:) :: elblk,edblk,nfblk,rnfblk
+      INTEGER, ALLOCATABLE, DIMENSION(:,:) :: edblk,nfblk,rnfblk
       INTEGER, ALLOCATABLE, DIMENSION(:,:) :: iediblk,bediblk
+      INTEGER, ALLOCATABLE, DIMENSION(:,:,:) :: elblk
       INTEGER :: mnpartel,mnparted      
       
       INTEGER :: npart ! number of element partitions)
       INTEGER, ALLOCATABLE, DIMENSION(:) :: part
       INTEGER, ALLOCATABLE, DIMENSION(:) :: npartel
       INTEGER, ALLOCATABLE, DIMENSION(:) :: nparted
+      INTEGER, ALLOCATABLE, DIMENSION(:,:) :: npartet      
       INTEGER, ALLOCATABLE, DIMENSION(:,:) :: lel2gel ! gives the global element number that corresponds to a local partition element number
       INTEGER, ALLOCATABLE, DIMENSION(:) :: gel2lel
       INTEGER, ALLOCATABLE, DIMENSION(:) :: gel2part      
@@ -45,6 +55,8 @@
       REAL(pres) :: lines ! number of lines in output files
       
       INTEGER, ALLOCATABLE, DIMENSION(:,:) :: ect ! element connectivity table
+      INTEGER, ALLOCATABLE, DIMENSION(:) :: nelnds
+      INTEGER :: mnelnds
       REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: xy ! x,y coordinates of nodes
       REAL(pres), ALLOCATABLE, DIMENSION(:) :: depth ! depth at each node
 
@@ -84,12 +96,18 @@
       REAL(pres) :: arg
       INTEGER :: bfr
 
+      REAL(pres), ALLOCATABLE, DIMENSION(:,:,:) :: psia
+      REAL(pres), ALLOCATABLE, DIMENSION(:,:,:) :: dpsidr,dpsids   
+      REAL(pres), ALLOCATABLE, DIMENSION(:,:,:) :: psie
+      REAL(pres), ALLOCATABLE, DIMENSION(:,:,:) :: dpsidxi
       REAL(pres), ALLOCATABLE, DIMENSION(:) :: area ! element areas
       REAL(pres), ALLOCATABLE, DIMENSION(:) :: edlen ! element edge lengths
       REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: edlen_area
       REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: normal ! element edge normals
-      REAL(pres), ALLOCATABLE, DIMENSION(:) :: dhbdx,dhbdy ! elemental x and y derivatives of linear bathymetry
-      REAL(pres), ALLOCATABLE, DIMENSION(:) :: dhbdx_init,dhbdy_init      
+      REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: nx_pt,ny_pt      
+      REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: dhbdx,dhbdy ! elemental x and y derivatives of linear bathymetry
+      REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: dhbdx_init,dhbdy_init   
+      REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: mmi      
 
       INTEGER :: ned ! total number of edges
       INTEGER, ALLOCATABLE, DIMENSION(:,:) :: ged2nn ! gives the two node numbers that make up a global edge number
@@ -115,6 +133,7 @@
 
 
       REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: rhsH,rhsQx,rhsQy ! right hand side evaluation arrays
+      REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: MirhsH,MirhsQx,MirhsQy      
 
       REAL(pres), ALLOCATABLE, TARGET, DIMENSION(:,:) :: Hqpt,Qxqpt,Qyqpt ! solution quadrature point evaluation arrays
       REAL(pres), ALLOCATABLE, TARGET, DIMENSION(:,:) :: xmom,ymom,xymom ! momentum terms quadrature point evaluation arrays
@@ -122,18 +141,23 @@
       REAL(pres), ALLOCATABLE, DIMENSION(:) :: tau
       REAL(pres) :: u,v
 
-      REAL(pres), ALLOCATABLE, DIMENSION(:) :: wpta,wpte ! area and edge quadrature weights
-      REAL(pres), ALLOCATABLE, DIMENSION(:) :: qpte ! edge quadrature points
-      REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: qpta ! area quadrature points
+      REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: wpta ! area and edge quadrature weights
+      REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: wpte      
+      REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: qpte ! edge quadrature points
+      REAL(pres), ALLOCATABLE, DIMENSION(:,:,:) :: qpta ! area quadrature points
 
-      REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: phia ! basis functions evaluated at area quadrature points
-      REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: phia_int ! basis functions evaluated at area quadrature points multiplied by quadrature weights
-      REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: phie ! basis functions evaluated at edge quadrature points
-      REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: phie_int 
-      REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: phi
-      REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: phil ! linear nodal basis functions evaluated at area quadrature points
-      REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: dpdx,dpdy ! basis function derivatives evaluated at area quadrature points
+      REAL(pres), ALLOCATABLE, DIMENSION(:,:,:) :: phia ! basis functions evaluated at area quadrature points
+      REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: phia_int,phia_int_init ! basis functions evaluated at area quadrature points multiplied by quadrature weights
+      REAL(pres), ALLOCATABLE, DIMENSION(:,:,:) :: phie ! basis functions evaluated at edge quadrature points
+      REAL(pres), ALLOCATABLE, DIMENSION(:,:,:) :: phie_int 
+      REAL(pres), ALLOCATABLE, DIMENSION(:,:,:) :: phi
+      REAL(pres), ALLOCATABLE, DIMENSION(:,:,:) :: phil ! linear nodal basis functions evaluated at area quadrature points
+      REAL(pres), ALLOCATABLE, DIMENSION(:,:,:) :: dpdr,dpds ! basis function derivatives evaluated at area quadrature points
+      REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: dpdx,dpdy            
       REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: dpdx_init,dpdy_init
+      REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: drdx,dsdx,drdy,dsdy
+      REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: detJa     
+      REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: detJe            
 
       REAL(pres), ALLOCATABLE, DIMENSION(:) :: pressa,recipHa ! temporary variables for momentum term calculation
       REAL(pres) :: press,recipH ! temporary variables for momentum term calculation
@@ -153,7 +177,8 @@
       REAL(pres) :: Qn,Qt
 
       REAL(pres), ALLOCATABLE, DIMENSION(:) :: const
-      REAL(pres), ALLOCATABLE, DIMENSION(:) :: inx,iny,len_area_in,len_area_ex
+      REAL(pres), ALLOCATABLE, DIMENSION(:) :: inx,iny
+      REAL(pres), ALLOCATABLE, DIMENSION(:) :: detJe_in,detJe_ex
       REAL(pres), ALLOCATABLE, DIMENSION(:) :: Hhatv,Qxhatv,Qyhatv
       REAL(pres), ALLOCATABLE, DIMENSION(:) :: rHi,rHe
       REAL(pres), ALLOCATABLE, DIMENSION(:) :: xmomi,xmome,ymomi,ymome,xymomi,xymome     

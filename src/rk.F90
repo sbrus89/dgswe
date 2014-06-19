@@ -1,47 +1,65 @@
       SUBROUTINE rk()
 
-      USE globals, ONLY: dof,ndof,el,ne, &
+      USE globals, ONLY: dof,ndof,el,ne,nel_type,blk,npart,npartet,elblk, &
                          t,tstage,dt,pt3333,ramp,dramp, &
                          Hold,H,rhsH,Qxold,Qx,rhsQx,Qyold,Qy,rhsQy
 
       IMPLICIT NONE
+      
+      INTEGER :: et
 
       ! Save previous solution
-      DO dof = 1,ndof
+      DO blk = 1,npart
+        DO et = 1,nel_type
+          IF (npartet(et,blk) > 0) THEN
+          
+            DO dof = 1,ndof(et)
 !!DIR$ VECTOR ALIGNED
-        DO el = 1,ne
-          Hold(el,dof) = H(el,dof)
-        ENDDO
+              DO el = elblk(1,blk,et),elblk(2,blk,et)
+                Hold(el,dof) = H(el,dof)
+              ENDDO
 !!DIR$ VECTOR ALIGNED
-        DO el = 1,ne
-          Qxold(el,dof) = Qx(el,dof)
-        ENDDO
+              DO el = elblk(1,blk,et),elblk(2,blk,et)
+                Qxold(el,dof) = Qx(el,dof)
+              ENDDO
 !!DIR$ VECTOR ALIGNED
-        DO el = 1,ne 
-          Qyold(el,dof) = Qy(el,dof)
+              DO el = elblk(1,blk,et),elblk(2,blk,et)
+                Qyold(el,dof) = Qy(el,dof)
+              ENDDO
+            ENDDO
+            
+          ENDIF
         ENDDO
       ENDDO
 
       ! Evalutate right hand side  
       tstage = t
       ramp = TANH((2d0*tstage)/(86400d0*dramp))
-       CALL rhs2()
+      CALL rhs2()
 !       CALL rhs3()
 !        CALL rhs4()
       
       ! First RK stage
-      DO dof = 1,ndof
+      DO blk = 1,npart
+        DO et  = 1,nel_type
+          IF (npartet(et,blk) > 0) THEN
+          
+            DO dof = 1,ndof(et)
 !!DIR$ VECTOR ALIGNED
-        DO el = 1,ne
-          H(el,dof) = Hold(el,dof) + dt*rhsH(el,dof)
-        ENDDO
+              DO el = elblk(1,blk,et),elblk(2,blk,et)
+                H(el,dof) = Hold(el,dof) + dt*rhsH(el,dof)
+              ENDDO
 !!DIR$ VECTOR ALIGNED
-        DO el = 1,ne
-          Qx(el,dof) = Qxold(el,dof) + dt*rhsQx(el,dof)
-        ENDDO
+              DO el = elblk(1,blk,et),elblk(2,blk,et)
+                Qx(el,dof) = Qxold(el,dof) + dt*rhsQx(el,dof)
+              ENDDO
 !!DIR$ VECTOR ALIGNED
-        DO el = 1,ne
-          Qy(el,dof) = Qyold(el,dof) + dt*rhsQy(el,dof)
+              DO el = elblk(1,blk,et),elblk(2,blk,et)
+                Qy(el,dof) = Qyold(el,dof) + dt*rhsQy(el,dof)
+              ENDDO
+            ENDDO
+            
+          ENDIF
         ENDDO
       ENDDO
 
@@ -54,20 +72,28 @@
 !        CALL rhs4()
       
       ! Second RK stage
-      DO dof = 1,ndof
+      DO blk = 1,npart
+        DO et  = 1,nel_type
+          IF (npartet(et,blk) > 0) THEN   
+          
+            DO dof = 1,ndof(et)
 !!DIR$ VECTOR ALIGNED
-        DO el = 1,ne
-          H(el,dof) = .5d0*(Hold(el,dof) + H(el,dof) + dt*rhsH(el,dof))
-        ENDDO
+              DO el = elblk(1,blk,et),elblk(2,blk,et)
+                H(el,dof) = .5d0*(Hold(el,dof) + H(el,dof) + dt*rhsH(el,dof))
+              ENDDO
 !!DIR$ VECTOR ALIGNED
-        DO el = 1,ne
-          Qx(el,dof) = .5d0*(Qxold(el,dof) + Qx(el,dof) + dt*rhsQx(el,dof))
-        ENDDO
+              DO el = elblk(1,blk,et),elblk(2,blk,et)
+                Qx(el,dof) = .5d0*(Qxold(el,dof) + Qx(el,dof) + dt*rhsQx(el,dof))
+              ENDDO
 !!DIR$ VECTOR ALIGNED
-        DO el = 1,ne
-          Qy(el,dof) = .5d0*(Qyold(el,dof) + Qy(el,dof) + dt*rhsQy(el,dof))
+              DO el = elblk(1,blk,et),elblk(2,blk,et)
+                Qy(el,dof) = .5d0*(Qyold(el,dof) + Qy(el,dof) + dt*rhsQy(el,dof))
+              ENDDO
+            ENDDO
+      
+          ENDIF
         ENDDO
-      ENDDO
+      ENDDO      
 #endif
 
 
@@ -83,23 +109,33 @@
 !        CALL rhs4()
       
       ! Second RK stage
-      DO dof = 1,ndof
+      DO blk = 1,npart
+        DO et  = 1,nel_type
+          IF (npartet(et,blk) > 0) THEN    
+          
+            DO dof = 1,ndof(et)
 !DIR$ IVDEP
 !!DIR$ VECTOR ALIGNED
-        DO el = 1,ne
-          H(el,dof) = .25d0*(3d0*Hold(el,dof) + H(el,dof) + dt*rhsH(el,dof))
-        ENDDO
+              DO el = elblk(1,blk,et),elblk(2,blk,et)
+                H(el,dof) = .25d0*(3d0*Hold(el,dof) + H(el,dof) + dt*rhsH(el,dof))
+              ENDDO
 !DIR$ IVDEP
 !!DIR$ VECTOR ALIGNED
-        DO el = 1,ne
-          Qx(el,dof) = .25d0*(3d0*Qxold(el,dof) + Qx(el,dof) + dt*rhsQx(el,dof))
-        ENDDO
+              DO el = elblk(1,blk,et),elblk(2,blk,et)
+                Qx(el,dof) = .25d0*(3d0*Qxold(el,dof) + Qx(el,dof) + dt*rhsQx(el,dof))
+              ENDDO
 !DIR$ IVDEP        
 !!DIR$ VECTOR ALIGNED
-        DO el = 1,ne
-          Qy(el,dof) = .25d0*(3d0*Qyold(el,dof) + Qy(el,dof) + dt*rhsQy(el,dof))
+              DO el = elblk(1,blk,et),elblk(2,blk,et)
+                Qy(el,dof) = .25d0*(3d0*Qyold(el,dof) + Qy(el,dof) + dt*rhsQy(el,dof))
+              ENDDO
+            ENDDO
+      
+          ENDIF
         ENDDO
-      ENDDO
+      ENDDO   
+      
+      
 
       ! Evaluate RHS
       tstage = t + .5d0*dt
@@ -109,23 +145,31 @@
 !       CALL rhs4()
       
       ! Third RK stage
-      DO dof = 1,ndof
+      DO blk = 1,npart
+        DO et  = 1,nel_type
+          IF (npartet(et,blk) > 0) THEN      
+          
+            DO dof = 1,ndof(et)
 !DIR$ IVDEP      
 !!DIR$ VECTOR ALIGNED
-        DO el = 1,ne
-          H(el,dof) = pt3333*(Hold(el,dof) + 2d0*(H(el,dof) + dt*rhsH(el,dof)))
-        ENDDO
+              DO el = elblk(1,blk,et),elblk(2,blk,et)
+                H(el,dof) = pt3333*(Hold(el,dof) + 2d0*(H(el,dof) + dt*rhsH(el,dof)))
+              ENDDO
 !DIR$ IVDEP        
 !!DIR$ VECTOR ALIGNED
-        DO el = 1,ne
-          Qx(el,dof) = pt3333*(Qxold(el,dof) + 2d0*(Qx(el,dof) + dt*rhsQx(el,dof)))
-        ENDDO
+              DO el = elblk(1,blk,et),elblk(2,blk,et)
+                Qx(el,dof) = pt3333*(Qxold(el,dof) + 2d0*(Qx(el,dof) + dt*rhsQx(el,dof)))
+              ENDDO
 !DIR$ IVDEP        
 !!DIR$ VECTOR ALIGNED
-        DO el = 1,ne
-          Qy(el,dof) = pt3333*(Qyold(el,dof) + 2d0*(Qy(el,dof) + dt*rhsQy(el,dof)))
+              DO el = elblk(1,blk,et),elblk(2,blk,et)
+                Qy(el,dof) = pt3333*(Qyold(el,dof) + 2d0*(Qy(el,dof) + dt*rhsQy(el,dof)))
+              ENDDO
+            ENDDO
+      
+          ENDIF
         ENDDO
-      ENDDO
+      ENDDO      
 #endif
 
      CALL nan_check()
@@ -135,38 +179,51 @@
       END SUBROUTINE RK
       
       
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!      
       
       
       SUBROUTINE nan_check()
       
       USE globals, ONLY: dof,ndof,el,ne, &
-                         H,Qx,Qy
+                         H,Qx,Qy, &
+                         blk,npart,nel_type,elblk,npartet
       
       IMPLICIT NONE
       
-      DO dof = 1,ndof
+      INTEGER :: et
       
-        DO el = 1,ne
-          IF (H(el,dof) /= H(el,dof)) THEN
-            PRINT*, "NaN detected in H solution"
-            STOP
+      DO blk = 1,npart
+        DO et = 1,nel_type
+          IF (npartet(et,blk) > 0) THEN
+      
+            DO dof = 1,ndof(et)
+      
+              DO el = elblk(1,blk,et),elblk(2,blk,et)
+                IF (H(el,dof) /= H(el,dof)) THEN
+                  PRINT*, "NaN detected in H solution"
+                  STOP
+                ENDIF
+              ENDDO
+        
+              DO el = elblk(1,blk,et),elblk(2,blk,et)
+                IF (Qx(el,dof) /= Qx(el,dof)) THEN
+                  PRINT*, "NaN detected in Qx solution"
+                  STOP
+                ENDIF
+              ENDDO
+        
+              DO el = elblk(1,blk,et),elblk(2,blk,et)
+                IF (Qy(el,dof) /= Qy(el,dof)) THEN
+                  PRINT*, "NaN detected in Qy solution"
+                  STOP
+                ENDIF
+              ENDDO
+        
+            ENDDO
+      
           ENDIF
         ENDDO
-        
-        DO el = 1,ne
-          IF (Qx(el,dof) /= Qx(el,dof)) THEN
-            PRINT*, "NaN detected in Qx solution"
-            STOP
-          ENDIF
-        ENDDO
-        
-        DO el = 1,ne
-          IF (Qy(el,dof) /= Qy(el,dof)) THEN
-            PRINT*, "NaN detected in Qy solution"
-            STOP
-          ENDIF
-        ENDDO
-        
       ENDDO
       
       RETURN

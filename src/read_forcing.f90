@@ -19,7 +19,7 @@
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
       READ(15,*) nobfr
-!       PRINT*, 'number of oben boundary forcings',nobfr
+      PRINT*, 'number of oben boundary forcings',nobfr
 
       ALLOCATE(obtag(nobfr),obfreq(nobfr),obnfact(nobfr),obeq(nobfr),obper(nobfr),STAT = alloc_stat)
       IF(alloc_stat /= 0) THEN
@@ -55,8 +55,8 @@
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
       READ(15,*) nfbfr
-!       PRINT*, 'number of flow boundary forcings',nfbfr
-!       PRINT*, ' '
+      PRINT*, 'number of flow boundary forcings',nfbfr
+      PRINT*, ' '
 
       ALLOCATE(fbtag(nfbfr),fbfreq(nfbfr),fbnfact(nfbfr),fbeq(nfbfr),fbper(nfbfr),STAT = alloc_stat)
       IF(alloc_stat /= 0) THEN
@@ -66,8 +66,8 @@
       DO bfr = 1,nfbfr
         READ(15,*) fbtag(bfr)
         READ(15,*) fbfreq(bfr),fbnfact(bfr),fbeq(bfr)
-!         PRINT*,fbtag(bfr)
-!         PRINT*, fbfreq(bfr),fbnfact(bfr),fbeq(bfr)
+        PRINT*,fbtag(bfr)
+        PRINT*, fbfreq(bfr),fbnfact(bfr),fbeq(bfr)
         fbeq(bfr) = fbeq(bfr)*deg2rad
         IF(fbfreq(bfr) == 0.) THEN
           fbper(bfr) = 1d0

@@ -1,6 +1,8 @@
       SUBROUTINE read_grid()
       
-      USE globals, ONLY: grid_file,ne,nn,ect,xy,depth,nope,neta,obseg,obnds,nvel,nbou,fbseg,fbnds,grid_name
+      USE globals, ONLY: grid_file,ne,nn,ect,xy,depth,nelnds, &
+                         nope,neta,obseg,obnds,nvel,nbou,fbseg,fbnds,grid_name, &
+                         el_type,ctp,mnelnds
 
       IMPLICIT NONE
       INTEGER :: i,j,k,el
@@ -31,7 +33,7 @@
       PRINT "(A,I5)", "Number of nodes: ", nn
       PRINT*, " "
 
-      ALLOCATE(ect(3,ne),xy(2,nn),depth(nn),STAT = alloc_status)  ! element connectivity table, node coordinate array, depth vector      
+      ALLOCATE(ect(4,ne),xy(2,nn),depth(nn),nelnds(ne),el_type(ne),STAT = alloc_status)  ! element connectivity table, node coordinate array, depth vector      
       IF(alloc_status /= 0) THEN
         PRINT*, 'Allocation error: ect,xy,depth'
       ENDIF        
@@ -40,21 +42,34 @@
       DO i = 1,nn                                                      
         READ(14,*), j, xy(1,j), xy(2,j), depth(j)
       ENDDO
-!       PRINT "(A)", "Node coordinates and depth: "
-!       DO i = 1,nn
-!         PRINT "(3(F11.3,3x))", xy(1,i), xy(2,i), depth(i)
-!       ENDDO
-!       PRINT*, " "
+      PRINT "(A)", "Node coordinates and depth: "
+      DO i = 1,nn
+        PRINT "(I5,3(F11.3,3x))", i,xy(1,i), xy(2,i), depth(i)
+      ENDDO
+      PRINT*, " "
 
       ! read in element connectivity
       DO i = 1,ne
-        READ(14,*) el,k,ect(1,el),ect(2,el),ect(3,el)                               
+        READ(14,*) el,nelnds(el),(ect(j,el),j = 1,nelnds(el))
+        IF (nelnds(el) == 3) THEN
+          el_type(el) = 1
+        ELSE IF (nelnds(el) == 4) THEN
+          el_type(el) = 2
+        ELSE IF (nelnds(el) == (ctp+1)*(ctp+2)/2) THEN
+          el_type(el) = 3
+        ELSE IF (nelnds(el) == (ctp+1)*(ctp+1)) THEN
+          el_type(el) = 4
+        ENDIF 
+        
       ENDDO
-!       PRINT "(A)", "Element connectivity table: "
-!       DO i = 1,ne
-!         PRINT "(4(I5,3x))", i,ect(1,i),ect(2,i),ect(3,i) 
-!       ENDDO
-!       PRINT*, " "
+      
+      mnelnds = maxval(nelnds)
+      
+      PRINT "(A)", "Element connectivity table: "
+      DO i = 1,ne
+        PRINT "(2(I5,3x),8x,4(I5,3x))", i,nelnds(i),(ect(j,i),j=1,nelnds(i))
+      ENDDO
+      PRINT*, " "
 
       READ(14,*) nope  ! number of open boundaries                                                 
       READ(14,*) neta  ! number of total elevation specified boundary nodes
@@ -75,9 +90,9 @@
       DO i = 1,nope
         nbseg = obseg(i)
         PRINT "(A,I5,A,I5,A)", "Open boundary segment ",i," contains ",nbseg," nodes"
-!         DO j = 1,nbseg
-!           PRINT "(I5)",obnds(j,i)
-!         ENDDO
+        DO j = 1,nbseg
+          PRINT "(I5)",obnds(j,i)
+        ENDDO
       ENDDO
       PRINT*, " "
 
@@ -102,9 +117,9 @@
         nbseg = fbseg(1,i)
         btype = fbseg(2,i)
         PRINT "(A,I3,A,I3,A,I5,A)", "Normal flow boundary segment ",i," type ",btype, " contains ",nbseg," nodes"
-!         DO j = 1,nbseg
-!           PRINT "(I5)", fbnds(j,i)
-!         ENDDO
+        DO j = 1,nbseg
+          PRINT "(I5)", fbnds(j,i)
+        ENDDO
       ENDDO
       PRINT*, " "
 
