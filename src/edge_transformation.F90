@@ -73,9 +73,7 @@
       
       DO ed = 1,ned
       
-        el_in = ged2el(1,ed)
-        el_ex = ged2el(2,ed)
-        
+        el_in = ged2el(1,ed)        
         led_in = ged2led(1,ed)
         
         IF(mod(el_type(el_in),2) == 1) THEN

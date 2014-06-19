@@ -16,7 +16,7 @@
       CHARACTER(24) :: forcing_file ! name of fort.15 file
       
       INTEGER, PARAMETER :: nel_type = 4 !(type #s: 1 -> triangles, 2 -> quads, 3 -> curved triangles, 4-> curved quads)
-      INTEGER, PARAMETER :: ctp = 3
+      INTEGER, PARAMETER :: ctp = 2
       INTEGER :: ntypends(nel_type)
       
       

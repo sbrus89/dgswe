@@ -21,7 +21,8 @@
       REAL(pres) :: drdx,drdy,dsdx,dsdy,detJ
       REAL(pres) :: nx,ny
       REAL(pres) :: hb 
-      REAL(pres) :: mm(ndof(et),ndof(et)) 
+      REAL(pres) :: mm(ndof(et),ndof(et))
+      REAL(pres) :: area,x1,x2,x3,y1,y2,y3
       
 
 
@@ -67,8 +68,7 @@
           dpsids(m,pt,et) = dlds(m,pt)
         ENDDO
       ENDDO 
-      
-      
+     
 
       ndf = ndof(et)
       
@@ -136,6 +136,24 @@
               m = m + 1
             ENDDO
           ENDDO
+          
+!           print*, ' ' 
+!           DO i = 1,ndf
+!             print "(I5,16(e23.14))", el, (mm(i,j), j = 1,ndf)
+!           ENDDO
+!           IF (et == 1) THEN
+!             x1 = xy(1,ect(1,el))
+!             y1 = xy(2,ect(1,el))
+! 
+!             x2 = xy(1,ect(2,el))
+!             y2 = xy(2,ect(2,el))
+! 
+!              x3 = xy(1,ect(3,el))
+!              y3 = xy(2,ect(3,el))
+! 
+!             area = .5d0*((x2*y3-x3*y2) + (x3*y1-x1*y3) + (x1*y2-x2*y1))          
+!             print*, 1d0/area
+!           ENDIF
           
 
         ENDIF

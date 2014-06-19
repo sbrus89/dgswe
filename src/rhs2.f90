@@ -42,6 +42,13 @@
       rhsQx(:,:) = 0d0
 !!DIR$ VECTOR ALIGNED
       rhsQy(:,:) = 0d0   
+      
+!!DIR$ VECTOR ALIGNED
+      MirhsH(:,:) = 0d0
+!!DIR$ VECTOR ALIGNED
+      MirhsQx(:,:) = 0d0
+!!DIR$ VECTOR ALIGNED
+      MirhsQy(:,:) = 0d0         
 
       
 !$OMP parallel default(none)  &
@@ -372,15 +379,34 @@ ed_points2: DO pt = 1,nqpte(1) ! Compute numerical fluxes for all edges
 !$OMP end do        
 
 
-!$OMP do          
-          DO blk = 1,npart   
-            DO et = 1,nel_type
-              IF (npartet(et,blk) > 0) THEN
-                CALL edge_integration(et,elblk(1,blk,et),elblk(2,blk,et),ndof(et),nqpte(et))
-              ENDIF
-            ENDDO
-          ENDDO
-!$OMP end do  
+! !$OMP do          
+!           DO blk = 1,npart   
+!             DO et = 1,nel_type
+!               IF (npartet(et,blk) > 0) THEN
+!                 CALL edge_integration(et,elblk(1,blk,et),elblk(2,blk,et),ndof(et),nqpte(et))
+!               ENDIF
+!             ENDDO
+!           ENDDO
+! !$OMP end do  
+
+      DO blk = 1,npart   
+        DO et = 1,nel_type
+          IF (npartet(et,blk) > 0) THEN
+              
+            DO pt = 1,ntypends(et)*nqpte(1)
+              DO l = 1,ndof(et)
+!!DIR$ VECTOR ALIGNED
+                DO el = elblk(1,blk,et),elblk(2,blk,et)
+                  rhsH(el,l)  = rhsH(el,l)  - Hflux(el,pt)*phie_int(l,pt,et)
+                  rhsQx(el,l) = rhsQx(el,l) - Qxflux(el,pt)*phie_int(l,pt,et)
+                  rhsQy(el,l) = rhsQy(el,l) - Qyflux(el,pt)*phie_int(l,pt,et)                   
+                ENDDO
+              ENDDO                                    
+            ENDDO  
+            
+          ENDIF
+        ENDDO
+      ENDDO       
 
          DO blk = 1,npart
            DO et = 1,nel_type
@@ -390,7 +416,7 @@ ed_points2: DO pt = 1,nqpte(1) ! Compute numerical fluxes for all edges
                DO i = 1,ndof(et)
                  DO j = 1,ndof(et)
                    DO el = elblk(1,blk,et),elblk(2,blk,et)
-                     MirhsH(el,i) = MirhsH(el,i) + mmi(el,m)*rhsH(el,j) 
+                     MirhsH(el,i)  = MirhsH(el,i)  + mmi(el,m)*rhsH(el,j) 
                      MirhsQx(el,i) = MirhsQx(el,i) + mmi(el,m)*rhsQx(el,j) 
                      MirhsQy(el,i) = MirhsQy(el,i) + mmi(el,m)*rhsQy(el,j) 
                    ENDDO

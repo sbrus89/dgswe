@@ -2,11 +2,15 @@
 
       USE globals, ONLY: dof,ndof,el,ne,nel_type,blk,npart,npartet,elblk, &
                          t,tstage,dt,pt3333,ramp,dramp, &
-                         Hold,H,rhsH,Qxold,Qx,rhsQx,Qyold,Qy,rhsQy
+                         Hold,H,MirhsH,Qxold,Qx,MirhsQx,Qyold,Qy,MirhsQy
 
       IMPLICIT NONE
       
       INTEGER :: et
+      
+
+      CALL nan_check()
+      PRINT*, "NaN checked initial condition"      
 
       ! Save previous solution
       DO blk = 1,npart
@@ -47,15 +51,15 @@
             DO dof = 1,ndof(et)
 !!DIR$ VECTOR ALIGNED
               DO el = elblk(1,blk,et),elblk(2,blk,et)
-                H(el,dof) = Hold(el,dof) + dt*rhsH(el,dof)
+                H(el,dof) = Hold(el,dof) + dt*MirhsH(el,dof)
               ENDDO
 !!DIR$ VECTOR ALIGNED
               DO el = elblk(1,blk,et),elblk(2,blk,et)
-                Qx(el,dof) = Qxold(el,dof) + dt*rhsQx(el,dof)
+                Qx(el,dof) = Qxold(el,dof) + dt*MirhsQx(el,dof)
               ENDDO
 !!DIR$ VECTOR ALIGNED
               DO el = elblk(1,blk,et),elblk(2,blk,et)
-                Qy(el,dof) = Qyold(el,dof) + dt*rhsQy(el,dof)
+                Qy(el,dof) = Qyold(el,dof) + dt*MirhsQy(el,dof)
               ENDDO
             ENDDO
             
@@ -79,15 +83,15 @@
             DO dof = 1,ndof(et)
 !!DIR$ VECTOR ALIGNED
               DO el = elblk(1,blk,et),elblk(2,blk,et)
-                H(el,dof) = .5d0*(Hold(el,dof) + H(el,dof) + dt*rhsH(el,dof))
+                H(el,dof) = .5d0*(Hold(el,dof) + H(el,dof) + dt*MirhsH(el,dof))
               ENDDO
 !!DIR$ VECTOR ALIGNED
               DO el = elblk(1,blk,et),elblk(2,blk,et)
-                Qx(el,dof) = .5d0*(Qxold(el,dof) + Qx(el,dof) + dt*rhsQx(el,dof))
+                Qx(el,dof) = .5d0*(Qxold(el,dof) + Qx(el,dof) + dt*MirhsQx(el,dof))
               ENDDO
 !!DIR$ VECTOR ALIGNED
               DO el = elblk(1,blk,et),elblk(2,blk,et)
-                Qy(el,dof) = .5d0*(Qyold(el,dof) + Qy(el,dof) + dt*rhsQy(el,dof))
+                Qy(el,dof) = .5d0*(Qyold(el,dof) + Qy(el,dof) + dt*MirhsQy(el,dof))
               ENDDO
             ENDDO
       
@@ -117,17 +121,17 @@
 !DIR$ IVDEP
 !!DIR$ VECTOR ALIGNED
               DO el = elblk(1,blk,et),elblk(2,blk,et)
-                H(el,dof) = .25d0*(3d0*Hold(el,dof) + H(el,dof) + dt*rhsH(el,dof))
+                H(el,dof) = .25d0*(3d0*Hold(el,dof) + H(el,dof) + dt*MirhsH(el,dof))
               ENDDO
 !DIR$ IVDEP
 !!DIR$ VECTOR ALIGNED
               DO el = elblk(1,blk,et),elblk(2,blk,et)
-                Qx(el,dof) = .25d0*(3d0*Qxold(el,dof) + Qx(el,dof) + dt*rhsQx(el,dof))
+                Qx(el,dof) = .25d0*(3d0*Qxold(el,dof) + Qx(el,dof) + dt*MirhsQx(el,dof))
               ENDDO
 !DIR$ IVDEP        
 !!DIR$ VECTOR ALIGNED
               DO el = elblk(1,blk,et),elblk(2,blk,et)
-                Qy(el,dof) = .25d0*(3d0*Qyold(el,dof) + Qy(el,dof) + dt*rhsQy(el,dof))
+                Qy(el,dof) = .25d0*(3d0*Qyold(el,dof) + Qy(el,dof) + dt*MirhsQy(el,dof))
               ENDDO
             ENDDO
       
@@ -153,17 +157,17 @@
 !DIR$ IVDEP      
 !!DIR$ VECTOR ALIGNED
               DO el = elblk(1,blk,et),elblk(2,blk,et)
-                H(el,dof) = pt3333*(Hold(el,dof) + 2d0*(H(el,dof) + dt*rhsH(el,dof)))
+                H(el,dof) = pt3333*(Hold(el,dof) + 2d0*(H(el,dof) + dt*MirhsH(el,dof)))
               ENDDO
 !DIR$ IVDEP        
 !!DIR$ VECTOR ALIGNED
               DO el = elblk(1,blk,et),elblk(2,blk,et)
-                Qx(el,dof) = pt3333*(Qxold(el,dof) + 2d0*(Qx(el,dof) + dt*rhsQx(el,dof)))
+                Qx(el,dof) = pt3333*(Qxold(el,dof) + 2d0*(Qx(el,dof) + dt*MirhsQx(el,dof)))
               ENDDO
 !DIR$ IVDEP        
 !!DIR$ VECTOR ALIGNED
               DO el = elblk(1,blk,et),elblk(2,blk,et)
-                Qy(el,dof) = pt3333*(Qyold(el,dof) + 2d0*(Qy(el,dof) + dt*rhsQy(el,dof)))
+                Qy(el,dof) = pt3333*(Qyold(el,dof) + 2d0*(Qy(el,dof) + dt*MirhsQy(el,dof)))
               ENDDO
             ENDDO
       
@@ -173,7 +177,6 @@
 #endif
 
      CALL nan_check()
-
 
       RETURN
       END SUBROUTINE RK

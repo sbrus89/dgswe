@@ -46,12 +46,14 @@
             r = qpta(pt,1,et)
             s = qpta(pt,2,et)
             
+            x = 0d0
+            y = 0d0
             DO nd = 1,nelnds(el)
               xn = xy(1,ect(nd,el))
               yn = xy(2,ect(nd,el))
               
-              x = psia(nd,pt,et)*xn
-              y = psia(nd,pt,et)*yn
+              x = x + psia(nd,pt,et)*xn
+              y = y + psia(nd,pt,et)*yn
             ENDDO
             
 !             x1 = xy(1,ect(1,el))
@@ -65,8 +67,9 @@
 !             x = -.5d0*((r+s)*x1 - (1d0+r)*x2 - (1d0+s)*x3)
 !             y = -.5d0*((r+s)*y1 - (1d0+r)*y2 - (1d0+s)*y3)
 
+            h0 = 0d0
             DO nd = 1,nelnds(el)
-              h0 = psia(nd,pt,et)*depth(ect(nd,el))
+              h0 = h0 + psia(nd,pt,et)*depth(ect(nd,el))
             ENDDO
 
 !             h0 = depth(ect(1,el))*phil(1,pt) + depth(ect(2,el))*phil(2,pt) + depth(ect(3,el))*phil(3,pt)
