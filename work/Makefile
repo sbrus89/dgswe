@@ -7,10 +7,10 @@ LIB_PATH = ../metis-4.0.3/
 LIB = metis
 LAPACK_LIB = lapack
 
-# CFLAGS_VEC =  -O3 -xHost -vec-report6 -c
-# CFLAGS =  -O3 -xHost -c 
-# CFLAGS_LINK = -O3 -xHost -o 
-# ALIGN = -DALIGN32
+CFLAGS_VEC =  -O3 -xHost -vec-report6 -c
+CFLAGS =  -O3 -xHost -c 
+CFLAGS_LINK = -O3 -xHost -o 
+ALIGN = #-DALIGN32
 
 # ### OpenMP compilation ###
 # CFLAGS_VEC =  -O3 -xHost -vec-report6 -openmp -Dopenmp -c
@@ -40,9 +40,9 @@ LAPACK_LIB = lapack
 # CFLAGS_LINK = -o
 
 ## Debug compilation ###
-CFLAGS_VEC = -c -C -g -traceback
-CFLAGS = -c -C -g -traceback
-CFLAGS_LINK = -o
+# CFLAGS_VEC = -c -C -g -traceback
+# CFLAGS = -c -C -g -traceback
+# CFLAGS_LINK = -o
 
 ### Other compiler flags ###
 # -no-prec-div

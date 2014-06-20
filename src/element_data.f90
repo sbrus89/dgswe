@@ -105,6 +105,7 @@
         area(el) = .5d0*((x2*y3-x3*y2) + (x3*y1-x1*y3) + (x1*y2-x2*y1))
         IF (el_type(el) == 1) THEN
 !           PRINT("(I25,15(e25.16))"), el,area(el),(2d0*detJa(el,pt), pt = 1,nqpta(1))
+          PRINT("(I25,15(e25.16))"), el,(abs(area(el)-2d0*detJa(el,pt)), pt = 1,nqpta(1))
         ELSE
           x4 = xy(1,ect(4,el))
           y4 = xy(2,ect(4,el))
@@ -120,6 +121,8 @@
           ENDDO
          
 !           PRINT("(I5,4(e23.14),10x,4(e23.14))"), el,(jac(el,pt), pt = 1,nqpta(2)),(detJa(el,pt), pt = 1,nqpta(2))         
+          PRINT("(I5,4(e23.14))"), el,(abs(jac(el,pt)-detJa(el,pt)), pt = 1,nqpta(2))         
+
         ENDIF
       ENDDO
      
@@ -185,6 +188,8 @@
         normal(2,ed) = -(x2-x1)/edlen(ed)
         
 !         PRINT("(I5,2(e23.14),10x,4(e23.14))"), ed,normal(1,ed),normal(2,ed),(nx_pt(ed,i),i=1,nqpte(1)), (ny_pt(ed,i),i=1,nqpte(1))
+        PRINT("(3(I5),4(e23.14))"), ed,ged2el(1,ed),ged2led(1,ed),(abs(normal(2,ed)-ny_pt(ed,i)),i=1,nqpte(1))
+        PRINT("(3(I5),4(e23.14))"), ed,ged2el(1,ed),ged2led(1,ed),(abs(normal(1,ed)-nx_pt(ed,i)),i=1,nqpte(1))
       ENDDO
             
 
@@ -248,6 +253,9 @@
 !           PRINT("(I5,e23.14,10x,3(e23.14))"), el,dhbdx1,(dhbdx_init(el,i),i=1,nqpta(1))
 !           PRINT("(I5,e23.14,10x,3(e23.14))"), el,dhbdy1,(dhbdy_init(el,i),i=1,nqpta(1))          
         
+!           PRINT("(I5,3(e23.14))"), el,(abs(dhbdx1-dhbdx_init(el,i)),i=1,nqpta(1))
+!           PRINT("(I5,3(e23.14))"), el,(abs(dhbdy1-dhbdy_init(el,i)),i=1,nqpta(1))          
+                
         ENDIF
       ENDDO
       
