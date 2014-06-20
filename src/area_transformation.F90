@@ -41,7 +41,7 @@
       PRINT*, " "
       PRINT*, "Vandermonde matrix: "
       DO i = 1,nnds
-          PRINT("(20(F10.4))"), (V(i,j), j = 1,nnds)
+          PRINT("(20(F20.15))"), (V(i,j), j = 1,nnds)
       ENDDO
       
       
@@ -137,23 +137,23 @@
             ENDDO
           ENDDO
           
-!           print*, ' ' 
-!           DO i = 1,ndf
-!             print "(I5,16(e23.14))", el, (mm(i,j), j = 1,ndf)
-!           ENDDO
-!           IF (et == 1) THEN
-!             x1 = xy(1,ect(1,el))
-!             y1 = xy(2,ect(1,el))
-! 
-!             x2 = xy(1,ect(2,el))
-!             y2 = xy(2,ect(2,el))
-! 
-!              x3 = xy(1,ect(3,el))
-!              y3 = xy(2,ect(3,el))
-! 
-!             area = .5d0*((x2*y3-x3*y2) + (x3*y1-x1*y3) + (x1*y2-x2*y1))          
-!             print*, 1d0/area
-!           ENDIF
+          print*, ' ' 
+          DO i = 1,ndf
+            print "(I5,16(e23.14))", el, (mm(i,j), j = 1,ndf)
+          ENDDO
+          IF (et == 1) THEN
+            x1 = xy(1,ect(1,el))
+            y1 = xy(2,ect(1,el))
+
+            x2 = xy(1,ect(2,el))
+            y2 = xy(2,ect(2,el))
+
+             x3 = xy(1,ect(3,el))
+             y3 = xy(2,ect(3,el))
+
+            area = .5d0*((x2*y3-x3*y2) + (x3*y1-x1*y3) + (x1*y2-x2*y1))          
+            print*, 1d0/area
+          ENDIF
           
 
         ENDIF
@@ -254,7 +254,7 @@
       REAL(pres) :: Pi(nnds+nqpta+3*nqpte),Pj(nnds+nqpta+3*nqpte)
       REAL(pres) :: dPi(nnds+nqpta+3*nqpte),dPj(nnds+nqpta+3*nqpte)      
       REAL(pres) :: V(nnds,nnds)  
-      REAL(pres) :: phi(nnds,nqpta+3*nqpte),dphidr(nnds,nqpta+3*nqpte),dphids(nnds,nqpta+3*nqpte)
+      REAL(pres) :: phi(nnds,nqpta+4*nqpte),dphidr(nnds,nqpta+4*nqpte),dphids(nnds,nqpta+4*nqpte)
       REAL(pres) :: dpda,dpdb,dadr,dads,ii
       
       r = 0d0
@@ -288,8 +288,8 @@
       ENDDO
 
       ! Change quadrature points from r,s (master element) to a,b extended coordinates
-      DO pt = 1,nnds+nqpta+nqpte
-        IF(s(pt) /= 1d0) THEN
+      DO pt = 1,nnds+nqpta+3*nqpte
+        IF(abs(s(pt)- 1d0) > 1d-14) THEN
           a(pt) = 2d0*(1d0+r(pt))/(1d0-s(pt))-1d0 
         ELSE 
           a(pt) = -1d0

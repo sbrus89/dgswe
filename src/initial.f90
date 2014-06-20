@@ -20,10 +20,10 @@
       INTEGER :: alloc_stat
       INTEGER :: mndof,mnqpte
       REAL(pres) :: r,s,x1,x2,x3,y1,y2,y3,x,y
-      REAL(pres) :: sigma,xc,yc,h0
-      REAL(pres) :: qint,f
+      REAL(pres) :: sigma,xc,yc,h0,h00
+      REAL(pres) :: qint,f,qint2
       REAL(pres) :: xn,yn
-      REAL(pres),ALLOCATABLE :: rhsH(:,:)      
+      REAL(pres),ALLOCATABLE :: rhsH(:,:),rhsH2(:,:)      
 
       sigma = 10d0
       xc = 0d0 
@@ -34,6 +34,7 @@
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
       ALLOCATE(rhsH(ne,maxval(ndof)))
+      ALLOCATE(rhsH2(ne,maxval(ndof)))
       
       Hinit = 0d0
       
@@ -41,6 +42,7 @@
         et = el_type(el)
         DO l = 1,ndof(et)
           qint = 0d0
+          qint2 = 0d0
           DO pt = 1,nqpta(et)
           
             r = qpta(pt,1,et)
@@ -72,17 +74,17 @@
               h0 = h0 + psia(nd,pt,et)*depth(ect(nd,el))
             ENDDO
 
-!             h0 = depth(ect(1,el))*phil(1,pt) + depth(ect(2,el))*phil(2,pt) + depth(ect(3,el))*phil(3,pt)
-
+            h00 = depth(ect(1,el))*phil(1,pt,1) + depth(ect(2,el))*phil(2,pt,1) + depth(ect(3,el))*phil(3,pt,1)
 
 !             f = exp(-sigma*((x-xc)**2d0+(y-yc)**2d0))+h0 
 !               f = .0002*x + h0
             f = h0
             
             qint = qint + wpta(pt,et)*f*phia(l,pt,et)*detJa(el,pt)
+            qint2 = qint2 + 0.5d0*wpta(pt,et)*f*phia(l,pt,et)
           ENDDO
           rhsH(el,l) = qint
-          
+          rhsH2(el,l) = qint2
 !           Hinit(el,1) = el ! for debugging
         ENDDO
         
@@ -94,6 +96,11 @@
           ENDDO
         ENDDO
       ENDDO
+      
+!       DO el = 1,ne
+!         PRINT("(I5,3(e24.17),10x,3(e24.17))"), el, (rhsH2(el,l), l = 1,ndof(1)), (Hinit(el,l), l = 1,ndof(1))
+!         PRINT("(I5,3(e24.17))"), el, (abs(rhsH2(el,l) - Hinit(el,l)), l = 1,ndof(1))
+!       ENDDO
 
       Qxinit(:,:) = 0d0
       Qyinit(:,:) = 0d0
@@ -103,19 +110,19 @@
 !       Write initial condition
       WRITE(63,"(A)") grid_file
       WRITE(63,"(e24.17)") 0d0
-      DO dof = 1,mndof
+      DO dof = 1,ndof(1)
         WRITE(63,"(16000(e24.17,1x))") (Hinit(el,dof),el=1,ne)
       ENDDO
 
       WRITE(641,"(A)") grid_file
       WRITE(641,"(e24.17)") 0d0
-      DO dof = 1,mndof
+      DO dof = 1,ndof(1)
         WRITE(641,"(16000(e24.17,1x))") (Qxinit(el,dof),el=1,ne)
       ENDDO
 
       WRITE(642,"(A)") grid_file
       WRITE(642,"(e24.17)") 0d0
-      DO dof = 1,mndof
+      DO dof = 1,ndof(1)
         WRITE(642,"(16000(e24.17,1x))") (Qyinit(el,dof),el=1,ne)
       ENDDO
 

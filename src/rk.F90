@@ -9,8 +9,8 @@
       INTEGER :: et
       
 
-      CALL nan_check()
-      PRINT*, "NaN checked initial condition"      
+!       CALL nan_check()
+!       PRINT*, "NaN checked initial condition"      
 
       ! Save previous solution
       DO blk = 1,npart
