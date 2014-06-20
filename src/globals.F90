@@ -151,7 +151,7 @@
       REAL(pres), ALLOCATABLE, DIMENSION(:,:,:) :: phie ! basis functions evaluated at edge quadrature points
       REAL(pres), ALLOCATABLE, DIMENSION(:,:,:) :: phie_int 
       REAL(pres), ALLOCATABLE, DIMENSION(:,:,:) :: phi
-      REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: phil ! linear nodal basis functions evaluated at area quadrature points
+      REAL(pres), ALLOCATABLE, DIMENSION(:,:,:) :: phil ! linear nodal basis functions evaluated at area quadrature points
       REAL(pres), ALLOCATABLE, DIMENSION(:,:,:) :: dpdr,dpds ! basis function derivatives evaluated at area quadrature points
       REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: dpdx,dpdy            
       REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: dpdx_init,dpdy_init
