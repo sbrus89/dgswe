@@ -100,9 +100,18 @@
       
       ALLOCATE(part(ne))
       
-      CALL METIS_PartGraphKway(ne,xadj,adjncy,vwgt,adjwgt,wgtflag, &
-                               numflag,nparts,options,edgecut,part)
+      IF (nparts > 1) THEN
       
+        CALL METIS_PartGraphKway(ne,xadj,adjncy,vwgt,adjwgt,wgtflag, &
+                                 numflag,nparts,options,edgecut,part)
+                               
+      ELSE IF (nparts == 1) THEN
+      
+        DO el = 1,ne
+          part(el) = 1
+        ENDDO
+      
+      ENDIF
       
       PRINT*,"edgecut = ", edgecut
       
@@ -124,6 +133,7 @@
                          dpdx,dpdy,dpdx_init,dpdy_init, &
                          dhbdx,dhbdy,dhbdx_init,dhbdy_init, &
                          phia_int,phia_int_init, &
+                         mmi,mmi_init, &
                          Hwrite,Qxwrite,Qywrite, &
                          nblk,elblk,edblk,nfblk,nrblk,rnfblk, &
                          mnpartel,mnparted   
@@ -187,10 +197,12 @@
           dhbdx(elcnt,1:mnqpta) = dhbdx_init(lel2gel(el,pe),1:mnqpta)
           dhbdy(elcnt,1:mnqpta) = dhbdy_init(lel2gel(el,pe),1:mnqpta)
           
+          mmi(elcnt,1:mndof*mndof) = mmi_init(lel2gel(el,pe),1:mndof*mndof)
+          
           ael2gel(elcnt) = lel2gel(el,pe)
           gel2ael(lel2gel(el,pe)) = elcnt
           
-!           PRINT*, nelnds(ael2gel(elcnt))
+!           PRINT*, elcnt,ael2gel(elcnt),nelnds(ael2gel(elcnt))
         ENDDO
       ENDDO
       

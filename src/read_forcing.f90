@@ -19,7 +19,7 @@
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
       READ(15,*) nobfr
-      PRINT*, 'number of oben boundary forcings',nobfr
+      PRINT*, 'number of open boundary forcings',nobfr
 
       ALLOCATE(obtag(nobfr),obfreq(nobfr),obnfact(nobfr),obeq(nobfr),obper(nobfr),STAT = alloc_stat)
       IF(alloc_stat /= 0) THEN

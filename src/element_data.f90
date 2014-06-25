@@ -6,8 +6,7 @@
                          dhbdx,dhbdy,dhbdx_init,dhbdy_init, &
                          dpdx_init,dpdy_init, &
                          dpdr,dpds,wpta, &
-                         drdx,drdy,dsdx,dsdy, &
-                         psia,dpsidr,dpsids,detJa,mmi,  &
+                         psia,dpsidr,dpsids,detJa,mmi,mmi_init, &
                          psie,dpsidxi,detJe, &
                          nx_pt,ny_pt
                          
@@ -20,14 +19,15 @@
       INTEGER :: np(4),nnds(4)
       INTEGER :: alloc_status
       REAL(pres) :: x1,x2,x3,x4,y1,y2,y3,y4
-      REAL(pres) :: dxdr,dxds,dydr,dyds      
-      REAL(pres) :: hb1,hb2,hb3,hb,dhbdx1,dhbdy1 
+      REAL(pres) :: dxdr,dxds,dydr,dyds   
+      REAL(pres) :: drdx,drdy,dsdx,dsdy      
+      REAL(pres) :: hb1,hb2,hb3,hb4,hb,dhbdx1,dhbdy1 
       REAL(pres), ALLOCATABLE, DIMENSION(:) :: r,s
       REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: jac
       
 
-      np(1) = p
-      np(2) = p
+      np(1) = 1
+      np(2) = 1
       np(3) = ctp
       np(4) = ctp          
 
@@ -53,13 +53,11 @@
     
       
       ALLOCATE(psia(mnnds,mnqpta+4*mnqpte,nel_type),dpsidr(mnnds,mnqpta+4*mnqpte,nel_type),dpsids(mnnds,mnqpta+4*mnqpte,nel_type))
-      ALLOCATE(detJa(ne,mnqpta),mmi(ne,mndof*mndof))
+      ALLOCATE(detJa(ne,mnqpta),mmi_init(ne,mndof*mndof),mmi(ne,mndof*mndof))
       ALLOCATE(nx_pt(ned,mnqpte),ny_pt(ned,mnqpte))
       nx_pt = 0d0
       ny_pt = 0d0    
-      
-      dhbdx_init = 0d0
-      dhbdy_init = 0d0
+     
       
       DO i = 1,nel_type
         CALL area_transformation(i,np(i),nnds(i),nqpta(i),nqpte(i))
@@ -105,7 +103,7 @@
         area(el) = .5d0*((x2*y3-x3*y2) + (x3*y1-x1*y3) + (x1*y2-x2*y1))
         IF (el_type(el) == 1) THEN
 !           PRINT("(I25,15(e25.16))"), el,area(el),(2d0*detJa(el,pt), pt = 1,nqpta(1))
-          PRINT("(I25,15(e25.16))"), el,(abs(area(el)-2d0*detJa(el,pt)), pt = 1,nqpta(1))
+!           PRINT("(I25,15(e25.16))"), el,(abs(area(el)-2d0*detJa(el,pt)), pt = 1,nqpta(1))
         ELSE
           x4 = xy(1,ect(4,el))
           y4 = xy(2,ect(4,el))
@@ -121,7 +119,7 @@
           ENDDO
          
 !           PRINT("(I5,4(e23.14),10x,4(e23.14))"), el,(jac(el,pt), pt = 1,nqpta(2)),(detJa(el,pt), pt = 1,nqpta(2))         
-          PRINT("(I5,4(e23.14))"), el,(abs(jac(el,pt)-detJa(el,pt)), pt = 1,nqpta(2))         
+!           PRINT("(I5,4(e23.14))"), el,(abs(jac(el,pt)-detJa(el,pt)), pt = 1,nqpta(2))         
 
         ENDIF
       ENDDO
@@ -147,6 +145,7 @@
         edlen(ed) = sqrt((x2-x1)**2 + (y2-y1)**2)
         
 !         PRINT("(I5,e23.14,10x,4(e23.14))"), ed,0.5d0*edlen(ed),(detJe(ed,pt),pt = 1,nqpte(1))
+!         PRINT("(I5,4(e23.14))"), ed,(abs(0.5d0*edlen(ed)-detJe(ed,pt)),pt = 1,nqpte(1))
 
         edlen_area(1,ed) = edlen(ed)/area(ged2el(1,ed))
         IF (ged2el(2,ed) /= 0) THEN
@@ -188,8 +187,8 @@
         normal(2,ed) = -(x2-x1)/edlen(ed)
         
 !         PRINT("(I5,2(e23.14),10x,4(e23.14))"), ed,normal(1,ed),normal(2,ed),(nx_pt(ed,i),i=1,nqpte(1)), (ny_pt(ed,i),i=1,nqpte(1))
-        PRINT("(3(I5),4(e23.14))"), ed,ged2el(1,ed),ged2led(1,ed),(abs(normal(2,ed)-ny_pt(ed,i)),i=1,nqpte(1))
-        PRINT("(3(I5),4(e23.14))"), ed,ged2el(1,ed),ged2led(1,ed),(abs(normal(1,ed)-nx_pt(ed,i)),i=1,nqpte(1))
+!         PRINT("(3(I5),4(e23.14))"), ed,ged2el(1,ed),ged2led(1,ed),(abs(normal(2,ed)-ny_pt(ed,i)),i=1,nqpte(1))
+!         PRINT("(3(I5),4(e23.14))"), ed,ged2el(1,ed),ged2led(1,ed),(abs(normal(1,ed)-nx_pt(ed,i)),i=1,nqpte(1))
       ENDDO
             
 
@@ -231,7 +230,7 @@
       DO el = 1,ne
         et = el_type(el)
         
-        IF (et == 1) THEN
+
         
           x1 = xy(1,ect(1,el))
           y1 = xy(2,ect(1,el))
@@ -246,17 +245,54 @@
           hb2 = depth(ect(2,el))
           hb3 = depth(ect(3,el))
 
-          dhbdx1= ( -(.5d0*(y3-y1)+.5d0*(y1-y2))*hb1 + .5d0*(y3-y1)*hb2 + .5d0*(y1-y2)*hb3 )/area(el)
+        IF (et == 1) THEN          
+
+          dhbdx1 = ( -(.5d0*(y3-y1)+.5d0*(y1-y2))*hb1 + .5d0*(y3-y1)*hb2 + .5d0*(y1-y2)*hb3 )/area(el)
           dhbdy1 = ( -(.5d0*(x1-x3)+.5d0*(x2-x1))*hb1 + .5d0*(x1-x3)*hb2 + .5d0*(x2-x1)*hb3 )/area(el)
           
+!           PRINT("(10x,I5,3(e23.14))"), el,(abs(dhbdx1-dhbdx_init(el,i)),i=1,nqpta(1))
+!           PRINT("(10x,I5,3(e23.14))"), el,(abs(dhbdy1-dhbdy_init(el,i)),i=1,nqpta(1))          
           
-!           PRINT("(I5,e23.14,10x,3(e23.14))"), el,dhbdx1,(dhbdx_init(el,i),i=1,nqpta(1))
-!           PRINT("(I5,e23.14,10x,3(e23.14))"), el,dhbdy1,(dhbdy_init(el,i),i=1,nqpta(1))          
+        ELSE IF (et == 2) THEN
         
-!           PRINT("(I5,3(e23.14))"), el,(abs(dhbdx1-dhbdx_init(el,i)),i=1,nqpta(1))
-!           PRINT("(I5,3(e23.14))"), el,(abs(dhbdy1-dhbdy_init(el,i)),i=1,nqpta(1))          
+          x4 = xy(1,ect(4,el))
+          y4 = xy(2,ect(4,el))
+          
+          hb4 = depth(ect(4,el))
+          
+          DO pt = 1,nqpta(2)
+          
+            dxdr = .25d0*((-1d0+s(pt))*x1 + ( 1d0-s(pt))*x2 + (1d0+s(pt))*x3 + (-1d0-s(pt))*x4)
+            dxds = .25d0*((-1d0+r(pt))*x1 + (-1d0-r(pt))*x2 + (1d0+r(pt))*x3 + ( 1d0-r(pt))*x4)
+            dydr = .25d0*((-1d0+s(pt))*y1 + ( 1d0-s(pt))*y2 + (1d0+s(pt))*y3 + (-1d0-s(pt))*y4)
+            dyds = .25d0*((-1d0+r(pt))*y1 + (-1d0-r(pt))*y2 + (1d0+r(pt))*y3 + ( 1d0-r(pt))*y4)
+            
+            jac(el,pt) = dxdr*dyds - dxds*dydr            
+            
+            drdx =  dyds/jac(el,pt)
+            drdy = -dxds/jac(el,pt)
+            dsdx = -dydr/jac(el,pt)
+            dsdy =  dxdr/jac(el,pt)
+            
+            dhbdx1 = .25d0*(((-1d0+s(pt))*drdx + (-1d0+r(pt))*dsdx)*hb1 &
+                         + (( 1d0-s(pt))*drdx + (-1d0-r(pt))*dsdx)*hb2 &
+                         + (( 1d0+s(pt))*drdx + ( 1d0+r(pt))*dsdx)*hb3 &
+                         + ((-1d0-s(pt))*drdx + ( 1d0-r(pt))*dsdx)*hb4)
+            dhbdy1 = .25d0*(((-1d0+s(pt))*drdy + (-1d0+r(pt))*dsdy)*hb1 &
+                         + (( 1d0-s(pt))*drdy + (-1d0-r(pt))*dsdy)*hb2 &
+                         + (( 1d0+s(pt))*drdy + ( 1d0+r(pt))*dsdy)*hb3 &
+                         + ((-1d0-s(pt))*drdy + ( 1d0-r(pt))*dsdy)*hb4)
+                     
+!           PRINT("(I5,4(e23.14))"), el,(abs(dhbdx1-dhbdx_init(el,i)),i=1,nqpta(2))
+!           PRINT("(I5,4(e23.14))"), el,(abs(dhbdy1-dhbdy_init(el,i)),i=1,nqpta(2))                       
+          ENDDO
+        
                 
         ENDIF
+        
+!           PRINT("(I5,e23.14,10x,3(e23.14))"), el,dhbdx1,(dhbdx_init(el,i),i=1,nqpta(1))
+!           PRINT("(I5,e23.14,10x,3(e23.14))"), el,dhbdy1,(dhbdy_init(el,i),i=1,nqpta(1))               
+        
       ENDDO
       
 

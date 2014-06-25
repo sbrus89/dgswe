@@ -6,6 +6,7 @@
 
       IMPLICIT NONE
       INTEGER :: it,tskp,cnt,myid
+      INTEGER :: i,j
       REAL(pres) :: tstep,t_start,t_end
 
       OPEN(unit=63,file='../output/solution_H.d')
@@ -84,7 +85,6 @@
       
       CALL decomp2()
       
-    
       
 #ifdef openmp
       t_start = omp_get_wtime()

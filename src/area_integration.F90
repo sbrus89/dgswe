@@ -22,15 +22,16 @@ a_points: DO pt = 1,nqpta
 
 !!DIR$ VECTOR ALIGNED
             DO el = sel,eel  ! First basis function is 1
-              Hqpt(el,1) = H(el,1)
+              Hqpt(el,1)  = H(el,1)
               Qxqpt(el,1) = Qx(el,1)
               Qyqpt(el,1) = Qy(el,1)
             ENDDO
 
    a_basis: DO dof = 2,ndof
 !!DIR$ VECTOR ALIGNED
+!DIR$ SIMD
               DO el = sel,eel   ! Evaluate solution at area quadrature point
-                Hqpt(el,1) = Hqpt(el,1) + H(el,dof)*phia(dof,pt,et)
+                Hqpt(el,1)  = Hqpt(el,1)  + H(el,dof)*phia(dof,pt,et)
                 Qxqpt(el,1) = Qxqpt(el,1) + Qx(el,dof)*phia(dof,pt,et) 
                 Qyqpt(el,1) = Qyqpt(el,1) + Qy(el,dof)*phia(dof,pt,et)
               ENDDO
@@ -38,6 +39,7 @@ a_points: DO pt = 1,nqpta
             ENDDO a_basis
 
 !!DIR$ VECTOR ALIGNED
+!DIR$ SIMD
             DO el = sel,eel   ! Compute momentum terms
               recipHa(el) = 1d0/Hqpt(el,1)
 
@@ -47,6 +49,7 @@ a_points: DO pt = 1,nqpta
             ENDDO 
 
 !!DIR$ VECTOR ALIGNED
+!DIR$ SIMD
             DO el =  sel,eel   ! Compute source terms
               tau(el) = cf*sqrt((Qxqpt(el,1)*recipHa(el))**2 + (Qyqpt(el,1)*recipHa(el))**2)*recipHa(el)
               src_x(el) = g*Hqpt(el,1)*dhbdx(el,pt) - tau(el)*Qxqpt(el,1) 
@@ -54,6 +57,7 @@ a_points: DO pt = 1,nqpta
             ENDDO
 
 !!DIR$ VECTOR ALIGNED
+!DIR$ SIMD
             DO el = sel,eel   ! Derivatives are 0 for first dof
               rhsQx(el,1) = rhsQx(el,1) + src_x(el)*phia_int(el,pt)
               rhsQy(el,1) = rhsQy(el,1) + src_y(el)*phia_int(el,pt)
@@ -62,11 +66,12 @@ a_points: DO pt = 1,nqpta
       test: DO l = 2,ndof 
               ind = (l-1)*nqpta+pt
 !!DIR$ VECTOR ALIGNED          
+!DIR$ SIMD
               DO el = sel,eel
-                rhsH(el,l) = rhsH(el,l) + Qxqpt(el,1)*dpdx(el,ind) + Qyqpt(el,1)*dpdy(el,ind)
+                rhsH(el,l)  = rhsH(el,l)  + Qxqpt(el,1)*dpdx(el,ind) + Qyqpt(el,1)*dpdy(el,ind)
 
-                rhsQx(el,l) = rhsQx(el,l) + xmom(el,1)*dpdx(el,ind) + xymom(el,1)*dpdy(el,ind) + src_x(el)*phia_int(el,ind)           
-                rhsQy(el,l) = rhsQy(el,l) + xymom(el,1)*dpdx(el,ind) + ymom(el,1)*dpdy(el,ind) + src_y(el)*phia_int(el,ind)
+                rhsQx(el,l) = rhsQx(el,l) + xmom(el,1)*dpdx(el,ind)  + xymom(el,1)*dpdy(el,ind) + src_x(el)*phia_int(el,ind)           
+                rhsQy(el,l) = rhsQy(el,l) + xymom(el,1)*dpdx(el,ind) + ymom(el,1)*dpdy(el,ind)  + src_y(el)*phia_int(el,ind)
               ENDDO
 
             ENDDO test 

@@ -107,7 +107,7 @@
       REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: nx_pt,ny_pt      
       REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: dhbdx,dhbdy ! elemental x and y derivatives of linear bathymetry
       REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: dhbdx_init,dhbdy_init   
-      REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: mmi      
+      REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: mmi,mmi_init      
 
       INTEGER :: ned ! total number of edges
       INTEGER, ALLOCATABLE, DIMENSION(:,:) :: ged2nn ! gives the two node numbers that make up a global edge number
@@ -155,7 +155,6 @@
       REAL(pres), ALLOCATABLE, DIMENSION(:,:,:) :: dpdr,dpds ! basis function derivatives evaluated at area quadrature points
       REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: dpdx,dpdy            
       REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: dpdx_init,dpdy_init
-      REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: drdx,dsdx,drdy,dsdy
       REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: detJa     
       REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: detJe            
 

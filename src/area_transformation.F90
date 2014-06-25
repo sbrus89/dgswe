@@ -1,7 +1,7 @@
       SUBROUTINE area_transformation(et,np,nnds,nqpta,nqpte)
 
       USE globals, ONLY: pres,ne,ned,el_type,nelnds,xy,ect,ged2el,ged2led, &
-                         ndof,wpta,dpdr,dpds,phia,mmi, &
+                         ndof,wpta,dpdr,dpds,phia,mmi_init, &
                          psia,dpsidr,dpsids, &
                          detJa,dpdx_init,dpdy_init,phia,phia_int_init, &
                          depth,dhbdx_init,dhbdy_init, &
@@ -63,7 +63,7 @@
  
       DO pt = 1,nqpta+nvert*nqpte
         DO m = 1,nnds
-          psia(m,pt,et) = l(m,pt)
+          psia(m,pt,et)   = l(m,pt)
           dpsidr(m,pt,et) = dldr(m,pt)
           dpsids(m,pt,et) = dlds(m,pt)
         ENDDO
@@ -77,7 +77,7 @@
         
           mm = 0d0
         
-          DO pt = 1,nqpta        
+     pts: DO pt = 1,nqpta        
             dxdr = 0d0
             dxds = 0d0
             dydr = 0d0
@@ -111,6 +111,8 @@
             
             ENDDO
             
+            dhbdx_init(el,pt) = 0d0
+            dhbdy_init(el,pt) = 0d0
             DO nd = 1,nelnds(el)
               hb = depth(ect(nd,el))
               
@@ -124,7 +126,7 @@
               ENDDO
             ENDDO
                      
-          ENDDO
+          ENDDO pts
           
           CALL DGETRF(ndf,ndf,mm,ndf,ipiv2,info)          
           CALL DGETRI(ndf,mm,ndf,ipiv2,work,ndf,info)
@@ -132,28 +134,28 @@
           m = 1
           DO i = 1,ndf
             DO j = 1,ndf
-              mmi(el,m) = mm(i,j)
+              mmi_init(el,m) = mm(i,j)
               m = m + 1
             ENDDO
           ENDDO
           
-          print*, ' ' 
-          DO i = 1,ndf
-            print "(I5,16(e23.14))", el, (mm(i,j), j = 1,ndf)
-          ENDDO
-          IF (et == 1) THEN
-            x1 = xy(1,ect(1,el))
-            y1 = xy(2,ect(1,el))
-
-            x2 = xy(1,ect(2,el))
-            y2 = xy(2,ect(2,el))
-
-             x3 = xy(1,ect(3,el))
-             y3 = xy(2,ect(3,el))
-
-            area = .5d0*((x2*y3-x3*y2) + (x3*y1-x1*y3) + (x1*y2-x2*y1))          
-            print*, 1d0/area
-          ENDIF
+!           print*, ' ' 
+!           DO i = 1,ndf
+!             print "(I5,16(e23.14))", el, (mm(i,j), j = 1,ndf)
+!           ENDDO
+!           IF (et == 1) THEN
+!             x1 = xy(1,ect(1,el))
+!             y1 = xy(2,ect(1,el))
+! 
+!             x2 = xy(1,ect(2,el))
+!             y2 = xy(2,ect(2,el))
+! 
+!              x3 = xy(1,ect(3,el))
+!              y3 = xy(2,ect(3,el))
+! 
+!             area = .5d0*((x2*y3-x3*y2) + (x3*y1-x1*y3) + (x1*y2-x2*y1))          
+!             print*, 1d0/area
+!           ENDIF
           
 
         ENDIF

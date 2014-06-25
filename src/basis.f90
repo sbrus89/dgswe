@@ -51,14 +51,13 @@
         PRINT "(A,I5)", "Polynomial order:",p 
 
       
-        et = 1
-        DO i = 1,nel_type
-          IF (et == 1) THEN
-            CALL tri_area_basis(i,p,ndof(i),nqpta(i))
-          ELSE IF (et == -1) THEN
-            CALL quad_area_basis(i,p,ndof(i),nqpta(i))
+        DO et = 1,nel_type
+        
+          IF (mod(et,2) == 1) THEN
+            CALL tri_area_basis(et,p,ndof(et),nqpta(et))
+          ELSE IF (mod(et,2) == 0) THEN
+            CALL quad_area_basis(et,p,ndof(et),nqpta(et))
           ENDIF
-          et = et*-1
           
         ENDDO
 
@@ -123,14 +122,14 @@
           PRINT*, 'Allocation error: phie,phie_int'
         ENDIF 
         
-        et = 1
-        DO i = 1,nel_type
-          IF (et == 1) THEN
-            CALL tri_edge_basis(i,p,ndof(i),nqpte(i))
-          ELSE IF (et == -1) THEN
-            CALL quad_edge_basis(i,p,ndof(i),nqpte(i))
+
+        DO et = 1,nel_type
+        
+          IF (mod(et,2) == 1) THEN
+            CALL tri_edge_basis(et,p,ndof(et),nqpte(et))
+          ELSE IF (mod(et,2) == 0) THEN
+            CALL quad_edge_basis(et,p,ndof(et),nqpte(et))
           ENDIF
-          et = et*-1
           
         ENDDO        
 
@@ -163,6 +162,7 @@
         DO pt = 1,nqpta
           r(pt) = qpta(pt,1,et)
           s(pt) = qpta(pt,2,et)
+          
           a(pt) = 2d0*(1d0+r(pt))/(1d0-s(pt))-1d0 
           b(pt) = s(pt)
         ENDDO
@@ -248,7 +248,7 @@
         INTEGER :: m,i,j,pt,et
         INTEGER :: p,nqpta
         INTEGER :: ndof
-        REAL(pres) :: dpda,dpdb,dadr,dads,ii       
+        REAL(pres) :: dpda,dpdb,dadr,dads      
         REAL(pres) :: r(nqpta),s(nqpta),a(nqpta),b(nqpta)
         REAL(pres) :: Pi(nqpta),Pj(nqpta)
         REAL(pres) :: dPi(nqpta),dPj(nqpta)
@@ -282,11 +282,8 @@
 
             ! Calculate function values
             DO pt = 1,nqpta 
-!               phia(m,pt) = sqrt(2d0)*Pi(pt)*Pj(pt)*(1d0-b(pt))**i
               phia(m,pt,et) = 2d0*Pi(pt)*Pj(pt)
             ENDDO
-
-            ii = real(i,pres)
 
             ! Calculate derivative values
             DO pt = 1,nqpta
@@ -333,8 +330,8 @@
         USE globals, ONLY: pres,wpte,qpte,phie,phie_int
       
         IMPLICIT NONE
-        INTEGER :: led,pt,m,i,j,ind,p
-        INTEGER :: ndof,nqpte,et
+        INTEGER :: led,pt,m,i,j,ind
+        INTEGER :: ndof,nqpte,et,p
         REAL(pres) :: r(nqpte),s(nqpte),a(nqpte),b(nqpte)
         REAL(pres) :: Pi(nqpte),Pj(nqpte)   
       
@@ -405,9 +402,9 @@
         USE globals, ONLY: pres,wpte,qpte,phie,phie_int
       
         IMPLICIT NONE
-        INTEGER :: led,pt,m,i,j,ind,p
-        INTEGER :: ndof,nqpte,et
-        REAL(pres) :: r(nqpte),s(nqpte),a(nqpte),b(nqpte)
+        INTEGER :: led,pt,m,i,j,ind
+        INTEGER :: ndof,nqpte,et,p
+        REAL(pres) :: r(nqpte),s(nqpte)
         REAL(pres) :: Pi(nqpte),Pj(nqpte)   
       
         DO led = 1,4
@@ -458,6 +455,7 @@
 
             ENDDO
           ENDDO
+          
 
         ENDDO
       

@@ -12,7 +12,7 @@
                          obamp_qpt,obph_qpt,obdepth_qpt,fbamp_qpt,fbph_qpt, &
                          depth,obnds,grid_file, &
                          el_type,mnelnds,nelnds,psia, &
-                         detJa,mmi
+                         detJa,mmi_init
 
       IMPLICIT NONE
       INTEGER :: i,j,el,l,pt,dof,bfr,ed,ind,nd,k,seg,m
@@ -92,7 +92,7 @@
         m = 1
         DO i = 1,ndof(et)        
           DO j = 1,ndof(et)
-            Hinit(el,i) = Hinit(el,i) + mmi(el,m)*rhsH(el,j)
+            Hinit(el,i) = Hinit(el,i) + mmi_init(el,m)*rhsH(el,j)
             m = m + 1
           ENDDO
         ENDDO
