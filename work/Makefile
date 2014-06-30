@@ -28,6 +28,7 @@ ALIGN = #-DALIGN32
 # CFLAGS_VEC =  -O3 -xHost -vec-report3 -profile-loops=all -c 
 # CFLAGS =  -O3 -xHost -profile-loops=all -c 
 # CFLAGS_LINK = -O3 -xHost -profile-loops=all -o 
+# ALIGN  = # -DALIGN32
 
 # ### IPO compilation ###
 # CFLAGS =  -O3 -xHost -ipo -c 
@@ -39,7 +40,7 @@ ALIGN = #-DALIGN32
 # CFLAGS = -c
 # CFLAGS_LINK = -o
 
-## Debug compilation ###
+# # Debug compilation ###
 # CFLAGS_VEC = -c -C -g -traceback
 # CFLAGS = -c -C -g -traceback
 # CFLAGS_LINK = -o
@@ -53,7 +54,7 @@ ALIGN = #-DALIGN32
 # 	alloc_arrays.o ptr_arrays.o initial.o connect.o element_data.o edge_partition2.o  \
 # 	rk.o rhs2.o rhs3.o rhs4.o numerical_flux.o swe_tri.o
 
-objects = globals.o basis.o area_qpts.o edge_qpts.o read_input.o read_grid.o read_forcing.o  \
+objects = globals.o basis.o area_qpts.o edge_qpts.o read_input.o read_grid.o read_forcing.o modal2nodal.o \
 	alloc_arrays.o ptr_arrays.o initial.o connect.o element_data.o area_transformation.o edge_transformation.o edge_partition2.o  \
 	area_integration.o edge_integration.o rhs2.o  numerical_flux.o rk.o swe_tri.o
 
@@ -82,6 +83,9 @@ read_grid.o : read_grid.f90 globals.F90
 	$(FC) $(CFLAGS) $<
 
 read_forcing.o : read_forcing.f90 globals.F90
+	$(FC) $(CFLAGS) $<
+
+modal2nodal.o : modal2nodal.F90 globals.F90 basis.f90
 	$(FC) $(CFLAGS) $<
 
 alloc_arrays.o : alloc_arrays.f90 globals.F90

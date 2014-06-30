@@ -100,6 +100,7 @@
       REAL(pres), ALLOCATABLE, DIMENSION(:,:,:) :: dpsidr,dpsids   
       REAL(pres), ALLOCATABLE, DIMENSION(:,:,:) :: psie
       REAL(pres), ALLOCATABLE, DIMENSION(:,:,:) :: dpsidxi
+      REAL(pres), ALLOCATABLE, DIMENSION(:,:,:) :: m2n
       REAL(pres), ALLOCATABLE, DIMENSION(:) :: area ! element areas
       REAL(pres), ALLOCATABLE, DIMENSION(:) :: edlen ! element edge lengths
       REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: edlen_area

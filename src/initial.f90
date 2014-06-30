@@ -111,19 +111,19 @@
 !       Write initial condition
       WRITE(63,"(A)") grid_file
       WRITE(63,"(e24.17)") 0d0
-      DO dof = 1,ndof(1)
+      DO dof = 1,mndof
         WRITE(63,"(16000(e24.17,1x))") (Hinit(el,dof),el=1,ne)
       ENDDO
 
       WRITE(641,"(A)") grid_file
       WRITE(641,"(e24.17)") 0d0
-      DO dof = 1,ndof(1)
+      DO dof = 1,mndof
         WRITE(641,"(16000(e24.17,1x))") (Qxinit(el,dof),el=1,ne)
       ENDDO
 
       WRITE(642,"(A)") grid_file
       WRITE(642,"(e24.17)") 0d0
-      DO dof = 1,ndof(1)
+      DO dof = 1,mndof
         WRITE(642,"(16000(e24.17,1x))") (Qyinit(el,dof),el=1,ne)
       ENDDO
 

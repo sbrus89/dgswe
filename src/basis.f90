@@ -86,6 +86,8 @@
             mml(i,j) = qint
           ENDDO
         ENDDO
+        
+        CALL modal2nodal()
 
         OPEN(unit=10,file='../output/projection.d')
 

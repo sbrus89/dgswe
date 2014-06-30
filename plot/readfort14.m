@@ -1,4 +1,4 @@
-function [EToV,VX,B,opedat,boudat,title] = readfort14( finame ) 
+function [EToV,VX,B,nelnds,opedat,boudat,title] = readfort14( finame ) 
 % Read ADCIRC grid file fort.14
 
 tic
@@ -36,18 +36,20 @@ idx = zeros(N(1),5) ;
 % end
 %
 % Nov 15, 2012, improve reading efficient
-idx = fscanf(fid,'%d %d %d %d %d \n', [5 N(1)])' ;
+idx = fscanf(fid,'%d %d %d %d %d \n', [6 N(1)])' ;
 iv = sort(idx(:,1)) ;
 idx = idx(iv,:) ; 
 
 VX = zeros(N(2),2) ;
 B = zeros(N(2),2) ;
-EToV = zeros(N(1),3) ;
+EToV = zeros(N(1),4) ;
+nelnds = zeros(N(1),1);
 
 % Arrange it to a Nodal DG input
 VX = Val(:,2:3) ;
 B  = Val(:,4) ;
-EToV = idx(:,3:5) ; 
+EToV = idx(:,3:6) ; 
+nelnds = idx(:,2);
 
 % Read in boundary
 % Open boundary

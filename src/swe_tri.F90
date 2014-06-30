@@ -5,7 +5,7 @@
       USE basis
 
       IMPLICIT NONE
-      INTEGER :: it,tskp,cnt,myid
+      INTEGER :: it,tskp,cnt,myid,mndof
       INTEGER :: i,j
       REAL(pres) :: tstep,t_start,t_end
 
@@ -28,6 +28,8 @@
       ndof(2) = (p+1)**2
       ndof(3) = ndof(1)
       ndof(4) = ndof(2)
+      
+      mndof = maxval(ndof)
       
       ntypends(1) = 3
       ntypends(2) = 4
@@ -116,17 +118,17 @@
            PRINT("(A,e15.8)"), 't = ', t
 
            WRITE(63,"(e24.17)") t
-           DO dof = 1,ndof(1)
+           DO dof = 1,mndof
              WRITE(63,"(16000(e24.17,1x))") (Hwrite(el,dof)%ptr, el = 1,ne)
            ENDDO
 
            WRITE(641,"(e24.17)") t
-           DO dof = 1,ndof(1)
+           DO dof = 1,mndof
              WRITE(641,"(16000(e24.17,1x))") (Qxwrite(el,dof)%ptr, el = 1,ne)
            ENDDO
 
            WRITE(642,"(e24.17)") t
-           DO dof = 1,ndof(1)
+           DO dof = 1,mndof
              WRITE(642,"(16000(e24.17,1x))") (Qywrite(el,dof)%ptr, el = 1,ne)
            ENDDO           
              
