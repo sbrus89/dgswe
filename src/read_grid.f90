@@ -1,6 +1,6 @@
       SUBROUTINE read_grid()
       
-      USE globals, ONLY: grid_file,ne,nn,ect,xy,depth,nelnds, &
+      USE globals, ONLY: grid_file,ne,nn,ect,xy,depth,nelnds,elxy,elhb, &
                          nope,neta,obseg,obnds,nvel,nbou,fbseg,fbnds,grid_name, &
                          el_type,ctp,mnelnds
 
@@ -33,10 +33,11 @@
       PRINT "(A,I5)", "Number of nodes: ", nn
       PRINT*, " "
 
-      ALLOCATE(ect(4,ne),xy(2,nn),depth(nn),nelnds(ne),el_type(ne),STAT = alloc_status)  ! element connectivity table, node coordinate array, depth vector      
+      ALLOCATE(ect((ctp+1)*(ctp+1),ne),xy(2,nn),depth(nn),nelnds(ne),el_type(ne),STAT = alloc_status)  ! element connectivity table, node coordinate array, depth vector      
       IF(alloc_status /= 0) THEN
         PRINT*, 'Allocation error: ect,xy,depth'
-      ENDIF        
+      ENDIF     
+      ALLOCATE(elxy((ctp+1)*(ctp+1),ne,2),elhb((ctp+1)*(ctp+1),ne))
 
       ! read in node coordinates and depths
       DO i = 1,nn                                                      
@@ -60,6 +61,12 @@
         ELSE IF (nelnds(el) == (ctp+1)*(ctp+1)) THEN
           el_type(el) = 4
         ENDIF 
+        
+        DO j = 1,nelnds(el)
+          elxy(j,el,1) = xy(1,ect(j,el))
+          elxy(j,el,2) = xy(2,ect(j,el))
+          elhb(j,el)   = depth(ect(j,el))
+        ENDDO      
         
       ENDDO
       

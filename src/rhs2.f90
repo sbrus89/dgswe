@@ -1,7 +1,7 @@
       SUBROUTINE rhs2()
 
       USE globals,  ONLY: pres,l,ind,el,ne,pt,led,ed,dof,ndof,nel_type, &
-                          blk,elblk,nfblk,rnfblk,nrblk,npart,npartet,ntypends, &
+                          blk,elblk,nfblk,rnfblk,nrblk,npart,npartet,nverts, &
                           g,pt5g,tstage,ramp,arg,bfr, & 
                           H,Qx,Qy, &
                           rhsH,rhsQx,rhsQy, &
@@ -105,7 +105,7 @@
        DO blk = 1,npart 
         DO et = 1,nel_type       
           IF (npartet(et,blk) > 0) THEN       
-ed_points: DO pt = 1,ntypends(et)*nqpte(et)
+ed_points: DO pt = 1,nverts(et)*nqpte(et)
 
 !!DIR$ VECTOR ALIGNED               
               DO el = elblk(1,blk,et),elblk(2,blk,et)
@@ -244,13 +244,13 @@ ed_points2: DO pt = 1,nqpte(1) ! Compute numerical fluxes for all edges
 !$OMP do     
             ! No normal flow boundary condition 
             DO ed = 1,nnfbed
-              DO pt = 1,nqpte(1)
+              DO pt = 1,nqpte(3)
 
               ged = nfbedn(ed)
 
               led_in = ged2led(1,ged)
 
-              gp_in = (led_in-1)*nqpte(1) + pt
+              gp_in = (led_in-1)*nqpte(3) + pt
 
               el_in = gel2ael(ged2el(1,ged))
 
@@ -383,7 +383,7 @@ ed_points2: DO pt = 1,nqpte(1) ! Compute numerical fluxes for all edges
         DO et = 1,nel_type
           IF (npartet(et,blk) > 0) THEN
               
-            DO pt = 1,ntypends(et)*nqpte(et)
+            DO pt = 1,nverts(et)*nqpte(et)
               DO l = 1,ndof(et)
 !!DIR$ VECTOR ALIGNED
                 DO el = elblk(1,blk,et),elblk(2,blk,et)

@@ -21,7 +21,7 @@
       INTEGER, ALLOCATABLE, DIMENSION(:) :: adjwgt
       INTEGER :: options(5)
       
-
+      edgecut = 0
       
       ! Find the nodes adjacent each node
       ALLOCATE(nadjels(ne))

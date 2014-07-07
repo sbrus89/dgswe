@@ -609,7 +609,7 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!      
       
-      subroutine nodes(space,p,np,r,s)
+      subroutine tri_nodes(space,p,np,r,s)
 !c     Calculates nodal set for well-behaved interpolation
 !c     p (input) : the order of the basis
 !c     np (input): the number of points in the triangle
@@ -798,9 +798,121 @@
       enddo
 
       call xytors(np,x,y,r,s)
+      
+!       open(unit=60,file=DIRNAME//'/'//'tri.d')
+
+      print*,' '
+      print*, 'Triangle Points'
+      do i = 1,np
+!         write(60,61) r(i),s(i),x(i),y(i)
+        print 21, r(i),s(i)
+      enddo
+      print*, ' '
+
+ 21   format(28(f10.4,1x))
+ 61   format(16000(e24.17,1x))      
 
       return
       end subroutine
+      
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!       
+
+      SUBROUTINE quad_nodes(space,np,nnds,r,s)
+      
+      USE globals, ONLY: pres
+      
+      IMPLICIT NONE
+      
+      INTEGER :: space,np,nnds
+      INTEGER :: i,k,j,n,nnp
+      REAL(pres) :: xi(np+1)
+      REAL(pres) :: r(nnds),s(nnds)
+      
+      
+      ! Get 1-D LGL points 
+      
+      IF (space == 1) THEN
+        CALL lglpts(np,xi)
+      ELSE
+        xi(1) = -1d0
+        DO i = 1,np-1
+          xi(i+1) = xi(i) + 2d0/real(np,pres)
+        ENDDO
+        xi(np+1) = 1d0
+      ENDIF
+        
+      ! Do tensor product, ordering the nodes counter-clockwise
+
+      ! Find number of loops around refence quad element, excluding middle points
+      IF (np <= 2)THEN
+        nnp = 1
+      ELSE
+        IF(mod(np,2) == 1) THEN
+          nnp = np-1
+        ELSE IF (mod(np,2) == 0) THEN
+          nnp = np-2
+        ENDIF
+      ENDIF
+        
+      n = 1
+      DO k = 1,nnp ! loop over number of loops
+         
+        ! Edge 4
+        DO i = k,np+1 - (k-1)
+          j = k
+          r(n) = xi(i)
+          s(n) = xi(j)
+          
+          n = n+1
+        ENDDO
+        
+        ! Edge 1
+        DO j = 2 + (k-1),np+1 - (k-1)
+          i = np+1 - (k-1)
+          r(n) = xi(i)
+          s(n) = xi(j)
+          
+          n = n+1
+        ENDDO
+
+        ! Edge 2
+        DO i = np - (k-1),1 + (k-1),-1
+          j = np+1 - (k-1)
+          r(n) = xi(i)
+          s(n) = xi(j)
+          
+          n = n+1      
+        ENDDO
+
+        ! Edge 3
+        DO j = np - (k-1),2 + (k-1),-1
+          i = 1 + (k-1)
+          r(n) = xi(i)
+          s(n) = xi(j)
+
+          n = n+1
+        ENDDO    
+          
+      ENDDO
+        
+      ! middle point
+      IF (mod(np+1,2) == 1) THEN
+        i = np/2 + 1
+        r(n) = xi(i)
+        s(n) = xi(i)
+          
+      ENDIF   
+      
+      PRINT*, ' '
+      PRINT*, 'Quadrilateral Points'
+      DO n = 1,nnds
+        PRINT("(2(f10.4))"), r(n),s(n)
+      ENDDO         
+      
+      RETURN
+      END SUBROUTINE
+
 
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 
@@ -919,19 +1031,6 @@
         r(i) = -l2(i)+l3(i)-l1(i)
         s(i) = -l2(i)-l3(i)+l1(i)
       enddo
-
-!       open(unit=60,file=DIRNAME//'/'//'tri.d')
-
-      print*,' '
-      print*, 'Triangle Points'
-      do i = 1,np
-!         write(60,61) r(i),s(i),x(i),y(i)
-        print 21, r(i),s(i)
-      enddo
-      print*, ' '
-
- 21   format(28(f10.4,1x))
- 61   format(16000(e24.17,1x))
 
       return
       end subroutine

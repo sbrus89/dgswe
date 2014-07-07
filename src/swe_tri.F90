@@ -31,10 +31,10 @@
       
       mndof = maxval(ndof)
       
-      ntypends(1) = 3
-      ntypends(2) = 4
-      ntypends(3) = 3
-      ntypends(4) = 4
+      nverts(1) = 3
+      nverts(2) = 4
+      nverts(3) = 3
+      nverts(4) = 4
       
       tstep = int(tf/dt)
       tskp = int(tf/(lines*dt)) 

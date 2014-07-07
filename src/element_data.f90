@@ -24,7 +24,7 @@
       REAL(pres) :: hb1,hb2,hb3,hb4,hb,dhbdx1,dhbdy1 
       REAL(pres), ALLOCATABLE, DIMENSION(:) :: r,s
       REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: jac
-      
+     
 
       np(1) = 1
       np(2) = 1
@@ -57,7 +57,10 @@
       ALLOCATE(nx_pt(ned,mnqpte),ny_pt(ned,mnqpte))
       nx_pt = 0d0
       ny_pt = 0d0    
-     
+      
+      
+      CALL curvilinear()    
+      
       
       DO i = 1,nel_type
         CALL area_transformation(i,np(i),nnds(i),nqpta(i),nqpte(i))
@@ -104,7 +107,7 @@
         IF (el_type(el) == 1) THEN
 !           PRINT("(I25,15(e25.16))"), el,area(el),(2d0*detJa(el,pt), pt = 1,nqpta(1))
 !           PRINT("(I25,15(e25.16))"), el,(abs(area(el)-2d0*detJa(el,pt)), pt = 1,nqpta(1))
-        ELSE
+        ELSE IF (el_type(el) == 2) THEN
           x4 = xy(1,ect(4,el))
           y4 = xy(2,ect(4,el))
           

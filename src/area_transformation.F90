@@ -1,6 +1,6 @@
       SUBROUTINE area_transformation(et,np,nnds,nqpta,nqpte)
 
-      USE globals, ONLY: pres,ne,ned,el_type,nelnds,xy,ect,ged2el,ged2led, &
+      USE globals, ONLY: pres,ne,ned,el_type,nelnds,xy,ect,ged2el,ged2led,elxy,elhb, &
                          ndof,wpta,dpdr,dpds,phia,mmi_init, &
                          psia,dpsidr,dpsids, &
                          detJa,dpdx_init,dpdy_init,phia,phia_int_init, &
@@ -84,8 +84,8 @@
             dyds = 0d0
           
             DO nd = 1,nelnds(el)
-              x = xy(1,ect(nd,el))
-              y = xy(2,ect(nd,el))
+              x = elxy(nd,el,1)
+              y = elxy(nd,el,2)
           
               dxdr = dxdr + dldr(nd,pt)*x
               dxds = dxds + dlds(nd,pt)*x
@@ -114,7 +114,7 @@
             dhbdx_init(el,pt) = 0d0
             dhbdy_init(el,pt) = 0d0
             DO nd = 1,nelnds(el)
-              hb = depth(ect(nd,el))
+              hb = elhb(nd,el)
               
               dhbdx_init(el,pt) = dhbdx_init(el,pt) + (dldr(nd,pt)*drdx + dlds(nd,pt)*dsdx)*hb
               dhbdy_init(el,pt) = dhbdy_init(el,pt) + (dldr(nd,pt)*drdy + dlds(nd,pt)*dsdy)*hb              
@@ -180,8 +180,8 @@
           dyds = 0d0
           
           DO nd = 1,nelnds(el)
-            x = xy(1,ect(nd,el))
-            y = xy(2,ect(nd,el))
+            x = elxy(nd,el,1)
+            y = elxy(nd,el,2)
           
             dxdr = dxdr + dldr(nd,pt)*x
             dxds = dxds + dlds(nd,pt)*x
@@ -245,7 +245,7 @@
       SUBROUTINE tri_trans(et,np,nnds,nqpta,nqpte,V,phi,dphidr,dphids)
       
       USE globals, ONLY: pres,qpta,qpte
-      USE basis, ONLY: nodes,jacobi,djacobi      
+      USE basis, ONLY: tri_nodes,jacobi,djacobi      
       
       IMPLICIT NONE
 
@@ -264,7 +264,7 @@
       V = 0d0      
       
       ! Get triangular reference element nodes
-      CALL nodes(1,np,nnds,r,s)   
+      CALL tri_nodes(1,np,nnds,r,s)   
       
       DO i = 1,nqpta
         pt = nnds + i
@@ -358,7 +358,7 @@
       SUBROUTINE quad_trans(et,np,nnds,nqpta,nqpte,V,phi,dphidr,dphids)
       
       USE globals, ONLY: pres,qpta,qpte
-      USE basis, ONLY: lglpts,jacobi,djacobi      
+      USE basis, ONLY: quad_nodes,jacobi,djacobi      
       
       IMPLICIT NONE
       
@@ -373,78 +373,10 @@
       
       r = 0d0
       s = 0d0      
-      
-      ! Get 1-D LGL points 
-      CALL lglpts(np,xi)
-        
-      ! Do tensor product, ordering the nodes counter-clockwise
-
-      ! Find number of loops around refence quad element, excluding middle points
-      IF (np <= 2)THEN
-        nnp = 1
-      ELSE
-        IF(mod(np,2) == 1) THEN
-          nnp = np-1
-        ELSE IF (mod(np,2) == 0) THEN
-          nnp = np-2
-        ENDIF
-      ENDIF
-        
-      n = 1
-      DO k = 1,nnp ! loop over number of loops
          
-        ! Edge 4
-        DO i = k,np+1 - (k-1)
-          j = k
-          r(n) = xi(i)
-          s(n) = xi(j)
-          
-          n = n+1
-        ENDDO
+      CALL quad_nodes(1,np,nnds,r,s)   
         
-        ! Edge 1
-        DO j = 2 + (k-1),np+1 - (k-1)
-          i = np+1 - (k-1)
-          r(n) = xi(i)
-          s(n) = xi(j)
-          
-          n = n+1
-        ENDDO
 
-        ! Edge 2
-        DO i = np - (k-1),1 + (k-1),-1
-          j = np+1 - (k-1)
-          r(n) = xi(i)
-          s(n) = xi(j)
-          
-          n = n+1      
-        ENDDO
-
-        ! Edge 3
-        DO j = np - (k-1),2 + (k-1),-1
-          i = 1 + (k-1)
-          r(n) = xi(i)
-          s(n) = xi(j)
-
-          n = n+1
-        ENDDO    
-          
-      ENDDO
-        
-      ! middle point
-      IF (mod(np+1,2) == 1) THEN
-        i = np/2 + 1
-        r(n) = xi(i)
-        s(n) = xi(i)
-          
-      ENDIF
-        
-        
-      PRINT*, ' '
-      PRINT*, 'Quadrilateral Points'
-      DO n = 1,nnds
-        PRINT("(2(f10.4))"), r(n),s(n)
-      ENDDO   
       
       DO i = 1,nqpta
         pt = nnds + i

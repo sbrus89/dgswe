@@ -1,6 +1,6 @@
       SUBROUTINE edge_transformation(et,np,nqpts)
       
-      USE globals, ONLY: pres,qpte,psie,dpsidxi,ned,ged2el,ged2led,el_type,ect,xy,ctp,detJe
+      USE globals, ONLY: pres,qpte,psie,dpsidxi,ned,ged2el,ged2led,el_type,ect,xy,elxy,ctp,detJe
       USE basis, ONLY: lglpts,jacobi,djacobi
       
       IMPLICIT NONE
@@ -95,9 +95,9 @@
               ELSE 
                 ind = mod(led_in,nvert)*np+nd
               ENDIF
-
-              x = xy(1,ect(ind,el_in))
-              y = xy(2,ect(ind,el_in))
+              
+              x = elxy(ind,el_in,1)
+              y = elxy(ind,el_in,2)
               
               dxdxi = dxdxi + dldxi(nd,pt)*x
               dydxi = dydxi + dldxi(nd,pt)*y

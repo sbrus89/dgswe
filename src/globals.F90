@@ -11,13 +11,13 @@
       REAL(pres), PARAMETER :: pt5g = 0.5d0*g
       REAL(pres), PARAMETER  ::  pi=3.141592653589793D0
       REAL(pres) :: cf ! bottom friction parameter
-      CHARACTER(24) :: grid_name ! name of the grid
-      CHARACTER(24) :: grid_file ! name of fort.14 file
+      CHARACTER(30) :: grid_name ! name of the grid
+      CHARACTER(30) :: grid_file ! name of fort.14 file
       CHARACTER(24) :: forcing_file ! name of fort.15 file
       
       INTEGER, PARAMETER :: nel_type = 4 !(type #s: 1 -> triangles, 2 -> quads, 3 -> curved triangles, 4-> curved quads)
       INTEGER, PARAMETER :: ctp = 2
-      INTEGER :: ntypends(nel_type)
+      INTEGER :: nverts(nel_type)
       
       
       INTEGER, ALLOCATABLE, DIMENSION(:) :: el_type
@@ -58,7 +58,10 @@
       INTEGER, ALLOCATABLE, DIMENSION(:) :: nelnds
       INTEGER :: mnelnds
       REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: xy ! x,y coordinates of nodes
+      REAL(pres), ALLOCATABLE, DIMENSION(:,:,:) :: elxy            
       REAL(pres), ALLOCATABLE, DIMENSION(:) :: depth ! depth at each node
+      REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: elhb            
+
 
       INTEGER :: nope ! number of open boundary segents
       INTEGER, ALLOCATABLE, DIMENSION(:) :: obseg ! number of nodes in each open boundary segment

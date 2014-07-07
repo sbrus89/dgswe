@@ -5,7 +5,8 @@ clc
 
 grd_direc = '~/dgswe/grids/';
 sol_direc = '~/dgswe/output/';
-grd_name = 'inlet1_quad.grd';
+% grd_name = 'inlet1_quad.grd';
+grd_name = 'converge_quad.grd';
 nsnap = 100;
 
 
@@ -89,9 +90,10 @@ Qymin = min(min(min(Qyv)));
 velmin = min(min(min(vel)));
 
 
-for tsnap = 1:snap
+for tsnap = snap %1:snap
     
     figure
+    
     axis equal
 
     disp(['Time snap: ',num2str(tsnap),'/',num2str(snap)])
@@ -115,6 +117,7 @@ for tsnap = 1:snap
     xlabel('x')
     ylabel('y')
     colorbar
+    caxis([0 1])    
     axis image
     
     pause(.01)

@@ -9,10 +9,15 @@
       INTEGER :: order(nel_type),npt(nel_type)
       REAL(pres) :: w(13,nel_type),r(13,nel_type)
       
-      order(1) = p+1
+!       order(1) = p+1
+!       order(2) = order(1)
+!       order(3) = p+ctp+1
+!       order(4) = order(3)
+
+      order(1) = p+ctp+1
       order(2) = order(1)
-      order(3) = p+ctp+1
-      order(4) = order(3)
+      order(3) = order(1)
+      order(4) = order(1)
       
       DO i = 1,nel_type
         CALL guass_qpts(order(i),npt(i),w(:,i),r(:,i))

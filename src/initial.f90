@@ -1,7 +1,7 @@
       SUBROUTINE initial()
 
       USE globals, ONLY: pres,ne,nn,ndof, &
-                         ect,xy,depth, &
+                         ect,xy,depth,elxy,elhb, &
                          nqpta,qpta,wpta,nqpte,qpte, &
                          H,Qx,Qy, &
                          Hinit,Qxinit,Qyinit, &
@@ -51,8 +51,9 @@
             x = 0d0
             y = 0d0
             DO nd = 1,nelnds(el)
-              xn = xy(1,ect(nd,el))
-              yn = xy(2,ect(nd,el))
+
+              xn = elxy(nd,el,1)
+              yn = elxy(nd,el,2)            
               
               x = x + psia(nd,pt,et)*xn
               y = y + psia(nd,pt,et)*yn
@@ -71,7 +72,7 @@
 
             h0 = 0d0
             DO nd = 1,nelnds(el)
-              h0 = h0 + psia(nd,pt,et)*depth(ect(nd,el))
+              h0 = h0 + psia(nd,pt,et)*elhb(nd,el)
             ENDDO
 
             h00 = depth(ect(1,el))*phil(1,pt,1) + depth(ect(2,el))*phil(2,pt,1) + depth(ect(3,el))*phil(3,pt,1)

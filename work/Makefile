@@ -55,7 +55,7 @@ ALIGN = #-DALIGN32
 # 	rk.o rhs2.o rhs3.o rhs4.o numerical_flux.o swe_tri.o
 
 objects = globals.o basis.o area_qpts.o edge_qpts.o read_input.o read_grid.o read_forcing.o modal2nodal.o \
-	alloc_arrays.o ptr_arrays.o initial.o connect.o element_data.o area_transformation.o edge_transformation.o edge_partition2.o  \
+	alloc_arrays.o ptr_arrays.o initial.o connect.o curvilinear.o element_data.o area_transformation.o edge_transformation.o edge_partition2.o  \
 	area_integration.o edge_integration.o rhs2.o  numerical_flux.o rk.o swe_tri.o
 
 dgswe : $(objects)
@@ -98,6 +98,9 @@ initial.o : initial.f90 globals.F90
 	$(FC) $(CFLAGS) $<
 
 connect.o : connect.f90 globals.F90
+	$(FC) $(CFLAGS) $<
+
+curvilinear.o : curvilinear.F90 globals.F90 basis.f90
 	$(FC) $(CFLAGS) $<
 
 element_data.o : element_data.f90 globals.F90
