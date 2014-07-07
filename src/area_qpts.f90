@@ -358,21 +358,65 @@
          
          ELSE IF (eltype == -1) THEN
          
-           CALL guass_qpts(p,npt,w,r)
+!            IF (p == 2) THEN
+!              qpta(1,:) = (/ 0d0 , (sqrt(3d0)+sqrt(15d0))/6d0 /)
+!              qpta(2,:) = (/ 0d0 , (sqrt(3d0)-sqrt(15d0))/6d0 /)
+!              qpta(3,:) = (/  sqrt(15d0)/5d0 , (sqrt(87d0)-2d0*sqrt(3d0))/15d0 /)
+!              qpta(4,:) = (/ -sqrt(15d0)/5d0 , (sqrt(87d0)-2d0*sqrt(3d0))/15d0 /)
+!              qpta(5,:) = (/  sqrt(15d0)/5d0 , (-sqrt(87d0)-2d0*sqrt(3d0))/15d0 /)
+!              qpta(6,:) = (/ -sqrt(15d0)/5d0 , (-sqrt(87d0)-2d0*sqrt(3d0))/15d0 /)
+!              
+!              wpta(1) = 4d0*(2d0/9d0  - (2d0*sqrt(5d0))/45d0)
+!              wpta(2) = 4d0*(2d0/9d0  + (2d0*sqrt(5d0))/45d0)
+!              wpta(3) = 4d0*(5d0/36d0 + (5d0*sqrt(29d0))/(18d0*29d0))
+!              wpta(4) = 4d0*(5d0/36d0 + (5d0*sqrt(29d0))/(18d0*29d0))
+!              wpta(5) = 4d0*(5d0/36d0 - (5d0*sqrt(29d0))/(18d0*29d0))
+!              wpta(6) = 4d0*(5d0/36d0 - (5d0*sqrt(29d0))/(18d0*29d0))    
+!              
+!              nqpta = 6
+             
+!              qpta(1,:) = (/  0.0d0            ,  0.774596669241d0 /)
+!              qpta(2,:) = (/  0.563604836881d0 , -0.795508520349d0 /)
+!              qpta(3,:) = (/  0.838331011044d0 ,  0.845091361153d0 /)
+!              qpta(4,:) = (/  0.651030930900d0 ,  0.166755021097d0 /)
+!              qpta(5,:) = (/ -0.484792881050d0 , -0.927694708202d0 /)
+!              qpta(6,:) = (/ -0.914603935097d0 , -0.520771886130d0 /)
+!              qpta(7,:) = (/ -0.135220856964d0 , -0.279191827433d0 /)
+!              qpta(8,:) = (/ -0.731697727745d0 ,  0.417391901524d0 /)           
+!              qpta(9,:) = (/ -0.887824220291d0 ,  1.075479856096d0 /)
+!              qpta(10,:) = (/ 1.101172842321d0,  -0.485302501018d0 /)
+!             
+!              
+!              wpta(1) = 4d0*0.140845070423d0 
+!              wpta(2) = 4d0*0.113931725656d0 
+!              wpta(3) = 4d0*0.049023075184d0 
+!              wpta(4) = 4d0*0.168918151204d0 
+!              wpta(5) = 4d0*0.063463914536d0  
+!              wpta(6) = 4d0*0.066611011696d0 
+!              wpta(7) = 4d0*0.214897708035d0
+!              wpta(8) = 4d0*0.145149421990d0 
+!              wpta(9) = 4d0*0.014704280797d0 
+!              wpta(10) = 4d0*0.022455640481d0
+             
+!              nqpta = 10             
+!            ELSE
+         
+             CALL guass_qpts(p,npt,w,r)
            
-           n = 1
-           DO i = 1,npt
-             DO j = 1,npt           
-               wpta(n) = w(i)*w(j) 
-               qpta(n,1) = r(i)
-               qpta(n,2) = r(j)
+             n = 1
+             DO i = 1,npt
+               DO j = 1,npt           
+                 wpta(n) = w(i)*w(j) 
+                 qpta(n,1) = r(i)
+                 qpta(n,2) = r(j)
                
-               n = n + 1
-             ENDDO 
-           ENDDO
+                 n = n + 1
+               ENDDO 
+             ENDDO
            
-           nqpta = npt*npt
+             nqpta = npt*npt
+           ENDIF
            
-         ENDIF
+!          ENDIF
        
        END SUBROUTINE cubature
