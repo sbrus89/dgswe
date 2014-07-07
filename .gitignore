@@ -1,0 +1,12 @@
+*.o
+output/
+*.a
+dgswe
+dgprep
+dgpost
+*~
+*.mod
+PE*
+*.log
+*.o*
+*.dump
