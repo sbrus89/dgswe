@@ -6,10 +6,10 @@ clc
 grd_direc = '~/dgswe/grids/';
 sol_direc = '~/dgswe/output/';
 % grd_name = 'inlet1_quad.grd';
-grd_name = 'converge_quad.grd';
+grd_name = 'converge3_quad.grd';
 nsnap = 100;
 
-
+grid_on = 0;
 
 
 [EToV,VX,HB,nelnds,~,~,~] = readfort14([grd_direc,grd_name]);
@@ -104,10 +104,19 @@ for tsnap = snap %1:snap
     velmax = max(max(vel(:,:,tsnap)));
     caxis([velmin velmax])
     for el = 1:ne
-        if nelnds(el) == 3
-            fill(VX(EToV(el,1:3),1),VX(EToV(el,1:3),2),vel(1:3,el,tsnap))
-        elseif nelnds(el) == 4
-            fill(VX(EToV(el,1:4),1),VX(EToV(el,1:4),2),vel(1:4,el,tsnap))
+        
+        if grid_on == 0
+            if nelnds(el) == 3
+                fill(VX(EToV(el,1:3),1),VX(EToV(el,1:3),2),vel(1:3,el,tsnap),'EdgeColor','none')
+            elseif nelnds(el) == 4
+                fill(VX(EToV(el,1:4),1),VX(EToV(el,1:4),2),vel(1:4,el,tsnap),'EdgeColor','none')
+            end
+        else
+            if nelnds(el) == 3
+                fill(VX(EToV(el,1:3),1),VX(EToV(el,1:3),2),vel(1:3,el,tsnap))
+            elseif nelnds(el) == 4
+                fill(VX(EToV(el,1:4),1),VX(EToV(el,1:4),2),vel(1:4,el,tsnap))
+            end
         end
     end
     hold off

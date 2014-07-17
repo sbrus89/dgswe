@@ -1,4 +1,4 @@
-function h = drawNGonMesh4( VK, EToV, OP1, VAL1, OP2, VAL2, lcolor )
+function h = drawNGonMesh4( VK, EToV, lcolor, OP1, VAL1, elcolor, OP2, VAL2, ndcolor )
 % Plot DG mesh (wireframe).
 % Note:
 %    VK- Coordinate
@@ -21,7 +21,7 @@ switch nargin
     case 5
         Opt{1,1} = OP1 ;
         Val{1,1} = VAL1 ;
-    case 7
+    case 9
         Opt{1,1} = OP1 ;
         Opt{2,1} = OP2 ;
         Val{1,1} = VAL1 ;
@@ -47,7 +47,7 @@ Nel = length(EToV)  ;
 for i = 1: Nel
     
     % Plot polygonal %
-    ngon = EToV(1) ;
+    ngon = EToV(i,1) ;
     vx  = VK(EToV(i,2:ngon+1),:) ;
     for ig = 1: ngon
         ib = ig ;
@@ -56,15 +56,21 @@ for i = 1: Nel
               [vx(ib,2) vx(ie,2)], 'Color',lcolor ) ;
     end
     
-    xp(1:ngon,i) = vx(:,1) ;
-    yp(1:ngon,i) = vx(:,2) ;
-   
-    x = sum(xp(1:ngon,i))/ngon ;
-    y = sum(yp(1:ngon,i))/ngon ;
-    
-    if ( strcmpi(OPD{1,2},'on') )
+end
+
+
+if ( strcmpi(OPD{1,2},'on') )
+    for i = 1:Nel
+        ngon = EToV(i,1) ;
+        
+        xp = VK(EToV(i,2:ngon+1),1) ;
+        yp = VK(EToV(i,2:ngon+1),2) ;
+        
+        x = sum(xp)/ngon ;
+        y = sum(yp)/ngon ;
+        
         txt = sprintf('%d',i) ;
-        text(x,y,txt,'Color',lcolor,'FontSize',6) ;
+        text(x,y,txt,'Color',elcolor,'FontSize',6) ;
     end
 end
 
@@ -73,7 +79,7 @@ if ( strcmpi(OPD{2,2},'on') )
         x = VK(i,1) ;
         y = VK(i,2) ;
         txt = sprintf('%d',i) ;
-        text(x,y,txt,'Color',lcolor,'FontSize',6) ;
+        text(x,y,txt,'Color',ndcolor,'FontSize',6) ;
     end
 end
     
