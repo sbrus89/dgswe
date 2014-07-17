@@ -43,11 +43,11 @@
       DO i = 1,nn                                                      
         READ(14,*), j, xy(1,j), xy(2,j), depth(j)
       ENDDO
-      PRINT "(A)", "Node coordinates and depth: "
-      DO i = 1,nn
-        PRINT "(I5,3(F11.3,3x))", i,xy(1,i), xy(2,i), depth(i)
-      ENDDO
-      PRINT*, " "
+!       PRINT "(A)", "Node coordinates and depth: "
+!       DO i = 1,nn
+!         PRINT "(I5,3(F11.3,3x))", i,xy(1,i), xy(2,i), depth(i)
+!       ENDDO
+!       PRINT*, " "
 
       ! read in element connectivity
       DO i = 1,ne
@@ -72,11 +72,11 @@
       
       mnelnds = maxval(nelnds)
       
-      PRINT "(A)", "Element connectivity table: "
-      DO i = 1,ne
-        PRINT "(2(I5,3x),8x,4(I5,3x))", i,nelnds(i),(ect(j,i),j=1,nelnds(i))
-      ENDDO
-      PRINT*, " "
+!       PRINT "(A)", "Element connectivity table: "
+!       DO i = 1,ne
+!         PRINT "(2(I5,3x),8x,4(I5,3x))", i,nelnds(i),(ect(j,i),j=1,nelnds(i))
+!       ENDDO
+!       PRINT*, " "
 
       READ(14,*) nope  ! number of open boundaries                                                 
       READ(14,*) neta  ! number of total elevation specified boundary nodes
@@ -94,14 +94,14 @@
         ENDDO
       ENDDO
 !       PRINT "(A)", "Open boundary segments:"
-      DO i = 1,nope
-        nbseg = obseg(i)
-        PRINT "(A,I5,A,I5,A)", "Open boundary segment ",i," contains ",nbseg," nodes"
-        DO j = 1,nbseg
-          PRINT "(I5)",obnds(j,i)
-        ENDDO
-      ENDDO
-      PRINT*, " "
+!       DO i = 1,nope
+!         nbseg = obseg(i)
+!         PRINT "(A,I5,A,I5,A)", "Open boundary segment ",i," contains ",nbseg," nodes"
+!         DO j = 1,nbseg
+!           PRINT "(I5)",obnds(j,i)
+!         ENDDO
+!       ENDDO
+!       PRINT*, " "
 
       READ(14,*) nbou  ! number of normal flow boundaries
       READ(14,*) nvel  ! total number of normal flow nodes
@@ -120,15 +120,15 @@
         ENDDO
       ENDDO
 !       PRINT "(A)", "Normal flow boundary segments: "
-      DO i = 1,nbou
-        nbseg = fbseg(1,i)
-        btype = fbseg(2,i)
-        PRINT "(A,I3,A,I3,A,I5,A)", "Normal flow boundary segment ",i," type ",btype, " contains ",nbseg," nodes"
-        DO j = 1,nbseg
-          PRINT "(I5)", fbnds(j,i)
-        ENDDO
-      ENDDO
-      PRINT*, " "
+!       DO i = 1,nbou
+!         nbseg = fbseg(1,i)
+!         btype = fbseg(2,i)
+!         PRINT "(A,I3,A,I3,A,I5,A)", "Normal flow boundary segment ",i," type ",btype, " contains ",nbseg," nodes"
+!         DO j = 1,nbseg
+!           PRINT "(I5)", fbnds(j,i)
+!         ENDDO
+!       ENDDO
+!       PRINT*, " "
 
       CLOSE(14) 
 

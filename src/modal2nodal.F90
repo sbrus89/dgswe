@@ -1,6 +1,6 @@
       SUBROUTINE modal2nodal()
 
-      USE globals, ONLY: pres,nel_type,p,ndof,m2n
+      USE globals, ONLY: pres,nel_type,p,ndof,m2n,out_direc
       USE basis, ONLY: jacobi
 
       IMPLICIT NONE
@@ -17,7 +17,7 @@
       
       ALLOCATE(m2n(4,mndof,nel_type))      
       
-      OPEN(unit=111,file="../output/modal2nodal.d")
+      OPEN(unit=111,file=trim(out_direc) // "modal2nodal.d")
       
       DO et = 1,nel_type
         

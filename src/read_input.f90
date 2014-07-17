@@ -1,10 +1,10 @@
       SUBROUTINE read_input()
 
-      USE globals, ONLY: grid_file,forcing_file,p,dt,tf,dramp,cf,lines,nblk,npart
+      USE globals, ONLY: grid_file,forcing_file,p,ctp,dt,tf,dramp,cf,lines,out_direc,npart
 
       IMPLICIT NONE
       
-      INTEGER, PARAMETER :: ninp = 10
+      INTEGER, PARAMETER :: ninp = 11
       INTEGER :: inp_read,skipped
       CHARACTER(55) :: temp
       
@@ -37,25 +37,28 @@
               READ(temp,*) p
               PRINT*, "p = ", p
             CASE (4)
+              READ(temp,*) ctp
+              PRINT*, "ctp = ", ctp
+            CASE (5)
               READ(temp,*) dt
               PRINT*, "dt = ", dt
-            CASE (5)
+            CASE (6)
               READ(temp,*) tf
               tf = tf*86400d0
               PRINT*, "tf = ", tf
-            CASE (6)
+            CASE (7)
               READ(temp,*) dramp
               PRINT*, "dramp = ", dramp
-            CASE (7)
+            CASE (8)
               READ(temp,*) cf
               PRINT*, "cf = ", cf
-            CASE (8)
+            CASE (9)
               READ(temp,*) lines
               PRINT*, "lines = ", lines
-            CASE (9)
-              READ(temp,*) nblk
-              PRINT*, "nblk = ", nblk
             CASE (10)
+              out_direc = TRIM(temp)
+              PRINT*, "out_direc = ", out_direc
+            CASE (11)
               READ(temp,*) npart
               PRINT*, "npart = ", npart
           END SELECT

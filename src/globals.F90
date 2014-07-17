@@ -11,12 +11,13 @@
       REAL(pres), PARAMETER :: pt5g = 0.5d0*g
       REAL(pres), PARAMETER  ::  pi=3.141592653589793D0
       REAL(pres) :: cf ! bottom friction parameter
-      CHARACTER(30) :: grid_name ! name of the grid
-      CHARACTER(30) :: grid_file ! name of fort.14 file
-      CHARACTER(24) :: forcing_file ! name of fort.15 file
+      CHARACTER(50) :: grid_name ! name of the grid
+      CHARACTER(50) :: grid_file ! name of fort.14 file
+      CHARACTER(50) :: forcing_file ! name of fort.15 file
+      CHARACTER(50) :: out_direc      
       
       INTEGER, PARAMETER :: nel_type = 4 !(type #s: 1 -> triangles, 2 -> quads, 3 -> curved triangles, 4-> curved quads)
-      INTEGER, PARAMETER :: ctp = 2
+      INTEGER :: ctp
       INTEGER :: nverts(nel_type)
       
       

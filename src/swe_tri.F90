@@ -9,11 +9,6 @@
       INTEGER :: i,j
       REAL(pres) :: tstep,t_start,t_end
 
-      OPEN(unit=63,file='../output/solution_H.d')
-      OPEN(unit=641,file='../output/solution_Qx.d')
-      OPEN(unit=642,file='../output/solution_Qy.d')
-      OPEN(unit=17,file='../output/edge_connect.d')
-
       PRINT*, ' '
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -23,6 +18,11 @@
       CALL read_input()
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+      OPEN(unit=63,file=trim(out_direc) // 'solution_H.d')
+      OPEN(unit=641,file=trim(out_direc) // 'solution_Qx.d')
+      OPEN(unit=642,file=trim(out_direc) // 'solution_Qy.d')
+!       OPEN(unit=17,file=trim(out_direc) // 'edge_connect.d')
 
       ndof(1) = (p+1)*(p+2)/2
       ndof(2) = (p+1)**2
@@ -147,21 +147,21 @@
       PRINT*, ' '
       PRINT("(A,F10.5,A)"), "CPU time = ",t_end-t_start," seconds"
       
-      OPEN(UNIT=101, FILE='CPUtime.log', STATUS='OLD', POSITION='APPEND')
-      WRITE(101,*) "grid = ", grid_file
-      WRITE(101,*) "p = ", p
-      WRITE(101,*) "dt, tf = ", dt,tf
-#ifdef rk22
-      WRITE(101,*) "RK 22"
-#endif
-#ifdef rk33
-      WRITE(101,*) "RK 33"
-#endif
-      WRITE(101,*) "nblk, npart = ", nblk, npart
-      WRITE(101,*) "mnpartel,mnparted = ", mnpartel,mnparted   
-      WRITE(101,*) "CPU time = ", t_end-t_start
-      WRITE(101,*) " "
-      CLOSE(101)
+!       OPEN(UNIT=101, FILE='CPUtime.log', STATUS='OLD', POSITION='APPEND')
+!       WRITE(101,*) "grid = ", grid_file
+!       WRITE(101,*) "p = ", p
+!       WRITE(101,*) "dt, tf = ", dt,tf
+! #ifdef rk22
+!       WRITE(101,*) "RK 22"
+! #endif
+! #ifdef rk33
+!       WRITE(101,*) "RK 33"
+! #endif
+!       WRITE(101,*) "nblk, npart = ", nblk, npart
+!       WRITE(101,*) "mnpartel,mnparted = ", mnpartel,mnparted   
+!       WRITE(101,*) "CPU time = ", t_end-t_start
+!       WRITE(101,*) " "
+!       CLOSE(101)
       
 
       PRINT*, ' '

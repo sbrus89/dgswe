@@ -58,8 +58,9 @@
       nx_pt = 0d0
       ny_pt = 0d0    
       
-      
-      CALL curvilinear()    
+      IF (ctp > 1) THEN      
+        CALL curvilinear()    
+      ENDIF
       
       
       DO i = 1,nel_type

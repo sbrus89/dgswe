@@ -299,39 +299,39 @@
 
 
       ! write edge connectivity information in similar format to fort.17
-      OPEN(UNIT=17,FILE='fort.17')
+!       OPEN(UNIT=17,FILE='fort.17')
       
-      WRITE(17,*) ned
-      DO i = 1,ned
-        WRITE(17,*) i,ged2nn(1,i),ged2nn(2,i),ged2el(1,i),ged2el(2,i)
-      ENDDO
-
-      WRITE(17,*) 'number of interior edges:', nied
-      DO i = 1,nied
-        WRITE(17,*) i,iedn(i),ged2nn(1,iedn(i)),ged2nn(2,iedn(i))
-      ENDDO
-
-      WRITE(17,*) 'number of no normal flow boundary edges:', nnfbed
-      DO i = 1,nnfbed
-        WRITE(17,*) i,nfbedn(i),ged2nn(1,nfbedn(i)),ged2nn(2,nfbedn(i))
-      ENDDO
-
-      WRITE(17,*) 'number of open boundary edges:', nobed
-      DO i = 1,nobed
-        WRITE(17,*) i,obedn(i),ged2nn(1,obedn(i)),ged2nn(2,obedn(i))
-      ENDDO
-
-      WRITE(17,*) 'number of flow specified boundary edges:', nfbed
-      DO i = 1,nfbed
-        WRITE(17,*) i,fbedn(i),ged2nn(1,fbedn(i)),ged2nn(2,fbedn(i))
-      ENDDO
-
-      WRITE(17,*) "global to local edge table"
-      DO i = 1,ned
-        WRITE(17,*) i,ged2led(1,i),ged2led(2,i)
-      ENDDO
-      
-      CLOSE(17)
+!       WRITE(17,*) ned
+!       DO i = 1,ned
+!         WRITE(17,*) i,ged2nn(1,i),ged2nn(2,i),ged2el(1,i),ged2el(2,i)
+!       ENDDO
+! 
+!       WRITE(17,*) 'number of interior edges:', nied
+!       DO i = 1,nied
+!         WRITE(17,*) i,iedn(i),ged2nn(1,iedn(i)),ged2nn(2,iedn(i))
+!       ENDDO
+! 
+!       WRITE(17,*) 'number of no normal flow boundary edges:', nnfbed
+!       DO i = 1,nnfbed
+!         WRITE(17,*) i,nfbedn(i),ged2nn(1,nfbedn(i)),ged2nn(2,nfbedn(i))
+!       ENDDO
+! 
+!       WRITE(17,*) 'number of open boundary edges:', nobed
+!       DO i = 1,nobed
+!         WRITE(17,*) i,obedn(i),ged2nn(1,obedn(i)),ged2nn(2,obedn(i))
+!       ENDDO
+! 
+!       WRITE(17,*) 'number of flow specified boundary edges:', nfbed
+!       DO i = 1,nfbed
+!         WRITE(17,*) i,fbedn(i),ged2nn(1,fbedn(i)),ged2nn(2,fbedn(i))
+!       ENDDO
+! 
+!       WRITE(17,*) "global to local edge table"
+!       DO i = 1,ned
+!         WRITE(17,*) i,ged2led(1,i),ged2led(2,i)
+!       ENDDO
+!       
+!       CLOSE(17)
 
       RETURN
       END SUBROUTINE connect
