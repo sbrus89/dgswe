@@ -3,10 +3,15 @@ clear all
 close all
 clc
 
-grd_direc = '~/dgswe/grids/';
-sol_direc = '~/dgswe/output/';
-% grd_name = 'inlet1_quad.grd';
-grd_name = 'converge3_quad.grd';
+% grd_direc = '~/Codes/dgswe/grids/';
+% sol_direc = '~/Codes/dgswe/output/';
+% % grd_name = 'inlet1_quad.grd';
+% grd_name = 'converge_quad.grd';
+
+grd_direc = '~/data-drive/galveston/dgswe/';
+sol_direc = '~/data-drive/galveston/dgswe/';
+grd_name = 'galveston_quad.grd';
+
 nsnap = 100;
 
 grid_on = 0;
@@ -126,7 +131,7 @@ for tsnap = snap %1:snap
     xlabel('x')
     ylabel('y')
     colorbar
-    caxis([0 1])    
+    %caxis([0 1])    
     axis image
     
     pause(.01)
