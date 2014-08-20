@@ -6,7 +6,7 @@
 
         USE globals, ONLY: pres,nel_type,nqpta,nqpte,wpta,qpta,p,ndof, &
                            phia,phia_int,phia_int_init,phil,dpdx,dpdy,dpdx_init,dpdy_init,dpdr,dpds, &
-                           ect,xy,ne,area
+                           ect,xy,ne,area,out_direc
 
         IMPLICIT NONE
         INTEGER :: i,j,pt,et
@@ -89,7 +89,7 @@
         
         CALL modal2nodal()
 
-        OPEN(unit=10,file='../output/projection.d')
+        OPEN(unit=10,file=trim(out_direc) // 'projection.d')
 
         WRITE(10,*) ndof(1)
         DO i = 1,3
