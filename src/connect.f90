@@ -252,34 +252,45 @@
       nfbed = 0 ! # flow specifed edges
       fbnd_temp(:) = 0
       nfbnd_temp(:) = 0
+      found = 0
 
       DO seg = 1,nbou
+      
+        segtype = fbseg(2,seg)
+!         print*, seg, fbseg(1,seg), segtype
+              
         DO nd = 1,fbseg(1,seg)-1
           n1bed = fbnds(nd,seg)
           n2bed = fbnds(nd+1,seg)
+          found = 0 
           DO ed2 = 1,ned
             n1ed2 = ged2nn(1,ed2)
             n2ed2 = ged2nn(2,ed2)
             IF(((n1ed2 == n1bed).AND.(n2ed2 == n2bed)).OR. &
                ((n1ed2 == n2bed).AND.(n2ed2 == n1bed))) THEN
 
-              segtype = fbseg(2,seg)
-
               ! no normal flow edges
               IF( segtype == 0 .OR. segtype == 10 .OR. segtype == 20  .OR. &
                   segtype == 1 .OR. segtype == 11 .OR. segtype == 21 ) THEN
                 nnfbed = nnfbed + 1
                 nfbnd_temp(nnfbed) = ed2
+                found = 1
               ENDIF
 
               ! specified normal flow edges
               IF ( segtype == 2 .OR. segtype == 12 .OR. segtype == 22 ) THEN
                 nfbed = nfbed + 1
                 fbnd_temp(nfbed) = ed2
+                found = 1
               ENDIF
 
             ENDIF
           ENDDO
+          IF (found == 0) THEN
+            PRINT "(A)", "  edge not found"
+          ELSE 
+!             PRINT "(A,I5)", "  edge found", nd
+          ENDIF
         ENDDO
       ENDDO
 
@@ -299,9 +310,9 @@
       PRINT "(A)", ' '
 
 
-      ! write edge connectivity information in similar format to fort.17
+! !       write edge connectivity information in similar format to fort.17
 !       OPEN(UNIT=17,FILE='fort.17')
-      
+!       
 !       WRITE(17,*) ned
 !       DO i = 1,ned
 !         WRITE(17,*) i,ged2nn(1,i),ged2nn(2,i),ged2el(1,i),ged2el(2,i)
