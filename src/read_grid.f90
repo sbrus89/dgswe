@@ -118,6 +118,12 @@
         DO j = 1,nbseg
           READ(14,*), fbnds(j,i)  ! read in normal flow boundary node numbers
         ENDDO
+        IF (btype == 1 .OR. btype == 11 .OR. btype == 21) THEN
+          IF (fbnds(nbseg,i) /= fbnds(1,i)) THEN
+            fbnds(nbseg+1,i) = fbnds(1,i)  ! close island boundaries
+            fbseg(1,i) = fbseg(1,i) + 1
+          ENDIF
+        ENDIF
       ENDDO
 !       PRINT "(A)", "Normal flow boundary segments: "
 !       DO i = 1,nbou
