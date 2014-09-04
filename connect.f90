@@ -1,7 +1,7 @@
       SUBROUTINE connect()
 
       USE globals, ONLY: pres,nn,ne,ned,vct,el_type,nverts,curved_grid, &
-                         ged2nn,ged2el,ged2led, &
+                         ged2nn,ged2el,ged2led,nepn,epn, &
                          nied,iedn,nobed,obedn,nfbed,fbedn,nnfbed,nfbedn, &
                          nope,neta,obseg,obnds,nbou,fbseg,nvel,fbnds, &
                          nelnds
@@ -20,8 +20,6 @@
       
       INTEGER, ALLOCATABLE, DIMENSION(:) :: bnd_temp,nfbnd_temp,fbnd_temp ! temporary arrary for boundary edges
       INTEGER, ALLOCATABLE, DIMENSION(:,:) :: ged2nn_temp, ged2el_temp, ged2led_temp ! temporary arrays for edge connectivity
-      INTEGER, ALLOCATABLE, DIMENSION(:) :: nepn ! number of elements per node
-      INTEGER, ALLOCATABLE, DIMENSION(:,:) :: epn ! elements per node
       INTEGER, ALLOCATABLE, DIMENSION(:,:) :: edflag
       INTEGER :: mnepn ! maximum number of elements per node
 

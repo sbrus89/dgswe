@@ -1,9 +1,10 @@
       PROGRAM spline
 
-      USE globals, ONLY: pres,nbou,fbseg,xy,fbnds
+      USE globals, ONLY: pres,nbou,fbseg,xy,fbnds,nepn,epn,vct,nverts,el_type
 
       IMPLICIT NONE
       INTEGER :: i,j,k,n,seg,sind,eind,num,qpts,btype
+      INTEGER :: el,eln,nd,led,n1ed1,n2ed1,n1bed,n2bed,nvert
       REAL(pres) :: htest,mult,dt,t,x,y,qpt(2),norm
       REAL(pres) :: d1,d2,d3,t1,t2
       REAL(pres), ALLOCATABLE, DIMENSION(:) :: ax,bx,cx,dx
@@ -15,6 +16,8 @@
       PRINT "(A)", " "
 
       CALL read_grid()
+      
+      CALL connect()
 
       num = 0
       DO seg = 1,nbou
@@ -149,6 +152,35 @@
             dy(i) = (cy(i+1)-cy(i))/(3.0*dt)
             by(i) = (ay(i+1)-ay(i))/dt - dt*(2.0*cy(i)+cy(i+1))/3.0
           ENDDO
+          
+          
+          
+          DO nd = 1,n-1
+            n1bed = fbnds(nd,seg)
+            n2bed = fbnds(nd+1,seg)    
+
+      elem: DO el = 1,nepn(n1bed)
+              eln = epn(el,n1bed)
+              
+              nvert = nverts(el_type(eln))
+              
+              DO led = 1,nvert
+ 
+                n1ed1 = vct(mod(led+0,nvert)+1,eln)
+                n2ed1 = vct(mod(led+1,nvert)+1,eln) 
+
+                IF(((n1ed1 == n1bed).AND.(n2ed1 == n2bed)).OR. &
+                   ((n1ed1 == n2bed).AND.(n2ed1 == n1bed))) THEN
+                   
+                   print*, "  ", eln
+                   
+                   EXIT elem
+
+                ENDIF
+                
+              ENDDO
+            ENDDO elem
+          ENDDO          
 
   
           WRITE(30,*) n,dt

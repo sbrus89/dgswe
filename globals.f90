@@ -41,6 +41,9 @@
       INTEGER :: nvel  ! total number of normal flow boundary nodes
       INTEGER, ALLOCATABLE, DIMENSION(:,:) :: fbnds ! normal flow boundary nodes
       
+      INTEGER, ALLOCATABLE, DIMENSION(:) :: nepn ! number of elements per node
+      INTEGER, ALLOCATABLE, DIMENSION(:,:) :: epn ! elements per node      
+      
       INTEGER :: ned ! total number of edges
       INTEGER, ALLOCATABLE, DIMENSION(:,:) :: ged2nn ! gives the two node numbers that make up a global edge number
       INTEGER, ALLOCATABLE, DIMENSION(:,:) :: ged2el ! gives the two element numbers that share a global edge number

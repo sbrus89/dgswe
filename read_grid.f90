@@ -12,6 +12,11 @@
       INTEGER :: alloc_status
       
       CALL read_input()
+      
+      nverts(1) = 3
+      nverts(2) = 4
+      nverts(3) = 3
+      nverts(4) = 4      
 
       PRINT "(A)", "---------------------------------------------"
       PRINT "(A)", "             Grid Information                "
