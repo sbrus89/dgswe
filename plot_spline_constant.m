@@ -70,6 +70,21 @@ end
 
 fclose(file);
 
+hold on
+
+fid = fopen('nodes.out') ;
+
+agrid = fgetl(fid) ;
+disp(agrid) ;
+title = agrid ; 
+
+N = fscanf(fid,'%g %g',2) ;
+
+Val = zeros(N(2),4) ;
+Val = fscanf(fid,'%d %g %g %g \n', [4 N(2)])' ;
+VX = Val(:,2:3) ;
+
+plot(VX(:,1),VX(:,2),'mx')
 
 axis equal
 %axis([23000 27000 10000 12500])
