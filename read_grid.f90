@@ -60,6 +60,7 @@
 !       PRINT*, " "
 
       ! read in element connectivity
+      ect = 0
       DO i = 1,ne
         READ(14,*) el,nelnds(el),(ect(j,el),j = 1,nelnds(el))
         IF (nelnds(el) == 3) THEN
