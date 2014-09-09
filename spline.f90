@@ -221,9 +221,6 @@
             n2x = xy(1,n2bed)
             n2y = xy(2,n2bed)
 
-            xm = .5d0*(n2x+n1x)
-            ym = .5d0*(n2y+n1y)
-                        
             edlen = sqrt((n1x-n2x)**2+(n1y-n2y)**2)            
 
       elem: DO el = 1,nepn(n1bed)
@@ -243,8 +240,11 @@
                    
                    DO i = 1,ctp-1
                      r = -1d0 + real(i,pres)*2d0/real(ctp,pres)
-                     tpt = .5d0*dt*(r + 1d0) + t
-
+                     tpt = .5d0*dt*(r + 1d0) + t               
+                     
+                     xm = .5d0*(1d0-r)*n1x + .5d0*(1d0+r)*n2x
+                     ym = .5d0*(1d0-r)*n1y + .5d0*(1d0+r)*n2y
+                     
                      tpt = newton(tpt,t,xm,ym,ax(nd),bx(nd),cx(nd),dx(nd),ay(nd),by(nd),cy(nd),dy(nd))
 
                      x = ax(nd) + bx(nd)*(tpt-t) + cx(nd)*(tpt-t)**2 + dx(nd)*(tpt-t)**3
@@ -332,9 +332,9 @@ iter: DO it = 1,maxit
         
       ENDDO iter
       
-      IF (it == maxit) THEN
+      IF (it >= maxit) THEN
         PRINT*, "MAX ITERATIONS EXCEEDED"
-      ENDIF
+      ENDIF     
       
       newton = tnew
       
