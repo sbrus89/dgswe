@@ -2,7 +2,7 @@ FC = ifort
 
 VPATH := ../src
 
-RK = -Drk33
+RK = -Drk22
 LIB_PATH = ../metis-4.0.3/
 LIB = metis
 LAPACK_LIB = lapack
