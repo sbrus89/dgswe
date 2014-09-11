@@ -1,13 +1,14 @@
       SUBROUTINE read_grid()
       
-      USE globals, ONLY: grid_file,ne,nn,ect,xy,depth,nelnds,elxy,elhb, &
+      USE globals, ONLY: grid_file,ne,nn,ect,vct,xy,depth,nelnds,elxy,elhb, &
                          nope,neta,obseg,obnds,nvel,nbou,fbseg,fbnds,grid_name, &
-                         el_type,ctp,mnelnds
+                         el_type,ctp,mnelnds,curved_grid,nverts
 
       IMPLICIT NONE
       INTEGER :: i,j,k,el
       INTEGER :: nbseg
       INTEGER :: btype
+      INTEGER :: nvert
       INTEGER :: alloc_status
 
       PRINT "(A)", "---------------------------------------------"
@@ -33,12 +34,14 @@
       PRINT "(A,I5)", "Number of nodes: ", nn
       PRINT*, " "
 
-      ALLOCATE(ect((ctp+1)*(ctp+1),ne),xy(2,nn),depth(nn),nelnds(ne),el_type(ne),STAT = alloc_status)  ! element connectivity table, node coordinate array, depth vector      
+      ALLOCATE(ect((ctp+1)*(ctp+1),ne),vct(4,ne),xy(2,nn),depth(nn),nelnds(ne),el_type(ne),STAT = alloc_status)  ! element connectivity table, node coordinate array, depth vector      
       IF(alloc_status /= 0) THEN
         PRINT*, 'Allocation error: ect,xy,depth'
       ENDIF     
       ALLOCATE(elxy((ctp+1)*(ctp+1),ne,2),elhb((ctp+1)*(ctp+1),ne))
 
+      curved_grid = 0
+      
       ! read in node coordinates and depths
       DO i = 1,nn                                                      
         READ(14,*), j, xy(1,j), xy(2,j), depth(j)
@@ -58,8 +61,13 @@
           el_type(el) = 2
         ELSE IF (nelnds(el) == (ctp+1)*(ctp+2)/2) THEN
           el_type(el) = 3
+          curved_grid = 1
         ELSE IF (nelnds(el) == (ctp+1)*(ctp+1)) THEN
           el_type(el) = 4
+          curved_grid = 1
+        ELSE
+          PRINT*, "Element type not supported or ctp not compatible with grid"
+          STOP
         ENDIF 
         
         DO j = 1,nelnds(el)
@@ -69,6 +77,25 @@
         ENDDO      
         
       ENDDO
+      
+      PRINT "(A,I5)", "Curved grid = ",curved_grid
+      PRINT*, " "
+      
+      IF (curved_grid == 1) THEN
+        DO i = 1,ne
+          nvert = nverts(el_type(i))
+          DO j = 1,nvert
+            vct(j,i) = ect(ctp*(j-1)+1,i)
+          ENDDO
+        ENDDO        
+      ELSE 
+        DO i = 1,ne
+          nvert = nverts(el_type(i))
+          DO j = 1,nvert
+            vct(j,i) = ect(j,i)
+          ENDDO
+        ENDDO
+      ENDIF
       
       mnelnds = maxval(nelnds)
       

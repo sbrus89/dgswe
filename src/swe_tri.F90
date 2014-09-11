@@ -36,6 +36,16 @@
       nverts(3) = 3
       nverts(4) = 4
       
+      np(1) = 1
+      np(2) = 1
+      np(3) = ctp
+      np(4) = ctp          
+
+      nnds(1) = 3
+      nnds(2) = 4
+      nnds(3) = (ctp+1)*(ctp+2)/2
+      nnds(4) = (ctp+1)*(ctp+1)      
+      
       tstep = int(tf/dt)
       tskp = int(tf/(lines*dt)) 
       

@@ -19,8 +19,9 @@
       INTEGER, PARAMETER :: nel_type = 4 !(type #s: 1 -> triangles, 2 -> quads, 3 -> curved triangles, 4-> curved quads)
       INTEGER :: ctp
       INTEGER :: nverts(nel_type)
+      INTEGER :: np(nel_type), nnds(nel_type)
       
-      
+      INTEGER :: curved_grid
       INTEGER, ALLOCATABLE, DIMENSION(:) :: el_type
       
       INTEGER, DIMENSION(nel_type) :: ndof ! number of degrees of freedom
@@ -55,7 +56,7 @@
       
       REAL(pres) :: lines ! number of lines in output files
       
-      INTEGER, ALLOCATABLE, DIMENSION(:,:) :: ect ! element connectivity table
+      INTEGER, ALLOCATABLE, DIMENSION(:,:) :: ect,vct ! element connectivity table
       INTEGER, ALLOCATABLE, DIMENSION(:) :: nelnds
       INTEGER :: mnelnds
       REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: xy ! x,y coordinates of nodes

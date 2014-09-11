@@ -1,21 +1,22 @@
       SUBROUTINE modal2nodal()
 
-      USE globals, ONLY: pres,nel_type,p,ndof,m2n,out_direc
+      USE globals, ONLY: pres,nel_type,p,nnds,ndof,m2n,out_direc
       USE basis, ONLY: jacobi
 
       IMPLICIT NONE
       
       INTEGER :: i,j,m
       INTEGER :: et,pt
-      INTEGER :: mndof
+      INTEGER :: mndof,mnnds
       INTEGER :: nvert
       REAL(pres) :: r(4),s(4)
       REAL(pres) :: a(3),b(3)
       REAL(pres) :: Pi(4),Pj(4)      
       
       mndof = maxval(ndof)
+      mnnds = maxval(nnds)
       
-      ALLOCATE(m2n(4,mndof,nel_type))      
+      ALLOCATE(m2n(mnnds,mndof,nel_type))      
       
       OPEN(unit=111,file=trim(out_direc) // "modal2nodal.d")
       

@@ -1,6 +1,6 @@
       SUBROUTINE connect()
 
-      USE globals, ONLY: pres,nn,ne,ned,ect, &
+      USE globals, ONLY: pres,nn,ne,ned,vct,el_type,nverts,curved_grid, &
                          ged2nn,ged2el,ged2led, &
                          nied,iedn,nobed,obedn,nfbed,fbedn,nnfbed,nfbedn, &
                          nope,neta,obseg,obnds,nbou,fbseg,nvel,fbnds, &
@@ -12,9 +12,10 @@
       INTEGER :: n1,nnds
       INTEGER :: n1ed1,n2ed1,n1ed2,n2ed2
       INTEGER :: n1bed,n2bed
-      INTEGER :: led(2,4) ! local edge nodes
       INTEGER :: segtype
       INTEGER :: alloc_status
+      INTEGER :: found
+      INTEGER :: nvert1,nvert2,nvert
       REAL(pres) :: x1,x2,x3,y1,y2,y3
       
       INTEGER, ALLOCATABLE, DIMENSION(:) :: bnd_temp,nfbnd_temp,fbnd_temp ! temporary arrary for boundary edges
@@ -52,9 +53,9 @@
 
       nepn(:) = 0
       DO el = 1,ne
-      
-        DO nd = 1,nelnds(el)
-          n1 = ect(nd,el)
+        nvert = nverts(el_type(el))
+        DO nd = 1,nvert
+          n1 = vct(nd,el)
           nepn(n1) = nepn(n1) + 1
         ENDDO
         
@@ -90,9 +91,9 @@
 
       nepn(:) = 0
       DO el = 1,ne
-      
-        DO nd = 1,nelnds(el)
-          n1 = ect(nd,el)
+        nvert = nverts(el_type(el))
+        DO nd = 1,nvert
+          n1 = vct(nd,el)
           nepn(n1) = nepn(n1) + 1
           epn(nepn(n1),n1) = el
         ENDDO
@@ -116,12 +117,9 @@
           ged2el_temp(:,:) = 0
    elem1: DO el1 = 1,ne ! loop through trial elements
    
-            DO led1 = 1,nelnds(el1)
-              led(1,led1) = ect(mod(led1+0,nelnds(el1))+1,el1) ! node numbers for each local edge
-              led(2,led1) = ect(mod(led1+1,nelnds(el1))+1,el1)
-            ENDDO
+            nvert1 = nverts(el_type(el1))
 
- local_ed1: DO led1 = 1,nelnds(el1) ! loop through trial edges
+ local_ed1: DO led1 = 1,nvert1 ! loop through trial edges
 
               IF(edflag(led1,el1) == 1) THEN ! skip if edge has already been flagged
                 CYCLE local_ed1
@@ -129,8 +127,8 @@
 
               ned = ned + 1 ! increment edge number
 
-              n1ed1 = led(1,led1) ! find nodes on trial edge
-              n2ed1 = led(2,led1)
+              n1ed1 = vct(mod(led1+0,nvert1)+1,el1) ! find nodes on trial edge
+              n2ed1 = vct(mod(led1+1,nvert1)+1,el1)
               
               ged2nn_temp(1,ned) = n1ed1 ! set nodes on global edge # ned
               ged2nn_temp(2,ned) = n2ed1
@@ -147,11 +145,13 @@
                 IF(el2 == el1) THEN ! skip if the test element is the same as the trial element
                   CYCLE elem2
                 ENDIF
+                
+                nvert2 = nverts(el_type(el2))
 
-     local_ed2: DO led2 = 1,nelnds(el2) ! loop through local test edge numbers
+     local_ed2: DO led2 = 1,nvert2 ! loop through local test edge numbers
                   
-                  n1ed2 = ect(MOD(led2+0,nelnds(el2))+1,el2) ! find nodes on test edge
-                  n2ed2 = ect(MOD(led2+1,nelnds(el2))+1,el2)
+                  n1ed2 = vct(MOD(led2+0,nvert2)+1,el2) ! find nodes on test edge
+                  n2ed2 = vct(MOD(led2+1,nvert2)+1,el2)
 
                   IF(((n1ed1 == n1ed2) .AND. (n2ed1 == n2ed2)) .OR. & ! check if nodes on trial edge matches test edge
                      ((n1ed1 == n2ed2) .AND. (n2ed1 == n1ed2))) THEN
@@ -257,7 +257,7 @@
       DO seg = 1,nbou
       
         segtype = fbseg(2,seg)
-!         print*, seg, fbseg(1,seg), segtype
+        print*, seg, fbseg(1,seg), segtype
               
         DO nd = 1,fbseg(1,seg)-1
           n1bed = fbnds(nd,seg)

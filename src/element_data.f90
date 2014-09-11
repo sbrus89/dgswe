@@ -1,14 +1,15 @@
       SUBROUTINE element_data()
 
-      USE globals, ONLY: pres,ect,xy,depth,ne,nn,ned,ndof,nqpta,qpta,nqpte, &
-                         el_type,nel_type,p,ctp,nelnds, &
+      USE globals, ONLY: pres,ect,vct,xy,depth,ne,nn,ned,ndof,nqpta,qpta,nqpte, &
+                         el_type,nel_type,p,ctp,nelnds,np,nnds, &
                          area,edlen,edlen_area,normal,ged2nn,ged2el,ged2led, &
                          dhbdx,dhbdy,dhbdx_init,dhbdy_init, &
                          dpdx_init,dpdy_init, &
                          dpdr,dpds,wpta, &
                          psia,dpsidr,dpsids,detJa,mmi,mmi_init, &
                          psie,dpsidxi,detJe, &
-                         nx_pt,ny_pt
+                         nx_pt,ny_pt, &
+                         curved_grid
                          
       USE basis, ONLY: 
 
@@ -16,7 +17,6 @@
       INTEGER :: el,ed,led,dof,pt,i,nd
       INTEGER :: ind,et
       INTEGER :: mnqpta,mnnds,mnqpte,mndof
-      INTEGER :: np(4),nnds(4)
       INTEGER :: alloc_status
       REAL(pres) :: x1,x2,x3,x4,y1,y2,y3,y4
       REAL(pres) :: dxdr,dxds,dydr,dyds   
@@ -26,15 +26,7 @@
       REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: jac
      
 
-      np(1) = 1
-      np(2) = 1
-      np(3) = ctp
-      np(4) = ctp          
 
-      nnds(1) = 3
-      nnds(2) = 4
-      nnds(3) = (ctp+1)*(ctp+2)/2
-      nnds(4) = (ctp+1)*(ctp+1)
       
       mnqpta = maxval(nqpta)
       mnnds = maxval(nnds)
@@ -58,9 +50,10 @@
       nx_pt = 0d0
       ny_pt = 0d0    
       
-      IF (ctp > 1) THEN      
-        CALL curvilinear()    
-      ENDIF
+!       IF (ctp > 1 .AND. curved_grid == 0) THEN  
+! !       IF (ctp > 1) THEN
+!         CALL curvilinear()    
+!       ENDIF
       
       
       DO i = 1,nel_type
@@ -123,7 +116,12 @@
           ENDDO
          
 !           PRINT("(I5,4(e23.14),10x,4(e23.14))"), el,(jac(el,pt), pt = 1,nqpta(2)),(detJa(el,pt), pt = 1,nqpta(2))         
-!           PRINT("(I5,4(e23.14))"), el,(abs(jac(el,pt)-detJa(el,pt)), pt = 1,nqpta(2))         
+!           PRINT("(I5,4(e23.14))"), el,(abs(jac(el,pt)-detJa(el,pt)), pt = 1,nqpta(2))    
+!           PRINT("(I5,10x,40(e23.14))"), el,(detJa(el,pt), pt = 1,nqpta(2))     
+          
+        ELSE IF ( el_type(el) == 4) THEN
+        
+!           PRINT("(I5,10x,40(e23.14))"), el,(detJa(el,pt), pt = 1,nqpta(2))  
 
         ENDIF
       ENDDO
