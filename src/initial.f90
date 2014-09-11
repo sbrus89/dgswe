@@ -71,7 +71,7 @@
 !             y = -.5d0*((r+s)*y1 - (1d0+r)*y2 - (1d0+s)*y3)
 
             h0 = 0d0
-            DO nd = 1,nelnds(el)
+            DO nd = 1,nelnds(el)   ! This assumes there is an equal order representation between the bathymetry and the coordinate transformation
               h0 = h0 + psia(nd,pt,et)*elhb(nd,el)
             ENDDO
 

@@ -113,7 +113,7 @@
             
             dhbdx_init(el,pt) = 0d0
             dhbdy_init(el,pt) = 0d0
-            DO nd = 1,nelnds(el)
+            DO nd = 1,nelnds(el)  ! This assumes there is an equal order representation between the bathymetry and the coordinate transformation
               hb = elhb(nd,el)
               
               dhbdx_init(el,pt) = dhbdx_init(el,pt) + (dldr(nd,pt)*drdx + dlds(nd,pt)*dsdx)*hb
