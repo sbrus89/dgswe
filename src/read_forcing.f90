@@ -19,7 +19,7 @@
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
       READ(15,*) nobfr
-      PRINT*, 'number of open boundary forcings',nobfr
+      PRINT "(A,I5)", 'Number of open boundary forcings',nobfr
 
       ALLOCATE(obtag(nobfr),obfreq(nobfr),obnfact(nobfr),obeq(nobfr),obper(nobfr),STAT = alloc_stat)
       IF(alloc_stat /= 0) THEN
@@ -28,6 +28,7 @@
 
       DO bfr = 1,nobfr
         READ(15,*) obtag(bfr)
+        PRINT "(A,A)", "  ",obtag(bfr)
         READ(15,*) obfreq(bfr),obnfact(bfr),obeq(bfr)
         obeq(bfr) = obeq(bfr)*deg2rad
         IF(obfreq(bfr) == 0.) THEN
@@ -55,7 +56,7 @@
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
       READ(15,*) nfbfr
-      PRINT*, 'number of flow boundary forcings',nfbfr
+      PRINT "(A,I5)", 'Number of flow boundary forcings',nfbfr
       PRINT*, ' '
 
       ALLOCATE(fbtag(nfbfr),fbfreq(nfbfr),fbnfact(nfbfr),fbeq(nfbfr),fbper(nfbfr),STAT = alloc_stat)
@@ -65,6 +66,7 @@
 
       DO bfr = 1,nfbfr
         READ(15,*) fbtag(bfr)
+        PRINT "(A,A)", "  ",obtag(bfr)        
         READ(15,*) fbfreq(bfr),fbnfact(bfr),fbeq(bfr)
         PRINT*,fbtag(bfr)
         PRINT*, fbfreq(bfr),fbnfact(bfr),fbeq(bfr)
