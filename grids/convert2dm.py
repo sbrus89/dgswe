@@ -1,14 +1,21 @@
 import pprint
 
-filename = "/home/sbrus/data-drive/galveston/dgswe/galveston_curve.2dm"
-fort14name = "/home/sbrus/data-drive/galveston/dgswe/galveston_curve.grd"
-grid_name = "galveston_curve"
+#filename = "/home/sbrus/data-drive/galveston/dgswe/quad2_spline/galveston2.2dm"
+#fort14name = "/home/sbrus/data-drive/galveston/dgswe/quad2_spline/galveston2_spline_plot.grd"
+#grid_name = "galveston2_spline_plot"
+
+filename = "/home/sbrus/Codes/spline/galveston2_curve.2dm"
+#fort14name = "/home/sbrus/Codes/spline/galveston2_spline.grd"
+fort14name = "/home/sbrus/data-drive/galveston/dgswe/quad2_spline_channel/galveston2_spline_plot.grd"
+grid_name = "galveston2_spline_channel_plot"
 
 f = open(filename)
-grid_data = f.read().split("\n")
+grid_data = f.read().splitlines()
 #print grid_data
 
 n = len(grid_data)
+
+curved = 0
 
 ect = []
 xy = []
@@ -17,7 +24,7 @@ bnd = []
 bc = {}
 for i in range(0,n):
   line = grid_data[i].split()
-  print line
+  #print line
   
   data = []
   
@@ -59,7 +66,9 @@ for i in range(0,n):
       data.append(line[8])
       data.append(line[9])
       data.append(line[10])      
-      ect.append(data)            
+      ect.append(data)    
+      
+      curved = 1
     elif line[0] == "E6T":
       data.append(line[1])
       data.append("6")
@@ -72,7 +81,9 @@ for i in range(0,n):
       data.append("0")
       data.append("0")
       data.append("0")      
-      ect.append(data)      
+      ect.append(data)  
+      
+      curved = 1
     elif line[0] == "NS":
       if int(line[-2]) > 0:
         for j in range(1,len(line)):
@@ -99,15 +110,22 @@ for i in range(0,nbnd):
   tbndnds = tbndnds + len(bnd[i])
   if bc[seg] == "0":
     nope = nope + 1
-    neta = neta + len(bnd[i])
-  elif bc[seg] != "0" and bc[seg] < "100":
+    if curved: 
+      neta = neta + (len(bnd[i])+1)/2
+    else:
+      neta = neta + len(bnd[i])
+  elif bc[seg] != "0" and int(bc[seg]) < 200:
     nbou = nbou + 1
-    nvel = nvel + len(bnd[i])
+    if curved:
+      nvel = nvel + (len(bnd[i])+1)/2
+    else:
+      nvel = nvel + len(bnd[i])
     
 print ne, nn
-pprint.pprint(ect)
-pprint.pprint(xy)
-pprint.pprint(bnd)
+#pprint.pprint(ect)
+#pprint.pprint(xy)
+#pprint.pprint(bnd)
+print nope,nbou,nbnd
 
 f.close()
 
@@ -120,23 +138,49 @@ for i in range(0,nn):
 for i in range(0,ne):
   fort14.write("   ".join(ect[i]) + "\n")
   
-fort14.write(str(nope) + " = Number of open boundaries\n")  
-fort14.write(str(neta) + " = Total number of open boundary nodes\n")
-for i in range(0,nbnd):
-  seg = str(i+1)
-  if bc[seg] == "0":
-    nbndnds = len(bnd[i])    
-    fort14.write(str(nbndnds) + "  " +str(bc[seg]) + "\n")
-    for j in range(0,nbndnds):
-      fort14.write(str(bnd[i][j]) + "\n")      
-fort14.write(str(nbou) + " = Number of land boundaries\n")
-fort14.write(str(nvel) + " = Total number of land boundary nodes\n")
-for i in range(0,nbnd):
-  seg = str(i+1)
-  if bc[seg] != "0" and bc[seg] < "100":
-    nbndnds = len(bnd[i])
-    fort14.write(str(nbndnds) + "  " +str(bc[seg]) + "\n")
-    for j in range(0,nbndnds):
-      fort14.write(str(bnd[i][j]) + "\n")
+  
+if curved: # need to do every other node 
+  fort14.write(str(nope)       + " = Number of open boundaries\n")  
+  fort14.write(str(neta) + " = Total number of open boundary nodes\n")
+  for i in range(0,nbnd):
+    seg = str(i+1)
+    if bc[seg] == "0":
+      nbndnds = (len(bnd[i])+1)/2    
+      fort14.write(str(nbndnds) + "  " +str(bc[seg]) + "\n")
+      for j in range(0,nbndnds):
+        fort14.write(str(bnd[i][2*j]) + "\n")      
+        
+        
+  fort14.write(str(nbou) + " = Number of land boundaries\n")
+  fort14.write(str(nvel) + " = Total number of land boundary nodes\n")
+  for i in range(0,nbnd):
+    seg = str(i+1)
+    if bc[seg] != "0" and int(bc[seg]) < 200:
+      nbndnds = (len(bnd[i])+1)/2
+      fort14.write(str(nbndnds) + "  " +str(bc[seg]) + "\n")
+      for j in range(0,nbndnds):
+        fort14.write(str(bnd[i][2*j]) + "\n")
+
+else:
+  fort14.write(str(nope) + " = Number of open boundaries\n")  
+  fort14.write(str(neta) + " = Total number of open boundary nodes\n")
+  for i in range(0,nbnd):
+    seg = str(i+1)
+    if bc[seg] == "0":
+      nbndnds = len(bnd[i])    
+      fort14.write(str(nbndnds) + "  " +str(bc[seg]) + "\n")
+      for j in range(0,nbndnds):
+        fort14.write(str(bnd[i][j]) + "\n")      
+        
+        
+  fort14.write(str(nbou) + " = Number of land boundaries\n")
+  fort14.write(str(nvel) + " = Total number of land boundary nodes\n")
+  for i in range(0,nbnd):
+    seg = str(i+1)
+    if bc[seg] != "0" and int(bc[seg]) < 200:
+      nbndnds = len(bnd[i])
+      fort14.write(str(nbndnds) + "  " +str(bc[seg]) + "\n")
+      for j in range(0,nbndnds):
+        fort14.write(str(bnd[i][j]) + "\n")
     
 fort14.close()
