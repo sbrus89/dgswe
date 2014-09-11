@@ -8,20 +8,33 @@ clc
 % % grd_name = 'inlet1_quad.grd';
 % grd_name = 'converge_quad.grd';
 
-grd_direc = '~/data-drive/galveston/dgswe/';
-sol_direc = '~/data-drive/galveston/dgswe/';
-grd_name = 'galveston_quad.grd';
+% grd_direc = '~/data-drive/galveston/dgswe/quad/';
+% sol_direc = '~/data-drive/galveston/dgswe/quad_curve/';
+% grd_name = 'galveston_quad.grd';
+% plot_folder = 'velplot_scale';
 
-nsnap = 100;
+grd_direc = '~/data-drive/galveston/dgswe/quad2_spline_channel/';
+sol_direc = '~/data-drive/galveston/dgswe/quad2_spline_channel/';
+grd_name = 'galveston2_spline_plot.grd';
+plot_folder = 'velplot_scale';
 
-grid_on = 0;
+nsnap = 200;
 
+grid_on = 1;
+
+zoom_area = [3.2e5 3.4e5 3.24e6 3.26e6;
+             2.84e5 3.04e5 3.205e6 3.2325e6];
+
+[nzoom,~] = size(zoom_area);
 
 [EToV,VX,HB,nelnds,~,~,~] = readfort14([grd_direc,grd_name]);
 [ne,~] = size(EToV);
 [nn,~] = size(VX);
 
-
+FramesFolder = strcat(sol_direc,plot_folder) ;
+if ( exist(FramesFolder,'dir') == 0 ) 
+    mkdir(FramesFolder) ; 
+end
 
 
 
@@ -53,6 +66,7 @@ line = fgetl(fid_Qy);
 Hv = zeros(4,ne,nsnap);
 Qxv = zeros(4,ne,nsnap);
 Qyv = zeros(4,ne,nsnap);
+zv = zeros(4,ne,nsnap);
 
 snap = 0;
 while ~feof(fid_H) && snap < nsnap
@@ -73,10 +87,12 @@ while ~feof(fid_H) && snap < nsnap
             Hv(1:3,el,snap) = m2n(1:3,1:ndof(1),1)*H(1:ndof(1),el);
             Qxv(1:3,el,snap) = m2n(1:3,1:ndof(1),1)*Qx(1:ndof(1),el);
             Qyv(1:3,el,snap) = m2n(1:3,1:ndof(1),1)*Qy(1:ndof(1),el);
+            zv(1:3,el,snap) = Hv(1:3,el,snap)-HB(EToV(el,1:3));
         elseif nelnds(el) == 4
             Hv(1:4,el,snap) = m2n(1:4,1:ndof(2),2)*H(1:ndof(2),el);
             Qxv(1:4,el,snap) = m2n(1:4,1:ndof(2),2)*Qx(1:ndof(2),el);
             Qyv(1:4,el,snap) = m2n(1:4,1:ndof(2),2)*Qy(1:ndof(2),el);
+            zv(1:4,el,snap) = Hv(1:4,el,snap)-HB(EToV(el,1:4));            
         end
     end
 end
@@ -94,8 +110,15 @@ Qxmin = min(min(min(Qxv)));
 Qymin = min(min(min(Qyv)));
 velmin = min(min(min(vel)));
 
+scale = 0;
+if exist([sol_direc,'velscale.mat'])
+    load([sol_direc,'velscale.mat'])
+    disp('velscale.mat was found and loaded')
+    scale = 1;
+end
 
-for tsnap = snap %1:snap
+
+for tsnap = 1:snap
     
     figure
     
@@ -131,8 +154,64 @@ for tsnap = snap %1:snap
     xlabel('x')
     ylabel('y')
     colorbar
-    %caxis([0 1])    
+    if scale == 1
+      caxis([0 velscale(tsnap)])
+    else
+%      caxis([0 .9])    
+    end
     axis image
     
     pause(.01)
+    
+    print('-r350','-dpng',sprintf('%s/vel%04d',FramesFolder,tsnap)) ;
+    
+    for zoom = 1:nzoom
+        axis(zoom_area(zoom,:))
+        print('-r350','-dpng',sprintf('%s/vel%04d_zoom%02d',FramesFolder,tsnap,zoom)) ;
+    end
+
+%     figure
+%     
+%     axis equal
+% 
+%     disp(['Time snap: ',num2str(tsnap),'/',num2str(snap)])
+%     [day,hr,minute,sec] = s2dhms(t(tsnap));
+%     
+%     hold on
+%     zmin = min(min(zv(:,:,tsnap)));
+%     zmax = max(max(zv(:,:,tsnap)));
+%     caxis([zmin zmax])
+%     for el = 1:ne
+%         
+%         if grid_on == 0
+%             if nelnds(el) == 3
+%                 fill(VX(EToV(el,1:3),1),VX(EToV(el,1:3),2),zv(1:3,el,tsnap),'EdgeColor','none')
+%             elseif nelnds(el) == 4
+%                 fill(VX(EToV(el,1:4),1),VX(EToV(el,1:4),2),zv(1:4,el,tsnap),'EdgeColor','none')
+%             end
+%         else
+%             if nelnds(el) == 3
+%                 fill(VX(EToV(el,1:3),1),VX(EToV(el,1:3),2),zv(1:3,el,tsnap))
+%             elseif nelnds(el) == 4
+%                 fill(VX(EToV(el,1:4),1),VX(EToV(el,1:4),2),zv(1:4,el,tsnap))
+%             end
+%         end
+%     end
+%     hold off
+%     
+%     ttext = ['Surface solution: t = ',num2str(t(tsnap)),' (Day:  ',num2str(day),', Hour:  ',num2str(hr),', Minute:  ',num2str(minute),', Second:  ',num2str(sec),')'] ;
+%     title(ttext)
+%     xlabel('x')
+%     ylabel('y')
+%     colorbar  
+%     axis image
+    
+%     print('-r400','-dpng',sprintf('%s/vel%04d',FramesFolder,tsnap)) ;
+%     
+%     for zoom = 1:nzoom
+%         axis(zoom_area(zoom,:))
+%         print('-r400','-dpng',sprintf('%s/vel%04d_zoom%02d',FramesFolder,tsnap,zoom)) ;
+%     end
+   
+%     pause(.01)
 end
