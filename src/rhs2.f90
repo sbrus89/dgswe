@@ -143,45 +143,45 @@ ed_points2: DO pt = 1,nqpte(1) ! Compute numerical fluxes for all edges
 !!DIR$ VECTOR ALIGNED
               DO ed = nfblk(1,blk),nfblk(2,blk)
                 
-                const(ed) = max(abs(Qxi(ed,pt)%ptr*inx(ed) + Qyi(ed,pt)%ptr*iny(ed))/Hi(ed,pt)%ptr + sqrt(g*Hi(ed,pt)%ptr), &
-                                abs(Qxe(ed,pt)%ptr*inx(ed) + Qye(ed,pt)%ptr*iny(ed))/He(ed,pt)%ptr + sqrt(g*He(ed,pt)%ptr))
+                const(ed) = max(abs(Qxi(ed,pt)%ptr*inx(ed,pt) + Qyi(ed,pt)%ptr*iny(ed,pt))/Hi(ed,pt)%ptr + sqrt(g*Hi(ed,pt)%ptr), &
+                                abs(Qxe(ed,pt)%ptr*inx(ed,pt) + Qye(ed,pt)%ptr*iny(ed,pt))/He(ed,pt)%ptr + sqrt(g*He(ed,pt)%ptr))
               ENDDO
                                         
               
 !DIR$ IVDEP
 !!DIR$ VECTOR ALIGNED
               DO ed = nfblk(1,blk),nfblk(2,blk)            
-                Hhatv(ed) = .5d0*(inx(ed)*(Qxi(ed,pt)%ptr + Qxe(ed,pt)%ptr) + iny(ed)*(Qyi(ed,pt)%ptr + Qye(ed,pt)%ptr) &
+                Hhatv(ed) = .5d0*(inx(ed,pt)*(Qxi(ed,pt)%ptr + Qxe(ed,pt)%ptr) + iny(ed,pt)*(Qyi(ed,pt)%ptr + Qye(ed,pt)%ptr) &
                                         - const(ed)*(He(ed,pt)%ptr - Hi(ed,pt)%ptr))
               ENDDO
               
 !DIR$ IVDEP
 !!DIR$ VECTOR ALIGNED
               DO ed = nfblk(1,blk),nfblk(2,blk)       
-                Qxhatv(ed) = .5d0*(inx(ed)*(xmi(ed,pt)%ptr + xme(ed,pt)%ptr) + iny(ed)*(xymi(ed,pt)%ptr + xyme(ed,pt)%ptr)  &
+                Qxhatv(ed) = .5d0*(inx(ed,pt)*(xmi(ed,pt)%ptr + xme(ed,pt)%ptr) + iny(ed,pt)*(xymi(ed,pt)%ptr + xyme(ed,pt)%ptr)  &
                                         - const(ed)*(Qxe(ed,pt)%ptr - Qxi(ed,pt)%ptr))
               ENDDO
               
 !DIR$ IVDEP
 !!DIR$ VECTOR ALIGNED
               DO ed = nfblk(1,blk),nfblk(2,blk)
-                Qyhatv(ed) = .5d0*(inx(ed)*(xymi(ed,pt)%ptr + xyme(ed,pt)%ptr) + iny(ed)*(ymi(ed,pt)%ptr + yme(ed,pt)%ptr)  &
+                Qyhatv(ed) = .5d0*(inx(ed,pt)*(xymi(ed,pt)%ptr + xyme(ed,pt)%ptr) + iny(ed,pt)*(ymi(ed,pt)%ptr + yme(ed,pt)%ptr)  &
                                         - const(ed)*(Qye(ed,pt)%ptr - Qyi(ed,pt)%ptr))
               ENDDO
 !DIR$ IVDEP              
               DO ed = nfblk(1,blk),nfblk(2,blk) 
-                Hfe(ed,pt)%ptr = -detJe_ex(ed)*Hhatv(ed)
-                Hfi(ed,pt)%ptr =  detJe_in(ed)*Hhatv(ed)
+                Hfe(ed,pt)%ptr = -detJe_ex(ed,pt)*Hhatv(ed)
+                Hfi(ed,pt)%ptr =  detJe_in(ed,pt)*Hhatv(ed)
               ENDDO          
 !DIR$ IVDEP              
               DO ed = nfblk(1,blk),nfblk(2,blk)                              
-                Qxfe(ed,pt)%ptr = -detJe_ex(ed)*Qxhatv(ed)
-                Qxfi(ed,pt)%ptr =  detJe_in(ed)*Qxhatv(ed)
+                Qxfe(ed,pt)%ptr = -detJe_ex(ed,pt)*Qxhatv(ed)
+                Qxfi(ed,pt)%ptr =  detJe_in(ed,pt)*Qxhatv(ed)
               ENDDO   
 !DIR$ IVDEP              
               DO ed = nfblk(1,blk),nfblk(2,blk)                                    
-                Qyfe(ed,pt)%ptr = -detJe_ex(ed)*Qyhatv(ed)
-                Qyfi(ed,pt)%ptr =  detJe_in(ed)*Qyhatv(ed)
+                Qyfe(ed,pt)%ptr = -detJe_ex(ed,pt)*Qyhatv(ed)
+                Qyfi(ed,pt)%ptr =  detJe_in(ed,pt)*Qyhatv(ed)
               ENDDO               
 
         ENDDO ed_points2      
@@ -194,45 +194,45 @@ ed_points2: DO pt = 1,nqpte(1) ! Compute numerical fluxes for all edges
        DO pt = 1,nqpte(1)
 !!DIR$ VECTOR ALIGNED
               DO ed = rnfblk(1,blk),rnfblk(2,blk)
-                const(ed) = max(abs(Qxi(ed,pt)%ptr*inx(ed) + Qyi(ed,pt)%ptr*iny(ed))/Hi(ed,pt)%ptr + sqrt(g*Hi(ed,pt)%ptr), &
-                                abs(Qxe(ed,pt)%ptr*inx(ed) + Qye(ed,pt)%ptr*iny(ed))/He(ed,pt)%ptr + sqrt(g*He(ed,pt)%ptr))
+                const(ed) = max(abs(Qxi(ed,pt)%ptr*inx(ed,pt) + Qyi(ed,pt)%ptr*iny(ed,pt))/Hi(ed,pt)%ptr + sqrt(g*Hi(ed,pt)%ptr), &
+                                abs(Qxe(ed,pt)%ptr*inx(ed,pt) + Qye(ed,pt)%ptr*iny(ed,pt))/He(ed,pt)%ptr + sqrt(g*He(ed,pt)%ptr))
               ENDDO             
         
 !DIR$ IVDEP
 !!DIR$ VECTOR ALIGNED
               DO ed = rnfblk(1,blk),rnfblk(2,blk)
-                Hhatv(ed) = .5d0*(inx(ed)*(Qxi(ed,pt)%ptr + Qxe(ed,pt)%ptr) + iny(ed)*(Qyi(ed,pt)%ptr + Qye(ed,pt)%ptr) &
+                Hhatv(ed) = .5d0*(inx(ed,pt)*(Qxi(ed,pt)%ptr + Qxe(ed,pt)%ptr) + iny(ed,pt)*(Qyi(ed,pt)%ptr + Qye(ed,pt)%ptr) &
                                         - const(ed)*(He(ed,pt)%ptr - Hi(ed,pt)%ptr))
               ENDDO                                        
      
 !DIR$ IVDEP
 !!DIR$ VECTOR ALIGNED
               DO ed = rnfblk(1,blk),rnfblk(2,blk)
-                Qxhatv(ed) = .5d0*(inx(ed)*(xmi(ed,pt)%ptr + xme(ed,pt)%ptr) + iny(ed)*(xymi(ed,pt)%ptr + xyme(ed,pt)%ptr)  &
+                Qxhatv(ed) = .5d0*(inx(ed,pt)*(xmi(ed,pt)%ptr + xme(ed,pt)%ptr) + iny(ed,pt)*(xymi(ed,pt)%ptr + xyme(ed,pt)%ptr)  &
                                         - const(ed)*(Qxe(ed,pt)%ptr - Qxi(ed,pt)%ptr))
               ENDDO                                        
             
 !DIR$ IVDEP
 !!DIR$ VECTOR ALIGNED
               DO ed = rnfblk(1,blk),rnfblk(2,blk)
-                Qyhatv(ed) = .5d0*(inx(ed)*(xymi(ed,pt)%ptr + xyme(ed,pt)%ptr) + iny(ed)*(ymi(ed,pt)%ptr + yme(ed,pt)%ptr)  &
+                Qyhatv(ed) = .5d0*(inx(ed,pt)*(xymi(ed,pt)%ptr + xyme(ed,pt)%ptr) + iny(ed,pt)*(ymi(ed,pt)%ptr + yme(ed,pt)%ptr)  &
                                         - const(ed)*(Qye(ed,pt)%ptr - Qyi(ed,pt)%ptr))
               ENDDO                
 
 !DIR$ IVDEP              
               DO ed = rnfblk(1,blk),rnfblk(2,blk)                                     
-                Hfe(ed,pt)%ptr = -detJe_ex(ed)*Hhatv(ed)
-                Hfi(ed,pt)%ptr =  detJe_in(ed)*Hhatv(ed)               
+                Hfe(ed,pt)%ptr = -detJe_ex(ed,pt)*Hhatv(ed)
+                Hfi(ed,pt)%ptr =  detJe_in(ed,pt)*Hhatv(ed)               
               ENDDO   
 !DIR$ IVDEP                              
               DO ed = rnfblk(1,blk),rnfblk(2,blk)                                          
-                Qxfe(ed,pt)%ptr = -detJe_ex(ed)*Qxhatv(ed)
-                Qxfi(ed,pt)%ptr =  detJe_in(ed)*Qxhatv(ed)
+                Qxfe(ed,pt)%ptr = -detJe_ex(ed,pt)*Qxhatv(ed)
+                Qxfi(ed,pt)%ptr =  detJe_in(ed,pt)*Qxhatv(ed)
               ENDDO   
 !DIR$ IVDEP              
               DO ed = rnfblk(1,blk),rnfblk(2,blk)                                             
-                Qyfe(ed,pt)%ptr = -detJe_ex(ed)*Qyhatv(ed)
-                Qyfi(ed,pt)%ptr =  detJe_in(ed)*Qyhatv(ed)
+                Qyfe(ed,pt)%ptr = -detJe_ex(ed,pt)*Qyhatv(ed)
+                Qyfi(ed,pt)%ptr =  detJe_in(ed,pt)*Qyhatv(ed)
               ENDDO
 
         ENDDO         

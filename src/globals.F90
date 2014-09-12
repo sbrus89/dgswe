@@ -182,8 +182,8 @@
       REAL(pres) :: Qn,Qt
 
       REAL(pres), ALLOCATABLE, DIMENSION(:) :: const
-      REAL(pres), ALLOCATABLE, DIMENSION(:) :: inx,iny
-      REAL(pres), ALLOCATABLE, DIMENSION(:) :: detJe_in,detJe_ex
+      REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: inx,iny
+      REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: detJe_in,detJe_ex
       REAL(pres), ALLOCATABLE, DIMENSION(:) :: Hhatv,Qxhatv,Qyhatv
       REAL(pres), ALLOCATABLE, DIMENSION(:) :: rHi,rHe
       REAL(pres), ALLOCATABLE, DIMENSION(:) :: xmomi,xmome,ymomi,ymome,xymomi,xymome     

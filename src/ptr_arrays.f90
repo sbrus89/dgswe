@@ -38,7 +38,7 @@
        PRINT*, "Allocation error: Hfi,Hfe,Qxfi,Qxfe,Qyfi,Qyfe"
      ENDIF
 
-     ALLOCATE(const(nied),inx(nied),iny(nied),detJe_in(nied),detJe_ex(nied),STAT=alloc_status)
+     ALLOCATE(const(nied),inx(nied,mnqpte),iny(nied,mnqpte),detJe_in(nied,mnqpte),detJe_ex(nied,mnqpte),STAT=alloc_status)
      IF(alloc_status /= 0) THEN
        PRINT*, "Allocation error: const,inx,iny,detJe_in,detJe_ex"
      ENDIF

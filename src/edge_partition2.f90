@@ -451,17 +451,26 @@
 
         Qyfi(ed,pt)%ptr => Qyflux(ael_in,gp_in)
         Qyfe(ed,pt)%ptr => Qyflux(ael_ex,gp_ex)
+        
+!         gp_in = pt
+!         gp_ex = nqpte(1) - pt + 1        
+        
+        inx(ed,pt) = nx_pt(ged,pt)
+        iny(ed,pt) = ny_pt(ged,pt)
+          
+        detJe_in(ed,pt) = detJe(ged,pt)
+        detJe_ex(ed,pt) = detJe(ged,pt)        
      
       
       ENDDO
       
-      ! straight sided edges => constant normals
-      inx(ed) = nx_pt(ged,1)
-      iny(ed) = ny_pt(ged,1)
-          
-      ! straight sided edges => constant Jacobian
-      detJe_in(ed) = detJe(ged,1)
-      detJe_ex(ed) = detJe(ged,1)
+!       ! straight sided edges => constant normals
+!       inx(ed) = nx_pt(ged,1)
+!       iny(ed) = ny_pt(ged,1)
+!           
+!       ! straight sided edges => constant Jacobian
+!       detJe_in(ed) = detJe(ged,1)
+!       detJe_ex(ed) = detJe(ged,1)
       
       RETURN
       END SUBROUTINE point_to_el
