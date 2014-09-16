@@ -33,6 +33,7 @@
       
       INTEGER :: nsta
       INTEGER, ALLOCATABLE, DIMENSION(:) :: ndsta
+      INTEGER, ALLOCATABLE, DIMENSION(:) :: elsta
       REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: xysta ! x,y coordinates of stations
 
       INTEGER :: nope ! number of open boundary segents

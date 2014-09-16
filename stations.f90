@@ -21,20 +21,18 @@
       
       
       
-      
+      ! Build kd-tree
       IF (ne < srchdp) THEN
         srchdp = ne
-      ENDIF
-      
-      ALLOCATE(kdresults(srchdp))      
-      
+      ENDIF      
+      ALLOCATE(kdresults(srchdp))            
       tree => kdtree2_create(xy, rearrange=.true., sort=.true.)
       
       
       
       
       
-      
+      ! Find elements associated with each node            
       ALLOCATE(nepn(nn))
       
       nepn(:) = 0
@@ -63,17 +61,17 @@
       
       
       
-      
+      ! Find element each station is located in
       DO sta = 1,nsta
       
+        ! Find node closest to station
         CALL kdtree2_n_nearest(tp=tree,qv=xysta(:,sta),nn=srchdp,results=kdresults)
-        
-        PRINT*, sta,ndsta(sta),kdresults(1)%idx,kdresults(1)%dis
-        
         clnd = kdresults(1)%idx
         
-        found = 0
+        PRINT*, sta,ndsta(sta),kdresults(1)%idx,kdresults(1)%dis      
         
+        ! Test elements associated with nearest node to see which element station is located in
+        found = 0  
   elem: DO el = 1,nepn(clnd)
           eln = epn(el,clnd)
           
@@ -85,12 +83,14 @@
             y(i) = xy(2,vct(i,eln))
           ENDDO
           
+          ! Compute element area
           IF (mod(et,2) == 1) THEN
             area = .5d0*abs((x(2)-x(1))*(y(3)-y(1)) - (x(3)-x(1))*(y(2)-y(1)))
           ELSE IF (mod(et,2) == 0) THEN
             area = .5d0*abs((x(3)-x(1))*(y(4)-y(2))-(x(4)-x(2))*(y(3)-y(1)))
           ENDIF          
           
+          ! Compute sum of sub-triangle areas
           sarea = 0d0
           DO i = 1,nvert
             n1 = mod(i+0,nvert)+1
@@ -108,11 +108,12 @@
             sarea = sarea + .5d0*abs((x(2)-x(1))*(y(3)-y(1)) - (x(3)-x(1))*(y(2)-y(1)))
           ENDDO
           
+          ! The station is in the element if the element area and sum of sub triangle are the same
           IF (abs(area - sarea) < tol) THEN
             PRINT*, "element found", eln
+            elsta(sta) = eln
             found = 1
-            EXIT elem
-                        
+            EXIT elem                        
           ENDIF
           
         ENDDO elem
