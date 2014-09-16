@@ -1,6 +1,6 @@
       SUBROUTINE read_stations()
 
-      USE globals, ONLY: nbou,fbseg,fbnds,xy,nsta,xysta,ndsta
+      USE globals, ONLY: nbou,fbseg,fbnds,xy,nsta,xysta,ndsta,elsta
 
       IMPLICIT NONE
       
@@ -21,7 +21,7 @@
         ENDIF
       ENDDO       
       
-      ALLOCATE(xysta(2,nsta),ndsta(nsta))
+      ALLOCATE(xysta(2,nsta),ndsta(nsta),elsta(nsta))
       
       nsta = 0
       

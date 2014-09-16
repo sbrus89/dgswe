@@ -49,6 +49,8 @@
       INTEGER, ALLOCATABLE, DIMENSION(:) :: nepn ! number of elements per node
       INTEGER, ALLOCATABLE, DIMENSION(:,:) :: epn ! elements per node            
    
-
+      REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: H
+      REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: Qx
+      REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: Qy     
 
       END MODULE globals

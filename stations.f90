@@ -5,10 +5,12 @@
 
       IMPLICIT NONE
 
-      INTEGER :: el,nd,sta,i
-      INTEGER :: n1,n2,nvert,mnepn,eln,clnd,et
+      INTEGER :: el,nd,sta,i,line,dof
+      INTEGER :: n1,n2,nvert,eln,clnd,et
+      INTEGER :: mnepn,mndof
       INTEGER :: srchdp = 1
       REAL(pres) :: x(4),y(4),area,sarea,tol,found 
+      REAL(pres) :: t
       TYPE(kdtree2), POINTER :: tree
       TYPE(kdtree2_result), ALLOCATABLE, DIMENSION(:) :: kdresults
       
@@ -17,6 +19,8 @@
       CALL read_input()
       CALL read_grid()
       CALL read_stations()
+      
+      mndof = (p+1)**2
       
       
       
@@ -124,4 +128,33 @@
       
       ENDDO
       
+      
+      
+      
+      ALLOCATE(H(ne,mndof),Qx(ne,mndof),Qy(ne,mndof))
+      
+      OPEN(UNIT=63,FILE="solution_H.d")
+      OPEN(UNIT=641,FILE="solution_Qx.d")     
+      OPEN(UNIT=642,FILE="solution_Qy.d")      
+      
+      READ(63,*) 
+      READ(641,*)
+      READ(6442,*)
+      
+      DO line = 1,lines
+        READ(63,*) t
+        READ(641,*) t
+        READ(641,*) t
+        
+        DO dof = 1,mndof
+          READ(63,*) (H(el,dof), el = 1,ne)
+          READ(641,*) (Qx(el,dof), el = 1,ne)
+          READ(642,*) (Qy(el,dof), el = 1,ne)
+        ENDDO
+        
+      ENDDO
+      
+      CLOSE(63)
+      CLOSE(641)
+      CLOSE(642)
       END PROGRAM stations
