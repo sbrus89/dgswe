@@ -27,6 +27,7 @@
       INTEGER, DIMENSION(nel_type) :: ndof ! number of degrees of freedom
       INTEGER, DIMENSION(nel_type) :: nqpta ! number of area quadrature points
       INTEGER, DIMENSION(nel_type) :: nqpte ! number of edge quadrature points      
+      INTEGER :: mnqpta,mnnds,mnqpte,mndof      
       
       INTEGER :: blk
       INTEGER :: nblk,nrblk

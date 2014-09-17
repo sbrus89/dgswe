@@ -4,19 +4,14 @@
 
       SUBROUTINE area_basis()
 
-        USE globals, ONLY: pres,nel_type,nqpta,nqpte,wpta,qpta,p,ndof, &
+        USE globals, ONLY: pres,nel_type,nqpta,mnqpta,nqpte,wpta,qpta,p,ndof,mndof, &
                            phia,phia_int,phia_int_init,phil,dpdx,dpdy,dpdx_init,dpdy_init,dpdr,dpds, &
                            ect,xy,ne,area,out_direc
 
         IMPLICIT NONE
         INTEGER :: i,j,pt,et
         INTEGER :: alloc_status
-        INTEGER :: mndof,mnqpta
-        REAL(pres) :: ml2(3,ndof(1)),mml(3,3)
-        REAL(pres) :: qint
-        
-        mndof = maxval(ndof)
-        mnqpta = maxval(nqpta)
+
 
         ALLOCATE(phia(mndof,mnqpta,nel_type),phia_int(ne,mndof*mnqpta),phia_int_init(ne,mndof*mnqpta),STAT = alloc_status)
         IF(alloc_status /= 0) THEN
@@ -28,10 +23,7 @@
           PRINT*, 'Allocation error: phia,phia_int'
         ENDIF         
         
-        ALLOCATE(phil(3,mnqpta,nel_type),STAT = alloc_status)
-        IF(alloc_status /= 0) THEN
-          PRINT*, 'Allocation error: phil'
-        ENDIF
+
 
         ALLOCATE(dpdx(ne,mndof*mnqpta),dpdy(ne,mndof*mnqpta),STAT = alloc_status)
         IF(alloc_status /= 0) THEN
@@ -60,45 +52,9 @@
           ENDIF
           
         ENDDO
-
-
-        ! Calculate linear nodal basis functions
-        CALL linear(phil)
-
-        ! Compute RHS L2 projection matrix
-        DO i = 1,3
-          DO j = 1,ndof(1)
-            qint = 0d0
-            DO pt = 1,nqpta(1)
-              qint = qint + wpta(pt,1)*phil(i,pt,1)*phia(j,pt,1)
-            ENDDO
-            ml2(i,j) = qint
-          ENDDO
-        ENDDO
-
-        ! Compute linear mass matrix
-        DO i = 1,3
-          DO j = 1,3
-            qint = 0d0
-            DO pt = 1,nqpta(1)
-              qint = qint + wpta(pt,1)*phil(i,pt,1)*phil(j,pt,1)
-            ENDDO
-            mml(i,j) = qint
-          ENDDO
-        ENDDO
         
         CALL modal2nodal()
 
-        OPEN(unit=10,file=trim(out_direc) // 'projection.d')
-
-        WRITE(10,*) ndof(1)
-        DO i = 1,3
-          WRITE(10,"(160(e24.17,1x))") (ml2(i,j),j=1,ndof(1))
-        ENDDO
-
-        DO i = 1,3
-          WRITE(10,"(3(e24.17,1x))") (mml(i,j),j=1,3)
-        ENDDO
 
         RETURN
       END SUBROUTINE area_basis
@@ -108,16 +64,13 @@
 
       SUBROUTINE edge_basis()
 
-        USE globals, ONLY: pres,ndof,nqpte,qpte,wpte,p,phi,phie,phie_int,nqpta,nel_type
+        USE globals, ONLY: pres,ndof,mndof,nqpte,mnqpte,qpte,wpte,p,phi,phie,phie_int,nqpta,nel_type
 
         IMPLICIT NONE
         
         INTEGER :: alloc_status
-        INTEGER :: mndof,mnqpte
         INTEGER :: et,i
-
-        mndof = maxval(ndof)
-        mnqpte = maxval(nqpte)        
+   
 
         ALLOCATE(phie(mndof,4*mnqpte,nel_type),phie_int(mndof,4*mnqpte,nel_type),STAT = alloc_status)
         IF(alloc_status /= 0) THEN

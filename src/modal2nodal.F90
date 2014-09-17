@@ -1,20 +1,22 @@
       SUBROUTINE modal2nodal()
 
-      USE globals, ONLY: pres,nel_type,p,nnds,ndof,m2n,out_direc
-      USE basis, ONLY: jacobi
+      USE globals, ONLY: pres,nel_type,p,nnds,mnnds,ndof,mndof,m2n,out_direc, &
+                         nqpta,mnqpta,wpta,phia,phil
+      USE basis, ONLY: jacobi,linear
 
       IMPLICIT NONE
       
       INTEGER :: i,j,m
       INTEGER :: et,pt
-      INTEGER :: mndof,mnnds
       INTEGER :: nvert
+      INTEGER :: alloc_status
       REAL(pres) :: r(4),s(4)
       REAL(pres) :: a(3),b(3)
-      REAL(pres) :: Pi(4),Pj(4)      
+      REAL(pres) :: Pi(4),Pj(4)    
       
-      mndof = maxval(ndof)
-      mnnds = maxval(nnds)
+      REAL(pres) :: ml2(3,ndof(1)),mml(3,3)
+      REAL(pres) :: qint      
+
       
       ALLOCATE(m2n(mnnds,mndof,nel_type))      
       
@@ -98,9 +100,55 @@
         ENDDO        
           
       ENDDO
+       
+      CLOSE(111)
         
+
         
-      
+      ! Write out L2 projection information (for use with pdeplot, only for triangles)        
+      ALLOCATE(phil(3,mnqpta,nel_type),STAT = alloc_status)
+      IF(alloc_status /= 0) THEN
+        PRINT*, 'Allocation error: phil'
+      ENDIF        
+        
+      ! Calculate linear nodal basis functions
+      CALL linear(phil)
+
+      ! Compute RHS L2 projection matrix
+      DO i = 1,3
+        DO j = 1,ndof(1)
+          qint = 0d0
+          DO pt = 1,nqpta(1)
+            qint = qint + wpta(pt,1)*phil(i,pt,1)*phia(j,pt,1)
+          ENDDO
+          ml2(i,j) = qint
+        ENDDO
+      ENDDO
+
+      ! Compute linear mass matrix
+      DO i = 1,3
+        DO j = 1,3
+          qint = 0d0
+          DO pt = 1,nqpta(1)
+            qint = qint + wpta(pt,1)*phil(i,pt,1)*phil(j,pt,1)
+          ENDDO
+          mml(i,j) = qint
+        ENDDO
+      ENDDO
+
+
+      OPEN(unit=10,file=trim(out_direc) // 'projection.d')
+
+      WRITE(10,*) ndof(1)
+      DO i = 1,3
+        WRITE(10,"(160(e24.17,1x))") (ml2(i,j),j=1,ndof(1))
+      ENDDO
+
+      DO i = 1,3
+        WRITE(10,"(3(e24.17,1x))") (mml(i,j),j=1,3)
+      ENDDO        
+            
+      CLOSE(10)
 
       RETURN
       END SUBROUTINE modal2nodal

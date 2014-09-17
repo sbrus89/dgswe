@@ -1,12 +1,11 @@
       SUBROUTINE area_qpts( )
 
-      USE globals, ONLY: pres,p,nqpta,wpta,qpta,ctp,nel_type
+      USE globals, ONLY: pres,p,nqpta,mnqpta,wpta,qpta,ctp,nel_type
 
       IMPLICIT NONE 
       INTEGER :: alloc_status
       INTEGER :: i,pt,et
       INTEGER :: order(nel_type)
-      INTEGER :: mnqpta
       INTEGER :: npt(nel_type)
       REAL(pres) :: w(13**2,nel_type),r(13**2,2,nel_type)
       

@@ -1,11 +1,10 @@
       SUBROUTINE edge_qpts()
 
-      USE globals, ONLY: pres,p,nqpte,wpte,qpte,ctp,nel_type
+      USE globals, ONLY: pres,p,nqpte,mnqpte,wpte,qpte,ctp,nel_type
 
       IMPLICIT NONE
       INTEGER :: alloc_status
       INTEGER :: pt,i
-      INTEGER :: mnqpte
       INTEGER :: order(nel_type),npt(nel_type)
       REAL(pres) :: w(13,nel_type),r(13,nel_type)
       

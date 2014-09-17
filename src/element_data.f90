@@ -1,7 +1,8 @@
       SUBROUTINE element_data()
 
-      USE globals, ONLY: pres,ect,vct,xy,depth,ne,nn,ned,ndof,nqpta,qpta,nqpte, &
-                         el_type,nel_type,p,ctp,nelnds,np,nnds, &
+      USE globals, ONLY: pres,ect,vct,xy,depth,ne,nn,ned,ndof,mndof, &
+                         nqpta,mnqpta,qpta,nqpte,mnqpte, &
+                         el_type,nel_type,p,ctp,nelnds,np,nnds,mnnds, &
                          area,edlen,edlen_area,normal,ged2nn,ged2el,ged2led, &
                          dhbdx,dhbdy,dhbdx_init,dhbdy_init, &
                          dpdx_init,dpdy_init, &
@@ -16,7 +17,6 @@
       IMPLICIT NONE
       INTEGER :: el,ed,led,dof,pt,i,nd
       INTEGER :: ind,et
-      INTEGER :: mnqpta,mnnds,mnqpte,mndof
       INTEGER :: alloc_status
       REAL(pres) :: x1,x2,x3,x4,y1,y2,y3,y4
       REAL(pres) :: dxdr,dxds,dydr,dyds   
@@ -25,13 +25,6 @@
       REAL(pres), ALLOCATABLE, DIMENSION(:) :: r,s
       REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: jac
      
-
-
-      
-      mnqpta = maxval(nqpta)
-      mnnds = maxval(nnds)
-      mnqpte = maxval(nqpte)
-      mndof = maxval(ndof)
       
       ALLOCATE(dhbdx(ne,mnqpta),dhbdy(ne,mnqpta),STAT = alloc_status)
       IF(alloc_status /= 0) THEN

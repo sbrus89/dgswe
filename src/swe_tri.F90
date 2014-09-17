@@ -5,7 +5,7 @@
       USE basis
 
       IMPLICIT NONE
-      INTEGER :: it,tskp,cnt,myid,mndof
+      INTEGER :: it,tskp,cnt,myid
       INTEGER :: i,j
       REAL(pres) :: tstep,t_start,t_end
 
@@ -27,8 +27,7 @@
       ndof(1) = (p+1)*(p+2)/2
       ndof(2) = (p+1)**2
       ndof(3) = ndof(1)
-      ndof(4) = ndof(2)
-      
+      ndof(4) = ndof(2)      
       mndof = maxval(ndof)
       
       nverts(1) = 3
@@ -44,7 +43,8 @@
       nnds(1) = 3
       nnds(2) = 4
       nnds(3) = (ctp+1)*(ctp+2)/2
-      nnds(4) = (ctp+1)*(ctp+1)      
+      nnds(4) = (ctp+1)*(ctp+1) 
+      mnnds = maxval(nnds)
       
       tstep = int(tf/dt)
       tskp = int(tf/(lines*dt)) 

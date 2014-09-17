@@ -75,7 +75,7 @@
               h0 = h0 + psia(nd,pt,et)*elhb(nd,el)
             ENDDO
 
-            h00 = depth(ect(1,el))*phil(1,pt,1) + depth(ect(2,el))*phil(2,pt,1) + depth(ect(3,el))*phil(3,pt,1)
+!             h00 = depth(ect(1,el))*phil(1,pt,1) + depth(ect(2,el))*phil(2,pt,1) + depth(ect(3,el))*phil(3,pt,1)
 
 
 !             f = exp(-sigma*((x-xc)**2d0+(y-yc)**2d0))+h0 

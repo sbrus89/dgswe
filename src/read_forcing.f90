@@ -68,8 +68,7 @@
         READ(15,*) fbtag(bfr)
         PRINT "(A,A)", "  ",obtag(bfr)        
         READ(15,*) fbfreq(bfr),fbnfact(bfr),fbeq(bfr)
-        PRINT*,fbtag(bfr)
-        PRINT*, fbfreq(bfr),fbnfact(bfr),fbeq(bfr)
+!         PRINT*, fbfreq(bfr),fbnfact(bfr),fbeq(bfr)
         fbeq(bfr) = fbeq(bfr)*deg2rad
         IF(fbfreq(bfr) == 0.) THEN
           fbper(bfr) = 1d0

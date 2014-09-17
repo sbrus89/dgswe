@@ -1,6 +1,6 @@
       SUBROUTINE alloc_arrays()
 
-      USE globals, ONLY: ne,nied,nfbed,nnfbed,nobed,ndof,nqpte, &
+      USE globals, ONLY: ne,nied,nfbed,nnfbed,nobed,mndof,mnqpte, &
                          H,Hold,Hinit,rhsH,Qx,Qxold,Qxinit,rhsQx,Qy,Qyold,Qyinit, &
                          rhsQy,Hqpt,Qxqpt,Qyqpt,xmom,ymom,xymom, &
                          Hflux,Qxflux,Qyflux,tau,src_x,src_y,pressa,recipHa, &
@@ -12,11 +12,7 @@
 
       IMPLICIT NONE
       INTEGER :: alloc_status
-      INTEGER :: mndof
-      INTEGER :: mnqpte
-      
-      mndof = maxval(ndof)
-      mnqpte = maxval(nqpte)
+    
       
       ! Solution arrays
       
