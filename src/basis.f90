@@ -5,35 +5,14 @@
       SUBROUTINE area_basis()
 
         USE globals, ONLY: pres,nel_type,nqpta,mnqpta,nqpte,wpta,qpta,p,ndof,mndof, &
-                           phia,phia_int,phia_int_init,phil,dpdx,dpdy,dpdx_init,dpdy_init,dpdr,dpds, &
-                           ect,xy,ne,area,out_direc
+                           phia,phia_int,phia_int_init,phil,dpdx,dpdy,dpdx_init,dpdy_init,dpdr,dpds
+                           
+        USE allocation, ONLY: alloc_basis_arrays                          
 
         IMPLICIT NONE
         INTEGER :: i,j,pt,et
-        INTEGER :: alloc_status
-
-
-        ALLOCATE(phia(mndof,mnqpta,nel_type),phia_int(ne,mndof*mnqpta),phia_int_init(ne,mndof*mnqpta),STAT = alloc_status)
-        IF(alloc_status /= 0) THEN
-          PRINT*, 'Allocation error: phia,phia_int'
-        ENDIF 
-        
-        ALLOCATE(dpdr(mndof,mnqpta,nel_type),dpds(mndof,mnqpta,nel_type),STAT = alloc_status)
-        IF(alloc_status /= 0) THEN
-          PRINT*, 'Allocation error: phia,phia_int'
-        ENDIF         
-        
-
-
-        ALLOCATE(dpdx(ne,mndof*mnqpta),dpdy(ne,mndof*mnqpta),STAT = alloc_status)
-        IF(alloc_status /= 0) THEN
-          PRINT*, 'Allocation error: dpdx,dpdy'
-        ENDIF 
-        
-        ALLOCATE(dpdx_init(ne,mndof*mnqpta),dpdy_init(ne,mndof*mnqpta),STAT = alloc_status)
-        IF(alloc_status /= 0) THEN
-          PRINT*, 'Allocation error: dpdx_init,dpdy_init'
-        ENDIF         
+  
+        CALL alloc_basis_arrays()
 
         PRINT "(A)", "---------------------------------------------"
         PRINT "(A)", "         Basis Function Information          "
@@ -67,16 +46,8 @@
         USE globals, ONLY: pres,ndof,mndof,nqpte,mnqpte,qpte,wpte,p,phi,phie,phie_int,nqpta,nel_type
 
         IMPLICIT NONE
-        
-        INTEGER :: alloc_status
-        INTEGER :: et,i
-   
 
-        ALLOCATE(phie(mndof,4*mnqpte,nel_type),phie_int(mndof,4*mnqpte,nel_type),STAT = alloc_status)
-        IF(alloc_status /= 0) THEN
-          PRINT*, 'Allocation error: phie,phie_int'
-        ENDIF 
-        
+        INTEGER :: et,i
 
         DO et = 1,nel_type
         

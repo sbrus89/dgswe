@@ -3,13 +3,14 @@
       USE globals, ONLY: grid_file,ne,nn,ect,vct,xy,depth,nelnds,elxy,elhb, &
                          nope,neta,obseg,obnds,nvel,nbou,fbseg,fbnds,grid_name, &
                          el_type,ctp,mnelnds,curved_grid,nverts
+                         
+      USE allocation, ONLY: alloc_grid_arrays                         
 
       IMPLICIT NONE
       INTEGER :: i,j,k,el
       INTEGER :: nbseg
       INTEGER :: btype
       INTEGER :: nvert
-      INTEGER :: alloc_status
 
       PRINT "(A)", "---------------------------------------------"
       PRINT "(A)", "             Grid Information                "
@@ -34,11 +35,7 @@
       PRINT "(A,I5)", "Number of nodes: ", nn
       PRINT*, " "
 
-      ALLOCATE(ect((ctp+1)*(ctp+1),ne),vct(4,ne),xy(2,nn),depth(nn),nelnds(ne),el_type(ne),STAT = alloc_status)  ! element connectivity table, node coordinate array, depth vector      
-      IF(alloc_status /= 0) THEN
-        PRINT*, 'Allocation error: ect,xy,depth'
-      ENDIF     
-      ALLOCATE(elxy((ctp+1)*(ctp+1),ne,2),elhb((ctp+1)*(ctp+1),ne))
+      CALL alloc_grid_arrays(1)
 
       curved_grid = 0
       
@@ -105,13 +102,11 @@
 !       ENDDO
 !       PRINT*, " "
 
+
       READ(14,*) nope  ! number of open boundaries                                                 
       READ(14,*) neta  ! number of total elevation specified boundary nodes
 
-      ALLOCATE(obseg(nope),obnds(neta,nope),STAT = alloc_status)  ! number of nodes in each open boundary segment, array for open boundary nodes
-      IF(alloc_status /= 0) THEN
-        PRINT*, 'Allocation error: obseg,obnds'
-      ENDIF
+      CALL alloc_grid_arrays(2)
 
       DO i = 1,nope                                                     
         READ(14,*), nbseg  ! read in # of nodes in segment, boundary type
@@ -133,10 +128,7 @@
       READ(14,*) nbou  ! number of normal flow boundaries
       READ(14,*) nvel  ! total number of normal flow nodes
 
-      ALLOCATE(fbseg(2,nbou),fbnds(nvel,nbou),STAT = alloc_status)  ! array to indicate number of nodes and type of each normal flow boundary, array for open boundary nodes
-      IF(alloc_status /= 0) THEN
-        PRINT*, 'Allocation error: nfbseg,nfbnds'
-      ENDIF
+      CALL alloc_grid_arrays(3)
 
       DO i = 1,nbou
         READ(14,*), nbseg, btype ! read in # of nodes in segment, boundary type

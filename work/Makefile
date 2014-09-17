@@ -7,10 +7,10 @@ LIB_PATH = ../metis-4.0.3/
 LIB = metis
 LAPACK_LIB = lapack
 
-CFLAGS_VEC =  -O3 -xHost -vec-report6 -c
-CFLAGS =  -O3 -xHost -c 
-CFLAGS_LINK = -O3 -xHost -o 
-ALIGN = #-DALIGN32
+# CFLAGS_VEC =  -O3 -xHost -vec-report6 -c
+# CFLAGS =  -O3 -xHost -c 
+# CFLAGS_LINK = -O3 -xHost -o 
+# ALIGN = #-DALIGN32
 
 # ### OpenMP compilation ###
 # CFLAGS_VEC =  -O3 -xHost -vec-report6 -openmp -Dopenmp -c
@@ -40,10 +40,10 @@ ALIGN = #-DALIGN32
 # CFLAGS = -c
 # CFLAGS_LINK = -o
 
-# # Debug compilation ###
-# CFLAGS_VEC = -c -C -g -traceback
-# CFLAGS = -c -C -g -traceback
-# CFLAGS_LINK = -o
+# Debug compilation ###
+CFLAGS_VEC = -c -C -g -traceback
+CFLAGS = -c -C -g -traceback
+CFLAGS_LINK = -o
 
 ### Other compiler flags ###
 # -no-prec-div
@@ -54,8 +54,8 @@ ALIGN = #-DALIGN32
 # 	alloc_arrays.o ptr_arrays.o initial.o connect.o element_data.o edge_partition2.o  \
 # 	rk.o rhs2.o rhs3.o rhs4.o numerical_flux.o swe_tri.o
 
-objects = globals.o basis.o area_qpts.o edge_qpts.o read_input.o read_grid.o read_forcing.o modal2nodal.o \
-	alloc_arrays.o ptr_arrays.o initial.o connect.o curvilinear.o element_data.o area_transformation.o edge_transformation.o edge_partition2.o  \
+objects = globals.o allocation.o basis.o area_qpts.o edge_qpts.o read_input.o read_grid.o read_forcing.o modal2nodal.o \
+	initial.o connect.o curvilinear.o element_data.o area_transformation.o edge_transformation.o edge_partition2.o  \
 	area_integration.o edge_integration.o rhs2.o  numerical_flux.o rk.o swe_tri.o
 
 dgswe : $(objects)
@@ -63,50 +63,47 @@ dgswe : $(objects)
 
 globals.o : globals.F90
 	$(FC) $(CFLAGS) $(ALIGN) $<
+	
+allocation.o : allocation.f90 globals.F90
+	$(FC) $(CFLAGS) $<	
 
-basis.o : basis.f90 globals.F90
+basis.o : basis.f90 globals.F90 allocation.f90
 	$(FC) $(CFLAGS) $<
 
 #file_setup.o : file_setup.f90 globals.F90
 #	$(FC) $(CFLAGS) -lnetcdf file_setup.f90
 
-area_qpts.o : area_qpts.f90 globals.F90
+area_qpts.o : area_qpts.f90 globals.F90 allocation.f90
 	$(FC) $(CFLAGS) $<
 
-edge_qpts.o : edge_qpts.f90 globals.F90
+edge_qpts.o : edge_qpts.f90 globals.F90 allocation.f90
 	$(FC) $(CFLAGS) $<
 
 read_input.o : read_input.f90 globals.F90
 	$(FC) $(CFLAGS) $<
 
-read_grid.o : read_grid.f90 globals.F90
+read_grid.o : read_grid.f90 globals.F90 allocation.f90
 	$(FC) $(CFLAGS) $<
 
-read_forcing.o : read_forcing.f90 globals.F90
+read_forcing.o : read_forcing.f90 globals.F90 allocation.f90
 	$(FC) $(CFLAGS) $<
 
 modal2nodal.o : modal2nodal.F90 globals.F90 basis.f90
 	$(FC) $(CFLAGS) $<
 
-alloc_arrays.o : alloc_arrays.f90 globals.F90
+initial.o : initial.f90 globals.F90 allocation.f90
 	$(FC) $(CFLAGS) $<
 
-ptr_arrays.o : ptr_arrays.f90 globals.F90
-	$(FC) $(CFLAGS) $<
-
-initial.o : initial.f90 globals.F90
-	$(FC) $(CFLAGS) $<
-
-connect.o : connect.f90 globals.F90
+connect.o : connect.f90 globals.F90 allocation.f90
 	$(FC) $(CFLAGS) $<
 
 curvilinear.o : curvilinear.F90 globals.F90 basis.f90
 	$(FC) $(CFLAGS) $<
 
-element_data.o : element_data.f90 globals.F90
+element_data.o : element_data.f90 globals.F90 allocation.f90
 	$(FC) $(CFLAGS) $<
 
-edge_partition2.o : edge_partition2.f90 globals.F90
+edge_partition2.o : edge_partition2.f90 globals.F90 allocation.f90
 	$(FC) $(CFLAGS) $<
 
 area_transformation.o : area_transformation.F90 globals.F90 basis.f90

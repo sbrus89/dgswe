@@ -27,7 +27,7 @@
       INTEGER, DIMENSION(nel_type) :: ndof ! number of degrees of freedom
       INTEGER, DIMENSION(nel_type) :: nqpta ! number of area quadrature points
       INTEGER, DIMENSION(nel_type) :: nqpte ! number of edge quadrature points      
-      INTEGER :: mnqpta,mnnds,mnqpte,mndof      
+      INTEGER :: mnqpta,mnnds,mnqpte,mndof,mnp      
       
       INTEGER :: blk
       INTEGER :: nblk,nrblk
@@ -117,6 +117,9 @@
       REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: mmi,mmi_init      
 
       INTEGER :: ned ! total number of edges
+      INTEGER, ALLOCATABLE, DIMENSION(:) :: nepn ! number of elements per node
+      INTEGER, ALLOCATABLE, DIMENSION(:,:) :: epn ! elements per node 
+      INTEGER :: mnepn ! maximum number of elements per node      
       INTEGER, ALLOCATABLE, DIMENSION(:,:) :: ged2nn ! gives the two node numbers that make up a global edge number
       INTEGER, ALLOCATABLE, DIMENSION(:,:) :: ged2el ! gives the two element numbers that share a global edge number
       INTEGER, ALLOCATABLE, DIMENSION(:,:) :: ged2led ! gives the two local edge numbers that share a global edge number

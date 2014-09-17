@@ -38,7 +38,8 @@
       np(1) = 1
       np(2) = 1
       np(3) = ctp
-      np(4) = ctp          
+      np(4) = ctp   
+      mnp = maxval(np)+1
 
       nnds(1) = 3
       nnds(2) = 4
@@ -81,11 +82,6 @@
       
       ! Compute element area, edge length, edge normals, and bathymetry derivatives
       CALL element_data()     
-
-      ! Allocate arrays needed in time-stepping and rhs evaluation
-      CALL alloc_arrays()
-
-      CALL ptr_arrays()
       
       ! Set up netcdf output files
 !       CALL file_setup()

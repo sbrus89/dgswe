@@ -1,6 +1,8 @@
       SUBROUTINE edge_qpts()
 
       USE globals, ONLY: pres,p,nqpte,mnqpte,wpte,qpte,ctp,nel_type
+      
+      USE allocation, ONLY: alloc_qpt_arrays
 
       IMPLICIT NONE
       INTEGER :: alloc_status
@@ -24,15 +26,7 @@
       
       mnqpte = maxval(npt)
       
-      ALLOCATE(wpte(mnqpte,nel_type),STAT = alloc_status)
-      IF(alloc_status /= 0) THEN
-        PRINT*, 'Allocation error: wpte'
-      ENDIF 
-
-      ALLOCATE(qpte(mnqpte,nel_type),STAT = alloc_status)
-      IF(alloc_status /= 0) THEN
-        PRINT*, 'Allocation error: qpte'
-      ENDIF 
+      CALL alloc_qpt_arrays(2)
    
    
       DO i = 1,nel_type   

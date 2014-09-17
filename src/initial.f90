@@ -13,11 +13,12 @@
                          depth,obnds,grid_file, &
                          el_type,mnelnds,nelnds,psia, &
                          detJa,mmi_init
+                         
+      USE allocation, ONLY: alloc_sol_arrays,alloc_forcing_arrays                      
 
       IMPLICIT NONE
       INTEGER :: i,j,el,l,pt,dof,bfr,ed,ind,nd,k,seg,m
       INTEGER :: segtype,et
-      INTEGER :: alloc_stat
       INTEGER :: mndof,mnqpte
       REAL(pres) :: r,s,x1,x2,x3,y1,y2,y3,x,y
       REAL(pres) :: sigma,xc,yc,h0,h00
@@ -28,6 +29,8 @@
       sigma = 10d0
       xc = 0d0 
       yc = 0d0
+      
+      CALL alloc_sol_arrays()
 
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       ! Compute initial condition
@@ -135,10 +138,7 @@
       
       mnqpte = maxval(nqpte)
 
-      ALLOCATE(obamp_qpt(mnqpte*nobfr,nobed),obph_qpt(mnqpte*nobfr,nobed),obdepth_qpt(nobed,mnqpte),STAT=alloc_stat)
-      IF(alloc_stat /= 0) THEN
-        PRINT*, 'Allocation error: obamp_qpt,obph_qpt'
-      ENDIF
+      CALL alloc_forcing_arrays(3)
 
       nd = 1
       DO pt = 1,nqpte(1)
@@ -158,11 +158,6 @@
           nd = 1
         ENDDO
       ENDDO
-
-      ALLOCATE(fbamp_qpt(mnqpte*nfbfr,nfbed),fbph_qpt(mnqpte*nfbfr,nfbed),STAT=alloc_stat)
-      IF(alloc_stat /= 0) THEN
-        PRINT*, 'Allocation error: fbamp_qpt,fbph_qpt'
-      ENDIF
 
       nd = 1
       DO pt = 1,nqpte(1)

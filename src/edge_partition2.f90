@@ -123,7 +123,7 @@
       
       SUBROUTINE decomp2()
       
-      USE globals, ONLY: nn,ne,ndof,nqpta,part,npart,nel_type,el_type,nelnds, &
+      USE globals, ONLY: nn,ne,ndof,mndof,nqpta,mnqpta,part,npart,nel_type,el_type,nelnds, &
                          ged2el,&
                          npartel,nparted,npartet, &
                          gel2part,gel2lel,lel2gel, &
@@ -137,6 +137,8 @@
                          Hwrite,Qxwrite,Qywrite, &
                          nblk,elblk,edblk,nfblk,nrblk,rnfblk, &
                          mnpartel,mnparted   
+                         
+      USE allocation, ONLY: alloc_ptr_arrays,alloc_blk_arrays,dealloc_init_arrays                        
 
 
       IMPLICIT NONE
@@ -147,15 +149,11 @@
       INTEGER :: pe_in,pe_ex
       INTEGER :: elcnt,edcnt
       INTEGER :: ted,tel
-      INTEGER :: mndof,mnqpta
       
       INTEGER, ALLOCATABLE, DIMENSION(:) :: edflag      
       
-      ALLOCATE(npartel(npart))
-      ALLOCATE(gel2part(ne))
-      ALLOCATE(gel2lel(ne))
-      ALLOCATE(lel2gel(ne,npart))
-      ALLOCATE(npartet(nel_type,npart))
+      CALL alloc_ptr_arrays()      
+      CALL alloc_blk_arrays()
       
       npartel = 0
       npartet = 0
@@ -171,14 +169,9 @@
             lel2gel(npartel(pe),pe) = el ! local element npartel(pe) on partition pe has global element number el
           ENDIF
         ENDDO
-      ENDDO
-        
-        
-      ALLOCATE(ael2gel(ne),gel2ael(ne))
+      ENDDO                    
       
-      mndof = maxval(ndof)
-      mnqpta = maxval(nqpta)
-      
+
       elcnt = 0 
       DO pe = 1,npart
 !       PRINT*, " "
@@ -206,8 +199,8 @@
         ENDDO
       ENDDO
       
+      CALL dealloc_init_arrays()
       
-      ALLOCATE(Hwrite(ne,mndof),Qxwrite(ne,mndof),Qywrite(ne,mndof))
       
       DO el = 1,ne
         DO dof = 1,mndof
@@ -219,7 +212,6 @@
       
       
       ALLOCATE(edflag(nied))
-      ALLOCATE(nparted(npart+1))
       
       edflag = 0
       edcnt = 0
@@ -290,10 +282,7 @@
       
 
       ! Calculate blocking arrays
-      ALLOCATE(edblk(2,npart))
-      ALLOCATE(nfblk(2,npart+1))
-      ALLOCATE(elblk(2,npart,nel_type))
-      ALLOCATE(rnfblk(2,nrblk))
+
       
 !       DO blk = 1,nblk
 !         elblk(1,blk) = (blk-1)*(ne/nblk) + 1

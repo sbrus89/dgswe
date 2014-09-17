@@ -106,10 +106,7 @@
 
         
       ! Write out L2 projection information (for use with pdeplot, only for triangles)        
-      ALLOCATE(phil(3,mnqpta,nel_type),STAT = alloc_status)
-      IF(alloc_status /= 0) THEN
-        PRINT*, 'Allocation error: phil'
-      ENDIF        
+      
         
       ! Calculate linear nodal basis functions
       CALL linear(phil)

@@ -4,9 +4,10 @@
                          nobfr,obtag,obtag2,obfreq,obnfact,obeq,obamp,obph, &
                          nfbfr,fbtag,fbtag2,fbfreq,fbnfact,fbeq,fbamp,fbph, &
                          fbper,obper,pi
+                         
+      USE allocation, ONLY: alloc_forcing_arrays                         
 
       IMPLICIT NONE
-      INTEGER :: alloc_stat
       INTEGER :: bfr,node,seg,segtype
       REAL(pres) :: deg2rad
 
@@ -21,10 +22,7 @@
       READ(15,*) nobfr
       PRINT "(A,I5)", 'Number of open boundary forcings',nobfr
 
-      ALLOCATE(obtag(nobfr),obfreq(nobfr),obnfact(nobfr),obeq(nobfr),obper(nobfr),STAT = alloc_stat)
-      IF(alloc_stat /= 0) THEN
-        PRINT*, "Allocation error: obtag, obfreq, obnfact, obeq"
-      ENDIF
+      CALL alloc_forcing_arrays(1)
 
       DO bfr = 1,nobfr
         READ(15,*) obtag(bfr)
@@ -37,11 +35,6 @@
           obper(bfr) = 2d0*pi/obfreq(bfr)
         ENDIF
       ENDDO
-
-      ALLOCATE(obtag2(nobfr),obamp(neta,nobfr),obph(neta,nobfr),STAT = alloc_stat)
-      IF(alloc_stat /= 0) THEN
-        PRINT*, "Allocation error: obtag2, obamp, obph"
-      ENDIF
 
       DO bfr = 1,nobfr
         READ(15,*) obtag2(bfr) 
@@ -59,10 +52,7 @@
       PRINT "(A,I5)", 'Number of flow boundary forcings',nfbfr
       PRINT*, ' '
 
-      ALLOCATE(fbtag(nfbfr),fbfreq(nfbfr),fbnfact(nfbfr),fbeq(nfbfr),fbper(nfbfr),STAT = alloc_stat)
-      IF(alloc_stat /= 0) THEN
-        PRINT*, "Allocation error: fbtag, fbfreq, fbnfact, fbeq"
-      ENDIF
+      CALL alloc_forcing_arrays(2)
 
       DO bfr = 1,nfbfr
         READ(15,*) fbtag(bfr)
@@ -77,10 +67,6 @@
         ENDIF
       ENDDO
 
-      ALLOCATE(fbtag2(nfbfr),fbamp(nvel,nfbfr),fbph(nvel,nfbfr),STAT = alloc_stat)
-      IF(alloc_stat /= 0) THEN
-        PRINT*, "Allocation error: fbtag2, fbamp, fbph"
-      ENDIF
 
       DO bfr = 1,nfbfr
         READ(15,*) fbtag2(bfr) 

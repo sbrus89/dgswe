@@ -1,9 +1,10 @@
       SUBROUTINE area_qpts( )
 
       USE globals, ONLY: pres,p,nqpta,mnqpta,wpta,qpta,ctp,nel_type
+      
+      USE allocation, ONLY: alloc_qpt_arrays
 
       IMPLICIT NONE 
-      INTEGER :: alloc_status
       INTEGER :: i,pt,et
       INTEGER :: order(nel_type)
       INTEGER :: npt(nel_type)
@@ -26,15 +27,7 @@
       mnqpta = maxval(npt)
       
       
-      ALLOCATE(qpta(mnqpta,2,nel_type),STAT = alloc_status)
-      IF(alloc_status /= 0) THEN
-        PRINT*, 'Allocation error: qpta'
-      ENDIF 
-
-      ALLOCATE(wpta(mnqpta,nel_type),STAT = alloc_status)
-      IF(alloc_status /= 0) THEN
-        PRINT*, 'Allocation error: wpta'
-      ENDIF
+      CALL alloc_qpt_arrays(1)
       
       DO i = 1,nel_type
         nqpta(i) = npt(i)

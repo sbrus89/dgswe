@@ -1,10 +1,13 @@
       SUBROUTINE connect()
 
       USE globals, ONLY: pres,nn,ne,ned,vct,el_type,nverts,curved_grid, &
+                         mnepn,epn,nepn, &
                          ged2nn,ged2el,ged2led, &
                          nied,iedn,nobed,obedn,nfbed,fbedn,nnfbed,nfbedn, &
                          nope,neta,obseg,obnds,nbou,fbseg,nvel,fbnds, &
                          nelnds
+                         
+      USE allocation, ONLY: alloc_connect_arrays                   
                          
 
       IMPLICIT NONE
@@ -18,26 +21,17 @@
       INTEGER :: nvert1,nvert2,nvert
       REAL(pres) :: x1,x2,x3,y1,y2,y3
       
-      INTEGER, ALLOCATABLE, DIMENSION(:) :: bnd_temp,nfbnd_temp,fbnd_temp ! temporary arrary for boundary edges
+      INTEGER, ALLOCATABLE, DIMENSION(:) :: ied_temp,bnd_temp,nfbnd_temp,fbnd_temp ! temporary arrary for boundary edges
       INTEGER, ALLOCATABLE, DIMENSION(:,:) :: ged2nn_temp, ged2el_temp, ged2led_temp ! temporary arrays for edge connectivity
-      INTEGER, ALLOCATABLE, DIMENSION(:) :: nepn ! number of elements per node
-      INTEGER, ALLOCATABLE, DIMENSION(:,:) :: epn ! elements per node
       INTEGER, ALLOCATABLE, DIMENSION(:,:) :: edflag
-      INTEGER :: mnepn ! maximum number of elements per node
 
-      ALLOCATE(bnd_temp(3*ne),nfbnd_temp(3*ne),fbnd_temp(3*ne),STAT = alloc_status)
-      IF(alloc_status /= 0) THEN
-        PRINT*, 'Allocation error: bnd_temp,nfbnd_temp,fbnd_temp'
-      ENDIF 
+
+      ALLOCATE(ied_temp(3*ne),bnd_temp(3*ne),nfbnd_temp(3*ne),fbnd_temp(3*ne),STAT = alloc_status)
+      IF(alloc_status /= 0) PRINT*, 'Allocation error: bnd_temp,nfbnd_temp,fbnd_temp'
+        
       ALLOCATE(ged2nn_temp(2,3*ne),ged2el_temp(2,3*ne),ged2led_temp(2,3*ne),STAT = alloc_status)
-      IF(alloc_status /= 0) THEN
-        PRINT*, 'Allocation error: ged2nn_temp,ged2el_temp,ged2led_temp'
-      ENDIF 
-
-      ALLOCATE(nepn(nn),STAT = alloc_status)
-      IF(alloc_status /= 0) THEN
-        PRINT*, 'Allocation error: nepn'
-      ENDIF 
+      IF(alloc_status /= 0) PRINT*, 'Allocation error: ged2nn_temp,ged2el_temp,ged2led_temp'
+        
 
       PRINT "(A)", "---------------------------------------------"
       PRINT "(A)", "       Edge Connectivity Information         "
@@ -76,11 +70,8 @@
 
       PRINT "(A,I7)", '   maximum elements per node:', mnepn
       PRINT "(A)", ' '
-
-      ALLOCATE(epn(mnepn,nn),STAT = alloc_status)
-      IF(alloc_status /= 0) THEN
-        PRINT*, 'Allocation error: epn'
-      ENDIF 
+      
+      CALL alloc_connect_arrays(1)
 
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       ! find the elements associated with each node
@@ -101,9 +92,7 @@
       ENDDO
 
       ALLOCATE(edflag(4,ne),STAT = alloc_status)
-      IF(alloc_status /= 0) THEN
-        PRINT*, 'Allocation error: edflag'
-      ENDIF 
+      IF(alloc_status /= 0) PRINT*, 'Allocation error: edflag'
 
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       ! find edge pairs
@@ -175,14 +164,14 @@
       PRINT "(A,I7)", '   number of total edges:', ned
       PRINT "(A)", ' '
 
-      ALLOCATE(ged2nn(2,ned),ged2el(2,ned),ged2led(2,ned),STAT = alloc_status)
-      IF(alloc_status /= 0) THEN
-        PRINT*, 'Allocation error: ged2nn,ged2el,ged2led'
-      ENDIF 
+      CALL alloc_connect_arrays(2)
 
       ged2nn(:,1:ned) = ged2nn_temp(:,1:ned)
       ged2el(:,1:ned) = ged2el_temp(:,1:ned)
       ged2led(:,1:ned) = ged2led_temp(:,1:ned)
+      
+      DEALLOCATE(ged2nn_temp,ged2el_temp,ged2led_temp, STAT = alloc_status)
+      IF (alloc_status /= 0) PRINT*, "Deallocation error: ged2nn_temp, ged2el_temp, ged2led_temp"
 
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       ! find interior edges
@@ -190,22 +179,16 @@
       PRINT "(A)", 'finding interior edges'
 
       nied = 0
-      bnd_temp(:) = 0
+      ied_temp(:) = 0
       DO ged = 1,ned
         el1 = ged2el(1,ged)
         el2 = ged2el(2,ged)
         IF ((el1 /= 0) .AND. (el2 /= 0)) THEN
           nied = nied + 1
-          bnd_temp(nied) = ged
+          ied_temp(nied) = ged
         ENDIF
       ENDDO
 
-      ALLOCATE(iedn(nied),STAT = alloc_status)
-      IF(alloc_status /= 0) THEN
-        PRINT*, 'Allocation error: iedn'
-      ENDIF 
-
-      iedn(1:nied) = bnd_temp(1:nied)
 
       PRINT "(A,I7)", '   number of interior edges:', nied
       PRINT "(A)", ' '
@@ -233,12 +216,6 @@
         ENDDO
       ENDDO
 
-      ALLOCATE(obedn(nobed),STAT = alloc_status)
-      IF(alloc_status /= 0) THEN
-        PRINT*, 'Allocation error: obedn'
-      ENDIF 
-
-      obedn(1:nobed) = bnd_temp(1:nobed)
 
       PRINT "(A,I7)", '   number of open boundary edges:', nobed
       PRINT "(A)", ' '
@@ -294,11 +271,10 @@
         ENDDO
       ENDDO
 
-      ALLOCATE(fbedn(nfbed),nfbedn(nnfbed),STAT=alloc_status)
-      IF(alloc_status /= 0) THEN
-        PRINT*, 'Allocation error: fbedn'
-      ENDIF    
+      CALL alloc_connect_arrays(3)
 
+      iedn(1:nied) = ied_temp(1:nied)      
+      obedn(1:nobed) = bnd_temp(1:nobed)      
       nfbedn(1:nnfbed) = nfbnd_temp(1:nnfbed)
       fbedn(1:nfbed) = fbnd_temp(1:nfbed)
 

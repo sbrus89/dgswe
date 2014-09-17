@@ -1,45 +1,30 @@
       SUBROUTINE element_data()
 
-      USE globals, ONLY: pres,ect,vct,xy,depth,ne,nn,ned,ndof,mndof, &
-                         nqpta,mnqpta,qpta,nqpte,mnqpte, &
-                         el_type,nel_type,p,ctp,nelnds,np,nnds,mnnds, &
+      USE globals, ONLY: pres,ect,xy,depth,ne,nn,ned,ndof, &
+                         nqpta,mnqpta,qpta,nqpte, &
+                         el_type,nel_type,p,ctp,np,nnds, &
                          area,edlen,edlen_area,normal,ged2nn,ged2el,ged2led, &
-                         dhbdx,dhbdy,dhbdx_init,dhbdy_init, &
-                         dpdx_init,dpdy_init, &
-                         dpdr,dpds,wpta, &
-                         psia,dpsidr,dpsids,detJa,mmi,mmi_init, &
-                         psie,dpsidxi,detJe, &
+                         dhbdx_init,dhbdy_init, &
+                         detJa,detJe, &
                          nx_pt,ny_pt, &
                          curved_grid
                          
       USE basis, ONLY: 
+      
+      USE allocation, ONLY: alloc_trans_arrays
 
       IMPLICIT NONE
       INTEGER :: el,ed,led,dof,pt,i,nd
       INTEGER :: ind,et
-      INTEGER :: alloc_status
       REAL(pres) :: x1,x2,x3,x4,y1,y2,y3,y4
       REAL(pres) :: dxdr,dxds,dydr,dyds   
       REAL(pres) :: drdx,drdy,dsdx,dsdy      
       REAL(pres) :: hb1,hb2,hb3,hb4,hb,dhbdx1,dhbdy1 
       REAL(pres), ALLOCATABLE, DIMENSION(:) :: r,s
-      REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: jac
-     
-      
-      ALLOCATE(dhbdx(ne,mnqpta),dhbdy(ne,mnqpta),STAT = alloc_status)
-      IF(alloc_status /= 0) THEN
-        PRINT*, 'Allocation error: dhbdx,dhbdy'
-      ENDIF
-      
-      ALLOCATE(dhbdx_init(ne,mnqpta),dhbdy_init(ne,mnqpta),STAT = alloc_status)
-      IF(alloc_status /= 0) THEN
-        PRINT*, 'Allocation error: dhbdx_init,dhbdy_init'
-      ENDIF     
+      REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: jac    
     
-      
-      ALLOCATE(psia(mnnds,mnqpta+4*mnqpte,nel_type),dpsidr(mnnds,mnqpta+4*mnqpte,nel_type),dpsids(mnnds,mnqpta+4*mnqpte,nel_type))
-      ALLOCATE(detJa(ne,mnqpta),mmi_init(ne,mndof*mndof),mmi(ne,mndof*mndof))
-      ALLOCATE(nx_pt(ned,mnqpte),ny_pt(ned,mnqpte))
+      CALL alloc_trans_arrays()      
+
       nx_pt = 0d0
       ny_pt = 0d0    
       
@@ -54,11 +39,6 @@
       ENDDO
   
       
-      mnnds = maxval(np)+1  
-      
-      ALLOCATE(psie(mnnds,mnqpte,nel_type),dpsidxi(mnnds,mnqpte,nel_type))
-      ALLOCATE(detJe(ned,mnqpte))
-      
       DO i = 1,nel_type
         CALL edge_transformation(i,np(i),nqpte(i))
       ENDDO
@@ -67,11 +47,6 @@
       !!!!!!!!!!!!!!!!!!!!!!!!!!
       ! Calculate element area 
       !!!!!!!!!!!!!!!!!!!!!!!!!!
-
-      ALLOCATE(area(ne),STAT = alloc_status)
-      IF(alloc_status /= 0) THEN
-        PRINT*, 'Allocation error: area'
-      ENDIF
       
       ALLOCATE(r(mnqpta),s(mnqpta),jac(ne,mnqpta))
       DO i = 1,nqpta(2)
@@ -123,12 +98,7 @@
 
       !!!!!!!!!!!!!!!!!!!!!!!!!
       ! Calculate edge length 
-      !!!!!!!!!!!!!!!!!!!!!!!!!
-      ALLOCATE(edlen(ned),edlen_area(2,ned),STAT = alloc_status)
-!       ALLOCATE(edlen(ned),edlen_area(ne,3),STAT = alloc_status)
-      IF(alloc_status /= 0) THEN
-        PRINT*, 'Allocation error: edlen'
-      ENDIF
+      !!!!!!!!!!!!!!!!!!!!!!!!!      
 
       DO ed = 1,ned
         x1 = xy(1,ged2nn(1,ed))
@@ -165,11 +135,6 @@
       !!!!!!!!!!!!!!!!!!!!!!!!!!
       ! Calculate edge normals 
       !!!!!!!!!!!!!!!!!!!!!!!!!!
-
-      ALLOCATE(normal(2,ned),STAT = alloc_status)
-      IF(alloc_status /= 0) THEN
-        PRINT*, 'Allocation error: edlen'
-      ENDIF
 
       DO ed = 1,ned
         x1 = xy(1,ged2nn(1,ed))
