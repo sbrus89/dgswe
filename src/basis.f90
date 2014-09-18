@@ -4,13 +4,16 @@
 
       SUBROUTINE area_basis()
 
-        USE globals, ONLY: pres,nel_type,nqpta,mnqpta,nqpte,wpta,qpta,p,ndof,mndof, &
-                           phia,phia_int,phia_int_init,phil,dpdx,dpdy,dpdx_init,dpdy_init,dpdr,dpds
+        USE globals, ONLY: pres,nel_type,nqpta,mnqpta,wpta,qpta,p,ndof,mndof, &
+                           phia,dpdr,dpds
                            
         USE allocation, ONLY: alloc_basis_arrays                          
 
         IMPLICIT NONE
-        INTEGER :: i,j,pt,et
+        INTEGER :: i,j,pt,et,dof
+        REAL(pres) :: qint
+        REAL(pres) :: mm(mndof,mndof)
+        REAL(pres) :: phi(mndof*mnqpta),dphidr(mndof*mnqpta),dphids(mndof*mnqpta)
   
         CALL alloc_basis_arrays()
 
@@ -25,10 +28,45 @@
         DO et = 1,nel_type
         
           IF (mod(et,2) == 1) THEN
-            CALL tri_area_basis(et,p,ndof(et),nqpta(et))
+            CALL tri_basis(p,ndof(et),nqpta(et),qpta(:,1,et),qpta(:,2,et),phi,dphidr,dphids)
           ELSE IF (mod(et,2) == 0) THEN
-            CALL quad_area_basis(et,p,ndof(et),nqpta(et))
+            CALL quad_basis(p,ndof(et),nqpta(et),qpta(:,1,et),qpta(:,2,et),phi,dphidr,dphids)
           ENDIF
+          
+
+          DO pt = 1,nqpta(et)
+            DO dof = 1,ndof(et)
+              i = (dof-1)*nqpta(et) + pt
+              phia(dof,pt,et) = phi(i)
+              dpdr(dof,pt,et) = dphidr(i)
+              dpds(dof,pt,et) = dphids(i)
+            ENDDO
+          ENDDO
+          
+          ! Compute mass matrix (constant*indentity matrix)
+          DO i = 1,ndof(et)
+            DO j = 1,ndof(et)
+              mm(i,j) = 0d0
+              DO pt = 1,nqpta(et)
+                mm(i,j) = mm(i,j) + wpta(pt,et)*phia(i,pt,et)*phia(j,pt,et)
+              ENDDO
+            ENDDO
+          ENDDO
+        
+          PRINT "(A,I5)", "Number of degrees of freedom:",ndof(et)
+          PRINT "(A)", " "        
+
+          PRINT "(A)", 'Mass matrix'
+          DO i = 1,ndof(et)
+            PRINT "(100(F10.3))", (mm(i,j),j=1,ndof(et))
+          ENDDO
+          PRINT "(A)", ' '
+
+          PRINT "(A)", 'Basis functions at quadrature points'
+          DO i = 1,ndof(et)
+            PRINT "(100(F10.3))", (phia(i,j,et),j=1,nqpta(et))
+          ENDDO
+          PRINT "(A)", ' '             
           
         ENDDO
         
@@ -43,19 +81,30 @@
 
       SUBROUTINE edge_basis()
 
-        USE globals, ONLY: pres,ndof,mndof,nqpte,mnqpte,qpte,wpte,p,phi,phie,phie_int,nqpta,nel_type
+        USE globals, ONLY: pres,ndof,nverts,mndof,nqpte,mnqpte,qpte,wpte,p,phie,phie_int,nel_type
 
         IMPLICIT NONE
 
-        INTEGER :: et,i
+        INTEGER :: dof,pt,et,i
+        INTEGER :: tpts
+        REAL(pres) :: phi(mndof*4*mnqpte)       
 
         DO et = 1,nel_type
-        
+          
+          tpts = nverts(et)*nqpte(et)
           IF (mod(et,2) == 1) THEN
-            CALL tri_edge_basis(et,p,ndof(et),nqpte(et))
+            CALL tri_basis(p,ndof(et),tpts,qpte(:,1,et),qpte(:,2,et),phi)
           ELSE IF (mod(et,2) == 0) THEN
-            CALL quad_edge_basis(et,p,ndof(et),nqpte(et))
+            CALL quad_basis(p,ndof(et),tpts,qpte(:,1,et),qpte(:,2,et),phi)
           ENDIF
+          
+          DO pt = 1,tpts
+            DO dof = 1,ndof(et)
+              i = (dof-1)*tpts + pt
+              phie(dof,pt,et) = phi(i)
+              phie_int(dof,pt,et) = phie(dof,pt,et)*wpte(pt,et)
+            ENDDO
+          ENDDO
           
         ENDDO        
 
@@ -66,128 +115,107 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-        SUBROUTINE tri_area_basis(et,p,ndof,nqpta)
+        SUBROUTINE tri_basis(p,ndof,npts,r,s,phi,dpdr,dpds)
         
-        USE globals, ONLY: pres,qpta,wpta,phia,phia_int,dpdr,dpds
+        USE globals, ONLY: pres
         
         IMPLICIT NONE
-        
-        INTEGER :: m,i,j,pt,et
-        INTEGER :: p,nqpta
+        INTEGER :: p,npts
         INTEGER :: ndof
+        REAL(pres) :: r(npts),s(npts)        
+        INTEGER :: m,i,j,pt
         REAL(pres) :: dpda,dpdb,dadr,dads,ii       
-        REAL(pres) :: r(nqpta),s(nqpta),a(nqpta),b(nqpta)
-        REAL(pres) :: Pi(nqpta),Pj(nqpta)
-        REAL(pres) :: dPi(nqpta),dPj(nqpta)
-        REAL(pres) :: mm(ndof,ndof)
-        REAL(pres) :: ml2(3,ndof),mml(3,3)
-        REAL(pres) :: qint
+        REAL(pres) :: a(npts),b(npts)
+        REAL(pres) :: Pi(npts),Pj(npts)
+        REAL(pres) :: dPi(npts),dPj(npts)
         
+        REAL(pres) :: phi(ndof*npts)
+        REAL(pres), OPTIONAL :: dpdr(ndof*npts),dpds(ndof*npts)  
+        INTEGER :: calc_deriv
+        
+        IF (PRESENT(dpdr) .AND. PRESENT(dpds)) THEN
+          calc_deriv = 1
+        ELSE
+          calc_deriv = 0
+        ENDIF        
       
         ! Change quadrature points from r,s (master element) to a,b extended coordinates
-        DO pt = 1,nqpta
-          r(pt) = qpta(pt,1,et)
-          s(pt) = qpta(pt,2,et)
-          
-          a(pt) = 2d0*(1d0+r(pt))/(1d0-s(pt))-1d0 
+        DO pt = 1,npts
+          IF(abs(s(pt) - 1d0) > 1d-14) THEN
+            a(pt) = 2d0*(1d0+r(pt))/(1d0-s(pt))-1d0 
+          ELSE
+            a(pt) = -1d0
+          ENDIF
           b(pt) = s(pt)
         ENDDO
         
         ! Calculate basis function values and derivative values at area quadrature points
         m = 0
         DO i = 0,p
+          ii = real(i,pres)
           DO j = 0,p-i
 
             m = m+1
 
-            Pi = 0d0
-            dPi = 0d0
-            Pj = 0d0
-            dPj = 0d0
-
-            CALL jacobi(0,0,i,a,nqpta,Pi)
-            CALL djacobi(0,0,i,a,nqpta,dPi)
-            CALL jacobi(2*i+1,0,j,b,nqpta,Pj)
-            CALL djacobi(2*i+1,0,j,b,nqpta,dPj)
+            CALL jacobi(0    ,0,i,a,npts,Pi)
+            CALL jacobi(2*i+1,0,j,b,npts,Pj)           
 
             ! Calculate function values
-            DO pt = 1,nqpta 
-!               phia(m,pt) = sqrt(2d0)*Pi(pt)*Pj(pt)*(1d0-b(pt))**i
-              phia(m,pt,et) = 2d0*Pi(pt)*Pj(pt)*(1d0-b(pt))**i
+            DO pt = 1,npts 
+!               phi(m,pt) = sqrt(2d0)*Pi(pt)*Pj(pt)*(1d0-b(pt))**i
+              phi((m-1)*npts+pt) = 2d0*Pi(pt)*Pj(pt)*(1d0-b(pt))**i
             ENDDO
 
-            ii = real(i,pres)
+            IF (calc_deriv == 1) THEN
+              CALL djacobi(0    ,0,i,a,npts,dPi)
+              CALL djacobi(2*i+1,0,j,b,npts,dPj)                          
 
-            ! Calculate derivative values
-            DO pt = 1,nqpta
-              dadr = 2d0/(1d0-s(pt))
-!               dpda = sqrt(2d0)*dPi(pt)*Pj(pt)*(1d0-b(pt))**ii
-              dpda = 2d0*dPi(pt)*Pj(pt)*(1d0-b(pt))**ii
-              dpdr(m,pt,et) = dpda*dadr
-
-              dads = 2d0*(1d0+r(pt))/(1d0-s(pt))**2d0
-!               dpdb = sqrt(2d0)*Pi(pt)*(dPj(pt)*(1d0-b(pt))**ii - ii*(1d0-b(pt))**(ii-1d0)*Pj(pt))
-              dpdb = 2d0*Pi(pt)*(dPj(pt)*(1d0-b(pt))**ii - ii*(1d0-b(pt))**(ii-1d0)*Pj(pt))
-              dpds(m,pt,et) = dpda*dads + dpdb
-            ENDDO
+              ! Calculate derivative values
+              DO pt = 1,npts
+                dadr = 2d0/(1d0-s(pt))
+                dads = 2d0*(1d0+r(pt))/(1d0-s(pt))**2d0
+              
+!                 dpda = sqrt(2d0)*dPi(pt)*Pj(pt)*(1d0-b(pt))**ii
+!                 dpdb = sqrt(2d0)*Pi(pt)*(dPj(pt)*(1d0-b(pt))**ii - ii*(1d0-b(pt))**(ii-1d0)*Pj(pt))
+                dpda = 2d0*dPi(pt)*Pj(pt)*(1d0-b(pt))**ii
+                dpdb = 2d0*Pi(pt)*(dPj(pt)*(1d0-b(pt))**ii - ii*(1d0-b(pt))**(ii-1d0)*Pj(pt))
+              
+                dpdr((m-1)*npts+pt) = dpda*dadr
+                dpds((m-1)*npts+pt) = dpda*dads + dpdb
+              ENDDO
+            ENDIF
 
           ENDDO
-        ENDDO
-
-        ! Compute mass matrix (indentity matrix)
-        DO i = 1,ndof
-          DO j = 1,ndof
-            qint = 0d0
-            DO pt = 1,nqpta
-              qint = qint + wpta(pt,et)*phia(i,pt,et)*phia(j,pt,et)
-            ENDDO
-            mm(i,j) = qint
-          ENDDO
-        ENDDO
+        ENDDO  
         
-        PRINT "(A,I5)", "Number of degrees of freedom:",ndof
-        PRINT "(A)", " "        
-
-        PRINT "(A)", 'Mass matrix'
-        DO i = 1,ndof
-          PRINT "(100(F10.3))", (mm(i,j),j=1,ndof)
-        ENDDO
-        PRINT "(A)", ' '
-
-        PRINT "(A)", 'Basis functions at quadrature points'
-        DO i = 1,m
-          PRINT "(100(F10.3))", (phia(i,j,et),j=1,nqpta)
-        ENDDO
-        PRINT "(A)", ' '     
-        
-        END SUBROUTINE tri_area_basis
+        END SUBROUTINE tri_basis
         
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-        SUBROUTINE quad_area_basis(et,p,ndof,nqpta)
+        SUBROUTINE quad_basis(p,ndof,npts,r,s,phi,dpdr,dpds)
         
-        USE globals, ONLY: pres,qpta,wpta,phia,phia_int,dpdr,dpds
+        USE globals, ONLY: pres
         
         IMPLICIT NONE
         
-        INTEGER :: m,i,j,pt,et
-        INTEGER :: p,nqpta
+        INTEGER :: p,npts
         INTEGER :: ndof
-        REAL(pres) :: dpda,dpdb,dadr,dads      
-        REAL(pres) :: r(nqpta),s(nqpta),a(nqpta),b(nqpta)
-        REAL(pres) :: Pi(nqpta),Pj(nqpta)
-        REAL(pres) :: dPi(nqpta),dPj(nqpta)
-        REAL(pres) :: mm(ndof,ndof)
-        REAL(pres) :: ml2(3,ndof),mml(3,3)
-        REAL(pres) :: qint
+        REAL(pres) :: r(npts),s(npts)
         
-      
-        ! Change quadrature points from r,s (master element) to a,b extended coordinates
-        DO pt = 1,nqpta
-          r(pt) = qpta(pt,1,et)
-          s(pt) = qpta(pt,2,et)
-        ENDDO
+        INTEGER :: m,i,j,pt    
+        REAL(pres) :: Pi(npts),Pj(npts)
+        REAL(pres) :: dPi(npts),dPj(npts)
+        
+        REAL(pres) :: phi(ndof*npts)
+        REAL(pres), OPTIONAL :: dpdr(ndof*npts),dpds(ndof*npts)
+        INTEGER :: calc_deriv
+        
+        IF (PRESENT(dpdr) .AND. PRESENT(dpds)) THEN
+          calc_deriv = 1
+        ELSE
+          calc_deriv = 0
+        ENDIF
         
         ! Calculate basis function values and derivative values at area quadrature points
         m = 0
@@ -196,205 +224,37 @@
 
             m = m+1
 
-            Pi = 0d0
-            dPi = 0d0
-            Pj = 0d0
-            dPj = 0d0
-
-            CALL jacobi(0,0,i,r,nqpta,Pi)
-            CALL djacobi(0,0,i,r,nqpta,dPi)
-            CALL jacobi(0,0,j,s,nqpta,Pj)
-            CALL djacobi(0,0,j,s,nqpta,dPj)
+            CALL jacobi(0,0,i,r,npts,Pi)
+            CALL jacobi(0,0,j,s,npts,Pj)              
 
             ! Calculate function values
-            DO pt = 1,nqpta 
-              phia(m,pt,et) = 2d0*Pi(pt)*Pj(pt)
+            DO pt = 1,npts 
+              phi((m-1)*npts+pt) = 2d0*Pi(pt)*Pj(pt)
             ENDDO
 
-            ! Calculate derivative values
-            DO pt = 1,nqpta
-              dpdr(m,pt,et) = 2d0*dPi(pt)*Pj(pt)
-              dpds(m,pt,et) = 2d0*Pi(pt)*dPj(pt)
-            ENDDO
-
-          ENDDO
-        ENDDO
-
-        ! Compute mass matrix (indentity matrix)
-        DO i = 1,ndof
-          DO j = 1,ndof
-            qint = 0d0
-            DO pt = 1,nqpta
-              qint = qint + wpta(pt,et)*phia(i,pt,et)*phia(j,pt,et)
-            ENDDO
-            mm(i,j) = qint
-          ENDDO
-        ENDDO
-        
-        PRINT "(A,I5)", "Number of degrees of freedom:",ndof
-        PRINT "(A)", " "        
-
-        PRINT "(A)", 'Mass matrix'
-        DO i = 1,ndof
-          PRINT "(100(F10.3))", (mm(i,j),j=1,ndof)
-        ENDDO
-        PRINT "(A)", ' '
-
-        PRINT "(A)", 'Basis functions at quadrature points'
-        DO i = 1,m
-          PRINT "(100(F10.3))", (phia(i,j,et),j=1,nqpta)
-        ENDDO
-        PRINT "(A)", ' '     
-        
-        END SUBROUTINE quad_area_basis        
-      
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!      
-      
-      SUBROUTINE tri_edge_basis(et,p,ndof,nqpte)
-      
-        USE globals, ONLY: pres,wpte,qpte,phie,phie_int
-      
-        IMPLICIT NONE
-        INTEGER :: led,pt,m,i,j,ind
-        INTEGER :: ndof,nqpte,et,p
-        REAL(pres) :: r(nqpte),s(nqpte),a(nqpte),b(nqpte)
-        REAL(pres) :: Pi(nqpte),Pj(nqpte)   
-      
-        DO led = 1,3
-
-          ! Determine r,s coordinates of quadrature points along local edge in master element
-          SELECT CASE(led)
-            CASE(1)
-              DO pt = 1,nqpte
-                r(pt) = -qpte(pt,et)
-                s(pt) =  qpte(pt,et)
-!                 PRINT*, r(pt),s(pt)
-              ENDDO
-            CASE(2)
-              DO pt = 1,nqpte
-                r(pt) = -1d0
-                s(pt) = -qpte(pt,et)
-!                 PRINT*, r(pt),s(pt)
-              ENDDO 
-            CASE(3)
-              DO pt = 1,nqpte
-                r(pt) = qpte(pt,et)
-                s(pt) = -1d0
-!                 PRINT*, r(pt),s(pt)
-              ENDDO 
-          END SELECT
-
-          ! Change quadrature points from r,s (master element) to a,b extended coordinates
-          DO pt = 1,nqpte
-            a(pt) = 2d0*(1d0+r(pt))/(1d0-s(pt)) - 1d0
-            b(pt) = s(pt)
-          ENDDO
-
-          ! Calculate basis function values edge quadrature points
-          m = 0
-          DO i = 0,p
-            DO j = 0,p-i
-
-              m = m+1
-
-              Pi = 0d0
-              Pj = 0d0
-              CALL jacobi(0,0,i,a,nqpte,Pi)
-              CALL jacobi(2*i+1,0,j,b,nqpte,Pj)
+            IF (calc_deriv == 1) THEN
+              CALL djacobi(0,0,i,r,npts,dPi)
+              CALL djacobi(0,0,j,s,npts,dPj)
             
-              ! Calculate function values
-              DO pt = 1,nqpte 
-                ind = (led-1)*nqpte+pt
-!                 phie(m,ind) = sqrt(2d0)*Pi(pt)*Pj(pt)*(1d0-b(pt))**i
-!                 phie_int(m,ind) = phie(m,ind)*wpte(pt)
-                phie(m,ind,et) = 2d0*Pi(pt)*Pj(pt)*(1d0-b(pt))**i
-                phie_int(m,ind,et) = phie(m,ind,et)*wpte(pt,et)
+              ! Calculate derivative values
+              DO pt = 1,npts
+                dpdr((m-1)*npts+pt) = 2d0*dPi(pt)*Pj(pt)
+                dpds((m-1)*npts+pt) = 2d0*Pi(pt)*dPj(pt)
               ENDDO
+            ENDIF
 
-            ENDDO
           ENDDO
-
         ENDDO
-      
-      
-      END SUBROUTINE tri_edge_basis
-      
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!      
-      
-      SUBROUTINE quad_edge_basis(et,p,ndof,nqpte)
-      
-        USE globals, ONLY: pres,wpte,qpte,phie,phie_int
-      
-        IMPLICIT NONE
-        INTEGER :: led,pt,m,i,j,ind
-        INTEGER :: ndof,nqpte,et,p
-        REAL(pres) :: r(nqpte),s(nqpte)
-        REAL(pres) :: Pi(nqpte),Pj(nqpte)   
-      
-        DO led = 1,4
 
-          ! Determine r,s coordinates of quadrature points along local edge in master element
-          SELECT CASE(led)
-            CASE(1)
-              DO pt = 1,nqpte
-                r(pt) = 1d0
-                s(pt) = qpte(pt,et)
-              ENDDO
-            CASE(2)
-              DO pt = 1,nqpte
-                r(pt) = -qpte(pt,et)
-                s(pt) = 1d0
-              ENDDO 
-            CASE(3)
-              DO pt = 1,nqpte
-                r(pt) = -1d0
-                s(pt) = -qpte(pt,et)
-              ENDDO 
-            CASE(4) 
-              DO pt = 1,nqpte
-                r(pt) = qpte(pt,et)
-                s(pt) = -1d0
-              ENDDO
-          END SELECT
-
-          ! Calculate basis function values edge quadrature points
-          m = 0
-          DO i = 0,p
-            DO j = 0,p
-
-              m = m+1
-
-              Pi = 0d0
-              Pj = 0d0
-              CALL jacobi(0,0,i,r,nqpte,Pi)
-              CALL jacobi(0,0,j,s,nqpte,Pj)
-            
-              ! Calculate function values
-              DO pt = 1,nqpte 
-                ind = (led-1)*nqpte+pt
-
-                phie(m,ind,et) = 2d0*Pi(pt)*Pj(pt)
-                phie_int(m,ind,et) = phie(m,ind,et)*wpte(pt,et)
-              ENDDO
-
-            ENDDO
-          ENDDO
-          
-
-        ENDDO
+        
+        END SUBROUTINE quad_basis        
       
-      
-      END SUBROUTINE quad_edge_basis      
-      
-
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
       SUBROUTINE jacobi(alpha_i,beta_i,deg,x,npts,v)
 
-        USE globals, ONLY: pres,ndof
+        USE globals, ONLY: pres
 
         IMPLICIT NONE
         INTEGER, INTENT(IN) :: alpha_i,beta_i,deg,npts
@@ -456,7 +316,7 @@
 
       SUBROUTINE djacobi(alpha_i,beta_i,deg_i,x,npts,dP)
 
-        USE globals, ONLY: pres,ndof
+        USE globals, ONLY: pres
 
         IMPLICIT NONE
         INTEGER, INTENT(IN) :: alpha_i,beta_i,deg_i,npts

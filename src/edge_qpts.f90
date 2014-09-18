@@ -6,7 +6,7 @@
 
       IMPLICIT NONE
       INTEGER :: alloc_status
-      INTEGER :: pt,i
+      INTEGER :: pt,et,led,i
       INTEGER :: order(nel_type),npt(nel_type)
       REAL(pres) :: w(13,nel_type),r(13,nel_type)
       
@@ -20,8 +20,8 @@
       order(3) = order(1)
       order(4) = order(1)
       
-      DO i = 1,nel_type
-        CALL guass_qpts(order(i),npt(i),w(:,i),r(:,i))
+      DO et = 1,nel_type
+        CALL guass_qpts(order(et),npt(et),w(:,et),r(:,et))
       ENDDO
       
       mnqpte = maxval(npt)
@@ -29,12 +29,60 @@
       CALL alloc_qpt_arrays(2)
    
    
-      DO i = 1,nel_type   
-        nqpte(i) = npt(i)
-        DO pt = 1,mnqpte
-          wpte(pt,i) = w(pt,i)
-          qpte(pt,i) = r(pt,i)
-        ENDDO
+      DO et = 1,nel_type 
+      
+        nqpte(et) = npt(et)              
+        
+        IF (mod(et,2) == 1) THEN
+          
+          DO led = 1,3
+            DO i = 1,nqpte(et)
+              pt = (led-1)*nqpte(et) + i
+              SELECT CASE(led)
+                CASE(1)
+                  wpte(pt,et)   = w(i,et)
+                  qpte(pt,1,et) = -r(i,et)
+                  qpte(pt,2,et) =  r(i,et)
+                CASE(2)
+                  wpte(pt,et)   = w(i,et)
+                  qpte(pt,1,et) = -1d0
+                  qpte(pt,2,et) = -r(i,et)
+                CASE(3)
+                  wpte(pt,et)   = w(i,et)
+                  qpte(pt,1,et) = r(i,et)
+                  qpte(pt,2,et) = -1d0
+              END SELECT
+            ENDDO
+          ENDDO          
+        
+        ELSE IF (mod(et,2) == 0) THEN
+
+          DO led = 1,4
+            DO i = 1,nqpte(et)
+              pt = (led-1)*nqpte(et) + i
+              SELECT CASE(led)
+                CASE(1)
+                  wpte(pt,et)   = w(i,et)
+                  qpte(pt,1,et) = 1d0
+                  qpte(pt,2,et) = r(i,et)
+                CASE(2)
+                  wpte(pt,et)   = w(i,et)
+                  qpte(pt,1,et) = -r(i,et)
+                  qpte(pt,2,et) = 1d0
+                CASE(3)
+                  wpte(pt,et)   = w(i,et)
+                  qpte(pt,1,et) = -1d0
+                  qpte(pt,2,et) = -r(i,et)
+                CASE(4)
+                  wpte(pt,et)   = w(i,et)
+                  qpte(pt,1,et) = r(i,et)
+                  qpte(pt,2,et) = -1d0 
+              END SELECT
+            ENDDO
+          ENDDO          
+        
+        ENDIF
+        
       ENDDO
 
 
@@ -49,7 +97,7 @@
       DO i = 1,nel_type
         PRINT "(A,I3)", "Number of edge quadrature points",nqpte(i)      
         DO pt = 1,nqpte(i)
-          PRINT "(2(F10.3))", wpte(pt,i),qpte(pt,i)
+          PRINT "(2(F10.3))", wpte(pt,i),qpte(pt,2,i)
         ENDDO
         PRINT*, ' '
       ENDDO

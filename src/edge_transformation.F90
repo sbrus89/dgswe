@@ -25,7 +25,7 @@
       
       DO i = 1,nqpts
         pt = nnds + i
-        xi(pt) = qpte(i,et)
+        xi(pt) = qpte(i,2,et) ! These are the 1-D guass points
       ENDDO
       
       m = 0
