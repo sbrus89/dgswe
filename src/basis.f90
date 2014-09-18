@@ -43,11 +43,7 @@
             ENDDO
           ENDDO
           
-<<<<<<< HEAD
           ! Compute mass matrix (constant*indentity matrix)
-=======
-          ! Compute mass matrix (indentity matrix)
->>>>>>> 781262a766cbbe557adb9008e1dc87fc6dca443d
           DO i = 1,ndof(et)
             DO j = 1,ndof(et)
               mm(i,j) = 0d0
