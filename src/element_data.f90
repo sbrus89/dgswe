@@ -28,10 +28,10 @@
       nx_pt = 0d0
       ny_pt = 0d0    
       
-!       IF (ctp > 1 .AND. curved_grid == 0) THEN  
-! !       IF (ctp > 1) THEN
-!         CALL curvilinear()    
-!       ENDIF
+      IF (ctp > 1 .AND. curved_grid == 0) THEN  
+!       IF (ctp > 1) THEN
+        CALL curvilinear()    
+      ENDIF
       
       
       DO i = 1,nel_type

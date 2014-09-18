@@ -172,8 +172,8 @@
       ELSE IF (stage == 2) THEN
         n = 2
         ! Edge quadrature points and weights
-        ALLOCATE(qpte(mnqpte,nel_type),STAT = alloc_status(1))        
-        ALLOCATE(wpte(mnqpte,nel_type),STAT = alloc_status(2))
+        ALLOCATE(qpte(4*mnqpte,2,nel_type),STAT = alloc_status(1))        
+        ALLOCATE(wpte(4*mnqpte,nel_type),STAT = alloc_status(2))
       ENDIF
       
       

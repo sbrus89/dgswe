@@ -38,13 +38,16 @@
             
       ENDIF
       
-      PRINT*, " "
-      PRINT*, "Vandermonde matrix: "
-      DO i = 1,nnds
-          PRINT("(20(F20.15))"), (V(i,j), j = 1,nnds)
-      ENDDO
-      
-      
+!       PRINT*, " "
+!       PRINT*, "Vandermonde matrix: "
+!       DO i = 1,nnds
+!           PRINT("(20(F20.15))"), (V(i,j), j = 1,nnds)
+!       ENDDO
+!       PRINT*, " "
+!       PRINT*, "RHS matrix: "      
+!       DO i = 1,nnds
+!         PRINT("(20(F15.5))"), (phi(i,j), j = 1,nqpta+nvert*nqpte)
+!       ENDDO
       
       
       DO pt = 1,nqpta+nvert*nqpte
@@ -245,23 +248,17 @@
       SUBROUTINE tri_trans(et,np,nnds,nqpta,nqpte,V,phi,dphidr,dphids)
       
       USE globals, ONLY: pres,qpta,qpte
-      USE basis, ONLY: tri_nodes,jacobi,djacobi      
+      USE basis, ONLY: tri_nodes,tri_basis     
       
       IMPLICIT NONE
 
-      INTEGER :: i,j,k,pt,m,led
+      INTEGER :: i,j,k,pt,m,led,dof
       INTEGER :: np,nnds,et,nqpta,nqpte
-      REAL(pres) :: r(nnds+nqpta+3*nqpte),s(nnds+nqpta+3*nqpte)
-      REAL(pres) :: a(nnds+nqpta+3*nqpte),b(nnds+nqpta+3*nqpte)
-      REAL(pres) :: Pi(nnds+nqpta+3*nqpte),Pj(nnds+nqpta+3*nqpte)
-      REAL(pres) :: dPi(nnds+nqpta+3*nqpte),dPj(nnds+nqpta+3*nqpte)      
+      INTEGER :: tnds
+      REAL(pres) :: r(nnds+nqpta+3*nqpte),s(nnds+nqpta+3*nqpte)     
+      REAL(pres) :: p(nnds*(nnds+nqpta+3*nqpte)),dpdr(nnds*(nnds+nqpta+3*nqpte)),dpds(nnds*(nnds+nqpta+3*nqpte))
       REAL(pres) :: V(nnds,nnds)  
-      REAL(pres) :: phi(nnds,nqpta+4*nqpte),dphidr(nnds,nqpta+4*nqpte),dphids(nnds,nqpta+4*nqpte)
-      REAL(pres) :: dpda,dpdb,dadr,dads,ii
-      
-      r = 0d0
-      s = 0d0 
-      V = 0d0      
+      REAL(pres) :: phi(nnds,nqpta+3*nqpte),dphidr(nnds,nqpta+3*nqpte),dphids(nnds,nqpta+3*nqpte)       
       
       ! Get triangular reference element nodes
       CALL tri_nodes(1,np,nnds,r,s)   
@@ -272,81 +269,30 @@
         s(pt) = qpta(i,2,et)
       ENDDO  
       
-      DO led = 1,3
-        DO i = 1,nqpte
-          pt = nnds+nqpta+(led-1)*nqpte + i
-          SELECT CASE(led)
-            CASE(1)
-              r(pt) = -qpte(i,et)
-              s(pt) =  qpte(i,et)
-            CASE(2)
-              r(pt) = -1d0
-              s(pt) = -qpte(i,et)
-            CASE(3)
-              r(pt) =  qpte(i,et)
-              s(pt) = -1d0
-          END SELECT
-        ENDDO
+      DO i = 1,3*nqpte
+        pt = nnds+nqpta+i
+        r(pt) = qpte(i,1,et)
+        s(pt) = qpte(i,2,et)
       ENDDO
 
-      ! Change quadrature points from r,s (master element) to a,b extended coordinates
-      DO pt = 1,nnds+nqpta+3*nqpte
-        IF(abs(s(pt)- 1d0) > 1d-14) THEN
-          a(pt) = 2d0*(1d0+r(pt))/(1d0-s(pt))-1d0 
-        ELSE 
-          a(pt) = -1d0
-        ENDIF
-        b(pt) = s(pt)      
-      ENDDO
-        
-      m = 0
-      DO i = 0,np
-        DO j = 0,np-i
-
-          m = m+1
-          
-          Pi = 0d0
-          Pj = 0d0
-          
-          dPi = 0d0          
-          dPj = 0d0          
-
-          CALL jacobi(0    ,0,i,a,nnds+nqpta+3*nqpte,Pi)
-          CALL jacobi(2*i+1,0,j,b,nnds+nqpta+3*nqpte,Pj)
-          
-          
-          CALL djacobi(0    ,0,i,a,nnds+nqpta+3*nqpte,dPi)          
-          CALL djacobi(2*i+1,0,j,b,nnds+nqpta+3*nqpte,dPj)          
-          
-          DO pt = 1,nnds 
-            V(m,pt) = 2d0*Pi(pt)*Pj(pt)*(1d0-b(pt))**i
-          ENDDO
-          
-          ! Calculate function values
-          DO k = 1,nqpta+3*nqpte 
-            pt = nnds + k
-            
-            phi(m,k) = 2d0*Pi(pt)*Pj(pt)*(1d0-b(pt))**i
-          ENDDO
-
-          ii = real(i,pres)                    
-          
-          ! Calculate derivative values
-          DO k = 1,nqpta+3*nqpte
-            pt = nnds + k
-            
-            dadr = 2d0/(1d0-s(pt))
-            dads = 2d0*(1d0+r(pt))/(1d0-s(pt))**2d0            
-
-            dpda = 2d0*dPi(pt)*Pj(pt)*(1d0-b(pt))**ii
-            dpdb = 2d0*Pi(pt)*(dPj(pt)*(1d0-b(pt))**ii - ii*(1d0-b(pt))**(ii-1d0)*Pj(pt))
-            
-            dphidr(m,k) = dpda*dadr
-            dphids(m,k) = dpda*dads + dpdb
-          ENDDO          
-
+      tnds = nnds+nqpta+3*nqpte
+      CALL tri_basis(np,nnds,tnds,r,s,p,dpdr,dpds)       
+      
+      DO pt = 1,nnds
+        DO dof = 1,nnds
+          i = (dof-1)*tnds + pt
+          V(dof,pt) = p(i)
         ENDDO
-      ENDDO  
+      ENDDO
+      
+      DO pt = 1,nqpta+3*nqpte
+        DO dof = 1,nnds
+          i = nnds + (dof-1)*tnds + pt        
+          phi(dof,pt) = p(i)
+          dphidr(dof,pt) = dpdr(i)
+          dphids(dof,pt) = dpds(i)
+        ENDDO
+      ENDDO
       
       
       RETURN
@@ -358,86 +304,50 @@
       SUBROUTINE quad_trans(et,np,nnds,nqpta,nqpte,V,phi,dphidr,dphids)
       
       USE globals, ONLY: pres,qpta,qpte
-      USE basis, ONLY: quad_nodes,jacobi,djacobi      
+      USE basis, ONLY: quad_nodes,quad_basis     
       
       IMPLICIT NONE
       
-      INTEGER :: i,j,k,n,m,pt,led
-      INTEGER :: np,nnds,nnp,et,nqpta,nqpte
-      REAL(pres) :: xi(np+1)      
-      REAL(pres) :: r(nnds+nqpta+4*nqpte),s(nnds+nqpta+4*nqpte)
-      REAL(pres) :: Pi(nnds+nqpta+4*nqpte),Pj(nnds+nqpta+4*nqpte)
-      REAL(pres) :: dPi(nnds+nqpta+4*nqpte),dPj(nnds+nqpta+4*nqpte)      
+      INTEGER :: i,dof,pt
+      INTEGER :: np,nnds,et,nqpta,nqpte
+      INTEGER:: tnds
+      REAL(pres) :: r(nnds+nqpta+4*nqpte),s(nnds+nqpta+4*nqpte)    
+      REAL(pres) :: p(nnds*(nnds+nqpta+4*nqpte)),dpdr(nnds*(nnds+nqpta+4*nqpte)),dpds(nnds*(nnds+nqpta+4*nqpte))
       REAL(pres) :: V(nnds,nnds)
-      REAL(pres) :: phi(nnds,nqpta+4*nqpte),dphidr(nnds,nqpta+4*nqpte),dphids(nnds,nqpta+4*nqpte)
-      
-      r = 0d0
-      s = 0d0      
+      REAL(pres) :: phi(nnds,nqpta+4*nqpte),dphidr(nnds,nqpta+4*nqpte),dphids(nnds,nqpta+4*nqpte)  
          
       CALL quad_nodes(1,np,nnds,r,s)   
-        
-
-      
+              
       DO i = 1,nqpta
-        pt = nnds + i
-        
+        pt = nnds + i        
         r(pt) = qpta(i,1,et)
         s(pt) = qpta(i,2,et)
       ENDDO
       
-      DO led = 1,4
-        DO i = 1,nqpte
-          pt = nnds+nqpta+(led-1)*nqpte + i
-          SELECT CASE(led)
-            CASE(1)
-              r(pt) = 1d0
-              s(pt) = qpte(i,et)
-            CASE(2)
-              r(pt) = -qpte(i,et)
-              s(pt) =  1d0
-            CASE(3)
-              r(pt) = -1d0
-              s(pt) = -qpte(i,et)
-            CASE(4)
-              r(pt) =  qpte(i,et)
-              s(pt) = -1d0
-          END SELECT
-        ENDDO
+      DO i = 1,4*nqpte
+        pt = nnds+nqpta+i
+        r(pt) = qpte(i,1,et)
+        s(pt) = qpte(i,2,et)
       ENDDO
       
+      tnds = nnds+nqpta+4*nqpte
+      CALL quad_basis(np,nnds,tnds,r,s,p,dpdr,dpds)
       
-      m = 0
-      DO i = 0,np
-        DO j = 0,np
-
-          m = m+1
-
-          Pi = 0d0
-          Pj = 0d0
-          
-          dPi = 0d0
-          dPj = 0d0
-
-          CALL jacobi(0,0,i,r,nnds+nqpta+4*nqpte,Pi)
-          CALL jacobi(0,0,j,s,nnds+nqpta+4*nqpte,Pj)
-          
-          CALL djacobi(0,0,i,r,nnds+nqpta+4*nqpte,dPi)
-          CALL djacobi(0,0,j,s,nnds+nqpta+4*nqpte,dPj)          
-
-          DO pt = 1,nnds 
-            V(m,pt) = 2d0*Pi(pt)*Pj(pt)
-          ENDDO
-          
-          DO k = 1,nqpta+4*nqpte
-            pt = nnds + k
-          
-            phi(m,k) = 2d0*Pi(pt)*Pj(pt)
-            dphidr(m,k) = 2d0*dPi(pt)*Pj(pt)
-            dphids(m,k) = 2d0*Pi(pt)*dPj(pt)
-          ENDDO
-
+      DO pt = 1,nnds 
+        DO dof = 1,nnds
+          i = (dof-1)*tnds + pt
+          V(dof,pt) = p(i)
         ENDDO
-      ENDDO      
+      ENDDO
+          
+      DO pt = 1,nqpta+4*nqpte        
+        DO dof = 1,nnds
+          i = nnds + (dof-1)*tnds + pt
+          phi(dof,pt) = p(i)
+          dphidr(dof,pt) = dpdr(i)
+          dphids(dof,pt) = dpds(i)
+        ENDDO        
+      ENDDO   
       
       
       

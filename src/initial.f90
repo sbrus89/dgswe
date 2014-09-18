@@ -133,7 +133,7 @@
 
 
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-      ! Interpolate boundary forcing data
+      ! Interpolate boundary forcing data ( qpte(1:nqpte,2,1) are the 1-D edge quadrature points ) 
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       
       mnqpte = maxval(nqpte)
@@ -147,9 +147,9 @@
           ind = (pt-1)*nobfr + bfr
           DO seg = 1,nope
             DO k = 1,obseg(seg)-1
-              obamp_qpt(ind,ed) = .5d0*( obamp(nd,bfr)*(1d0-qpte(pt,1)) + obamp(nd+1,bfr)*(1d0+qpte(pt,1)) )
-              obdepth_qpt(ed,pt) =  .5d0*( depth(obnds(k,seg))*(1d0-qpte(pt,1)) + depth(obnds(k+1,seg))*(1d0+qpte(pt,1)) )
-              obph_qpt(ind,ed) =  .5d0*( obph(nd,bfr)*(1d0-qpte(pt,1)) + obph(nd+1,bfr)*(1d0+qpte(pt,1)) )
+              obamp_qpt(ind,ed) = .5d0*( obamp(nd,bfr)*(1d0-qpte(pt,2,1)) + obamp(nd+1,bfr)*(1d0+qpte(pt,2,1)) )
+              obdepth_qpt(ed,pt) =  .5d0*( depth(obnds(k,seg))*(1d0-qpte(pt,2,1)) + depth(obnds(k+1,seg))*(1d0+qpte(pt,2,1)) )
+              obph_qpt(ind,ed) =  .5d0*( obph(nd,bfr)*(1d0-qpte(pt,2,1)) + obph(nd+1,bfr)*(1d0+qpte(pt,2,1)) )
               ed = ed + 1
               nd = nd + 1
             ENDDO
@@ -168,8 +168,8 @@
             IF(segtype == 2 .OR. segtype == 12 .OR. segtype == 22)THEN
               ind = (pt-1)*nfbfr + bfr 
               DO k = 1,fbseg(1,seg)-1
-                fbamp_qpt(ind,ed) = .5d0*( fbamp(nd,bfr)+fbamp(nd+1,bfr) + (fbamp(nd+1,bfr)-fbamp(nd,bfr))*qpte(pt,1) ) 
-                fbph_qpt(ind,ed) =  .5d0*( fbph(nd,bfr)+fbph(nd+1,bfr) + (fbph(nd+1,bfr)-fbph(nd,bfr))*qpte(pt,1) ) 
+                fbamp_qpt(ind,ed) = .5d0*( fbamp(nd,bfr)+fbamp(nd+1,bfr) + (fbamp(nd+1,bfr)-fbamp(nd,bfr))*qpte(pt,2,1) ) 
+                fbph_qpt(ind,ed) =  .5d0*( fbph(nd,bfr)+fbph(nd+1,bfr) + (fbph(nd+1,bfr)-fbph(nd,bfr))*qpte(pt,2,1) ) 
                 nd = nd + 1
                 ed = ed + 1
               ENDDO

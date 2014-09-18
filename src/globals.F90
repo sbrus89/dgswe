@@ -153,7 +153,7 @@
 
       REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: wpta ! area and edge quadrature weights
       REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: wpte      
-      REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: qpte ! edge quadrature points
+      REAL(pres), ALLOCATABLE, DIMENSION(:,:,:) :: qpte ! edge quadrature points
       REAL(pres), ALLOCATABLE, DIMENSION(:,:,:) :: qpta ! area quadrature points
 
       REAL(pres), ALLOCATABLE, DIMENSION(:,:,:) :: phia ! basis functions evaluated at area quadrature points
