@@ -11,17 +11,20 @@
       REAL(pres) :: tf ! final time      
       REAL(pres) :: dramp ! numer of ramp days      
       REAL(pres) :: lines ! number of lines in output files      
-      CHARACTER(50) :: grid_name ! name of the grid
-      CHARACTER(50) :: grid_file ! name of fort.14 file
-      CHARACTER(50) :: forcing_file ! name of fort.15 file      
-      CHARACTER(50) :: out_direc           
+      CHARACTER(100) :: grid_name ! name of the grid
+      CHARACTER(100) :: grid_file ! name of fort.14 file
+      CHARACTER(100) :: forcing_file ! name of fort.15 file      
+      CHARACTER(100) :: out_direc           
       
       INTEGER, PARAMETER :: nel_type = 4 !(type #s: 1 -> triangles, 2 -> quads, 3 -> curved triangles, 4-> curved quads)   
       INTEGER :: ctp
       INTEGER :: nverts(nel_type)
       INTEGER :: np(nel_type)
       INTEGER :: nnds(nel_type)
-      INTEGER :: mnnds
+      INTEGER :: mnnds      
+      INTEGER :: ndof(nel_type)
+      INTEGER :: mndof
+      
       
       INTEGER :: curved_grid
       INTEGER, ALLOCATABLE, DIMENSION(:) :: el_type      
@@ -38,6 +41,7 @@
       INTEGER, ALLOCATABLE, DIMENSION(:) :: ndsta
       INTEGER, ALLOCATABLE, DIMENSION(:) :: elsta
       REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: xysta ! x,y coordinates of stations
+      REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: rssta
 
       INTEGER :: nope ! number of open boundary segents
       INTEGER, ALLOCATABLE, DIMENSION(:) :: obseg ! number of nodes in each open boundary segment

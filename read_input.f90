@@ -6,7 +6,7 @@
       
       INTEGER, PARAMETER :: ninp = 11
       INTEGER :: inp_read,skipped
-      CHARACTER(55) :: temp
+      CHARACTER(100) :: temp
       
       OPEN(unit=15,file='dgswe.inp')
       
@@ -19,7 +19,7 @@
       skipped = 0
       DO WHILE (inp_read < ninp)
       
-        READ(15,"(A55)") temp
+        READ(15,"(A100)") temp
                     
         IF ( INDEX(temp,"!") == 1 .or. INDEX(temp,"          ") == 1) THEN
 !           PRINT*, "input ignored"
