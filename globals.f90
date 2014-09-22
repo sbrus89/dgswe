@@ -19,6 +19,9 @@
       INTEGER, PARAMETER :: nel_type = 4 !(type #s: 1 -> triangles, 2 -> quads, 3 -> curved triangles, 4-> curved quads)   
       INTEGER :: ctp
       INTEGER :: nverts(nel_type)
+      INTEGER :: np(nel_type)
+      INTEGER :: nnds(nel_type)
+      INTEGER :: mnnds
       
       INTEGER :: curved_grid
       INTEGER, ALLOCATABLE, DIMENSION(:) :: el_type      
@@ -52,5 +55,8 @@
       REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: H
       REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: Qx
       REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: Qy     
+      
+      REAL(pres), ALLOCATABLE, DIMENSION(:,:,:) :: V
+      INTEGER, ALLOCATABLE, DIMENSION(:,:) :: ipiv
 
       END MODULE globals
