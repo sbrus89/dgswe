@@ -39,7 +39,8 @@
           ENDDO
         ENDDO
         
-        CALL DGETRF(n,n,V(1:n,1:n,et),n,ipiv(1:n,et),info)
+!         CALL DGETRF(n,n,V(1:n,1:n,et),n,ipiv(1:n,et),info)
+        CALL DGETRF(n,n,V(1,1,et),mnnds,ipiv(1,et),info)        
 !         DO pt = 1,n
 !             PRINT("(100(e15.5))"), (V(dof,pt,et), dof = 1,n)
 !         ENDDO        
@@ -68,10 +69,11 @@
       REAL(pres) :: f,g
       REAL(pres) :: dfdr,dfds,dgdr,dgds,jac
       REAL(pres) :: phi(mnnds),dpdr(mnnds),dpds(mnnds)
-      REAL(pres) :: l(mnnds,1),dldr(mnnds,1),dlds(mnnds,1)
+!       REAL(pres) :: l(mnnds,1),dldr(mnnds,1),dlds(mnnds,1)
+      REAL(pres) :: l(mnnds,3)
         
       tol = 1d-12
-      maxit = 10000
+      maxit = 1000
       info = 0
       
       et = el_type(eln)
@@ -95,16 +97,29 @@
         ENDIF
         
         DO i = 1,n
+!           l(i,1) = phi(i)
+!           dldr(i,1) = dpdr(i)
+!           dlds(i,1) = dpds(i)
           l(i,1) = phi(i)
-          dldr(i,1) = dpdr(i)
-          dlds(i,1) = dpds(i)
+          l(i,2) = dpdr(i)
+          l(i,3) = dpds(i)          
         ENDDO
         
-        CALL DGETRS("N",n,1,V(1:n,1:n,et),n,ipiv(1:n,et),l,n,info)
-!         IF (info /= 0 ) PRINT*, "LAPACK ERROR"  
-        CALL DGETRS("N",n,1,V(1:n,1:n,et),n,ipiv(1:n,et),dldr,n,info)
-!         IF (info /= 0 ) PRINT*, "LAPACK ERROR"      
-        CALL DGETRS("N",n,1,V(1:n,1:n,et),n,ipiv(1:n,et),dlds,n,info)
+!         CALL DGETRS("N",n,1,V(1:n,1:n,et),n,ipiv(1:n,et),l,n,info)
+! !         IF (info /= 0 ) PRINT*, "LAPACK ERROR"  
+!         CALL DGETRS("N",n,1,V(1:n,1:n,et),n,ipiv(1:n,et),dldr,n,info)
+! !         IF (info /= 0 ) PRINT*, "LAPACK ERROR"      
+!         CALL DGETRS("N",n,1,V(1:n,1:n,et),n,ipiv(1:n,et),dlds,n,info)
+! !         IF (info /= 0 ) PRINT*, "LAPACK ERROR"      
+
+!         CALL DGETRS("N",n,1,V(1,1,et),mnnds,ipiv(1,et),l,n,info)
+! !         IF (info /= 0 ) PRINT*, "LAPACK ERROR"  
+!         CALL DGETRS("N",n,1,V(1,1,et),mnnds,ipiv(1,et),dldr,n,info)
+! !         IF (info /= 0 ) PRINT*, "LAPACK ERROR"      
+!         CALL DGETRS("N",n,1,V(1,1,et),mnnds,ipiv(1,et),dlds,n,info)
+! !         IF (info /= 0 ) PRINT*, "LAPACK ERROR"      
+
+        CALL DGETRS("N",n,3,V(1,1,et),mnnds,ipiv(1,et),l,mnnds,info)
 !         IF (info /= 0 ) PRINT*, "LAPACK ERROR"      
         
         dfdr = 0d0
@@ -115,10 +130,16 @@
         g = 0d0        
         
         DO i = 1,n
-          dfdr = dfdr + dldr(i,1)*elxy(i,eln,1)
-          dfds = dfds + dlds(i,1)*elxy(i,eln,1)
-          dgdr = dgdr + dldr(i,1)*elxy(i,eln,2)
-          dgds = dgds + dlds(i,1)*elxy(i,eln,2)
+!           dfdr = dfdr + dldr(i,1)*elxy(i,eln,1)
+!           dfds = dfds + dlds(i,1)*elxy(i,eln,1)
+!           dgdr = dgdr + dldr(i,1)*elxy(i,eln,2)
+!           dgds = dgds + dlds(i,1)*elxy(i,eln,2)
+          
+          dfdr = dfdr + l(i,2)*elxy(i,eln,1)
+          dfds = dfds + l(i,3)*elxy(i,eln,1)
+          dgdr = dgdr + l(i,2)*elxy(i,eln,2)
+          dgds = dgds + l(i,3)*elxy(i,eln,2)
+          
           f = f + l(i,1)*elxy(i,eln,1)
           g = g + l(i,1)*elxy(i,eln,2)
         ENDDO
