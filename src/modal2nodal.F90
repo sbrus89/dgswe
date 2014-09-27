@@ -1,6 +1,6 @@
       SUBROUTINE modal2nodal()
 
-      USE globals, ONLY: pres,nel_type,p,nnds,mnnds,ndof,mndof,m2n,out_direc, &
+      USE globals, ONLY: pres,nel_type,p,np,nnds,mnnds,ndof,mndof,m2n,out_direc, &
                          nqpta,mnqpta,wpta,phia,phil
       USE basis, ONLY: tri_basis,quad_basis,tri_nodes,quad_nodes,linear
 
@@ -8,10 +8,10 @@
       
       INTEGER :: i,j,m,dof
       INTEGER :: et,pt
-      INTEGER :: nvert
+      INTEGER :: n
       INTEGER :: alloc_status
-      REAL(pres) :: r(4),s(4)
-      REAL(pres) :: phi(4*mndof)
+      REAL(pres) :: r(9),s(9)
+      REAL(pres) :: phi(9*mndof)
       
       REAL(pres) :: ml2(3,ndof(1)),mml(3,3)
       REAL(pres) :: qint      
@@ -23,32 +23,35 @@
       
       DO et = 1,nel_type
         
-        IF (mod(et,2) == 1) THEN
+        n = nnds(et)
         
-          nvert = 3
+        IF (mod(et,2) == 1) THEN       
         
-          CALL tri_nodes(0,1,nvert,r,s)  ! get vertex coordinates
-          CALL tri_basis(p,ndof(et),nvert,r,s,phi)              
+          CALL tri_nodes(0,np(et),n,r,s)  ! get vertex coordinates
+          CALL tri_basis(p,ndof(et),n,r,s,phi)              
 
         ELSE IF (mod(et,2) == 0) THEN
-        
-          nvert = 4
-          
-          CALL quad_nodes(0,1,nvert,r,s)  ! get vertex coordinates
-          CALL quad_basis(p,ndof(et),nvert,r,s,phi)                             
+
+          CALL quad_nodes(0,np(et),n,r,s)  ! get vertex coordinates
+          CALL quad_basis(p,ndof(et),n,r,s,phi)                             
           
         ENDIF
         
         DO dof = 1,ndof(et)            
-          DO pt = 1,nvert 
-            i = (dof-1)*nvert + pt            
-            m2n(pt,dof,et) = phi(i)
+          DO pt = 1,n 
+            i = (dof-1)*n + pt   
+            IF (phi(i) < 1d-17) THEN
+              m2n(pt,dof,et) = 0d0
+            ELSE   
+              m2n(pt,dof,et) = phi(i)
+            ENDIF
           ENDDO
         ENDDO
         
-        WRITE(111,"(I5,I5)") nvert, ndof(et)
-        DO pt = 1,nvert
-          WRITE(111,"(160(e24.17,1x))") (m2n(pt,dof,et), dof = 1,ndof(et))
+        WRITE(111,"(I5,I5)") n, ndof(et)
+        PRINT*, n
+        DO pt = 1,n
+          WRITE(111,"(160(e25.17,1x))") (m2n(pt,dof,et), dof = 1,ndof(et))
         ENDDO        
           
       ENDDO
