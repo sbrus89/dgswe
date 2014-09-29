@@ -3,27 +3,29 @@ clear all
 close all
 clc
 
-% grd_direc = '~/Codes/dgswe/grids/';
-% sol_direc = '~/Codes/dgswe/output/';
-% % grd_name = 'inlet1_quad.grd';
-% grd_name = 'converge_quad.grd';
+grd_direc = '~/Codes/dgswe/grids/';
+sol_direc = '~/Codes/dgswe/output/';
+% grd_name = 'inlet1_quad.grd';
+grd_name = 'converge_quad.grd';
 
 % grd_direc = '~/data-drive/galveston/dgswe/quad/';
 % sol_direc = '~/data-drive/galveston/dgswe/quad_curve/';
 % grd_name = 'galveston_quad.grd';
 % plot_folder = 'velplot_scale';
 
-grd_direc = '~/data-drive/galveston/dgswe/quad2_spline_channel/';
-sol_direc = '~/data-drive/galveston/dgswe/quad2_spline_channel/';
-grd_name = 'galveston2_spline_plot.grd';
+% grd_direc = '~/data-drive/galveston/dgswe/quad2_spline_channel/';
+% sol_direc = '~/data-drive/galveston/dgswe/quad2_spline_channel/';
+% grd_name = 'galveston2_spline_plot.grd';
 plot_folder = 'velplot_scale';
 
 nsnap = 200;
 
 grid_on = 1;
 
-zoom_area = [3.2e5 3.4e5 3.24e6 3.26e6;
-             2.84e5 3.04e5 3.205e6 3.2325e6];
+% zoom_area = [3.2e5 3.4e5 3.24e6 3.26e6;
+%              2.84e5 3.04e5 3.205e6 3.2325e6];
+         
+zoom_area = [];        
 
 [nzoom,~] = size(zoom_area);
 
@@ -46,7 +48,7 @@ nvert = zeros(1,nel_type);
 ndof = zeros(1,nel_type);
 m2n = zeros(4,36,nel_type);
 for et = 1:nel_type
-    data  = fscanf(fid, '%g %g',2);
+    data  = fscanf(fid, '%d %d \n',2);
     ndof(et) = data(2);
     nvert(et) = data(1);
     m2n(1:nvert(et),1:ndof(et),et) = fscanf(fid,' %g ',[ndof(et) nvert(et)])';
@@ -118,7 +120,7 @@ if exist([sol_direc,'velscale.mat'])
 end
 
 
-for tsnap = 1:snap
+for tsnap = snap %1:snap
     
     figure
     
@@ -157,7 +159,7 @@ for tsnap = 1:snap
     if scale == 1
       caxis([0 velscale(tsnap)])
     else
-%      caxis([0 .9])    
+     caxis([0 1])    
     end
     axis image
     
