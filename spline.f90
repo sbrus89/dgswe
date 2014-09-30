@@ -3,15 +3,15 @@
       USE globals, ONLY: pres,ne,nn,ctp,xy,ect,vct,depth,nelnds, &
                          nope,neta,obnds,nbou,nvel,fbseg,fbnds, &
                          nepn,epn,nverts,el_type, &
-                         mnelnds
+                         mnelnds,minedlen
 
       IMPLICIT NONE
       INTEGER :: i,j,k,n,seg,sind,eind,num,qpts,btype
-      INTEGER :: el,eln,nd,ndn,led,n1ed1,n2ed1,n1bed,n2bed,nvert
-      REAL(pres) :: htest,mult,dt,t,tpt,x,y,r,sig
+      INTEGER :: el,eln,nd,ndn,led,n1ed1,n2ed1,n1bed,n2bed,n3bed,n4bed,nvert
+      REAL(pres) :: htest,mult,dt,t,tpt,x,y,xs,ys,r,sig
       REAL(pres) :: d1,d2,d3,t1,t2,xm,ym
-      REAL(pres) :: n1x,n1y,n2x,n2y,edlen
-      REAL(pres) :: newton
+      REAL(pres) :: n1x,n1y,n2x,n2y,n3x,n3y,n4x,n4y,edlen
+      REAL(pres) :: newton,angle,theta1,theta2
       REAL(pres), ALLOCATABLE, DIMENSION(:) :: ax,bx,cx,dx
       REAL(pres), ALLOCATABLE, DIMENSION(:) :: ay,by,cy,dy
       REAL(pres), ALLOCATABLE, DIMENSION(:) :: Ml,Md,Mu,v
@@ -28,7 +28,8 @@
       
       num = 0
       DO seg = 1,nbou
-        IF(fbseg(2,seg) == 10 .OR. fbseg(2,seg) == 11)THEN
+        IF(fbseg(2,seg) == 10 .OR. fbseg(2,seg) == 11 .OR. fbseg(2,seg) == 101)THEN
+!         IF(fbseg(2,seg) == 10 .OR. fbseg(2,seg) == 11 )THEN
           num = num + 1
         ENDIF
       ENDDO
@@ -41,7 +42,8 @@
 
       DO seg = 1,nbou
 
-        IF(fbseg(2,seg) == 10 .OR. fbseg(2,seg) == 11)THEN
+        IF(fbseg(2,seg) == 10 .OR. fbseg(2,seg) == 11 .OR. fbseg(2,seg) == 101)THEN
+!         IF(fbseg(2,seg) == 10 .OR. fbseg(2,seg) == 11)THEN        
           n = fbseg(1,seg)    ! n nodes, n-1 subintervals
 
           PRINT "(A)", " "
@@ -209,19 +211,39 @@
           DO nd = 1,n-1
             n1bed = fbnds(nd,seg)
             n2bed = fbnds(nd+1,seg) 
-!             IF (nd == 1) THEN
-!               n3bed = fbnds(nd-1,seg)
-!             ELSE
-!               n3bed = fbnds(n-1,seg)            
-!             ENDIF
+            IF (nd == n-1) THEN
+              n3bed = fbnds(2,seg)
+            ELSE
+              n3bed = fbnds(nd+2,seg)            
+            ENDIF
+            
+            IF (nd == 1) THEN
+              n4bed = fbnds(n-1,seg)
+            ELSE
+              n4bed = fbnds(nd-1,seg)            
+            ENDIF           
             
             n1x = xy(1,n1bed)
             n1y = xy(2,n1bed)
             
             n2x = xy(1,n2bed)
             n2y = xy(2,n2bed)
+            
+            n3x = xy(1,n3bed)
+            n3y = xy(2,n3bed)            
+            
+            n4x = xy(1,n4bed)
+            n4y = xy(2,n4bed)            
+            
+            theta1 = angle(n1x,n1y,n2x,n2y,n3x,n3y)
+            theta2 = angle(n4x,n4y,n1x,n1y,n2x,n2y) 
+            
+            PRINT*, theta1,theta2
+            
 
-            edlen = sqrt((n1x-n2x)**2+(n1y-n2y)**2)            
+            edlen = sqrt((n1x-n2x)**2+(n1y-n2y)**2)       
+            
+            IF ( theta1 > 20d0 .AND. theta2 > 20d0) THEN         
 
       elem: DO el = 1,nepn(n1bed)
               eln = epn(el,n1bed)
@@ -250,10 +272,30 @@
                      x = ax(nd) + bx(nd)*(tpt-t) + cx(nd)*(tpt-t)**2 + dx(nd)*(tpt-t)**3
                      y = ay(nd) + by(nd)*(tpt-t) + cy(nd)*(tpt-t)**2 + dy(nd)*(tpt-t)**3
                      
-                     ndn = mod(led,nvert)*ctp+i+1                   
+                     xs = x
+                     ys = y
+                     
+                     d1 = sqrt((xm-x)**2 + (ym-y)**2)
+                                          
+                     
+                     ndn = mod(led,nvert)*ctp+i+1   
+                     
+                     r = -1d0
+                     DO WHILE (d1 > .1d0*minedlen(eln) .AND. r < 1d0)
+                       r = r + .1d0
+                       
+                       x = .5d0*(1d0-r)*xs + .5d0*(1d0+r)*xm
+                       y = .5d0*(1d0-r)*ys + .5d0*(1d0+r)*ym
+                       
+                       d1 = sqrt((xm-x)**2 + (ym-y)**2)
+                     ENDDO
 
-                     xy(1,ect(ndn,eln)) = x
-                     xy(2,ect(ndn,eln)) = y
+                     IF (d1 <= .1d0*minedlen(eln)) THEN
+                       xy(1,ect(ndn,eln)) = x
+                       xy(2,ect(ndn,eln)) = y
+                     ELSE
+                       PRINT*, "DEFORMATION TOO LARGE"
+                     ENDIF                       
                        
                    ENDDO
                    
@@ -264,6 +306,7 @@
                 
               ENDDO
             ENDDO elem
+            ENDIF
           ENDDO          
 
   
@@ -292,6 +335,10 @@
       CALL write_grid()
 
       END PROGRAM spline
+      
+      
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       
       REAL(kind(0d0)) FUNCTION newton(told,t,xm,ym,ax,bx,cx,dx,ay,by,cy,dy)
       
@@ -324,7 +371,7 @@ iter: DO it = 1,maxit
         tnew = told - d/dp
         
         IF (ABS(d) < tol) THEN
-          PRINT*, "iterations", it
+!           PRINT*, "iterations", it
           EXIT iter
         ENDIF
         
@@ -339,4 +386,35 @@ iter: DO it = 1,maxit
       newton = tnew
       
       RETURN 
+      END FUNCTION
+      
+      
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      
+      REAL(kind(0d0)) FUNCTION angle(x1,y1,x2,y2,x3,y3)
+      
+      IMPLICIT NONE  
+      
+      INTEGER, PARAMETER :: pres = kind(0d0)
+      REAL(pres), PARAMETER  ::  pi=3.141592653589793D0
+      REAL(pres) :: x1,x2,x3,xy,y1,y2,y3,y4
+      REAL(pres) :: xv1,xv2,yv1,yv2
+      REAL(pres) :: adotb,la,lb
+      
+      
+      xv1 = x1-x2
+      yv1 = y1-y2
+      
+      xv2 = x3-x2
+      yv2 = y3-y2      
+      
+      adotb = xv1*xv2 + yv1*yv2
+      
+      la = sqrt(xv1**2 + yv1**2)
+      lb = sqrt(xv2**2 + yv2**2)
+      
+      angle = acos(adotb/(la*lb))*(180d0/pi)
+      
+      RETURN
       END FUNCTION

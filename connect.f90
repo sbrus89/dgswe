@@ -1,21 +1,22 @@
       SUBROUTINE connect()
 
-      USE globals, ONLY: pres,nn,ne,ned,vct,el_type,nverts,curved_grid, &
+      USE globals, ONLY: pres,nn,ne,ned,xy,vct,el_type,nverts,curved_grid, &
                          ged2nn,ged2el,ged2led,nepn,epn, &
                          nied,iedn,nobed,obedn,nfbed,fbedn,nnfbed,nfbedn, &
                          nope,neta,obseg,obnds,nbou,fbseg,nvel,fbnds, &
-                         nelnds
+                         nelnds,edlen,minedlen
                          
 
       IMPLICIT NONE
-      INTEGER :: el,el1,el2,led1,led2,i,seg,m,ged,ed1,ed2,nd
-      INTEGER :: n1,nnds
+      INTEGER :: el,el1,el2,led1,led2,i,seg,m,ged,ed,ed1,ed2,nd
+      INTEGER :: n1,n2,nnds
       INTEGER :: n1ed1,n2ed1,n1ed2,n2ed2
       INTEGER :: n1bed,n2bed
       INTEGER :: segtype
       INTEGER :: alloc_status
       INTEGER :: found
       INTEGER :: nvert1,nvert2,nvert
+      INTEGER :: el_in,el_ex
       REAL(pres) :: x1,x2,x3,y1,y2,y3
       
       INTEGER, ALLOCATABLE, DIMENSION(:) :: bnd_temp,nfbnd_temp,fbnd_temp ! temporary arrary for boundary edges
@@ -306,6 +307,40 @@
 
       PRINT "(A,I7)", 'number of missing edges:',ned-(nied+nobed+nfbed+nnfbed)
       PRINT "(A)", ' '
+      
+      
+      ALLOCATE(edlen(ned),minedlen(ne))
+      
+      minedlen = 1d6
+      DO ed = 1,ned
+        n1 = ged2nn(1,ed)
+        n2 = ged2nn(2,ed)                
+        
+        x1 = xy(1,n1)
+        x2 = xy(1,n2)
+        
+        y1 = xy(2,n1)
+        y2 = xy(2,n2)
+        
+        edlen(ed) = sqrt((x2-x1)**2 + (y2-y1)**2)        
+        
+        el_in = ged2el(1,ed)
+        el_ex = ged2el(2,ed)
+        
+        IF (edlen(ed) < minedlen(el_in)) THEN
+          minedlen(el_in) = edlen(ed)
+        ENDIF
+        
+        IF (el_ex > 0 ) THEN
+          IF (edlen(ed) < minedlen(el_ex)) THEN
+            minedlen(el_ex) = edlen(ed)
+          ENDIF          
+        ENDIF
+        
+        
+      ENDDO
+      
+      
 
 
 ! !       write edge connectivity information in similar format to fort.17

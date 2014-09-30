@@ -56,7 +56,10 @@
       INTEGER :: nfbed ! total number of flow boundary edges
       INTEGER, ALLOCATABLE, DIMENSION(:) :: fbedn ! array of flow boundary edge numbers
       INTEGER :: nnfbed ! total number of no normal flow boundary edges
-      INTEGER, ALLOCATABLE, DIMENSION(:) :: nfbedn ! array of no normal flow boundary edge numbers      
+      INTEGER, ALLOCATABLE, DIMENSION(:) :: nfbedn ! array of no normal flow boundary edge numbers   
+      
+      
+      REAL(pres), ALLOCATABLE, DIMENSION(:) :: minedlen,edlen
  
    
 
