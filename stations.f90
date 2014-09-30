@@ -20,7 +20,7 @@
       TYPE(kdtree2), POINTER :: tree
       TYPE(kdtree2_result), ALLOCATABLE, DIMENSION(:) :: kdresults
       
-      tol = 1d-10
+      tol = 1d-5
       
             
 
@@ -104,7 +104,7 @@
       
       
       ALLOCATE(rssta(nsta,2))
-      ALLOCATE(hbsta(nsta))
+      ALLOCATE(elsta(nsta),hbsta(nsta))
       el_found = 0 
       
       ! Find element each station is located in and determine local coordinates of station
@@ -185,6 +185,11 @@
       
       PRINT*, "Missing elements = ", nsta-el_found
       PRINT*, " "
+      
+      IF (nsta-el_found /= 0) THEN
+        STOP
+      ENDIF
+        
 
       
       ALLOCATE(H(ne,mndof),Qx(ne,mndof),Qy(ne,mndof))
