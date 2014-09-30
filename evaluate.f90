@@ -24,7 +24,6 @@
       DO et = 1,nel_type
         n = nnds(et)
         IF (mod(et,2) == 1) THEN
-          PRINT*, np(et)
           CALL tri_nodes(1,np(et),n,r,s)
           CALL tri_basis(np(et),n,n,r,s,phi)       
         ELSE IF (mod(et,2) == 0) THEN
@@ -54,9 +53,9 @@
       END SUBROUTINE vandermonde
  
  
-      SUBROUTINE newton(x,y,eln,r,s)
+      SUBROUTINE newton(x,y,eln,r,s,hb)
 
-      USE globals, ONLY: pres,el_type,np,nnds,mnnds,V,elxy,ipiv
+      USE globals, ONLY: pres,el_type,np,nnds,mnnds,V,elxy,elhb,ipiv
       USE basis, ONLY: tri_basis,quad_basis
 
       IMPLICIT NONE
@@ -65,7 +64,7 @@
       INTEGER :: maxit
       REAL(pres) :: tol
       REAL(pres) :: x,y
-      REAL(pres) :: r(1),s(1)
+      REAL(pres) :: r(1),s(1),hb
       REAL(pres) :: f,g
       REAL(pres) :: dfdr,dfds,dgdr,dgds,jac
       REAL(pres) :: phi(mnnds),dpdr(mnnds),dpds(mnnds)
@@ -166,6 +165,11 @@
         PRINT("(A,I7)"), "   iterations: ",it
         PRINT("(2(A,F20.15))"), "   r = ",r(1), "   s = ", s(1)
       ENDIF
+      
+      hb = 0d0
+      DO i = 1,n
+        hb = hb + l(i,1)*elhb(i,eln)
+      ENDDO
 
       RETURN
       END SUBROUTINE newton

@@ -42,6 +42,7 @@
       INTEGER, ALLOCATABLE, DIMENSION(:) :: elsta
       REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: xysta ! x,y coordinates of stations
       REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: rssta
+      REAL(pres), ALLOCATABLE, DIMENSION(:) :: hbsta
 
       INTEGER :: nope ! number of open boundary segents
       INTEGER, ALLOCATABLE, DIMENSION(:) :: obseg ! number of nodes in each open boundary segment

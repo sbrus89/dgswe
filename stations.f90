@@ -13,7 +13,7 @@
       INTEGER :: mnepn
       INTEGER :: srchdp = 1
       REAL(pres) :: rsre(2,4,4),x(4),y(4),area,sarea,tol,found 
-      REAL(pres) :: r(1),s(1)
+      REAL(pres) :: r(1),s(1),hb
       REAL(pres) :: Hsta,Qxsta,Qysta
       REAL(pres), ALLOCATABLE, DIMENSION(:) :: phi
       REAL(pres) :: t
@@ -104,6 +104,7 @@
       
       
       ALLOCATE(rssta(nsta,2))
+      ALLOCATE(hbsta(nsta))
       el_found = 0 
       
       ! Find element each station is located in and determine local coordinates of station
@@ -124,7 +125,7 @@
           nvert = nverts(et)         
           
           ! Compute the local (r,s) coordinates of the (x,y) station location
-          CALL newton(xysta(1,sta),xysta(2,sta),eln,r,s)
+          CALL newton(xysta(1,sta),xysta(2,sta),eln,r,s,hb)
 !                     PRINT*, "   r = ",r(1) , "  s = ", s(1)
           
           ! Find reference element area
@@ -158,13 +159,16 @@
           ! The station is in the element if the reference element area and sum of sub triangle are the same
           IF (abs(area - sarea) < tol) THEN
             PRINT("(A,I5)"), "   element found", eln
+            
             elsta(sta) = eln
             
             rssta(sta,1) = r(1)
             rssta(sta,2) = s(1)
+            hbsta(sta) = hb
             
             found = 1
             el_found = el_found + 1
+                        
             
             EXIT elem                        
           ENDIF
@@ -175,20 +179,20 @@
           PRINT*, "ERROR: ELEMENT NOT FOUND"
         ENDIF
         
-        PRINT*, "" 
+        PRINT*, " " 
       
       ENDDO
       
       PRINT*, "Missing elements = ", nsta-el_found
-      
+      PRINT*, " "
 
       
       ALLOCATE(H(ne,mndof),Qx(ne,mndof),Qy(ne,mndof))
       ALLOCATE(phi(mndof))
       
-      OPEN(UNIT=61,FILE="station_H.d")
-      OPEN(UNIT=621,FILE="station_Qx.d")     
-      OPEN(UNIT=622,FILE="station_Qy.d")           
+      OPEN(UNIT=61,FILE=trim(out_direc) //"station_H.d")
+      OPEN(UNIT=621,FILE=trim(out_direc) //"station_Qx.d")     
+      OPEN(UNIT=622,FILE=trim(out_direc) //"station_Qy.d")           
       
       OPEN(UNIT=63, FILE=trim(out_direc) //"solution_H.d")
       OPEN(UNIT=641,FILE=trim(out_direc) //"solution_Qx.d")     
@@ -207,7 +211,7 @@
         READ(641,*) t
         READ(642,*) t
         
-        PRINT*, line
+        PRINT("(A,I5)"), "Writing time snap: ", line
         
         DO dof = 1,mndof
           READ(63,*) (H(el,dof), el = 1,ne)
@@ -239,7 +243,7 @@
             Qysta = Qysta + Qy(eln,dof)*phi(dof)
           ENDDO                
           
-          WRITE(61,*) xysta(1,sta),xysta(2,sta),Hsta
+          WRITE(61,*) xysta(1,sta),xysta(2,sta),Hsta,hbsta(sta)
           WRITE(621,*) xysta(1,sta),xysta(2,sta),Qxsta
           WRITE(622,*) xysta(1,sta),xysta(2,sta),Qysta
         ENDDO
