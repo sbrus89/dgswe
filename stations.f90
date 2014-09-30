@@ -206,7 +206,7 @@
       WRITE(621,*) nsta
       WRITE(622,*) nsta
       
-      DO line = 1,lines
+      DO line = 1,lines+1
         READ(63,*) t
         READ(641,*) t
         READ(642,*) t
