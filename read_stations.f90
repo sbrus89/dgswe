@@ -1,9 +1,11 @@
       SUBROUTINE read_stations()
 
-      USE globals, ONLY: nbou,fbseg,fbnds,xy,nsta,xysta,ndsta,elsta
+      USE globals, ONLY: nbou,fbseg,fbnds,xy,nsta,xysta,ndsta,elsta, &
+                         out_direc
 
       IMPLICIT NONE
       
+      INTEGER :: sta
       INTEGER :: bou,nd
       INTEGER :: nnds,btype
 
@@ -36,7 +38,14 @@
             ndsta(nsta) = fbnds(nd,bou)
           ENDDO
         ENDIF
-      ENDDO      
-
+      ENDDO  
+      
+      OPEN(UNIT=15,FILE=trim(out_direc) //"stations.d")
+      WRITE(15,*) nsta
+      DO sta = 1,nsta
+        WRITE(15,*) xysta(1,sta), xysta(2,sta)
+      ENDDO
+      CLOSE(15)
+        
       RETURN
       END SUBROUTINE read_stations
