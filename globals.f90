@@ -32,7 +32,8 @@
       INTEGER, ALLOCATABLE, DIMENSION(:,:) :: ect,vct ! element connectivity table
       INTEGER, ALLOCATABLE, DIMENSION(:) :: nelnds
       INTEGER :: mnelnds      
-      REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: xy ! x,y coordinates of nodes
+      REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: xy,vxy ! x,y coordinates of nodes
+      INTEGER, ALLOCATABLE, DIMENSION(:) :: vxyn
       REAL(pres), ALLOCATABLE, DIMENSION(:,:,:) :: elxy    
       REAL(pres), ALLOCATABLE, DIMENSION(:) :: depth ! depth at each node
       REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: elhb     

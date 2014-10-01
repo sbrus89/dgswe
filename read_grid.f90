@@ -1,15 +1,17 @@
       SUBROUTINE read_grid()
       
-      USE globals, ONLY: grid_file,ne,nn,ect,vct,xy,depth,nelnds,elxy,elhb, &
+      USE globals, ONLY: pres,grid_file,ne,nn,ect,vct,xy,vxy,vxyn,depth,nelnds,elxy,elhb, &
                          nope,neta,obseg,obnds,nvel,nbou,fbseg,fbnds,grid_name, &
                          el_type,ctp,mnelnds,curved_grid,nverts
 
       IMPLICIT NONE
-      INTEGER :: i,j,k,el
+      INTEGER :: i,j,k,el,n,nd
       INTEGER :: nbseg
       INTEGER :: btype
       INTEGER :: nvert
-      INTEGER :: alloc_status      
+      INTEGER :: alloc_status   
+      INTEGER, ALLOCATABLE, DIMENSION(:) :: vflag     
+      REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: vxy_temp      
       
       nverts(1) = 3
       nverts(2) = 4
@@ -87,6 +89,9 @@
       PRINT "(A,I5)", "Curved grid = ",curved_grid
       PRINT*, " "
       
+      ALLOCATE(vxy_temp(2,nn),vflag(nn),vxyn(nn))
+      vflag = 0
+      
       IF (curved_grid == 1) THEN
         DO i = 1,ne
           nvert = nverts(el_type(i))
@@ -102,6 +107,28 @@
           ENDDO
         ENDDO
       ENDIF
+      
+      n = 0
+      DO i = 1,ne
+        nvert = nverts(el_type(i))
+        DO j = 1,nvert
+          nd = vct(j,i)
+          IF (vflag(nd) == 0) THEN  
+            n = n + 1            
+            vxyn(n) = nd
+            vxy_temp(1,n) = xy(1,nd)
+            vxy_temp(2,n) = xy(2,nd)
+            vflag(nd) = 1
+          ENDIF
+        ENDDO
+      ENDDO         
+      
+      ALLOCATE(vxy(2,n))
+      
+      DO i = 1,n
+        vxy(1,i) = vxy_temp(1,i)
+        vxy(2,i) = vxy_temp(2,i)
+      ENDDO
       
       mnelnds = maxval(nelnds)
       
