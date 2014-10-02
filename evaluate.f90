@@ -65,13 +65,13 @@
       REAL(pres) :: tol
       REAL(pres) :: x,y
       REAL(pres) :: r(1),s(1),hb
-      REAL(pres) :: f,g
+      REAL(pres) :: f,g,error
       REAL(pres) :: dfdr,dfds,dgdr,dgds,jac
       REAL(pres) :: phi(mnnds),dpdr(mnnds),dpds(mnnds)
 !       REAL(pres) :: l(mnnds,1),dldr(mnnds,1),dlds(mnnds,1)
       REAL(pres) :: l(mnnds,3)
         
-      tol = 1d-12
+      tol = 1d-9
       maxit = 1000
       info = 0
       
@@ -158,11 +158,12 @@
         
       ENDDO
       
+      error = max(abs(f),abs(g))
       IF (it >= maxit) THEN
-        PRINT("(A)"), "   MAX ITERATIONS EXCEEDED"
+        PRINT("(A,E22.15)"), "   MAX ITERATIONS EXCEEDED, error = ",error
         PRINT("(2(A,F20.15))"), "   r = ",r(1), "   s = ", s(1)
       ELSE       
-        PRINT("(A,I7)"), "   iterations: ",it
+        PRINT("(A,I7,A,E22.15)"), "   iterations: ",it, "  error = ",error
         PRINT("(2(A,F20.15))"), "   r = ",r(1), "   s = ", s(1)
       ENDIF
       

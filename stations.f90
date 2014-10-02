@@ -158,7 +158,7 @@ search: DO srch = 1,srchdp
             ENDDO
           
             PRINT("(A,I5,A,F20.15,A,F20.15)"), "   testing: ", eln, "   area = ",area, "   sarea = ", sarea
-
+            PRINT*, " "
           
             ! The station is in the element if the reference element area and sum of sub triangle are the same
             IF (abs(area - sarea) < tol) THEN
