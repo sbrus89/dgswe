@@ -1,15 +1,56 @@
 clc
-% close all
+close all
 clear all
 
-% sta_direc = {'/home/sbrus/Codes/stations/'};
-sta_direc = {'/home/sbrus/data-drive/galveston/dgswe/quad2_spline_channel/';
-             '/home/sbrus/data-drive/galveston/dgswe/quad2_spline/';
-             '/home/sbrus/data-drive/galveston/dgswe/quad2/M2/';
-             '/home/sbrus/data-drive/galveston/dgswe/tri/';};
-grid_name = '/home/sbrus/data-drive/galveston/dgswe/quad2_spline_channel/galveston2_plot.grd';
+sta_direc = {'/home/sbrus/data-drive/galveston/dgswe/quad2_spline_channel/p1/';
+             '/home/sbrus/data-drive/galveston/dgswe/quad2_spline/p1/';
+             '/home/sbrus/data-drive/galveston/dgswe/quad2/M2/p1/';
+             '/home/sbrus/data-drive/galveston/dgswe/tri/p1/';};
+%          
+% sta_direc = {'/home/sbrus/data-drive/galveston/dgswe/quad2_spline_channel/p2/';
+%              '/home/sbrus/data-drive/galveston/dgswe/quad2_spline/p2/';
+%              '/home/sbrus/data-drive/galveston/dgswe/quad2/M2/p2/';
+%              '/home/sbrus/data-drive/galveston/dgswe/tri/p2/';};
+         
+% sta_direc = {'/home/sbrus/data-drive/galveston/dgswe/quad2_spline_channel/p3/';
+%              '/home/sbrus/data-drive/galveston/dgswe/quad2_spline/p3/';
+%              '/home/sbrus/data-drive/galveston/dgswe/quad2/M2/p3/';
+%              '/home/sbrus/data-drive/galveston/dgswe/tri/p3/';};         
+ labels = {'adcirc','quad spline channel','quad spline','quad','tri'};
+
+% sta_direc = {'/home/sbrus/data-drive/galveston/dgswe/quad2/M2/p1/';
+%              '/home/sbrus/data-drive/galveston/dgswe/quad2/M2/p2/';
+%              '/home/sbrus/data-drive/galveston/dgswe/quad2/M2/p3/';};
+         
+% sta_direc = {'/home/sbrus/data-drive/galveston/dgswe/quad2_spline/p1/';
+%              '/home/sbrus/data-drive/galveston/dgswe/quad2_spline/p2/';
+%              '/home/sbrus/data-drive/galveston/dgswe/quad2_spline/p3/';};
+         
+% sta_direc = {'/home/sbrus/data-drive/galveston/dgswe/quad2_spline_channel/p1/';
+%              '/home/sbrus/data-drive/galveston/dgswe/quad2_spline_channel/p2/';
+%              '/home/sbrus/data-drive/galveston/dgswe/quad2_spline_channel/p3/';};         
+          
+% sta_direc = {'/home/sbrus/data-drive/galveston/dgswe/tri/p1/';
+%              '/home/sbrus/data-drive/galveston/dgswe/tri/p2/';
+%              '/home/sbrus/data-drive/galveston/dgswe/tri/p3/';};
+% labels = {'adcirc','p1','p2','p3'};         
+grid_name = '/home/sbrus/data-drive/galveston/dgswe/quad2_spline_channel/p1/galveston2_plot.grd';
+
+% sta = 1:401
+sta = 1:81;
+% sta = 82:163;
+% sta = 164:246;
+
+nsnap = 49;
 
 nruns = length(sta_direc);
+
+figure(1)
+hold all
+figure(2)
+hold all
+
+plot_adcirc_stations(nsnap,sta)
 
 for run = 1:nruns
 fid_H = fopen([sta_direc{run},'station_H.d']);
@@ -19,8 +60,6 @@ fid_Qy = fopen([sta_direc{run},'station_Qy.d']);
 nsta = fscanf(fid_H,' %g ', 1);
 nsta = fscanf(fid_Qx,' %g ', 1);
 nsta = fscanf(fid_Qy,' %g ', 1);
-
-nsnap = 50;
 
 H = zeros(nsta,nsnap);
 hb = zeros(nsta,nsnap);
@@ -55,20 +94,20 @@ u = Qx./H;
 v = Qy./H;
 
 nsnap = snap;
-sta = 1:81;
-% sta = 82:163;
-% sta = 164:246;
-for snap = 46
+
+for snap = nsnap
     figure(1)
     plot(H(sta,snap)-hb(sta,snap));
     figure(2)
     plot(sqrt(u(sta,snap).^2 + v(sta,snap).^2))
 end
-figure(1)
-hold all
-figure(2)
-hold all
+
 end
+
+figure(1)
+legend(labels)
+figure(2)
+legend(labels)
 
 figure
 hold on
