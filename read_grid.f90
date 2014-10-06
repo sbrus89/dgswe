@@ -1,87 +1,107 @@
-      SUBROUTINE read_grid()
+      MODULE read_grid
       
-      USE globals, ONLY: pres,grid_file,ne,nn,ect,vct,xy,vxy,vxyn,depth,nelnds,elxy,elhb, &
-                         nope,neta,obseg,obnds,nvel,nbou,fbseg,fbnds,grid_name, &
-                         el_type,ctp,mnelnds,curved_grid,nverts
+      USE globals, ONLY: solution,coarse,fine
+      
+      CONTAINS
+      
+      SUBROUTINE read_grids()
+      
+      USE allocation, ONLY: sizes
+      
+      IMPLICIT NONE
+      
+      INTEGER :: i,j
+      
+      PRINT "(A)", "---------------------------------------------"
+      PRINT "(A)", "           Coarse Grid Information           "
+      PRINT "(A)", "---------------------------------------------"
+      PRINT "(A)", " "      
+      
+      CALL sizes(coarse)
+      CALL read_nodes(coarse)      
+      
+      PRINT "(A)", "---------------------------------------------"
+      PRINT "(A)", "            Fine Grid Information            "
+      PRINT "(A)", "---------------------------------------------"
+      PRINT "(A)", " "     
+     
+      CALL sizes(fine)
+      CALL read_nodes(fine)
+      
+      RETURN
+      END SUBROUTINE read_grids
+
+      SUBROUTINE read_nodes(sol)
+      
+      USE globals, ONLY: pres,solution
+      USE allocation, ONLY: grid_alloc
 
       IMPLICIT NONE
       INTEGER :: i,j,k,el,n,nd
-      INTEGER :: nbseg
-      INTEGER :: btype
-      INTEGER :: nvert
-      INTEGER :: alloc_status   
+      INTEGER :: ne,nn,ctp,nvert,nbseg,btype,nope,nbou
+      INTEGER :: curved_grid
       INTEGER, ALLOCATABLE, DIMENSION(:) :: vflag     
-      REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: vxy_temp      
-      
-      nverts(1) = 3
-      nverts(2) = 4
-      nverts(3) = 3
-      nverts(4) = 4      
-
-      PRINT "(A)", "---------------------------------------------"
-      PRINT "(A)", "             Grid Information                "
-      PRINT "(A)", "---------------------------------------------"
-      PRINT "(A)", " "
-       
-
+      REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: vxy_temp
+      TYPE(solution) :: sol
+  
       ! open fort.14 grid file
-      OPEN(UNIT = 14, FILE = grid_file)    
-
-      PRINT "(A,A)", "Grid file: ", grid_file                          
+      OPEN(UNIT = 14, FILE = sol%grid_file)      
+      
+      PRINT "(A,A)", "Grid file: ", sol%grid_file                          
                        
       ! read in name of grid
-      READ(14,"(A)"), grid_name                                         
+      READ(14,"(A)"), sol%grid_name                                         
 
-      PRINT "(A,A)", "Grid name: ", grid_name
+      PRINT "(A,A)", "Grid name: ", sol%grid_name
 
       ! read in number of elements and number of nodes
-      READ(14,*), ne, nn                                                
+      READ(14,*), sol%ne, sol%nn                                                
 
-      PRINT "(A,I5)", "Number of elements: ", ne
-      PRINT "(A,I5)", "Number of nodes: ", nn
+      PRINT "(A,I5)", "Number of elements: ", sol%ne
+      PRINT "(A,I5)", "Number of nodes: ", sol%nn
       PRINT*, " "
+      
+      nn = sol%nn
+      ne = sol%ne
+      ctp = sol%ctp
 
-      ALLOCATE(ect((ctp+1)*(ctp+1),ne),vct(4,ne),xy(2,nn),depth(nn),nelnds(ne),el_type(ne),STAT = alloc_status)  ! element connectivity table, node coordinate array, depth vector      
-      IF(alloc_status /= 0) THEN
-        PRINT*, 'Allocation error: ect,xy,depth'
-      ENDIF     
-      ALLOCATE(elxy((ctp+1)*(ctp+1),ne,2),elhb((ctp+1)*(ctp+1),ne))
+      CALL grid_alloc(1,sol)
 
       curved_grid = 0
       
       ! read in node coordinates and depths
       DO i = 1,nn                                                      
-        READ(14,*), j, xy(1,j), xy(2,j), depth(j)
+        READ(14,*), j, sol%xy(1,j), sol%xy(2,j), sol%depth(j)
       ENDDO
 !       PRINT "(A)", "Node coordinates and depth: "
-!       DO i = 1,nn
-!         PRINT "(I5,3(F11.3,3x))", i,xy(1,i), xy(2,i), depth(i)
+!       DO i = nn-15,nn !nn
+!         PRINT "(I5,3(F11.3,3x))", i,sol%xy(1,i), sol%xy(2,i), sol%depth(i)
 !       ENDDO
 !       PRINT*, " "
 
       ! read in element connectivity
-      ect = 0
+      sol%ect = 0
       DO i = 1,ne
-        READ(14,*) el,nelnds(el),(ect(j,el),j = 1,nelnds(el))
-        IF (nelnds(el) == 3) THEN
-          el_type(el) = 1
-        ELSE IF (nelnds(el) == 4) THEN
-          el_type(el) = 2
-        ELSE IF (nelnds(el) == (ctp+1)*(ctp+2)/2) THEN
-          el_type(el) = 3
+        READ(14,*) el,sol%nelnds(el),(sol%ect(j,el),j = 1,sol%nelnds(el))
+        IF (sol%nelnds(el) == 3) THEN
+          sol%el_type(el) = 1
+        ELSE IF (sol%nelnds(el) == 4) THEN
+          sol%el_type(el) = 2
+        ELSE IF (sol%nelnds(el) == (sol%ctp+1)*(sol%ctp+2)/2) THEN
+          sol%el_type(el) = 3
           curved_grid = 1
-        ELSE IF (nelnds(el) == (ctp+1)*(ctp+1)) THEN
-          el_type(el) = 4
+        ELSE IF (sol%nelnds(el) == (sol%ctp+1)*(sol%ctp+1)) THEN
+          sol%el_type(el) = 4
           curved_grid = 1
         ELSE
           PRINT*, "Element type not supported or ctp not compatible with grid"
           STOP
         ENDIF 
         
-        DO j = 1,nelnds(el)
-          elxy(j,el,1) = xy(1,ect(j,el))
-          elxy(j,el,2) = xy(2,ect(j,el))
-          elhb(j,el)   = depth(ect(j,el))
+        DO j = 1,sol%nelnds(el)
+          sol%elxy(j,el,1) = sol%xy(1,sol%ect(j,el))
+          sol%elxy(j,el,2) = sol%xy(2,sol%ect(j,el))
+          sol%elhb(j,el)   = sol%depth(sol%ect(j,el))
         ENDDO      
         
       ENDDO
@@ -89,68 +109,59 @@
       PRINT "(A,I5)", "Curved grid = ",curved_grid
       PRINT*, " "
       
-      ALLOCATE(vxy_temp(2,nn),vflag(nn),vxyn(nn))
+      ALLOCATE(vxy_temp(2,sol%nn),vflag(sol%nn))
       vflag = 0
       
-      IF (curved_grid == 1) THEN
-        DO i = 1,ne
-          nvert = nverts(el_type(i))
-          DO j = 1,nvert
-            vct(j,i) = ect(ctp*(j-1)+1,i)
-          ENDDO
-        ENDDO        
-      ELSE 
-        DO i = 1,ne
-          nvert = nverts(el_type(i))
-          DO j = 1,nvert
-            vct(j,i) = ect(j,i)
-          ENDDO
+
+      DO i = 1,ne
+        nvert = sol%nverts(sol%el_type(i))
+        DO j = 1,nvert
+          sol%vct(j,i) = sol%ect(ctp*(j-1)+1,i)
         ENDDO
-      ENDIF
+      ENDDO        
+
       
       n = 0
       DO i = 1,ne
-        nvert = nverts(el_type(i))
+        nvert = sol%nverts(sol%el_type(i))
         DO j = 1,nvert
-          nd = vct(j,i)
+          nd = sol%vct(j,i)
           IF (vflag(nd) == 0) THEN  
             n = n + 1            
-            vxyn(n) = nd
-            vxy_temp(1,n) = xy(1,nd)
-            vxy_temp(2,n) = xy(2,nd)
+            sol%vxyn(n) = nd
+            vxy_temp(1,n) = sol%xy(1,nd)
+            vxy_temp(2,n) = sol%xy(2,nd)
             vflag(nd) = 1
           ENDIF
         ENDDO
       ENDDO         
-      
-      ALLOCATE(vxy(2,n))
-      
+
       DO i = 1,n
-        vxy(1,i) = vxy_temp(1,i)
-        vxy(2,i) = vxy_temp(2,i)
+        sol%vxy(1,i) = vxy_temp(1,i)
+        sol%vxy(2,i) = vxy_temp(2,i)
       ENDDO
       
-      mnelnds = maxval(nelnds)
+      sol%mnelnds = maxval(sol%nelnds)
       
 !       PRINT "(A)", "Element connectivity table: "
-!       DO i = 1,ne
-!         PRINT "(2(I5,3x),8x,4(I5,3x))", i,nelnds(i),(ect(j,i),j=1,nelnds(i))
+!       DO i = 1,15
+!         PRINT "(2(I5,3x),8x,9(I5,3x))", i,sol%nelnds(i),(sol%ect(j,i),j=1,sol%nelnds(i))
 !       ENDDO
 !       PRINT*, " "
 
-      READ(14,*) nope  ! number of open boundaries                                                 
-      READ(14,*) neta  ! number of total elevation specified boundary nodes
 
-      ALLOCATE(obseg(nope),obnds(neta,nope),STAT = alloc_status)  ! number of nodes in each open boundary segment, array for open boundary nodes
-      IF(alloc_status /= 0) THEN
-        PRINT*, 'Allocation error: obseg,obnds'
-      ENDIF
+      READ(14,*) sol%nope  ! number of open boundaries                                                 
+      READ(14,*) sol%neta  ! number of total elevation specified boundary nodes
+      
+      nope = sol%nope
+      
+      CALL grid_alloc(2,sol)
 
       DO i = 1,nope                                                     
         READ(14,*), nbseg  ! read in # of nodes in segment, boundary type
-        obseg(i) = nbseg
+        sol%obseg(i) = nbseg
         DO j = 1,nbseg
-          READ(14,*) obnds(j,i) ! read in open boundary node numbers
+          READ(14,*) sol%obnds(j,i) ! read in open boundary node numbers
         ENDDO
       ENDDO
 !       PRINT "(A)", "Open boundary segments:"
@@ -162,26 +173,26 @@
 !         ENDDO
 !       ENDDO
 !       PRINT*, " "
+!       
 
-      READ(14,*) nbou  ! number of normal flow boundaries
-      READ(14,*) nvel  ! total number of normal flow nodes
+      READ(14,*) sol%nbou  ! number of normal flow boundaries
+      READ(14,*) sol%nvel  ! total number of normal flow nodes
 
-      ALLOCATE(fbseg(2,nbou),fbnds(nvel,nbou),STAT = alloc_status)  ! array to indicate number of nodes and type of each normal flow boundary, array for open boundary nodes
-      IF(alloc_status /= 0) THEN
-        PRINT*, 'Allocation error: nfbseg,nfbnds'
-      ENDIF
+      nbou = sol%nbou
+       
+      CALL grid_alloc(3,sol)
 
       DO i = 1,nbou
         READ(14,*), nbseg, btype ! read in # of nodes in segment, boundary type
-        fbseg(1,i) = nbseg
-        fbseg(2,i) = btype
+        sol%fbseg(1,i) = nbseg
+        sol%fbseg(2,i) = btype
         DO j = 1,nbseg
-          READ(14,*), fbnds(j,i)  ! read in normal flow boundary node numbers
+          READ(14,*), sol%fbnds(j,i)  ! read in normal flow boundary node numbers
         ENDDO
         IF (btype == 1 .OR. btype == 11 .OR. btype == 21) THEN
-          IF (fbnds(nbseg,i) /= fbnds(1,i)) THEN
-            fbnds(nbseg+1,i) = fbnds(1,i)  ! close island boundaries
-            fbseg(1,i) = fbseg(1,i) + 1
+          IF (sol%fbnds(nbseg,i) /= sol%fbnds(1,i)) THEN
+            sol%fbnds(nbseg+1,i) = sol%fbnds(1,i)  ! close island boundaries
+            sol%fbseg(1,i) = sol%fbseg(1,i) + 1
           ENDIF
         ENDIF
         
@@ -197,7 +208,10 @@
 !       ENDDO
 !       PRINT*, " "
 
+
       CLOSE(14) 
 
       RETURN
-      END SUBROUTINE read_grid
+      END SUBROUTINE read_nodes
+      
+      END MODULE read_grid

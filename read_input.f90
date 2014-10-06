@@ -1,14 +1,14 @@
       SUBROUTINE read_input()
 
-      USE globals, ONLY: grid_file,forcing_file,p,ctp,dt,tf,dramp,cf,lines,out_direc,npart
+      USE globals, ONLY: coarse,fine,lines,tf
 
       IMPLICIT NONE
       
-      INTEGER, PARAMETER :: ninp = 11
+      INTEGER, PARAMETER :: ninp = 12
       INTEGER :: inp_read,skipped
       CHARACTER(100) :: temp
       
-      OPEN(unit=15,file='dgswe.inp')
+      OPEN(unit=15,file='error.inp')
       
       PRINT "(A)", "---------------------------------------------"
       PRINT "(A)", "             Input Information               "
@@ -28,39 +28,42 @@
           inp_read = inp_read + 1
           SELECT CASE (inp_read)
             CASE (1)
-              grid_file = TRIM(temp)
-              PRINT*, "grid_file = ", grid_file
+              coarse%grid_file = TRIM(temp)
+              PRINT*, "coarse grid_file = ", coarse%grid_file
             CASE (2)
-              forcing_file = TRIM(temp)
-              PRINT*, "forcing_file = ", forcing_file
+              coarse%out_direc = TRIM(temp)
+              PRINT*, "coarse output directory = ", coarse%out_direc
             CASE (3)
-              READ(temp,*) p
-              PRINT*, "p = ", p
+              READ(temp,*) coarse%p
+              PRINT*, "coarse p = ", coarse%p
             CASE (4)
-              READ(temp,*) ctp
-              PRINT*, "ctp = ", ctp
+              READ(temp,*) coarse%ctp
+              PRINT*, "coarse ctp = ", coarse%ctp
             CASE (5)
-              READ(temp,*) dt
-              PRINT*, "dt = ", dt
+              READ(temp,*) coarse%dt
+              PRINT*, "coarse dt = ", coarse%dt
             CASE (6)
+              fine%grid_file = TRIM(temp)
+              PRINT*, "fine grid_file = ", fine%grid_file
+            CASE (7)
+              fine%out_direc = TRIM(temp)
+              PRINT*, "fine output directory = ", fine%out_direc
+            CASE (8)
+              READ(temp,*) fine%p
+              PRINT*, "fine p = ", fine%p           
+            CASE (9)
+              READ(temp,*) fine%ctp
+              PRINT*, "fine ctp = ", fine%ctp
+            CASE (10)
+              READ(temp,*) fine%dt
+              PRINT*, "fine dt = ", fine%dt              
+            CASE (11)
               READ(temp,*) tf
               tf = tf*86400d0
-              PRINT*, "tf = ", tf
-            CASE (7)
-              READ(temp,*) dramp
-              PRINT*, "dramp = ", dramp
-            CASE (8)
-              READ(temp,*) cf
-              PRINT*, "cf = ", cf
-            CASE (9)
+              PRINT*, "tf = ", tf     
+            CASE (12)
               READ(temp,*) lines
-              PRINT*, "lines = ", lines
-            CASE (10)
-              out_direc = TRIM(temp)
-              PRINT*, "out_direc = ", out_direc
-            CASE (11)
-              READ(temp,*) npart
-              PRINT*, "npart = ", npart
+              PRINT*, "lines = ", lines              
           END SELECT
             
         ENDIF
@@ -70,7 +73,7 @@
       
       PRINT*, " "
       PRINT*, "Lines skipped: ", skipped
-      PRINT*, " "
+      PRINT*, " "     
       
       CLOSE(15)
       

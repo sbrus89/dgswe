@@ -1,0 +1,12 @@
+/home/sbrus/data-drive/galveston/dgswe/quad2/M2/p1/galveston2.grd                                       ! coarse grid file
+/home/sbrus/data-drive/galveston/dgswe/quad2/M2/p1/                                                     ! coarse output directory
+1                                                                                                       ! p - coarse polynomial order
+1                                                                                                       ! ctp - coarse parametric coordinate transformation order
+2d0                                                                                                     ! dt - coarse timestep
+/home/sbrus/data-drive/galveston/dgswe/quad2_spline_channel/p1/galveston2_spline_channel.grd            ! fine grid file
+/home/sbrus/data-drive/galveston/dgswe/quad2_spline_channel/p1/                                         ! fine output directory
+1                                                                                                       ! p - fine polynomial order
+2                                                                                                       ! ctp - fine parametric coordinate transformation order
+2d0                                                                                                     ! dt - fine timestep
+4d0                                                                                                     ! tf - final time (days)
+48                                                                                                      ! lines - lines in output files
