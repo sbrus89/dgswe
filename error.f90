@@ -13,9 +13,9 @@
       INTEGER :: el_found
       INTEGER :: srchdp
       REAL(pres) :: rsre(2,4,4),x(4),y(4),area,sarea,tol,found 
-      REAL(pres) :: xyf(2)
-      REAL(pres) :: r(1),s(1),hb
       REAL(pres) :: Hpt,Qxpt,Qypt
+      REAL(pres), ALLOCATABLE, DIMENSION(:) :: r,s,hb      
+      REAL(pres), ALLOCATABLE, DIMENSION(:) :: xf,yf      
       REAL(pres), ALLOCATABLE, DIMENSION(:) :: phi
       REAL(pres) :: t
       TYPE(kdtree2), POINTER :: tree
@@ -44,10 +44,12 @@
       CALL re_vert(coarse)
       CALL re_vert(fine)
       
-      CALL area_qpts()      
+      CALL area_qpts()        
       CALL l_eval()
       
       
+      ALLOCATE(xf(mnqpta),yf(mnqpta))
+      ALLOCATE(r(mnqpta),s(mnqpta),hb(mnqpta))
       ALLOCATE(elf2elc(fine%ne))
       el_found = 0 
       
@@ -56,14 +58,15 @@
       
         etf = fine%el_type(elf)
       
-        xyf = 0d0
+        xf(1) = 0d0
+        yf(1) = 0d0
         DO nd = 1,fine%nnds(etf)
-          xyf(1) = xyf(1) + fine%l(nd,1,etf)*fine%elxy(nd,elf,1)
-          xyf(2) = xyf(2) + fine%l(nd,1,etf)*fine%elxy(nd,elf,2)
+          xf(1) = xf(1) + fine%l(nd,1,etf)*fine%elxy(nd,elf,1)
+          yf(1) = yf(1) + fine%l(nd,1,etf)*fine%elxy(nd,elf,2)
         ENDDO
       
         ! Find node closest to station
-        CALL kdtree2_n_nearest(tp=tree,qv=xyf,nn=srchdp,results=kdresults)
+        CALL kdtree2_n_nearest(tp=tree,qv=(/xf(1),yf(1)/),nn=srchdp,results=kdresults)
         
 search: DO srch = 1,srchdp
           clnd = coarse%vxyn(kdresults(srch)%idx)      
@@ -79,7 +82,7 @@ search: DO srch = 1,srchdp
             nvert = coarse%nverts(etc)                
           
             ! Compute the local (r,s) coordinates of the (x,y) station location
-            CALL newton(xyf(1),xyf(2),eln,r,s,hb)
+            CALL newton(xf(1),yf(1),1,eln,r,s,hb)
           
             ! Find reference element area
             IF (mod(etc,2) == 1) THEN

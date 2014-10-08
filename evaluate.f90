@@ -155,22 +155,24 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!       
  
  
-      SUBROUTINE newton(x,y,eln,r,s,hb)
+      SUBROUTINE newton(x,y,npt,eln,r,s,hb)
 
       USE globals, ONLY: pres,coarse
       USE basis, ONLY: tri_basis,quad_basis
 
       IMPLICIT NONE
-      INTEGER :: it,eln,et,p,n,i,mnnds
+      INTEGER :: eln,npt
+      INTEGER :: it,i,m,pt
+      INTEGER et,p,n,mnnds     
       INTEGER :: info
       INTEGER :: maxit
-      REAL(pres) :: tol
-      REAL(pres) :: x,y
-      REAL(pres) :: r(1),s(1),hb
-      REAL(pres) :: f,g,error
-      REAL(pres) :: dfdr,dfds,dgdr,dgds,jac
-      REAL(pres) :: phi(coarse%mnnds),dpdr(coarse%mnnds),dpds(coarse%mnnds)
-      REAL(pres) :: l(coarse%mnnds,3)
+      REAL(pres) :: tol,error
+      REAL(pres), DIMENSION(npt) :: x,y
+      REAL(pres), DIMENSION(npt) :: r,s,hb
+      REAL(pres), DIMENSION(npt) :: f,g
+      REAL(pres), DIMENSION(npt) :: dfdr,dfds,dgdr,dgds,jac
+      REAL(pres), DIMENSION(npt*coarse%mnnds) :: phi,dpdr,dpds
+      REAL(pres) :: l(coarse%mnnds,3*npt)
         
       tol = 1d-10
       maxit = 1000
@@ -182,28 +184,36 @@
       mnnds = coarse%mnnds
         
       IF (mod(et,2) == 1) THEN
-        r(1) = -1d0/3d0
-        s(1) = -1d0/3d0
+        DO pt = 1,npt      
+          r(pt) = -1d0/3d0
+          s(pt) = -1d0/3d0
+        ENDDO
       ELSE IF (mod(et,2) == 0) THEN
-        r(1) = 1d0
-        s(1) = 1d0
+        DO pt = 1,npt
+          r(pt) = 0d0
+          s(pt) = 0d0
+        ENDDO
       ENDIF
 
       DO it = 1,maxit
            
         IF (mod(et,2) == 1) THEN
-          CALL tri_basis(p,n,1,r,s,phi,dpdr,dpds)
+          CALL tri_basis(p,n,npt,r,s,phi,dpdr,dpds)
         ELSE IF (mod(et,2) == 0) THEN
-          CALL quad_basis(p,n,1,r,s,phi,dpdr,dpds)
+          CALL quad_basis(p,n,npt,r,s,phi,dpdr,dpds)
         ENDIF
         
-        DO i = 1,n
-          l(i,1) = phi(i)
-          l(i,2) = dpdr(i)
-          l(i,3) = dpds(i)          
+        DO pt = 1,npt
+          DO m = 1,n  
+            i = (m-1)*npt + pt
+            
+            l(m,pt) = phi(i)
+            l(m,npt+pt) = dpdr(i)
+            l(m,2*npt+pt) = dpds(i)          
+          ENDDO
         ENDDO
         
-        CALL DGETRS("N",n,3,coarse%V(1,1,et),mnnds,coarse%ipiv(1,et),l,mnnds,info)
+        CALL DGETRS("N",n,3*npt,coarse%V(1,1,et),mnnds,coarse%ipiv(1,et),l,mnnds,info)
 !         IF (info /= 0 ) PRINT*, "LAPACK ERROR"      
         
         dfdr = 0d0
@@ -213,33 +223,37 @@
         f = 0d0
         g = 0d0        
         
-        DO i = 1,n
+        DO pt = 1,npt
+          DO i = 1,n
+            
+            dfdr(pt) = dfdr(pt) + l(i,npt+pt)*coarse%elxy(i,eln,1)
+            dfds(pt) = dfds(pt) + l(i,2*npt+pt)*coarse%elxy(i,eln,1)
+            dgdr(pt) = dgdr(pt) + l(i,npt+pt)*coarse%elxy(i,eln,2)
+            dgds(pt) = dgds(pt) + l(i,2*npt+pt)*coarse%elxy(i,eln,2)
           
-          dfdr = dfdr + l(i,2)*coarse%elxy(i,eln,1)
-          dfds = dfds + l(i,3)*coarse%elxy(i,eln,1)
-          dgdr = dgdr + l(i,2)*coarse%elxy(i,eln,2)
-          dgds = dgds + l(i,3)*coarse%elxy(i,eln,2)
-          
-          f = f + l(i,1)*coarse%elxy(i,eln,1)
-          g = g + l(i,1)*coarse%elxy(i,eln,2)
+            f(pt) = f(pt) + l(i,pt)*coarse%elxy(i,eln,1)
+            g(pt) = g(pt) + l(i,pt)*coarse%elxy(i,eln,2)
+          ENDDO
         ENDDO
         
-        jac = dfdr*dgds - dgdr*dfds
+        DO pt = 1,npt
+          jac(pt) = dfdr(pt)*dgds(pt) - dgdr(pt)*dfds(pt)
         
-        f = f - x
-        g = g - y
+          f(pt) = f(pt) - x(pt)
+          g(pt) = g(pt) - y(pt)
         
-        r(1) = r(1) - (1d0/jac)*( dgds*f - dfds*g)
-        s(1) = s(1) - (1d0/jac)*(-dgdr*f + dfdr*g)         
+          r(pt) = r(pt) - (1d0/jac(pt))*( dgds(pt)*f(pt) - dfds(pt)*g(pt))
+          s(pt) = s(pt) - (1d0/jac(pt))*(-dgdr(pt)*f(pt) + dfdr(pt)*g(pt))         
+        ENDDO
         
-        IF (ABS(f) < tol .AND. ABS(g) < tol) THEN
+        error = MAX(ABS(MAXVAL(f)) , ABS(MAXVAL(g)))
+        IF ( error < tol) THEN
           EXIT
         ENDIF        
-       
-        
+               
       ENDDO
       
-      error = max(abs(f),abs(g))
+
       IF (it >= maxit) THEN
         PRINT("(A,E22.15)"), "   MAX ITERATIONS EXCEEDED, error = ",error
         PRINT("(2(A,F20.15))"), "   r = ",r(1), "   s = ", s(1)
@@ -249,8 +263,10 @@
       ENDIF
       
       hb = 0d0
-      DO i = 1,n
-        hb = hb + l(i,1)*coarse%elhb(i,eln)
+      DO pt = 1,npt
+        DO i = 1,n
+          hb(pt) = hb(pt) + l(i,pt)*coarse%elhb(i,eln)
+        ENDDO
       ENDDO
 
       RETURN
