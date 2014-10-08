@@ -44,26 +44,37 @@
         INTEGER :: nbou  ! number of normal flow boundary segments
         INTEGER, ALLOCATABLE, DIMENSION(:,:) :: fbseg ! number of nodes and type of each normal flow boundary segment
         INTEGER :: nvel  ! total number of normal flow boundary nodes
-        INTEGER, ALLOCATABLE, DIMENSION(:,:) :: fbnds ! normal flow boundary nodes        
+        INTEGER, ALLOCATABLE, DIMENSION(:,:) :: fbnds ! normal flow boundary nodes    
+        
+        INTEGER, ALLOCATABLE, DIMENSION(:) :: nepn ! number of elements per node
+        INTEGER, ALLOCATABLE, DIMENSION(:,:) :: epn ! elements associated with each node 
+        
+        REAL(pres), ALLOCATABLE, DIMENSION(:,:,:) :: V ! vandermonde matrix
+        INTEGER, ALLOCATABLE, DIMENSION(:,:) :: ipiv 
+        
+        REAL(pres) :: rsre(2,4,nel_type) ! reference element verticies 
+        
+        REAL(pres), ALLOCATABLE, DIMENSION(:,:,:) :: l        
       END TYPE
       
       TYPE(solution) :: coarse
-      TYPE(solution) :: fine          
+      TYPE(solution) :: fine     
       
-      INTEGER, ALLOCATABLE, DIMENSION(:) :: elsta
+      INTEGER :: nqpta(nel_type)
+      INTEGER :: mnqpta
+      REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: wpta
+      REAL(pres), ALLOCATABLE, DIMENSION(:,:,:) :: qpta      
+      
+      INTEGER, ALLOCATABLE, DIMENSION(:) :: elf2elc
       REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: xysta ! x,y coordinates of stations
       REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: rssta
       REAL(pres), ALLOCATABLE, DIMENSION(:) :: hbsta
-      
-      INTEGER, ALLOCATABLE, DIMENSION(:) :: nepn ! number of elements per node
-      INTEGER, ALLOCATABLE, DIMENSION(:,:) :: epn ! elements per node            
-   
+
       REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: H
       REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: Qx
       REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: Qy     
       
-      REAL(pres), ALLOCATABLE, DIMENSION(:,:,:) :: V
-      INTEGER, ALLOCATABLE, DIMENSION(:,:) :: ipiv
+
       
 
 

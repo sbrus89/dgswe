@@ -4,7 +4,7 @@ CFLAGS2 = -O3 -o
 LIB = -llapack
 
 # objects = globals.o basis.o evaluate.o read_input.o read_grid.o read_stations.o kdtree2.o error.o
-objects = globals.o allocation.o read_input.o read_grid.o kdtree2.o error.o
+objects = globals.o allocation.o basis.o evaluate.o read_input.o read_grid.o kdtree2.o area_qpts.o error.o
 
 
 main: $(objects)
@@ -33,6 +33,9 @@ read_stations.o: read_stations.f90 globals.f90
 
 kdtree2.o: kdtree2.F
 	$(CC) $(CFLAGS1) $<
+	
+area_qpts.o: area_qpts.f90
+	$(CC) $(CFLAGS1) $<	
 
 error.o: error.f90 globals.f90 evaluate.f90 basis.f90 kdtree2.F
 	$(CC) $(CFLAGS1) $<

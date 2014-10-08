@@ -4,6 +4,9 @@
       
       CONTAINS
       
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!      
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!      
+      
       SUBROUTINE read_grids()
       
       USE allocation, ONLY: sizes
@@ -30,6 +33,9 @@
       
       RETURN
       END SUBROUTINE read_grids
+      
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!      
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
       SUBROUTINE read_nodes(sol)
       
@@ -39,6 +45,7 @@
       IMPLICIT NONE
       INTEGER :: i,j,k,el,n,nd
       INTEGER :: ne,nn,ctp,nvert,nbseg,btype,nope,nbou
+      INTEGER :: mnepn,n1            
       INTEGER :: curved_grid
       INTEGER, ALLOCATABLE, DIMENSION(:) :: vflag     
       REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: vxy_temp
@@ -109,10 +116,11 @@
       PRINT "(A,I5)", "Curved grid = ",curved_grid
       PRINT*, " "
       
+      
+      ! find element verticies
       ALLOCATE(vxy_temp(2,sol%nn),vflag(sol%nn))
       vflag = 0
       
-
       DO i = 1,ne
         nvert = sol%nverts(sol%el_type(i))
         DO j = 1,nvert
@@ -150,6 +158,34 @@
 !       PRINT*, " "
 
 
+      ! Find elements associated with each node            
+      ALLOCATE(sol%nepn(sol%nn))
+      
+      sol%nepn(:) = 0
+      DO el = 1,sol%ne
+        nvert = sol%nverts(sol%el_type(el))
+        DO nd = 1,nvert
+          n1 = sol%vct(nd,el)
+          sol%nepn(n1) = sol%nepn(n1) + 1
+        ENDDO
+      ENDDO
+      
+      mnepn = maxval(sol%nepn)
+      
+      ALLOCATE(sol%epn(mnepn,sol%nn))
+      
+      sol%nepn(:) = 0
+      DO el = 1,sol%ne
+        nvert = sol%nverts(sol%el_type(el))
+        DO nd = 1,nvert
+          n1 = sol%vct(nd,el)
+          sol%nepn(n1) = sol%nepn(n1) + 1
+          sol%epn(sol%nepn(n1),n1) = el
+        ENDDO
+      ENDDO 
+
+
+      ! Read in open boundaries
       READ(14,*) sol%nope  ! number of open boundaries                                                 
       READ(14,*) sol%neta  ! number of total elevation specified boundary nodes
       
@@ -175,6 +211,7 @@
 !       PRINT*, " "
 !       
 
+      ! read in normal flow boundaries
       READ(14,*) sol%nbou  ! number of normal flow boundaries
       READ(14,*) sol%nvel  ! total number of normal flow nodes
 
