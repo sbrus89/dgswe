@@ -1,4 +1,6 @@
       MODULE basis
+      
+      USE globals, ONLY: pres
 
       CONTAINS
       
@@ -6,9 +8,7 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
         SUBROUTINE tri_basis(p,ndof,npts,r,s,phi,dpdr,dpds)
-        
-        USE globals, ONLY: pres
-        
+
         IMPLICIT NONE
         INTEGER :: p,npts
         INTEGER :: ndof
@@ -85,8 +85,6 @@
 
         SUBROUTINE quad_basis(p,ndof,npts,r,s,phi,dpdr,dpds)
         
-        USE globals, ONLY: pres
-        
         IMPLICIT NONE
         
         INTEGER :: p,npts
@@ -143,8 +141,6 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
       SUBROUTINE jacobi(alpha_i,beta_i,deg,x,npts,v)
-
-        USE globals, ONLY: pres
 
         IMPLICIT NONE
         INTEGER, INTENT(IN) :: alpha_i,beta_i,deg,npts
@@ -205,9 +201,7 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
       SUBROUTINE djacobi(alpha_i,beta_i,deg_i,x,npts,dP)
-
-        USE globals, ONLY: pres
-
+      
         IMPLICIT NONE
         INTEGER, INTENT(IN) :: alpha_i,beta_i,deg_i,npts
         REAL(pres), INTENT(IN) :: x(npts)
@@ -264,8 +258,6 @@
 !c     np (input): the number of points in the triangle
 !c     r(np) (output) ; nodal r-coordinates for master element
 !c     s(np) (output) : nodal s-coordinates for master element 
-
-      use globals, only: pres
 
       implicit none
       integer p,np,i,j,m,space 
@@ -454,9 +446,7 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!       
 
       SUBROUTINE quad_nodes(space,np,nnds,r,s)
-      
-      USE globals, ONLY: pres
-      
+
       IMPLICIT NONE
       
       INTEGER :: space,np,nnds
@@ -550,8 +540,6 @@
 !c     n (input) : order 
 !c     r(n+1) (output) : Legendre-Gauss-Lebotto points
 
-      use globals, only: pres
-
       implicit none
       integer n,nn,i
       real(pres) ii,h
@@ -619,8 +607,6 @@
 !c     [L0(x2)  L1(x2)  L2(x2)]
 !c     [L0(x3)  L1(x3)  L3(x3)]
 
-      use globals, only: pres
-
       implicit none
       integer nn,ne,n,i,j
       real(pres) p,xn(nn),xe(ne),pmat(ne,nn)
@@ -642,9 +628,7 @@
       end subroutine
 
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc	
-      subroutine xytors(np,x,y,r,s)
-      
-      use globals, only: pres      
+      subroutine xytors(np,x,y,r,s) 
       
       implicit none
       integer np,i
