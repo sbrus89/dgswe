@@ -102,27 +102,71 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!      
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!     
 
-      SUBROUTINE l_eval()
+      SUBROUTINE function_eval()
       
       USE globals, ONLY: pres,nel_type,nqpta,qpta,mnqpta,fine
       USE basis, ONLY: tri_basis,quad_basis
       
       IMPLICIT NONE
       
-      INTEGER :: p,n,et,m,i,pt,mnnds,npt
+      INTEGER :: p,n,et,m,i,pt,mnnds,mndof,npt
       INTEGER :: info
       REAL(pres) :: r(mnqpta),s(mnqpta)
-      REAL(pres) :: phi(fine%mnnds*mnqpta)
+      REAL(pres), ALLOCATABLE, DIMENSION(:) :: phi,dpdr,dpds
       
       mnnds = fine%mnnds
+      mndof = fine%mndof
       
-      ALLOCATE(fine%l(mnnds,mnqpta,nel_type))
+      ALLOCATE(phi(max(mnnds,mndof)*mnqpta))
+      ALLOCATE(dpdr(max(mnnds,mndof)*mnqpta))
+      ALLOCATE(dpds(max(mnnds,mndof)*mnqpta))      
       
+      ! evaluate shape functions
+      
+      ALLOCATE(fine%l(mnnds,mnqpta,nel_type))   
+      ALLOCATE(fine%dldr(mnnds,mnqpta,nel_type))
+      ALLOCATE(fine%dlds(mnnds,mnqpta,nel_type))
       
       DO et = 1,nel_type
-        p = fine%p
-        n = fine%nnds(et)
+        p = fine%np(et)     ! transformation order
+        n = fine%nnds(et) ! transformation nodes
         npt = nqpta(et)
+        
+        DO pt = 1,npt
+          r(pt) = qpta(pt,1,et) 
+          s(pt) = qpta(pt,2,et)
+        ENDDO
+        
+        IF (mod(et,2) == 1) THEN
+          CALL tri_basis(p,n,npt,r,s,phi,dpdr,dpds)
+        ELSE IF (mod(et,2) == 0) THEN
+          CALL quad_basis(p,n,npt,r,s,phi,dpdr,dpds)
+        ENDIF
+        
+        DO pt = 1,npt
+          DO m = 1,n
+            i = (m-1)*npt + pt
+            fine%l(m,pt,et) = phi(i) 
+            fine%dldr(m,pt,et) = dpdr(i)
+            fine%dlds(m,pt,et) = dpds(i)            
+          ENDDO
+        ENDDO
+        
+        CALL DGETRS("N",n,npt,fine%V(1,1,et),mnnds,fine%ipiv(1,et),fine%l(1,1,et),mnnds,info)  
+        CALL DGETRS("N",n,npt,fine%V(1,1,et),mnnds,fine%ipiv(1,et),fine%dldr(1,1,et),mnnds,info)      
+        CALL DGETRS("N",n,npt,fine%V(1,1,et),mnnds,fine%ipiv(1,et),fine%dlds(1,1,et),mnnds,info)              
+      
+      ENDDO
+      
+      
+      ! evaluate basis functions
+      
+      ALLOCATE(fine%phi(mndof,mnqpta,nel_type))  
+      
+      DO et = 1,nel_type
+        p = fine%p        ! solution order
+        n = fine%ndof(et) ! solution degrees of freedom
+        npt = nqpta(et) 
         
         DO pt = 1,npt
           r(pt) = qpta(pt,1,et) 
@@ -138,21 +182,63 @@
         DO pt = 1,npt
           DO m = 1,n
             i = (m-1)*npt + pt
-            fine%l(m,pt,et) = phi(i)      
+            fine%phi(m,pt,et) = phi(i)      
           ENDDO
         ENDDO
-        
+      
+      ENDDO      
+      
+      RETURN
+      END SUBROUTINE function_eval
+      
+      
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!      
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
 
-        CALL DGETRS("N",n,npt,fine%V(1,1,et),mnnds,fine%ipiv(1,et),fine%l(1,1,et),mnnds,info)           
+      SUBROUTINE detJ_eval()
+      
+      USE globals, ONLY: pres,fine,mnqpta,nqpta
+      
+      IMPLICIT NONE
+      
+      INTEGER :: el,pt,nd
+      INTEGER :: et
+      REAL(pres) :: x,y
+      REAL(pres) :: dxdr,dxds,dydr,dyds
+      
+      ALLOCATE(fine%detJ(mnqpta,fine%ne))
+      
+      DO el = 1,fine%ne
+        et = fine%el_type(el)
+        
+        DO pt = 1,nqpta(et)
+          dxdr = 0d0
+          dxds = 0d0
+          dydr = 0d0
+          dyds = 0d0
+          
+          DO nd = 1,fine%nnds(et)
+            x = fine%elxy(nd,el,1)
+            y = fine%elxy(nd,el,2)
+          
+            dxdr = dxdr + fine%dldr(nd,pt,et)*x
+            dxds = dxds + fine%dlds(nd,pt,et)*x
+            dydr = dydr + fine%dldr(nd,pt,et)*y
+            dyds = dyds + fine%dlds(nd,pt,et)*y
+                       
+          ENDDO
+            
+          fine%detJ(pt,el) = dxdr*dyds - dxds*dydr        
+          
+        ENDDO
       
       ENDDO
       
       RETURN
-      END SUBROUTINE l_eval
-      
-      
+      END SUBROUTINE detJ_eval      
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!      
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!       
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
  
  
       SUBROUTINE newton(x,y,npt,eln,r,s,hb)
@@ -258,8 +344,8 @@
         PRINT("(A,E22.15)"), "   MAX ITERATIONS EXCEEDED, error = ",error
         PRINT("(2(A,F20.15))"), "   r = ",r(1), "   s = ", s(1)
       ELSE       
-        PRINT("(A,I7,A,E22.15)"), "   iterations: ",it, "  error = ",error
-        PRINT("(2(A,F20.15))"), "   r = ",r(1), "   s = ", s(1)
+!         PRINT("(A,I7,A,E22.15)"), "   iterations: ",it, "  error = ",error
+!         PRINT("(2(A,F20.15))"), "   r = ",r(1), "   s = ", s(1)
       ENDIF
       
       hb = 0d0

@@ -1,12 +1,12 @@
-/home/sbrus/Codes/error/converge_quad.grd                                                               ! coarse grid file
-/home/sbrus/Codes/error/                                                                                ! coarse output directory
+/home/sbrus/Codes/dgswe/grids/converge_quad.grd                                                         ! coarse grid file
+/home/sbrus/data-drive/converge_quad/mesh1/P1/CTP2/                                                     ! coarse output directory
 1                                                                                                       ! p - coarse polynomial order
-1                                                                                                       ! ctp - coarse parametric coordinate transformation order
-2d0                                                                                                     ! dt - coarse timestep
-/home/sbrus/Codes/error/converge_quad2.grd                                                              ! fine grid file
-/home/sbrus/Codes/error/                                                                                ! fine output directory
+2                                                                                                       ! ctp - coarse parametric coordinate transformation order
+.5d0                                                                                                    ! dt - coarse timestep
+/home/sbrus/Codes/dgswe/grids/converge_quad2.grd                                                        ! fine grid file
+/home/sbrus/data-drive/converge_quad/mesh2/P1/CTP2/                                                     ! fine output directory
 1                                                                                                       ! p - fine polynomial order
-1                                                                                                       ! ctp - fine parametric coordinate transformation order
-2d0                                                                                                     ! dt - fine timestep
-4d0                                                                                                     ! tf - final time (days)
-48                                                                                                      ! lines - lines in output files
+2                                                                                                       ! ctp - fine parametric coordinate transformation order
+.25d0                                                                                                   ! dt - fine timestep
+2d0                                                                                                     ! tf - final time (days)
+20                                                                                                      ! lines - lines in output files

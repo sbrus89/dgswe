@@ -44,7 +44,9 @@
         INTEGER :: nbou  ! number of normal flow boundary segments
         INTEGER, ALLOCATABLE, DIMENSION(:,:) :: fbseg ! number of nodes and type of each normal flow boundary segment
         INTEGER :: nvel  ! total number of normal flow boundary nodes
-        INTEGER, ALLOCATABLE, DIMENSION(:,:) :: fbnds ! normal flow boundary nodes    
+        INTEGER, ALLOCATABLE, DIMENSION(:,:) :: fbnds ! normal flow boundary nodes   
+        
+        INTEGER, ALLOCATABLE, DIMENSION(:) :: bndel ! array to flag land boundary elements
         
         INTEGER, ALLOCATABLE, DIMENSION(:) :: nepn ! number of elements per node
         INTEGER, ALLOCATABLE, DIMENSION(:,:) :: epn ! elements associated with each node 
@@ -54,7 +56,14 @@
         
         REAL(pres) :: rsre(2,4,nel_type) ! reference element verticies 
         
-        REAL(pres), ALLOCATABLE, DIMENSION(:,:,:) :: l        
+        REAL(pres), ALLOCATABLE, DIMENSION(:,:,:) :: l,dldr,dlds
+        REAL(pres), ALLOCATABLE, DIMENSION(:,:,:) :: phi
+        REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: detJ      
+        
+        REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: H
+        REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: Qx
+        REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: Qy             
+        
       END TYPE
       
       TYPE(solution) :: coarse
@@ -67,12 +76,8 @@
       
       INTEGER, ALLOCATABLE, DIMENSION(:) :: elf2elc
       REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: xysta ! x,y coordinates of stations
-      REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: rssta
-      REAL(pres), ALLOCATABLE, DIMENSION(:) :: hbsta
 
-      REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: H
-      REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: Qx
-      REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: Qy     
+
       
 
       

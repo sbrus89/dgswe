@@ -45,7 +45,7 @@
       IMPLICIT NONE
       INTEGER :: i,j,k,el,n,nd
       INTEGER :: ne,nn,ctp,nvert,nbseg,btype,nope,nbou
-      INTEGER :: mnepn,n1            
+      INTEGER :: mnepn,n1,n2,found            
       INTEGER :: curved_grid
       INTEGER, ALLOCATABLE, DIMENSION(:) :: vflag     
       REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: vxy_temp
@@ -121,12 +121,21 @@
       ALLOCATE(vxy_temp(2,sol%nn),vflag(sol%nn))
       vflag = 0
       
-      DO i = 1,ne
-        nvert = sol%nverts(sol%el_type(i))
-        DO j = 1,nvert
-          sol%vct(j,i) = sol%ect(ctp*(j-1)+1,i)
-        ENDDO
-      ENDDO        
+      IF(curved_grid == 1) THEN
+        DO i = 1,ne
+          nvert = sol%nverts(sol%el_type(i))
+          DO j = 1,nvert
+            sol%vct(j,i) = sol%ect(ctp*(j-1)+1,i)
+          ENDDO
+        ENDDO        
+      ELSE
+        DO i = 1,ne
+          nvert = sol%nverts(sol%el_type(i))
+          DO j = 1,nvert
+            sol%vct(j,i) = sol%ect(j,i)
+          ENDDO
+        ENDDO           
+      ENDIF
 
       
       n = 0
@@ -247,6 +256,31 @@
 
 
       CLOSE(14) 
+      
+      ALLOCATE(sol%bndel(sol%ne))
+      sol%bndel = 0
+      DO i = 1,sol%nbou
+        btype = sol%fbseg(2,i)
+        nbseg = sol%fbseg(1,i)-1
+        IF (btype == 0 .OR. btype == 10 .OR. btype == 20) THEN
+          DO j = 1,nbseg
+            n1 = sol%fbnds(j,i)
+            n2 = sol%fbnds(j+1,i)
+      elem: DO el = 1,sol%ne
+              found = 0
+              DO nd = 1,sol%nelnds(el)
+                IF (sol%ect(nd,el) == n1 .OR. sol%ect(nd,el) == n2) THEN
+                  found = found + 1
+                ENDIF
+              ENDDO
+              IF (found == 2) THEN
+                sol%bndel(el) = 1
+                EXIT elem
+              ENDIF
+            ENDDO elem
+          ENDDO
+        ENDIF
+      ENDDO
 
       RETURN
       END SUBROUTINE read_nodes
