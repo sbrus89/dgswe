@@ -9,19 +9,24 @@ clc
 % grd_name = 'converge_quad.grd';
 % plot_folder = 'velplot_scale';
 
-grd_direc = '~/data-drive/galveston/dgswe/quad2/M2/';
-sol_direc = '~/data-drive/galveston/dgswe/quad2/M2/';
-grd_name = 'galveston2.grd';
-plot_folder = 'velplot_scale';
-
-% grd_direc = '~/data-drive/galveston/dgswe/quad2_spline/';
-% sol_direc = '~/data-drive/galveston/dgswe/quad2_spline/';
-% grd_name = 'galveston2_spline.grd';
-% % grd_name = 'galveston2_plot.grd';
+% grd_direc = '~/data-drive/galveston/dgswe/tri/p3/';
+% sol_direc = '~/data-drive/galveston/dgswe/tri/p3/';
+% grd_name = 'galveston_tri.grd';
 % plot_folder = 'velplot_scale';
 
-% grd_direc = '~/data-drive/galveston/dgswe/quad2_spline_channel/';
-% sol_direc = '~/data-drive/galveston/dgswe/quad2_spline_channel/';
+% grd_direc = '~/data-drive/galveston/dgswe/quad2/M2/p2/';
+% sol_direc = '~/data-drive/galveston/dgswe/quad2/M2/p2/';
+% grd_name = 'galveston2.grd';
+% plot_folder = 'velplot_scale';
+
+grd_direc = '~/data-drive/galveston/dgswe/quad2_spline/p3/';
+sol_direc = '~/data-drive/galveston/dgswe/quad2_spline/p3/';
+grd_name = 'galveston2_spline.grd';
+% grd_name = 'galveston2_plot.grd';
+plot_folder = 'velplot_scale';
+
+% grd_direc = '~/data-drive/galveston/dgswe/quad2_spline_channel/p3/';
+% sol_direc = '~/data-drive/galveston/dgswe/quad2_spline_channel/p3/';
 % grd_name = 'galveston2_spline_channel.grd';
 % % grd_name = 'galveston2_plot.grd';
 % plot_folder = 'velplot_scale';
@@ -159,7 +164,7 @@ if exist([sol_direc,'velscale.mat'])
 end
 
 
-for tsnap = snap %1:snap
+for tsnap = 1:snap
     
     figure
     
