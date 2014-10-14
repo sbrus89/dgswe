@@ -16,6 +16,15 @@
       nrblk = 1
 
       CALL read_input()
+      
+#ifdef rk22
+      PRINT*, "RK22 timestepping"
+#elif rk33
+      PRINT*, "RK33 timestepping"
+#else
+      PRINT*, "Forward Euler timestepping"
+#endif      
+      PRINT*, " "
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
