@@ -128,11 +128,11 @@
             sol%vct(j,i) = sol%ect(ctp*(j-1)+1,i)
           ENDDO
         ENDDO        
-      ELSE
+      ELSE ! in case grid isn't curved but ctp > 1
         DO i = 1,ne
           nvert = sol%nverts(sol%el_type(i))
           DO j = 1,nvert
-            sol%vct(j,i) = sol%ect(j,i)
+            sol%vct(j,i) = sol%ect(j,i) 
           ENDDO
         ENDDO           
       ENDIF
@@ -257,6 +257,7 @@
 
       CLOSE(14) 
       
+      ! Find elements on land boundaries (these are left out of the L2 error calculation in case they're curve)
       ALLOCATE(sol%bndel(sol%ne))
       sol%bndel = 0
       DO i = 1,sol%nbou

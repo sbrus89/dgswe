@@ -73,7 +73,11 @@
       
       PRINT*, " "
       PRINT*, "Lines skipped: ", skipped
-      PRINT*, " "     
+      PRINT*, " "  
+      
+      IF(coarse%p /= fine%p) THEN
+        PRINT("(A)"), "Warning: inconsistent p"
+      ENDIF
       
       CLOSE(15)
       

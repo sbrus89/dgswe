@@ -9,10 +9,11 @@
       IMPLICIT NONE
 
       INTEGER :: el,nd,pt,elc,elf,i,line,dof,srch
-      INTEGER :: n1,n2,nvert,eln,clnd,etf,etc,n
+      INTEGER :: n1,n2,nvert,eln,clnd,etf,etc,n,npts
       INTEGER :: ne,mndof
       INTEGER :: el_found
-      INTEGER :: srchdp     
+      INTEGER :: srchdp  
+      INTEGER :: order
       REAL(pres) :: x(4),y(4),area,sarea,tol,found 
       REAL(pres), ALLOCATABLE, DIMENSION(:) :: r,s,hb      
       REAL(pres), ALLOCATABLE, DIMENSION(:) :: xf,yf      
@@ -20,25 +21,30 @@
       REAL(pres), ALLOCATABLE, DIMENSION(:) :: Hf,Qxf,Qyf            
       REAL(pres), ALLOCATABLE, DIMENSION(:) :: phi
       REAL(pres) :: HL2,QxL2,QyL2 
-      REAL(pres) :: t
+      REAL(pres) :: tcoarse,tfine
+      REAL(pres) :: rfac
       TYPE(kdtree2), POINTER :: tree
       TYPE(kdtree2_result), ALLOCATABLE, DIMENSION(:) :: kdresults
       
-      tol = 1d-5
+      tol = 1d-7
       srchdp = 4
             
 
       
       CALL read_input()
+      
+      rfac = 2d0
+      order = coarse%p + 1
+      
       CALL read_grids()
       
-      i = 0
-      DO el = 1,coarse%ne
-        IF (coarse%bndel(el) == 1) THEN
-          i = i + 1
-          PRINT*, i,el
-        ENDIF
-      ENDDO
+!       i = 0
+!       DO el = 1,coarse%ne
+!         IF (coarse%bndel(el) == 1) THEN
+!           i = i + 1
+!           PRINT*, i,el
+!         ENDIF
+!       ENDDO
       
       ! Build kd-tree
       IF (coarse%ne < srchdp) THEN
@@ -56,7 +62,7 @@
       
       CALL area_qpts()        
       CALL function_eval() ! evaluate basis and shape functions for fine grid quadrature points
-      CALL detJ_eval()
+      CALL detJ_eval()     ! compute determinant of Jacobian for fine grid elements at quadrature points
       
       
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -67,6 +73,8 @@
       ALLOCATE(r(mnqpta),s(mnqpta),hb(mnqpta))
       ALLOCATE(elf2elc(fine%ne))
       el_found = 0 
+      
+      PRINT("(A)"), "Determining element nesting"
       
       ! Find coarse element each fine element is located in
       DO elf = 1,fine%ne
@@ -87,7 +95,7 @@
 search: DO srch = 1,srchdp
           clnd = coarse%vxyn(kdresults(srch)%idx)      
         
-          PRINT("(A,I5,A,I5,A,F11.4)"), "fine element #: ",elf, ",   closest coarse node: ", clnd, ",   distance: ", kdresults(1)%dis      
+!           PRINT("(A,I5,A,I5,A,F11.4)"), "fine element #: ",elf, ",   closest coarse node: ", clnd, ",   distance: ", kdresults(1)%dis      
         
           ! Test elements associated with nearest node to see which coarse element contains the quadrature point
           found = 0  
@@ -125,12 +133,12 @@ search: DO srch = 1,srchdp
               sarea = sarea + .5d0*abs((x(2)-x(1))*(y(3)-y(1)) - (x(3)-x(1))*(y(2)-y(1)))
             ENDDO
           
-            PRINT("(A,I5,A,F20.15,A,F20.15)"), "   testing: ", eln, "   area = ",area, "   sarea = ", sarea
-            PRINT*, " "
+!             PRINT("(A,I5,A,F20.15,A,F20.15)"), "   testing: ", eln, "   area = ",area, "   sarea = ", sarea
+!             PRINT*, " "
           
             ! The quadrature point is in the element if the reference element area and sum of sub triangle are the same
             IF (abs(area - sarea) < tol) THEN
-              PRINT("(A,I5)"), '   element found ', eln            
+!               PRINT("(A,I5)"), '   element found ', eln            
 !               PRINT("(A,I5)"), achar(27)//'[95m    element found '//achar(27)//'[0m', eln
             
               elf2elc(elf) = eln            
@@ -145,22 +153,22 @@ search: DO srch = 1,srchdp
           ENDDO elem
         
           IF (found == 0) THEN
-            PRINT*, "element not found: going to next node"    ! Try elements around next closest node     
+!             PRINT*, "element not found: going to next node"    ! Try elements around next closest node     
           ELSE   
             EXIT search
           ENDIF
         
-          PRINT*, " " 
+!           PRINT*, " " 
         
         ENDDO search
         
         IF (found == 0) THEN
-          PRINT*,  achar(27)//"[31m ERROR: ELEMENT NOT FOUND"//achar(27)//'[0m'
+!           PRINT*,  achar(27)//"[31m ERROR: ELEMENT NOT FOUND"//achar(27)//'[0m'
         ENDIF        
       
       ENDDO
       
-      PRINT*, "Missing elements = ", fine%ne-el_found
+      PRINT("(A,I5)"), "Missing elements = ", fine%ne-el_found
       PRINT*, " "
       
       IF (fine%ne-el_found /= 0) THEN
@@ -185,55 +193,7 @@ search: DO srch = 1,srchdp
       ALLOCATE(Hc(mnqpta),Qxc(mnqpta),Qyc(mnqpta))
       ALLOCATE(Hf(mnqpta),Qxf(mnqpta),Qyf(mnqpta))
               
-      
-      OPEN(UNIT=11, FILE=trim(coarse%out_direc) //"solution_H.d")
-      OPEN(UNIT=12, FILE=trim(coarse%out_direc) //"solution_Qx.d")     
-      OPEN(UNIT=13, FILE=trim(coarse%out_direc) //"solution_Qy.d")      
-      
-      READ(11,*) 
-      READ(12,*)
-      READ(13,*)
-      
-      OPEN(UNIT=21, FILE=trim(fine%out_direc) //"solution_H.d")
-      OPEN(UNIT=22, FILE=trim(fine%out_direc) //"solution_Qx.d")     
-      OPEN(UNIT=23, FILE=trim(fine%out_direc) //"solution_Qy.d")      
-      
-      READ(21,*) 
-      READ(22,*)
-      READ(23,*)
-      
-
-      
-      DO line = 1,lines+1
-        READ(11,*) t
-        READ(12,*) t
-        READ(13,*) t
-        
-        READ(21,*) t
-        READ(22,*) t
-        READ(23,*) t        
-        
-        DO dof = 1,coarse%mndof
-          READ(11,*) (coarse%H(el,dof), el = 1,coarse%ne)
-          READ(12,*) (coarse%Qx(el,dof), el = 1,coarse%ne)
-          READ(13,*) (coarse%Qy(el,dof), el = 1,coarse%ne)
-        ENDDO    
-        
-        DO dof = 1,fine%mndof
-          READ(21,*) (fine%H(el,dof), el = 1,fine%ne)
-          READ(22,*) (fine%Qx(el,dof), el = 1,fine%ne)
-          READ(23,*) (fine%Qy(el,dof), el = 1,fine%ne)
-        ENDDO         
-        
-      ENDDO
-      
-      CLOSE(11)
-      CLOSE(12)
-      CLOSE(13)
-      
-      CLOSE(21)
-      CLOSE(22)
-      CLOSE(23)  
+      CALL read_solution()
       
       
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -246,6 +206,7 @@ search: DO srch = 1,srchdp
       
 elemf:DO elf = 1,fine%ne        
         etf = fine%el_type(elf)
+        npts = nqpta(etf)
                  
         elc = elf2elc(elf)    
         
@@ -257,24 +218,25 @@ elemf:DO elf = 1,fine%ne
         
         xf = 0d0
         yf = 0d0
-        DO pt = 1,nqpta(etf)
+        DO pt = 1,npts
           DO nd = 1,fine%nnds(etf)
             xf(pt) = xf(pt) + fine%l(nd,pt,etf)*fine%elxy(nd,elf,1)
             yf(pt) = yf(pt) + fine%l(nd,pt,etf)*fine%elxy(nd,elf,2)
           ENDDO        
         ENDDO
         
-        CALL newton(xf,yf,nqpta(etf),elc,r,s,hb)
+        CALL newton(xf,yf,npts,elc,r,s,hb)
                  
         IF (mod(etc,2) == 1) THEN
-          CALL tri_basis(coarse%p,coarse%ndof(etc),nqpta(etf),r,s,phi)       
+          CALL tri_basis(coarse%p,coarse%ndof(etc),npts,r,s,phi)  
+!           CALL adcirc_basis(coarse%p,coarse%ndof(etc),npts,r,s,phi)    ! also need to switch in function_eval for fine solution phi
         ELSE IF (mod(etc,2) == 0) THEN
-          CALL quad_basis(coarse%p,coarse%ndof(etc),nqpta(etf),r,s,phi)
+          CALL quad_basis(coarse%p,coarse%ndof(etc),npts,r,s,phi)
         ENDIF          
           
-        DO pt = 1,nqpta(etf)
+        DO pt = 1,npts
           DO dof = 1,coarse%ndof(etc)
-             i = (dof-1)*nqpta(etf) + pt
+             i = (dof-1)*npts + pt
             coarse%phi(dof,pt,1) = phi(i)
           ENDDO
         ENDDO
@@ -282,7 +244,7 @@ elemf:DO elf = 1,fine%ne
         Hc = 0d0
         Qxc = 0d0
         Qyc = 0d0
-        DO pt = 1,nqpta(etf)
+        DO pt = 1,npts
           DO dof = 1,coarse%ndof(etc)
             Hc(pt) = Hc(pt) + coarse%H(elc,dof)*coarse%phi(dof,pt,1)
             Qxc(pt) = Qxc(pt) + coarse%Qx(elc,dof)*coarse%phi(dof,pt,1)            
@@ -293,7 +255,7 @@ elemf:DO elf = 1,fine%ne
         Hf = 0d0
         Qxf = 0d0
         Qyf = 0d0
-        DO pt = 1,nqpta(etf)
+        DO pt = 1,npts
           DO dof = 1,fine%ndof(etf)
             Hf(pt) = Hf(pt) + fine%H(elf,dof)*fine%phi(dof,pt,etf)
             Qxf(pt) = Qxf(pt) + fine%Qx(elf,dof)*fine%phi(dof,pt,etf)            
@@ -301,7 +263,7 @@ elemf:DO elf = 1,fine%ne
           ENDDO                
         ENDDO       
         
-        DO pt = 1,nqpta(etf)
+        DO pt = 1,npts
           HL2 = HL2 + fine%detJ(pt,elf)*wpta(pt,etf)*(Hc(pt)-Hf(pt))**2
           QxL2 = QxL2 + fine%detJ(pt,elf)*wpta(pt,etf)*(Qxc(pt)-Qxf(pt))**2
           QyL2 = QyL2 + fine%detJ(pt,elf)*wpta(pt,etf)*(Qyc(pt)-Qyf(pt))**2
@@ -313,7 +275,21 @@ elemf:DO elf = 1,fine%ne
       QxL2 = sqrt(QxL2)
       QyL2 = sqrt(QyL2)
       
-      PRINT*, HL2, QxL2,QyL2
-
+      PRINT("(A)"), "L2 Difference"
+      PRINT("(A,F22.15)"), "HL2 = ", HL2
+      PRINT("(A,F22.15)"), "QxL2 = ", QxL2
+      PRINT("(A,F22.15)"), "QyL2 = ", QyL2
+      PRINT*, " " 
+      
+      PRINT("(A)"), "Coarse Grid Error Estimates"
+      PRINT("(A,F22.15)"), "EcH = ", HL2*rfac**order/(rfac**order-1d0)
+      PRINT("(A,F22.15)"), "EcQx = ", QxL2*rfac**order/(rfac**order-1d0)
+      PRINT("(A,F22.15)"), "EcQy = ", QyL2*rfac**order/(rfac**order-1d0)  
+      PRINT*, " "       
+      
+      PRINT("(A)"), "Fine Grid Error Estimates"
+      PRINT("(A,F22.15)"), "EfH = ", HL2/(rfac**order-1d0)
+      PRINT("(A,F22.15)"), "EfQx = ", QxL2/(rfac**order-1d0)
+      PRINT("(A,F22.15)"), "EfQy = ", QyL2/(rfac**order-1d0)         
           
       END PROGRAM error

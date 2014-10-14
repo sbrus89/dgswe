@@ -1,10 +1,10 @@
 CC = ifort
-CFLAGS1 = -c -O3 -C -g -132 -traceback
+# CFLAGS1 = -c -O3 -132 -vec-report3
+CFLAGS1 = -c -C -g -132 -traceback
 CFLAGS2 = -O3 -o 
 LIB = -llapack
 
-# objects = globals.o basis.o evaluate.o read_input.o read_grid.o read_stations.o kdtree2.o error.o
-objects = globals.o allocation.o basis.o evaluate.o read_input.o read_grid.o kdtree2.o area_qpts.o error.o
+objects = globals.o allocation.o basis.o evaluate.o read_input.o read_grid.o read_solution.o kdtree2.o area_qpts.o error.o
 
 
 main: $(objects)
@@ -28,8 +28,8 @@ read_input.o: read_input.f90 globals.f90
 read_grid.o: read_grid.f90 globals.f90
 	$(CC) $(CFLAGS1) $<
 
-read_stations.o: read_stations.f90 globals.f90
-	$(CC) $(CFLAGS1) $<
+read_solution.o: read_solution.f90 globals.f90
+	$(CC) $(CFLAGS1) $<	
 
 kdtree2.o: kdtree2.F
 	$(CC) $(CFLAGS1) $<

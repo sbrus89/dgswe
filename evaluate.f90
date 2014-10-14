@@ -105,7 +105,7 @@
       SUBROUTINE function_eval()
       
       USE globals, ONLY: pres,nel_type,nqpta,qpta,mnqpta,fine
-      USE basis, ONLY: tri_basis,quad_basis
+      USE basis, ONLY: tri_basis,quad_basis,adcirc_basis
       
       IMPLICIT NONE
       
@@ -175,6 +175,7 @@
         
         IF (mod(et,2) == 1) THEN
           CALL tri_basis(p,n,npt,r,s,phi)
+!           CALL adcirc_basis(p,n,npt,r,s,phi)
         ELSE IF (mod(et,2) == 0) THEN
           CALL quad_basis(p,n,npt,r,s,phi)
         ENDIF
