@@ -228,8 +228,11 @@ elemf:DO elf = 1,fine%ne
         CALL newton(xf,yf,npts,elc,r,s,hb)
                  
         IF (mod(etc,2) == 1) THEN
+#ifndef adcirc        
           CALL tri_basis(coarse%p,coarse%ndof(etc),npts,r,s,phi)  
-!           CALL adcirc_basis(coarse%p,coarse%ndof(etc),npts,r,s,phi)    ! also need to switch in function_eval for fine solution phi
+#else          
+          CALL adcirc_basis(coarse%p,coarse%ndof(etc),npts,r,s,phi)    ! also need to switch in function_eval for fine solution phi
+#endif
         ELSE IF (mod(etc,2) == 0) THEN
           CALL quad_basis(coarse%p,coarse%ndof(etc),npts,r,s,phi)
         ENDIF          

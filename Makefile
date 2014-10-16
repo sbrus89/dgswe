@@ -1,6 +1,6 @@
 CC = ifort
-# CFLAGS1 = -c -O3 -132 -vec-report3
-CFLAGS1 = -c -C -g -132 -traceback
+CFLAGS1 = -c -O3 -132 -vec-report3 #-Dadcirc
+# CFLAGS1 = -c -C -g -132 -traceback
 CFLAGS2 = -O3 -o 
 LIB = -llapack
 
@@ -19,7 +19,7 @@ allocation.o: allocation.f90 globals.f90
 basis.o: basis.f90 globals.f90
 	$(CC) $(CFLAGS1) $<
 	
-evaluate.o: evaluate.f90 basis.f90 globals.f90
+evaluate.o: evaluate.F90 basis.f90 globals.f90
 	$(CC) $(CFLAGS1) $<
 
 read_input.o: read_input.f90 globals.f90
@@ -28,7 +28,7 @@ read_input.o: read_input.f90 globals.f90
 read_grid.o: read_grid.f90 globals.f90
 	$(CC) $(CFLAGS1) $<
 
-read_solution.o: read_solution.f90 globals.f90
+read_solution.o: read_solution.F90 globals.f90
 	$(CC) $(CFLAGS1) $<	
 
 kdtree2.o: kdtree2.F
@@ -37,7 +37,7 @@ kdtree2.o: kdtree2.F
 area_qpts.o: area_qpts.f90
 	$(CC) $(CFLAGS1) $<	
 
-error.o: error.f90 globals.f90 evaluate.f90 basis.f90 kdtree2.F
+error.o: error.F90 globals.f90 evaluate.F90 basis.f90 kdtree2.F
 	$(CC) $(CFLAGS1) $<
 
 .PHONY : clean

@@ -7,6 +7,8 @@
       INTEGER :: i,dof,el,line,et
       REAL(pres) :: tcoarse,tfine,hb
       
+#ifndef adcirc      
+      
       OPEN(UNIT=11, FILE=trim(coarse%out_direc) //"solution_H.d")
       OPEN(UNIT=12, FILE=trim(coarse%out_direc) //"solution_Qx.d")     
       OPEN(UNIT=13, FILE=trim(coarse%out_direc) //"solution_Qy.d")      
@@ -61,57 +63,61 @@
       ENDIF
       
       
-!       OPEN(UNIT=11, FILE=trim(coarse%out_direc) //"DG.63")
-!       OPEN(UNIT=12, FILE=trim(coarse%out_direc) //"DG.64")     
-!       
-!       READ(11,*) 
-!       READ(11,*)
-!       READ(12,*)
-!       READ(12,*)
-!       
-!       OPEN(UNIT=21, FILE=trim(fine%out_direc) //"DG.63")
-!       OPEN(UNIT=22, FILE=trim(fine%out_direc) //"DG.64")     
-!       
-!       READ(21,*) 
-!       READ(21,*)
-!       READ(22,*)      
-!       READ(22,*)
-! 
-!       
-!       DO line = 1,lines
-!         READ(11,*) tcoarse
-!         READ(12,*) tcoarse
-!         
-!         READ(21,*) tfine
-!         READ(22,*) tfine    
-!         
-!         DO el = 1,coarse%ne
-!           et = coarse%el_type(el)
-!           DO dof = 1,coarse%ndof(et)
-!             READ(11,*) i,coarse%H(el,dof), hb
-!             READ(12,*) i,coarse%Qx(el,dof), coarse%Qy(el,dof)
-!           ENDDO    
-!         ENDDO
-!         
-!         DO el = 1,fine%ne
-!           et = fine%el_type(el)
-!           DO dof = 1,fine%ndof(et)
-!             READ(21,*) i,fine%H(el,dof), hb
-!             READ(22,*) i,fine%Qx(el,dof), fine%Qy(el,dof)
-!           ENDDO         
-!         ENDDO
-!         
-!       ENDDO
-!       
-!       CLOSE(11)
-!       CLOSE(12)
-!       
-!       CLOSE(21)
-!       CLOSE(22)
-!       
-!       IF(tcoarse /= tfine) THEN
-!         PRINT("(A)"), "Warning: time snaps do not agree"
-!       ENDIF      
+#else      
+      
+      OPEN(UNIT=11, FILE=trim(coarse%out_direc) //"DG.63")
+      OPEN(UNIT=12, FILE=trim(coarse%out_direc) //"DG.64")     
+      
+      READ(11,*) 
+      READ(11,*)
+      READ(12,*)
+      READ(12,*)
+      
+      OPEN(UNIT=21, FILE=trim(fine%out_direc) //"DG.63")
+      OPEN(UNIT=22, FILE=trim(fine%out_direc) //"DG.64")     
+      
+      READ(21,*) 
+      READ(21,*)
+      READ(22,*)      
+      READ(22,*)
+
+      
+      DO line = 1,lines
+        READ(11,*) tcoarse
+        READ(12,*) tcoarse
+        
+        READ(21,*) tfine
+        READ(22,*) tfine    
+        
+        DO el = 1,coarse%ne
+          et = coarse%el_type(el)
+          DO dof = 1,coarse%ndof(et)
+            READ(11,*) i,coarse%H(el,dof), hb
+            READ(12,*) i,coarse%Qx(el,dof), coarse%Qy(el,dof)
+          ENDDO    
+        ENDDO
+        
+        DO el = 1,fine%ne
+          et = fine%el_type(el)
+          DO dof = 1,fine%ndof(et)
+            READ(21,*) i,fine%H(el,dof), hb
+            READ(22,*) i,fine%Qx(el,dof), fine%Qy(el,dof)
+          ENDDO         
+        ENDDO
+        
+      ENDDO
+      
+      CLOSE(11)
+      CLOSE(12)
+      
+      CLOSE(21)
+      CLOSE(22)
+      
+      IF(tcoarse /= tfine) THEN
+        PRINT("(A)"), "Warning: time snaps do not agree"
+      ENDIF      
+      
+#endif      
 
       RETURN 
       END SUBROUTINE read_solution

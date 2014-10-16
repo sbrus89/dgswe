@@ -44,7 +44,6 @@
           ENDDO
         ENDDO
         
-!         CALL DGETRF(n,n,V(1:n,1:n,et),n,ipiv(1:n,et),info)
         CALL DGETRF(n,n,sol%V(1,1,et),sol%mnnds,sol%ipiv(1,et),info)
         
 !         DO pt = 1,n
@@ -174,8 +173,11 @@
         ENDDO
         
         IF (mod(et,2) == 1) THEN
+#ifndef adcirc        
           CALL tri_basis(p,n,npt,r,s,phi)
-!           CALL adcirc_basis(p,n,npt,r,s,phi)
+#else
+          CALL adcirc_basis(p,n,npt,r,s,phi)
+#endif          
         ELSE IF (mod(et,2) == 0) THEN
           CALL quad_basis(p,n,npt,r,s,phi)
         ENDIF
