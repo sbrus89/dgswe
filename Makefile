@@ -1,8 +1,9 @@
 CC = ifort
-CFLAGS1 = -c -O3 -132 -vec-report3 #-Dadcirc
+CFLAGS1 = -c -O3 -132 -vec-report3 -Dadcirc
 # CFLAGS1 = -c -C -g -132 -traceback
 CFLAGS2 = -O3 -o 
 LIB = -llapack
+#LIB = -Wl,--start-group   /afs/crc.nd.edu/x86_64_linux/intel/12.1/mkl/lib/intel64/libmkl_intel_lp64.a /afs/crc.nd.edu/x86_64_linux/intel/12.1/mkl/lib/intel64/libmkl_sequential.a  /afs/crc.nd.edu/x86_64_linux/intel/12.1/mkl/lib/intel64/libmkl_core.a -Wl,--end-group -lpthread -lm
 
 objects = globals.o allocation.o basis.o evaluate.o read_input.o read_grid.o read_solution.o kdtree2.o area_qpts.o error.o
 
