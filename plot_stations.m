@@ -2,10 +2,10 @@ clc
 close all
 clear all
 
-sta_direc = {'/home/sbrus/data-drive/galveston/dgswe/quad2_spline_channel/p1/';
-             '/home/sbrus/data-drive/galveston/dgswe/quad2_spline/p1/';
-             '/home/sbrus/data-drive/galveston/dgswe/quad2/M2/p1/';
-             '/home/sbrus/data-drive/galveston/dgswe/tri/p1/';};
+% sta_direc = {'/home/sbrus/data-drive/galveston/dgswe/quad2_spline_channel/p1/';
+%              '/home/sbrus/data-drive/galveston/dgswe/quad2_spline/p1/';
+%              '/home/sbrus/data-drive/galveston/dgswe/quad2/M2/p1/';
+%              '/home/sbrus/data-drive/galveston/dgswe/tri/p1/';};
 %          
 % sta_direc = {'/home/sbrus/data-drive/galveston/dgswe/quad2_spline_channel/p2/';
 %              '/home/sbrus/data-drive/galveston/dgswe/quad2_spline/p2/';
@@ -16,16 +16,16 @@ sta_direc = {'/home/sbrus/data-drive/galveston/dgswe/quad2_spline_channel/p1/';
 %              '/home/sbrus/data-drive/galveston/dgswe/quad2_spline/p3/';
 %              '/home/sbrus/data-drive/galveston/dgswe/quad2/M2/p3/';
 %              '/home/sbrus/data-drive/galveston/dgswe/tri/p3/';};         
- labels = {'adcirc','quad spline channel','quad spline','quad','tri'};
+%  labels = {'adcirc','adcircx64','quad spline channel','quad spline','quad','tri'};
 
 % sta_direc = {'/home/sbrus/data-drive/galveston/dgswe/quad2/M2/p1/';
 %              '/home/sbrus/data-drive/galveston/dgswe/quad2/M2/p2/';
 %              '/home/sbrus/data-drive/galveston/dgswe/quad2/M2/p3/';};
          
-% sta_direc = {'/home/sbrus/data-drive/galveston/dgswe/quad2_spline/p1/';
-%              '/home/sbrus/data-drive/galveston/dgswe/quad2_spline/p2/';
+% sta_direc = {%'/home/sbrus/data-drive/galveston/dgswe/quad2_spline/p1/';
+%          %    '/home/sbrus/data-drive/galveston/dgswe/quad2_spline/p2/';
 %              '/home/sbrus/data-drive/galveston/dgswe/quad2_spline/p3/';};
-         
+%          
 % sta_direc = {'/home/sbrus/data-drive/galveston/dgswe/quad2_spline_channel/p1/';
 %              '/home/sbrus/data-drive/galveston/dgswe/quad2_spline_channel/p2/';
 %              '/home/sbrus/data-drive/galveston/dgswe/quad2_spline_channel/p3/';};         
@@ -33,13 +33,35 @@ sta_direc = {'/home/sbrus/data-drive/galveston/dgswe/quad2_spline_channel/p1/';
 % sta_direc = {'/home/sbrus/data-drive/galveston/dgswe/tri/p1/';
 %              '/home/sbrus/data-drive/galveston/dgswe/tri/p2/';
 %              '/home/sbrus/data-drive/galveston/dgswe/tri/p3/';};
-% labels = {'adcirc','p1','p2','p3'};         
+
+sta_direc = {'/home/sbrus/data-drive/galveston/dgswe/tri_spline/p1/';
+            % '/home/sbrus/data-drive/galveston/dgswe/tri_spline/p2/';
+             '/home/sbrus/data-drive/galveston/dgswe/tri_spline/p3/';};
+
+labels = {'adcirc';
+          'adcircx64';
+          'DG p1';
+          %'DG p2';
+          'DG p3'}; 
+
+% sta_direc = {'/home/sbrus/data-drive/galveston/dgswe/tri/p3/';
+%              '/home/sbrus/data-drive/galveston/dgswe/tri_spline/p3/';};
+       
+% sta_direc = {'/home/sbrus/data-drive/galveston/dgswe/quad2/M2/p3/';
+%              '/home/sbrus/data-drive/galveston/dgswe/quad2_spline/p3/';};         
+%          
+% labels = {'adcirc','adcircx64','p3 straight','p3 spline'}; 
+         
+adc_direc1 = '/home/sbrus/data-drive/galveston/adcirc/original/ESL0/';
+adc_direc2 = '/home/sbrus/data-drive/galveston/adcirc/refinedx64/ESL0/';
+        
 grid_name = '/home/sbrus/data-drive/galveston/dgswe/quad2_spline_channel/p1/galveston2_plot.grd';
+% grid_name = '/home/sbrus/data-drive/galveston/dgswe/tri/p1/galveston_tri.grd';
 
 % sta = 1:401
-sta = 1:81;
-% sta = 82:163;
-% sta = 164:246;
+sta = 1:81; %middle 
+% sta = 82:163; %left
+%  sta = 164:246; %right
 
 nsnap = 49;
 
@@ -50,7 +72,8 @@ hold all
 figure(2)
 hold all
 
-plot_adcirc_stations(nsnap,sta)
+plot_adcirc_stations(adc_direc1,nsnap,sta)
+plot_adcirc_stations(adc_direc2,nsnap,sta)
 
 for run = 1:nruns
 fid_H = fopen([sta_direc{run},'station_H.d']);
@@ -105,12 +128,16 @@ end
 end
 
 figure(1)
-legend(labels)
+legend(labels,'Location','Southwest')
+xlabel('station')
+ylabel('surface elevation (m)')
 figure(2)
-legend(labels)
+legend(labels,'Location','Northwest')
+xlabel('station')
+ylabel('velocity (m/s)')
 
 figure
 hold on
 plot_grid(grid_name);
-plot(xyH(sta,1),xyH(sta,2),'ro')
-quiver(xyH(sta,1),xyH(sta,2),u(sta,snap),v(sta,snap),'b')
+plot(xyH(sta,1),xyH(sta,2),'ro','MarkerFaceColor','r','MarkerSize',2)
+% quiver(xyH(sta,1),xyH(sta,2),u(sta,snap),v(sta,snap),'b')

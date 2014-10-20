@@ -1,10 +1,11 @@
-function plot_adcirc_stations(tsnap,sta)
+function plot_adcirc_stations(direc,tsnap,sta)
 
 % close all
 % clear all
 % clc
 
-direc = '/home/sbrus/data-drive/galveston/adcirc/';
+% direc = '/home/sbrus/data-drive/galveston/adcirc/refinedx64/ESL0/';
+% direc = '/home/sbrus/data-drive/galveston/adcirc/original/ESL0/';
 
 f61 = fopen([direc,'fort.61']);
 
