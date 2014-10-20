@@ -1,8 +1,8 @@
 # Converts an all triangle grid so it can be read in by plot_sol_fill.m
 #   Adds a 0 to the last column of the connectivity table
 
-fort14name = "/home/sbrus/data-drive/galveston/fort.14"
-grdname = "/home/sbrus/data-drive/galveston/dgswe/galveston.grd"
+fort14name = "/home/sbrus/Codes/spline/nodes.out"
+grdname = "/home/sbrus/Codes/spline/galveston_tri_spline.grd"
 
 f = open(fort14name,'r')
 grid_data= f.read().splitlines()
@@ -25,7 +25,7 @@ for line in grid_data[n:nn+2]:
   n = n+1
   
 for line in grid_data[n:n+ne]:
-  line = line + "       0"
+  line = line + "       0     0      0"
   g.write("%s\n" % line )
   n = n+1
   

@@ -4,10 +4,18 @@ import pprint
 #fort14name = "/home/sbrus/data-drive/galveston/dgswe/quad2_spline/galveston2_spline_plot.grd"
 #grid_name = "galveston2_spline_plot"
 
-filename = "/home/sbrus/Codes/spline/galveston2_curve.2dm"
-#fort14name = "/home/sbrus/Codes/spline/galveston2_spline.grd"
-fort14name = "/home/sbrus/data-drive/galveston/dgswe/quad2_spline_channel/galveston2_spline_plot.grd"
-grid_name = "galveston2_spline_channel_plot"
+#filename = "/home/sbrus/Codes/spline/galveston2_curve.2dm"
+##fort14name = "/home/sbrus/Codes/spline/galveston2_spline.grd"
+#fort14name = "/home/sbrus/data-drive/galveston/dgswe/quad2_spline_channel/galveston2_spline.grd"
+#grid_name = "galveston2_spline"
+
+filename = "/home/sbrus/Codes/spline/galveston_tri_curve.2dm"
+fort14name = "/home/sbrus/Codes/spline/galveston_tri_curve.grd"
+grid_name = "galveston_tri_spline"
+
+#filename = "/home/sbrus/Codes/error/converge_quad3.2dm"
+#fort14name = "/home/sbrus/Codes/error/converge_quad3.grd"
+#grid_name = "converge_quad3"
 
 f = open(filename)
 grid_data = f.read().splitlines()
