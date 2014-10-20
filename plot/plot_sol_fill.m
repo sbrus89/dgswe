@@ -9,18 +9,29 @@ clc
 % grd_name = 'converge_quad.grd';
 % plot_folder = 'velplot_scale';
 
+% grd_direc = '~/Codes/dgswe/grids/';
+% sol_direc = '~/data-drive/converge_quad/mesh3/P2/CTP2/';
+% grd_name = 'converge_quad3.grd';
+% plot_folder = 'velplot';
+
+% grd_direc = '~/data-drive/galveston/dgswe/tri_spline/p3/';
+% sol_direc = '~/data-drive/galveston/dgswe/tri_spline/p3/';
+% grd_name = 'galveston_tri_spline.grd';
+% plot_folder = 'velplot_scale';
+
+
 % grd_direc = '~/data-drive/galveston/dgswe/tri/p3/';
 % sol_direc = '~/data-drive/galveston/dgswe/tri/p3/';
 % grd_name = 'galveston_tri.grd';
 % plot_folder = 'velplot_scale';
 
-% grd_direc = '~/data-drive/galveston/dgswe/quad2/M2/p2/';
-% sol_direc = '~/data-drive/galveston/dgswe/quad2/M2/p2/';
+% grd_direc = '~/data-drive/galveston/dgswe/quad2/M2/p3/';
+% sol_direc = '~/data-drive/galveston/dgswe/quad2/M2/p3/';
 % grd_name = 'galveston2.grd';
 % plot_folder = 'velplot_scale';
 
-grd_direc = '~/data-drive/galveston/dgswe/quad2_spline/p3/';
-sol_direc = '~/data-drive/galveston/dgswe/quad2_spline/p3/';
+grd_direc = '~/data-drive/galveston/dgswe/quad2_spline/p1/';
+sol_direc = '~/data-drive/galveston/dgswe/quad2_spline/p1/';
 grd_name = 'galveston2_spline.grd';
 % grd_name = 'galveston2_plot.grd';
 plot_folder = 'velplot_scale';
@@ -33,7 +44,7 @@ plot_folder = 'velplot_scale';
 
 ctp = 2;
 
-nsnap = 200;
+nsnap = 50;
 
 grid_on = 1;
 
@@ -163,10 +174,44 @@ if exist([sol_direc,'velscale.mat'])
     scale = 1;
 end
 
+figure
+
+hold on
+
+for el = 1:ne
+    
+    n = nelnds(el);
+    et = el_type(el);
+    
+    if n == 9
+        n = n-1;
+    end
+    
+    if grid_on == 0
+        fill(VX(EToV(el,1:n),1),VX(EToV(el,1:n),2),HB(EToV(el,1:n)),'EdgeColor','none')
+    else
+        fill(VX(EToV(el,1:n),1),VX(EToV(el,1:n),2),HB(EToV(el,1:n)))
+    end
+    
+end
+
+colorbar
+set(gcf,'PaperPositionMode','auto')
+axis equal
+
+print('-r350','-dpng',sprintf('%s/bathy',FramesFolder)) ;
+print('-depsc',sprintf('%s/bathy',FramesFolder)) ;
+
+for zoom = 1:nzoom
+    axis(zoom_area(zoom,:))
+    print('-r350','-dpng',sprintf('%s/bathy_zoom%02d',FramesFolder,zoom)) ;
+    print('-depsc',sprintf('%s/bathy_zoom%02d',FramesFolder,zoom)) ;
+end
+    
 
 for tsnap = 1:snap
     
-    figure
+    figure('visible','off')
     
     axis equal
     
@@ -174,9 +219,9 @@ for tsnap = 1:snap
     [day,hr,minute,sec] = s2dhms(t(tsnap));
     
     hold on
-    velmin = min(min(vel(:,:,tsnap)));
-    velmax = max(max(vel(:,:,tsnap)));
-    caxis([velmin velmax])
+%     velmin = min(min(vel(:,:,tsnap)));
+%     velmax = max(max(vel(:,:,tsnap)));
+%     caxis([velmin velmax])
     %     for el = 1:ne
     %
     %         if grid_on == 0
@@ -214,7 +259,9 @@ for tsnap = 1:snap
     
     hold off
     
-    ttext = ['Velocity solution: t = ',num2str(t(tsnap)),' (Day:  ',num2str(day),', Hour:  ',num2str(hr),', Minute:  ',num2str(minute),', Second:  ',num2str(sec),')'] ;
+%     ttext = ['Velocity solution: t = ',num2str(t(tsnap)),' (Day:  ',num2str(day),', Hour:  ',num2str(hr),', Minute:  ',num2str(minute),', Second:  ',num2str(sec),')'] ;
+    ttext = ['Day:  ',num2str(day),', Hour:  ',num2str(hr),', Minute:  ',num2str(minute),', Second:  ',num2str(sec)] ;
+
     title(ttext)
     xlabel('x')
     ylabel('y')
@@ -226,13 +273,15 @@ for tsnap = 1:snap
     end
     axis image
     
-    pause(.01)
+%     pause(.01)
     
     print('-r350','-dpng',sprintf('%s/vel%04d',FramesFolder,tsnap)) ;
+    print('-depsc',sprintf('%s/vel%04d',FramesFolder,tsnap)) ;
     
     for zoom = 1:nzoom
         axis(zoom_area(zoom,:))
         print('-r350','-dpng',sprintf('%s/vel%04d_zoom%02d',FramesFolder,tsnap,zoom)) ;
+        print('-depsc',sprintf('%s/vel%04d_zoom%02d',FramesFolder,tsnap,zoom)) ;
     end
     
     %     figure
