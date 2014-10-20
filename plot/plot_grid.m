@@ -12,8 +12,8 @@ node = 'off';
 
 p = 1 ;
 
-grd_direc = '/home/sbrus/Codes/error/';
-grd_name = 'converge_quad2.grd';
+grd_direc = '/home/sbrus/Codes/spline/';
+grd_name = 'galveston_tri_spline.grd';
 
 [EToV,VX,HB,nelnds,~,~,~] = readfort14([grd_direc,grd_name]);
 [ne,nc] = size(EToV);

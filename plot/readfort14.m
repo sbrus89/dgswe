@@ -17,7 +17,7 @@ title = agrid ;
 N = fscanf(fid,'%g %g',2) ;
 
 curved_grid = 0;
-if N(2)/N(1) > 3
+if N(2)/N(1) > 3 % might need to be 2 for curved tri grids
    curved_grid = 1; 
 end
 
