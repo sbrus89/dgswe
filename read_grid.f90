@@ -263,7 +263,8 @@
       DO i = 1,sol%nbou
         btype = sol%fbseg(2,i)
         nbseg = sol%fbseg(1,i)-1
-        IF (btype == 0 .OR. btype == 10 .OR. btype == 20) THEN
+        IF (btype == 0 .OR. btype == 10 .OR. btype == 20 .OR. &
+            btype == 2 .OR. btype == 12 .OR. btype == 22) THEN
           DO j = 1,nbseg
             n1 = sol%fbnds(j,i)
             n2 = sol%fbnds(j+1,i)
@@ -282,6 +283,27 @@
           ENDDO
         ENDIF
       ENDDO
+
+      DO i = 1,sol%nope
+        nbseg = sol%obseg(i)-1
+          DO j = 1,nbseg
+            n1 = sol%obnds(j,i)
+            n2 = sol%obnds(j+1,i)
+     elem2: DO el = 1,sol%ne
+              found = 0
+              DO nd = 1,sol%nelnds(el)
+                IF (sol%ect(nd,el) == n1 .OR. sol%ect(nd,el) == n2) THEN
+                  found = found + 1
+                ENDIF
+              ENDDO
+              IF (found == 2) THEN
+                sol%bndel(el) = 1
+                EXIT elem2
+              ENDIF
+            ENDDO elem2
+          ENDDO
+      ENDDO
+
 
       RETURN
       END SUBROUTINE read_nodes
