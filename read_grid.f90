@@ -36,6 +36,7 @@
       PRINT "(A)", "---------------------------------------------"
       PRINT "(A)", " "     
       
+      CALL sizes(base)
       CALL read_nodes(base)      
       
       RETURN

@@ -4,7 +4,7 @@
 
       IMPLICIT NONE
       
-      INTEGER, PARAMETER :: ninp = 13
+      INTEGER, PARAMETER :: ninp = 14
       INTEGER :: inp_read,skipped
       CHARACTER(100) :: temp
       
@@ -66,7 +66,10 @@
               PRINT*, "lines = ", lines           
             CASE (13)
               base%grid_file = TRIM(temp)
-              PRINT*, "base grid directory = ", fine%grid_file              
+              PRINT*, "base grid directory = ", fine%grid_file    
+            CASE (14)
+              READ(temp,*) base%ctp
+              PRINT*, "base ctp = ", base%ctp                        
           END SELECT
             
         ENDIF
