@@ -1,6 +1,6 @@
       MODULE read_grid
       
-      USE globals, ONLY: solution,coarse,fine
+      USE globals, ONLY: solution,coarse,fine,base
       
       CONTAINS
       
@@ -30,6 +30,13 @@
      
       CALL sizes(fine)
       CALL read_nodes(fine)
+      
+      PRINT "(A)", "---------------------------------------------"
+      PRINT "(A)", "            Base Grid Information            "
+      PRINT "(A)", "---------------------------------------------"
+      PRINT "(A)", " "     
+      
+      CALL read_nodes(base)      
       
       RETURN
       END SUBROUTINE read_grids

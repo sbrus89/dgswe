@@ -67,7 +67,8 @@
       END TYPE
       
       TYPE(solution) :: coarse
-      TYPE(solution) :: fine     
+      TYPE(solution) :: fine    
+      TYPE(solution) :: base
       
       INTEGER :: nqpta(nel_type)
       INTEGER :: mnqpta
@@ -75,6 +76,7 @@
       REAL(pres), ALLOCATABLE, DIMENSION(:,:,:) :: qpta      
       
       INTEGER, ALLOCATABLE, DIMENSION(:) :: elf2elc
+      INTEGER, ALLOCATABLE, DIMENSION(:) :: elf2elb
       REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: xysta ! x,y coordinates of stations
 
 

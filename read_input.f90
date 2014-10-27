@@ -1,10 +1,10 @@
       SUBROUTINE read_input()
 
-      USE globals, ONLY: coarse,fine,lines,tf
+      USE globals, ONLY: coarse,fine,base,lines,tf
 
       IMPLICIT NONE
       
-      INTEGER, PARAMETER :: ninp = 12
+      INTEGER, PARAMETER :: ninp = 13
       INTEGER :: inp_read,skipped
       CHARACTER(100) :: temp
       
@@ -63,7 +63,10 @@
               PRINT*, "tf = ", tf     
             CASE (12)
               READ(temp,*) lines
-              PRINT*, "lines = ", lines              
+              PRINT*, "lines = ", lines           
+            CASE (13)
+              base%grid_file = TRIM(temp)
+              PRINT*, "base grid directory = ", fine%grid_file              
           END SELECT
             
         ENDIF
