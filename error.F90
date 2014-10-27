@@ -30,9 +30,11 @@
       
       CALL vandermonde(coarse)
       CALL vandermonde(fine)
+      CALL vandermonde(base)
             
       CALL re_vert(coarse)
       CALL re_vert(fine)
+      CALL re_vert(base)
       
       CALL area_qpts()        
       CALL function_eval() ! evaluate basis and shape functions for fine grid quadrature points
@@ -102,7 +104,7 @@ elemf:DO elf = 1,fine%ne
           ENDDO        
         ENDDO
         
-        CALL newton(xf,yf,npts,elc,r,s,hb)
+        CALL newton(coarse,xf,yf,npts,elc,r,s,hb)
                  
         IF (mod(etc,2) == 1) THEN
 #ifndef adcirc        

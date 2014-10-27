@@ -244,9 +244,9 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
  
  
-      SUBROUTINE newton(x,y,npt,eln,r,s,hb)
+      SUBROUTINE newton(coarse,x,y,npt,eln,r,s,hb)
 
-      USE globals, ONLY: pres,coarse
+      USE globals, ONLY: pres,solution
       USE basis, ONLY: tri_basis,quad_basis
 
       IMPLICIT NONE
@@ -255,6 +255,7 @@
       INTEGER et,p,n,mnnds     
       INTEGER :: info
       INTEGER :: maxit
+      TYPE(solution) :: coarse
       REAL(pres) :: tol,error
       REAL(pres), DIMENSION(npt) :: x,y
       REAL(pres), DIMENSION(npt) :: r,s,hb

@@ -72,7 +72,7 @@ search: DO srch = 1,srchdp
             nvert = coarse%nverts(etc)                
           
             ! Compute the local (r,s) coarse element coordinates of the (x,y) quadrature point
-            CALL newton(xf(1),yf(1),1,eln,r,s,hb)
+            CALL newton(coarse,xf(1),yf(1),1,eln,r,s,hb)
           
             ! Find reference element area
             IF (mod(etc,2) == 1) THEN
