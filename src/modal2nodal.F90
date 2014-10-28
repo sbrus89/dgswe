@@ -10,8 +10,8 @@
       INTEGER :: et,pt
       INTEGER :: nvert,n
       INTEGER :: alloc_status
-      REAL(pres) :: r(9),s(9)
-      REAL(pres) :: phi(9*mndof)
+      REAL(pres) :: r(25),s(25)
+      REAL(pres) :: phi(25*mndof)
       
       REAL(pres) :: ml2(3,ndof(1)),mml(3,3)
       REAL(pres) :: qint      
@@ -32,8 +32,8 @@
 !           CALL tri_nodes(0,1,nvert,r,s)  ! get vertex coordinates
 !           CALL tri_basis(p,ndof(et),nvert,r,s,phi)          
         
-          CALL tri_nodes(0,np(et),n,r,s)  ! get vertex coordinates
-          CALL tri_basis(p,ndof(et),n,r,s,phi)       
+          CALL tri_nodes(0,np(et),n,r,s)  ! get vertex coordinates     
+          CALL tri_basis(p,ndof(et),n,r,s,phi)             
 
         ELSE IF (mod(et,2) == 0) THEN
         
@@ -42,8 +42,8 @@
 !           CALL quad_nodes(0,1,nvert,r,s)  ! get vertex coordinates
 !           CALL quad_basis(p,ndof(et),nvert,r,s,phi)                                      
           
-          CALL quad_nodes(0,np(et),n,r,s)  ! get vertex coordinates
-          CALL quad_basis(p,ndof(et),n,r,s,phi) 
+          CALL quad_nodes(0,np(et),n,r,s)  ! get vertex coordinates     
+          CALL quad_basis(p,ndof(et),n,r,s,phi)          
 
         ENDIF
         
@@ -66,7 +66,7 @@
           ENDDO
         ENDDO
         
-        WRITE(111,"(I5,I5)") n, ndof(et)
+        WRITE(111,"(I5,I5)") n, ndof(et)     
         DO pt = 1,n
           WRITE(111,"(160(e24.17,1x))") (m2n(pt,dof,et), dof = 1,ndof(et))
         ENDDO       
