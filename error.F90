@@ -89,7 +89,9 @@ elemf:DO elf = 1,fine%ne
         elc = elf2elc(elf)    
         elb = elf2elb(elf)
         
-        IF (base%bndel(elb) == 1) THEN
+        IF (fine%bndel(elf) == 1) THEN
+          CYCLE elemf                
+        ELSE IF(base%bndel(elb) == 1) THEN
           CYCLE elemf
         ENDIF
         

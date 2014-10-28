@@ -35,15 +35,18 @@
       
       
       
-      
-      
-
+      elf2elc(:) = 0
       el_found = 0 
       
       PRINT("(A)"), "Determining element nesting"
       
       ! Find coarse element each fine element is located in
-      DO elf = 1,fine%ne
+elemf:DO elf = 1,fine%ne
+      
+        IF (fine%bndel(elf) == 1) THEN
+          el_found = el_found + 1        
+          CYCLE elemf
+        ENDIF
       
         etf = fine%el_type(elf)
         
@@ -130,9 +133,10 @@ search: DO srch = 1,srchdp
         
         IF (found == 0) THEN
 !           PRINT*,  achar(27)//"[31m ERROR: ELEMENT NOT FOUND"//achar(27)//'[0m'
+!           STOP
         ENDIF        
       
-      ENDDO
+      ENDDO elemf
       
       PRINT("(A,I5)"), "Missing elements = ", fine%ne-el_found
       PRINT*, " "

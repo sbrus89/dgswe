@@ -66,7 +66,7 @@
               PRINT*, "lines = ", lines           
             CASE (13)
               base%grid_file = TRIM(temp)
-              PRINT*, "base grid directory = ", fine%grid_file    
+              PRINT*, "base grid directory = ", base%grid_file    
             CASE (14)
               READ(temp,*) base%ctp
               PRINT*, "base ctp = ", base%ctp                        
