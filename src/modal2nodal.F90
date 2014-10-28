@@ -10,13 +10,8 @@
       INTEGER :: et,pt
       INTEGER :: nvert,n
       INTEGER :: alloc_status
-<<<<<<< HEAD
       REAL(pres) :: r(25),s(25)
       REAL(pres) :: phi(25*mndof)
-=======
-      REAL(pres) :: r(16),s(16)
-      REAL(pres) :: phi(16*mndof)
->>>>>>> 7fa4c52d7edccc29b58878b01f2a2ded6233d71f
       
       REAL(pres) :: ml2(3,ndof(1)),mml(3,3)
       REAL(pres) :: qint      
