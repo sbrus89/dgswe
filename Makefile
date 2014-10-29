@@ -41,7 +41,7 @@ find_nesting.o: find_nesting.f90 globals.f90 kdtree2.F
 area_qpts.o: area_qpts.f90
 	$(CC) $(CFLAGS1) $<
 
-error.o: error.F90 globals.f90 evaluate.F90 basis.f90 kdtree2.F
+error.o: error.F90 globals.f90 allocation.f90 evaluate.F90 basis.f90 kdtree2.F
 	$(CC) $(CFLAGS1) $<
 
 .PHONY : clean

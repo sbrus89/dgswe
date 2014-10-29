@@ -1,6 +1,7 @@
       PROGRAM error
 
       USE globals
+      USE allocation
       USE read_grid
       USE evaluate
       USE basis
@@ -10,33 +11,28 @@
       INTEGER :: nd,pt,elc,elf,elb,i,dof
       INTEGER :: etf,etc,npts
       INTEGER :: ne,mndof
-      INTEGER :: order
-      REAL(pres), ALLOCATABLE, DIMENSION(:) :: r,s,hb      
-      REAL(pres), ALLOCATABLE, DIMENSION(:) :: xf,yf      
-      REAL(pres), ALLOCATABLE, DIMENSION(:) :: Hc,Qxc,Qyc
-      REAL(pres), ALLOCATABLE, DIMENSION(:) :: Hf,Qxf,Qyf            
-      REAL(pres), ALLOCATABLE, DIMENSION(:) :: phi
+
       REAL(pres) :: HL2,QxL2,QyL2 
       REAL(pres) :: tcoarse,tfine
-      REAL(pres) :: rfac
+      REAL(pres) :: rfac,order
 
       
-      CALL read_input()
+      CALL read_input()  ! read error.inp file
       
       rfac = 2d0
-      order = coarse%p + 1
+      order = real(coarse%p,pres) + 1d0
       
-      CALL read_grids()
+      CALL read_grids()  ! read coarse, fine, and base grids
       
-      CALL vandermonde(coarse)
+      CALL vandermonde(coarse) ! compute Vandermonde matricies
       CALL vandermonde(fine)
       CALL vandermonde(base)
             
-      CALL re_vert(coarse)
+      CALL re_vert(coarse) ! find reference element coordinates
       CALL re_vert(fine)
       CALL re_vert(base)
       
-      CALL area_qpts()        
+      CALL area_qpts()     ! get area quadrature points   
       CALL function_eval() ! evaluate basis and shape functions for fine grid quadrature points
       CALL detJ_eval()     ! compute determinant of Jacobian for fine grid elements at quadrature points
       
@@ -44,36 +40,26 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!      
       
-      
-      ALLOCATE(xf(mnqpta),yf(mnqpta))
-      ALLOCATE(r(mnqpta),s(mnqpta),hb(mnqpta))
       ALLOCATE(elf2elc(fine%ne),elf2elb(fine%ne))
       
-      CALL find_nesting(coarse,fine,elf2elc)
-      CALL find_nesting(base,fine,elf2elb)
+      CALL find_nesting(coarse,fine,elf2elc)   ! determine element nesting between coarse and fine grids
+      CALL find_nesting(base,fine,elf2elb)     ! determine element nesting between base and fine grids
 
       
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!        
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+      CALL error_alloc()              
+      CALL read_solution(coarse,tcoarse)  ! read in solutions    
+      CALL read_solution(fine,tfine)
       
-      mndof = coarse%mndof
-      ne = coarse%ne
-      
-      ALLOCATE(coarse%H(ne,mndof),coarse%Qx(ne,mndof),coarse%Qy(ne,mndof))
-      ALLOCATE(coarse%phi(mndof,mnqpta,1))
-      ALLOCATE(phi(mndof*mnqpta))
- 
-      mndof = fine%mndof
-      ne = fine%ne
-      
-      ALLOCATE(fine%H(ne,mndof),fine%Qx(ne,mndof),fine%Qy(ne,mndof)) 
-      
-      ALLOCATE(Hc(mnqpta),Qxc(mnqpta),Qyc(mnqpta))
-      ALLOCATE(Hf(mnqpta),Qxf(mnqpta),Qyf(mnqpta))
-              
-      CALL read_solution()
-      
-      
+      IF(tcoarse /= tfine) THEN
+        PRINT("(A)"), "Warning: time snaps do not agree"
+        PRINT("(A,F15.7)"), "tcoarse = ", tcoarse
+        PRINT("(A,F15.7)"), "tfine = ", tfine
+        PRINT*, " " 
+      ENDIF      
+                  
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
 
@@ -83,6 +69,7 @@
       QyL2 = 0d0
       
 elemf:DO elf = 1,fine%ne        
+
         etf = fine%el_type(elf)
         npts = nqpta(etf)
                  
@@ -112,7 +99,7 @@ elemf:DO elf = 1,fine%ne
 #ifndef adcirc        
           CALL tri_basis(coarse%p,coarse%ndof(etc),npts,r,s,phi)  
 #else          
-          CALL adcirc_basis(coarse%p,coarse%ndof(etc),npts,r,s,phi)    ! also need to switch in function_eval for fine solution phi
+          CALL adcirc_basis(coarse%p,coarse%ndof(etc),npts,r,s,phi)
 #endif
         ELSE IF (mod(etc,2) == 0) THEN
           CALL quad_basis(coarse%p,coarse%ndof(etc),npts,r,s,phi)

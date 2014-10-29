@@ -78,6 +78,12 @@
       INTEGER, ALLOCATABLE, DIMENSION(:) :: elf2elc
       INTEGER, ALLOCATABLE, DIMENSION(:) :: elf2elb
       REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: xysta ! x,y coordinates of stations
+      
+      REAL(pres), ALLOCATABLE, DIMENSION(:) :: r,s,hb      
+      REAL(pres), ALLOCATABLE, DIMENSION(:) :: xf,yf      
+      REAL(pres), ALLOCATABLE, DIMENSION(:) :: Hc,Qxc,Qyc
+      REAL(pres), ALLOCATABLE, DIMENSION(:) :: Hf,Qxf,Qyf            
+      REAL(pres), ALLOCATABLE, DIMENSION(:) :: phi      
 
 
       

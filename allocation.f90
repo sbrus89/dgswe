@@ -97,6 +97,40 @@
 
       RETURN
       END SUBROUTINE grid_alloc
+      
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!      
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!      
+
+      SUBROUTINE error_alloc()
+      
+      USE globals, ONLY: mnqpta,coarse,fine, &
+                         Hc,Qxc,Qyc,Hf,Qxf,Qyf, &
+                         xf,yf,r,s,hb,phi
+      
+      IMPLICIT NONE
+      
+      INTEGER :: ne,mndof
+      
+      ALLOCATE(xf(mnqpta),yf(mnqpta))
+      ALLOCATE(r(mnqpta),s(mnqpta),hb(mnqpta))
+      
+      mndof = coarse%mndof
+      ne = coarse%ne
+      
+      ALLOCATE(coarse%H(ne,mndof),coarse%Qx(ne,mndof),coarse%Qy(ne,mndof))
+      ALLOCATE(coarse%phi(mndof,mnqpta,1))
+      ALLOCATE(phi(mndof*mnqpta))
+ 
+      mndof = fine%mndof
+      ne = fine%ne
+      
+      ALLOCATE(fine%H(ne,mndof),fine%Qx(ne,mndof),fine%Qy(ne,mndof)) 
+      
+      ALLOCATE(Hc(mnqpta),Qxc(mnqpta),Qyc(mnqpta))
+      ALLOCATE(Hf(mnqpta),Qxf(mnqpta),Qyf(mnqpta))      
+      
+      RETURN
+      END SUBROUTINE  error_alloc
 
       END MODULE allocation
 
