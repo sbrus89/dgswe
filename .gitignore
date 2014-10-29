@@ -2,3 +2,5 @@
 *.mod
 *~
 error
+*.grd
+*.2dm
