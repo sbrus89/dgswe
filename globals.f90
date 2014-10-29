@@ -8,7 +8,8 @@
       INTEGER :: lines ! number of lines in output files  
       REAL(pres) :: tf ! final time           
       
-      TYPE :: solution     
+      TYPE :: solution 
+        CHARACTER(10) :: sol_name
         CHARACTER(100) :: grid_file ! name of fort.14 file
         CHARACTER(100) :: grid_name ! name of the grid
         CHARACTER(100) :: out_direc ! name of output directory

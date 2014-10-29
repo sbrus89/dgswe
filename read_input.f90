@@ -87,5 +87,9 @@
       
       CLOSE(15)
       
+      fine%sol_name = "fine"
+      coarse%sol_name = "coarse"
+      base%sol_name = "base"
+      
 
       END SUBROUTINE  read_input

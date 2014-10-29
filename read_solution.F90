@@ -9,6 +9,8 @@
       INTEGER :: i,dof,el,line,et
       REAL(pres) :: t,hb
       
+      PRINT("(A)"), TRIM(sol%sol_name) // " solution"
+      
 #ifndef adcirc      
       
       OPEN(UNIT=11, FILE=trim(sol%out_direc) //"solution_H.d")
@@ -64,6 +66,9 @@
       CLOSE(12)
 
 #endif      
+
+      PRINT("(A)"), "Done"
+      PRINT*, " "
 
       RETURN 
       END SUBROUTINE read_solution

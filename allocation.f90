@@ -99,7 +99,23 @@
       END SUBROUTINE grid_alloc
       
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!      
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!      
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
+
+      SUBROUTINE nest_alloc()
+      
+      USE globals, ONLY: fine,elf2elc,elf2elb 
+      
+      IMPLICIT NONE
+      
+      ALLOCATE(elf2elc(fine%ne),elf2elb(fine%ne))    
+      
+      PRINT "(A)", "---------------------------------------------"
+      PRINT "(A)", "          Finding Element Nesting            "
+      PRINT "(A)", "---------------------------------------------"
+      PRINT "(A)", " "        
+      
+      RETURN
+      END SUBROUTINE nest_alloc
 
       SUBROUTINE error_alloc()
       
@@ -127,7 +143,12 @@
       ALLOCATE(fine%H(ne,mndof),fine%Qx(ne,mndof),fine%Qy(ne,mndof)) 
       
       ALLOCATE(Hc(mnqpta),Qxc(mnqpta),Qyc(mnqpta))
-      ALLOCATE(Hf(mnqpta),Qxf(mnqpta),Qyf(mnqpta))      
+      ALLOCATE(Hf(mnqpta),Qxf(mnqpta),Qyf(mnqpta))    
+      
+      PRINT "(A)", "---------------------------------------------"
+      PRINT "(A)", "            Reading Solutions                "
+      PRINT "(A)", "---------------------------------------------"
+      PRINT "(A)", " "      
       
       RETURN
       END SUBROUTINE  error_alloc

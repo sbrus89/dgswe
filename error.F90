@@ -40,8 +40,7 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!      
       
-      ALLOCATE(elf2elc(fine%ne),elf2elb(fine%ne))
-      
+      CALL nest_alloc()      
       CALL find_nesting(coarse,fine,elf2elc)   ! determine element nesting between coarse and fine grids
       CALL find_nesting(base,fine,elf2elb)     ! determine element nesting between base and fine grids
 
@@ -63,39 +62,47 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
 
+      PRINT "(A)", "---------------------------------------------"
+      PRINT "(A)", "        Calculating Error Integral           "
+      PRINT "(A)", "---------------------------------------------"
+      PRINT "(A)", " "
+
       
       HL2 = 0d0
       QxL2 = 0d0
       QyL2 = 0d0
       
-elemf:DO elf = 1,fine%ne        
+elemf:DO elf = 1,fine%ne  ! Calculate error integral in the fine grid elements
 
-        etf = fine%el_type(elf)
-        npts = nqpta(etf)
+        etf = fine%el_type(elf) ! element type for fine element
+        npts = nqpta(etf)       ! number of quadrature points needed
                  
-        elc = elf2elc(elf)    
-        elb = elf2elb(elf)
+        elc = elf2elc(elf) ! find element from coarse grid
+        elb = elf2elb(elf) ! find element from base grid
         
-        IF (fine%bndel(elf) == 1) THEN
+        IF (fine%bndel(elf) == 1) THEN     ! Ignore elements on fine boundary
           CYCLE elemf                
-        ELSE IF(base%bndel(elb) == 1) THEN
+        ELSE IF(base%bndel(elb) == 1) THEN ! Ignore element inside a base grid boundary element
           CYCLE elemf
         ENDIF
         
-        etc = coarse%el_type(elc)  
+        etc = coarse%el_type(elc)  ! element type for coarse element
         
+        ! evaluate x,y coordinates of fine element quadrature points
         xf = 0d0
         yf = 0d0
         DO pt = 1,npts
           DO nd = 1,fine%nnds(etf)
-            xf(pt) = xf(pt) + fine%l(nd,pt,etf)*fine%elxy(nd,elf,1)
+            xf(pt) = xf(pt) + fine%l(nd,pt,etf)*fine%elxy(nd,elf,1)  
             yf(pt) = yf(pt) + fine%l(nd,pt,etf)*fine%elxy(nd,elf,2)
           ENDDO        
         ENDDO
         
-        CALL newton(coarse,xf,yf,npts,elc,r,s,hb)
-                 
-        IF (mod(etc,2) == 1) THEN
+        ! calculate r,s coordinates of fine element quadrature points
+        CALL newton(coarse,xf,yf,npts,elc,r,s,hb)  
+               
+        ! evalute coarse element basis functions at fine element quadrautre points               
+        IF (mod(etc,2) == 1) THEN 
 #ifndef adcirc        
           CALL tri_basis(coarse%p,coarse%ndof(etc),npts,r,s,phi)  
 #else          
@@ -112,6 +119,7 @@ elemf:DO elf = 1,fine%ne
           ENDDO
         ENDDO
           
+        ! evaluate coarse element solution at quadrature points  
         Hc = 0d0
         Qxc = 0d0
         Qyc = 0d0
@@ -123,6 +131,7 @@ elemf:DO elf = 1,fine%ne
           ENDDO                
         ENDDO
         
+        ! evaluate fine element solution at quadrature points
         Hf = 0d0
         Qxf = 0d0
         Qyf = 0d0
@@ -134,6 +143,7 @@ elemf:DO elf = 1,fine%ne
           ENDDO                
         ENDDO       
         
+        ! calcuate L2 error integral
         DO pt = 1,npts
           HL2 = HL2 + fine%detJ(pt,elf)*wpta(pt,etf)*(Hc(pt)-Hf(pt))**2
           QxL2 = QxL2 + fine%detJ(pt,elf)*wpta(pt,etf)*(Qxc(pt)-Qxf(pt))**2

@@ -24,6 +24,8 @@
       
       srchdp = 4
       tol = 1d-7
+      
+      
 
       ! Build kd-tree
       IF (coarse%ne < srchdp) THEN
@@ -38,12 +40,12 @@
       elf2elc(:) = 0
       el_found = 0 
       
-      PRINT("(A)"), "Determining element nesting"
+      PRINT("(A)"), TRIM(coarse%sol_name) // " / " // TRIM(fine%sol_name) // " grid"
       
       ! Find coarse element each fine element is located in
 elemf:DO elf = 1,fine%ne
       
-        IF (fine%bndel(elf) == 1) THEN
+        IF (fine%bndel(elf) == 1) THEN ! ignore elements on the boundary
           el_found = el_found + 1        
           CYCLE elemf
         ENDIF
@@ -106,16 +108,14 @@ search: DO srch = 1,srchdp
 !             PRINT*, " "
           
             ! The quadrature point is in the element if the reference element area and sum of sub triangle are the same
-            IF (abs(area - sarea) < tol) THEN
-!               PRINT("(A,I5)"), '   element found ', eln            
+            IF (abs(area - sarea) < tol) THEN          
 !               PRINT("(A,I5)"), achar(27)//'[95m    element found '//achar(27)//'[0m', eln
             
               elf2elc(elf) = eln            
             
               found = 1
               el_found = el_found + 1
-                        
-            
+                                    
               EXIT elem                        
             ENDIF
           
@@ -145,5 +145,8 @@ search: DO srch = 1,srchdp
         STOP
       ENDIF
 
+      
+      
+      
       RETURN
       END SUBROUTINE find_nesting

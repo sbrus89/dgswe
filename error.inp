@@ -1,40 +1,14 @@
-!/home/sbrus/Codes/dgswe/grids/converge_quad.grd                                                         ! coarse grid file
-!/home/sbrus/data-drive/converge_quad/mesh1/P2/CTP2/                                                     ! coarse output directory
-!2                                                                                                       ! p - coarse polynomial order
-!2                                                                                                       ! ctp - coarse parametric coordinate transformation order
-!.5d0                                                                                                    ! dt - coarse timestep
-!/home/sbrus/Codes/dgswe/grids/converge_quad2.grd                                                         ! fine grid file
-!/home/sbrus/data-drive/converge_quad/mesh2/P2/CTP2/                                                     ! fine output directory
-!2                                                                                                       ! p - fine polynomial order
-!2                                                                                                       ! ctp - fine parametric coordinate transformation order
-!.25d0                                                                                                   ! dt - fine timestep
-!2d0                                                                                                     ! tf - final time (days)
-!20                                                                                                      ! lines - lines in output files
-
-!/home/sbrus/Codes/dgswe/grids/converge_quad2.grd                                                        ! coarse grid file
-!/home/sbrus/data-drive/converge_quad/mesh2/P2/CTP2/                                                     ! coarse output directory
-!2                                                                                                       ! p - coarse polynomial order
-!2                                                                                                       ! ctp - coarse parametric coordinate transformation order
-!.5d0                                                                                                    ! dt - coarse timestep
-!/home/sbrus/Codes/dgswe/grids/converge_quad3.grd                                                        ! fine grid file
-!/home/sbrus/data-drive/converge_quad/mesh3/P2/CTP2/                                                     ! fine output directory
-!2                                                                                                       ! p - coarse polynomial order
-!2                                                                                                       ! ctp - coarse parametric coordinate transformation order
-!.5d0                                                                                                    ! dt - coarse timestep
-!2d0                                                                                                     ! tf - final time (days)
-!20                                                                                                      ! lines - lines in output files
-
-
-/home/sbrus/data-drive/converge-curve/mesh1_finer/ESL0/CLP2/P2/LLF/fort.14                              ! coarse grid file
-/home/sbrus/data-drive/converge-curve/mesh1_finer/ESL0/CLP2/P2/LLF/                                      ! coarse output directory
-2                                                                                                       ! p - coarse polynomial order
-2                                                                                                       ! ctp - coarse parametric coordinate transformation order
+/home/sbrus/Codes/dgswe/grids/converge_quad.grd                                                         ! coarse grid file
+/home/sbrus/data-drive/converge_quad/mesh1/P3/CTP3/                                                     ! coarse output directory
+3                                                                                                       ! p - coarse polynomial order
+3                                                                                                       ! ctp - coarse parametric coordinate transformation order
 .5d0                                                                                                    ! dt - coarse timestep
-/home/sbrus/data-drive/converge-curve/mesh2_finer/ESL0/CLP2/P2/LLF/fort.14                              ! fine grid file
-/home/sbrus/data-drive/converge-curve/mesh2_finer/ESL0/CLP2/P2/LLF/                                      ! fine output directory
-2                                                                                                       ! p - fine polynomial order
-2                                                                                                       ! ctp - fine parametric coordinate transformation order
+/home/sbrus/Codes/dgswe/grids/converge_quad2.grd                                                         ! fine grid file
+/home/sbrus/data-drive/converge_quad/mesh2/P3/CTP3/                                                     ! fine output directory
+3                                                                                                       ! p - fine polynomial order
+3                                                                                                       ! ctp - fine parametric coordinate transformation order
 .25d0                                                                                                   ! dt - fine timestep
 2d0                                                                                                     ! tf - final time (days)
-100                                                                                                      ! lines - lines in output files
-
+20                                                                                                      ! lines - lines in output files
+/home/sbrus/Codes/dgswe/grids/converge_quad.grd                                                         ! base grid file
+3                                                                                                       ! base grid ctp
