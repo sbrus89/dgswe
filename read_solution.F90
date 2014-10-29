@@ -60,6 +60,9 @@
       
       IF(tcoarse /= tfine) THEN
         PRINT("(A)"), "Warning: time snaps do not agree"
+        PRINT("(A,F15.7)"), "tcoarse = ", tcoarse
+        PRINT("(A,F15.7)"), "tfine = ", tfine
+        PRINT*, " " 
       ENDIF
       
       
