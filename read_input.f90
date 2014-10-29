@@ -29,47 +29,50 @@
           SELECT CASE (inp_read)
             CASE (1)
               coarse%grid_file = TRIM(temp)
-              PRINT*, "coarse grid_file = ", coarse%grid_file
+              PRINT("(A,A)"), "coarse grid_file = ", coarse%grid_file
             CASE (2)
               coarse%out_direc = TRIM(temp)
-              PRINT*, "coarse output directory = ", coarse%out_direc
+              PRINT("(A,A)"), "coarse output directory = ", coarse%out_direc
             CASE (3)
               READ(temp,*) coarse%p
-              PRINT*, "coarse p = ", coarse%p
+              PRINT("(A,I3)"), "coarse p = ", coarse%p
             CASE (4)
               READ(temp,*) coarse%ctp
-              PRINT*, "coarse ctp = ", coarse%ctp
+              PRINT("(A,I3)"), "coarse ctp = ", coarse%ctp
             CASE (5)
               READ(temp,*) coarse%dt
-              PRINT*, "coarse dt = ", coarse%dt
+              PRINT("(A,F15.7)"), "coarse dt = ", coarse%dt
+              PRINT*, " " 
             CASE (6)
               fine%grid_file = TRIM(temp)
-              PRINT*, "fine grid_file = ", fine%grid_file
+              PRINT("(A,A)"), "fine grid_file = ", fine%grid_file
             CASE (7)
               fine%out_direc = TRIM(temp)
-              PRINT*, "fine output directory = ", fine%out_direc
+              PRINT("(A,A)"), "fine output directory = ", fine%out_direc
             CASE (8)
               READ(temp,*) fine%p
-              PRINT*, "fine p = ", fine%p           
+              PRINT("(A,I3)"), "fine p = ", fine%p           
             CASE (9)
               READ(temp,*) fine%ctp
-              PRINT*, "fine ctp = ", fine%ctp
+              PRINT("(A,I3)"), "fine ctp = ", fine%ctp
             CASE (10)
               READ(temp,*) fine%dt
-              PRINT*, "fine dt = ", fine%dt              
+              PRINT("(A,F15.7)"), "fine dt = ", fine%dt 
+              PRINT*, " " 
             CASE (11)
               READ(temp,*) tf
               tf = tf*86400d0
-              PRINT*, "tf = ", tf     
+              PRINT("(A,F15.7)"), "tf = ", tf     
             CASE (12)
               READ(temp,*) lines
-              PRINT*, "lines = ", lines           
+              PRINT("(A,I5)"), "lines = ", lines  
+              PRINT*, " " 
             CASE (13)
               base%grid_file = TRIM(temp)
-              PRINT*, "base grid directory = ", base%grid_file    
+              PRINT("(A,A)"), "base grid directory = ", base%grid_file    
             CASE (14)
               READ(temp,*) base%ctp
-              PRINT*, "base ctp = ", base%ctp                        
+              PRINT("(A,I3)"), "base ctp = ", base%ctp                        
           END SELECT
             
         ENDIF
@@ -78,7 +81,7 @@
       ENDDO
       
       PRINT*, " "
-      PRINT*, "Lines skipped: ", skipped
+      PRINT("(A,I5)"), "Lines skipped: ", skipped
       PRINT*, " "  
       
       IF(coarse%p /= fine%p) THEN
