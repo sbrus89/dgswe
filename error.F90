@@ -28,7 +28,7 @@
       CALL vandermonde(fine)
       CALL vandermonde(base)
             
-      CALL re_vert(coarse) ! find reference element coordinates
+      CALL re_vert(coarse) ! find reference element verticies
       CALL re_vert(fine)
       CALL re_vert(base)
       

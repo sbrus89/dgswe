@@ -27,6 +27,7 @@
       ALLOCATE(sol%V(sol%mnnds,sol%mnnds,nel_type))
       ALLOCATE(sol%ipiv(sol%mnnds,nel_type))
       
+      ! Evaluate basis functions at reference element nodes
       DO et = 1,nel_type
         n = sol%nnds(et)
         IF (mod(et,2) == 1) THEN
@@ -44,6 +45,7 @@
           ENDDO
         ENDDO
         
+        ! Do LU decomposition 
         CALL DGETRF(n,n,sol%V(1,1,et),sol%mnnds,sol%ipiv(1,et),info)
         
 !         DO pt = 1,n
@@ -120,7 +122,9 @@
       ALLOCATE(dpdr(max(mnnds,mndof)*mnqpta))
       ALLOCATE(dpds(max(mnnds,mndof)*mnqpta))      
       
-      ! evaluate shape functions
+      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      ! evaluate shape functions at quadrature points (to compute r,s -> x,y transformtion in error integration)
+      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       
       ALLOCATE(fine%l(mnnds,mnqpta,nel_type))   
       ALLOCATE(fine%dldr(mnnds,mnqpta,nel_type))
@@ -128,7 +132,7 @@
       
       DO et = 1,nel_type
         p = fine%np(et)     ! transformation order
-        n = fine%nnds(et) ! transformation nodes
+        n = fine%nnds(et)   ! transformation nodes
         npt = nqpta(et)
         
         DO pt = 1,npt
@@ -157,8 +161,9 @@
       
       ENDDO
       
-      
-      ! evaluate basis functions
+      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      ! evaluate basis functions at quadrature points (to evaluate solution in error integration)
+      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       
       ALLOCATE(fine%phi(mndof,mnqpta,nel_type))  
       
@@ -211,6 +216,7 @@
       
       ALLOCATE(fine%detJ(mnqpta,fine%ne))
       
+      ! Calculate the determinant of the Jacobian at quadrature points (to compute integal in error integration)
       DO el = 1,fine%ne
         et = fine%el_type(el)
         
@@ -244,7 +250,7 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
  
  
-      SUBROUTINE newton(coarse,x,y,npt,eln,r,s,hb)
+      SUBROUTINE newton(sol,x,y,npt,eln,r,s,hb)
 
       USE globals, ONLY: pres,solution
       USE basis, ONLY: tri_basis,quad_basis
@@ -255,24 +261,25 @@
       INTEGER et,p,n,mnnds     
       INTEGER :: info
       INTEGER :: maxit
-      TYPE(solution) :: coarse
+      TYPE(solution), INTENT(IN) :: sol
       REAL(pres) :: tol,error
-      REAL(pres), DIMENSION(npt) :: x,y
-      REAL(pres), DIMENSION(npt) :: r,s,hb
+      REAL(pres), DIMENSION(npt), INTENT(IN) :: x,y
+      REAL(pres), DIMENSION(npt), INTENT(OUT) :: r,s,hb
       REAL(pres), DIMENSION(npt) :: f,g
       REAL(pres), DIMENSION(npt) :: dfdr,dfds,dgdr,dgds,jac
-      REAL(pres), DIMENSION(npt*coarse%mnnds) :: phi,dpdr,dpds
-      REAL(pres) :: l(coarse%mnnds,3*npt)
+      REAL(pres), DIMENSION(npt*sol%mnnds) :: phi,dpdr,dpds
+      REAL(pres) :: l(sol%mnnds,3*npt)
         
       tol = 1d-10
       maxit = 1000
       info = 0
       
-      et = coarse%el_type(eln)
-      p = coarse%np(et)  
-      n = coarse%nnds(et)
-      mnnds = coarse%mnnds
+      et = sol%el_type(eln)
+      p = sol%np(et)  
+      n = sol%nnds(et)
+      mnnds = sol%mnnds
         
+      ! Initial guesses  
       IF (mod(et,2) == 1) THEN
         DO pt = 1,npt      
           r(pt) = -1d0/3d0
@@ -286,7 +293,8 @@
       ENDIF
 
       DO it = 1,maxit
-           
+      
+        ! Evaluate basis functions at r,s coordinates   
         IF (mod(et,2) == 1) THEN
           CALL tri_basis(p,n,npt,r,s,phi,dpdr,dpds)
         ELSE IF (mod(et,2) == 0) THEN
@@ -303,9 +311,12 @@
           ENDDO
         ENDDO
         
-        CALL DGETRS("N",n,3*npt,coarse%V(1,1,et),mnnds,coarse%ipiv(1,et),l,mnnds,info)
+        ! Solve linear systems to get nodal shape functions/derivatives (l,dldr,dlds) at r,s coordinates
+        ! V l(r,s) = phi(r,s), V dldr(r,s) = dpdr(r,s), V dlds(r,s) = dpds(r,s)
+        CALL DGETRS("N",n,3*npt,sol%V(1,1,et),mnnds,sol%ipiv(1,et),l,mnnds,info)
 !         IF (info /= 0 ) PRINT*, "LAPACK ERROR"      
         
+        ! Evaluate transformation function/derivatives at r,s coordinates
         dfdr = 0d0
         dfds = 0d0
         dgdr = 0d0
@@ -316,24 +327,25 @@
         DO pt = 1,npt
           DO i = 1,n
             
-            dfdr(pt) = dfdr(pt) + l(i,npt+pt)*coarse%elxy(i,eln,1)
-            dfds(pt) = dfds(pt) + l(i,2*npt+pt)*coarse%elxy(i,eln,1)
-            dgdr(pt) = dgdr(pt) + l(i,npt+pt)*coarse%elxy(i,eln,2)
-            dgds(pt) = dgds(pt) + l(i,2*npt+pt)*coarse%elxy(i,eln,2)
+            dfdr(pt) = dfdr(pt) + l(i,npt+pt)*sol%elxy(i,eln,1)
+            dfds(pt) = dfds(pt) + l(i,2*npt+pt)*sol%elxy(i,eln,1)
+            dgdr(pt) = dgdr(pt) + l(i,npt+pt)*sol%elxy(i,eln,2)
+            dgds(pt) = dgds(pt) + l(i,2*npt+pt)*sol%elxy(i,eln,2)
           
-            f(pt) = f(pt) + l(i,pt)*coarse%elxy(i,eln,1)
-            g(pt) = g(pt) + l(i,pt)*coarse%elxy(i,eln,2)
+            f(pt) = f(pt) + l(i,pt)*sol%elxy(i,eln,1)
+            g(pt) = g(pt) + l(i,pt)*sol%elxy(i,eln,2)
           ENDDO
         ENDDO
-        
+               
+        ! Newton iteration               
         DO pt = 1,npt
           jac(pt) = dfdr(pt)*dgds(pt) - dgdr(pt)*dfds(pt)
         
-          f(pt) = f(pt) - x(pt)
+          f(pt) = f(pt) - x(pt) 
           g(pt) = g(pt) - y(pt)
         
-          r(pt) = r(pt) - (1d0/jac(pt))*( dgds(pt)*f(pt) - dfds(pt)*g(pt))
-          s(pt) = s(pt) - (1d0/jac(pt))*(-dgdr(pt)*f(pt) + dfdr(pt)*g(pt))         
+          r(pt) = r(pt) - ( dgds(pt)*f(pt) - dfds(pt)*g(pt))/jac(pt)
+          s(pt) = s(pt) - (-dgdr(pt)*f(pt) + dfdr(pt)*g(pt))/jac(pt)         
         ENDDO
         
         error = MAX(ABS(MAXVAL(f)) , ABS(MAXVAL(g)))
@@ -352,16 +364,17 @@
 !         PRINT("(2(A,F20.15))"), "   r = ",r(1), "   s = ", s(1)
       ENDIF
       
+      ! Evaluate bathymetry at r,s coordinates
       hb = 0d0
       DO pt = 1,npt
         DO i = 1,n
-          hb(pt) = hb(pt) + l(i,pt)*coarse%elhb(i,eln)
+          hb(pt) = hb(pt) + l(i,pt)*sol%elhb(i,eln)
         ENDDO
       ENDDO
 
       RETURN
       END SUBROUTINE newton
-!       
+
 
       
       

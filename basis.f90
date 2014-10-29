@@ -436,9 +436,9 @@
       call lagrange(p+1,np,xeq,w2e,w2mat)
       call lagrange(p+1,np,xeq,w3e,w3mat)
 
-      do j = 1,np
-        write(50,41) (w1mat(j,i), i = 1,p+1)
-      enddo
+!       do j = 1,np
+!         write(50,41) (w1mat(j,i), i = 1,p+1)
+!       enddo
 
  41   format(16000(e24.17,1x))
 
