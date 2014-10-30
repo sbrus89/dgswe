@@ -3,6 +3,8 @@
 !$    USE omp_lib      
       USE globals
       USE basis
+      USE allocation
+      USE messenger2
 
       IMPLICIT NONE
       INTEGER :: it,tskp,cnt,myid
@@ -11,62 +13,13 @@
 
       PRINT*, ' '
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
       nrblk = 1
-
+      
+      CALL message_init()
+      
       CALL read_input()
-      
-#ifdef rk22
-      PRINT*, "RK22 timestepping"
-#elif rk33
-      PRINT*, "RK33 timestepping"
-#else
-      PRINT*, "Forward Euler timestepping"
-#endif      
-      PRINT*, " "
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-      OPEN(unit=63,file=trim(out_direc) // 'solution_H.d')
-      OPEN(unit=641,file=trim(out_direc) // 'solution_Qx.d')
-      OPEN(unit=642,file=trim(out_direc) // 'solution_Qy.d')
-!       OPEN(unit=17,file=trim(out_direc) // 'edge_connect.d')
-
-      ndof(1) = (p+1)*(p+2)/2
-      ndof(2) = (p+1)**2
-      ndof(3) = ndof(1)
-      ndof(4) = ndof(2)      
-      mndof = maxval(ndof)
-      
-      nverts(1) = 3
-      nverts(2) = 4
-      nverts(3) = 3
-      nverts(4) = 4
-      
-      np(1) = 1
-      np(2) = 1
-      np(3) = ctp
-      np(4) = ctp   
-      mnp = maxval(np)+1
-
-      nnds(1) = 3
-      nnds(2) = 4
-      nnds(3) = (ctp+1)*(ctp+2)/2
-      nnds(4) = (ctp+1)*(ctp+1) 
-      mnnds = maxval(nnds)
-      
-      tstep = int(tf/dt)
-      tskp = int(tf/(lines*dt)) 
-      
-#ifdef openmp      
-      PRINT*, "Thread numbers: "
-!$OMP  parallel private(myid)
-      myid = omp_get_thread_num()
-      PRINT*, myid
-      nrblk = omp_get_num_threads()
-!$OMP end parallel
-#endif
+      CALL sizes()
 
       ! Read in grid file
       CALL read_grid()
@@ -118,6 +71,9 @@
       PRINT "(A,e12.4)", "Final time: ",tf
 
       PRINT "(A)", " "
+      
+      tstep = int(tf/dt)
+      tskp = int(tf/(lines*dt))             
 
       t = 0d0
       cnt = 0

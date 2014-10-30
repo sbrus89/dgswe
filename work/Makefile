@@ -1,14 +1,15 @@
 FC = ifort
 
 VPATH := ../src
+ODIR = odir/
 
 RK = -Drk33
 LIB_PATH = ../metis-4.0.3/
 LIB = metis
 LAPACK_LIB = lapack
 
-CFLAGS_VEC =  -O3 -xHost -vec-report6 -c
-CFLAGS =  -O3 -xHost -c 
+CFLAGS_VEC =  -O3 -xHost -vec-report6 -I$(ODIR) -c
+CFLAGS =  -O3 -xHost -I$(ODIR) -c 
 CFLAGS_LINK = -O3 -xHost -o 
 ALIGN = #-DALIGN32
 
@@ -54,91 +55,105 @@ ALIGN = #-DALIGN32
 # 	alloc_arrays.o ptr_arrays.o initial.o connect.o element_data.o edge_partition2.o  \
 # 	rk.o rhs2.o rhs3.o rhs4.o numerical_flux.o swe_tri.o
 
-objects = globals.o allocation.o basis.o area_qpts.o edge_qpts.o read_input.o read_grid.o read_forcing.o modal2nodal.o \
+objects = globals.o allocation.o basis.o messenger2.o area_qpts.o edge_qpts.o read_input.o read_grid.o read_forcing.o modal2nodal.o \
 	initial.o connect.o curvilinear.o element_data.o area_transformation.o edge_transformation.o edge_partition2.o  \
 	area_integration.o edge_integration.o rhs2.o  numerical_flux.o rk.o swe_tri.o
 
-dgswe : $(objects)
-	$(FC) $(CFLAGS_LINK) dgswe $(objects) -L $(LIB_PATH) -l$(LIB) -l$(LAPACK_LIB)
+obj := $(patsubst %.o, $(ODIR)%.o,$(objects))
 
-globals.o : globals.F90
-	$(FC) $(CFLAGS) $(ALIGN) $<
-	
-allocation.o : allocation.f90 globals.F90
-	$(FC) $(CFLAGS) $<	
+# $< = first prerequisite/depenency
+# $@ = name of the target
 
-basis.o : basis.f90 globals.F90 allocation.f90
-	$(FC) $(CFLAGS) $<
 
-#file_setup.o : file_setup.f90 globals.F90
-#	$(FC) $(CFLAGS) -lnetcdf file_setup.f90
+dgswe : $(ODIR) $(obj)
+	$(FC) $(CFLAGS_LINK) dgswe $(obj) -L $(LIB_PATH) -l$(LIB) -l$(LAPACK_LIB)
 
-area_qpts.o : area_qpts.f90 globals.F90 allocation.f90
-	$(FC) $(CFLAGS) $<
+.PHONY : $(ODIR)
+$(ODIR) :
+	mkdir -p $@
 
-edge_qpts.o : edge_qpts.f90 globals.F90 allocation.f90
-	$(FC) $(CFLAGS) $<
+$(ODIR)globals.o : globals.F90
+	$(FC) $(CFLAGS) $(ALIGN) $< -o $@
+	mv globals.mod $(ODIR)
 
-read_input.o : read_input.f90 globals.F90
-	$(FC) $(CFLAGS) $<
+$(ODIR)allocation.o : allocation.f90 globals.F90
+	$(FC) $(CFLAGS) $< -o $@
+	mv allocation.mod $(ODIR)
 
-read_grid.o : read_grid.f90 globals.F90 allocation.f90
-	$(FC) $(CFLAGS) $<
+$(ODIR)basis.o : basis.f90 globals.F90 allocation.f90
+	$(FC) $(CFLAGS) $< -o $@
+	mv basis.mod $(ODIR)
 
-read_forcing.o : read_forcing.f90 globals.F90 allocation.f90
-	$(FC) $(CFLAGS) $<
+$(ODIR)messenger2.o : messenger2.F90 globals.F90
+	$(FC) $(CFLAGS) $< -o $@
+	mv messenger2.mod $(ODIR)
 
-modal2nodal.o : modal2nodal.F90 globals.F90 basis.f90
-	$(FC) $(CFLAGS) $<
+$(ODIR)area_qpts.o : area_qpts.f90 globals.F90 allocation.f90
+	$(FC) $(CFLAGS) $< -o $@
 
-initial.o : initial.f90 globals.F90 allocation.f90
-	$(FC) $(CFLAGS) $<
+$(ODIR)edge_qpts.o : edge_qpts.f90 globals.F90 allocation.f90
+	$(FC) $(CFLAGS) $< -o $@
 
-connect.o : connect.f90 globals.F90 allocation.f90
-	$(FC) $(CFLAGS) $<
+$(ODIR)read_input.o : read_input.F90 globals.F90
+	$(FC) $(CFLAGS) $(RK) $< -o $@
 
-curvilinear.o : curvilinear.F90 globals.F90 basis.f90
-	$(FC) $(CFLAGS) $<
+$(ODIR)read_grid.o : read_grid.f90 globals.F90 allocation.f90
+	$(FC) $(CFLAGS) $< -o $@
 
-element_data.o : element_data.f90 globals.F90 allocation.f90
-	$(FC) $(CFLAGS) $<
+$(ODIR)read_forcing.o : read_forcing.f90 globals.F90 allocation.f90
+	$(FC) $(CFLAGS) $< -o $@
 
-edge_partition2.o : edge_partition2.f90 globals.F90 allocation.f90
-	$(FC) $(CFLAGS) $<
+$(ODIR)modal2nodal.o : modal2nodal.F90 globals.F90 basis.f90
+	$(FC) $(CFLAGS) $< -o $@
 
-area_transformation.o : area_transformation.F90 globals.F90 basis.f90
-	$(FC) $(CFLAGS) $<
+$(ODIR)initial.o : initial.f90 globals.F90 allocation.f90
+	$(FC) $(CFLAGS) $< -o $@
 
-edge_transformation.o : edge_transformation.F90 globals.F90 basis.f90
-	$(FC) $(CFLAGS) $<
+$(ODIR)connect.o : connect.f90 globals.F90 allocation.f90
+	$(FC) $(CFLAGS) $< -o $@
 
-area_integration.o : area_integration.F90 globals.F90
-	$(FC) $(CFLAGS_VEC) $<
+$(ODIR)curvilinear.o : curvilinear.F90 globals.F90 basis.f90
+	$(FC) $(CFLAGS) $< -o $@
 
-edge_integration.o : edge_integration.F90 globals.F90
-	$(FC) $(CFLAGS_VEC) $<
+$(ODIR)element_data.o : element_data.f90 globals.F90 allocation.f90
+	$(FC) $(CFLAGS) $< -o $@
 
-rk.o : rk.F90 globals.F90
-	$(FC) $(CFLAGS_VEC) $(RK) $<
+$(ODIR)edge_partition2.o : edge_partition2.f90 globals.F90 allocation.f90
+	$(FC) $(CFLAGS) $< -o $@
 
-rhs2.o : rhs2.f90 globals.F90
-	$(FC) $(CFLAGS_VEC) $<
+$(ODIR)area_transformation.o : area_transformation.F90 globals.F90 basis.f90
+	$(FC) $(CFLAGS) $< -o $@
 
-rhs3.o : rhs3.F90 globals.F90
-	$(FC) $(CFLAGS_VEC) $<
+$(ODIR)edge_transformation.o : edge_transformation.F90 globals.F90 basis.f90
+	$(FC) $(CFLAGS) $< -o $@
 
-rhs4.o : rhs4.F90 globals.F90
-	$(FC) $(CFLAGS_VEC) $<	
+$(ODIR)area_integration.o : area_integration.F90 globals.F90
+	$(FC) $(CFLAGS_VEC) $< -o $@
 
-numerical_flux.o : numerical_flux.f90 globals.F90
-	$(FC) $(CFLAGS) $<
+$(ODIR)edge_integration.o : edge_integration.F90 globals.F90
+	$(FC) $(CFLAGS_VEC) $< -o $@
 
-swe_tri.o : swe_tri.F90 globals.F90 basis.f90
-	$(FC) $(CFLAGS) $(RK) $<
+$(ODIR)rk.o : rk.F90 globals.F90
+	$(FC) $(CFLAGS_VEC) $(RK) $< -o $@
+
+$(ODIR)rhs2.o : rhs2.f90 globals.F90
+	$(FC) $(CFLAGS_VEC) $< -o $@
+
+$(ODIR)rhs3.o : rhs3.F90 globals.F90
+	$(FC) $(CFLAGS_VEC) $< -o $@
+
+$(ODIR)rhs4.o : rhs4.F90 globals.F90
+	$(FC) $(CFLAGS_VEC) $< -o $@
+
+$(ODIR)numerical_flux.o : numerical_flux.f90 globals.F90
+	$(FC) $(CFLAGS) $< -o $@
+
+$(ODIR)swe_tri.o : swe_tri.F90 globals.F90 basis.f90 allocation.f90
+	$(FC) $(CFLAGS) $(RK) $< -o $@
 
 .PHONY : clean
 clean : 
-	rm dgswe *.o *.mod
+	rm -r dgswe odir
 
 .PHONY : metis
 metis : 
