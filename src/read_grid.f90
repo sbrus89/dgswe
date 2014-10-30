@@ -4,36 +4,33 @@
                          nope,neta,obseg,obnds,nvel,nbou,fbseg,fbnds,grid_name, &
                          el_type,ctp,mnelnds,curved_grid,nverts
                          
-      USE allocation, ONLY: alloc_grid_arrays                         
+      USE allocation, ONLY: alloc_grid_arrays     
+      USE messenger2, ONLY: finish,myrank
 
       IMPLICIT NONE
       INTEGER :: i,j,k,el
       INTEGER :: nbseg
       INTEGER :: btype
       INTEGER :: nvert
+      LOGICAL :: file_exists
 
-      PRINT "(A)", "---------------------------------------------"
-      PRINT "(A)", "             Grid Information                "
-      PRINT "(A)", "---------------------------------------------"
-      PRINT "(A)", " "
-       
 
       ! open fort.14 grid file
-      OPEN(UNIT = 14, FILE = grid_file)    
-
-      PRINT "(A,A)", "Grid file: ", grid_file                          
+      INQUIRE(FILE=grid_file, EXIST = file_exists)
+      IF(file_exists == .FALSE.) THEN
+        PRINT*, "grid file does not exist"
+        CALL finish()        
+      ENDIF
+      
+      OPEN(UNIT=14, FILE=grid_file)                 
                        
       ! read in name of grid
       READ(14,"(A)"), grid_name                                         
 
-      PRINT "(A,A)", "Grid name: ", grid_name
-
       ! read in number of elements and number of nodes
-      READ(14,*), ne, nn                                                
+      READ(14,*), ne, nn     
+      
 
-      PRINT "(A,I5)", "Number of elements: ", ne
-      PRINT "(A,I5)", "Number of nodes: ", nn
-      PRINT*, " "
 
       CALL alloc_grid_arrays(1)
 
@@ -64,7 +61,7 @@
           curved_grid = 1
         ELSE
           PRINT*, "Element type not supported or ctp not compatible with grid"
-          STOP
+          CALL finish()
         ENDIF 
         
         DO j = 1,nelnds(el)
@@ -73,10 +70,7 @@
           elhb(j,el)   = depth(ect(j,el))
         ENDDO      
         
-      ENDDO
-      
-      PRINT "(A,I5)", "Curved grid = ",curved_grid
-      PRINT*, " "
+      ENDDO     
       
       IF (curved_grid == 1) THEN
         DO i = 1,ne
@@ -156,6 +150,20 @@
 !       PRINT*, " "
 
       CLOSE(14) 
+      
+      IF (myrank == 0) THEN
+        PRINT "(A)", "---------------------------------------------"
+        PRINT "(A)", "             Grid Information                "
+        PRINT "(A)", "---------------------------------------------"
+        PRINT "(A)", " "
+        PRINT "(A,A)", "Grid file: ", grid_file                     
+        PRINT "(A,A)", "Grid name: ", grid_name      
+        PRINT "(A,I5)", "Number of elements: ", ne
+        PRINT "(A,I5)", "Number of nodes: ", nn
+        PRINT*, " "      
+        PRINT "(A,I5)", "Curved grid = ",curved_grid
+        PRINT*, " "      
+      ENDIF
 
       RETURN
       END SUBROUTINE read_grid

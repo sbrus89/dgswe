@@ -5,28 +5,34 @@
                          nfbfr,fbtag,fbtag2,fbfreq,fbnfact,fbeq,fbamp,fbph, &
                          fbper,obper,pi
                          
-      USE allocation, ONLY: alloc_forcing_arrays                         
+      USE allocation, ONLY: alloc_forcing_arrays   
+      USE messenger2, ONLY: finish,myrank
 
       IMPLICIT NONE
       INTEGER :: bfr,node,seg,segtype
       REAL(pres) :: deg2rad
+      LOGICAL :: file_exists
 
       deg2rad = pi/180d0
       
-      OPEN(unit=15,file=forcing_file)
+      INQUIRE(FILE=forcing_file, EXIST = file_exists)
+      IF(file_exists == .FALSE.) THEN
+        PRINT*, "fort.15 file does not exist"
+        CALL finish()
+      ENDIF
+      
+      OPEN(UNIT=15, FILE=forcing_file)
 
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       ! Read in open boundary forcing data
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
       READ(15,*) nobfr
-      PRINT "(A,I5)", 'Number of open boundary forcings',nobfr
 
       CALL alloc_forcing_arrays(1)
 
       DO bfr = 1,nobfr
         READ(15,*) obtag(bfr)
-        PRINT "(A,A)", "  ",obtag(bfr)
         READ(15,*) obfreq(bfr),obnfact(bfr),obeq(bfr)
         obeq(bfr) = obeq(bfr)*deg2rad
         IF(obfreq(bfr) == 0.) THEN
@@ -49,16 +55,12 @@
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
       READ(15,*) nfbfr
-      PRINT "(A,I5)", 'Number of flow boundary forcings',nfbfr
-      PRINT*, ' '
 
       CALL alloc_forcing_arrays(2)
 
       DO bfr = 1,nfbfr
-        READ(15,*) fbtag(bfr)
-        PRINT "(A,A)", "  ",obtag(bfr)        
+        READ(15,*) fbtag(bfr)     
         READ(15,*) fbfreq(bfr),fbnfact(bfr),fbeq(bfr)
-!         PRINT*, fbfreq(bfr),fbnfact(bfr),fbeq(bfr)
         fbeq(bfr) = fbeq(bfr)*deg2rad
         IF(fbfreq(bfr) == 0.) THEN
           fbper(bfr) = 1d0
@@ -80,6 +82,19 @@
           ENDIF
         ENDDO
       ENDDO
+      
+      
+      
+      IF (myrank == 0) THEN
+        PRINT "(A,I5)", 'Number of open boundary forcings',nobfr      
+        DO bfr = 1,nobfr
+          PRINT "(A,A)", "  ",obtag(bfr)
+        ENDDO      
+        PRINT "(A,I5)", 'Number of flow boundary forcings',nfbfr      
+        DO bfr = 1,nfbfr
+          PRINT "(A,A)", "  ",obtag(bfr)        
+        ENDDO      
+      ENDIF
 
 
       RETURN
