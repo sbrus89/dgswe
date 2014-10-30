@@ -5,6 +5,7 @@
                          ned,nied,nobed,nnfbed,nfbed, &
                          nope,neta,nbou,nvel, &
                          nobfr,nfbfr
+     USE messenger2, ONLY: mnelred,mnired,nred                            
 
       
       IMPLICIT NONE
@@ -325,7 +326,7 @@
                          rhsQy,Hqpt,Qxqpt,Qyqpt,xmom,ymom,xymom, &
                          Hflux,Qxflux,Qyflux,tau,src_x,src_y,recipHa, &
                          MirhsH,MirhsQx,MirhsQy, &
-                         Hwrite,Qxwrite,Qywrite
+                         Hwrite,Qxwrite,Qywrite                                                 
                          
       IMPLICIT NONE
       INTEGER, PARAMETER :: n=10
@@ -333,6 +334,8 @@
       INTEGER :: i
           
       alloc_status(:) = 0
+      
+      mnelred = MAX(ne,nred)
       
       ! Solution arrays      
       ALLOCATE(Hinit(ne,mndof),Qxinit(ne,mndof),Qyinit(ne,mndof),STAT = alloc_status(1))             
@@ -348,7 +351,7 @@
       ! Evaluation Arrays
       ALLOCATE(Hqpt(ne,4*mnqpte),Qxqpt(ne,4*mnqpte),Qyqpt(ne,4*mnqpte),STAT = alloc_status(6))
       ALLOCATE(xmom(ne,4*mnqpte),ymom(ne,4*mnqpte),xymom(ne,4*mnqpte),STAT = alloc_status(7))
-      ALLOCATE(recipHa(ne))      
+      ALLOCATE(recipHa(mnelred))      
 
       ! Source term arrays
       ALLOCATE(tau(ne),src_x(ne),src_y(ne),STAT = alloc_status(8))
@@ -417,6 +420,7 @@
                         Hfi,Hfe,Qxfi,Qxfe,Qyfi,Qyfe, &
                         inx,iny,detJe_in,detJe_ex,const, &
                         Hhatv,Qxhatv,Qyhatv
+                     
 
      IMPLICIT NONE
      INTEGER, PARAMETER :: n=5
@@ -424,19 +428,21 @@
      INTEGER :: i
           
      alloc_status(:) = 0
+     
+     mnired  = MAX(nied,nred)     
 
      ! Solution pointer arrays
-     ALLOCATE(Hi(nied,mnqpte),He(nied,mnqpte),Qxi(nied,mnqpte),Qxe(nied,mnqpte),Qyi(nied,mnqpte),Qye(nied,mnqpte),STAT=alloc_status(1))
-     ALLOCATE(xmi(nied,mnqpte),xme(nied,mnqpte),ymi(nied,mnqpte),yme(nied,mnqpte),xymi(nied,mnqpte),xyme(nied,mnqpte),STAT=alloc_status(2))
+     ALLOCATE(Hi(mnired,mnqpte),He(mnired,mnqpte),Qxi(mnired,mnqpte),Qxe(mnired,mnqpte),Qyi(mnired,mnqpte),Qye(mnired,mnqpte),STAT=alloc_status(1))
+     ALLOCATE(xmi(mnired,mnqpte),xme(mnired,mnqpte),ymi(mnired,mnqpte),yme(mnired,mnqpte),xymi(mnired,mnqpte),xyme(mnired,mnqpte),STAT=alloc_status(2))
 
      ! Flux pointer arrays
-     ALLOCATE(Hfi(nied,mnqpte),Hfe(nied,mnqpte),Qxfi(nied,mnqpte),Qxfe(nied,mnqpte),Qyfi(nied,mnqpte),Qyfe(nied,mnqpte),STAT=alloc_status(3))
+     ALLOCATE(Hfi(mnired,mnqpte),Hfe(mnired,mnqpte),Qxfi(mnired,mnqpte),Qxfe(mnired,mnqpte),Qyfi(mnired,mnqpte),Qyfe(mnired,mnqpte),STAT=alloc_status(3))
        
      ! Edge normals and jacobians
-     ALLOCATE(inx(nied,mnqpte),iny(nied,mnqpte),detJe_in(nied,mnqpte),detJe_ex(nied,mnqpte),STAT=alloc_status(4))      
+     ALLOCATE(inx(mnired,mnqpte),iny(mnired,mnqpte),detJe_in(mnired,mnqpte),detJe_ex(mnired,mnqpte),STAT=alloc_status(4))      
 
      ! Temporary storage arrays, LLF constant and fluxes
-     ALLOCATE(const(nied),Hhatv(nied),Qxhatv(nied),Qyhatv(nied),STAT=alloc_status(5))
+     ALLOCATE(const(mnired),Hhatv(mnired),Qxhatv(mnired),Qyhatv(mnired),STAT=alloc_status(5))
      
       DO i = 1,n
         IF (alloc_status(i) /= 0) THEN

@@ -26,6 +26,8 @@
 
       ! Read in forcing file
       CALL read_forcing()
+      
+      CALL read_message_files()
    
       ! Find edge connectivity
       CALL connect()

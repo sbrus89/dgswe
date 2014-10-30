@@ -55,7 +55,7 @@ ALIGN = #-DALIGN32
 # 	alloc_arrays.o ptr_arrays.o initial.o connect.o element_data.o edge_partition2.o  \
 # 	rk.o rhs2.o rhs3.o rhs4.o numerical_flux.o swe_tri.o
 
-objects = globals.o allocation.o basis.o messenger2.o area_qpts.o edge_qpts.o read_input.o read_grid.o read_forcing.o modal2nodal.o \
+objects = globals.o messenger2.o allocation.o basis.o  area_qpts.o edge_qpts.o read_input.o read_grid.o read_forcing.o modal2nodal.o \
 	initial.o connect.o curvilinear.o element_data.o area_transformation.o edge_transformation.o edge_partition2.o  \
 	area_integration.o edge_integration.o rhs2.o  numerical_flux.o rk.o swe_tri.o
 
@@ -76,7 +76,11 @@ $(ODIR)globals.o : globals.F90
 	$(FC) $(CFLAGS) $(ALIGN) $< -o $@
 	mv globals.mod $(ODIR)
 
-$(ODIR)allocation.o : allocation.f90 globals.F90
+$(ODIR)messenger2.o : messenger2.F90 globals.F90
+	$(FC) $(CFLAGS) $< -o $@
+	mv messenger2.mod $(ODIR)	
+
+$(ODIR)allocation.o : allocation.f90 globals.F90 messenger2.F90
 	$(FC) $(CFLAGS) $< -o $@
 	mv allocation.mod $(ODIR)
 
@@ -84,20 +88,16 @@ $(ODIR)basis.o : basis.f90 globals.F90 allocation.f90
 	$(FC) $(CFLAGS) $< -o $@
 	mv basis.mod $(ODIR)
 
-$(ODIR)messenger2.o : messenger2.F90 globals.F90
-	$(FC) $(CFLAGS) $< -o $@
-	mv messenger2.mod $(ODIR)
-
 $(ODIR)area_qpts.o : area_qpts.f90 globals.F90 allocation.f90
 	$(FC) $(CFLAGS) $< -o $@
 
 $(ODIR)edge_qpts.o : edge_qpts.f90 globals.F90 allocation.f90
 	$(FC) $(CFLAGS) $< -o $@
 
-$(ODIR)read_input.o : read_input.F90 globals.F90
+$(ODIR)read_input.o : read_input.F90 globals.F90 messenger2.F90
 	$(FC) $(CFLAGS) $(RK) $< -o $@
 
-$(ODIR)read_grid.o : read_grid.f90 globals.F90 allocation.f90
+$(ODIR)read_grid.o : read_grid.f90 globals.F90 allocation.f90 messenger2.F90
 	$(FC) $(CFLAGS) $< -o $@
 
 $(ODIR)read_forcing.o : read_forcing.f90 globals.F90 allocation.f90
@@ -109,7 +109,7 @@ $(ODIR)modal2nodal.o : modal2nodal.F90 globals.F90 basis.f90
 $(ODIR)initial.o : initial.f90 globals.F90 allocation.f90
 	$(FC) $(CFLAGS) $< -o $@
 
-$(ODIR)connect.o : connect.f90 globals.F90 allocation.f90
+$(ODIR)connect.o : connect.F90 globals.F90 allocation.f90
 	$(FC) $(CFLAGS) $< -o $@
 
 $(ODIR)curvilinear.o : curvilinear.F90 globals.F90 basis.f90
@@ -148,7 +148,7 @@ $(ODIR)rhs4.o : rhs4.F90 globals.F90
 $(ODIR)numerical_flux.o : numerical_flux.f90 globals.F90
 	$(FC) $(CFLAGS) $< -o $@
 
-$(ODIR)swe_tri.o : swe_tri.F90 globals.F90 basis.f90 allocation.f90
+$(ODIR)swe_tri.o : swe_tri.F90 globals.F90 basis.f90 allocation.f90 messenger2.F90
 	$(FC) $(CFLAGS) $(RK) $< -o $@
 
 .PHONY : clean

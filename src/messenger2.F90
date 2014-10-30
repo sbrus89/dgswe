@@ -30,6 +30,9 @@
       INTEGER :: nred
       INTEGER, ALLOCATABLE, DIMENSION(:) :: redn
       
+      INTEGER :: mnired
+      INTEGER :: mnelred
+      
       TYPE :: edge_ptr_array
         REAL(pres), POINTER :: ptr
       END TYPE edge_ptr_array
@@ -144,13 +147,14 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!      
 
-#ifdef CMPI
+
       SUBROUTINE read_message_files()
       
       USE globals, ONLY: pres,ne,ndof,lines,p
       
       IMPLICIT NONE
       
+#ifdef CMPI      
       INTEGER :: pe,ed,el,j
       LOGICAL :: file_exists
       INTEGER :: npe,tne,mne,ne2,ndof2
@@ -253,10 +257,11 @@
       
  180  FORMAT(8X,9I8)
  181  FORMAT(8X,2I8) 
- 182  FORMAT(8X,I8)      
+ 182  FORMAT(8X,I8) 
+#endif   
       RETURN      
       END SUBROUTINE read_message_files
-#endif      
+    
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

@@ -7,7 +7,8 @@
                          nope,neta,obseg,obnds,nbou,fbseg,nvel,fbnds, &
                          nelnds
                          
-      USE allocation, ONLY: alloc_connect_arrays                   
+      USE allocation, ONLY: alloc_connect_arrays    
+      USE messenger2, ONLY: dirname,lname,myrank,nred,redn      
                          
 
       IMPLICIT NONE
@@ -30,20 +31,11 @@
       IF(alloc_status /= 0) PRINT*, 'Allocation error: bnd_temp,nfbnd_temp,fbnd_temp'
         
       ALLOCATE(ged2nn_temp(2,3*ne),ged2el_temp(2,3*ne),ged2led_temp(2,3*ne),STAT = alloc_status)
-      IF(alloc_status /= 0) PRINT*, 'Allocation error: ged2nn_temp,ged2el_temp,ged2led_temp'
-        
-
-      PRINT "(A)", "---------------------------------------------"
-      PRINT "(A)", "       Edge Connectivity Information         "
-      PRINT "(A)", "---------------------------------------------"
-      PRINT "(A)", " "
+      IF(alloc_status /= 0) PRINT*, 'Allocation error: ged2nn_temp,ged2el_temp,ged2led_temp'       
 
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       ! count the number of elements per node
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-      PRINT "(A)", 'counting elements per node'
-      PRINT "(A)", ' '
 
       nepn(:) = 0
       DO el = 1,ne
@@ -59,26 +51,18 @@
       ! find the maximum number of elements per node
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-      PRINT "(A)", 'finding maximum elements per node'
-
       mnepn = 0
       DO i = 1,nn
         IF(nepn(i) > mnepn) THEN
           mnepn = nepn(i)
         ENDIF
       ENDDO
-
-      PRINT "(A,I7)", '   maximum elements per node:', mnepn
-      PRINT "(A)", ' '
       
       CALL alloc_connect_arrays(1)
 
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       ! find the elements associated with each node
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-      PRINT "(A)", 'finding elements associated with each node'
-      PRINT "(A)", ' '
 
       nepn(:) = 0
       DO el = 1,ne
@@ -97,7 +81,6 @@
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       ! find edge pairs
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-      PRINT "(A)", 'finding edge pairs'
 
           ned = 0
           edflag(:,:) = 0
@@ -161,8 +144,6 @@
       
           ENDDO elem1
 
-      PRINT "(A,I7)", '   number of total edges:', ned
-      PRINT "(A)", ' '
 
       CALL alloc_connect_arrays(2)
 
@@ -176,7 +157,6 @@
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       ! find interior edges
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-      PRINT "(A)", 'finding interior edges'
 
       nied = 0
       ied_temp(:) = 0
@@ -190,13 +170,10 @@
       ENDDO
 
 
-      PRINT "(A,I7)", '   number of interior edges:', nied
-      PRINT "(A)", ' '
 
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       ! find open boundary edges
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-      PRINT "(A)", 'finding open boundary edges'
 
       nobed = 0 
       bnd_temp(:) = 0
@@ -217,13 +194,10 @@
       ENDDO
 
 
-      PRINT "(A,I7)", '   number of open boundary edges:', nobed
-      PRINT "(A)", ' '
 
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       ! find flow boundary edges
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-      PRINT "(A)", 'finding flow boundary edges'
 
       nnfbed = 0 ! # no normal flow edge
       nfbed = 0 ! # flow specifed edges
@@ -278,16 +252,55 @@
       nfbedn(1:nnfbed) = nfbnd_temp(1:nnfbed)
       fbedn(1:nfbed) = fbnd_temp(1:nfbed)
 
-      PRINT "(A,I7)", '   number of specified normal boundary edges:', nfbed
-      PRINT "(A,I7)", '   number of no normal flow boundary edges:', nnfbed
-      PRINT "(A)", ' '
 
-      PRINT "(A,I7)", 'number of missing edges:',ned-(nied+nobed+nfbed+nnfbed)
-      PRINT "(A)", ' '
+      
+      nred = 0
+      
+#ifdef CMPI      
+      DO ged = 1,ned
+        IF(recv_edge(ged) == 1) THEN
+          nred = nred + 1
+        ENDIF
+      ENDDO
+      
+      ALLOCATE(redn(nred))
+      
+      nred = 0
+      DO ged = 1,ned
+        IF(recv_edge(ged) == 1) THEN
+          nred = nred + 1
+          redn(nred) = ged
+        ENDIF
+      ENDDO
+#endif      
 
+
+
+      
+      IF (myrank == 0) THEN
+        PRINT "(A)", "---------------------------------------------"
+        PRINT "(A)", "       Edge Connectivity Information         "
+        PRINT "(A)", "---------------------------------------------"
+        PRINT "(A)", " "        
+        PRINT "(A,I7)", '   maximum elements per node:', mnepn
+        PRINT "(A)", ' '            
+        PRINT "(A,I7)", '   number of total edges:', ned
+        PRINT "(A)", ' '  
+        PRINT "(A,I7)", '   number of interior edges:', nied
+        PRINT "(A)", ' '        
+        PRINT "(A,I7)", '   number of open boundary edges:', nobed
+        PRINT "(A)", ' '                
+        PRINT "(A,I7)", '   number of specified normal boundary edges:', nfbed
+        PRINT "(A,I7)", '   number of no normal flow boundary edges:', nnfbed
+        PRINT "(A)", ' '        
+        PRINT "(A,I7)", '   number of recieve edges:', nred
+        PRINT "(A)", ' ' 
+        PRINT "(A,I7)", '   number of missing edges:',ned-(nied+nobed+nfbed+nnfbed+nred)
+        PRINT "(A)", ' '      
+      ENDIF
 
 ! !       write edge connectivity information in similar format to fort.17
-!       OPEN(UNIT=17,FILE='fort.17')
+!       OPEN(UNIT=17,FILE=dirname(1:lname)//'/'//'fort.17')
 !       
 !       WRITE(17,*) ned
 !       DO i = 1,ned

@@ -83,7 +83,7 @@
         ENDDO
       ENDDO
       
-      
+      CLOSE(15)
       
       IF (myrank == 0) THEN
         PRINT "(A,I5)", 'Number of open boundary forcings',nobfr      
