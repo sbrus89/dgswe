@@ -9,10 +9,10 @@ clc
 % grd_name = 'converge_quad.grd';
 % plot_folder = 'velplot_scale';
 
-% grd_direc = '~/Codes/dgswe/grids/';
-% sol_direc = '~/data-drive/converge_quad/mesh3/P2/CTP2/';
-% grd_name = 'converge_quad3.grd';
-% plot_folder = 'velplot';
+grd_direc = '~/Codes/dgswe/grids/';
+sol_direc = '~/data-drive/converge_quad/mesh1/P3/CTP3/';
+grd_name = 'converge_quad.grd';
+plot_folder = 'velplot';
 
 % grd_direc = '~/data-drive/galveston/dgswe/tri_spline/p3/';
 % sol_direc = '~/data-drive/galveston/dgswe/tri_spline/p3/';
@@ -30,11 +30,11 @@ clc
 % grd_name = 'galveston2.grd';
 % plot_folder = 'velplot_scale';
 
-grd_direc = '~/data-drive/galveston/dgswe/quad2_spline/p1/';
-sol_direc = '~/data-drive/galveston/dgswe/quad2_spline/p1/';
-grd_name = 'galveston2_spline.grd';
-% grd_name = 'galveston2_plot.grd';
-plot_folder = 'velplot_scale';
+% grd_direc = '~/data-drive/galveston/dgswe/quad2_spline/p1/';
+% sol_direc = '~/data-drive/galveston/dgswe/quad2_spline/p1/';
+% grd_name = 'galveston2_spline.grd';
+% % grd_name = 'galveston2_plot.grd';
+% plot_folder = 'velplot_scale';
 
 % grd_direc = '~/data-drive/galveston/dgswe/quad2_spline_channel/p3/';
 % sol_direc = '~/data-drive/galveston/dgswe/quad2_spline_channel/p3/';
@@ -48,10 +48,10 @@ nsnap = 50;
 
 grid_on = 1;
 
-zoom_area = [3.2e5 3.4e5 3.24e6 3.26e6;
-             2.84e5 3.04e5 3.205e6 3.2325e6];
+% zoom_area = [3.2e5 3.4e5 3.24e6 3.26e6;
+%              2.84e5 3.04e5 3.205e6 3.2325e6];
          
-% zoom_area = [];        
+zoom_area = [];        
 
 [nzoom,~] = size(zoom_area);
 
@@ -84,7 +84,7 @@ nel_type = 4;
 
 nvert = zeros(1,nel_type);
 ndof = zeros(1,nel_type);
-m2n = zeros(4,36,nel_type);
+m2n = zeros(9,36,nel_type);
 for et = 1:nel_type
     data  = fscanf(fid, '%d %d \n',2);
     ndof(et) = data(2);
@@ -92,6 +92,9 @@ for et = 1:nel_type
     m2n(1:nvert(et),1:ndof(et),et) = fscanf(fid,' %g ',[ndof(et) nvert(et)])';
 end
 fclose(fid);
+
+% ndof(3) = ndof(1);
+% ndof(4) = ndof(2);
 
 mndof = max(ndof);
 
@@ -211,7 +214,7 @@ end
 
 for tsnap = 1:snap
     
-    figure('visible','off')
+%     figure('visible','off')
     
     axis equal
     
@@ -273,16 +276,16 @@ for tsnap = 1:snap
     end
     axis image
     
-%     pause(.01)
+    pause(.01)
     
-    print('-r350','-dpng',sprintf('%s/vel%04d',FramesFolder,tsnap)) ;
-    print('-depsc',sprintf('%s/vel%04d',FramesFolder,tsnap)) ;
-    
-    for zoom = 1:nzoom
-        axis(zoom_area(zoom,:))
-        print('-r350','-dpng',sprintf('%s/vel%04d_zoom%02d',FramesFolder,tsnap,zoom)) ;
-        print('-depsc',sprintf('%s/vel%04d_zoom%02d',FramesFolder,tsnap,zoom)) ;
-    end
+%     print('-r350','-dpng',sprintf('%s/vel%04d',FramesFolder,tsnap)) ;
+%     print('-depsc',sprintf('%s/vel%04d',FramesFolder,tsnap)) ;
+%     
+%     for zoom = 1:nzoom
+%         axis(zoom_area(zoom,:))
+%         print('-r350','-dpng',sprintf('%s/vel%04d_zoom%02d',FramesFolder,tsnap,zoom)) ;
+%         print('-depsc',sprintf('%s/vel%04d_zoom%02d',FramesFolder,tsnap,zoom)) ;
+%     end
     
     %     figure
     %

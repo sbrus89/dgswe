@@ -2,7 +2,7 @@ FC = ifort
 
 VPATH := ../src
 
-RK = -Drk22
+RK = -Drk33
 LIB_PATH = ../metis-4.0.3/
 LIB = metis
 LAPACK_LIB = lapack
@@ -40,7 +40,7 @@ ALIGN = #-DALIGN32
 # CFLAGS = -c
 # CFLAGS_LINK = -o
 
-# # Debug compilation ###
+# Debug compilation ###
 # CFLAGS_VEC = -c -C -g -traceback
 # CFLAGS = -c -C -g -traceback
 # CFLAGS_LINK = -o

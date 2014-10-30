@@ -503,9 +503,9 @@
 !c     Compute 1-D Legendre-Gauss-Lobotto points on (-1,1)
       call lglpts(p,lgl)
 
-      do i = 1,p+1
-        write(40,*) lgl(i)
-      enddo
+!       do i = 1,p+1
+!         write(40,*) lgl(i)
+!       enddo
 
 !c     Compute equadistant points on (-1,1)
       dx = 2d0/dble(p)
@@ -527,11 +527,10 @@
       call lagrange(p+1,np,xeq,w2e,w2mat)
       call lagrange(p+1,np,xeq,w3e,w3mat)
 
-      do j = 1,np
-        write(50,41) (w1mat(j,i), i = 1,p+1)
-      enddo
-
- 41   format(16000(e24.17,1x))
+!       do j = 1,np
+!         write(50,41) (w1mat(j,i), i = 1,p+1)
+!       enddo
+!  41   format(16000(e24.17,1x))
 
 !c     Compute 1 dimensional mapping functions for edges
 

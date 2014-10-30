@@ -10,10 +10,22 @@
 !./						          ! output directory
 !4                                                        ! npart - edge blocking parameter
 
+/home/sbrus/Codes/dgswe/grids/converge_quad.grd             ! grid file
+/home/sbrus/Codes/dgswe/grids/converge.bfr                  ! forcing file
+3                                                           ! p - polynomial order
+3                                                           ! ctp - parametric coordinate transfomation order
+0.25d0                                                      ! dt - timestep
+1d0                                                         ! tf - final time (days)
+.5d0                                                        ! dramp - ramping parameter (days)
+0.003d0                                                     ! cf - friction coefficient
+20d0                                                        ! lines - lines in output files
+./                                                          ! output directory
+1    
+
 ../grids/converge_quad.grd                                ! grid file  
 ../grids/converge.bfr                                     ! forcing file
-1                                                         ! p - polynomial order
-1                                                         ! ctp - parametric coordinate transformation order
+3                                                         ! p - polynomial order
+3                                                         ! ctp - parametric coordinate transformation order
 .5d0                                                      ! dt - timestep 
 1d0                                                       ! tf - final time (days)
 .08d0                                                     ! dramp - ramping parameter (days)
