@@ -10,3 +10,4 @@ PE*
 *.log
 *.o*
 *.dump
+*.kate-swp
