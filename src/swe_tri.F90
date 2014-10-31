@@ -57,6 +57,10 @@
       
       CALL decomp2()
       
+      CALL message_setup()
+      
+      CALL communication_setup()      
+      
       
 #ifdef openmp
       t_start = omp_get_wtime()
