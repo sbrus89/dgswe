@@ -27,7 +27,7 @@
       
       ! Find the nodes adjacent each node
       ALLOCATE(nadjels(ne))
-      ALLOCATE(adjels(3,ne))
+      ALLOCATE(adjels(4,ne))
       
       nadjels = 0
       DO ed = 1,ned

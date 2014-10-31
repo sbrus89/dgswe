@@ -2,7 +2,7 @@ FC = ifort
 
 VPATH := ../src
 
-LIB_PATH = ../metis-4.0.3/
+LIB_PATH = ../../metis-4.0.3/
 LIB = metis
 ODIR = odir/
 CFLAGS = -c -g -traceback -I$(ODIR)
@@ -12,7 +12,7 @@ obj = $(patsubst %.o, $(ODIR)%.o,$(objects))
 
 dgprep: $(ODIR) $(obj)
 	$(FC) -o dgprep $(obj)  -L$(LIB_PATH) -l$(LIB)
-	cp dgprep ../../dgswe/work
+	cp dgprep ../../work
 
 .PHONY : $(ODIR)
 $(ODIR) : 
