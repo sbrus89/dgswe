@@ -61,19 +61,14 @@ objects = globals.o messenger2.o allocation.o basis.o  area_qpts.o edge_qpts.o r
 	initial.o connect.o curvilinear.o element_data.o area_transformation.o edge_transformation.o edge_partition2.o  \
 	area_integration.o edge_integration.o rhs2.o  numerical_flux.o rk.o swe_tri.o
 
-<<<<<<< Updated upstream
 obj := $(patsubst %.o, $(ODIR)%.o,$(objects))
-=======
-dgswe : $(objects)
-	$(FC) $(CFLAGS_LINK) dgswe $(objects) -L $(LIB_PATH) -l$(LIB) $(LAPACK_LIB)
->>>>>>> Stashed changes
 
 # $< = first prerequisite/depenency
 # $@ = name of the target
 
 
 dgswe : $(ODIR) $(obj)
-	$(FC) $(CFLAGS_LINK) dgswe $(obj) -L $(LIB_PATH) -l$(LIB) -l$(LAPACK_LIB)
+	$(FC) $(CFLAGS_LINK) dgswe $(obj) -L $(LIB_PATH) -l$(LIB) $(LAPACK_LIB)
 
 .PHONY : $(ODIR)
 $(ODIR) :
