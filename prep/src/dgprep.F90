@@ -1,0 +1,50 @@
+      PROGRAM dgprep
+      
+      USE globals
+
+      IMPLICIT NONE
+      
+      INTEGER :: pe
+      REAL :: elsum,elavg,elstd
+
+      PRINT*, "dgprep"
+      PRINT*, " "
+
+      PRINT*, "Input number of processors"
+      READ(*,*) nproc
+      PRINT*, " "
+      
+      CALL read_input()
+      
+      CALL read_grid()
+      
+      CALL read_forcing()
+      
+      CALL edge_connect()
+      
+      CALL metis2()
+      
+      CALL decomp2()
+      
+      CALL write_files()
+      
+      elsum = 0.0
+      DO pe = 1,nproc
+        elsum = elsum + nresel(pe)
+      ENDDO
+      elavg = elsum/nproc
+      
+      PRINT*,"Average elements per partition: " , elavg
+      
+      elsum = 0.0
+      DO pe = 1,nproc
+        elsum = elsum + (nresel(pe)-elavg)**2
+      ENDDO
+      elstd = sqrt(elsum/nproc)
+      
+      PRINT*, "Standard deviation", elstd
+      
+      PRINT*, "Maximum number of elements", MAXVAL(nresel)
+      PRINT*, "Minimum number of elements", MINVAL(nresel)
+      
+      END PROGRAM dgprep
