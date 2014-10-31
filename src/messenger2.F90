@@ -164,8 +164,7 @@
       INQUIRE(FILE=dirname(1:lname)//'/'//'fort.18', EXIST = file_exists)
       IF(file_exists == .FALSE.) THEN
         PRINT*, "fort.18 file does not exist for process", myrank
-        CALL message_final()
-        STOP
+        CALL finish()
       ENDIF     
       
       OPEN(UNIT=18,FILE=dirname(1:lname)//'/'//'fort.18')
@@ -208,8 +207,7 @@
       INQUIRE(FILE=dirname(1:lname)//'/'//'fort.80', EXIST = file_exists)
       IF(file_exists == .FALSE.) THEN
         PRINT*, "fort.80 file does not exist for process", myrank
-        CALL message_final()
-        STOP
+        CALL finish()
       ENDIF   
       
       OPEN(UNIT=80,FILE=dirname(1:lname)//'/'//'fort.80')  
@@ -224,26 +222,22 @@
       ! Check the post processing information against run input 
       IF(npe /= nproc) THEN
         PRINT*, "number of processors does not agree with files"
-        CALL message_final()
-        STOP
+        CALL finish()
       ENDIF
       
       IF(ne /= ne2) THEN
         PRINT*, "number of elements does not agree with files"
-        CALL message_final()
-        STOP
+        CALL finish()
       ENDIF
       
       IF(ndof2 /= (p+2)*(p+1)/2) THEN
         PRINT*, "number of degrees of freedom does not agree with files"
-        CALL message_final()
-        STOP
+        CALL finish()
       ENDIF
       
       IF(lines2 /= lines) THEN
         PRINT*, "number of output lines does not agree with files"
-        CALL message_final()
-        STOP
+        CALL finish()
       ENDIF
       
       ALLOCATE(lel2gel(ne))
@@ -266,7 +260,7 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-#ifdef CMPI
+
       SUBROUTINE message_setup()
       
       USE globals, ONLY: ned,nqpte,edlen,area,normal, &
@@ -278,6 +272,7 @@
       
       IMPLICIT NONE
       
+#ifdef CMPI
       INTEGER :: pe,ed,pt
       INTEGER :: el,led,gpt,ged,el_in
       INTEGER :: i,edcnt
@@ -374,27 +369,28 @@
           
           IF(match == 0) THEN
             PRINT*, "global edge not found for recieve edge"
-            CALL message_final()
-            STOP
+            CALL finish()
           ENDIF
           
           
         ENDDO
       ENDDO
+#endif       
       
       RETURN
       END SUBROUTINE message_setup
-#endif      
+     
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-#ifdef CMPI
+
       SUBROUTINE communication_setup()
       
       USE globals, ONLY: nqpte,pres
       
       IMPLICIT NONE
+#ifdef CMPI      
       
       INTEGER :: pe,tag
       
@@ -438,9 +434,10 @@
 !                             MPI_INFO_NULL,MPI_COMM_WORLD,win(pe))
 !       ENDDO
       
+#endif        
       RETURN
       END SUBROUTINE communication_setup
-#endif      
+    
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
