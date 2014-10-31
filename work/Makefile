@@ -1,4 +1,5 @@
-FC = ifort
+#FC = ifort
+FC = mpif90
 
 VPATH := ../src
 ODIR = odir/
@@ -6,7 +7,8 @@ ODIR = odir/
 RK = -Drk33
 LIB_PATH = ../metis-4.0.3/
 LIB = metis
-LAPACK_LIB = lapack
+#LAPACK_LIB = -llapack
+LAPACK_LIB = -Wl,--start-group   /afs/crc.nd.edu/x86_64_linux/intel/12.1/mkl/lib/intel64/libmkl_intel_lp64.a /afs/crc.nd.edu/x86_64_linux/intel/12.1/mkl/lib/intel64/libmkl_sequential.a  /afs/crc.nd.edu/x86_64_linux/intel/12.1/mkl/lib/intel64/libmkl_core.a -Wl,--end-group -lpthread -lm
 
 CFLAGS_VEC =  -O3 -xHost -vec-report6 -I$(ODIR) -c
 CFLAGS =  -O3 -xHost -I$(ODIR) -c 
@@ -59,7 +61,12 @@ objects = globals.o messenger2.o allocation.o basis.o  area_qpts.o edge_qpts.o r
 	initial.o connect.o curvilinear.o element_data.o area_transformation.o edge_transformation.o edge_partition2.o  \
 	area_integration.o edge_integration.o rhs2.o  numerical_flux.o rk.o swe_tri.o
 
+<<<<<<< Updated upstream
 obj := $(patsubst %.o, $(ODIR)%.o,$(objects))
+=======
+dgswe : $(objects)
+	$(FC) $(CFLAGS_LINK) dgswe $(objects) -L $(LIB_PATH) -l$(LIB) $(LAPACK_LIB)
+>>>>>>> Stashed changes
 
 # $< = first prerequisite/depenency
 # $@ = name of the target
