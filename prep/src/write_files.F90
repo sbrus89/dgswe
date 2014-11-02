@@ -197,6 +197,7 @@
         WRITE(10,"(A)") dirname(1:lname)//'/'//"fort.14"
         WRITE(10,"(A)") dirname(1:lname)//'/'//"fort.15"
         WRITE(10,"(I5)") p
+        WRITE(10,"(I5)") ctp
         WRITE(10,"(E24.17)") dt
         WRITE(10,"(E24.17)") tf
         WRITE(10,"(E24.17)") dramp
