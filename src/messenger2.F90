@@ -263,7 +263,7 @@
 
       SUBROUTINE message_setup()
       
-      USE globals, ONLY: ned,nqpte,edlen,area,normal, &
+      USE globals, ONLY: ned,mnqpte,nqpte,edlen,area,normal, &
                          Hflux,Qxflux,Qyflux, &
                          Hqpt,Qxqpt,Qyqpt, &
                          xmom,ymom,xymom, &
@@ -282,8 +282,8 @@
       
       mnedsr = MAXVAL(ned_sr)
       
-      ALLOCATE(send_ptr(3*mnedsr*nqpte,nproc_sr))
-      ALLOCATE(sol_send(3*mnedsr*nqpte,nproc_sr))
+      ALLOCATE(send_ptr(3*mnedsr*mnqpte,nproc_sr))
+      ALLOCATE(sol_send(3*mnedsr*mnqpte,nproc_sr))
       
       DO pe = 1,nproc_sr
         i = 0
@@ -291,23 +291,23 @@
           el = el_sr(ed,pe)
           el_in = gel2ael(el)
           led = led_sr(ed,pe)          
-          DO pt = 1,nqpte
+          DO pt = 1,nqpte(1)
             i = i+1
-            gpt = (led-1)*nqpte + pt
+            gpt = (led-1)*nqpte(1) + pt
             send_ptr(i,pe)%ptr => Hqpt(el_in,gpt)
-            send_ptr(ned_sr(pe)*nqpte + i,pe)%ptr => Qxqpt(el_in,gpt)
-            send_ptr(2*ned_sr(pe)*nqpte + i,pe)%ptr => Qyqpt(el_in,gpt)
+            send_ptr(ned_sr(pe)*nqpte(1) + i,pe)%ptr => Qxqpt(el_in,gpt)
+            send_ptr(2*ned_sr(pe)*nqpte(1) + i,pe)%ptr => Qyqpt(el_in,gpt)
           ENDDO
         ENDDO
       ENDDO
       
       
-      ALLOCATE(sol_recv(3*mnedsr*nqpte,nproc_sr))
-      ALLOCATE(Hre(nred,nqpte),Qxre(nred,nqpte),Qyre(nred,nqpte))
-      ALLOCATE(Hri(nred,nqpte),Qxri(nred,nqpte),Qyri(nred,nqpte))
-      ALLOCATE(xmri(nred,nqpte),ymri(nred,nqpte),xymri(nred,nqpte))
+      ALLOCATE(sol_recv(3*mnedsr*mnqpte,nproc_sr))
+      ALLOCATE(Hre(nred,mnqpte),Qxre(nred,mnqpte),Qyre(nred,mnqpte))
+      ALLOCATE(Hri(nred,mnqpte),Qxri(nred,mnqpte),Qyri(nred,mnqpte))
+      ALLOCATE(xmri(nred,mnqpte),ymri(nred,mnqpte),xymri(nred,mnqpte))
       ALLOCATE(xmre(nred),ymre(nred),xymre(nred))
-      ALLOCATE(Hfri(nred,nqpte),Qxfri(nred,nqpte),Qyfri(nred,nqpte))      
+      ALLOCATE(Hfri(nred,mnqpte),Qxfri(nred,mnqpte),Qyfri(nred,mnqpte))      
       
       edcnt = 0     
       DO pe = 1,nproc_sr
@@ -316,16 +316,16 @@
           edcnt = edcnt + 1
           el = el_sr(ed,pe)
           led = led_sr(ed,pe)
-          DO pt = 1,nqpte
+          DO pt = 1,nqpte(1)
             i = i+1
             
-            gp_ex = nqpte - pt + 1
+            gp_ex = nqpte(1) - pt + 1
             
             Hre(edcnt,gp_ex)%ptr => sol_recv(i,pe)
-            Qxre(edcnt,gp_ex)%ptr => sol_recv(ned_sr(pe)*nqpte + i,pe)
-            Qyre(edcnt,gp_ex)%ptr => sol_recv(2*ned_sr(pe)*nqpte + i,pe)
+            Qxre(edcnt,gp_ex)%ptr => sol_recv(ned_sr(pe)*nqpte(1) + i,pe)
+            Qyre(edcnt,gp_ex)%ptr => sol_recv(2*ned_sr(pe)*nqpte(1) + i,pe)
             
-            gp_in = (led-1)*nqpte + pt
+            gp_in = (led-1)*nqpte(1) + pt
             el_in = gel2ael(el)
             
             Hri(edcnt,pt)%ptr  => Hqpt(el_in,gp_in)
@@ -401,24 +401,24 @@
       tag = 1
       
       DO pe = 1,nproc_sr
-        CALL MPI_RECV_INIT(sol_recv(1,pe),3*ned_sr(pe)*nqpte,MPI_DOUBLE_PRECISION,proc_sr(pe), &
+        CALL MPI_RECV_INIT(sol_recv(1,pe),3*ned_sr(pe)*nqpte(1),MPI_DOUBLE_PRECISION,proc_sr(pe), &
                            tag,comm_dist_graph,solreq_recv(pe),ierr)
 
-!        CALL MPI_RECV_INIT(sol_recv(1,pe),3*ned_sr(pe)*nqpte,MPI_DOUBLE_PRECISION,proc_sr(pe), &
+!        CALL MPI_RECV_INIT(sol_recv(1,pe),3*ned_sr(pe)*nqpte(1),MPI_DOUBLE_PRECISION,proc_sr(pe), &
 !                           tag,MPI_COMM_WORLD,solreq_recv(pe),ierr)
 
-!        CALL MPI_RECV_INIT(sol_recv(1,pe),3*ned_sr(pe)*nqpte,MPI_DOUBLE_PRECISION,pe, &
+!        CALL MPI_RECV_INIT(sol_recv(1,pe),3*ned_sr(pe)*nqpte(1),MPI_DOUBLE_PRECISION,pe, &
 !                           tag,comp_comm,solreq_recv(pe),ierr)
       ENDDO
       
       DO pe = 1,nproc_sr
-        CALL MPI_SEND_INIT(sol_send(1,pe),3*ned_sr(pe)*nqpte,MPI_DOUBLE_PRECISION,proc_sr(pe), &
+        CALL MPI_SEND_INIT(sol_send(1,pe),3*ned_sr(pe)*nqpte(1),MPI_DOUBLE_PRECISION,proc_sr(pe), &
                            tag,comm_dist_graph,solreq_send(pe),ierr)
 
-!        CALL MPI_SEND_INIT(sol_send(1,pe),3*ned_sr(pe)*nqpte,MPI_DOUBLE_PRECISION,proc_sr(pe), &
+!        CALL MPI_SEND_INIT(sol_send(1,pe),3*ned_sr(pe)*nqpte(1),MPI_DOUBLE_PRECISION,proc_sr(pe), &
 !                           tag,MPI_COMM_WORLD,solreq_send(pe),ierr)                           
 
-!        CALL MPI_SEND_INIT(sol_send(1,pe),3*ned_sr(pe)*nqpte,MPI_DOUBLE_PRECISION,pe, &
+!        CALL MPI_SEND_INIT(sol_send(1,pe),3*ned_sr(pe)*nqpte(1),MPI_DOUBLE_PRECISION,pe, &
 !                           tag,comp_comm,solreq_send(pe),ierr)                                 
       ENDDO
 
@@ -430,7 +430,7 @@
 !       ALLOCATE(win(nproc_sr))
 !       
 !       DO pe = 1,nproc_sr
-!         CALL MPI_Win_create(sol_send(1,pe),3*ned_sr(pe)*nqpte*pres,pres, &
+!         CALL MPI_Win_create(sol_send(1,pe),3*ned_sr(pe)*nqpte(1)*pres,pres, &
 !                             MPI_INFO_NULL,MPI_COMM_WORLD,win(pe))
 !       ENDDO
       
@@ -466,7 +466,7 @@
       INTEGER :: pe,i
       
       DO pe = 1,nproc_sr
-        DO i = 1,3*ned_sr(pe)*nqpte
+        DO i = 1,3*ned_sr(pe)*nqpte(1)
         
           sol_send(i,pe) = send_ptr(i,pe)%ptr
           
