@@ -11,7 +11,7 @@
       IMPLICIT NONE
       INTEGER :: bfr,node,seg,segtype
       REAL(pres) :: deg2rad
-      LOGICAL :: file_exists
+      LOGICAL :: file_exists,any_nfb
 
       deg2rad = pi/180d0
       
@@ -53,35 +53,45 @@
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       ! Read in flow boundary forcing data
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      
+      any_nfb = .false. ! determine if there are normal flow boundaries
+      DO seg = 1,nbou
+        segtype = fbseg(2,seg)
+        IF(segtype == 2 .OR. segtype == 12 .OR. segtype == 22)THEN
+          any_nfb = .true.
+        ENDIF        
+      ENDDO      
 
-      READ(15,*) nfbfr
+      IF (any_nfb) THEN
+        READ(15,*) nfbfr
 
-      CALL alloc_forcing_arrays(2)
+        CALL alloc_forcing_arrays(2)
 
-      DO bfr = 1,nfbfr
-        READ(15,*) fbtag(bfr)     
-        READ(15,*) fbfreq(bfr),fbnfact(bfr),fbeq(bfr)
-        fbeq(bfr) = fbeq(bfr)*deg2rad
-        IF(fbfreq(bfr) == 0.) THEN
-          fbper(bfr) = 1d0
-        ELSE
-          fbper(bfr) = 2d0*pi/fbfreq(bfr)        
-        ENDIF
-      ENDDO
-
-
-      DO bfr = 1,nfbfr
-        READ(15,*) fbtag2(bfr) 
-        DO seg = 1,nbou
-            segtype = fbseg(2,seg)
-            IF(segtype == 2 .OR. segtype == 12 .OR. segtype == 22)THEN
-            DO node = 1,fbseg(1,seg)
-              READ(15,*) fbamp(node,bfr),fbph(node,bfr)
-              fbph(node,bfr) = fbph(node,bfr)*deg2rad
-            ENDDO
+        DO bfr = 1,nfbfr
+          READ(15,*) fbtag(bfr)     
+          READ(15,*) fbfreq(bfr),fbnfact(bfr),fbeq(bfr)
+          fbeq(bfr) = fbeq(bfr)*deg2rad
+          IF(fbfreq(bfr) == 0.) THEN
+            fbper(bfr) = 1d0
+          ELSE
+            fbper(bfr) = 2d0*pi/fbfreq(bfr)        
           ENDIF
         ENDDO
-      ENDDO
+
+
+        DO bfr = 1,nfbfr
+          READ(15,*) fbtag2(bfr) 
+          DO seg = 1,nbou
+            segtype = fbseg(2,seg)
+            IF(segtype == 2 .OR. segtype == 12 .OR. segtype == 22)THEN
+              DO node = 1,fbseg(1,seg)
+                READ(15,*) fbamp(node,bfr),fbph(node,bfr)
+                fbph(node,bfr) = fbph(node,bfr)*deg2rad
+              ENDDO
+            ENDIF
+          ENDDO
+        ENDDO
+      ENDIF
       
       CLOSE(15)
       
