@@ -25,6 +25,8 @@
       INTEGER, ALLOCATABLE, DIMENSION(:) :: ied_temp,bnd_temp,nfbnd_temp,fbnd_temp ! temporary arrary for boundary edges
       INTEGER, ALLOCATABLE, DIMENSION(:,:) :: ged2nn_temp, ged2el_temp, ged2led_temp ! temporary arrays for edge connectivity
       INTEGER, ALLOCATABLE, DIMENSION(:,:) :: edflag
+      
+      INTEGER, ALLOCATABLE, DIMENSION(:) :: recv_edge      
 
 
       ALLOCATE(ied_temp(3*ne),bnd_temp(3*ne),nfbnd_temp(3*ne),fbnd_temp(3*ne),STAT = alloc_status)
@@ -157,6 +159,9 @@
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       ! find interior edges
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      
+      ALLOCATE(recv_edge(ned))
+      recv_edge = 1      
 
       nied = 0
       ied_temp(:) = 0
@@ -166,6 +171,7 @@
         IF ((el1 /= 0) .AND. (el2 /= 0)) THEN
           nied = nied + 1
           ied_temp(nied) = ged
+          recv_edge(ged) = 0          
         ENDIF
       ENDDO
 
@@ -188,6 +194,7 @@
                ((n1ed2 == n2bed).AND.(n2ed2 == n1bed))) THEN
               nobed = nobed + 1
               bnd_temp(nobed) = ed2
+              recv_edge(ged) = 0              
             ENDIF
           ENDDO
         ENDDO
@@ -225,6 +232,7 @@
                   segtype == 1 .OR. segtype == 11 .OR. segtype == 21 ) THEN
                 nnfbed = nnfbed + 1
                 nfbnd_temp(nnfbed) = ed2
+                recv_edge(ged) = 0
                 found = 1
               ENDIF
 
@@ -232,6 +240,7 @@
               IF ( segtype == 2 .OR. segtype == 12 .OR. segtype == 22 ) THEN
                 nfbed = nfbed + 1
                 fbnd_temp(nfbed) = ed2
+                recv_edge(ged) = 0
                 found = 1
               ENDIF
 
