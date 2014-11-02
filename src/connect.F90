@@ -194,7 +194,7 @@
                ((n1ed2 == n2bed).AND.(n2ed2 == n1bed))) THEN
               nobed = nobed + 1
               bnd_temp(nobed) = ed2
-              recv_edge(ged) = 0              
+              recv_edge(ed2) = 0              
             ENDIF
           ENDDO
         ENDDO
@@ -232,7 +232,7 @@
                   segtype == 1 .OR. segtype == 11 .OR. segtype == 21 ) THEN
                 nnfbed = nnfbed + 1
                 nfbnd_temp(nnfbed) = ed2
-                recv_edge(ged) = 0
+                recv_edge(ed2) = 0
                 found = 1
               ENDIF
 
@@ -240,7 +240,7 @@
               IF ( segtype == 2 .OR. segtype == 12 .OR. segtype == 22 ) THEN
                 nfbed = nfbed + 1
                 fbnd_temp(nfbed) = ed2
-                recv_edge(ged) = 0
+                recv_edge(ed2) = 0
                 found = 1
               ENDIF
 
