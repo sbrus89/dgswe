@@ -62,6 +62,7 @@
         ENDIF        
       ENDDO      
 
+      nfbfr = 0
       IF (any_nfb) THEN
         READ(15,*) nfbfr
 
