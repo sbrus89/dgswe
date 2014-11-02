@@ -5,7 +5,7 @@
                          nobfr,obtag,obtag2,obfreq,obnfact,obeq,lobamp,lobph, &
                          nfbfr,fbtag,fbtag2,fbfreq,fbnfact,fbeq,lfbamp,lfbph,lnbouf, &
                          nsred,ned_sr,pe_sr,el_sr,led_sr,el_l2g, &
-                         grid_file,forcing_file,p,dt,tf,dramp,cf,lines,nblk,npart,ndof
+                         grid_file,forcing_file,p,ctp,dt,tf,dramp,cf,lines,nblk,npart,ndof
 
       IMPLICIT NONE
 
