@@ -203,7 +203,7 @@
         WRITE(10,"(E24.17)") dramp
         WRITE(10,"(E24.17)") cf
         WRITE(10,"(I7)") int(lines)
-        WRITE(10,"(A)") "./"
+        WRITE(10,"(A)") './' // dirname(1:lname) // '/'
         WRITE(10,"(I5)") npart
         
         CLOSE(10)
