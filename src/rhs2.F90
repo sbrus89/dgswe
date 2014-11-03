@@ -33,7 +33,9 @@
                             Hri,Hre,Qxri,Qxre,Qyri,Qyre, &
                             xmri,ymri,xymri,xmre,ymre,xymre, &
                             Hfri,Qxfri,Qyfri, &
-                            rnx,rny,detJe_recv                          
+                            rnx,rny,detJe_recv         
+                            
+      USE mpi                            
 #endif       
 !$    USE omp_lib                          
                           
