@@ -106,7 +106,7 @@
         PRINT "(A,I5)", 'Number of flow boundary forcings',nfbfr      
         IF (nfbfr > 0) THEN
           DO bfr = 1,nfbfr
-            PRINT "(A,A)", "  ",obtag(bfr)        
+            PRINT "(A,A)", "  ",fbtag(bfr)        
           ENDDO      
         ENDIF
       ENDIF
