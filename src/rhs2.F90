@@ -25,7 +25,16 @@
                           const,inx,iny,detJe_in,detJe_ex,detJe,nx_pt,ny_pt, &
                           Hhatv,Qxhatv,Qyhatv, &
                           MirhsH,MirhsQx,MirhsQy
-
+                          
+#ifdef CMPI                          
+      USE messenger2, ONLY: message_recieve,message_send, &
+                            nred,nproc_sr, &
+                            solreq,solreq_send,solreq_recv,ierr, &
+                            Hri,Hre,Qxri,Qxre,Qyri,Qyre, &
+                            xmri,ymri,xymri,xmre,ymre,xymre, &
+                            Hfri,Qxfri,Qyfri, &
+                            rnx,rny,detJe_recv                          
+#endif       
 !$    USE omp_lib                          
                           
                    
@@ -91,6 +100,11 @@
 !     ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !     c Edge Integrals
 !     ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc 
+
+#ifdef CMPI 
+!       post a non-blocking recieve from all processes
+      CALL message_recieve()
+#endif    
       
 
 !$OMP do
@@ -136,6 +150,15 @@ ed_points: DO pt = 1,nverts(et)*nqpte(et)
           ENDDO ed_points
          ENDIF
         ENDDO
+        
+#ifdef CMPI    
+       ! Post an non-blocking send to all processes 
+       ! all edge quadrature point evaluations have been completed 
+       ! for edges in this subdomain and can be passed to the neighbors 
+       ! Send will overlap with internal edge numerical flux calculations
+       
+       CALL message_send()
+#endif           
                   
         
 ed_points2: DO pt = 1,nqpte(1) ! Compute numerical fluxes for all edges
@@ -235,7 +258,64 @@ ed_points2: DO pt = 1,nqpte(1) ! Compute numerical fluxes for all edges
                 Qyfi(ed,pt)%ptr =  detJe_in(ed,pt)*Qyhatv(ed)
               ENDDO
 
-        ENDDO         
+        ENDDO     
+        
+#ifdef CMPI      
+
+      CALL MPI_WAITALL(2*nproc_sr,solreq,MPI_STATUSES_IGNORE,ierr)
+
+      
+      DO pt = 1,nqpte(1)
+      
+!!DIR$ VECTOR ALIGNED      
+        DO ed = 1,nred
+          const(ed) = max(abs(Qxri(ed,pt)%ptr*rnx(ed,pt) + Qyri(ed,pt)%ptr*rny(ed,pt))/Hri(ed,pt)%ptr + sqrt(g*Hri(ed,pt)%ptr), &
+                          abs(Qxre(ed,pt)%ptr*rnx(ed,pt) + Qyre(ed,pt)%ptr*rny(ed,pt))/Hre(ed,pt)%ptr + sqrt(g*Hre(ed,pt)%ptr))          
+        ENDDO
+        
+
+!DIR$ IVDEP
+!!DIR$ VECTOR ALIGNED
+        DO ed = 1,nred
+          Hhatv(ed) = .5d0*(rnx(ed,pt)*(Qxri(ed,pt)%ptr + Qxre(ed,pt)%ptr) + rny(ed,pt)*(Qyri(ed,pt)%ptr + Qyre(ed,pt)%ptr) &
+                                        - const(ed)*(Hre(ed,pt)%ptr - Hri(ed,pt)%ptr))
+        ENDDO
+
+!DIR$ IVDEP
+!!DIR$ VECTOR ALIGNED        
+        DO ed = 1,nred
+          recipHa(ed) = 1d0/Hre(ed,pt)%ptr
+          
+          xmre(ed) = pt5g*Hre(ed,pt)%ptr*Hre(ed,pt)%ptr + Qxre(ed,pt)%ptr*Qxre(ed,pt)%ptr*recipHa(ed)
+          ymre(ed) = pt5g*Hre(ed,pt)%ptr*Hre(ed,pt)%ptr + Qyre(ed,pt)%ptr*Qyre(ed,pt)%ptr*recipHa(ed)
+          xymre(ed) = Qxre(ed,pt)%ptr*Qyre(ed,pt)%ptr*recipHa(ed)
+        ENDDO
+ 
+!DIR$ IVDEP
+!!DIR$ VECTOR ALIGNED 
+        DO ed = 1,nred
+          Qxhatv(ed) = .5d0*(rnx(ed,pt)*(xmri(ed,pt)%ptr + xmre(ed)) + rny(ed,pt)*(xymri(ed,pt)%ptr + xymre(ed))  &
+                                        - const(ed)*(Qxre(ed,pt)%ptr - Qxri(ed,pt)%ptr))
+        ENDDO
+  
+!DIR$ IVDEP
+!!DIR$ VECTOR ALIGNED  
+        DO ed = 1,nred
+          Qyhatv(ed) = .5d0*(rnx(ed,pt)*(xymri(ed,pt)%ptr + xymre(ed)) + rny(ed,pt)*(ymri(ed,pt)%ptr + ymre(ed))  &
+                                        - const(ed)*(Qyre(ed,pt)%ptr - Qyri(ed,pt)%ptr))
+        ENDDO
+
+        DO ed = 1,nred                                       
+          Hfri(ed,pt)%ptr =  detJe_recv(ed,pt)*Hhatv(ed)
+        ENDDO   
+        DO ed = 1,nred                                         
+          Qxfri(ed,pt)%ptr =  detJe_recv(ed,pt)*Qxhatv(ed)        
+        ENDDO        
+        DO ed = 1,nred 
+          Qyfri(ed,pt)%ptr =  detJe_recv(ed,pt)*Qyhatv(ed)        
+        ENDDO
+      ENDDO
+#endif              
         
       ENDDO
 !$OMP end do

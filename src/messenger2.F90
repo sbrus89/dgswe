@@ -50,8 +50,8 @@
 
       TYPE(edge_ptr_array), ALLOCATABLE, DIMENSION(:,:) :: send_ptr    
       
-      REAL(pres), ALLOCATABLE, DIMENSION(:) :: rnx,rny
-      REAL(pres), ALLOCATABLE, DIMENSION(:) :: len_area_recv      
+      REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: rnx,rny
+      REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: detJe_recv      
       
       INTEGER, ALLOCATABLE, DIMENSION(:) :: solreq_recv
       INTEGER, ALLOCATABLE, DIMENSION(:) :: solreq_send
@@ -263,7 +263,7 @@
 
       SUBROUTINE message_setup()
       
-      USE globals, ONLY: ned,mnqpte,nqpte,edlen,area,normal, &
+      USE globals, ONLY: ned,mnqpte,nqpte,detJe,nx_pt,ny_pt, &
                          Hflux,Qxflux,Qyflux, &
                          Hqpt,Qxqpt,Qyqpt, &
                          xmom,ymom,xymom, &
@@ -343,7 +343,7 @@
         ENDDO
       ENDDO
       
-      ALLOCATE(rnx(nred),rny(nred),len_area_recv(nred))
+      ALLOCATE(rnx(nred,mnqpte),rny(nred,mnqpte),detJe_recv(nred,mnqpte))
       
       edcnt = 0
       DO pe = 1,nproc_sr
@@ -357,10 +357,13 @@
           DO i = 1,nred
             ged = redn(i)
             IF(el == ged2el(1,ged) .and. led == ged2led(1,ged)) THEN
-              rnx(edcnt) = normal(1,ged)
-              rny(edcnt) = normal(2,ged)
+            
+              DO pt = 1,nqpte(1)
+                rnx(edcnt,pt) = nx_pt(ged,pt)
+                rny(edcnt,pt) = ny_pt(ged,pt)
               
-              len_area_recv(edcnt) = edlen(ged)/area(el)
+                detJe_recv(edcnt,pt) = detJe(ged,pt)
+              ENDDO
               
               match = 1
               
@@ -473,8 +476,8 @@
         ENDDO
       ENDDO
       
-!      CALL MPI_STARTALL(nproc_sr,solreq_send,ierr)
-      CALL MPI_STARTALL(2*nproc_sr,solreq,ierr)
+     CALL MPI_STARTALL(nproc_sr,solreq_send,ierr)
+!       CALL MPI_STARTALL(2*nproc_sr,solreq,ierr)
       
       RETURN
       END SUBROUTINE message_send
