@@ -230,7 +230,7 @@
         CALL finish()
       ENDIF
       
-      IF(ndof2 /= (p+2)*(p+1)/2) THEN
+      IF(ndof2 /= (p+1)**2) THEN
         PRINT*, "number of degrees of freedom does not agree with files"
         CALL finish()
       ENDIF
