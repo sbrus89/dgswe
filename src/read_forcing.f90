@@ -97,14 +97,18 @@
       CLOSE(15)
       
       IF (myrank == 0) THEN
-        PRINT "(A,I5)", 'Number of open boundary forcings',nobfr      
-        DO bfr = 1,nobfr
-          PRINT "(A,A)", "  ",obtag(bfr)
-        ENDDO      
+        PRINT "(A,I5)", 'Number of open boundary forcings',nobfr  
+        IF (nobfr > 0) THEN
+          DO bfr = 1,nobfr
+            PRINT "(A,A)", "  ",obtag(bfr)
+          ENDDO      
+        ENDIF
         PRINT "(A,I5)", 'Number of flow boundary forcings',nfbfr      
-        DO bfr = 1,nfbfr
-          PRINT "(A,A)", "  ",obtag(bfr)        
-        ENDDO      
+        IF (nfbfr > 0) THEN
+          DO bfr = 1,nfbfr
+            PRINT "(A,A)", "  ",obtag(bfr)        
+          ENDDO      
+        ENDIF
       ENDIF
 
 
