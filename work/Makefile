@@ -5,8 +5,8 @@ VPATH := ../src
 ODIR = odir/
 
 RK = -Drk33
-LIB_PATH = ../metis-4.0.3/
-LIB = metis
+METIS_PATH = ../metis-4.0.3/
+METIS_LIB = metis
 #LAPACK_LIB = -llapack
 LAPACK_LIB = -Wl,--start-group   /afs/crc.nd.edu/x86_64_linux/intel/12.1/mkl/lib/intel64/libmkl_intel_lp64.a /afs/crc.nd.edu/x86_64_linux/intel/12.1/mkl/lib/intel64/libmkl_sequential.a  /afs/crc.nd.edu/x86_64_linux/intel/12.1/mkl/lib/intel64/libmkl_core.a -Wl,--end-group -lpthread -lm
 
@@ -68,7 +68,7 @@ obj := $(patsubst %.o, $(ODIR)%.o,$(objects))
 
 
 dgswe : $(ODIR) $(obj)
-	$(FC) $(CFLAGS_LINK) dgswe $(obj) -L $(LIB_PATH) -l$(LIB) $(LAPACK_LIB)
+	$(FC) $(CFLAGS_LINK) dgswe $(obj) -L $(METIS_PATH) -l$(METIS_LIB) $(LAPACK_LIB)
 
 .PHONY : $(ODIR)
 $(ODIR) :
@@ -79,7 +79,7 @@ $(ODIR)globals.o : globals.F90
 	mv globals.mod $(ODIR)
 
 $(ODIR)messenger2.o : messenger2.F90 globals.F90
-	$(FC) $(CFLAGS) $< -o $@
+	$(FC) $(CFLAGS) $(ALIGN) $< -o $@
 	mv messenger2.mod $(ODIR)	
 
 $(ODIR)allocation.o : allocation.f90 globals.F90 messenger2.F90
@@ -138,7 +138,7 @@ $(ODIR)edge_integration.o : edge_integration.F90 globals.F90
 $(ODIR)rk.o : rk.F90 globals.F90
 	$(FC) $(CFLAGS_VEC) $(RK) $< -o $@
 
-$(ODIR)rhs2.o : rhs2.f90 globals.F90
+$(ODIR)rhs2.o : rhs2.F90 globals.F90 messenger2.F90
 	$(FC) $(CFLAGS_VEC) $< -o $@
 
 $(ODIR)rhs3.o : rhs3.F90 globals.F90
