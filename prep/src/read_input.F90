@@ -1,7 +1,7 @@
       SUBROUTINE read_input()
 
       USE globals, ONLY: grid_file,forcing_file,out_direc, &
-                         p,ctp,dt,tf,dramp,cf,lines,nblk,npart,ndof
+                         p,ctp,dt,tf,dramp,cf,lines,nblk,npart,mndof
 
       IMPLICIT NONE
       
@@ -75,7 +75,7 @@
       
       ENDDO
       
-      ndof = (p+2)*(p+1)/2
+      mndof = (p+1)**2
       
       PRINT*, " "
       PRINT*, "Lines skipped: ", skipped

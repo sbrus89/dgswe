@@ -23,7 +23,7 @@
       REAL(pres) :: lines
       INTEGER :: nblk
       INTEGER :: npart
-      INTEGER :: ndof
+      INTEGER :: mndof
       
       INTEGER :: nproc
 

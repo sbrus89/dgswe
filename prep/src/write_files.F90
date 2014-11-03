@@ -5,7 +5,7 @@
                          nobfr,obtag,obtag2,obfreq,obnfact,obeq,lobamp,lobph, &
                          nfbfr,fbtag,fbtag2,fbfreq,fbnfact,fbeq,lfbamp,lfbph,lnbouf, &
                          nsred,ned_sr,pe_sr,el_sr,led_sr,el_l2g, &
-                         grid_file,forcing_file,p,ctp,dt,tf,dramp,cf,lines,nblk,npart,ndof
+                         grid_file,forcing_file,p,ctp,dt,tf,dramp,cf,lines,nblk,npart,mndof
 
       IMPLICIT NONE
 
@@ -180,7 +180,7 @@
         WRITE(80,*) ne
         WRITE(80,*) MAXVAL(nresel)
         WRITE(80,*) nresel(pe)
-        WRITE(80,*) ndof
+        WRITE(80,*) mndof
         WRITE(80,*) lines
         
         DO el = 1,nresel(pe)
