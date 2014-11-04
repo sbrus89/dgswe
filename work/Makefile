@@ -165,3 +165,21 @@ metis :
 cleanmetis : 
 	$(MAKE) -C ../metis-4.0.3/ clean
 
+.PHONY : prep
+prep : 
+	$(MAKE) -C ../prep/work/ dgprep
+
+.PHONY : cleanprep
+cleanprep : 
+	$(MAKE) -C ../prep/work/ clean
+	
+.PHONY : post
+post : 
+	$(MAKE) -C ../post dgpost
+	
+.PHONY : cleanpost
+cleanpost : 
+	$(MAKE) -C ../post clean
+	
+	
+

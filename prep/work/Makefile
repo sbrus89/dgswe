@@ -52,11 +52,11 @@ $(ODIR)dgprep.o : dgprep.F90 globals.F90
 
 .PHONY : metis
 metis : 
-	$(MAKE) -C ../metis-4.0.3/
+	$(MAKE) -C ../../metis-4.0.3/
 
 .PHONY : cleanmetis
 cleanmetis : 
-	$(MAKE) -C ../metis-4.0.3/ clean
+	$(MAKE) -C ../../metis-4.0.3/ clean
 
 .PHONY : clean
 clean : 
