@@ -16,32 +16,45 @@ title = agrid ;
 
 N = fscanf(fid,'%g %g',2) ;
 
-curved_grid = 0;
-if N(2)/N(1) > 3 % might need to be 2 for curved tri grids
-   curved_grid = 1; 
-end
+% curved_grid = 0;
+% if N(2)/N(1) > 3 % might need to be 2 for curved tri grids
+%    curved_grid = 1 
+% end
 
 Val = fscanf(fid,'%d %g %g %g \n', [4 N(2)])' ;
 
 iv = sort(Val(:,1)) ;
 Val = Val(iv,:) ; 
 
-if curved_grid == 1
-    idx = fscanf(fid,'%d %d %d %d %d %d %d %d %d %d %d \n', [11 N(1)])' ;
-else
-    idx = fscanf(fid,'%d %d %d %d %d %d \n', [6 N(1)])' ;
+% if curved_grid == 1
+%     idx = fscanf(fid,'%d %d %d %d %d %d %d %d %d %d %d \n', [11 N(1)])' ;
+% else
+% %     idx = fscanf(fid,'%d %d %d %d %d %d \n', [6 N(1)])' ;
+%     idx = fscanf(fid,'%d %d %d %d %d \n', [5 N(1)])' ;
+% end
+
+idx = zeros(N(1),11);
+for i = 1:N(1)
+    line = fgetl(fid);
+    v = sscanf(line,'%d',11)';
+    idx(i,1) = v(1);
+    idx(i,2) = v(2);
+    idx(i,3:v(2)+2) = v(3:v(2)+2);
 end
+
 iv = sort(idx(:,1)) ;
 idx = idx(iv,:) ; 
 
 % Arrange it to a Nodal DG input
 VX = Val(:,2:3) ;
 B  = Val(:,4) ;
-if curved_grid == 1
-    EToV = idx(:,3:11) ;
-else
-    EToV = idx(:,3:6) ;
-end
+% if curved_grid == 1
+%     EToV = idx(:,3:11) ;
+% else
+% %     EToV = idx(:,3:6) ;
+%     EToV = idx(:,3:5);
+% end
+EToV = idx(:,3:end);
 nelnds = idx(:,2);
 
 % Read in boundary

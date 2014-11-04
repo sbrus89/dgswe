@@ -12,8 +12,8 @@ node = 'off';
 
 p = 1 ;
 
-grd_direc = '/home/sbrus/Codes/spline/';
-grd_name = 'galveston_tri_spline.grd';
+grd_direc = '~/data-drive/galveston/dgswe/quad2_spline/p1/';
+grd_name = 'galveston2_spline.grd';
 
 [EToV,VX,HB,nelnds,~,~,~] = readfort14([grd_direc,grd_name]);
 [ne,nc] = size(EToV);

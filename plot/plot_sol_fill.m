@@ -6,19 +6,18 @@ clc
 % grd_direc = '~/Codes/dgswe/grids/';
 % sol_direc = '~/Codes/dgswe/output/';
 % % grd_name = 'inlet1_quad.grd';
-% grd_name = 'converge_quad.grd';
-% plot_folder = 'velplot_scale';
+% grd_name = 'converge.grd';
+% plot_folder = 'velplot';
 
-grd_direc = '~/Codes/dgswe/grids/';
-sol_direc = '~/data-drive/converge_quad/mesh1/P3/CTP3/';
-grd_name = 'converge_quad.grd';
-plot_folder = 'velplot';
+% grd_direc = '~/Codes/dgswe/grids/';
+% sol_direc = '~/data-drive/converge_quad/mesh1/P3/CTP3/';
+% grd_name = 'converge_quad.grd';
+% plot_folder = 'velplot';
 
 % grd_direc = '~/data-drive/galveston/dgswe/tri_spline/p3/';
 % sol_direc = '~/data-drive/galveston/dgswe/tri_spline/p3/';
 % grd_name = 'galveston_tri_spline.grd';
 % plot_folder = 'velplot_scale';
-
 
 % grd_direc = '~/data-drive/galveston/dgswe/tri/p3/';
 % sol_direc = '~/data-drive/galveston/dgswe/tri/p3/';

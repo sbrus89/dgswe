@@ -48,6 +48,9 @@ for i = 1: Nel
     
     % Plot polygonal %
     ngon = EToV(i,1) ;
+    if ngon == 9
+       ngon = 8; 
+    end
     vx  = VK(EToV(i,2:ngon+1),:) ;
     for ig = 1: ngon
         ib = ig ;
