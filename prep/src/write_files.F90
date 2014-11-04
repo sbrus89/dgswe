@@ -1,6 +1,6 @@
       SUBROUTINE write_files()
       
-      USE globals, ONLY: nproc,ne,nresel,nresnd,nd_l2g,xy,depth,lect,nope,nbou,fbseg, &
+      USE globals, ONLY: nproc,ne,nresel,nresnd,nd_l2g,xy,depth,lect,lnelnds,nope,nbou,fbseg, &
                          lnope,lneta,lobseg,lobnds,lnbou,lnvel,lfbseg,lfbnds, &
                          nobfr,obtag,obtag2,obfreq,obnfact,obeq,lobamp,lobph, &
                          nfbfr,fbtag,fbtag2,fbfreq,fbnfact,fbeq,lfbamp,lfbph,lnbouf, &
@@ -50,11 +50,11 @@
         
         DO nd = 1,nresnd(pe)
           gnd = nd_l2g(nd,pe)
-          WRITE(14,*) nd, xy(1,gnd), xy(2,gnd), depth(gnd)
+          WRITE(14,"(I8,3(E24.17,1X))") nd, xy(1,gnd), xy(2,gnd), depth(gnd)
         ENDDO
         
         DO el = 1,nresel(pe)
-          WRITE(14,*) el, 3, lect(1,el,pe), lect(2,el,pe), lect(3,el,pe)
+          WRITE(14,*) el, lnelnds(el,pe), (lect(nd,el,pe), nd = 1,lnelnds(el,pe))
         ENDDO
         
         WRITE(14,*) lnope(pe)

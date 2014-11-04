@@ -3,6 +3,8 @@
       USE globals, ONLY: pres,forcing_file,neta,nvel,nbou,fbseg, &
                          nobfr,obtag,obtag2,obfreq,obnfact,obeq,obamp,obph, &
                          nfbfr,fbtag,fbtag2,fbfreq,fbnfact,fbeq,fbamp,fbph
+                         
+      USE allocation, ONLY: alloc_forcing_arrays                         
 
       IMPLICIT NONE
       INTEGER :: alloc_stat
@@ -40,20 +42,12 @@
       READ(15,*) nobfr
 !       PRINT*, 'number of oben boundary forcings',nobfr
 
-      ALLOCATE(obtag(nobfr),obfreq(nobfr),obnfact(nobfr),obeq(nobfr),STAT = alloc_stat)
-      IF(alloc_stat /= 0) THEN
-        PRINT*, "Allocation error: obtag, obfreq, obnfact, obeq"
-      ENDIF
+      CALL alloc_forcing_arrays(1)
 
       DO bfr = 1,nobfr
         READ(15,*) obtag(bfr)
         READ(15,*) obfreq(bfr),obnfact(bfr),obeq(bfr)
       ENDDO
-
-      ALLOCATE(obtag2(nobfr),obamp(neta,nobfr),obph(neta,nobfr),STAT = alloc_stat)
-      IF(alloc_stat /= 0) THEN
-        PRINT*, "Allocation error: obtag2, obamp, obph"
-      ENDIF
 
       DO bfr = 1,nobfr
         READ(15,*) obtag2(bfr) 
@@ -78,21 +72,12 @@
       IF (any_nfb) then
         READ(15,*) nfbfr
 
-
-        ALLOCATE(fbtag(nfbfr),fbfreq(nfbfr),fbnfact(nfbfr),fbeq(nfbfr),STAT = alloc_stat)
-        IF(alloc_stat /= 0) THEN
-          PRINT*, "Allocation error: fbtag, fbfreq, fbnfact, fbeq"
-        ENDIF
+        CALL alloc_forcing_arrays(2)
 
         DO bfr = 1,nfbfr
           READ(15,*) fbtag(bfr)
           READ(15,*) fbfreq(bfr),fbnfact(bfr),fbeq(bfr)
         ENDDO
-
-        ALLOCATE(fbtag2(nfbfr),fbamp(nvel,nbou,nfbfr),fbph(nvel,nbou,nfbfr),STAT = alloc_stat)
-        IF(alloc_stat /= 0) THEN
-          PRINT*, "Allocation error: fbtag2, fbamp, fbph"
-        ENDIF
 
         DO bfr = 1,nfbfr
           READ(15,*) fbtag2(bfr) 

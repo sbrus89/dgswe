@@ -10,6 +10,8 @@
       CHARACTER(50) :: grid_name
       CHARACTER(50) :: forcing_file
       CHARACTER(50) :: out_direc
+      
+      INTEGER, PARAMETER :: nel_type = 4
 
       INTEGER :: ne
       INTEGER :: nn
@@ -23,13 +25,29 @@
       REAL(pres) :: lines
       INTEGER :: nblk
       INTEGER :: npart
+      
+      INTEGER, DIMENSION(nel_type) :: nverts
+      INTEGER, DIMENSION(nel_type) :: np
+      INTEGER :: mnp
+      INTEGER, DIMENSION(nel_type) :: nnds
+      INTEGER :: mnnds
+      INTEGER, DIMENSION(nel_type) :: ndof
       INTEGER :: mndof
+      
+      
       
       INTEGER :: nproc
 
       INTEGER, ALLOCATABLE, DIMENSION(:,:) :: ect
-      INTEGER, ALLOCATABLE, DIMENSION(:,:) :: xy
-      INTEGER, ALLOCATABLE, DIMENSION(:) :: depth
+      INTEGER, ALLOCATABLE, DIMENSION(:,:) :: vct      
+      INTEGER, ALLOCATABLE, DIMENSION(:) :: nelnds
+      INTEGER :: mnelnds
+      INTEGER, ALLOCATABLE, DIMENSION(:) :: el_type    
+      REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: xy
+      REAL(pres), ALLOCATABLE, DIMENSION(:) :: depth      
+      REAL(pres), ALLOCATABLE, DIMENSION(:,:,:) :: elxy
+      REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: elhb   
+      INTEGER :: curved_grid
 
       INTEGER :: nope
       INTEGER, ALLOCATABLE, DIMENSION(:) :: obseg
@@ -81,6 +99,7 @@
       INTEGER, ALLOCATABLE, DIMENSION(:) :: nd_g2l
        
       INTEGER, ALLOCATABLE, DIMENSION(:,:,:) :: lect
+      INTEGER, ALLOCATABLE, DIMENSION(:,:) :: lnelnds
       
       INTEGER, ALLOCATABLE, DIMENSION(:,:) :: lobseg
       INTEGER, ALLOCATABLE, DIMENSION(:,:,:) :: lobnds

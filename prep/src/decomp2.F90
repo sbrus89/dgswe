@@ -1,6 +1,6 @@
       SUBROUTINE decomp2()
       
-      USE globals, ONLY: nn,ne,ned,part,nproc,ect,xy,lect, &
+      USE globals, ONLY: nn,ne,ned,part,nproc,ect,nelnds,mnelnds,xy,lect,lnelnds, &
                          ged2el,ged2led,&
                          nsred,sredn, &
                          nresel,el_g2l,el_l2g, &
@@ -15,7 +15,7 @@
 
       IMPLICIT NONE
 
-      INTEGER :: el,pe,nd,ed,j,bnd
+      INTEGER :: el,pe,nd,ed,j,bnd,eln
       INTEGER :: ged,lnd
       INTEGER :: el1,el2
       INTEGER :: pe1,pe2
@@ -79,7 +79,7 @@
       
       
       
-      ! Loop through communication edges and keep of what local edge number from what element gets 
+      ! Loop through communication edges and keep track of what local edge number from what element gets 
       ! sent/recieved to/from which subdomains
       ned_sr = 0
       DO ed = 1,nsred
@@ -116,9 +116,10 @@
       ! find local global domain boundary nodes
       ALLOCATE(nresnd(nproc))
       ALLOCATE(ndflag(nn))
-      ALLOCATE(lect(3,mnepe,nproc))
+      ALLOCATE(lect(mnelnds,mnepe,nproc))
+      ALLOCATE(lnelnds(mnepe,nproc))
       ALLOCATE(nd_g2l(nn))
-      ALLOCATE(nd_l2g(3*mnepe,nproc))
+      ALLOCATE(nd_l2g(mnelnds*mnepe,nproc))
       
       mnobnds = MAXVAL(obseg)
       ALLOCATE(lobseg(nope,nproc))
@@ -144,11 +145,13 @@
         nresnd(pe) = 0
         nd_g2l = 0 ! some nodes will be included in 2 subdomains so need to start a new global to local table each time
         DO el = 1,nresel(pe) 
-          DO j = 1,3 ! loop through each node of all elements on subdomain pe
-            nd = ect(j,el_l2g(el,pe)) ! find global node number
-            IF(ndflag(nd) == 0) THEN ! decide if it's been counted already
+          eln = el_l2g(el,pe)
+          lnelnds(el,pe) = nelnds(eln)
+          DO j = 1,nelnds(eln) ! loop through each node of all elements on subdomain pe
+            nd = ect(j,eln) ! find global node number
+            IF(ndflag(nd) == 0) THEN  ! decide if it's been counted already
               nresnd(pe) = nresnd(pe) + 1 ! count as a resident node
-              nd_l2g(nresnd(pe),pe) = nd ! local node nresnd(pe) on subdomain pe is global node nd
+              nd_l2g(nresnd(pe),pe) = nd  ! local node nresnd(pe) on subdomain pe is global node nd
               nd_g2l(nd) = nresnd(pe) ! global node nd is local node nresnd(pe)
               ndflag(nd) = 1 ! flag the node so it's not counted again
               

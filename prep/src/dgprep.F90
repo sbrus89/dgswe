@@ -1,6 +1,7 @@
       PROGRAM dgprep
       
       USE globals
+      USE allocation, ONLY: sizes
 
       IMPLICIT NONE
       
@@ -15,6 +16,8 @@
       PRINT*, " "
       
       CALL read_input()
+      
+      CALL sizes()
       
       CALL read_grid()
       
