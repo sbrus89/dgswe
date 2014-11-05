@@ -1,14 +1,19 @@
-#FC = ifort
-FC = mpif90
+SHELL = /bin/sh
+
+FC = ifort
+#FC = mpif90
 
 VPATH := ../src
 ODIR = odir/
 
+NAME := $(shell hostname)
+$(warning (INFO) Machine hostname is $(NAME))
+NAME := $(strip $(subst ., , $(NAME)))
+
 RK = -Drk33
-METIS_PATH = ../metis-4.0.3/
-METIS_LIB = metis
-#LAPACK_LIB = -llapack
-LAPACK_LIB = -Wl,--start-group   /afs/crc.nd.edu/x86_64_linux/intel/12.1/mkl/lib/intel64/libmkl_intel_lp64.a /afs/crc.nd.edu/x86_64_linux/intel/12.1/mkl/lib/intel64/libmkl_sequential.a  /afs/crc.nd.edu/x86_64_linux/intel/12.1/mkl/lib/intel64/libmkl_core.a -Wl,--end-group -lpthread -lm
+
+
+#LAPACK_LIB = -Wl,--start-group   /afs/crc.nd.edu/x86_64_linux/intel/12.1/mkl/lib/intel64/libmkl_intel_lp64.a /afs/crc.nd.edu/x86_64_linux/intel/12.1/mkl/lib/intel64/libmkl_sequential.a  /afs/crc.nd.edu/x86_64_linux/intel/12.1/mkl/lib/intel64/libmkl_core.a -Wl,--end-group -lpthread -lm
 
 CFLAGS_VEC =  -O3 -xHost -vec-report6 -I$(ODIR) -c
 CFLAGS =  -O3 -xHost -I$(ODIR) -c 
@@ -53,9 +58,19 @@ ALIGN = #-DALIGN32
 # -opt-report3 -opt-report-file=opt_report 
 # -vec-report3
 
-# objects = globals.o basis.o area_qpts.o edge_qpts.o read_input.o read_grid.o read_forcing.o  \
-# 	alloc_arrays.o ptr_arrays.o initial.o connect.o element_data.o edge_partition2.o  \
-# 	rk.o rhs2.o rhs3.o rhs4.o numerical_flux.o swe_tri.o
+METIS_LIB = -L../metis-4.0.3 -lmetis
+
+ifeq ($(NAME),chl-tilos)
+  LAPACK_LIB = -llapack
+endif
+
+ifeq ($(filter crc nd edu,$(NAME)),crc nd edu)
+  LAPACK_LIB = -Wl,--start-group $MKLROOT/lib/intel64/libmkl_intel_lp64.a $MKLROOT/lib/intel64/libmkl_sequential.a  $MKLROOT/lib/intel64/libmkl_core.a -Wl,--end-group -lpthread -lm
+endif
+
+ifeq ($(filter tacc utexas edu,$(NAME)),tacc utexas edu)
+  LAPACK_LIB =  -Wl,--start-group $MKLROOT/lib/intel64/libmkl_intel_lp64.a $MKLROOT/lib/intel64/libmkl_core.a $MKLROOT/lib/intel64/libmkl_sequential.a -Wl,--end-group -lpthread -lm
+endif
 
 objects = globals.o messenger2.o allocation.o basis.o  area_qpts.o edge_qpts.o read_input.o read_grid.o read_forcing.o modal2nodal.o \
 	initial.o connect.o curvilinear.o element_data.o area_transformation.o edge_transformation.o edge_partition2.o  \
@@ -66,9 +81,17 @@ obj := $(patsubst %.o, $(ODIR)%.o,$(objects))
 # $< = first prerequisite/depenency
 # $@ = name of the target
 
+ifeq ($(MAKELEVEL),0)
+
+dgswe : 
+	$(MAKE) BUILDTYPE=dgswe $@
+
+else
 
 dgswe : $(ODIR) $(obj)
-	$(FC) $(CFLAGS_LINK) dgswe $(obj) -L $(METIS_PATH) -l$(METIS_LIB) $(LAPACK_LIB)
+	$(FC) $(CFLAGS_LINK) dgswe $(obj) $(METIS_LIB) $(LAPACK_LIB)
+
+endif	
 
 .PHONY : $(ODIR)
 $(ODIR) :
