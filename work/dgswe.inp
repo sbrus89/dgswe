@@ -1,7 +1,7 @@
 !../grids/inlet1_quad.grd                                 ! grid file
 !../grids/inlet1.bfr                                      ! forcing file
 !1                                                        ! p - polynomial order
-!1                                                         ! ctp - parametric coordinate transformation order
+!1                                                        ! ctp - parametric coordinate transformation order
 !1d0                                                      ! dt - timestep (1d0 for p=1,2, .5d0 for p=3)
 !1d0                                                      ! tf - final time (days)
 !.5d0                                                     ! dramp - ramping parameter (days)
@@ -10,51 +10,15 @@
 !./						          ! output directory
 !4                                                        ! npart - edge blocking parameter
 
-/home/sbrus/Codes/dgswe/grids/converge_quad.grd             ! grid file
-/home/sbrus/Codes/dgswe/grids/converge.bfr                  ! forcing file
-3                                                           ! p - polynomial order
-3                                                           ! ctp - parametric coordinate transfomation order
-0.25d0                                                      ! dt - timestep
-1d0                                                         ! tf - final time (days)
-.5d0                                                        ! dramp - ramping parameter (days)
-0.003d0                                                     ! cf - friction coefficient
-20d0                                                        ! lines - lines in output files
-./                                                          ! output directory
-1    
-
 ../grids/converge_quad.grd                                ! grid file  
 ../grids/converge.bfr                                     ! forcing file
-3                                                         ! p - polynomial order
-3                                                         ! ctp - parametric coordinate transformation order
-.5d0                                                      ! dt - timestep 
+1                                                         ! p - polynomial order
+1                                                         ! ctp - parametric coordinate transformation order
+1d0                                                       ! dt - timestep 
 1d0                                                       ! tf - final time (days)
 .08d0                                                     ! dramp - ramping parameter (days)
 .0025d0                                                   ! cf - friction coefficient 
-100d0                                                     ! lines - lines in output files
-../output/                                                 ! output directory
+10d0                                                      ! lines - lines in output files
+../output/                                                ! output directory
 1                                                         ! npart - edge blocking parameter
-
-!../grids/converge2_quad.grd                              ! grid file
-!../grids/converge2.bfr                                   ! forcing file
-!1                                                        ! p - polynomial order
-!1                                                        ! ctp - parametric coordinate transformation order
-!.25d0                                                    ! dt - timestep
-!.2d0                                                     ! tf - final time (days)
-!.08d0                                                    ! dramp - ramping parameter (days)
-!.0025d0                                                  ! cf - friction coefficient
-!20d0                                                     ! lines - lines in output files
-!./                                                       ! output directory
-!4     
-
-!../grids/converge3_quad.grd                              ! grid file
-!../grids/converge3.bfr                                   ! forcing file
-!1                                                        ! p - polynomial order
-!1                                                        ! ctp - parametric coordinate transformation order
-!.125d0                                                   ! dt - timestep 
-!.2d0                                                     ! tf - final time (days)
-!.08d0                                                    ! dramp - ramping parameter (days)
-!.0025d0                                                  ! cf - friction coefficient 
-!20d0                                                     ! lines - lines in output files
-!./						          ! output directory
-!4                                                        ! npart - edge blocking parameter
 

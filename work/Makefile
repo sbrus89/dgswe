@@ -162,7 +162,11 @@ $(ODIR) :
 	mkdir -p $@
 	
 clean : 
-	rm -r pdgswe* dgswe* odir
+	rm -r odir
+	
+clobber :
+	rm -r odir
+	rm dgswe pdgswe dgswe_debug pdgswe_debug
 
 cleanmetis : 
 	$(MAKE) -C ../metis-4.0.3/ clean
