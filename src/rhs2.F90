@@ -463,8 +463,8 @@ ed_points2: DO pt = 1,nqpte(1) ! Compute numerical fluxes for all edges
 
       DO blk = 1,npart   
         DO et = 1,nel_type
-          IF (npartet(et,blk) > 0) THEN
-              
+          IF (npartet(et,blk) > 0) THEN    
+          
             DO pt = 1,nverts(et)*nqpte(et)
               DO l = 1,ndof(et)
 !!DIR$ VECTOR ALIGNED
@@ -475,18 +475,31 @@ ed_points2: DO pt = 1,nqpte(1) ! Compute numerical fluxes for all edges
                 ENDDO
               ENDDO                                    
             ENDDO  
-            
-               m = 1
-               DO i = 1,ndof(et)
-                 DO j = 1,ndof(et)
-                   DO el = elblk(1,blk,et),elblk(2,blk,et)
-                     MirhsH(el,i)  = MirhsH(el,i)  + mmi(el,m)*rhsH(el,j) 
-                     MirhsQx(el,i) = MirhsQx(el,i) + mmi(el,m)*rhsQx(el,j) 
-                     MirhsQy(el,i) = MirhsQy(el,i) + mmi(el,m)*rhsQy(el,j) 
-                   ENDDO
-                   m = m + 1
-                 ENDDO
-               ENDDO            
+ 
+            SELECT CASE(et)
+               
+              CASE(1)
+                DO l = 1,ndof(et)
+                  DO el = elblk(1,blk,et),elblk(2,blk,et)
+                    MirhsH(el,l)  = MirhsH(el,l)  + mmi(el,1)*rhsH(el,l) 
+                    MirhsQx(el,l) = MirhsQx(el,l) + mmi(el,1)*rhsQx(el,l) 
+                    MirhsQy(el,l) = MirhsQy(el,l) + mmi(el,1)*rhsQy(el,l) 
+                  ENDDO
+                ENDDO
+ 
+              CASE DEFAULT
+                m = 1
+                DO i = 1,ndof(et)
+                  DO j = 1,ndof(et)
+                    DO el = elblk(1,blk,et),elblk(2,blk,et)
+                      MirhsH(el,i)  = MirhsH(el,i)  + mmi(el,m)*rhsH(el,j) 
+                      MirhsQx(el,i) = MirhsQx(el,i) + mmi(el,m)*rhsQx(el,j) 
+                      MirhsQy(el,i) = MirhsQy(el,i) + mmi(el,m)*rhsQy(el,j) 
+                    ENDDO
+                    m = m + 1
+                  ENDDO
+                ENDDO            
+            END SELECT
             
           ENDIF
         ENDDO

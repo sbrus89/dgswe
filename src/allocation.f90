@@ -369,7 +369,9 @@
         ENDIF
       ENDDO
 
-         
+      Hflux = 0d0
+      Qxflux = 0d0
+      Qyflux = 0d0
       
       RETURN
       END SUBROUTINE alloc_sol_arrays
@@ -450,6 +452,8 @@
           STOP
         ENDIF
       ENDDO
+      
+      
      
 
 
