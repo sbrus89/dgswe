@@ -3,13 +3,16 @@
 #ifdef CMPI      
       USE mpi
 #endif      
-      USE globals, ONLY: pres
+
+!$    USE omp_lib 
+
+      USE globals, ONLY: pres,nrblk
 
       IMPLICIT NONE
       
       INTEGER :: ierr
       INTEGER :: nproc
-      INTEGER :: myrank
+      INTEGER :: myrank,myid
       INTEGER :: world_group
       INTEGER :: comp_group
       INTEGER :: comp_comm
@@ -128,6 +131,7 @@
       CALL MPI_BARRIER(MPI_COMM_WORLD,ierr)       
 #else
       myrank = 0
+      nrblk = 1      
 #endif
 
 #ifdef openmp      
