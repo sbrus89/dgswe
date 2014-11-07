@@ -6,8 +6,7 @@ RK = -Drk33
 VPATH := ../src
 ODIR = odir/
 
-NAME := $(shell hostname)
-$(warning (INFO) Machine hostname is $(NAME))
+FULLNAME := $(shell hostname)
 
 ########################################################################
 #                  Compiler Flags (Build Specific)                     #
@@ -15,10 +14,18 @@ $(warning (INFO) Machine hostname is $(NAME))
 
 ifeq ($(BUILDTYPE),dgswe)
   FC = ifort
-  CFLAGS_VEC  =  -O3 -xHost -vec-report6 -I$(ODIR) -c
-  CFLAGS      =  -O3 -xHost -I$(ODIR) -c 
+  CFLAGS_VEC  =  -O3 -xHost -align array32byte -vec-report6 -I$(ODIR) -c
+  CFLAGS      =  -O3 -xHost -align array32byte -I$(ODIR) -c 
   CFLAGS_LINK = -O3 -xHost -o 
-  $(warning (INFO) Compling serial program with optimization flags)  
+  MESSAGE = Compling serial program with optimization flags
+endif
+
+ifeq ($(BUILDTYPE),dgswe_omp)
+  FC = ifort
+  CFLAGS_VEC  =  -O3 -xHost -align array32byte -openmp -Dopenmp -vec-report6 -I$(ODIR) -c
+  CFLAGS      =  -O3 -xHost -align array32byte -openmp -Dopenmp -I$(ODIR) -c 
+  CFLAGS_LINK = -O3 -xHost -openmp -Dopenmp -o 
+  MESSAGE = Compling OpenMP program with optimization flags
 endif
 
 ifeq ($(BUILDTYPE),pdgswe)
@@ -26,7 +33,7 @@ ifeq ($(BUILDTYPE),pdgswe)
   CFLAGS_VEC  =  -O3 -xHost -vec-report6 -DCMPI -I$(ODIR) -c
   CFLAGS      =  -O3 -xHost -DCMPI -I$(ODIR) -c 
   CFLAGS_LINK = -O3 -xHost -o 
-  $(warning (INFO) Compling parallel program with optimization flags)    
+  MESSAGE = Compling parallel program with optimization flags
 endif
 
 ifeq ($(BUILDTYPE),dgswe_debug)
@@ -34,7 +41,7 @@ ifeq ($(BUILDTYPE),dgswe_debug)
   CFLAGS_VEC  =  -C -g -traceback -I$(ODIR) -c
   CFLAGS      =  -C -g -traceback -I$(ODIR) -c 
   CFLAGS_LINK = -o 
-  $(warning (INFO) Compling serial program with debug flags)    
+  MESSAGE =  Compling serial program with debug flags 
 endif
 
 ifeq ($(BUILDTYPE),pdgswe_debug)
@@ -42,13 +49,8 @@ ifeq ($(BUILDTYPE),pdgswe_debug)
   CFLAGS_VEC  =  -C -g -traceback -DCMPI -I$(ODIR) -c
   CFLAGS      =  -C -g -traceback -DCMPI -I$(ODIR) -c 
   CFLAGS_LINK =  -o 
-  $(warning (INFO) Compling parallel program with debug flags)    
+  MESSAGE = warning (INFO) Compling parallel program with debug flags
 endif
-
-# ### OpenMP compilation ###
-# CFLAGS_VEC =  -O3 -xHost -vec-report6 -openmp -Dopenmp -c
-# CFLAGS =  -O3 -xHost -openmp -Dopenmp -c 
-# CFLAGS_LINK = -O3 -xHost -openmp -Dopenmp -o 
 
 #  ### Mic compilation ###
 # CFLAGS_VEC =  -O3 -mmic -vec-report6 -openmp -Dopenmp -c
@@ -79,7 +81,7 @@ endif
 #                  Library Links (Platform Specific)                   #
 ########################################################################
 
-NAME := $(strip $(subst ., , $(NAME)))
+NAME := $(strip $(subst ., , $(FULLNAME)))
 ifeq ($(NAME),chl-tilos)
   LAPACK_LIB = -llapack
   ALIGN = #-DALIGN64
@@ -111,43 +113,62 @@ obj := $(patsubst %.o, $(ODIR)%.o,$(objects))
 #                          Executable Targets                          #
 ########################################################################
 
-.PHONY : $(ODIR) dgswe pdgswe dgswe_debug pdgswe_debug clean metis cleanmetis prep cleanprep post cleanpost
+.PHONY : $(ODIR) dgswe dgswe_omp pdgswe dgswe_debug pdgswe_debug clean metis cleanmetis prep cleanprep post cleanpost
 
 ifeq ($(MAKELEVEL),0)
 
 dgswe : 
+	@echo "\n\n"
 	$(MAKE) BUILDTYPE=dgswe $@
+	
+dgswe_omp : 
+	@echo "\n\n"
+	$(MAKE) BUILDTYPE=dgswe_omp $@	
 
 pdgswe : 
+	@echo "\n\n"
 	$(MAKE) BUILDTYPE=pdgswe $@
 
 dgswe_debug : 
+	@echo "\n\n"
 	$(MAKE) BUILDTYPE=dgswe_debug $@
 
 pdgswe_debug : 
+	@echo "\n\n"
 	$(MAKE) BUILDTYPE=pdgswe_debug $@
 
 metis : 
+	@echo "\n\n"
 	$(MAKE) -C ../metis-4.0.3/
 
 prep : 
+	@echo "\n\n"
 	$(MAKE) -C ../prep/work/ dgprep
 
 post : 
+	@echo "\n\n"
 	$(MAKE) -C ../post dgpost	
 
 else
 
 dgswe : $(ODIR) $(obj)
+	@echo  " \n\033[35m$(MESSAGE) on $(FULLNAME) \033[0m \n"
 	$(FC) $(CFLAGS_LINK) dgswe $(obj) $(METIS_LIB) $(LAPACK_LIB)
 
+dgswe_omp : $(ODIR) $(obj)
+	@echo  " \n\033[35m$(MESSAGE) on $(FULLNAME) \033[0m \n"
+	$(FC) $(CFLAGS_LINK) dgswe_omp $(obj) $(METIS_LIB) $(LAPACK_LIB)	
+
 pdgswe : $(ODIR) $(obj)
+	@echo  " \n\033[35m$(MESSAGE) on $(FULLNAME) \033[0m \n"
 	$(FC) $(CFLAGS_LINK) pdgswe $(obj) $(METIS_LIB) $(LAPACK_LIB)
 
 dgswe_debug : $(ODIR) $(obj)
+	@echo  " \n\033[35m$(MESSAGE) on $(FULLNAME) \033[0m \n"
 	$(FC) $(CFLAGS_LINK) dgswe_debug $(obj) $(METIS_LIB) $(LAPACK_LIB)
 
 pdgswe_debug : $(ODIR) $(obj)
+	@echo  " \n\033[35m$(MESSAGE) on $(FULLNAME) \033[0m \n"
 	$(FC) $(CFLAGS_LINK) pdgswe_debug $(obj) $(METIS_LIB) $(LAPACK_LIB)	
 
 endif
@@ -162,19 +183,24 @@ $(ODIR) :
 	mkdir -p $@
 	
 clean : 
+	@echo "\n\n"
 	rm -r odir
 	
 clobber :
+	@echo "\n\n"
 	rm -r odir
 	rm dgswe pdgswe dgswe_debug pdgswe_debug
 
 cleanmetis : 
+	@echo "\n\n"
 	$(MAKE) -C ../metis-4.0.3/ clean
 
 cleanprep : 
+	@echo "\n\n"
 	$(MAKE) -C ../prep/work/ clean
 
 cleanpost : 
+	@echo "\n\n"
 	$(MAKE) -C ../post clean
 
 ########################################################################
