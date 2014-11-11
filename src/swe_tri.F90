@@ -121,9 +121,9 @@
       CALL CPU_TIME(t_end)
 #endif
 
-!       PRINT*, ' '
-!       PRINT("(A,F25.5,A)"), "CPU time = ",t_end-t_start," seconds"
-!       
+      PRINT*, ' '
+      PRINT("(A,F25.5,A)"), "CPU time = ",t_end-t_start," seconds"
+      
 !       OPEN(UNIT=101, FILE='CPUtime.log', STATUS='OLD', POSITION='APPEND')
 !       WRITE(101,*) "grid = ", grid_file
 !       WRITE(101,*) "p = ", p
