@@ -14,9 +14,26 @@ FULLNAME := $(shell hostname)
 
 ifeq ($(BUILDTYPE),dgswe)
   FC = ifort
-  CFLAGS_VEC  =  -O3 -xHost -align array32byte -vec-report6 -I$(ODIR) -c
-  CFLAGS      =  -O3 -xHost -align array32byte -I$(ODIR) -c 
+  
+  CFLAGS_VEC  =  -O3 -xHost -align array32byte -align rec32byte -vec-report6 -I$(ODIR) -c
+  CFLAGS      =  -O3 -xHost -align array32byte -align rec32byte -I$(ODIR) -c 
   CFLAGS_LINK = -O3 -xHost -o 
+
+#   ### Default compilation ###
+#   CFLAGS_VEC = -vec-report3 -I$(ODIR) -c 
+#   CFLAGS = -I$(ODIR) -c
+#   CFLAGS_LINK = -o
+
+#   ### IPO compilation ###
+#   CFLAGS =  -O3 -xHost -ipo -I$(ODIR) -c 
+#   CFLAGS_VEC =  -O3 -xHost -ipo -I$(ODIR) -c 
+#   CFLAGS_LINK = -O3 -xHost -ipo -vec-report3 -I$(ODIR) -o 
+  
+#   ### Profile compilation ###
+#   CFLAGS_VEC =  -O3 -xHost -align array32byte -vec-report3 -profile-loops=all -I$(ODIR) -c 
+#   CFLAGS =  -O3 -xHost -align array32byte -profile-loops=all -I$(ODIR) -c 
+#   CFLAGS_LINK = -O3 -xHost -profile-loops=all -I$(ODIR) -o   
+  
   MESSAGE = Compling serial program with optimization flags
 endif
 
@@ -25,6 +42,12 @@ ifeq ($(BUILDTYPE),dgswe_omp)
   CFLAGS_VEC  =  -O3 -xHost -align array32byte -openmp -Dopenmp -vec-report6 -I$(ODIR) -c
   CFLAGS      =  -O3 -xHost -align array32byte -openmp -Dopenmp -I$(ODIR) -c 
   CFLAGS_LINK = -O3 -xHost -openmp -Dopenmp -o 
+  
+#   ### Mic compilation ###
+#   CFLAGS_VEC =  -O3 -mmic -vec-report6 -openmp -Dopenmp -c
+#   CFLAGS =  -O3 -mmic -openmp -Dopenmp -c 
+#   CFLAGS_LINK = -O3 -mmic -openmp -Dopenmp  -o   
+  
   MESSAGE = Compling OpenMP program with optimization flags
 endif
 
@@ -51,26 +74,6 @@ ifeq ($(BUILDTYPE),pdgswe_debug)
   CFLAGS_LINK =  -o 
   MESSAGE = warning (INFO) Compling parallel program with debug flags
 endif
-
-#  ### Mic compilation ###
-# CFLAGS_VEC =  -O3 -mmic -vec-report6 -openmp -Dopenmp -c
-# CFLAGS =  -O3 -mmic -openmp -Dopenmp -c 
-# CFLAGS_LINK = -O3 -mmic -openmp -Dopenmp  -o 
-
-# ### Profile compilation ###
-# CFLAGS_VEC =  -O3 -xHost -vec-report3 -profile-loops=all -c 
-# CFLAGS =  -O3 -xHost -profile-loops=all -c 
-# CFLAGS_LINK = -O3 -xHost -profile-loops=all -o 
-
-# ### IPO compilation ###
-# CFLAGS =  -O3 -xHost -ipo -c 
-# CFLAGS_VEC =  -O3 -xHost -ipo -c 
-# CFLAGS_LINK = -O3 -xHost -ipo -vec-report3 -o 
-
-### Default compilation ###
-# CFLAGS_VEC = -vec-report3 -c 
-# CFLAGS = -c
-# CFLAGS_LINK = -o
 
 ### Other compiler flags ###
 # -no-prec-div
