@@ -11,3 +11,5 @@ PE*
 *.o*
 *.dump
 *.kate-swp
+*.d
+*.xml
