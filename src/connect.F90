@@ -215,7 +215,7 @@
       DO seg = 1,nbou
       
         segtype = fbseg(2,seg)
-        print*, seg, fbseg(1,seg), segtype
+        PRINT*, seg, fbseg(1,seg), segtype
               
         DO nd = 1,fbseg(1,seg)-1
           n1bed = fbnds(nd,seg)

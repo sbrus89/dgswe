@@ -2,7 +2,8 @@
       
       USE globals, ONLY: grid_file,ne,nn,ect,vct,xy,depth,nelnds,elxy,elhb, &
                          nope,neta,obseg,obnds,nvel,nbou,fbseg,fbnds,grid_name, &
-                         el_type,ctp,mnelnds,curved_grid,nverts
+                         el_type,ctp,mnelnds,curved_grid,nverts, &
+                         coord_sys,r_earth,slam0,sphi0,deg2rad
                          
       USE allocation, ONLY: alloc_grid_arrays     
       USE messenger2, ONLY: finish,myrank
@@ -45,6 +46,16 @@
 !         PRINT "(I5,3(F11.3,3x))", i,xy(1,i), xy(2,i), depth(i)
 !       ENDDO
 !       PRINT*, " "
+
+      IF (coord_sys /= 1) THEN
+        DO i = 1,nn
+          xy(1,i) = xy(1,i)*deg2rad
+          xy(2,i) = xy(2,i)*deg2rad
+        
+          xy(1,i) = r_earth*(xy(1,i)-slam0)*cos(sphi0)
+          xy(2,i) = r_earth*xy(2,i)
+        ENDDO
+      ENDIF
 
       ! read in element connectivity
       DO i = 1,ne

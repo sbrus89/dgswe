@@ -278,7 +278,7 @@
       USE globals, ONLY: dhbdx,dhbdx_init,dhbdy,dhbdy_init, &
                          psia,dpsidr,dpsids, &
                          detJa,mmi,mmi_init, &
-                         nx_pt,ny_pt, &
+                         nx_pt,ny_pt,cfac,Spe, &
                          psie,dpsidxi,detJe, &                         
                          area,edlen,edlen_area,normal
       
@@ -296,7 +296,7 @@
       ! Area transformation information
       ALLOCATE(psia(mnnds,mnqpta+4*mnqpte,nel_type),dpsidr(mnnds,mnqpta+4*mnqpte,nel_type),dpsids(mnnds,mnqpta+4*mnqpte,nel_type),STAT = alloc_status(3))
       ALLOCATE(detJa(ne,mnqpta),mmi_init(ne,mndof*mndof),mmi(ne,mndof*mndof),STAT = alloc_status(4))
-      ALLOCATE(nx_pt(ned,mnqpte),ny_pt(ned,mnqpte),STAT = alloc_status(5))  
+      ALLOCATE(nx_pt(ned,mnqpte),ny_pt(ned,mnqpte),cfac(ned,mnqpte),Spe(ned,mnqpte),STAT = alloc_status(5))  
       
       ! Edge transformation information
       ALLOCATE(psie(mnp,mnqpte,nel_type),dpsidxi(mnp,mnqpte,nel_type),STAT = alloc_status(6))
@@ -420,7 +420,7 @@
      USE globals, ONLY: Hi,He,Qxi,Qxe,Qyi,Qye, &
                         xmi,xme,ymi,yme,xymi,xyme, &
                         Hfi,Hfe,Qxfi,Qxfe,Qyfi,Qyfe, &
-                        inx,iny,detJe_in,detJe_ex,const, &
+                        inx,iny,icfac,detJe_in,detJe_ex,const, &
                         Hhatv,Qxhatv,Qyhatv
                      
 
@@ -441,7 +441,7 @@
      ALLOCATE(Hfi(mnired,mnqpte),Hfe(mnired,mnqpte),Qxfi(mnired,mnqpte),Qxfe(mnired,mnqpte),Qyfi(mnired,mnqpte),Qyfe(mnired,mnqpte),STAT=alloc_status(3))
        
      ! Edge normals and jacobians
-     ALLOCATE(inx(mnired,mnqpte),iny(mnired,mnqpte),detJe_in(mnired,mnqpte),detJe_ex(mnired,mnqpte),STAT=alloc_status(4))      
+     ALLOCATE(inx(mnired,mnqpte),iny(mnired,mnqpte),icfac(mnired,mnqpte),detJe_in(mnired,mnqpte),detJe_ex(mnired,mnqpte),STAT=alloc_status(4))      
 
      ! Temporary storage arrays, LLF constant and fluxes
      ALLOCATE(const(mnired),Hhatv(mnired),Qxhatv(mnired),Qyhatv(mnired),STAT=alloc_status(5))

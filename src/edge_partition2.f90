@@ -387,8 +387,8 @@
                          Hi,He,Qxi,Qxe,Qyi,Qye, &
                          xmi,xme,ymi,yme,xymi,xyme, &
                          Hfi,Hfe,Qxfi,Qxfe,Qyfi,Qyfe, &
-                         nx_pt,ny_pt,detJe, &
-                         inx,iny,detJe_in,detJe_ex
+                         nx_pt,ny_pt,detJe,Spe,cfac, &
+                         inx,iny,detJe_in,detJe_ex,icfac
                       
       
       IMPLICIT NONE
@@ -444,8 +444,10 @@
 !         gp_in = pt
 !         gp_ex = nqpte(1) - pt + 1        
         
-        inx(ed,pt) = nx_pt(ged,pt)
+        inx(ed,pt) = nx_pt(ged,pt)*Spe(ged,pt)
         iny(ed,pt) = ny_pt(ged,pt)
+        
+        icfac(ed,pt) = cfac(ged,pt)
           
         detJe_in(ed,pt) = detJe(ged,pt)
         detJe_ex(ed,pt) = detJe(ged,pt)        

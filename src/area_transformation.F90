@@ -5,7 +5,8 @@
                          psia,dpsidr,dpsids, &
                          detJa,dpdx_init,dpdy_init,phia,phia_int_init, &
                          depth,dhbdx_init,dhbdy_init, &
-                         nx_pt,ny_pt
+                         nx_pt,ny_pt,Spe,cfac, &
+                         coord_sys,r_earth,sphi0
 
       IMPLICIT NONE
       
@@ -16,9 +17,10 @@
       REAL(pres) :: V(nnds,nnds)
       REAL(pres) :: l(nnds,nqpta+4*nqpte),dldr(nnds,nqpta+4*nqpte),dlds(nnds,nqpta+4*nqpte)
       REAL(pres) :: phi(nnds,nqpta+4*nqpte),dphidr(nnds,nqpta+4*nqpte),dphids(nnds,nqpta+4*nqpte) 
-      REAL(pres) :: x,y
+      REAL(pres) :: x,y,xpt,ypt
       REAL(pres) :: dxdr,dxds,dydr,dyds
       REAL(pres) :: drdx,drdy,dsdx,dsdy,detJ
+      REAL(pres) :: Sp
       REAL(pres) :: nx,ny
       REAL(pres) :: hb 
       REAL(pres) :: mm(ndof(et),ndof(et))
@@ -85,6 +87,9 @@
             dxds = 0d0
             dydr = 0d0
             dyds = 0d0
+            
+            xpt = 0d0
+            ypt = 0d0
           
             DO nd = 1,nelnds(el)
               x = elxy(nd,el,1)
@@ -94,6 +99,9 @@
               dxds = dxds + dlds(nd,pt)*x
               dydr = dydr + dldr(nd,pt)*y
               dyds = dyds + dlds(nd,pt)*y
+              
+              xpt = xpt + l(nd,pt)*x
+              ypt = ypt + l(nd,pt)*y
                         
             ENDDO
             
@@ -104,10 +112,17 @@
             dsdx = -dydr/detJa(el,pt)
             dsdy =  dxdr/detJa(el,pt)
             
+            IF (coord_sys == 1) THEN
+              Sp = 1d0
+            ELSE
+              Sp = cos(sphi0)/cos(ypt/r_earth)        
+            ENDIF
+                     
+            
             DO dof = 1,ndf
               ind = (dof-1)*nqpta + pt        
               
-              dpdx_init(el,ind) = wpta(pt,et)*(dpdr(dof,pt,et)*drdx + dpds(dof,pt,et)*dsdx)*detJa(el,pt)
+              dpdx_init(el,ind) = wpta(pt,et)*(dpdr(dof,pt,et)*drdx + dpds(dof,pt,et)*dsdx)*detJa(el,pt)*Sp
               dpdy_init(el,ind) = wpta(pt,et)*(dpdr(dof,pt,et)*drdy + dpds(dof,pt,et)*dsdy)*detJa(el,pt)  
               
               phia_int_init(el,ind) = wpta(pt,et)*phia(dof,pt,et)*detJa(el,pt)
@@ -119,7 +134,7 @@
             DO nd = 1,nelnds(el)  ! This assumes there is an equal order representation between the bathymetry and the coordinate transformation
               hb = elhb(nd,el)
               
-              dhbdx_init(el,pt) = dhbdx_init(el,pt) + (dldr(nd,pt)*drdx + dlds(nd,pt)*dsdx)*hb
+              dhbdx_init(el,pt) = dhbdx_init(el,pt) + (dldr(nd,pt)*drdx + dlds(nd,pt)*dsdx)*hb*Sp
               dhbdy_init(el,pt) = dhbdy_init(el,pt) + (dldr(nd,pt)*drdy + dlds(nd,pt)*dsdy)*hb              
             ENDDO
             
@@ -182,6 +197,9 @@
           dydr = 0d0
           dyds = 0d0
           
+          xpt = 0d0
+          ypt = 0d0
+          
           DO nd = 1,nelnds(el)
             x = elxy(nd,el,1)
             y = elxy(nd,el,2)
@@ -190,8 +208,17 @@
             dxds = dxds + dlds(nd,pt)*x
             dydr = dydr + dldr(nd,pt)*y
             dyds = dyds + dlds(nd,pt)*y
+            
+            xpt = xpt + l(nd,pt)*x
+            ypt = ypt + l(nd,pt)*y
                         
           ENDDO
+          
+          IF (coord_sys == 1) THEN
+            Sp = 1d0
+          ELSE
+            Sp = cos(sphi0)/cos(ypt/r_earth)        
+          ENDIF          
             
           detJ = dxdr*dyds - dxds*dydr
             
@@ -212,8 +239,7 @@
                   nx = -dsdx
                   ny = -dsdy               
               END SELECT  
-              nx_pt(ed,i) = nx/sqrt(nx*nx+ny*ny)
-              ny_pt(ed,i) = ny/sqrt(nx*nx+ny*ny)                     
+              
           ELSE IF(nvert == 4) THEN        
               SELECT CASE(led)
                 CASE(1)
@@ -228,10 +254,14 @@
                 CASE(4)
                   nx = -dsdx
                   ny = -dsdy      
-              END SELECT       
-              nx_pt(ed,i) = nx/sqrt(nx*nx+ny*ny)
-              ny_pt(ed,i) = ny/sqrt(nx*nx+ny*ny)       
+              END SELECT             
           ENDIF
+          
+          nx_pt(ed,i) = nx/sqrt(nx*nx+ny*ny)
+          ny_pt(ed,i) = ny/sqrt(nx*nx+ny*ny)           
+          
+          Spe(ed,i) = Sp
+          cfac(ed,i) = ny_pt(ed,i)**2+(nx_pt(ed,i)*Sp)**2
         
         ENDDO
         

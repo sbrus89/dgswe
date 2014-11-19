@@ -3,17 +3,15 @@
       USE globals, ONLY: pres,forcing_file,neta,nvel,nbou,fbseg, &
                          nobfr,obtag,obtag2,obfreq,obnfact,obeq,obamp,obph, &
                          nfbfr,fbtag,fbtag2,fbfreq,fbnfact,fbeq,fbamp,fbph, &
-                         fbper,obper,pi
+                         fbper,obper,pi,deg2rad
                          
       USE allocation, ONLY: alloc_forcing_arrays   
       USE messenger2, ONLY: finish,myrank
 
       IMPLICIT NONE
       INTEGER :: bfr,node,seg,segtype
-      REAL(pres) :: deg2rad
       LOGICAL :: file_exists,any_nfb
-
-      deg2rad = pi/180d0
+      
       
       INQUIRE(FILE=forcing_file, EXIST = file_exists)
       IF(file_exists == .FALSE.) THEN

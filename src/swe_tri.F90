@@ -10,10 +10,17 @@
       INTEGER :: it,tskp,cnt
       INTEGER :: i,j
       REAL(pres) :: tstep,t_start,t_end
+      
+      CHARACTER(10) :: date,time
+      
+      CALL DATE_AND_TIME(date,time)
 
       PRINT*, ' '
+      PRINT*, 'Started: ',date,time
 
-  
+      coord_sys = 2
+      slam0 = -76.0d0*deg2rad
+      sphi0 = 33.0d0*deg2rad
       
       CALL message_init()
       

@@ -9,7 +9,9 @@
       INTEGER :: nn ! number of nodes
       REAL(pres), PARAMETER :: g = 9.81d0 ! gravitational constant
       REAL(pres), PARAMETER :: pt5g = 0.5d0*g
-      REAL(pres), PARAMETER  ::  pi=3.141592653589793D0
+      REAL(pres), PARAMETER :: pi=3.141592653589793D0
+      REAL(pres), PARAMETER :: deg2rad = pi/180d0      
+      REAL(pres), PARAMETER :: r_earth = 6378206.4d0      
       REAL(pres) :: cf ! bottom friction parameter
       CHARACTER(50) :: grid_name ! name of the grid
       CHARACTER(50) :: grid_file ! name of fort.14 file
@@ -54,6 +56,9 @@
       REAL(pres) :: ramp ! boundary condition ramp value
       REAL(pres) :: dramp ! numer of ramp days
       REAL(pres), PARAMETER :: pt3333 = 1d0/3d0 ! 1/3 for 3rd order rk
+      
+      INTEGER :: coord_sys
+      REAL(pres) :: slam0,sphi0
       
       REAL(pres) :: lines ! number of lines in output files
       
@@ -111,7 +116,8 @@
       REAL(pres), ALLOCATABLE, DIMENSION(:) :: edlen ! element edge lengths
       REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: edlen_area
       REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: normal ! element edge normals
-      REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: nx_pt,ny_pt      
+      REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: nx_pt,ny_pt    
+      REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: Spe,cfac
       REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: dhbdx,dhbdy ! elemental x and y derivatives of linear bathymetry
       REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: dhbdx_init,dhbdy_init   
       REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: mmi,mmi_init      
@@ -187,6 +193,7 @@
 
       REAL(pres), ALLOCATABLE, DIMENSION(:) :: const
       REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: inx,iny
+      REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: icfac      
       REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: detJe_in,detJe_ex
       REAL(pres), ALLOCATABLE, DIMENSION(:) :: Hhatv,Qxhatv,Qyhatv
       REAL(pres), ALLOCATABLE, DIMENSION(:) :: rHi,rHe
