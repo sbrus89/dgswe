@@ -59,6 +59,7 @@
       
       INTEGER :: coord_sys
       REAL(pres) :: slam0,sphi0
+      REAL(pres) :: h0
       
       REAL(pres) :: lines ! number of lines in output files
       

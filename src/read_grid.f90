@@ -3,7 +3,7 @@
       USE globals, ONLY: grid_file,ne,nn,ect,vct,xy,depth,nelnds,elxy,elhb, &
                          nope,neta,obseg,obnds,nvel,nbou,fbseg,fbnds,grid_name, &
                          el_type,ctp,mnelnds,curved_grid,nverts, &
-                         coord_sys,r_earth,slam0,sphi0,deg2rad
+                         coord_sys,r_earth,slam0,sphi0,deg2rad,h0
                          
       USE allocation, ONLY: alloc_grid_arrays     
       USE messenger2, ONLY: finish,myrank
@@ -40,6 +40,10 @@
       ! read in node coordinates and depths
       DO i = 1,nn                                                      
         READ(14,*), j, xy(1,j), xy(2,j), depth(j)
+        
+        IF (depth(j) < h0) THEN
+          depth(j) = h0
+        ENDIF
       ENDDO
 !       PRINT "(A)", "Node coordinates and depth: "
 !       DO i = 1,nn
@@ -169,8 +173,8 @@
         PRINT "(A)", " "
         PRINT "(A,A)", "Grid file: ", grid_file                     
         PRINT "(A,A)", "Grid name: ", grid_name      
-        PRINT "(A,I5)", "Number of elements: ", ne
-        PRINT "(A,I5)", "Number of nodes: ", nn
+        PRINT "(A,I15)", "Number of elements: ", ne
+        PRINT "(A,I15)", "Number of nodes: ", nn
         PRINT*, " "      
         PRINT "(A,I5)", "Curved grid = ",curved_grid
         PRINT*, " "      
