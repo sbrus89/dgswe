@@ -1,7 +1,7 @@
       SUBROUTINE read_input()
 
       USE globals, ONLY: grid_file,forcing_file,p,ctp,dt,tf,dramp,cf,lines,out_direc,npart
-      USE messenger2, ONLY: myrank,dirname,lname,finish
+      USE messenger2, ONLY: myrank,dirname,lname,finish,nthreads
 
       IMPLICIT NONE
       
@@ -62,6 +62,12 @@
       ENDDO
            
       CLOSE(15)
+      
+#ifdef openmp      
+      IF (npart < nthreads) THEN
+        npart = nthreads
+      ENDIF  
+#endif      
       
       IF (myrank == 0) THEN
       

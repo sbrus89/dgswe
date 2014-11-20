@@ -12,6 +12,7 @@
       
       INTEGER :: ierr
       INTEGER :: nproc
+      INTEGER :: nthreads      
       INTEGER :: myrank,myid
       INTEGER :: world_group
       INTEGER :: comp_group
@@ -119,6 +120,8 @@
       SUBROUTINE message_init()
          
       IMPLICIT NONE
+      
+
        
 #ifdef CMPI       
       CALL MPI_INIT(ierr)
@@ -135,13 +138,17 @@
 #endif
 
 #ifdef openmp      
-      PRINT*, "Thread numbers: "
+      nthreads = omp_get_max_threads()        
+      
+      PRINT*, "Thread numbers :"
 !$OMP  parallel private(myid)
       myid = omp_get_thread_num()
-      PRINT*, myid
-      nrblk = omp_get_num_threads()
+      PRINT*, myid        
 !$OMP end parallel
+
+      nrblk = nthreads  
 #endif
+     
 
       CALL directory_name()
        
