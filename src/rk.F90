@@ -190,7 +190,8 @@
       
       USE globals, ONLY: dof,ndof,el,ne, &
                          H,Qx,Qy, &
-                         blk,npart,nel_type,elblk,npartet
+                         blk,npart,nel_type,elblk,npartet, &
+                         t
       
       IMPLICIT NONE
       
@@ -205,6 +206,7 @@
               DO el = elblk(1,blk,et),elblk(2,blk,et)
                 IF (H(el,dof) /= H(el,dof)) THEN
                   PRINT*, "NaN detected in H solution"
+                  PRINT("(A,e15.8)"), 't = ', t
                   STOP
                 ENDIF
               ENDDO
@@ -212,6 +214,7 @@
               DO el = elblk(1,blk,et),elblk(2,blk,et)
                 IF (Qx(el,dof) /= Qx(el,dof)) THEN
                   PRINT*, "NaN detected in Qx solution"
+                  PRINT("(A,e15.8)"), 't = ', t
                   STOP
                 ENDIF
               ENDDO
@@ -219,6 +222,7 @@
               DO el = elblk(1,blk,et),elblk(2,blk,et)
                 IF (Qy(el,dof) /= Qy(el,dof)) THEN
                   PRINT*, "NaN detected in Qy solution"
+                  PRINT("(A,e15.8)"), 't = ', t
                   STOP
                 ENDIF
               ENDDO
