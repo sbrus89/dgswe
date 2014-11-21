@@ -5,7 +5,7 @@ VPATH := ../src
 LIB_PATH = ../../metis-4.0.3/
 LIB = metis
 ODIR = odir/
-CFLAGS = -c -C -g -traceback -I$(ODIR)
+CFLAGS = -c -g -traceback -I$(ODIR)
 
 objects = globals.o allocation.o read_input.o read_grid.o read_forcing.o edge_connect.o metis2.o decomp2.o write_files.o dgprep.o
 obj = $(patsubst %.o, $(ODIR)%.o,$(objects))
