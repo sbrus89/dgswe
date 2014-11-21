@@ -132,6 +132,8 @@
       PRINT*, "Processor rank is ", myrank, "/", nproc
        
       CALL MPI_BARRIER(MPI_COMM_WORLD,ierr)       
+      
+      nrblk = 1
 #else
       myrank = 0
       nrblk = 1      

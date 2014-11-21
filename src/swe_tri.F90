@@ -20,9 +20,9 @@
       PRINT*, ' ' 
 
       coord_sys = 2
-      slam0 = -76.0d0*deg2rad
-      sphi0 = 33.0d0*deg2rad
-      h0 = 2d0
+      slam0 = -79.0d0*deg2rad
+      sphi0 = 35.0d0*deg2rad
+      h0 = 10d0
       
       CALL message_init()
       
