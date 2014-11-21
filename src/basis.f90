@@ -7,7 +7,9 @@
         USE globals, ONLY: pres,nel_type,nqpta,mnqpta,wpta,qpta,p,ndof,mndof, &
                            phia,dpdr,dpds
                            
-        USE allocation, ONLY: alloc_basis_arrays                          
+        USE allocation, ONLY: alloc_basis_arrays     
+        
+        USE messenger2, ONLY: myrank
 
         IMPLICIT NONE
         INTEGER :: i,j,pt,et,dof
@@ -16,14 +18,6 @@
         REAL(pres) :: phi(mndof*mnqpta),dphidr(mndof*mnqpta),dphids(mndof*mnqpta)
   
         CALL alloc_basis_arrays()
-
-        PRINT "(A)", "---------------------------------------------"
-        PRINT "(A)", "         Basis Function Information          "
-        PRINT "(A)", "---------------------------------------------"
-        PRINT "(A)", " "
-
-        PRINT "(A,I5)", "Polynomial order:",p 
-
       
         DO et = 1,nel_type
         
@@ -53,24 +47,39 @@
             ENDDO
           ENDDO
         
-          PRINT "(A,I5)", "Number of degrees of freedom:",ndof(et)
-          PRINT "(A)", " "        
-
-          PRINT "(A)", 'Mass matrix'
-          DO i = 1,ndof(et)
-            PRINT "(100(F10.3))", (mm(i,j),j=1,ndof(et))
-          ENDDO
-          PRINT "(A)", ' '
-
-          PRINT "(A)", 'Basis functions at quadrature points'
-          DO i = 1,ndof(et)
-            PRINT "(100(F10.3))", (phia(i,j,et),j=1,nqpta(et))
-          ENDDO
-          PRINT "(A)", ' '             
           
-        ENDDO
+          
+        ENDDO                
         
         CALL modal2nodal()
+        
+        IF (myrank == 0) THEN
+          DO et = 1,nel_type
+          
+            PRINT "(A)", "---------------------------------------------"
+            PRINT "(A)", "         Basis Function Information          "
+            PRINT "(A)", "---------------------------------------------"
+            PRINT "(A)", " "
+
+            PRINT "(A,I5)", "Polynomial order:",p           
+          
+            PRINT "(A,I5)", "Number of degrees of freedom:",ndof(et)
+            PRINT "(A)", " "        
+
+            PRINT "(A)", 'Mass matrix'
+            DO i = 1,ndof(et)
+              PRINT "(100(F10.3))", (mm(i,j),j=1,ndof(et))
+            ENDDO
+            PRINT "(A)", ' '
+
+            PRINT "(A)", 'Basis functions at quadrature points'
+            DO i = 1,ndof(et)
+              PRINT "(100(F10.3))", (phia(i,j,et),j=1,nqpta(et))
+            ENDDO
+            PRINT "(A)", ' '             
+            
+          ENDDO
+        ENDIF
 
 
         RETURN
@@ -584,13 +593,13 @@
       
 !       open(unit=60,file=DIRNAME//'/'//'tri.d')
 
-      print*,' '
-      print*, 'Triangle Points'
-      do i = 1,np
-!         write(60,61) r(i),s(i),x(i),y(i)
-        print 21, r(i),s(i)
-      enddo
-      print*, ' '
+!       print*,' '
+!       print*, 'Triangle Points'
+!       do i = 1,np
+! !         write(60,61) r(i),s(i),x(i),y(i)
+!         print 21, r(i),s(i)
+!       enddo
+!       print*, ' '
 
  21   format(28(f10.4,1x))
  61   format(16000(e24.17,1x))      
@@ -687,11 +696,11 @@
           
       ENDIF   
       
-      PRINT*, ' '
-      PRINT*, 'Quadrilateral Points'
-      DO n = 1,nnds
-        PRINT("(2(f10.4))"), r(n),s(n)
-      ENDDO         
+!       PRINT*, ' '
+!       PRINT*, 'Quadrilateral Points'
+!       DO n = 1,nnds
+!         PRINT("(2(f10.4))"), r(n),s(n)
+!       ENDDO         
       
       RETURN
       END SUBROUTINE

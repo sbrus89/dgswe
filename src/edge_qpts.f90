@@ -3,6 +3,8 @@
       USE globals, ONLY: pres,p,nqpte,mnqpte,wpte,qpte,ctp,nel_type
       
       USE allocation, ONLY: alloc_qpt_arrays
+      
+      USE messenger2, ONLY: myrank
 
       IMPLICIT NONE
       INTEGER :: alloc_status
@@ -86,21 +88,22 @@
       ENDDO
 
 
+      IF (myrank == 0) THEN
+        PRINT "(A)", "---------------------------------------------"
+        PRINT "(A)", "        Edge Integration Information         "
+        PRINT "(A)", "---------------------------------------------"
+        PRINT "(A)", " "
 
-      PRINT "(A)", "---------------------------------------------"
-      PRINT "(A)", "        Edge Integration Information         "
-      PRINT "(A)", "---------------------------------------------"
-      PRINT "(A)", " "
-
-      PRINT "(A)", 'Edge quadrature weights and points'
+        PRINT "(A)", 'Edge quadrature weights and points'
       
-      DO i = 1,nel_type
-        PRINT "(A,I3)", "Number of edge quadrature points",nqpte(i)      
-        DO pt = 1,nqpte(i)
-          PRINT "(2(F10.3))", wpte(pt,i),qpte(pt,2,i)
+        DO i = 1,nel_type
+          PRINT "(A,I3)", "Number of edge quadrature points",nqpte(i)      
+          DO pt = 1,nqpte(i)
+            PRINT "(2(F10.3))", wpte(pt,i),qpte(pt,2,i)
+          ENDDO
+          PRINT*, ' '
         ENDDO
-        PRINT*, ' '
-      ENDDO
+      ENDIF
 
       RETURN
       END SUBROUTINE edge_qpts

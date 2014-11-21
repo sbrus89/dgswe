@@ -3,6 +3,8 @@
       USE globals, ONLY: pres,p,nqpta,mnqpta,wpta,qpta,ctp,nel_type
       
       USE allocation, ONLY: alloc_qpt_arrays
+      
+      USE messenger2, ONLY: myrank
 
       IMPLICIT NONE 
       INTEGER :: i,pt,et
@@ -39,20 +41,22 @@
       ENDDO          
 
 
-      PRINT "(A)", "---------------------------------------------"
-      PRINT "(A)", "        Area Integration Information         "
-      PRINT "(A)", "---------------------------------------------"
-      PRINT "(A)", " "
+      IF (myrank == 0) THEN
+        PRINT "(A)", "---------------------------------------------"
+        PRINT "(A)", "        Area Integration Information         "
+        PRINT "(A)", "---------------------------------------------"
+        PRINT "(A)", " "
 
-      PRINT "(A)", 'Area quadrature weights and points (r,s)'
+        PRINT "(A)", 'Area quadrature weights and points (r,s)'
       
-      DO i = 1,4
-      PRINT "(A,I3)", "Number of area quadrature points",nqpta(i)      
-        DO pt = 1,nqpta(i)
-          PRINT "(3(F10.3))", wpta(pt,i),qpta(pt,1,i),qpta(pt,2,i)
-        ENDDO
-        PRINT*, ' '
-      ENDDO
+        DO i = 1,4
+        PRINT "(A,I3)", "Number of area quadrature points",nqpta(i)      
+          DO pt = 1,nqpta(i)
+            PRINT "(3(F10.3))", wpta(pt,i),qpta(pt,1,i),qpta(pt,2,i)
+          ENDDO
+          PRINT*, ' '
+        ENDDO      
+      ENDIF
 
       
       RETURN

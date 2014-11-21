@@ -121,7 +121,9 @@
          
       IMPLICIT NONE
       
-
+      CHARACTER(10) :: date,time
+      
+          
        
 #ifdef CMPI       
       CALL MPI_INIT(ierr)
@@ -150,9 +152,16 @@
 
       nrblk = nthreads  
 #endif
-     
 
       CALL directory_name()
+      
+      
+      CALL DATE_AND_TIME(date,time)     
+      IF (myrank == 0) THEN
+        PRINT*, ' '
+        PRINT*, 'Started: ',date,time
+        PRINT*, ' '        
+      ENDIF      
        
       RETURN           
       END SUBROUTINE message_init

@@ -11,15 +11,9 @@
       INTEGER :: i,j
       REAL(pres) :: tstep,t_start,t_end
       
-      CHARACTER(10) :: date,time
-      
-      CALL DATE_AND_TIME(date,time)
 
-      PRINT*, ' '
-      PRINT*, 'Started: ',date,time
-      PRINT*, ' ' 
 
-      coord_sys = 2
+      coord_sys = 1
       slam0 = -79.0d0*deg2rad
       sphi0 = 35.0d0*deg2rad
       h0 = 10d0
@@ -77,15 +71,17 @@
       CALL CPU_TIME(t_start)
 #endif
       
-      PRINT "(A)", "---------------------------------------------"
-      PRINT "(A)", "               Time Stepping                 "
-      PRINT "(A)", "---------------------------------------------"
-      PRINT "(A)", " "
+      IF (myrank == 0) THEN
+        PRINT "(A)", "---------------------------------------------"
+        PRINT "(A)", "               Time Stepping                 "
+        PRINT "(A)", "---------------------------------------------"
+        PRINT "(A)", " "
 
-      PRINT "(A,e12.4)", "Time step: ",dt
-      PRINT "(A,e12.4)", "Final time: ",tf
+        PRINT "(A,e12.4)", "Time step: ",dt
+        PRINT "(A,e12.4)", "Final time: ",tf
 
-      PRINT "(A)", " "
+        PRINT "(A)", " "
+      ENDIF
       
       tstep = int(tf/dt)
       tskp = int(tf/(lines*dt))             
@@ -101,7 +97,9 @@
          cnt = cnt + 1
          IF(cnt == tskp) THEN
 
-           PRINT("(A,e15.8)"), 't = ', t
+           IF(myrank == 0) THEN
+             PRINT("(A,e15.8)"), 't = ', t
+           ENDIF
 
            WRITE(63,"(e24.17)") t
            DO dof = 1,mndof

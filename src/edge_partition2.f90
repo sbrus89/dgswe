@@ -1,6 +1,8 @@
       SUBROUTINE metis2()
 
       USE globals, ONLY: nn,ne,ned,ged2el,npart,part
+      
+      USE messenger2, ONLY: myrank
 
       IMPLICIT NONE
       
@@ -113,7 +115,9 @@
       
       ENDIF
       
-      PRINT*,"edgecut = ", edgecut
+      IF (myrank == 0) THEN
+        PRINT*,"edgecut = ", edgecut
+      ENDIF
       
       RETURN 
       END SUBROUTINE metis2
@@ -138,7 +142,9 @@
                          nblk,elblk,edblk,nfblk,nrblk,rnfblk, &
                          mnpartel,mnparted   
                          
-      USE allocation, ONLY: alloc_ptr_arrays,alloc_blk_arrays,dealloc_init_arrays                        
+      USE allocation, ONLY: alloc_ptr_arrays,alloc_blk_arrays,dealloc_init_arrays          
+      
+      USE messenger2, ONLY: myrank
 
 
       IMPLICIT NONE
@@ -332,46 +338,48 @@
       rnfblk(2,nrblk) = nied
       
       
+      IF (myrank == 0) THEN
       
+        PRINT "(A)", "---------------------------------------------"
+        PRINT "(A)", "           Loop Blocking Information         "
+        PRINT "(A)", "---------------------------------------------"
+        PRINT "(A)", " "            
       
-      PRINT "(A)", "---------------------------------------------"
-      PRINT "(A)", "           Loop Blocking Information         "
-      PRINT "(A)", "---------------------------------------------"
-      PRINT "(A)", " "            
+!         PRINT*, "elblk: "
+!         DO blk = 1,nblk
+!           PRINT*, elblk(1,blk),elblk(2,blk) 
+!         ENDDO
+!         PRINT*, " "      
       
-!       PRINT*, "elblk: "
-!       DO blk = 1,nblk
-!         PRINT*, elblk(1,blk),elblk(2,blk) 
-!       ENDDO
-!       PRINT*, " "      
-      
-      PRINT*, "Number of partitions: ", npart      
-      PRINT*, " "
-      PRINT*, "edblk: "
-      DO blk = 1,npart
-        PRINT*, elblk(1,blk,1), elblk(2,blk,1), npartet(1,blk)
-        PRINT*, elblk(1,blk,2), elblk(2,blk,2), npartet(2,blk)
-        PRINT*, elblk(1,blk,3), elblk(2,blk,3), npartet(3,blk)
-        PRINT*, elblk(1,blk,4), elblk(2,blk,4), npartet(4,blk)    
+        PRINT*, "Number of partitions: ", npart      
         PRINT*, " "
-      ENDDO
-      mnpartel = MAXVAL(npartel)
-      PRINT*, "Max elements per partition: ", mnpartel      
+        PRINT*, "edblk: "
+        DO blk = 1,npart
+          PRINT*, elblk(1,blk,1), elblk(2,blk,1), npartet(1,blk)
+          PRINT*, elblk(1,blk,2), elblk(2,blk,2), npartet(2,blk)
+          PRINT*, elblk(1,blk,3), elblk(2,blk,3), npartet(3,blk)
+          PRINT*, elblk(1,blk,4), elblk(2,blk,4), npartet(4,blk)    
+          PRINT*, " "
+        ENDDO
+        mnpartel = MAXVAL(npartel)
+        PRINT*, "Max elements per partition: ", mnpartel      
       
-      PRINT*, " "
-      PRINT*, "nfblk: "
-      DO blk = 1,npart+1
-        PRINT*, nfblk(1,blk), nfblk(2,blk), nparted(blk)
-      ENDDO
-      mnparted = MAXVAL(nparted(1:npart))
-      PRINT*, "Max edges per partition: ", mnparted
-      PRINT*, " " 
+        PRINT*, " "
+        PRINT*, "nfblk: "
+        DO blk = 1,npart+1
+          PRINT*, nfblk(1,blk), nfblk(2,blk), nparted(blk)
+        ENDDO
+        mnparted = MAXVAL(nparted(1:npart))
+        PRINT*, "Max edges per partition: ", mnparted
+        PRINT*, " " 
       
-      PRINT*, " "
-      PRINT*, "nfblk: "
-      DO blk = 1,nrblk
-        PRINT*, rnfblk(1,blk), rnfblk(2,blk)
-      ENDDO      
+        PRINT*, " "
+        PRINT*, "nfblk: "
+        DO blk = 1,nrblk
+          PRINT*, rnfblk(1,blk), rnfblk(2,blk)
+        ENDDO      
+      
+      ENDIF
       
       END SUBROUTINE decomp2
       
