@@ -219,7 +219,7 @@
           ENDIF
           
           IF(segtype == 1 .OR. segtype == 11 .OR. segtype == 21) THEN 
-            IF(lfbseg(1,bnd,pe) /= fbseg(1,bdn)) THEN  ! if the entire island boundary is not contained in the subdomain
+            IF(lfbseg(1,bnd,pe) /= fbseg(1,bnd)) THEN  ! if the entire island boundary is not contained in the subdomain
               lfbseg(2,bnd,pe) = 10                   ! change it to a land boundary
             ENDIF
           ENDIF
