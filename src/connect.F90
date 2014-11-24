@@ -5,7 +5,8 @@
                          ged2nn,ged2el,ged2led, &
                          nied,iedn,nobed,obedn,nfbed,fbedn,nnfbed,nfbedn, &
                          nope,neta,obseg,obnds,nbou,fbseg,nvel,fbnds, &
-                         nelnds
+                         nelnds, &
+                         out_direc
                          
       USE allocation, ONLY: alloc_connect_arrays    
       USE messenger2, ONLY: dirname,lname,myrank,nred,redn      
@@ -28,6 +29,8 @@
       
       INTEGER, ALLOCATABLE, DIMENSION(:) :: recv_edge      
 
+      
+      OPEN(unit=17,file=trim(out_direc) // 'connect.d')      
 
       ALLOCATE(ied_temp(3*ne),bnd_temp(3*ne),nfbnd_temp(3*ne),fbnd_temp(3*ne),STAT = alloc_status)
       IF(alloc_status /= 0) PRINT*, 'Allocation error: bnd_temp,nfbnd_temp,fbnd_temp'
@@ -215,7 +218,7 @@
       DO seg = 1,nbou
       
         segtype = fbseg(2,seg)
-        PRINT*, seg, fbseg(1,seg), segtype
+        WRITE(17,*) seg, fbseg(1,seg), segtype
               
         DO nd = 1,fbseg(1,seg)-1
           n1bed = fbnds(nd,seg)
@@ -248,6 +251,7 @@
           ENDDO
           IF (found == 0) THEN
             PRINT "(A)", "  edge not found"
+            WRITE(17,"(A)") "  edge not found"
           ELSE 
 !             PRINT "(A,I5)", "  edge found", nd
           ENDIF
@@ -307,6 +311,28 @@
         PRINT "(A,I7)", '   number of missing edges:',ned-(nied+nobed+nfbed+nnfbed+nred)
         PRINT "(A)", ' '      
       ENDIF
+      
+      WRITE(17,"(A)") "---------------------------------------------"
+      WRITE(17,"(A)") "       Edge Connectivity Information         "
+      WRITE(17,"(A)") "---------------------------------------------"
+      WRITE(17,"(A)") " "        
+      WRITE(17,"(A,I7)") '   maximum elements per node:', mnepn
+      WRITE(17,"(A)") ' '            
+      WRITE(17,"(A,I7)") '   number of total edges:', ned
+      WRITE(17,"(A)") ' '  
+      WRITE(17,"(A,I7)") '   number of interior edges:', nied
+      WRITE(17,"(A)") ' '        
+      WRITE(17,"(A,I7)") '   number of open boundary edges:', nobed
+      WRITE(17,"(A)") ' '                
+      WRITE(17,"(A,I7)") '   number of specified normal boundary edges:', nfbed
+      WRITE(17,"(A,I7)") '   number of no normal flow boundary edges:', nnfbed
+      WRITE(17,"(A)") ' '        
+      WRITE(17,"(A,I7)") '   number of recieve edges:', nred
+      WRITE(17,"(A)") ' ' 
+      WRITE(17,"(A,I7)") '   number of missing edges:',ned-(nied+nobed+nfbed+nnfbed+nred)
+      WRITE(17,"(A)") ' '      
+      
+      CLOSE(17)
 
 ! !       write edge connectivity information in similar format to fort.17
 !       OPEN(UNIT=17,FILE=dirname(1:lname)//'/'//'fort.17')
