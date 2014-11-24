@@ -73,9 +73,9 @@
         WRITE(14,*) lnvel(pe)
         
         DO bnd = 1,nbou
-          IF(lfbseg(bnd,pe) > 0) THEN
-            WRITE(14,*) lfbseg(bnd,pe),fbseg(2,bnd)
-            DO nd = 1,lfbseg(bnd,pe) 
+          IF(lfbseg(1,bnd,pe) > 0) THEN
+            WRITE(14,*) lfbseg(1,bnd,pe),lfbseg(2,bnd,pe)
+            DO nd = 1,lfbseg(1,bnd,pe) 
               WRITE(14,*) lfbnds(nd,bnd,pe)
             ENDDO
           ENDIF
@@ -117,7 +117,7 @@
             DO seg = 1,nbou
               segtype = fbseg(2,seg)
               IF(segtype == 2 .OR. segtype == 12 .OR. segtype == 22)THEN
-                DO nd = 1,lfbseg(seg,pe)
+                DO nd = 1,lfbseg(1,seg,pe)
                   WRITE(15,*) lfbamp(nd,seg,bfr,pe), lfbph(nd,seg,bfr,pe)
                 ENDDO
               ENDIF

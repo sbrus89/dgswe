@@ -228,8 +228,8 @@
                ((n1ed2 == n2bed).AND.(n2ed2 == n1bed))) THEN
 
               ! no normal flow edges
-              IF( segtype == 0 .OR. segtype == 10 .OR. segtype == 20  .OR. &
-                  segtype == 1 .OR. segtype == 11 .OR. segtype == 21 ) THEN
+              IF( segtype == 0 .OR. segtype == 10 .OR. segtype == 20  .OR. &   ! land boundaries
+                  segtype == 1 .OR. segtype == 11 .OR. segtype == 21 ) THEN    ! island boundaries
                 nnfbed = nnfbed + 1
                 nfbnd_temp(nnfbed) = ed2
                 recv_edge(ed2) = 0

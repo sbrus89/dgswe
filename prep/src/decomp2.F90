@@ -130,7 +130,7 @@
       ALLOCATE(lobph(neta,nobfr,nproc))
       
       mnfbnds = MAXVAL(fbseg(1,:))
-      ALLOCATE(lfbseg(nbou,nproc))
+      ALLOCATE(lfbseg(2,nbou,nproc))
       ALLOCATE(lfbnds(mnfbnds,nbou,nproc))
       ALLOCATE(lnvel(nproc))
       ALLOCATE(lnbou(nproc))
@@ -190,7 +190,7 @@
         lnbou(pe) = 0
         lnbouf(pe) = 0
         DO bnd = 1,nbou
-          segtype = fbseg(2,bnd)
+          segtype = fbseg(2,bnd)          
           bfnd = 0
           DO j = 1,fbseg(1,bnd)
             nd = fbnds(j,bnd)
@@ -199,22 +199,32 @@
               ! skip, node is not in this subdomain
             ELSE
               lnvel(pe) = lnvel(pe) + 1
-              lfbseg(bnd,pe) = lfbseg(bnd,pe) + 1
-              lfbnds(lfbseg(bnd,pe),bnd,pe) = lnd
+              lfbseg(1,bnd,pe) = lfbseg(1,bnd,pe) + 1
+              lfbnds(lfbseg(1,bnd,pe),bnd,pe) = lnd
               
               IF(segtype == 2 .OR. segtype == 12 .OR. segtype == 22) THEN
-                bfnd = bfnd + 1
+                bfnd = bfnd + 1                        ! keep track of forced flow boundaries 
                 lfbamp(bfnd,bnd,:,pe) = fbamp(j,bnd,:)
                 lfbph(bfnd,bnd,:,pe) = fbph(j,bnd,:)
               ENDIF
             ENDIF
-          ENDDO
-          IF(lfbseg(bnd,pe) > 0) THEN
+          ENDDO          
+          
+          IF(lfbseg(1,bnd,pe) > 0) THEN ! count local flow boundaries
             lnbou(pe) = lnbou(pe) + 1
+            lfbseg(2,bnd,pe) = segtype
             IF(segtype == 2 .OR. segtype == 12 .OR. segtype == 22) THEN
-              lnbouf(pe) = lnbouf(pe) + 1
+              lnbouf(pe) = lnbouf(pe) + 1 ! count local forced flow boundaries
             ENDIF
           ENDIF
+          
+          IF(segtype == 1 .OR. segtype == 11 .OR. segtype == 21) THEN 
+            IF(lfbseg(1,bnd,pe) /= fbseg(1,bdn) THEN  ! if the entire island boundary is not contained in the subdomain
+              lfbseg(2,bnd,pe) = 10                   ! change it to a land boundary
+            ENDIF
+          ENDIF
+          
+
         ENDDO
         
       ENDDO

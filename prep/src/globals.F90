@@ -106,7 +106,7 @@
       INTEGER, ALLOCATABLE, DIMENSION(:) :: lneta
       INTEGER, ALLOCATABLE, DIMENSION(:) :: lnope      
       
-      INTEGER, ALLOCATABLE, DIMENSION(:,:) :: lfbseg
+      INTEGER, ALLOCATABLE, DIMENSION(:,:,:) :: lfbseg
       INTEGER, ALLOCATABLE, DIMENSION(:,:,:) :: lfbnds
       INTEGER, ALLOCATABLE, DIMENSION(:) :: lnvel
       INTEGER, ALLOCATABLE, DIMENSION(:) :: lnbou     
