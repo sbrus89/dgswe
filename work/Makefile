@@ -225,14 +225,14 @@ $(ODIR)allocation.o : allocation.f90 globals.F90 messenger2.F90
 	$(FC) $(CFLAGS) $< -o $@
 	mv allocation.mod $(ODIR)
 
-$(ODIR)basis.o : basis.f90 globals.F90 allocation.f90
+$(ODIR)basis.o : basis.f90 globals.F90 allocation.f90 messenger2.F90
 	$(FC) $(CFLAGS) $< -o $@
 	mv basis.mod $(ODIR)
 
-$(ODIR)area_qpts.o : area_qpts.f90 globals.F90 allocation.f90
+$(ODIR)area_qpts.o : area_qpts.f90 globals.F90 allocation.f90 messenger2.F90
 	$(FC) $(CFLAGS) $< -o $@
 
-$(ODIR)edge_qpts.o : edge_qpts.f90 globals.F90 allocation.f90
+$(ODIR)edge_qpts.o : edge_qpts.f90 globals.F90 allocation.f90 messenger2.F90
 	$(FC) $(CFLAGS) $< -o $@
 
 $(ODIR)read_input.o : read_input.F90 globals.F90 messenger2.F90
@@ -259,7 +259,7 @@ $(ODIR)curvilinear.o : curvilinear.F90 globals.F90 basis.f90
 $(ODIR)element_data.o : element_data.f90 globals.F90 allocation.f90
 	$(FC) $(CFLAGS) $< -o $@
 
-$(ODIR)edge_partition2.o : edge_partition2.f90 globals.F90 allocation.f90
+$(ODIR)edge_partition2.o : edge_partition2.f90 globals.F90 allocation.f90 messenger2.F90
 	$(FC) $(CFLAGS) $< -o $@
 
 $(ODIR)area_transformation.o : area_transformation.F90 globals.F90 basis.f90

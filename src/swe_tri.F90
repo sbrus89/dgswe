@@ -13,7 +13,7 @@
       
 
 
-      coord_sys = 1
+      coord_sys = 2
       slam0 = -79.0d0*deg2rad
       sphi0 = 35.0d0*deg2rad
       h0 = 10d0
