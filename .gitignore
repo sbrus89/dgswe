@@ -2,8 +2,12 @@
 output/
 *.a
 dgswe
+dgswe_omp
+dgswe_debug
 dgprep
 dgpost
+pdgswe
+pdgswe_degub
 *~
 *.mod
 PE*
@@ -13,3 +17,4 @@ PE*
 *.kate-swp
 *.d
 *.xml
+
