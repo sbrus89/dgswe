@@ -156,8 +156,8 @@
       PRINT "(A)", " "
       PRINT "(A,A)", "Grid file: ", grid_file                     
       PRINT "(A,A)", "Grid name: ", grid_name      
-      PRINT "(A,I5)", "Number of elements: ", ne
-      PRINT "(A,I5)", "Number of nodes: ", nn
+      PRINT "(A,I9)", "Number of elements: ", ne
+      PRINT "(A,I9)", "Number of nodes: ", nn
       PRINT*, " "      
       PRINT "(A,I5)", "Curved grid = ",curved_grid
       PRINT*, " "      
