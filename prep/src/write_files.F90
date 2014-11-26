@@ -4,7 +4,7 @@
                          lnope,lneta,lobseg,lobnds,lnbou,lnvel,lfbseg,lfbnds, &
                          nobfr,obtag,obtag2,obfreq,obnfact,obeq,lobamp,lobph, &
                          nfbfr,fbtag,fbtag2,fbfreq,fbnfact,fbeq,lfbamp,lfbph,lnbouf, &
-                         nsred,ned_sr,pe_sr,el_sr,led_sr,el_l2g, &
+                         nsred,ned_sr,pe_sr,el_sr,led_sr,el_l2g,nd_l2g, &
                          grid_file,forcing_file,p,ctp,dt,tf,dramp,cf,lines,nblk,npart,mndof
 
       IMPLICIT NONE
@@ -82,6 +82,34 @@
         ENDDO
         
         CLOSE(14)
+        
+        OPEN(UNIT=141,FILE=dirname(1:lname)//'/'//'bnd.14')   
+        
+        WRITE(141,*) lnope(pe)
+        WRITE(141,*) lneta(pe)
+        
+        DO bnd = 1,nope
+          IF(lobseg(bnd,pe) > 0) THEN
+            WRITE(141,*) lobseg(bnd,pe)
+            DO nd = 1,lobseg(bnd,pe)
+              WRITE(141,*) nd_l2g(lobnds(nd,bnd,pe),pe)
+            ENDDO
+          ENDIF
+        ENDDO
+        
+        WRITE(141,*) lnbou(pe)
+        WRITE(141,*) lnvel(pe)
+        
+        DO bnd = 1,nbou
+          IF(lfbseg(1,bnd,pe) > 0) THEN
+            WRITE(141,*) lfbseg(1,bnd,pe),lfbseg(2,bnd,pe)
+            DO nd = 1,lfbseg(1,bnd,pe) 
+              WRITE(141,*) nd_l2g(lfbnds(nd,bnd,pe),pe)
+            ENDDO
+          ENDIF
+        ENDDO        
+        
+        CLOSE(141)
          
       ENDDO
       
