@@ -24,8 +24,11 @@
       INTEGER :: mnepe
       INTEGER :: mnobnds,mnfbnds
       INTEGER :: segtype
+      INTEGER :: bnd_flag
+      INTEGER :: lbnd
       
-      INTEGER, ALLOCATABLE, DIMENSION(:) :: ndflag      
+      INTEGER, ALLOCATABLE, DIMENSION(:) :: ndflag 
+      INTEGER, ALLOCATABLE, DIMENSION(:,:) :: bou_l2g
       
       ALLOCATE(nresel(nproc))
       ALLOCATE(el_g2l(2,ne))
@@ -137,6 +140,7 @@
       ALLOCATE(lfbamp(mnfbnds,nbou,nfbfr,nproc))
       ALLOCATE(lfbph(mnfbnds,nbou,nfbfr,nproc))
       ALLOCATE(lnbouf(nproc))
+      ALLOCATE(bou_l2g(nbou,nproc))
       
       lobseg = 0
       lfbseg = 0
@@ -189,43 +193,66 @@
         lnvel(pe) = 0 ! look for flow boundary nodes in this subdomain
         lnbou(pe) = 0
         lnbouf(pe) = 0
+        
         DO bnd = 1,nbou
           segtype = fbseg(2,bnd)          
           bfnd = 0
+          bnd_flag = 0 
           DO j = 1,fbseg(1,bnd)
             nd = fbnds(j,bnd)
             lnd = nd_g2l(nd)
             IF(lnd == 0) THEN
-              ! skip, node is not in this subdomain
-            ELSE
-              lnvel(pe) = lnvel(pe) + 1
-              lfbseg(1,bnd,pe) = lfbseg(1,bnd,pe) + 1
-              lfbnds(lfbseg(1,bnd,pe),bnd,pe) = lnd
-              
-              IF(segtype == 2 .OR. segtype == 12 .OR. segtype == 22) THEN
-                bfnd = bfnd + 1                        ! keep track of forced flow boundaries 
-                lfbamp(bfnd,bnd,:,pe) = fbamp(j,bnd,:)
-                lfbph(bfnd,bnd,:,pe) = fbph(j,bnd,:)
+            
+              ! node is not in this subdomain
+              IF (bnd_flag == 1) THEN
+                bnd_flag = 0 ! local boundary is broken
               ENDIF
+              
+            ELSE
+            
+              IF (bnd_flag == 0) THEN 
+                ! start new local boundary
+                lnbou(pe) = lnbou(pe) + 1 
+                lbnd = lnbou(pe)
+                bou_l2g(lbnd,pe) = bnd
+                
+                lfbseg(2,lbnd,pe) = segtype
+                bnd_flag = 1
+              ENDIF
+             
+              lnvel(pe) = lnvel(pe) + 1
+              lfbseg(1,lbnd,pe) = lfbseg(1,lbnd,pe) + 1
+              lfbnds(lfbseg(1,lbnd,pe),lbnd,pe) = lnd              
+              
             ENDIF
-          ENDDO          
-          
-          IF(lfbseg(1,bnd,pe) > 0) THEN ! count local flow boundaries
-            lnbou(pe) = lnbou(pe) + 1
-            lfbseg(2,bnd,pe) = segtype
+          ENDDO                    
+
+        ENDDO
+        
+        DO lbnd = 1,lnbou(pe)
+          bnd = bou_l2g(lbnd,pe)
+          IF(lfbseg(1,lbnd,pe) > 1) THEN ! count local flow boundaries
+            segtype = lfbseg(2,lbnd,pe)
+            
             IF(segtype == 2 .OR. segtype == 12 .OR. segtype == 22) THEN
               lnbouf(pe) = lnbouf(pe) + 1 ! count local forced flow boundaries
+              DO bfnd = 1,lfbseg(1,lbnd,pe)
+                j = nd_l2g(bfnd,pe)
+                lfbamp(bfnd,lbnd,:,pe) = fbamp(j,bnd,:)
+                lfbph(bfnd,lbnd,:,pe) = fbph(j,bnd,:) 
+              ENDDO
             ENDIF
-          ENDIF
-          
-          IF(segtype == 1 .OR. segtype == 11 .OR. segtype == 21) THEN 
-            IF(lfbseg(1,bnd,pe) /= fbseg(1,bnd)) THEN  ! if the entire island boundary is not contained in the subdomain
-              lfbseg(2,bnd,pe) = 10                    ! change it to a land boundary
-              lfbseg(1,bnd,pe) = lfbseg(1,bnd,pe) - 1  ! and disregard the wrap-around node
-            ENDIF
-          ENDIF
-          
 
+            IF(segtype == 1 .OR. segtype == 11 .OR. segtype == 21) THEN 
+              IF(lfbseg(1,lbnd,pe) /= fbseg(1,bnd)) THEN  ! if the entire island boundary is not contained in the subdomain
+                lfbseg(2,lbnd,pe) = 10                    ! change it to a land boundary              
+                PRINT("(A,I7,A,I7,A)"), "Island boundary: ", lnbou(pe), " on PE: ", pe-1, " changed to land"
+              ENDIF         
+            ENDIF
+            
+          ELSE IF(lfbseg(1,lbnd,pe) == 1) THEN
+            PRINT*, "Error: boundary only has one node"           
+          ENDIF     
         ENDDO
         
       ENDDO
