@@ -139,6 +139,8 @@
       INTEGER, ALLOCATABLE, DIMENSION(:) :: fbedn ! array of flow boundary edge numbers
       INTEGER :: nnfbed ! total number of no normal flow boundary edges
       INTEGER, ALLOCATABLE, DIMENSION(:) :: nfbedn ! array of no normal flow boundary edge numbers
+      INTEGER :: nbed ! total numer of non-interior edges
+      INTEGER, ALLOCATABLE, DIMENSION(:) :: bedn ! array of non-interior edge numbers
 
       REAL(pres), ALLOCATABLE, TARGET, DIMENSION(:,:) :: H ! degrees of freedom for water column height
       REAL(pres), ALLOCATABLE, TARGET, DIMENSION(:,:) :: Qx ! degrees of freedom for x momentum

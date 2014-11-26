@@ -3,7 +3,7 @@
       USE globals, ONLY: pres,nn,ne,ned,vct,el_type,nverts,curved_grid, &
                          mnepn,epn,nepn, &
                          ged2nn,ged2el,ged2led, &
-                         nied,iedn,nobed,obedn,nfbed,fbedn,nnfbed,nfbedn, &
+                         nied,iedn,nobed,obedn,nfbed,fbedn,nnfbed,nfbedn,nbed,bedn, &
                          nope,neta,obseg,obnds,nbou,fbseg,nvel,fbnds, &
                          nelnds,nred,redn 
                          
@@ -163,6 +163,7 @@
       recv_edge = 1      
 
       nied = 0
+      nbed = 0
       ied_temp(:) = 0
       DO ged = 1,ned
         el1 = ged2el(1,ged)
@@ -170,7 +171,10 @@
         IF ((el1 /= 0) .AND. (el2 /= 0)) THEN
           nied = nied + 1
           ied_temp(nied) = ged
-          recv_edge(ged) = 0          
+          recv_edge(ged) = 0   
+        ELSE
+          nbed = nbed + 1
+          bedn(nbed) = ged
         ENDIF
       ENDDO
 
@@ -186,14 +190,15 @@
         DO nd = 1,obseg(seg)-1
           n1bed = obnds(nd,seg)
           n2bed = obnds(nd+1,seg)
-  edges1: DO ed2 = 1,ned
-            n1ed2 = ged2nn(1,ed2)
-            n2ed2 = ged2nn(2,ed2)
+  edges1: DO ed2 = 1,nbed
+            ged = bedn(ed2)
+            n1ed2 = ged2nn(1,ged)
+            n2ed2 = ged2nn(2,ged)
             IF(((n1ed2 == n1bed).AND.(n2ed2 == n2bed)).OR. &
                ((n1ed2 == n2bed).AND.(n2ed2 == n1bed))) THEN
               nobed = nobed + 1
-              bnd_temp(nobed) = ed2
-              recv_edge(ed2) = 0              
+              bnd_temp(nobed) = ged
+              recv_edge(ged) = 0              
               EXIT edges1
             ENDIF
           ENDDO edges1
@@ -221,9 +226,10 @@
           n1bed = fbnds(nd,seg)
           n2bed = fbnds(nd+1,seg)
           found = 0 
-   edges2: DO ed2 = 1,ned
-            n1ed2 = ged2nn(1,ed2)
-            n2ed2 = ged2nn(2,ed2)
+   edges2: DO ed2 = 1,nbed
+            ged = bedn(ed2)
+            n1ed2 = ged2nn(1,ged)
+            n2ed2 = ged2nn(2,ged)
             IF(((n1ed2 == n1bed).AND.(n2ed2 == n2bed)).OR. &
                ((n1ed2 == n2bed).AND.(n2ed2 == n1bed))) THEN
 
@@ -231,8 +237,8 @@
               IF( segtype == 0 .OR. segtype == 10 .OR. segtype == 20  .OR. &
                   segtype == 1 .OR. segtype == 11 .OR. segtype == 21 ) THEN
                 nnfbed = nnfbed + 1
-                nfbnd_temp(nnfbed) = ed2
-                recv_edge(ed2) = 0
+                nfbnd_temp(nnfbed) = ged
+                recv_edge(ged) = 0
                 found = 1
                 EXIT edges2
               ENDIF
@@ -240,8 +246,8 @@
               ! specified normal flow edges
               IF ( segtype == 2 .OR. segtype == 12 .OR. segtype == 22 ) THEN
                 nfbed = nfbed + 1
-                fbnd_temp(nfbed) = ed2
-                recv_edge(ed2) = 0
+                fbnd_temp(nfbed) = ged
+                recv_edge(ged) = 0
                 found = 1
                 EXIT edges2
               ENDIF

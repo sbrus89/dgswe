@@ -148,7 +148,7 @@
       SUBROUTINE alloc_connect_arrays(stage)
       
       USE globals, ONLY: epn,ged2nn,ged2el,ged2led,&
-                         iedn,obedn,fbedn,nfbedn
+                         iedn,obedn,fbedn,nfbedn,bedn
       
       IMPLICIT NONE
       INTEGER :: stage
@@ -162,9 +162,10 @@
         ! Elements associated with each node
         ALLOCATE(epn(mnepn,nn),STAT = alloc_status(1))
       ELSE IF (stage == 2) THEN
-        n = 1
+        n = 2
         ! Edge look-up tables
         ALLOCATE(ged2nn(2,ned),ged2el(2,ned),ged2led(2,ned),STAT = alloc_status(1))
+        ALLOCATE(bedn(ned), STAT = alloc_status(2))
       ELSE IF (stage == 3) THEN
         n = 3
         ! Edge look-up tables

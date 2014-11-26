@@ -79,6 +79,8 @@
       INTEGER, ALLOCATABLE, DIMENSION(:) :: nfbedn
       INTEGER :: nred
       INTEGER, ALLOCATABLE, DIMENSION(:) :: redn
+      INTEGER :: nbed
+      INTEGER, ALLOCATABLE, DIMENSION(:) :: bedn
       
       INTEGER, ALLOCATABLE, DIMENSION(:) :: part
 
