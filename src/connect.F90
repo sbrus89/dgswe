@@ -190,16 +190,17 @@
         DO nd = 1,obseg(seg)-1
           n1bed = obnds(nd,seg)
           n2bed = obnds(nd+1,seg)
-          DO ed2 = 1,ned
+  edges1: DO ed2 = 1,ned
             n1ed2 = ged2nn(1,ed2)
             n2ed2 = ged2nn(2,ed2)
             IF(((n1ed2 == n1bed).AND.(n2ed2 == n2bed)).OR. &
                ((n1ed2 == n2bed).AND.(n2ed2 == n1bed))) THEN
               nobed = nobed + 1
               bnd_temp(nobed) = ed2
-              recv_edge(ed2) = 0              
+              recv_edge(ed2) = 0   
+              EXIT edges1
             ENDIF
-          ENDDO
+          ENDDO edges1
         ENDDO
       ENDDO
 
@@ -224,7 +225,7 @@
           n1bed = fbnds(nd,seg)
           n2bed = fbnds(nd+1,seg)
           found = 0 
-          DO ed2 = 1,ned
+  edges2: DO ed2 = 1,ned
             n1ed2 = ged2nn(1,ed2)
             n2ed2 = ged2nn(2,ed2)
             IF(((n1ed2 == n1bed).AND.(n2ed2 == n2bed)).OR. &
@@ -237,6 +238,7 @@
                 nfbnd_temp(nnfbed) = ed2
                 recv_edge(ed2) = 0
                 found = 1
+                EXIT edges2               
               ENDIF
 
               ! specified normal flow edges
@@ -245,10 +247,11 @@
                 fbnd_temp(nfbed) = ed2
                 recv_edge(ed2) = 0
                 found = 1
+                EXIT edges2
               ENDIF
 
             ENDIF
-          ENDDO
+          ENDDO edges2
           IF (found == 0) THEN
             PRINT "(A)", "  edge not found"
             WRITE(17,"(A)") "  edge not found"
