@@ -55,6 +55,7 @@
       TYPE(edge_ptr_array), ALLOCATABLE, DIMENSION(:,:) :: send_ptr    
       
       REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: rnx,rny
+      REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: rcfac      
       REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: detJe_recv      
       
       INTEGER, ALLOCATABLE, DIMENSION(:) :: solreq_recv
@@ -290,7 +291,8 @@
                          Hqpt,Qxqpt,Qyqpt, &
                          xmom,ymom,xymom, &
                          ged2el,ged2led, &
-                         gel2ael
+                         gel2ael, &
+                         Spe,cfac
       
       IMPLICIT NONE
       
@@ -365,7 +367,7 @@
         ENDDO
       ENDDO
       
-      ALLOCATE(rnx(nred,mnqpte),rny(nred,mnqpte),detJe_recv(nred,mnqpte))
+      ALLOCATE(rnx(nred,mnqpte),rny(nred,mnqpte),rcfac(nred,mnqpte),detJe_recv(nred,mnqpte))
       
       edcnt = 0
       DO pe = 1,nproc_sr
@@ -381,8 +383,10 @@
             IF(el == ged2el(1,ged) .and. led == ged2led(1,ged)) THEN
             
               DO pt = 1,nqpte(1)
-                rnx(edcnt,pt) = nx_pt(ged,pt)
+                rnx(edcnt,pt) = nx_pt(ged,pt)*Spe(ged,pt)
                 rny(edcnt,pt) = ny_pt(ged,pt)
+                
+                rcfac(edcnt,pt) = cfac(ed,pt)
               
                 detJe_recv(edcnt,pt) = detJe(ged,pt)
               ENDDO

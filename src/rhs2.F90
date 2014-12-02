@@ -34,7 +34,7 @@
                             Hri,Hre,Qxri,Qxre,Qyri,Qyre, &
                             xmri,ymri,xymri,xmre,ymre,xymre, &
                             Hfri,Qxfri,Qyfri, &
-                            rnx,rny,detJe_recv         
+                            rnx,rny,rcfac,detJe_recv         
                             
       USE mpi                            
 #endif       
@@ -346,8 +346,8 @@ ed_points2: DO pt = 1,nqpte(1) ! Compute numerical fluxes for all edges
       
 !!DIR$ VECTOR ALIGNED      
         DO ed = 1,nred
-          const(ed) = max(abs(Qxri(ed,pt)%ptr*rnx(ed,pt) + Qyri(ed,pt)%ptr*rny(ed,pt))/Hri(ed,pt)%ptr + sqrt(g*Hri(ed,pt)%ptr*icfac(ed,pt)), &
-                          abs(Qxre(ed,pt)%ptr*rnx(ed,pt) + Qyre(ed,pt)%ptr*rny(ed,pt))/Hre(ed,pt)%ptr + sqrt(g*Hre(ed,pt)%ptr*icfac(ed,pt)))          
+          const(ed) = max(abs(Qxri(ed,pt)%ptr*rnx(ed,pt) + Qyri(ed,pt)%ptr*rny(ed,pt))/Hri(ed,pt)%ptr + sqrt(g*Hri(ed,pt)%ptr*rcfac(ed,pt)), &
+                          abs(Qxre(ed,pt)%ptr*rnx(ed,pt) + Qyre(ed,pt)%ptr*rny(ed,pt))/Hre(ed,pt)%ptr + sqrt(g*Hre(ed,pt)%ptr*rcfac(ed,pt)))          
         ENDDO
         
 
