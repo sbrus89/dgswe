@@ -9,13 +9,17 @@ import pprint
 #fort14name = "/home/sbrus/data-drive/galveston/dgswe/quad2_spline_channel/galveston2_spline.grd"
 #grid_name = "galveston2_spline"
 
-filename = "/home/sbrus/Codes/spline/galveston_tri_curve.2dm"
-fort14name = "/home/sbrus/Codes/spline/galveston_tri_curve.grd"
-grid_name = "galveston_tri_spline"
+#filename = "/home/sbrus/Codes/spline/galveston_tri_curve.2dm"
+#fort14name = "/home/sbrus/Codes/spline/galveston_tri_curve.grd"
+#grid_name = "galveston_tri_spline"
 
 #filename = "/home/sbrus/Codes/error/converge_quad3.2dm"
 #fort14name = "/home/sbrus/Codes/error/converge_quad3.grd"
 #grid_name = "converge_quad3"
+
+filename = "/home/sbrus/data-drive/converge_quad/converge_quad4.2dm"
+fort14name = "/home/sbrus/data-drive/converge_quad/converge_quad4.grd"
+grid_name = "converge_quad4"
 
 f = open(filename)
 grid_data = f.read().splitlines()
