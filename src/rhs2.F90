@@ -400,15 +400,14 @@ ed_points2: DO pt = 1,nqpte(1) ! Compute numerical fluxes for all edges
 !$OMP do     
             ! No normal flow boundary condition 
             DO ed = 1,nnfbed
+            
+              ged = nfbedn(ed)
+              led_in = ged2led(1,ged)        
+              el_in = gel2ael(ged2el(1,ged))  
+              
               DO pt = 1,nqpte(3)
 
-              ged = nfbedn(ed)
-
-              led_in = ged2led(1,ged)
-
               gp_in = (led_in-1)*nqpte(3) + pt
-
-              el_in = gel2ael(ged2el(1,ged))
 
               nx = nx_pt(ged,pt)
               ny = ny_pt(ged,pt)
@@ -495,16 +494,15 @@ ed_points2: DO pt = 1,nqpte(1) ! Compute numerical fluxes for all edges
 
             ! Flow specified boundary edges
             DO ed = 1,nfbed
+            
+              ged = fbedn(ed)
+              led_in = ged2led(1,ged)  
+              el_in = gel2ael(ged2el(1,ged))      
+              
               DO pt = 1,nqpte(1)
 
-              ged = fbedn(ed)
-
-              led_in = ged2led(1,ged)
-
               gp_in = (led_in-1)*nqpte(1) + pt
-
-              el_in = gel2ael(ged2el(1,ged))
-              
+       
               nx = nx_pt(ged,pt)
               ny = ny_pt(ged,pt)
               sp = Spe(ged,pt)               
@@ -548,15 +546,14 @@ ed_points2: DO pt = 1,nqpte(1) ! Compute numerical fluxes for all edges
 
              ! Open boundary edges (elevation specified)
             DO ed = 1,nobed
+            
+              ged = obedn(ed)
+              led_in = ged2led(1,ged)
+              el_in = gel2ael(ged2el(1,ged))
+              
               DO pt = 1,nqpte(1)
 
-              ged = obedn(ed)
-
-              led_in = ged2led(1,ged)
-
               gp_in = (led_in-1)*nqpte(1) + pt
-
-              el_in = gel2ael(ged2el(1,ged))
 
               nx = nx_pt(ged,pt)
               ny = ny_pt(ged,pt)
