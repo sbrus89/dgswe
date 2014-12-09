@@ -9,10 +9,10 @@ while( ~feof(input))
 end
 fclose(input);
 
-ngrids = 2;
-ninp_lines = 11;
+ngrids = 1;
+ninp_lines = 12;
 
-npart = [2:20 25:5:55];
+npart = 1:2;
 
 n = length(npart);
 
