@@ -3,14 +3,20 @@ clear all
 close all
 clc
 
-% grd_direc = '~/Codes/dgswe/grids/';
-% sol_direc = '~/Codes/dgswe/output/';
-% % grd_name = 'inlet1_quad.grd';
-% grd_name = 'converge.grd';
+grd_direc = '~/Codes/dgswe/grids/';
+sol_direc = '~/Codes/dgswe/output/';
+% grd_name = 'inlet2.grd';
+grd_name = 'converge_quad.grd';
+% grd_name = 'beaufort_hb+2.grd';
+plot_folder = 'velplot';
+
+% grd_direc = '~/Codes/dgswe/work/PE0000/';
+% sol_direc = '~/Codes/dgswe/work/PE0000/';
+% grd_name = 'fort.14';
 % plot_folder = 'velplot';
 
 % grd_direc = '~/Codes/dgswe/grids/';
-% sol_direc = '~/data-drive/converge_quad/mesh1/P3/CTP3/';
+% sol_direc = '~/data-drive/converge_quad/mesh1/P1/CTP2/';
 % grd_name = 'converge_quad.grd';
 % plot_folder = 'velplot';
 
@@ -41,11 +47,12 @@ clc
 % % grd_name = 'galveston2_plot.grd';
 % plot_folder = 'velplot_scale';
 
+
 ctp = 2;
 
 nsnap = 50;
 
-grid_on = 1;
+grid_on = 0;
 
 % zoom_area = [3.2e5 3.4e5 3.24e6 3.26e6;
 %              2.84e5 3.04e5 3.205e6 3.2325e6];
@@ -126,7 +133,7 @@ while ~feof(fid_H) && snap < nsnap
     Qx = fscanf(fid_Qx,' %g ', [ne mndof])'; % read in Qx solution at time t
     
     t(snap) = fscanf(fid_Qy,' %g ', 1); % read in time
-    Qy = fscanf(fid_Qy,' %g ', [ne mndof])'; % read in Qy solution at time t
+    Qy = fscanf(fid_Qy,' %g ', [ne mndof])'; % read in Qy solution at time t    
     
     %     for el = 1:ne
     %         if nelnds(el) == 3
@@ -176,42 +183,44 @@ if exist([sol_direc,'velscale.mat'])
     scale = 1;
 end
 
+% figure
+% 
+% hold on
+% 
+% for el = 1:ne
+%     
+%     n = nelnds(el);
+%     et = el_type(el);
+%     
+%     if n == 9
+%         n = n-1;
+%     end
+%     
+%     if grid_on == 0
+%         fill(VX(EToV(el,1:n),1),VX(EToV(el,1:n),2),HB(EToV(el,1:n)),'EdgeColor','none')
+%     else
+%         fill(VX(EToV(el,1:n),1),VX(EToV(el,1:n),2),HB(EToV(el,1:n)))
+%     end
+%     
+% end
+% 
+% colorbar
+% set(gcf,'PaperPositionMode','auto')
+% axis equal
+% hold off
+% 
+% print('-r350','-dpng',sprintf('%s/bathy',FramesFolder)) ;
+% print('-depsc',sprintf('%s/bathy',FramesFolder)) ;
+% 
+% for zoom = 1:nzoom
+%     axis(zoom_area(zoom,:))
+%     print('-r350','-dpng',sprintf('%s/bathy_zoom%02d',FramesFolder,zoom)) ;
+%     print('-depsc',sprintf('%s/bathy_zoom%02d',FramesFolder,zoom)) ;
+% end
+    
 figure
 
-hold on
-
-for el = 1:ne
-    
-    n = nelnds(el);
-    et = el_type(el);
-    
-    if n == 9
-        n = n-1;
-    end
-    
-    if grid_on == 0
-        fill(VX(EToV(el,1:n),1),VX(EToV(el,1:n),2),HB(EToV(el,1:n)),'EdgeColor','none')
-    else
-        fill(VX(EToV(el,1:n),1),VX(EToV(el,1:n),2),HB(EToV(el,1:n)))
-    end
-    
-end
-
-colorbar
-set(gcf,'PaperPositionMode','auto')
-axis equal
-
-print('-r350','-dpng',sprintf('%s/bathy',FramesFolder)) ;
-print('-depsc',sprintf('%s/bathy',FramesFolder)) ;
-
-for zoom = 1:nzoom
-    axis(zoom_area(zoom,:))
-    print('-r350','-dpng',sprintf('%s/bathy_zoom%02d',FramesFolder,zoom)) ;
-    print('-depsc',sprintf('%s/bathy_zoom%02d',FramesFolder,zoom)) ;
-end
-    
-
-for tsnap = 1:snap
+for tsnap = snap
     
 %     figure('visible','off')
     
@@ -224,23 +233,7 @@ for tsnap = 1:snap
 %     velmin = min(min(vel(:,:,tsnap)));
 %     velmax = max(max(vel(:,:,tsnap)));
 %     caxis([velmin velmax])
-    %     for el = 1:ne
-    %
-    %         if grid_on == 0
-    %             if nelnds(el) == 3
-    %                 fill(VX(EToV(el,1:3),1),VX(EToV(el,1:3),2),vel(1:3,el,tsnap),'EdgeColor','none')
-    %             elseif nelnds(el) == 4
-    %                 fill(VX(EToV(el,1:4),1),VX(EToV(el,1:4),2),vel(1:4,el,tsnap),'EdgeColor','none')
-    %             end
-    %         else
-    %             if nelnds(el) == 3
-    %                 fill(VX(EToV(el,1:3),1),VX(EToV(el,1:3),2),vel(1:3,el,tsnap))
-    %             elseif nelnds(el) == 4
-    %                 fill(VX(EToV(el,1:4),1),VX(EToV(el,1:4),2),vel(1:4,el,tsnap))
-    %             end
-    %         end
-    %     end
-    
+
     for el = 1:ne
         
         n = nelnds(el);
@@ -261,7 +254,7 @@ for tsnap = 1:snap
     
     hold off
     
-%     ttext = ['Velocity solution: t = ',num2str(t(tsnap)),' (Day:  ',num2str(day),', Hour:  ',num2str(hr),', Minute:  ',num2str(minute),', Second:  ',num2str(sec),')'] ;
+    ttext = ['Velocity solution: t = ',num2str(t(tsnap)),' (Day:  ',num2str(day),', Hour:  ',num2str(hr),', Minute:  ',num2str(minute),', Second:  ',num2str(sec),')'] ;
     ttext = ['Day:  ',num2str(day),', Hour:  ',num2str(hr),', Minute:  ',num2str(minute),', Second:  ',num2str(sec)] ;
 
     title(ttext)
@@ -272,10 +265,11 @@ for tsnap = 1:snap
         caxis([0 velscale(tsnap)])
     else
         caxis([0 1])
+        caxis('auto')
     end
     axis image
     
-    pause(.01)
+    drawnow
     
 %     print('-r350','-dpng',sprintf('%s/vel%04d',FramesFolder,tsnap)) ;
 %     print('-depsc',sprintf('%s/vel%04d',FramesFolder,tsnap)) ;
@@ -286,42 +280,42 @@ for tsnap = 1:snap
 %         print('-depsc',sprintf('%s/vel%04d_zoom%02d',FramesFolder,tsnap,zoom)) ;
 %     end
     
-    %     figure
-    %
-    %     axis equal
-    %
-    %     disp(['Time snap: ',num2str(tsnap),'/',num2str(snap)])
-    %     [day,hr,minute,sec] = s2dhms(t(tsnap));
-    %
-    %     hold on
-    %     zmin = min(min(zv(:,:,tsnap)));
-    %     zmax = max(max(zv(:,:,tsnap)));
-    %     caxis([zmin zmax])
-    %     for el = 1:ne
-    %
-    %         if grid_on == 0
-    %             if nelnds(el) == 3
-    %                 fill(VX(EToV(el,1:3),1),VX(EToV(el,1:3),2),zv(1:3,el,tsnap),'EdgeColor','none')
-    %             elseif nelnds(el) == 4
-    %                 fill(VX(EToV(el,1:4),1),VX(EToV(el,1:4),2),zv(1:4,el,tsnap),'EdgeColor','none')
-    %             end
-    %         else
-    %             if nelnds(el) == 3
-    %                 fill(VX(EToV(el,1:3),1),VX(EToV(el,1:3),2),zv(1:3,el,tsnap))
-    %             elseif nelnds(el) == 4
-    %                 fill(VX(EToV(el,1:4),1),VX(EToV(el,1:4),2),zv(1:4,el,tsnap))
-    %             end
-    %         end
-    %     end
-    %     hold off
-    %
-    %     ttext = ['Surface solution: t = ',num2str(t(tsnap)),' (Day:  ',num2str(day),', Hour:  ',num2str(hr),', Minute:  ',num2str(minute),', Second:  ',num2str(sec),')'] ;
-    %     title(ttext)
-    %     xlabel('x')
-    %     ylabel('y')
-    %     colorbar
-    %     axis image
-    
+%         figure
+%     
+%         axis equal
+%     
+%         disp(['Time snap: ',num2str(tsnap),'/',num2str(snap)])
+%         [day,hr,minute,sec] = s2dhms(t(tsnap));
+%     
+%         hold on
+%         zmin = min(min(zv(:,:,tsnap)));
+%         zmax = max(max(zv(:,:,tsnap)));
+%         caxis([zmin zmax])
+%         for el = 1:ne
+%     
+%             if grid_on == 0
+%                 if nelnds(el) == 3
+%                     fill(VX(EToV(el,1:3),1),VX(EToV(el,1:3),2),zv(1:3,el,tsnap),'EdgeColor','none')
+%                 elseif nelnds(el) == 4
+%                     fill(VX(EToV(el,1:4),1),VX(EToV(el,1:4),2),zv(1:4,el,tsnap),'EdgeColor','none')
+%                 end
+%             else
+%                 if nelnds(el) == 3
+%                     fill(VX(EToV(el,1:3),1),VX(EToV(el,1:3),2),zv(1:3,el,tsnap))
+%                 elseif nelnds(el) == 4
+%                     fill(VX(EToV(el,1:4),1),VX(EToV(el,1:4),2),zv(1:4,el,tsnap))
+%                 end
+%             end
+%         end
+%         hold off
+%     
+%         ttext = ['Surface solution: t = ',num2str(t(tsnap)),' (Day:  ',num2str(day),', Hour:  ',num2str(hr),', Minute:  ',num2str(minute),', Second:  ',num2str(sec),')'] ;
+%         title(ttext)
+%         xlabel('x')
+%         ylabel('y')
+%         colorbar
+%         axis image
+%     
     %     print('-r400','-dpng',sprintf('%s/vel%04d',FramesFolder,tsnap)) ;
     %
     %     for zoom = 1:nzoom

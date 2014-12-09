@@ -12,8 +12,8 @@ node = 'off';
 
 p = 1 ;
 
-grd_direc = '~/data-drive/galveston/dgswe/quad2_spline/p1/';
-grd_name = 'galveston2_spline.grd';
+grd_direc = '~/data-drive/converge_quad/';
+grd_name = 'converge_quad4.grd';
 
 [EToV,VX,HB,nelnds,~,~,~] = readfort14([grd_direc,grd_name]);
 [ne,nc] = size(EToV);
