@@ -6,6 +6,8 @@
       
       CONTAINS
       
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!             
       
       SUBROUTINE vandermonde()
       
@@ -38,7 +40,6 @@
           ENDDO
         ENDDO
         
-!         CALL DGETRF(n,n,V(1:n,1:n,et),n,ipiv(1:n,et),info)
         CALL DGETRF(n,n,V(1,1,et),mnnds,ipiv(1,et),info)        
 !         DO pt = 1,n
 !             PRINT("(100(e15.5))"), (V(dof,pt,et), dof = 1,n)
@@ -52,130 +53,212 @@
       RETURN      
       END SUBROUTINE vandermonde
  
- 
-      SUBROUTINE newton(x,y,eln,r,s,hb)
-
-      USE globals, ONLY: pres,el_type,np,nnds,mnnds,V,elxy,elhb,ipiv
-      USE basis, ONLY: tri_basis,quad_basis
+      
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!       
+      
+      SUBROUTINE normals()
+      
+      USE globals, ONLY: pres,ne,el_type,np,nnds,mnnds,V,l,elxy,elhb,nhb,xc,yc,hc,ipiv
+      USE basis, ONLY: tri_basis,quad_basis      
 
       IMPLICIT NONE
-      INTEGER :: it,eln,et,p,n,i
+      INTEGER :: it,el,et,p,n,i,np1
       INTEGER :: info
-      INTEGER :: maxit
-      REAL(pres) :: tol
       REAL(pres) :: x,y
       REAL(pres) :: r(1),s(1),hb
-      REAL(pres) :: f,g,error
-      REAL(pres) :: dfdr,dfds,dgdr,dgds,jac
+      REAL(pres) :: dxdr,dxds,dydr,dyds,jac
+      REAL(pres) :: drdx,drdy,dsdx,dsdy
+      REAL(pres) :: dhdx,dhdy
       REAL(pres) :: phi(mnnds),dpdr(mnnds),dpds(mnnds)
-!       REAL(pres) :: l(mnnds,1),dldr(mnnds,1),dlds(mnnds,1)
-      REAL(pres) :: l(mnnds,3)
-        
-      tol = 1d-9
-      maxit = 1000
+      REAL(pres) :: nx,ny,nz,nrm
+      REAL(pres) :: x1,x2,y1,y2,z1,z2
+      
       info = 0
       
-      et = el_type(eln)
+      ALLOCATE(nhb(3,ne))
+      ALLOCATE(xc(ne),yc(ne),hc(ne))
+      
+      DO el = 1,ne
+      
+      et = el_type(el)
       p = np(et)  
       n = nnds(et)
+      np1 = n+1             
         
-      IF (mod(et,2) == 1) THEN
-        r(1) = -1d0/3d0
-        s(1) = -1d0/3d0
-      ELSE IF (mod(et,2) == 0) THEN
-        r(1) = 1d0
-        s(1) = 1d0
-      ENDIF
-
-      DO it = 1,maxit
-           
-        IF (mod(et,2) == 1) THEN
-          CALL tri_basis(p,n,1,r,s,phi,dpdr,dpds)
-        ELSE IF (mod(et,2) == 0) THEN
-          CALL quad_basis(p,n,1,r,s,phi,dpdr,dpds)
-        ENDIF
+      dxdr = 0d0
+      dxds = 0d0
+      dydr = 0d0
+      dyds = 0d0
+      xc(el) = 0d0
+      yc(el) = 0d0        
         
-        DO i = 1,n
-!           l(i,1) = phi(i)
-!           dldr(i,1) = dpdr(i)
-!           dlds(i,1) = dpds(i)
-          l(i,1) = phi(i)
-          l(i,2) = dpdr(i)
-          l(i,3) = dpds(i)          
-        ENDDO
-        
-!         CALL DGETRS("N",n,1,V(1:n,1:n,et),n,ipiv(1:n,et),l,n,info)
-! !         IF (info /= 0 ) PRINT*, "LAPACK ERROR"  
-!         CALL DGETRS("N",n,1,V(1:n,1:n,et),n,ipiv(1:n,et),dldr,n,info)
-! !         IF (info /= 0 ) PRINT*, "LAPACK ERROR"      
-!         CALL DGETRS("N",n,1,V(1:n,1:n,et),n,ipiv(1:n,et),dlds,n,info)
-! !         IF (info /= 0 ) PRINT*, "LAPACK ERROR"      
-
-!         CALL DGETRS("N",n,1,V(1,1,et),mnnds,ipiv(1,et),l,n,info)
-! !         IF (info /= 0 ) PRINT*, "LAPACK ERROR"  
-!         CALL DGETRS("N",n,1,V(1,1,et),mnnds,ipiv(1,et),dldr,n,info)
-! !         IF (info /= 0 ) PRINT*, "LAPACK ERROR"      
-!         CALL DGETRS("N",n,1,V(1,1,et),mnnds,ipiv(1,et),dlds,n,info)
-! !         IF (info /= 0 ) PRINT*, "LAPACK ERROR"      
-
-        CALL DGETRS("N",n,3,V(1,1,et),mnnds,ipiv(1,et),l,mnnds,info)
-!         IF (info /= 0 ) PRINT*, "LAPACK ERROR"      
-        
-        dfdr = 0d0
-        dfds = 0d0
-        dgdr = 0d0
-        dgds = 0d0
-        f = 0d0
-        g = 0d0        
-        
-        DO i = 1,n
-!           dfdr = dfdr + dldr(i,1)*elxy(i,eln,1)
-!           dfds = dfds + dlds(i,1)*elxy(i,eln,1)
-!           dgdr = dgdr + dldr(i,1)*elxy(i,eln,2)
-!           dgds = dgds + dlds(i,1)*elxy(i,eln,2)
+      DO i = 1,n         
+        dxdr = dxdr + l(i,2*np1,et)*elxy(i,el,1)
+        dxds = dxds + l(i,3*np1,et)*elxy(i,el,1)
+        dydr = dydr + l(i,2*np1,et)*elxy(i,el,2)
+        dyds = dyds + l(i,3*np1,et)*elxy(i,el,2)
           
-          dfdr = dfdr + l(i,2)*elxy(i,eln,1)
-          dfds = dfds + l(i,3)*elxy(i,eln,1)
-          dgdr = dgdr + l(i,2)*elxy(i,eln,2)
-          dgds = dgds + l(i,3)*elxy(i,eln,2)
-          
-          f = f + l(i,1)*elxy(i,eln,1)
-          g = g + l(i,1)*elxy(i,eln,2)
-        ENDDO
-        
-        jac = dfdr*dgds - dgdr*dfds
-        
-        f = f - x
-        g = g - y
-        
-        r(1) = r(1) - (1d0/jac)*( dgds*f - dfds*g)
-        s(1) = s(1) - (1d0/jac)*(-dgdr*f + dfdr*g)         
-        
-        IF (ABS(f) < tol .AND. ABS(g) < tol) THEN
-          EXIT
-        ENDIF        
-       
-        
+        xc(el) = xc(el) + l(i,np1,et)*elxy(i,el,1)
+        yc(el) = yc(el) + l(i,np1,et)*elxy(i,el,2)
       ENDDO
+        
+      jac = dxdr*dyds - dydr*dxds
+
+      drdx =  dyds/jac
+      drdy = -dxds/jac
+      dsdx = -dydr/jac
+      dsdy =  dxdr/jac
       
-      error = max(abs(f),abs(g))
-      IF (it >= maxit) THEN
-        PRINT("(A,E22.15)"), "   MAX ITERATIONS EXCEEDED, error = ",error
-        PRINT("(2(A,F20.15))"), "   r = ",r(1), "   s = ", s(1)
-      ELSE       
-        PRINT("(A,I7,A,E22.15)"), "   iterations: ",it, "  error = ",error
-        PRINT("(2(A,F20.15))"), "   r = ",r(1), "   s = ", s(1)
-      ENDIF
+      dhdx = 0d0
+      dhdy = 0d0
       
-      hb = 0d0
+      hc(el) = 0d0
       DO i = 1,n
-        hb = hb + l(i,1)*elhb(i,eln)
+        dhdx = dhdx + (l(i,2*np1,et)*drdx + l(i,3*np1,et)*dsdx)*elhb(i,el)
+        dhdy = dhdy + (l(i,2*np1,et)*drdy + l(i,3*np1,et)*dsdy)*elhb(i,el)
+        
+        hc(el) = hc(el) + l(i,np1,et)*elhb(i,el)
       ENDDO
-
-      RETURN
-      END SUBROUTINE newton
       
+      nrm = sqrt(dhdx**2 + dhdy**2 + 1d0)
+      
+      nhb(1,el) = dhdx/nrm
+      nhb(2,el) = dhdy/nrm
+      nhb(3,el) = -1d0/nrm
+      
+      x1 = elxy(2,el,1) - elxy(1,el,1)
+      x2 = elxy(3,el,1) - elxy(1,el,1)
+      
+      y1 = elxy(2,el,2) - elxy(1,el,2)
+      y2 = elxy(3,el,2) - elxy(1,el,2)
+      
+      z1 = elhb(2,el) - elhb(1,el)
+      z2 = elhb(3,el) - elhb(1,el)
+      
+      nx =   y1*z2 - y2*z1
+      ny = -(x1*z2 - x2*z1)
+      nz =   x1*y2 - x2*y1
+      
+      nrm = sqrt(nx**2 + ny**2 + nz**2)
+      
+      nx = nx/nrm
+      ny = ny/nrm
+      nz = nz/nrm
+      
+      PRINT*, (nhb(i,el), i=1,3)
+      PRINT*, nx,ny,nz
+      PRINT*, " " 
+        
+      ENDDO  
+      
+      RETURN 
+      END SUBROUTINE normals
+      
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+      SUBROUTINE coordinates()
+      
+      USE globals, ONLY: pres,ne,mnnds,nnds,el_type,l,elxy,elhb,xpt,ypt,hpt
+      
+      IMPLICIT NONE
+      
+      INTEGER :: el,i,pt
+      INTEGER :: et,n,p
+      
+      ALLOCATE(xpt(mnnds,ne),ypt(mnnds,ne),hpt(mnnds,ne))
+      
+      DO el = 1,ne
+      
+        et = el_type(el)
+        IF (mod(et,2) == 1) THEN
+          et = 3
+          n = nnds(3)
+        ELSE IF (mod(et,2) == 0) THEN
+          et = 4
+          n = nnds(4)
+        ENDIF            
+        
+        DO pt = 1,n
+          xpt(pt,el) = 0d0
+          ypt(pt,el) = 0d0
+          hpt(pt,el) = 0d0
+          DO i = 1,n                   
+            xpt(pt,el) = xpt(pt,el) + l(i,pt,et)*elxy(i,el,1)
+            ypt(pt,el) = ypt(pt,el) + l(i,pt,et)*elxy(i,el,2)
+            hpt(pt,el) = hpt(pt,el) + l(i,pt,et)*elhb(i,el)
+          ENDDO        
+        ENDDO
+      
+      ENDDO
+      
+      RETURN
+      END SUBROUTINE coordinates
+      
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+      SUBROUTINE transformation()
+      
+      USE globals, ONLY: pres,mnnds,nel_type,nnds,np,l,V,ipiv
+      USE basis, ONLY: tri_nodes,quad_nodes,tri_basis,quad_basis
+      
+      IMPLICIT NONE
+      
+      INTEGER :: et,pt,i,j
+      INTEGER :: n,p,np1
+      INTEGER :: info
+      REAL(pres), DIMENSION(mnnds+1,nel_type) :: r,s
+      REAL(pres), DIMENSION(mnnds*(mnnds+1)) :: phi,dpdr,dpds
+      
+      ALLOCATE(l(mnnds,3*(mnnds+1),nel_type))
+      
+      DO et = 1,nel_type
+        n = nnds(et)
+        p = np(et)
+      
+        IF (mod(et,2) == 1) THEN
+          CALL tri_nodes(1,p,n,r(1,et),s(1,et))
+        ELSE IF (mod(et,2) == 0) THEN
+          CALL quad_nodes(1,p,n,r(1,et),s(1,et))
+        ENDIF     
+        
+        np1 = n+1
+        
+        IF (mod(et,2) == 1) THEN
+          r(np1,et) = -1d0/3d0
+          s(np1,et) = -1d0/3d0
+        ELSE IF (mod(et,2) == 0) THEN
+          r(np1,et) = 1d0
+          s(np1,et) = 1d0
+        ENDIF        
+        
+        IF (mod(et,2) == 1) THEN
+          CALL tri_basis(p,n,np1,r(1,et),s(1,et),phi,dpdr,dpds)
+        ELSE IF (mod(et,2) == 0) THEN
+          CALL quad_basis(p,n,np1,r(1,et),s(1,et),phi,dpdr,dpds)
+        ENDIF     
+        
+        DO pt = 1,np1
+          DO i = 1,n
+            j = (i-1)*np1+pt
+          
+            l(i,pt,et) = phi(j)
+            l(i,np1+pt,et) = dpdr(j)
+            l(i,2*np1+pt,et) = dpds(j)          
+          ENDDO         
+        ENDDO
+
+        CALL DGETRS("N",n,3*np1,V(1,1,et),mnnds,ipiv(1,et),l(1,1,et),mnnds,info)
+      ENDDO
+      
+      
+      RETURN
+      END SUBROUTINE transformation
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!   
       
       
       END MODULE evaluate

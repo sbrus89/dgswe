@@ -37,6 +37,9 @@
       REAL(pres), ALLOCATABLE, DIMENSION(:,:,:) :: elxy    
       REAL(pres), ALLOCATABLE, DIMENSION(:) :: depth ! depth at each node
       REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: elhb     
+      REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: nhb
+      REAL(pres), ALLOCATABLE, DIMENSION(:) :: xc,yc,hc      
+      REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: xpt,ypt,hpt
       
       INTEGER :: nsta
       INTEGER, ALLOCATABLE, DIMENSION(:) :: ndsta
@@ -44,6 +47,7 @@
       REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: xysta ! x,y coordinates of stations
       REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: rssta
       REAL(pres), ALLOCATABLE, DIMENSION(:) :: hbsta
+      REAL(pres), ALLOCATABLE, DIMENSION(:,:,:) :: rsre
 
       INTEGER :: nope ! number of open boundary segents
       INTEGER, ALLOCATABLE, DIMENSION(:) :: obseg ! number of nodes in each open boundary segment
@@ -63,6 +67,7 @@
       REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: Qy     
       
       REAL(pres), ALLOCATABLE, DIMENSION(:,:,:) :: V
+      REAL(pres), ALLOCATABLE, DIMENSION(:,:,:) :: l
       INTEGER, ALLOCATABLE, DIMENSION(:,:) :: ipiv
 
       END MODULE globals
