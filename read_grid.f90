@@ -1,8 +1,9 @@
       SUBROUTINE read_grid()
       
-      USE globals, ONLY: pres,grid_file,ne,nn,ect,vct,xy,vxy,vxyn,depth,nelnds,elxy,elhb, &
+      USE globals, ONLY: pres,grid_file,ne,nn,ect,vct,xy,vxy,vxyn,xyhv,depth,nelnds,elxy,elhb, &
                          nope,neta,obseg,obnds,nvel,nbou,fbseg,fbnds,grid_name, &
-                         el_type,ctp,mnelnds,curved_grid,nverts
+                         el_type,ctp,mnelnds,curved_grid,nverts, &
+                         Erad,lambda0,phi0
 
       IMPLICIT NONE
       INTEGER :: i,j,k,el,n,nd
@@ -37,8 +38,8 @@
       ! read in number of elements and number of nodes
       READ(14,*), ne, nn                                                
 
-      PRINT "(A,I5)", "Number of elements: ", ne
-      PRINT "(A,I5)", "Number of nodes: ", nn
+      PRINT "(A,I9)", "Number of elements: ", ne
+      PRINT "(A,I9)", "Number of nodes: ", nn
       PRINT*, " "
 
       ALLOCATE(ect((ctp+1)*(ctp+1),ne),vct(4,ne),xy(2,nn),depth(nn),nelnds(ne),el_type(ne),STAT = alloc_status)  ! element connectivity table, node coordinate array, depth vector      
@@ -58,6 +59,11 @@
 !         PRINT "(I5,3(F11.3,3x))", i,xy(1,i), xy(2,i), depth(i)
 !       ENDDO
 !       PRINT*, " "
+
+      DO i = 1,nn
+        xy(1,i) = Erad*(xy(1,i)-lambda0)*cos(phi0)
+        xy(2,i) = Erad*xy(2,i)
+      ENDDO
 
       ! read in element connectivity
       ect = 0
@@ -131,6 +137,14 @@
       ENDDO
       
       mnelnds = maxval(nelnds)
+      
+      ALLOCATE(xyhv(1,nn,3))
+      
+      DO i = 1,nn  
+        xyhv(1,i,1) = xy(1,i)
+        xyhv(1,i,2) = xy(2,i)
+        xyhv(1,i,3) = depth(i)
+      ENDDO
       
 !       PRINT "(A)", "Element connectivity table: "
 !       DO i = 1,ne

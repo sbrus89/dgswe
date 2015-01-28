@@ -1,4 +1,7 @@
       MODULE globals
+      
+      USE kdtree2_module
+      
       IMPLICIT NONE
 
       INTEGER, PARAMETER :: pres = kind(1d0) ! precision 
@@ -23,8 +26,7 @@
       INTEGER :: nnds(nel_type)
       INTEGER :: mnnds      
       INTEGER :: ndof(nel_type)
-      INTEGER :: mndof
-      
+      INTEGER :: mndof                 
       
       INTEGER :: curved_grid
       INTEGER, ALLOCATABLE, DIMENSION(:) :: el_type      
@@ -38,8 +40,12 @@
       REAL(pres), ALLOCATABLE, DIMENSION(:) :: depth ! depth at each node
       REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: elhb     
       REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: nhb
-      REAL(pres), ALLOCATABLE, DIMENSION(:) :: xc,yc,hc      
-      REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: xpt,ypt,hpt
+      REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: xyhc      
+      REAL(pres), ALLOCATABLE, DIMENSION(:,:,:) :: xyhe
+      REAL(pres), ALLOCATABLE, DIMENSION(:,:,:) :: xyhi 
+      REAL(pres), ALLOCATABLE, DIMENSION(:,:,:) :: xyhv     
+      REAL(pres), ALLOCATABLE, DIMENSION(:,:,:) :: xyhw      
+      REAL(pres), ALLOCATABLE, DIMENSION(:) :: h
       
       INTEGER :: nsta
       INTEGER, ALLOCATABLE, DIMENSION(:) :: ndsta
@@ -60,14 +66,21 @@
       INTEGER, ALLOCATABLE, DIMENSION(:,:) :: fbnds ! normal flow boundary nodes
       
       INTEGER, ALLOCATABLE, DIMENSION(:) :: nepn ! number of elements per node
-      INTEGER, ALLOCATABLE, DIMENSION(:,:) :: epn ! elements per node            
-   
-      REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: H
-      REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: Qx
-      REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: Qy     
+      INTEGER, ALLOCATABLE, DIMENSION(:,:) :: epn ! elements per node        
+      
+      INTEGER :: ned
+      INTEGER, ALLOCATABLE, DIMENSION(:,:) :: ged2nn,ged2el,ged2led          
       
       REAL(pres), ALLOCATABLE, DIMENSION(:,:,:) :: V
       REAL(pres), ALLOCATABLE, DIMENSION(:,:,:) :: l
       INTEGER, ALLOCATABLE, DIMENSION(:,:) :: ipiv
+      
+      TYPE(kdtree2), POINTER :: tree_xy,tree_c
+      TYPE(kdtree2_result), ALLOCATABLE, DIMENSION(:) :: kdresults  
+      
+      REAL(pres) :: Erad 
+      REAL(pres) :: phi0,lambda0
+      REAL(pres), PARAMETER :: pi = 3.141592653589793D0
+      REAL(pres), PARAMETER :: deg2rad = pi/180d0
 
       END MODULE globals
