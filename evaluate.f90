@@ -166,16 +166,19 @@
       SUBROUTINE coordinates()
       
       USE globals, ONLY: pres,ne,ned,mnnds,nnds,np,nverts,el_type, &
-                         ged2el,ged2led, &
+                         ged2el,ged2led,bed_flag,bnd_flag, &
                          l,elxy,elhb,xyhe,xyhi
       
       IMPLICIT NONE
       
       INTEGER :: el,i,pt,led,j,ed
-      INTEGER :: et,n,pn,nnd,nv
+      INTEGER :: et,n,pn,nnd,nv,bed
       
       ALLOCATE(xyhe(mnnds,ned,3))
+      ALLOCATE(bnd_flag(mnnds,ned))
       ALLOCATE(xyhi(mnnds,ne,3))
+      
+      bnd_flag(:,:) = 0
       
       xyhe = 0d0
       xyhi = 0d0
@@ -186,7 +189,7 @@
         led = ged2led(1,ed)
         et = el_type(el)
         nv = nverts(et)
-        n = nnds(et)
+        n = nnds(et)        
         
         IF (mod(et,2) == 1) THEN   
           pn = np(3)
@@ -204,6 +207,14 @@
             xyhe(pt,ed,3) = xyhe(pt,ed,3) + l(i,j,et)*elhb(i,el)
           ENDDO        
         ENDDO
+        
+        bed = bed_flag(ed)
+        
+        IF (bed == 1) THEN
+          DO pt = 1,pn-1
+            bnd_flag(pt,ed) = 1
+          ENDDO
+        ENDIF
         
       
       ENDDO
@@ -339,7 +350,7 @@
       maxptit = 100
       threshold = 1d-4
       sigma_r = 0.5d0 
-      sigma_n = 1.5d0   ! 0.5 - 1.5
+      sigma_n = 0.5d0   ! 0.5 - 1.5
       r = 4d0           ! 1.5 - 4.0
       
       DO i = 1,n
@@ -436,7 +447,7 @@
             
           ELSE
             PRINT*, "WARNING: max point iterations reached, i=:",i
-!             STOP
+            STOP
           ENDIF
       
         ENDDO

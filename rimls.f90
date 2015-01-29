@@ -10,10 +10,21 @@
       INTEGER :: el,nd,pt,i,j,ed
       INTEGER :: mninds
       
-      Erad = 6378206.4d0
-      lambda0 = -76d0*deg2rad
-      phi0 = 33d0*deg2rad
+      Erad = 6378206.4d0 
       
+!       ! beaufort      
+!       lambda0 = -76d0*deg2rad
+!       phi0 = 33d0*deg2rad
+
+!       ! shinnecock
+!       lambda0 = -72.432511d0*deg2rad
+!       phi0 = 40.666091d0*deg2rad
+      
+      ! EC2001
+      lambda0 = -79d0*deg2rad
+      phi0 = 35d0*deg2rad      
+      
+!      ! Cartesian      
 !       Erad = 1d0
 !       lambda0 = 0d0
 !       phi0 = 0d0
@@ -102,6 +113,17 @@
       ENDDO
       
       CLOSE(12)
+      
+      
+      OPEN(unit=13,file='boundary_nodes.d')
+      WRITE(13,*) ned,np(3)-1
+      DO ed = 1,ned      
+        DO i = 1,np(3)-1
+          WRITE(13,*) bnd_flag(i,ed)        
+        ENDDO
+      ENDDO
+      
+      CLOSE(13)      
       
       
       ! Build kd-tree           

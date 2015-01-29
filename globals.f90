@@ -41,11 +41,12 @@
       REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: elhb     
       REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: nhb
       REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: xyhc      
-      REAL(pres), ALLOCATABLE, DIMENSION(:,:,:) :: xyhe
+      REAL(pres), ALLOCATABLE, DIMENSION(:,:,:) :: xyhe      
       REAL(pres), ALLOCATABLE, DIMENSION(:,:,:) :: xyhi 
       REAL(pres), ALLOCATABLE, DIMENSION(:,:,:) :: xyhv     
       REAL(pres), ALLOCATABLE, DIMENSION(:,:,:) :: xyhw      
       REAL(pres), ALLOCATABLE, DIMENSION(:) :: h
+      INTEGER, ALLOCATABLE, DIMENSION(:,:) :: bnd_flag 
       
       INTEGER :: nsta
       INTEGER, ALLOCATABLE, DIMENSION(:) :: ndsta
@@ -69,6 +70,8 @@
       INTEGER, ALLOCATABLE, DIMENSION(:,:) :: epn ! elements per node        
       
       INTEGER :: ned
+      INTEGER :: nied
+      INTEGER, ALLOCATABLE, DIMENSION(:) :: bed_flag
       INTEGER, ALLOCATABLE, DIMENSION(:,:) :: ged2nn,ged2el,ged2led          
       
       REAL(pres), ALLOCATABLE, DIMENSION(:,:,:) :: V

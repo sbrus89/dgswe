@@ -1,7 +1,7 @@
       SUBROUTINE connect()
 
-      USE globals, ONLY: pres,nn,ne,ned,xy,ect,vct,el_type,nverts, &
-                         ged2nn,ged2el,ged2led,nepn,epn
+      USE globals, ONLY: pres,nn,ne,ned,nied,xy,ect,vct,el_type,nverts, &
+                         ged2nn,ged2el,ged2led,nepn,epn,bed_flag
                          
 
       IMPLICIT NONE
@@ -16,7 +16,7 @@
       INTEGER :: el_in,el_ex
       REAL(pres) :: x1,x2,x3,y1,y2,y3
       
-      INTEGER, ALLOCATABLE, DIMENSION(:,:) :: ged2nn_temp, ged2el_temp, ged2led_temp ! temporary arrays for edge connectivity
+      INTEGER, ALLOCATABLE, DIMENSION(:,:) :: ged2nn_temp, ged2el_temp, ged2led_temp ! temporary arrays for edge connectivity     
       INTEGER, ALLOCATABLE, DIMENSION(:,:) :: edflag
       INTEGER :: mnepn ! maximum number of elements per node
 
@@ -175,6 +175,29 @@
       ged2nn(:,1:ned) = ged2nn_temp(:,1:ned)
       ged2el(:,1:ned) = ged2el_temp(:,1:ned)
       ged2led(:,1:ned) = ged2led_temp(:,1:ned)
+
+      
+      
+      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      ! find interior edges
+      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      PRINT "(A)", 'finding interior edges'
+
+      ALLOCATE(bed_flag(ned))            
+      bed_flag(:) = 0
+      
+      nied = 0
+      DO ged = 1,ned
+        el1 = ged2el(1,ged)
+        el2 = ged2el(2,ged)
+        IF ((el1 /= 0) .AND. (el2 /= 0)) THEN
+          nied = nied + 1
+        ELSE
+          bed_flag(ged) = 1
+        ENDIF
+      ENDDO  
+      
+      
                
 
       RETURN
