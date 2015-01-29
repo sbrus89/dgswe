@@ -1,4 +1,4 @@
-function [EToV,VX,B,nelnds,opedat,boudat,title] = readfort14( finame ) 
+function [EToV,VX,B,nelnds,opedat,boudat,title,bnd_flag] = readfort14( finame ) 
 % Read ADCIRC grid file fort.14
 
 tic
@@ -55,7 +55,9 @@ neta = sscanf(msgline,'%d %*s') ;
 
 nvdll = zeros(nope,1) ;
 ibtypee = zeros(nope,1) ;
-nbdv = zeros(neta,nope) ; 
+nbdv = zeros(neta,nope) ;
+
+bnd_flag = zeros(N(2),1);
 % tic
 for i = 1: nope
    msgline = fgetl(fid) ;
@@ -75,7 +77,8 @@ for i = 1: nope
    % end
    %
    % Nov 25, 2012, improve reading efficiency
-   nbdv(1:nvdll(i),i) = fscanf(fid,'%d \n', nvdll(i) ) ;  
+   nbdv(1:nvdll(i),i) = fscanf(fid,'%d \n', nvdll(i) ) ;
+   bnd_flag(nbdv(1:nvdll(i),i)) = 1;
 end
 % toc
 
@@ -111,6 +114,7 @@ for i = 1: nbou
             %end
             % Nov 15, 2012, improve reading efficiency
             nbvv(1:nvell(i),i) = fscanf(fid,'%d \n', nvell(i) ) ;
+            bnd_flag(nbvv(1:nvell(i),i)) = 1;
         otherwise
             msgline = fgetl(fid) ;
     end
