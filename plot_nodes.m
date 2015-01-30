@@ -8,7 +8,8 @@ path(path,'/home/sbrus/Codes/SomeDGMaterials/ModNodeADCIRCDG')
 path(path,'/home/sbrus/Codes/SomeDGMaterials/NodalDG')
 
 % direc = '/home/sbrus/Codes/dgswe/grids/';
-% name = 'inlet1.grd';
+% base_name = 'inlet1.grd';
+% fine_name = 'inlet2.grd';
 
 % direc = '/home/sbrus/Codes/rimls/';
 % name = 'beaufort.grd';
@@ -16,13 +17,14 @@ path(path,'/home/sbrus/Codes/SomeDGMaterials/NodalDG')
 % name = 'shin.grd';
 
 direc = '/home/sbrus/data-drive/EC2001/';
-name = 'fort.14';
+base_name = 'fort.14';
+fine_name = 'fort.14';
 
 mesh = 'on';
 
 % % entire area
-% xbox = [min(xpts) max(xpts)];
-% ybox = [min(ypts) max(ypts)];
+% xbox = [0 0];
+% ybox = [0 0];
 
 % % beaufort detail
 % xbox = [-77 -75.3];
@@ -44,9 +46,16 @@ ybox = [16.75 22.99];
 % ybox = [35.14 37.70];
 
 
-[ect,xy,hb,nelnds,opedat,boudat,title,bvnds] = readfort14([direc,name]);
+[base_ect,base_xy,base_hb,nelnds,opedat,boudat,title,base_bvnds] = readfort14([direc,base_name]);
+if strcmp(base_name,fine_name)
+    fine_ect = base_ect;
+    fine_xy = base_xy;
+    fine_hb = base_hb;
+    fine_bvnds = base_bvnds;
+else
+    [fine_ect,fine_xy,fine_hb,nelnds,opedat,boudat,title,fine_bvnds] = readfort14([direc,fine_name]);
+end
 
-nn = length(xy);
 
 fid = fopen('edge_nodes.d');
 N = fscanf(fid,'%g %g',2) ;
@@ -98,17 +107,21 @@ fclose(fid7);
 
 
 
-xpts = vertcat(xy(:,1),ends(:,1),inds(:,1));
-ypts = vertcat(xy(:,2),ends(:,2),inds(:,2));
-hpts = vertcat(hb,ends(:,3),inds(:,3));
+xpts = vertcat(fine_xy(:,1),ends(:,1),inds(:,1));
+ypts = vertcat(fine_xy(:,2),ends(:,2),inds(:,2));
+hpts = vertcat(fine_hb,ends(:,3),inds(:,3));
 
 rimls_xpts = vertcat(rimls_vnds(:,1),rimls_ends(:,1),rimls_inds(:,1));
 rimls_ypts = vertcat(rimls_vnds(:,2),rimls_ends(:,2),rimls_inds(:,2));
 rimls_hpts = vertcat(rimls_vnds(:,3),rimls_ends(:,3),rimls_inds(:,3));
 
-bnds_flag = vertcat(bvnds,bends,0*inds(:,1));
+bnds_flag = vertcat(fine_bvnds,bends,0*inds(:,1));
 
 
+if all(xbox) == 0 && all(ybox) == 0
+    xbox = [min(xpts) max(xpts)];
+    ybox = [min(ypts) max(ypts)];
+end
 
 
 in = inpolygon (xpts,ypts,xbox,ybox);
@@ -125,18 +138,18 @@ rimls_yplot = rimls_ypts(in);
 rimls_hplot = rimls_hpts(in);
 rimls_bnds_plot = bnds_flag(in);
 
-in = inpolygon (xy(:,1),xy(:,2),xbox,ybox);
+in = inpolygon (base_xy(:,1),base_xy(:,2),xbox,ybox);
 
-xvplot = xy(in,1);
-yvplot = xy(in,2);
-hvplot = hb(in);
-bvnds_plot = bvnds(in);
+xvplot = base_xy(in,1);
+yvplot = base_xy(in,2);
+hvplot = base_hb(in);
+bvnds_plot = base_bvnds(in);
 
 
 
 
 figure(1)
-pdeplot( xy', [], ect', 'xydata',hb, 'colormap', 'jet', 'mesh','on') ;
+pdeplot( base_xy', [], base_ect', 'xydata',base_hb, 'colormap', 'jet', 'mesh','on') ;
 hold on 
 plot([xbox(1) xbox(2)],[ybox(1) ybox(1)],'r','LineWidth',5)
 plot([xbox(1) xbox(2)],[ybox(2) ybox(2) ],'r','LineWidth',5)
