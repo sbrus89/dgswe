@@ -1,0 +1,59 @@
+! /home/sbrus/Codes/dgswe/grids/inlet1.grd                                                                ! grid file
+! /home/sbrus/Codes/dgswe/grids/inlet2.grd                                                                ! forcing file
+! 1                                                                                                       ! p - polynomial order
+! 5                                                                                                       ! ctp - parametric coordinate transformation order
+! 2d0                                                                                                     ! dt - timestep
+! 4d0                                                                                                     ! tf - final time (days)
+! .5d0                                                                                                    ! dramp - ramping parameter (days)
+! .003d0                                                                                                  ! cf - friction coefficient
+! 48d0                                                                                                    ! lines - lines in output files
+! /home/sbrus/Codes/dgswe/grids/inlet1.grd                                                                ! output directory
+! 1                                                                                                       ! npart - edge blocking parameter
+
+! ./galveston_tri.grd                                                                                     ! grid file
+! ./galveston_tri.grd                                                                                     ! forcing file
+! 1                                                                                                       ! p - polynomial order
+! 4                                                                                                       ! ctp - parametric coordinate transformation order
+! 2d0                                                                                                     ! dt - timestep
+! 4d0                                                                                                     ! tf - final time (days)
+! .5d0                                                                                                    ! dramp - ramping parameter (days)
+! .003d0                                                                                                  ! cf - friction coefficient
+! 48d0                                                                                                    ! lines - lines in output files
+! /home/sbrus/Codes/dgswe/grids/inlet1.grd                                                                ! output directory
+! 1              
+
+! ./beaufort.grd                                                                                          ! grid file
+! ./beaufort.grd                                                                                          ! forcing file
+! 1                                                                                                       ! p - polynomial order
+! 4                                                                                                       ! ctp - parametric coordinate transformation order
+! 2d0                                                                                                     ! dt - timestep
+! 4d0                                                                                                     ! tf - final time (days)
+! .5d0                                                                                                    ! dramp - ramping parameter (days)
+! .003d0                                                                                                  ! cf - friction coefficient
+! 48d0                                                                                                    ! lines - lines in output files
+! /home/sbrus/Codes/dgswe/grids/inlet1.grd                                                                ! output directory
+! 1 
+
+! ./shin.grd                                                                                              ! grid file
+! ./shin.grd                                                                                              ! forcing file
+! 1                                                                                                       ! p - polynomial order
+! 4                                                                                                       ! ctp - parametric coordinate transformation order
+! 2d0                                                                                                     ! dt - timestep
+! 4d0                                                                                                     ! tf - final time (days)
+! .5d0                                                                                                    ! dramp - ramping parameter (days)
+! .003d0                                                                                                  ! cf - friction coefficient
+! 48d0                                                                                                    ! lines - lines in output files
+! /home/sbrus/Codes/dgswe/grids/inlet1.grd                                                                ! output directory
+! 1 
+
+/home/sbrus/data-drive/EC2001/fort.14                                                                   ! grid file
+/home/sbrus/data-drive/EC2001/fort.14                                                                   ! forcing file
+1                                                                                                       ! p - polynomial order
+3                                                                                                       ! ctp - parametric coordinate transformation order
+2d0                                                                                                     ! dt - timestep
+4d0                                                                                                     ! tf - final time (days)
+.5d0                                                                                                    ! dramp - ramping parameter (days)
+.003d0                                                                                                  ! cf - friction coefficient
+48d0                                                                                                    ! lines - lines in output files
+/home/sbrus/Codes/dgswe/grids/inlet1.grd                                                                ! output directory
+1 
