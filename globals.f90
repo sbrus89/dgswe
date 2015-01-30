@@ -6,16 +6,13 @@
 
       INTEGER, PARAMETER :: pres = kind(1d0) ! precision 
       INTEGER :: p ! polynomial order      
-      INTEGER :: ne ! number of elements
-      INTEGER :: nn ! number of nodes
       INTEGER :: npart ! number of element partitions      
       REAL(pres) :: cf ! bottom friction parameter  
       REAL(pres) :: dt ! time step 
       REAL(pres) :: tf ! final time      
       REAL(pres) :: dramp ! numer of ramp days      
       REAL(pres) :: lines ! number of lines in output files      
-      CHARACTER(100) :: grid_name ! name of the grid
-      CHARACTER(100) :: grid_file ! name of fort.14 file
+
       CHARACTER(100) :: forcing_file ! name of fort.15 file      
       CHARACTER(100) :: out_direc           
       
@@ -26,53 +23,59 @@
       INTEGER :: nnds(nel_type)
       INTEGER :: mnnds      
       INTEGER :: ndof(nel_type)
-      INTEGER :: mndof                 
+      INTEGER :: mndof            
       
-      INTEGER :: curved_grid
-      INTEGER, ALLOCATABLE, DIMENSION(:) :: el_type      
+      TYPE :: grid
       
-      INTEGER, ALLOCATABLE, DIMENSION(:,:) :: ect,vct ! element connectivity table
-      INTEGER, ALLOCATABLE, DIMENSION(:) :: nelnds
-      INTEGER :: mnelnds      
-      REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: xy,vxy ! x,y coordinates of nodes
-      INTEGER, ALLOCATABLE, DIMENSION(:) :: vxyn
-      REAL(pres), ALLOCATABLE, DIMENSION(:,:,:) :: elxy    
-      REAL(pres), ALLOCATABLE, DIMENSION(:) :: depth ! depth at each node
-      REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: elhb     
-      REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: nhb
-      REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: xyhc      
-      REAL(pres), ALLOCATABLE, DIMENSION(:,:,:) :: xyhe      
-      REAL(pres), ALLOCATABLE, DIMENSION(:,:,:) :: xyhi 
-      REAL(pres), ALLOCATABLE, DIMENSION(:,:,:) :: xyhv     
-      REAL(pres), ALLOCATABLE, DIMENSION(:,:,:) :: xyhw      
-      REAL(pres), ALLOCATABLE, DIMENSION(:) :: h
-      INTEGER, ALLOCATABLE, DIMENSION(:,:) :: bnd_flag 
+        CHARACTER(100) :: grid_name ! name of the grid
+        CHARACTER(100) :: grid_file ! name of fort.14 file 
+        
+        INTEGER :: ne ! number of elements
+        INTEGER :: nn ! number of nodes        
       
-      INTEGER :: nsta
-      INTEGER, ALLOCATABLE, DIMENSION(:) :: ndsta
-      INTEGER, ALLOCATABLE, DIMENSION(:) :: elsta
-      REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: xysta ! x,y coordinates of stations
-      REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: rssta
-      REAL(pres), ALLOCATABLE, DIMENSION(:) :: hbsta
-      REAL(pres), ALLOCATABLE, DIMENSION(:,:,:) :: rsre
+        INTEGER :: curved_grid
+        INTEGER, ALLOCATABLE, DIMENSION(:) :: el_type      
+      
+        INTEGER, ALLOCATABLE, DIMENSION(:,:) :: ect,vct ! element connectivity table
+        INTEGER, ALLOCATABLE, DIMENSION(:) :: nelnds
+        INTEGER :: mnelnds      
+        REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: xy,vxy ! x,y coordinates of nodes
+        INTEGER, ALLOCATABLE, DIMENSION(:) :: vxyn
+        REAL(pres), ALLOCATABLE, DIMENSION(:,:,:) :: elxy    
+        REAL(pres), ALLOCATABLE, DIMENSION(:) :: depth ! depth at each node
+        REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: elhb     
+        REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: nhb
+        REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: xyhc      
+        REAL(pres), ALLOCATABLE, DIMENSION(:,:,:) :: xyhe      
+        REAL(pres), ALLOCATABLE, DIMENSION(:,:,:) :: xyhi 
+        REAL(pres), ALLOCATABLE, DIMENSION(:,:,:) :: xyhv       
+        REAL(pres), ALLOCATABLE, DIMENSION(:) :: h
+        INTEGER, ALLOCATABLE, DIMENSION(:,:) :: bnd_flag 
 
-      INTEGER :: nope ! number of open boundary segents
-      INTEGER, ALLOCATABLE, DIMENSION(:) :: obseg ! number of nodes in each open boundary segment
-      INTEGER :: neta ! total elevation specified boundary nodes
-      INTEGER, ALLOCATABLE, DIMENSION(:,:) :: obnds ! open boundary nodes
+        INTEGER :: nope ! number of open boundary segents
+        INTEGER, ALLOCATABLE, DIMENSION(:) :: obseg ! number of nodes in each open boundary segment
+        INTEGER :: neta ! total elevation specified boundary nodes
+        INTEGER, ALLOCATABLE, DIMENSION(:,:) :: obnds ! open boundary nodes
 
-      INTEGER :: nbou  ! number of normal flow boundary segments
-      INTEGER, ALLOCATABLE, DIMENSION(:,:) :: fbseg ! number of nodes and type of each normal flow boundary segment
-      INTEGER :: nvel  ! total number of normal flow boundary nodes
-      INTEGER, ALLOCATABLE, DIMENSION(:,:) :: fbnds ! normal flow boundary nodes
+        INTEGER :: nbou  ! number of normal flow boundary segments
+        INTEGER, ALLOCATABLE, DIMENSION(:,:) :: fbseg ! number of nodes and type of each normal flow boundary segment
+        INTEGER :: nvel  ! total number of normal flow boundary nodes
+        INTEGER, ALLOCATABLE, DIMENSION(:,:) :: fbnds ! normal flow boundary nodes
       
-      INTEGER, ALLOCATABLE, DIMENSION(:) :: nepn ! number of elements per node
-      INTEGER, ALLOCATABLE, DIMENSION(:,:) :: epn ! elements per node        
+        INTEGER, ALLOCATABLE, DIMENSION(:) :: nepn ! number of elements per node
+        INTEGER, ALLOCATABLE, DIMENSION(:,:) :: epn ! elements per node        
       
-      INTEGER :: ned
-      INTEGER :: nied
-      INTEGER, ALLOCATABLE, DIMENSION(:) :: bed_flag
-      INTEGER, ALLOCATABLE, DIMENSION(:,:) :: ged2nn,ged2el,ged2led          
+        INTEGER :: ned
+        INTEGER :: nied
+        INTEGER, ALLOCATABLE, DIMENSION(:) :: bed_flag
+        INTEGER, ALLOCATABLE, DIMENSION(:,:) :: ged2nn,ged2el,ged2led      
+      
+      END TYPE
+      
+      REAL(pres), ALLOCATABLE, DIMENSION(:,:,:) :: xyhw          
+      
+      TYPE(grid) :: base
+      TYPE(grid) :: fine
       
       REAL(pres), ALLOCATABLE, DIMENSION(:,:,:) :: V
       REAL(pres), ALLOCATABLE, DIMENSION(:,:,:) :: l

@@ -1,6 +1,6 @@
       SUBROUTINE read_input()
 
-      USE globals, ONLY: grid_file,forcing_file,p,ctp,dt,tf,dramp,cf,lines,out_direc,npart
+      USE globals, ONLY: base,fine,p,ctp,dt,tf,dramp,cf,lines,out_direc,npart
 
       IMPLICIT NONE
       
@@ -28,11 +28,11 @@
           inp_read = inp_read + 1
           SELECT CASE (inp_read)
             CASE (1)
-              grid_file = TRIM(temp)
-              PRINT*, "grid_file = ", grid_file
+              base%grid_file = TRIM(temp)
+              PRINT*, "grid_file = ", base%grid_file
             CASE (2)
-              forcing_file = TRIM(temp)
-              PRINT*, "forcing_file = ", forcing_file
+              fine%grid_file = TRIM(temp)
+              PRINT*, "forcing_file = ", fine%grid_file
             CASE (3)
               READ(temp,*) p
               PRINT*, "p = ", p

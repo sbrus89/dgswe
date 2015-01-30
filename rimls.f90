@@ -12,7 +12,7 @@
       
       Erad = 6378206.4d0 
       
-!       ! beaufort      
+!      ! beaufort      
 !       lambda0 = -76d0*deg2rad
 !       phi0 = 33d0*deg2rad
 
@@ -30,8 +30,7 @@
 !       phi0 = 0d0
 
       
-      CALL read_input()
-      CALL read_grid()
+      CALL read_input()            
       
       ndof(1) = (p+1)*(p+2)/2
       ndof(2) = (p+1)*(p+1)
@@ -57,29 +56,33 @@
       
 
       
+      CALL read_grid(base)
+      CALL read_grid(fine)
       
-      CALL connect()
+      CALL connect(base) 
+      CALL connect(fine)       
+
       
       CALL vandermonde()  
       
       CALL transformation()      
       
-      CALL normals()
+      CALL normals(base)
       
-      CALL coordinates()
+      CALL coordinates(fine)
       
-      ALLOCATE(xyhw(mnnds,ned,3))
+      ALLOCATE(xyhw(mnnds,fine%ned,3))
       
       mninds = nnds(3)-3*(np(3)-1)-3
       
 !       CALL invcpp(ne,mninds,mnnds,xyhi,xyhw)
       
       OPEN(unit=9,file='interior_nodes.d')
-      WRITE(9,*) ne,mninds
-      DO el = 1,ne
+      WRITE(9,*) fine%ne,mninds
+      DO el = 1,fine%ne
         DO i = 1,mninds
 !           WRITE(9,*) (xyhw(i,el,j), j = 1,3)
-          WRITE(9,*) xyhi(i,el,1)/(Erad*cos(phi0))+lambda0, xyhi(i,el,2)/Erad, xyhi(i,el,3)
+          WRITE(9,*) fine%xyhi(i,el,1)/(Erad*cos(phi0))+lambda0, fine%xyhi(i,el,2)/Erad, fine%xyhi(i,el,3)
         ENDDO
       ENDDO
       
@@ -88,38 +91,38 @@
 !       CALL invcpp(ned,np(3)-1,mnnds,xyhe,xyhw)
       
       OPEN(unit=10,file='edge_nodes.d')
-      WRITE(10,*) ned,np(3)-1
-      DO ed = 1,ned      
+      WRITE(10,*) fine%ned,np(3)-1
+      DO ed = 1,fine%ned      
         DO i = 1,np(3)-1
 !           WRITE(10,*) (xyhw(i,ed,j), j = 1,3)
-          WRITE(10,*) xyhe(i,ed,1)/(Erad*cos(phi0))+lambda0, xyhe(i,ed,2)/Erad, xyhe(i,ed,3)          
+          WRITE(10,*) fine%xyhe(i,ed,1)/(Erad*cos(phi0))+lambda0, fine%xyhe(i,ed,2)/Erad, fine%xyhe(i,ed,3)          
         ENDDO
       ENDDO
       
       CLOSE(10)
       
       OPEN(unit=11,file='centers.d')
-      WRITE(11,*) ne    
-      DO el = 1,ne      
-        WRITE(11,*) (xyhc(j,el), j = 1,3)
+      WRITE(11,*) base%ne    
+      DO el = 1,base%ne      
+        WRITE(11,*) (base%xyhc(j,el), j = 1,3)
       ENDDO      
       
       CLOSE(11)
       
       OPEN(unit=12,file='normals.d')
-      WRITE(12,*) ne
-      DO el = 1,ne
-        WRITE(12,*) (nhb(i,el),i=1,3)
+      WRITE(12,*) base%ne
+      DO el = 1,base%ne
+        WRITE(12,*) (base%nhb(i,el),i=1,3)
       ENDDO
       
       CLOSE(12)
       
       
       OPEN(unit=13,file='boundary_nodes.d')
-      WRITE(13,*) ned,np(3)-1
-      DO ed = 1,ned      
+      WRITE(13,*) fine%ned,np(3)-1
+      DO ed = 1,fine%ned      
         DO i = 1,np(3)-1
-          WRITE(13,*) bnd_flag(i,ed)        
+          WRITE(13,*) fine%bnd_flag(i,ed)        
         ENDDO
       ENDDO
       
@@ -128,27 +131,27 @@
       
       ! Build kd-tree           
 !       tree_xy => kdtree2_create(vxy , rearrange=.true., sort=.true.)
-      tree_xy => kdtree2_create(xy , rearrange=.true., sort=.true.)
-      tree_c  => kdtree2_create(xyhc, rearrange=.true., sort=.true.)
+      tree_xy => kdtree2_create(base%xy  , rearrange=.true., sort=.true.)
+      tree_c  => kdtree2_create(base%xyhc, rearrange=.true., sort=.true.)
       
-      ALLOCATE(kdresults(nn))       
+      ALLOCATE(kdresults(base%ne))       
 !       
-      CALL grid_size()
+      CALL grid_size(base)
       
       PRINT("(A)"), "Computing rimls surface: verticies"
-      CALL rimls_surface(nn,1,1,xyhv)      
+      CALL rimls_surface(fine%nn,1,1,fine%xyhv)      
       PRINT("(A)"), "Computing rimls surface: edges"      
-      CALL rimls_surface(ned,np(3)-1,mnnds,xyhe)
+      CALL rimls_surface(fine%ned,np(3)-1,mnnds,fine%xyhe)
       PRINT("(A)"), "Computing rimls surface: interior"
-      CALL rimls_surface(ne,nnds(3)-3*(np(3)-1)-3,mnnds,xyhi)
+      CALL rimls_surface(fine%ne,nnds(3)-3*(np(3)-1)-3,mnnds,fine%xyhi)
 
       
       
       OPEN(unit=9,file='rimls_interior_nodes.d')
-      WRITE(9,*) ne,mninds
-      DO el = 1,ne
+      WRITE(9,*) fine%ne,mninds
+      DO el = 1,fine%ne
         DO i = 1,mninds
-          WRITE(9,*) (xyhi(i,el,j), j = 1,3)
+          WRITE(9,*) (fine%xyhi(i,el,j), j = 1,3)
         ENDDO
       ENDDO
       
@@ -156,19 +159,19 @@
       
       
       OPEN(unit=10,file='rimls_edge_nodes.d')
-      WRITE(10,*) ned,np(3)-1
-      DO ed = 1,ned      
+      WRITE(10,*) fine%ned,np(3)-1
+      DO ed = 1,fine%ned      
         DO i = 1,np(3)-1
-          WRITE(10,*) (xyhe(i,ed,j), j = 1,3)
+          WRITE(10,*) (fine%xyhe(i,ed,j), j = 1,3)
         ENDDO
       ENDDO
       
       CLOSE(10)
       
       OPEN(unit=11,file='rimls_vertex_nodes.d')
-      WRITE(11,*) nn,1
-      DO nd = 1,nn
-          WRITE(11,*) (xyhv(1,nd,j), j = 1,3)
+      WRITE(11,*) fine%nn,1
+      DO nd = 1,fine%nn
+          WRITE(11,*) (fine%xyhv(1,nd,j), j = 1,3)
       ENDDO
       
       CLOSE(11)      

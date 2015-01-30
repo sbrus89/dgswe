@@ -57,81 +57,76 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!       
       
-      SUBROUTINE normals()
+      SUBROUTINE normals(mesh)
       
-      USE globals, ONLY: pres,ne,el_type,np,nnds,mnnds,V,l,elxy,elhb,nhb,xyhc,ipiv
-      USE basis, ONLY: tri_basis,quad_basis      
+      USE globals, ONLY: pres,np,nnds,mnnds,V,l,ipiv,grid     
 
       IMPLICIT NONE
       INTEGER :: it,el,et,p,n,i,np1,nnd
-      INTEGER :: info
       REAL(pres) :: x,y
-      REAL(pres) :: r(1),s(1),hb
       REAL(pres) :: dxdr,dxds,dydr,dyds,jac
       REAL(pres) :: drdx,drdy,dsdx,dsdy
       REAL(pres) :: dhdx,dhdy
-      REAL(pres) :: phi(mnnds),dpdr(mnnds),dpds(mnnds)
       REAL(pres) :: nx,ny,nz,nrm
       REAL(pres) :: x1,x2,y1,y2,z1,z2
       
-      info = 0
+      TYPE(grid) :: mesh
+            
+      ALLOCATE(mesh%nhb(3,mesh%ne))
+      ALLOCATE(mesh%xyhc(3,mesh%ne))
       
-      ALLOCATE(nhb(3,ne))
-      ALLOCATE(xyhc(3,ne))
+      mesh%xyhc = 0d0
       
-      xyhc = 0d0
+      DO el = 1,mesh%ne
       
-      DO el = 1,ne
-      
-      et = el_type(el)
-      p = np(et)  
-      n = nnds(et)
-        IF (mod(et,2) == 1) THEN
-          nnd = nnds(3)
-        ELSE IF (mod(et,2) == 0) THEN
-          nnd = nnds(4)
-        ENDIF             
-      np1 = nnd+1             
+        et = mesh%el_type(el)
+        p = np(et)  
+        n = nnds(et)
+          IF (mod(et,2) == 1) THEN
+            nnd = nnds(3)
+          ELSE IF (mod(et,2) == 0) THEN
+            nnd = nnds(4)
+          ENDIF             
+        np1 = nnd+1             
         
-      dxdr = 0d0
-      dxds = 0d0
-      dydr = 0d0
-      dyds = 0d0  
+        dxdr = 0d0
+        dxds = 0d0
+        dydr = 0d0
+        dyds = 0d0  
         
-      DO i = 1,n         
-        dxdr = dxdr + l(i,2*np1,et)*elxy(i,el,1)
-        dxds = dxds + l(i,3*np1,et)*elxy(i,el,1)
-        dydr = dydr + l(i,2*np1,et)*elxy(i,el,2)
-        dyds = dyds + l(i,3*np1,et)*elxy(i,el,2)
+        DO i = 1,n         
+          dxdr = dxdr + l(i,2*np1,et)*mesh%elxy(i,el,1)
+          dxds = dxds + l(i,3*np1,et)*mesh%elxy(i,el,1)
+          dydr = dydr + l(i,2*np1,et)*mesh%elxy(i,el,2)
+          dyds = dyds + l(i,3*np1,et)*mesh%elxy(i,el,2)
           
-        xyhc(1,el) = xyhc(1,el) + l(i,np1,et)*elxy(i,el,1)
-        xyhc(2,el) = xyhc(2,el) + l(i,np1,et)*elxy(i,el,2)
-        xyhc(3,el) = xyhc(3,el) + l(i,np1,et)*elhb(i,el)        
-      ENDDO
+          mesh%xyhc(1,el) = mesh%xyhc(1,el) + l(i,np1,et)*mesh%elxy(i,el,1)
+          mesh%xyhc(2,el) = mesh%xyhc(2,el) + l(i,np1,et)*mesh%elxy(i,el,2)
+          mesh%xyhc(3,el) = mesh%xyhc(3,el) + l(i,np1,et)*mesh%elhb(i,el)        
+        ENDDO
         
-      jac = dxdr*dyds - dydr*dxds
+        jac = dxdr*dyds - dydr*dxds
 
-      drdx =  dyds/jac
-      drdy = -dxds/jac
-      dsdx = -dydr/jac
-      dsdy =  dxdr/jac
+        drdx =  dyds/jac
+        drdy = -dxds/jac
+        dsdx = -dydr/jac
+        dsdy =  dxdr/jac
       
-      dhdx = 0d0
-      dhdy = 0d0      
+        dhdx = 0d0
+        dhdy = 0d0      
 
-      DO i = 1,n
-        dhdx = dhdx + (l(i,2*np1,et)*drdx + l(i,3*np1,et)*dsdx)*elhb(i,el)
-        dhdy = dhdy + (l(i,2*np1,et)*drdy + l(i,3*np1,et)*dsdy)*elhb(i,el)
-        
-
-      ENDDO
+        DO i = 1,n
+          dhdx = dhdx + (l(i,2*np1,et)*drdx + l(i,3*np1,et)*dsdx)*mesh%elhb(i,el)
+          dhdy = dhdy + (l(i,2*np1,et)*drdy + l(i,3*np1,et)*dsdy)*mesh%elhb(i,el)        
+        ENDDO
       
-      nrm = sqrt(dhdx**2 + dhdy**2 + 1d0)
+        nrm = sqrt(dhdx**2 + dhdy**2 + 1d0)
       
-      nhb(1,el) = dhdx/nrm
-      nhb(2,el) = dhdy/nrm
-      nhb(3,el) = -1d0/nrm
+        mesh%nhb(1,el) = dhdx/nrm
+        mesh%nhb(2,el) = dhdy/nrm
+        mesh%nhb(3,el) = -1d0/nrm
       
+!       !Cross product normals as a check
 !       x1 = elxy(2,el,1) - elxy(1,el,1)
 !       x2 = elxy(3,el,1) - elxy(1,el,1)
 !       
@@ -163,31 +158,33 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-      SUBROUTINE coordinates()
+      SUBROUTINE coordinates(mesh)
       
-      USE globals, ONLY: pres,ne,ned,mnnds,nnds,np,nverts,el_type, &
-                         ged2el,ged2led,bed_flag,bnd_flag, &
-                         l,elxy,elhb,xyhe,xyhi
+      USE globals, ONLY: pres,mnnds,nnds,np,nverts,l, &
+                         grid
       
       IMPLICIT NONE
       
       INTEGER :: el,i,pt,led,j,ed
       INTEGER :: et,n,pn,nnd,nv,bed
       
-      ALLOCATE(xyhe(mnnds,ned,3))
-      ALLOCATE(bnd_flag(mnnds,ned))
-      ALLOCATE(xyhi(mnnds,ne,3))
+      TYPE(grid) :: mesh
       
-      bnd_flag(:,:) = 0
+      ALLOCATE(mesh%xyhi(mnnds,mesh%ne,3))      
+      ALLOCATE(mesh%xyhe(mnnds,mesh%ned,3))
+      ALLOCATE(mesh%bnd_flag(mnnds,mesh%ned))
+
       
-      xyhe = 0d0
-      xyhi = 0d0
+      mesh%bnd_flag(:,:) = 0
       
-      DO ed = 1,ned
+      mesh%xyhe = 0d0
+      mesh%xyhi = 0d0
       
-        el = ged2el(1,ed)
-        led = ged2led(1,ed)
-        et = el_type(el)
+      DO ed = 1,mesh%ned
+      
+        el = mesh%ged2el(1,ed)
+        led = mesh%ged2led(1,ed)
+        et = mesh%el_type(el)
         nv = nverts(et)
         n = nnds(et)        
         
@@ -202,17 +199,17 @@
           j = mod(led,nv)*pn + pt + 1
           
           DO i = 1,n                   
-            xyhe(pt,ed,1) = xyhe(pt,ed,1) + l(i,j,et)*elxy(i,el,1)
-            xyhe(pt,ed,2) = xyhe(pt,ed,2) + l(i,j,et)*elxy(i,el,2)
-            xyhe(pt,ed,3) = xyhe(pt,ed,3) + l(i,j,et)*elhb(i,el)
+            mesh%xyhe(pt,ed,1) = mesh%xyhe(pt,ed,1) + l(i,j,et)*mesh%elxy(i,el,1)
+            mesh%xyhe(pt,ed,2) = mesh%xyhe(pt,ed,2) + l(i,j,et)*mesh%elxy(i,el,2)
+            mesh%xyhe(pt,ed,3) = mesh%xyhe(pt,ed,3) + l(i,j,et)*mesh%elhb(i,el)
           ENDDO        
         ENDDO
         
-        bed = bed_flag(ed)
+        bed = mesh%bed_flag(ed)
         
         IF (bed == 1) THEN
           DO pt = 1,pn-1
-            bnd_flag(pt,ed) = 1
+            mesh%bnd_flag(pt,ed) = 1
           ENDDO
         ENDIF
         
@@ -220,9 +217,9 @@
       ENDDO
       
       
-      DO el = 1,ne
+      DO el = 1,mesh%ne
       
-        et = el_type(el)
+        et = mesh%el_type(el)
         n = nnds(et)
         nv = nverts(et)
         
@@ -240,9 +237,9 @@
           pt = pt + 1        
           
           DO i = 1,n                   
-            xyhi(pt,el,1) = xyhi(pt,el,1) + l(i,j,et)*elxy(i,el,1)
-            xyhi(pt,el,2) = xyhi(pt,el,2) + l(i,j,et)*elxy(i,el,2)
-            xyhi(pt,el,3) = xyhi(pt,el,3) + l(i,j,et)*elhb(i,el)
+            mesh%xyhi(pt,el,1) = mesh%xyhi(pt,el,1) + l(i,j,et)*mesh%elxy(i,el,1)
+            mesh%xyhi(pt,el,2) = mesh%xyhi(pt,el,2) + l(i,j,et)*mesh%elxy(i,el,2)
+            mesh%xyhi(pt,el,3) = mesh%xyhi(pt,el,3) + l(i,j,et)*mesh%elhb(i,el)
           ENDDO        
         ENDDO
                 
@@ -326,8 +323,7 @@
       
       SUBROUTINE rimls_surface(n,npts,mnpts,xyh)
       
-      USE globals, ONLY: pres,tree_xy,tree_c,kdresults,nn,vxyn,h,epn,xyhc,nhb, &
-                         Erad,lambda0,phi0
+      USE globals, ONLY: pres,tree_xy,tree_c,kdresults,base
       USE kdtree2_module
       
       IMPLICIT NONE
@@ -340,7 +336,7 @@
       REAL(pres) :: r,sigma_n,sigma_r,threshold
       REAL(pres) :: xyh(mnpts,n,3)
       REAL(pres) :: x(3),p(3),px(3),np(3),hpt,f,grad_f(3),grad_w(3),fgradf(3),npmgradf(3)
-      REAL(pres) :: alpha(nn),alpha_old(nn)
+      REAL(pres) :: alpha(base%ne),alpha_old(base%ne)
       REAL(pres) :: sumW,sumF
       REAL(pres) :: sumGw(3),sumGF(3),sumN(3)
       REAL(pres) :: w,fx
@@ -351,7 +347,7 @@
       threshold = 1d-4
       sigma_r = 0.5d0 
       sigma_n = 0.5d0   ! 0.5 - 1.5
-      r = 4d0           ! 1.5 - 4.0
+      r = 2.5d0           ! 1.5 - 4.0
       
       DO i = 1,n
        
@@ -368,9 +364,9 @@
           
 !           nd = vxyn(kdresults(1)%idx)
            nd = kdresults(1)%idx           
-           hpt = (r*h(epn(1,nd)))**2   
+           hpt = (r*base%h(base%epn(1,nd)))**2   
           
-          CALL kdtree2_r_nearest(tp=tree_c,qv=x,r2=hpt,nfound=nneigh,nalloc=nn,results=kdresults)
+          CALL kdtree2_r_nearest(tp=tree_c,qv=x,r2=hpt,nfound=nneigh,nalloc=base%ne,results=kdresults)
           
           hpt = sqrt(hpt)           
           
@@ -396,8 +392,8 @@
               sumN(:) = 0d0
             
               DO cpt = 1,nneigh
-                p  = xyhc(:,kdresults(cpt)%idx)
-                np = nhb(:,kdresults(cpt)%idx)
+                p  = base%xyhc(:,kdresults(cpt)%idx)
+                np = base%nhb(:,kdresults(cpt)%idx)
                 
                 px = x - p
                 
@@ -462,9 +458,9 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-      SUBROUTINE grid_size()
+      SUBROUTINE grid_size(mesh)
       
-      USE globals, ONLY: pres,ne,ect,xy,h
+      USE globals, ONLY: pres,grid
       
       IMPLICIT NONE
       
@@ -473,16 +469,18 @@
       REAL(pres) :: y1,y2,y3
       REAL(pres) :: a,b,c,s,r
       
-      ALLOCATE(h(ne))
+      TYPE(grid) :: mesh
+      
+      ALLOCATE(mesh%h(mesh%ne))
                  
-      DO el = 1,ne
-        x1 = xy(1,ect(1,el))
-        x2 = xy(1,ect(2,el))
-        x3 = xy(1,ect(3,el))
+      DO el = 1,mesh%ne
+        x1 = mesh%xy(1,mesh%ect(1,el))
+        x2 = mesh%xy(1,mesh%ect(2,el))
+        x3 = mesh%xy(1,mesh%ect(3,el))
         
-        y1 = xy(2,ect(1,el))
-        y2 = xy(2,ect(2,el))
-        y3 = xy(2,ect(3,el))
+        y1 = mesh%xy(2,mesh%ect(1,el))
+        y2 = mesh%xy(2,mesh%ect(2,el))
+        y3 = mesh%xy(2,mesh%ect(3,el))
         
         a = sqrt((x1-x2)**2+(y1-y2)**2)
         b = sqrt((x2-x3)**2+(y2-y3)**2)
@@ -491,7 +489,7 @@
         s = .5d0*(a+b+c)
         r = sqrt((s-a)*(s-b)*(s-c)/s)
         
-        h(el) = 2d0*r
+        mesh%h(el) = 2d0*r
       ENDDO
       
       RETURN

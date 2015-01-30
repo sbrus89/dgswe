@@ -4,7 +4,7 @@ CFLAGS1 = -c -132 #-C -traceback -g
 CFLAGS2 = -O3 -o 
 LIB = -llapack
 
-objects = kdtree2.o globals.o basis.o connect.o evaluate.o read_input.o read_grid.o rimls.o
+objects = kdtree2.o globals.o allocation.o basis.o connect.o evaluate.o read_input.o read_grid.o rimls.o
 
 main: $(objects)
 	$(CC) $(CFLAGS2) rimls $(objects) $(LIB)
@@ -13,6 +13,9 @@ kdtree2.o: kdtree2.F
 	$(CC) $(CFLAGS1) $<	
 
 globals.o: globals.f90 kdtree2.F
+	$(CC) $(CFLAGS1) $<
+
+allocation.o: allocation.f90 globals.f90	
 	$(CC) $(CFLAGS1) $<
 
 basis.o: basis.f90 globals.f90
@@ -35,4 +38,4 @@ rimls.o: rimls.f90 globals.f90 evaluate.f90 basis.f90 kdtree2.F
 
 .PHONY : clean
 clean : 
-	rm stations *.o *.mod	
+	rm rimls *.o *.mod	
