@@ -2,23 +2,30 @@ clear all
 close all
 clc
 
-path(path,'/home/sbrus/Codes/SomeDGMaterials')
-path(path,'/home/sbrus/Codes/SomeDGMaterials/devscript')
-path(path,'/home/sbrus/Codes/SomeDGMaterials/ModNodeADCIRCDG')
-path(path,'/home/sbrus/Codes/SomeDGMaterials/NodalDG')
+% path(path,'/home/sbrus/Codes/SomeDGMaterials')
+% path(path,'/home/sbrus/Codes/SomeDGMaterials/devscript')
+% path(path,'/home/sbrus/Codes/SomeDGMaterials/ModNodeADCIRCDG')
+% path(path,'/home/sbrus/Codes/SomeDGMaterials/NodalDG')
 
-% direc = '/home/sbrus/Codes/dgswe/grids/';
-% base_name = 'inlet1.grd';
-% fine_name = 'inlet2.grd';
 
-% direc = '/home/sbrus/Codes/rimls/';
-% name = 'beaufort.grd';
-% name = 'galveston_tri.grd';
-% name = 'shin.grd';
+finp = fopen('dgswe.inp');
 
-direc = '/home/sbrus/data-drive/EC2001/';
-base_name = 'fort.14';
-fine_name = 'fort.14';
+n = 0;
+while n < 2 && ~feof(finp)
+   temp = strtrim(fgetl(finp));
+     
+   if isempty(temp) || temp(1) == '!'
+       
+   else
+      n = n + 1;
+      temp2 = strtrim(strsplit(temp));
+      names{n} = temp2{1};
+   end
+end
+
+base_name = names{1};
+fine_name = names{2};
+
 
 mesh = 'on';
 
@@ -46,14 +53,14 @@ ybox = [16.75 22.99];
 % ybox = [35.14 37.70];
 
 
-[base_ect,base_xy,base_hb,nelnds,opedat,boudat,title,base_bvnds] = readfort14([direc,base_name]);
+[base_ect,base_xy,base_hb,nelnds,opedat,boudat,title,base_bvnds] = readfort14(base_name);
 if strcmp(base_name,fine_name)
     fine_ect = base_ect;
     fine_xy = base_xy;
     fine_hb = base_hb;
     fine_bvnds = base_bvnds;
 else
-    [fine_ect,fine_xy,fine_hb,nelnds,opedat,boudat,title,fine_bvnds] = readfort14([direc,fine_name]);
+    [fine_ect,fine_xy,fine_hb,nelnds,opedat,boudat,title,fine_bvnds] = readfort14(fine_name);
 end
 
 
@@ -147,7 +154,7 @@ bvnds_plot = base_bvnds(in);
 
 
 
-
+% Plot of full grid batymetry and zoom box
 figure(1)
 pdeplot( base_xy', [], base_ect', 'xydata',base_hb, 'colormap', 'jet', 'mesh','on') ;
 hold on 
@@ -158,41 +165,41 @@ plot([xbox(2) xbox(2)],[ybox(1) ybox(2) ],'r','LineWidth',5)
 axis image
 grid on
 
-figure(2)
+% Plot of grid and extra nodes in zoom box
+figure(2);
+pdeplot( [xvplot yvplot]', [], ect1c','mesh','on') ;
+axis image
+hold on
+plot(xplot,yplot,'r.')
+
+% Plot of base grid bathymetry
+figure(3)
 ect1 = delaunay(xvplot,yvplot);
 ect1c = clean_ect(ect1,bvnds_plot);
 nodes = [xvplot yvplot];
 pdeplot( nodes', [], ect1c', 'xydata',hvplot, 'zdata',hvplot,'colormap', 'jet', 'mesh','on') ;
 grid on
 
-figure(3)
+% Plot of linearly interpolated nodes
+figure(4)
 ect2 = delaunay(xplot,yplot);
 ect2c = clean_ect(ect2,bnds_plot);
 nodes = [xplot yplot];
 pdeplot( nodes', [], ect2c', 'xydata',hplot,'zdata',hplot, 'colormap', 'jet', 'mesh',mesh) ;
 grid on
 
-
-figure(4)
+% Plot of rimls surface nodes
+figure(5)
 ect3 = delaunay(rimls_xplot,rimls_yplot);
 ect3c = clean_ect(ect3,rimls_bnds_plot);
 nodes = [rimls_xplot rimls_yplot];
 pdeplot( nodes', [], ect3c', 'xydata',rimls_hplot,'zdata',rimls_hplot, 'colormap', 'jet', 'mesh',mesh) ;
 grid on
 
+% Plot of element normals
 % figure(5)
 % quiver3(cnds(:,1),cnds(:,2),cnds(:,3),nrm(:,1),nrm(:,2),nrm(:,3))
 
-figure(6);
-pdeplot( [xvplot yvplot]', [], ect1c','mesh','on') ;
-axis image
-
-hold on
-% plot(xy(:,1),xy(:,2),'o')
-% plot(ends(:,1),ends(:,2),'ro')
-% plot(inds(:,1),inds(:,2),'ro')
-% plot(cnds(:,1),cnds(:,2),'b.')
-plot(xplot,yplot,'ro')
 
 
 disp('Max absolute difference between rimls and  linear interpolation')
@@ -202,7 +209,7 @@ disp(max(abs(rimls_hpts-hpts))/max(hpts)*100)
 
 
 
-rmpath '/home/sbrus/Codes/SomeDGMaterials'
-rmpath '/home/sbrus/Codes/SomeDGMaterials/devscript'
-rmpath '/home/sbrus/Codes/SomeDGMaterials/ModNodeADCIRCDG'
-rmpath '/home/sbrus/Codes/SomeDGMaterials/NodalDG'
+% rmpath '/home/sbrus/Codes/SomeDGMaterials'
+% rmpath '/home/sbrus/Codes/SomeDGMaterials/devscript'
+% rmpath '/home/sbrus/Codes/SomeDGMaterials/ModNodeADCIRCDG'
+% rmpath '/home/sbrus/Codes/SomeDGMaterials/NodalDG'
