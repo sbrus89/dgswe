@@ -1,10 +1,11 @@
       SUBROUTINE read_input()
 
-      USE globals, ONLY: base,fine,p,ctp,dt,tf,dramp,cf,lines,out_direc,npart
+      USE globals, ONLY: base,fine,p,ctp,Erad,lambda0,phi0,deg2rad,refinement
+                         
 
       IMPLICIT NONE
       
-      INTEGER, PARAMETER :: ninp = 11
+      INTEGER, PARAMETER :: ninp = 6
       INTEGER :: inp_read,skipped
       CHARACTER(100) :: temp
       
@@ -39,28 +40,14 @@
             CASE (4)
               READ(temp,*) ctp
               PRINT*, "ctp = ", ctp
-            CASE (5)
-              READ(temp,*) dt
-              PRINT*, "dt = ", dt
+            CASE (5) 
+              READ(temp,*) Erad
+              PRINT*, "Erad = ", Erad
             CASE (6)
-              READ(temp,*) tf
-              tf = tf*86400d0
-              PRINT*, "tf = ", tf
-            CASE (7)
-              READ(temp,*) dramp
-              PRINT*, "dramp = ", dramp
-            CASE (8)
-              READ(temp,*) cf
-              PRINT*, "cf = ", cf
-            CASE (9)
-              READ(temp,*) lines
-              PRINT*, "lines = ", lines
-            CASE (10)
-              out_direc = TRIM(temp)
-              PRINT*, "out_direc = ", out_direc
-            CASE (11)
-              READ(temp,*) npart
-              PRINT*, "npart = ", npart
+              READ(temp,*) lambda0,phi0
+              PRINT*, "lambda0,phi0 = ", lambda0 , phi0
+              lambda0 = lambda0*deg2rad
+              phi0 = phi0*deg2rad
           END SELECT
             
         ENDIF
@@ -73,6 +60,13 @@
       PRINT*, " "
       
       CLOSE(15)
+      
+      IF (base%grid_file == fine%grid_file) THEN
+        refinement = .false.
+      ELSE 
+        refinement = .true.
+      ENDIF
+      PRINT*, "Refinement grid = ", refinement
       
 
       END SUBROUTINE  read_input

@@ -182,6 +182,7 @@
       ! find interior edges
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       PRINT "(A)", 'finding interior edges'
+      PRINT*, " "
 
       ALLOCATE(mesh%bed_flag(ned))            
       mesh%bed_flag(:) = 0
@@ -197,8 +198,10 @@
         ENDIF
       ENDDO  
       
-      
-               
+      PRINT "(A)", "---------------------------------------------"
+      PRINT*, ""
+
+
 
       RETURN
       END SUBROUTINE connect

@@ -23,7 +23,10 @@
       INTEGER :: nnds(nel_type)
       INTEGER :: mnnds      
       INTEGER :: ndof(nel_type)
-      INTEGER :: mndof            
+      INTEGER :: mndof    
+      INTEGER :: mninds
+      
+      LOGICAL :: refinement
       
       TYPE :: grid
       

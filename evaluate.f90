@@ -18,7 +18,9 @@
       INTEGER :: et,pt,dof,i,n
       REAL(pres) :: r(mnnds),s(mnnds)
       REAL(pres) :: phi(mnnds*mnnds)
-      INTEGER :: info      
+      INTEGER :: info  
+      
+      PRINT "(A)", "Computing Vandermode matrix..."
       
       ALLOCATE(V(mnnds,mnnds,nel_type))
       ALLOCATE(ipiv(mnnds,nel_type))
@@ -71,6 +73,8 @@
       REAL(pres) :: x1,x2,y1,y2,z1,z2
       
       TYPE(grid) :: mesh
+      
+      PRINT "(A)", "Computing element normals..."      
             
       ALLOCATE(mesh%nhb(3,mesh%ne))
       ALLOCATE(mesh%xyhc(3,mesh%ne))
@@ -169,6 +173,7 @@
       INTEGER :: et,n,pn,nnd,nv,bed
       
       TYPE(grid) :: mesh
+           
       
       ALLOCATE(mesh%xyhi(mnnds,mesh%ne,3))      
       ALLOCATE(mesh%xyhe(mnnds,mesh%ned,3))
@@ -179,6 +184,8 @@
       
       mesh%xyhe = 0d0
       mesh%xyhi = 0d0
+      
+      PRINT "(A)", "Computing extra edge nodes..."        
       
       DO ed = 1,mesh%ned
       
@@ -215,6 +222,8 @@
         
       
       ENDDO
+      
+      PRINT "(A)", "Computing extra interior element nodes..."          
       
       
       DO el = 1,mesh%ne
@@ -263,6 +272,8 @@
       INTEGER :: info
       REAL(pres), DIMENSION(mnnds+1,nel_type) :: r,s
       REAL(pres), DIMENSION(mnnds*(mnnds+1)) :: phi,dpdr,dpds
+      
+      PRINT "(A)", "Computing interpolating polynomials..."        
       
       ALLOCATE(l(mnnds,3*(mnnds+1),nel_type))
       
@@ -317,6 +328,46 @@
       
       RETURN
       END SUBROUTINE transformation
+      
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+      SUBROUTINE compute_surface()
+      
+      USE globals, ONLY: refinement,np,mninds,mnnds,base,fine,kdresults,tree_xy,tree_c
+      USE kdtree2_module      
+      
+      IMPLICIT NONE
+      
+      ! Build kd-tree           
+!       tree_xy => kdtree2_create(vxy , rearrange=.true., sort=.true.)
+      tree_xy => kdtree2_create(base%xy  , rearrange=.true., sort=.true.)
+      tree_c  => kdtree2_create(base%xyhc, rearrange=.true., sort=.true.)
+      
+      ALLOCATE(kdresults(base%ne))       
+!       
+      CALL grid_size(base)
+      
+      
+      IF (refinement) THEN
+        PRINT("(A)"), "Computing rimls surface: verticies"
+        CALL rimls_surface(fine%nn,1,1,fine%xyhv)      
+        PRINT("(A)"), "Computing rimls surface: edges"      
+        CALL rimls_surface(fine%ned,np(3)-1,mnnds,fine%xyhe)
+        PRINT("(A)"), "Computing rimls surface: interior"
+        CALL rimls_surface(fine%ne,mninds,mnnds,fine%xyhi)      
+      ELSE 
+        PRINT("(A)"), "Computing rimls surface: verticies"
+        CALL rimls_surface(base%nn,1,1,base%xyhv)      
+        PRINT("(A)"), "Computing rimls surface: edges"      
+        CALL rimls_surface(base%ned,np(3)-1,mnnds,base%xyhe)
+        PRINT("(A)"), "Computing rimls surface: interior"
+        CALL rimls_surface(base%ne,mninds,mnnds,base%xyhi)         
+      ENDIF
+      
+      RETURN
+      END SUBROUTINE
+      
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!   

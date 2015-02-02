@@ -2,58 +2,43 @@
 ! /home/sbrus/Codes/dgswe/grids/inlet2.grd                                                                ! forcing file
 ! 1                                                                                                       ! p - polynomial order
 ! 5                                                                                                       ! ctp - parametric coordinate transformation order
-! 2d0                                                                                                     ! dt - timestep
-! 4d0                                                                                                     ! tf - final time (days)
-! .5d0                                                                                                    ! dramp - ramping parameter (days)
-! .003d0                                                                                                  ! cf - friction coefficient
-! 48d0                                                                                                    ! lines - lines in output files
-! /home/sbrus/Codes/dgswe/grids/inlet1.grd                                                                ! output directory
-! 1                                                                                                       ! npart - edge blocking parameter
+! 1d0                                                                                                     ! Erad - radius of Earth
+! 0d0,0d0                                                                                                 ! lambda0,phi0 - center of CPP coordinate system
 
 ! ./galveston_tri.grd                                                                                     ! grid file
 ! ./galveston_tri.grd                                                                                     ! forcing file
 ! 1                                                                                                       ! p - polynomial order
 ! 4                                                                                                       ! ctp - parametric coordinate transformation order
-! 2d0                                                                                                     ! dt - timestep
-! 4d0                                                                                                     ! tf - final time (days)
-! .5d0                                                                                                    ! dramp - ramping parameter (days)
-! .003d0                                                                                                  ! cf - friction coefficient
-! 48d0                                                                                                    ! lines - lines in output files
-! /home/sbrus/Codes/dgswe/grids/inlet1.grd                                                                ! output directory
-! 1              
+! 1d0                                                                                                     ! Erad - radius of Earth
+! 0d0,0d0                                                                                                 ! lambda0,phi0 - center of CPP coordinate system       
 
 ! ./beaufort.grd                                                                                          ! grid file
 ! ./beaufort.grd                                                                                          ! forcing file
 ! 1                                                                                                       ! p - polynomial order
 ! 4                                                                                                       ! ctp - parametric coordinate transformation order
-! 2d0                                                                                                     ! dt - timestep
-! 4d0                                                                                                     ! tf - final time (days)
-! .5d0                                                                                                    ! dramp - ramping parameter (days)
-! .003d0                                                                                                  ! cf - friction coefficient
-! 48d0                                                                                                    ! lines - lines in output files
-! /home/sbrus/Codes/dgswe/grids/inlet1.grd                                                                ! output directory
-! 1 
+! 6378206.4d0                                                                                             ! Erad - radius of Earth
+! -76d0,33d0                                                                                              ! lambda0,phi0 - center of CPP coordinate system
+
 
 ! ./shin.grd                                                                                              ! grid file
 ! ./shin.grd                                                                                              ! forcing file
 ! 1                                                                                                       ! p - polynomial order
 ! 4                                                                                                       ! ctp - parametric coordinate transformation order
-! 2d0                                                                                                     ! dt - timestep
-! 4d0                                                                                                     ! tf - final time (days)
-! .5d0                                                                                                    ! dramp - ramping parameter (days)
-! .003d0                                                                                                  ! cf - friction coefficient
-! 48d0                                                                                                    ! lines - lines in output files
-! /home/sbrus/Codes/dgswe/grids/inlet1.grd                                                                ! output directory
-! 1 
+! 6378206.4d0                                                                                             ! Erad - radius of Earth
+! -72.432511d0,40.666091d0                                                                                ! lambda0,phi0 - center of CPP coordinate system
+
 
 /home/sbrus/data-drive/EC2001/fort.14                                                                   ! grid file
 /home/sbrus/data-drive/EC2001/fort.14                                                                   ! forcing file
 1                                                                                                       ! p - polynomial order
 3                                                                                                       ! ctp - parametric coordinate transformation order
-2d0                                                                                                     ! dt - timestep
-4d0                                                                                                     ! tf - final time (days)
-.5d0                                                                                                    ! dramp - ramping parameter (days)
-.003d0                                                                                                  ! cf - friction coefficient
-48d0                                                                                                    ! lines - lines in output files
-/home/sbrus/Codes/dgswe/grids/inlet1.grd                                                                ! output directory
-1 
+6378206.4d0                                                                                             ! Erad - radius of Earth
+-79d0,35d0                                                                                              ! lambda0,phi0 - center of CPP coordinate system
+
+
+! /home/sbrus/data-drive/PRVI/fort.14                                                                     ! grid file
+! /home/sbrus/data-drive/PRVI/fort.14                                                                     ! forcing file
+! 1                                                                                                       ! p - polynomial order
+! 3                                                                                                       ! ctp - parametric coordinate transformation order
+! 6378206.4d0                                                                                             ! Erad - radius of Earth
+! -79d0,35d0                                                                                              ! lambda0,phi0 - center of CPP coordinate system
