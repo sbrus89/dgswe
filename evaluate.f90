@@ -1,8 +1,11 @@
       MODULE evaluate
       
+      USE globals, ONLY: pres
+      
       IMPLICIT NONE
       
-      
+      INTEGER :: maxit,maxptit
+      REAL(pres) :: r,sigma_n,sigma_r,threshold      
       
       CONTAINS
       
@@ -11,7 +14,7 @@
       
       SUBROUTINE vandermonde()
       
-      USE globals, ONLY: pres,ctp,np,nnds,mnnds,nel_type,V,ipiv
+      USE globals, ONLY: ctp,np,nnds,mnnds,nel_type,V,ipiv
       USE basis, ONLY: tri_nodes,tri_basis,quad_nodes,quad_basis
       
       IMPLICIT NONE
@@ -61,7 +64,7 @@
       
       SUBROUTINE normals(mesh)
       
-      USE globals, ONLY: pres,np,nnds,mnnds,V,l,ipiv,grid     
+      USE globals, ONLY: np,nnds,mnnds,V,l,ipiv,grid     
 
       IMPLICIT NONE
       INTEGER :: it,el,et,p,n,i,np1,nnd
@@ -164,7 +167,7 @@
 
       SUBROUTINE coordinates(mesh)
       
-      USE globals, ONLY: pres,mnnds,nnds,np,nverts,l, &
+      USE globals, ONLY: mnnds,nnds,np,nverts,l, &
                          grid
       
       IMPLICIT NONE
@@ -262,7 +265,7 @@
 
       SUBROUTINE transformation()
       
-      USE globals, ONLY: pres,mnnds,nel_type,nnds,np,l,V,ipiv
+      USE globals, ONLY: mnnds,nel_type,nnds,np,l,V,ipiv
       USE basis, ONLY: tri_nodes,quad_nodes,tri_basis,quad_basis
       
       IMPLICIT NONE
@@ -339,6 +342,13 @@
       
       IMPLICIT NONE
       
+      maxit = 10
+      maxptit = 100
+      threshold = 1d-4
+      sigma_r = 0.5d0 
+      sigma_n = 0.5d0   ! 0.5 - 1.5
+      r = 2.5d0           ! 1.5 - 4.0      
+      
       ! Build kd-tree           
 !       tree_xy => kdtree2_create(vxy , rearrange=.true., sort=.true.)
       tree_xy => kdtree2_create(base%xy  , rearrange=.true., sort=.true.)
@@ -347,6 +357,8 @@
       ALLOCATE(kdresults(base%ne))       
 !       
       CALL grid_size(base)
+      
+!       CALL filter_normals()
       
       
       IF (refinement) THEN
@@ -370,11 +382,61 @@
       
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+!       SUBROUTINE filter_normals()
+!       
+!       USE globals, ONLY: base,tree_xy,tree_c,kdresults
+!       
+!       IMPLICIT NONE
+!       
+!       INTEGER :: j,i,it
+!       INTEGER :: nneigh
+!       REAL(pres) :: pj(3),top(3),bottom
+!       REAL(pres) :: hpt,phiw
+!       REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: nrm
+!       
+!       ALLOCATE(nrm(3,base%ne))
+!       
+!       DO j = 1,base%ne
+!         x(1) = base%xyc(1,j)
+!         x(2) = base%xyc(2,j)
+!         x(3) = base%xyc(3,j)          
+!       
+!         CALL kdtree2_n_nearest(tp=tree_xy,qv=(/x(1),x(2)/),nn=1,results=kdresults)
+!           
+! !       nd = vxyn(kdresults(1)%idx)
+!         nd = kdresults(1)%idx           
+!         hpt = (r*base%h(base%epn(1,nd)))**2   
+!           
+!         CALL kdtree2_r_nearest(tp=tree_c,qv=x,r2=hpt,nfound=nneigh,nalloc=base%ne,results=kdresults)
+!           
+!         hpt = sqrt(hpt)    
+!         
+!         DO it = 1,maxptit
+!           top = 0d0
+!           bottom = 0d0
+!           DO i = 1,nneigh
+!           
+!             p  = base%xyhc(:,kdresults(i)%idx)
+!             np = base%nhb(:,kdresults(i)%idx)          
+!             top = top + phi2*nrm(j)
+!           ENDDO
+!           nrm = top/bottom
+!         ENDDO
+!       ENDDO
+! 
+!       
+!       
+!       RETURN
+!       END SUBROUTINE filter_normals
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!   
       
       SUBROUTINE rimls_surface(n,npts,mnpts,xyh)
       
-      USE globals, ONLY: pres,tree_xy,tree_c,kdresults,base
+      USE globals, ONLY: tree_xy,tree_c,kdresults,base
       USE kdtree2_module
       
       IMPLICIT NONE
@@ -382,9 +444,7 @@
       INTEGER :: i,j,pt,it,ptit,cpt
       INTEGER :: n,npts,mnpts
       INTEGER :: nneigh
-      INTEGER :: nd
-      INTEGER :: maxit,maxptit
-      REAL(pres) :: r,sigma_n,sigma_r,threshold
+      INTEGER :: nd,el
       REAL(pres) :: xyh(mnpts,n,3)
       REAL(pres) :: x(3),p(3),px(3),np(3),hpt,f,grad_f(3),grad_w(3),fgradf(3),npmgradf(3)
       REAL(pres) :: alpha(base%ne),alpha_old(base%ne)
@@ -393,12 +453,7 @@
       REAL(pres) :: w,fx
      
       
-      maxit = 10
-      maxptit = 100
-      threshold = 1d-4
-      sigma_r = 0.5d0 
-      sigma_n = 0.5d0   ! 0.5 - 1.5
-      r = 2.5d0           ! 1.5 - 4.0
+
       
       DO i = 1,n
        
@@ -411,11 +466,16 @@
           x(2) = xyh(pt,i,2)
           x(3) = xyh(pt,i,3)          
       
-          CALL kdtree2_n_nearest(tp=tree_xy,qv=(/x(1),x(2)/),nn=1,results=kdresults)
+!           CALL kdtree2_n_nearest(tp=tree_xy,qv=(/x(1),x(2)/),nn=1,results=kdresults)
+!           
+! !           nd = vxyn(kdresults(1)%idx)
+!            nd = kdresults(1)%idx           
+!            hpt = (r*base%h(base%epn(1,nd)))**2   
+
+          CALL kdtree2_n_nearest(tp=tree_c,qv=x,nn=1,results=kdresults)
           
-!           nd = vxyn(kdresults(1)%idx)
-           nd = kdresults(1)%idx           
-           hpt = (r*base%h(base%epn(1,nd)))**2   
+          el = kdresults(1)%idx           
+          hpt = (r*base%h(el))**2   
           
           CALL kdtree2_r_nearest(tp=tree_c,qv=x,r2=hpt,nfound=nneigh,nalloc=base%ne,results=kdresults)
           
@@ -443,8 +503,11 @@
               sumN(:) = 0d0
             
               DO cpt = 1,nneigh
-                p  = base%xyhc(:,kdresults(cpt)%idx)
-                np = base%nhb(:,kdresults(cpt)%idx)
+              
+                el = kdresults(cpt)%idx
+                p  = base%xyhc(:,el)
+                np = base%nhb(:,el)
+!                 hpt = r*base%h(el)   ! try using grid spacing of neighbor point
                 
                 px = x - p
                 
@@ -511,7 +574,7 @@
 
       SUBROUTINE grid_size(mesh)
       
-      USE globals, ONLY: pres,grid
+      USE globals, ONLY: grid
       
       IMPLICIT NONE
       
@@ -551,8 +614,6 @@
 
       FUNCTION norm(a) RESULT(n)
       
-      USE globals, ONLY: pres
-      
       IMPLICIT NONE
       
       REAL(pres) :: n
@@ -566,8 +627,6 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
       FUNCTION dphi(a,h) RESULT(gp)
-      
-      USE globals, ONLY: pres
       
       IMPLICIT NONE
       
@@ -583,7 +642,7 @@
 
       SUBROUTINE invcpp(n,np,mnp,xyh,xyh2)
       
-      USE globals, ONLY: pres,Erad,phi0,lambda0
+      USE globals, ONLY: Erad,phi0,lambda0
       
       IMPLICIT NONE
       
