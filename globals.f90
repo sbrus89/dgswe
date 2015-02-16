@@ -26,7 +26,7 @@
       INTEGER :: mndof    
       INTEGER :: mninds
       
-      LOGICAL :: refinement
+      LOGICAL :: refinement     
       
       TYPE :: grid
       
@@ -66,11 +66,15 @@
         INTEGER, ALLOCATABLE, DIMENSION(:,:) :: fbnds ! normal flow boundary nodes
       
         INTEGER, ALLOCATABLE, DIMENSION(:) :: nepn ! number of elements per node
-        INTEGER, ALLOCATABLE, DIMENSION(:,:) :: epn ! elements per node        
+        INTEGER, ALLOCATABLE, DIMENSION(:,:) :: epn ! elements per node 
+        
+        INTEGER, ALLOCATABLE, DIMENSION(:) :: nepe
+        INTEGER, ALLOCATABLE, DIMENSION(:,:) :: el2el
       
         INTEGER :: ned
         INTEGER :: nied
         INTEGER, ALLOCATABLE, DIMENSION(:) :: bed_flag
+        INTEGER, ALLOCATABLE, DIMENSION(:,:) :: bel2bed
         INTEGER, ALLOCATABLE, DIMENSION(:,:) :: ged2nn,ged2el,ged2led      
       
       END TYPE
@@ -84,8 +88,13 @@
       REAL(pres), ALLOCATABLE, DIMENSION(:,:,:) :: l
       INTEGER, ALLOCATABLE, DIMENSION(:,:) :: ipiv
       
+      REAL(pres) :: hmin,hmax
+      
+      INTEGER :: srchdp
+      REAL(pres) :: rsre(2,4,4)      
       TYPE(kdtree2), POINTER :: tree_xy,tree_c
       TYPE(kdtree2_result), ALLOCATABLE, DIMENSION(:) :: kdresults  
+      TYPE(kdtree2_result), ALLOCATABLE, DIMENSION(:) :: closest       
       
       REAL(pres) :: Erad 
       REAL(pres) :: phi0,lambda0

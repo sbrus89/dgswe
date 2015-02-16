@@ -166,7 +166,7 @@
       PRINT "(A,I7)", '   number of total edges:', ned
       PRINT "(A)", ' '
 
-      ALLOCATE(mesh%ged2nn(2,ned),mesh%ged2el(2,ned),mesh%ged2led(2,ned),STAT = alloc_status)
+      ALLOCATE(mesh%ged2nn(2,ned),mesh%ged2el(2,ned),mesh%ged2led(2,ned),mesh%bel2bed(ne,5),STAT = alloc_status)
       IF(alloc_status /= 0) THEN
         PRINT*, 'Allocation error: ged2nn,ged2el,ged2led'
       ENDIF 
@@ -184,19 +184,45 @@
       PRINT "(A)", 'finding interior edges'
       PRINT*, " "
 
-      ALLOCATE(mesh%bed_flag(ned))            
+      ALLOCATE(mesh%bed_flag(ned),mesh%nepe(ne),mesh%el2el(ne,4))            
       mesh%bed_flag(:) = 0
+      mesh%bel2bed(:,:) = 0
+      mesh%nepe(:) = 0
       
       mesh%nied = 0
       DO ged = 1,ned
         el1 = mesh%ged2el(1,ged)
         el2 = mesh%ged2el(2,ged)
         IF ((el1 /= 0) .AND. (el2 /= 0)) THEN
+        
           mesh%nied = mesh%nied + 1
+          
+          mesh%nepe(el1) = mesh%nepe(el1) + 1
+          mesh%nepe(el2) = mesh%nepe(el2) + 1          
+          
+          mesh%el2el(el1,mesh%nepe(el1)) = el2 
+          mesh%el2el(el2,mesh%nepe(el2)) = el1
+          
         ELSE
+        
           mesh%bed_flag(ged) = 1
+          
+          IF ( el1 /= 0 ) THEN
+            mesh%bel2bed(el1,1) = mesh%bel2bed(el1,1) + 1
+            ed = mesh%bel2bed(el1,1)
+            mesh%bel2bed(el1,ed+1) = ged
+          ELSE IF (el2 /= 0) THEN
+            mesh%bel2bed(el1,1) = mesh%bel2bed(el1,1) + 1
+            ed = mesh%bel2bed(el1,1)          
+            mesh%bel2bed(el2,ed+1) = ged
+          ENDIF
+          
         ENDIF
       ENDDO  
+      
+      
+      
+      
       
       PRINT "(A)", "---------------------------------------------"
       PRINT*, ""

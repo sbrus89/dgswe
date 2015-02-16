@@ -29,13 +29,21 @@ fine_name = names{2};
 
 mesh = 'on';
 
-% % entire area
-% xbox = [0 0];
-% ybox = [0 0];
+% entire area
+xbox = [0 0];
+ybox = [0 0];
+
+% % beaufort deep
+% xbox = [-75.5 -73];
+% ybox = [33 37];
 
 % % beaufort detail
 % xbox = [-77 -75.3];
 % ybox = [35.7 36.5];
+
+% % beaufort channel
+% xbox = [-76.8 -76.6];
+% ybox = [34.7 35];
 
 % %EC2001 Bermuda
 % xbox = [-66.08 -63.38];
@@ -45,9 +53,9 @@ mesh = 'on';
 % xbox = [-68.09 -64.79];
 % ybox = [16.92 19.04];
 
-%EC2001 Cayman
-xbox = [-86.52 -79.97];
-ybox = [16.75 22.99];
+% %EC2001 Cayman
+% xbox = [-86.52 -79.97];
+% ybox = [16.75 22.99];
 
 % xbox = [-74.87 -73.09];
 % ybox = [35.14 37.70];
@@ -167,17 +175,18 @@ grid on
 
 % Plot of grid and extra nodes in zoom box
 figure(2);
-pdeplot( [xvplot yvplot]', [], ect1c','mesh','on') ;
+ect1 = delaunay(xvplot,yvplot);
+ect1c = clean_ect(ect1,bvnds_plot);
+nodes = [xvplot yvplot];
+pdeplot( nodes', [], ect1c','mesh','on') ;
 axis image
 hold on
 plot(xplot,yplot,'r.')
 
 % Plot of base grid bathymetry
 figure(3)
-ect1 = delaunay(xvplot,yvplot);
-ect1c = clean_ect(ect1,bvnds_plot);
-nodes = [xvplot yvplot];
 pdeplot( nodes', [], ect1c', 'xydata',hvplot, 'zdata',hvplot,'colormap', 'jet', 'mesh','on') ;
+
 grid on
 
 % Plot of linearly interpolated nodes
@@ -196,8 +205,10 @@ nodes = [rimls_xplot rimls_yplot];
 pdeplot( nodes', [], ect3c', 'xydata',rimls_hplot,'zdata',rimls_hplot, 'colormap', 'jet', 'mesh',mesh) ;
 grid on
 
-% Plot of element normals
-% figure(5)
+% % Plot of element normals
+% figure(6)
+% scale = 1000;
+% nrm = nrm/scale;
 % quiver3(cnds(:,1),cnds(:,2),cnds(:,3),nrm(:,1),nrm(:,2),nrm(:,3))
 
 
@@ -206,6 +217,12 @@ disp('Max absolute difference between rimls and  linear interpolation')
 disp(max(abs(rimls_hpts-hpts)))
 disp('Max relative difference between rimls and linear interpolation')
 disp(max(abs(rimls_hpts-hpts))/max(hpts)*100)
+
+disp('Max absolute difference between rimls and verticies')
+disp(max(abs(rimls_vnds(:,3)-fine_hb)))
+disp('Max relative difference between rimls and verticies')
+disp(max(abs(rimls_vnds(:,3)-fine_hb))/max(fine_hb)*100)
+
 
 
 

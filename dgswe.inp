@@ -19,6 +19,12 @@
 ! 6378206.4d0                                                                                             ! Erad - radius of Earth
 ! -76d0,33d0                                                                                              ! lambda0,phi0 - center of CPP coordinate system
 
+! ./beaufort_hires.grd                                                                                          ! grid file
+! ./beaufort_hires.grd                                                                                          ! forcing file
+! 1                                                                                                       ! p - polynomial order
+! 4                                                                                                       ! ctp - parametric coordinate transformation order
+! 6378206.4d0                                                                                             ! Erad - radius of Earth
+! -76d0,33d0                                                                                              ! lambda0,phi0 - center of CPP coordinate system
 
 ! ./shin.grd                                                                                              ! grid file
 ! ./shin.grd                                                                                              ! forcing file

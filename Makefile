@@ -3,7 +3,7 @@ CFLAGS1 = -c -132 -heap-arrays #-C -traceback -g
 CFLAGS2 = -O3 -o 
 LIB = -llapack
 
-objects = kdtree2.o globals.o allocation.o basis.o write_results.o connect.o evaluate.o read_input.o read_grid.o rimls.o
+objects = kdtree2.o globals.o allocation.o basis.o find_element.o write_results.o connect.o evaluate.o read_input.o read_grid.o rimls.o
 
 main: $(objects)
 	$(CC) $(CFLAGS2) rimls $(objects) $(LIB)
@@ -19,6 +19,9 @@ allocation.o: allocation.f90 globals.f90
 
 basis.o: basis.f90 globals.f90
 	$(CC) $(CFLAGS1) $<
+	
+find_element.o: find_element.f90 globals.f90 basis.f90 kdtree2.F
+	$(CC) $(CFLAGS1) $<
 
 write_results.o: write_results.f90 globals.f90
 	$(CC) $(CFLAGS1) $<
@@ -26,7 +29,7 @@ write_results.o: write_results.f90 globals.f90
 connect.o: connect.f90 globals.f90
 	$(CC) $(CFLAGS1) $<
 
-evaluate.o: evaluate.f90 basis.f90 globals.f90
+evaluate.o: evaluate.f90 basis.f90 globals.f90 kdtree2.F
 	$(CC) $(CFLAGS1) $<		
 
 read_input.o: read_input.f90 globals.f90
