@@ -14,7 +14,7 @@
         INTEGER :: ndof
         REAL(pres) :: r(npts),s(npts)        
         INTEGER :: m,i,j,pt
-        REAL(pres) :: dpda,dpdb,dadr,dads,ii       
+        REAL(pres) :: dpda,dpdb,dadr,dads,ii,dr,ds,tmp       
         REAL(pres) :: a(npts),b(npts)
         REAL(pres) :: Pi(npts),Pj(npts)
         REAL(pres) :: dPi(npts),dPj(npts)
@@ -62,16 +62,30 @@
 
               ! Calculate derivative values
               DO pt = 1,npts
-                dadr = 2d0/(1d0-s(pt))
-                dads = 2d0*(1d0+r(pt))/(1d0-s(pt))**2d0
+!                 dadr = 2d0/(1d0-s(pt))
+!                 dads = 2d0*(1d0+r(pt))/(1d0-s(pt))**2d0
               
-!                 dpda = sqrt(2d0)*dPi(pt)*Pj(pt)*(1d0-b(pt))**ii
-!                 dpdb = sqrt(2d0)*Pi(pt)*(dPj(pt)*(1d0-b(pt))**ii - ii*(1d0-b(pt))**(ii-1d0)*Pj(pt))
-                dpda = 2d0*dPi(pt)*Pj(pt)*(1d0-b(pt))**ii
-                dpdb = 2d0*Pi(pt)*(dPj(pt)*(1d0-b(pt))**ii - ii*(1d0-b(pt))**(ii-1d0)*Pj(pt))
+! !                 dpda = sqrt(2d0)*dPi(pt)*Pj(pt)*(1d0-b(pt))**ii
+! !                 dpdb = sqrt(2d0)*Pi(pt)*(dPj(pt)*(1d0-b(pt))**ii - ii*(1d0-b(pt))**(ii-1d0)*Pj(pt))
+!                 dpda = 2d0*dPi(pt)*Pj(pt)*(1d0-b(pt))**ii
+!                 dpdb = 2d0*Pi(pt)*(dPj(pt)*(1d0-b(pt))**ii - ii*(1d0-b(pt))**(ii-1d0)*Pj(pt))
               
-                dpdr((m-1)*npts+pt) = dpda*dadr
-                dpds((m-1)*npts+pt) = dpda*dads + dpdb
+!                 dpdr((m-1)*npts+pt) = dpda*dadr
+!                 dpds((m-1)*npts+pt) = dpda*dads + dpdb
+
+                dr = dPi(pt)*Pj(pt)                           ! correction for when s = 1d0
+                ds = dPi(pt)*Pj(pt)*(1d0+a(pt))
+                tmp = dPj(pt)*(1d0-b(pt))**i
+                IF (i > 0) THEN
+                  dr = dr*(2d0*(1d0-b(pt))**(i-1))
+                  ds = ds*(1d0-b(pt))**(i-1)
+                  tmp = tmp - ii*Pj(pt)*(1d0-b(pt))**(i-1)
+                ENDIF
+                
+                ds = ds + Pi(pt)*tmp
+
+                dpdr((m-1)*npts+pt) = 2d0*dr 
+                dpds((m-1)*npts+pt) = 2d0*ds
               ENDDO
             ENDIF
 

@@ -355,8 +355,8 @@
       threshold = 1d-4
       percent_max = 100d0
       sigma_r = 0.5d0 
-      sigma_n = 0.5d0   ! 0.5 - 1.5
-      r = 2.5d0           ! 1.5 - 4.0      
+      sigma_n = 1.5d0   ! 0.5 - 1.5
+      r = 2d0           ! 1.5 - 4.0      
       
       hmin = minval(base%depth)
       hmax = maxval(base%depth)

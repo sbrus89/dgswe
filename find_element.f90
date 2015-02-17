@@ -63,10 +63,8 @@ search: DO srch = 1,srchdp
               sarea = sarea + .5d0*abs((x(2)-x(1))*(y(3)-y(1)) - (x(3)-x(1))*(y(2)-y(1)))
             ENDDO
           
-!             IF (pt == 29039) THEN
 !               PRINT("(A,I5,A,F20.15,A,F20.15)"), "   testing: ", eln, "   area = ",area, "   sarea = ", sarea
 !               PRINT*, " "
-!             ENDIF
           
             ! The station is in the element if the reference element area and sum of sub triangle are the same
             IF (abs(area - sarea) < tol) THEN
@@ -80,12 +78,15 @@ search: DO srch = 1,srchdp
         
         ENDDO search    
         
-        eln = el_found
+
         
         IF (found == 0) THEN
           eln = closest(1)%idx        
           PRINT*, "POINT: ",pt
-          PRINT*, "ERROR: element not found, using closest element, ", eln         
+          PRINT*, "ERROR: element not found, using closest element, ", eln  
+          
+        ELSE         
+         eln = el_found       
         ENDIF     
  
 
@@ -113,7 +114,7 @@ search: DO srch = 1,srchdp
       REAL(pres) :: l(mnnds,3)
         
       tol = 1d-9
-      maxit = 1000
+      maxit = 100
       info = 0
       
       et = base%el_type(eln)
@@ -128,7 +129,7 @@ search: DO srch = 1,srchdp
         s(1) = 1d0
       ENDIF
 
-      DO it = 1,maxit
+      DO it = 1,maxit     
            
         IF (mod(et,2) == 1) THEN
           CALL tri_basis(p,n,1,r,s,phi,dpdr,dpds)
@@ -140,8 +141,9 @@ search: DO srch = 1,srchdp
 
           l(i,1) = phi(i)
           l(i,2) = dpdr(i)
-          l(i,3) = dpds(i)          
-        ENDDO
+          l(i,3) = dpds(i)                
+       
+        ENDDO     
           
 
         CALL DGETRS("N",n,3,V(1,1,et),mnnds,ipiv(1,et),l,mnnds,info)
@@ -171,7 +173,7 @@ search: DO srch = 1,srchdp
         g = g - y
         
         r(1) = r(1) - (1d0/jac)*( dgds*f - dfds*g)
-        s(1) = s(1) - (1d0/jac)*(-dgdr*f + dfdr*g)         
+        s(1) = s(1) - (1d0/jac)*(-dgdr*f + dfdr*g)        
         
         IF (ABS(f) < tol .AND. ABS(g) < tol) THEN
           EXIT
@@ -189,10 +191,6 @@ search: DO srch = 1,srchdp
 !         PRINT("(2(A,F20.15))"), "   r = ",r(1), "   s = ", s(1)
 !       ENDIF
 
-!       IF (pt == 29039) THEN
-!         PRINT("(A,I7,A,E22.15)"), "   iterations: ",it, "  error = ",error
-!         PRINT("(2(A,F20.15))"), "   r = ",r(1), "   s = ", s(1)       
-!       ENDIF
 
       RETURN
       END SUBROUTINE newton

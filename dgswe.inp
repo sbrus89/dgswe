@@ -5,12 +5,12 @@
 ! 1d0                                                                                                     ! Erad - radius of Earth
 ! 0d0,0d0                                                                                                 ! lambda0,phi0 - center of CPP coordinate system
 
-! ./galveston_tri.grd                                                                                     ! grid file
-! ./galveston_tri.grd                                                                                     ! forcing file
-! 1                                                                                                       ! p - polynomial order
-! 4                                                                                                       ! ctp - parametric coordinate transformation order
-! 1d0                                                                                                     ! Erad - radius of Earth
-! 0d0,0d0                                                                                                 ! lambda0,phi0 - center of CPP coordinate system       
+./galveston_tri.grd                                                                                     ! grid file
+./galveston_tri.grd                                                                                     ! forcing file
+1                                                                                                       ! p - polynomial order
+4                                                                                                       ! ctp - parametric coordinate transformation order
+1d0                                                                                                     ! Erad - radius of Earth
+0d0,0d0                                                                                                 ! lambda0,phi0 - center of CPP coordinate system       
 
 ! ./beaufort.grd                                                                                          ! grid file
 ! ./beaufort.grd                                                                                          ! forcing file
@@ -34,12 +34,12 @@
 ! -72.432511d0,40.666091d0                                                                                ! lambda0,phi0 - center of CPP coordinate system
 
 
-/home/sbrus/data-drive/EC2001/fort.14                                                                   ! grid file
-/home/sbrus/data-drive/EC2001/fort.14                                                                   ! forcing file
-1                                                                                                       ! p - polynomial order
-3                                                                                                       ! ctp - parametric coordinate transformation order
-6378206.4d0                                                                                             ! Erad - radius of Earth
--79d0,35d0                                                                                              ! lambda0,phi0 - center of CPP coordinate system
+! /home/sbrus/data-drive/EC2001/fort.14                                                                   ! grid file
+! /home/sbrus/data-drive/EC2001/fort.14                                                                   ! forcing file
+! 1                                                                                                       ! p - polynomial order
+! 3                                                                                                       ! ctp - parametric coordinate transformation order
+! 6378206.4d0                                                                                             ! Erad - radius of Earth
+! -79d0,35d0                                                                                              ! lambda0,phi0 - center of CPP coordinate system
 
 
 ! /home/sbrus/data-drive/PRVI/fort.14                                                                     ! grid file
