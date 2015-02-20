@@ -44,7 +44,7 @@
         INTEGER :: mnelnds      
         REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: xy,vxy ! x,y coordinates of nodes
         INTEGER, ALLOCATABLE, DIMENSION(:) :: vxyn
-        REAL(pres), ALLOCATABLE, DIMENSION(:,:,:) :: elxy    
+        REAL(pres), ALLOCATABLE, DIMENSION(:,:,:) :: elxy        
         REAL(pres), ALLOCATABLE, DIMENSION(:) :: depth ! depth at each node
         REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: elhb     
         REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: nhb
@@ -88,6 +88,7 @@
       REAL(pres), ALLOCATABLE, DIMENSION(:,:,:) :: l
       INTEGER, ALLOCATABLE, DIMENSION(:,:) :: ipiv
       
+      REAL(pres) :: r,sigma_n
       REAL(pres) :: hmin,hmax
       
       INTEGER :: srchdp

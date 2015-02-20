@@ -1,11 +1,11 @@
       MODULE evaluate
       
-      USE globals, ONLY: pres
+      USE globals, ONLY: pres,r,sigma_n
       
       IMPLICIT NONE
       
       INTEGER :: maxit,maxptit
-      REAL(pres) :: r,sigma_n,sigma_r,threshold,percent_max      
+      REAL(pres) :: sigma_r,threshold,percent_max      
       
       CONTAINS
       
@@ -355,8 +355,8 @@
       threshold = 1d-4
       percent_max = 100d0
       sigma_r = 0.5d0 
-      sigma_n = 1.5d0   ! 0.5 - 1.5
-      r = 2d0           ! 1.5 - 4.0      
+!       sigma_n = 1.5d0   ! 0.5 - 1.5
+!       r = 15d0           ! 1.5 - 4.0      
       
       hmin = minval(base%depth)
       hmax = maxval(base%depth)

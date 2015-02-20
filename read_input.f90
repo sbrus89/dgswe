@@ -1,11 +1,11 @@
       SUBROUTINE read_input()
 
-      USE globals, ONLY: base,fine,p,ctp,Erad,lambda0,phi0,deg2rad,refinement
+      USE globals, ONLY: base,fine,p,ctp,Erad,lambda0,phi0,deg2rad,refinement,r,sigma_n
                          
 
       IMPLICIT NONE
       
-      INTEGER, PARAMETER :: ninp = 6
+      INTEGER, PARAMETER :: ninp = 7
       INTEGER :: inp_read,skipped
       CHARACTER(100) :: temp
       
@@ -35,19 +35,22 @@
               fine%grid_file = TRIM(temp)
               PRINT*, "forcing_file = ", fine%grid_file
             CASE (3)
-              READ(temp,*) p
-              PRINT*, "p = ", p
-            CASE (4)
               READ(temp,*) ctp
               PRINT*, "ctp = ", ctp
-            CASE (5) 
+            CASE (4) 
               READ(temp,*) Erad
               PRINT*, "Erad = ", Erad
-            CASE (6)
+            CASE (5)
               READ(temp,*) lambda0,phi0
               PRINT*, "lambda0,phi0 = ", lambda0 , phi0
               lambda0 = lambda0*deg2rad
               phi0 = phi0*deg2rad
+            CASE (6)
+              READ(temp,*) r
+              PRINT*, "r = ", r
+            CASE (7)
+              READ(temp,*) sigma_n
+              PRINT*, "sigma_n = ", sigma_n
           END SELECT
             
         ENDIF
