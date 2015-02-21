@@ -1,6 +1,6 @@
       SUBROUTINE read_input()
 
-      USE globals, ONLY: base,fine,p,ctp,Erad,lambda0,phi0,deg2rad,refinement,r,sigma_n
+      USE globals, ONLY: base,eval,p,ctp,Erad,lambda0,phi0,deg2rad,refinement,r,sigma_n
                          
 
       IMPLICIT NONE
@@ -30,10 +30,10 @@
           SELECT CASE (inp_read)
             CASE (1)
               base%grid_file = TRIM(temp)
-              PRINT*, "grid_file = ", base%grid_file
+              PRINT*, "base%grid_file = ", base%grid_file
             CASE (2)
-              fine%grid_file = TRIM(temp)
-              PRINT*, "forcing_file = ", fine%grid_file
+              eval%grid_file = TRIM(temp)
+              PRINT*, "eval%grid_file = ", eval%grid_file
             CASE (3)
               READ(temp,*) ctp
               PRINT*, "ctp = ", ctp
@@ -64,7 +64,7 @@
       
       CLOSE(15)
       
-      IF (base%grid_file == fine%grid_file) THEN
+      IF (base%grid_file == eval%grid_file) THEN
         refinement = .false.
       ELSE 
         refinement = .true.

@@ -24,7 +24,7 @@ while n < 2 && ~feof(finp)
 end
 
 base_name = names{1};
-fine_name = names{2};
+eval_name = names{2};
 
 
 mesh = 'on';
@@ -62,13 +62,13 @@ ybox = [0 0];
 
 
 [base_ect,base_xy,base_hb,nelnds,opedat,boudat,title,base_bvnds] = readfort14(base_name);
-if strcmp(base_name,fine_name)
-    fine_ect = base_ect;
-    fine_xy = base_xy;
-    fine_hb = base_hb;
-    fine_bvnds = base_bvnds;
+if strcmp(base_name,eval_name)
+    eval_ect = base_ect;
+    eval_xy = base_xy;
+    eval_hb = base_hb;
+    eval_bvnds = base_bvnds;
 else
-    [fine_ect,fine_xy,fine_hb,nelnds,opedat,boudat,title,fine_bvnds] = readfort14(fine_name);
+    [eval_ect,eval_xy,eval_hb,nelnds,opedat,boudat,title,eval_bvnds] = readfort14(eval_name);
 end
 
 
@@ -122,15 +122,15 @@ fclose(fid7);
 
 
 
-xpts = vertcat(fine_xy(:,1),ends(:,1),inds(:,1));
-ypts = vertcat(fine_xy(:,2),ends(:,2),inds(:,2));
-hpts = vertcat(fine_hb,ends(:,3),inds(:,3));
+xpts = vertcat(eval_xy(:,1),ends(:,1),inds(:,1));
+ypts = vertcat(eval_xy(:,2),ends(:,2),inds(:,2));
+hpts = vertcat(eval_hb,ends(:,3),inds(:,3));
 
 rimls_xpts = vertcat(rimls_vnds(:,1),rimls_ends(:,1),rimls_inds(:,1));
 rimls_ypts = vertcat(rimls_vnds(:,2),rimls_ends(:,2),rimls_inds(:,2));
 rimls_hpts = vertcat(rimls_vnds(:,3),rimls_ends(:,3),rimls_inds(:,3));
 
-bnds_flag = vertcat(fine_bvnds,bends,0*inds(:,1));
+bnds_flag = vertcat(eval_bvnds,bends,0*inds(:,1));
 
 
 if all(xbox) == 0 && all(ybox) == 0
@@ -219,9 +219,9 @@ disp('Max relative difference between rimls and linear interpolation')
 disp(max(abs(rimls_hpts-hpts))/max(hpts)*100)
 
 disp('Max absolute difference between rimls and verticies')
-disp(max(abs(rimls_vnds(:,3)-fine_hb)))
+disp(max(abs(rimls_vnds(:,3)-eval_hb)))
 disp('Max relative difference between rimls and verticies')
-disp(max(abs(rimls_vnds(:,3)-fine_hb))/max(fine_hb)*100)
+disp(max(abs(rimls_vnds(:,3)-eval_hb))/max(eval_hb)*100)
 
 
 

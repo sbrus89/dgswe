@@ -82,7 +82,7 @@
       REAL(pres), ALLOCATABLE, DIMENSION(:,:,:) :: xyhw          
       
       TYPE(grid) :: base
-      TYPE(grid) :: fine
+      TYPE(grid) :: eval
       
       REAL(pres), ALLOCATABLE, DIMENSION(:,:,:) :: V
       REAL(pres), ALLOCATABLE, DIMENSION(:,:,:) :: l

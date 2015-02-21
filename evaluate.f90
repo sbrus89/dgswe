@@ -343,7 +343,7 @@
 
       SUBROUTINE compute_surface()
       
-      USE globals, ONLY: refinement,np,mninds,mnnds,base,fine,kdresults,closest,tree_xy,tree_c,hmin,hmax,srchdp
+      USE globals, ONLY: refinement,np,mninds,mnnds,base,eval,kdresults,closest,tree_xy,tree_c,hmin,hmax,srchdp
       USE kdtree2_module      
       
       IMPLICIT NONE
@@ -376,11 +376,11 @@
       
       IF (refinement) THEN
         PRINT("(A)"), "Computing rimls surface: verticies"
-        CALL rimls_surface(fine%nn,1,1,fine%xyhv)      
+        CALL rimls_surface(eval%nn,1,1,eval%xyhv)      
         PRINT("(A)"), "Computing rimls surface: edges"      
-        CALL rimls_surface(fine%ned,np(3)-1,mnnds,fine%xyhe)
+        CALL rimls_surface(eval%ned,np(3)-1,mnnds,eval%xyhe)
         PRINT("(A)"), "Computing rimls surface: interior"
-        CALL rimls_surface(fine%ne,mninds,mnnds,fine%xyhi)      
+        CALL rimls_surface(eval%ne,mninds,mnnds,eval%xyhi)      
       ELSE 
         PRINT("(A)"), "Computing rimls surface: verticies"
         CALL rimls_surface(base%nn,1,1,base%xyhv)      

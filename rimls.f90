@@ -17,13 +17,13 @@
       CALL read_grid(base)
       
       IF (refinement) THEN
-        CALL read_grid(fine)
+        CALL read_grid(eval)
       ENDIF         
       
       CALL connect(base) 
       
       IF (refinement) THEN
-        CALL connect(fine)       
+        CALL connect(eval)       
       ENDIF
       
       
@@ -36,7 +36,7 @@
       CALL normals(base)
       
       IF (refinement) THEN
-        CALL coordinates(fine)
+        CALL coordinates(eval)
       ELSE
         CALL coordinates(base)
       ENDIF
@@ -49,7 +49,7 @@
       CALL write_normals()
 
       IF (refinement) THEN
-        CALL write_linear_nodes(fine)
+        CALL write_linear_nodes(eval)
       ELSE 
         CALL write_linear_nodes(base)
       ENDIF
@@ -61,10 +61,14 @@
       
       
       IF (refinement) THEN
-        CALL write_rimls_nodes(fine)
+        CALL write_rimls_nodes(eval)
       ELSE
         CALL write_rimls_nodes(base)
       ENDIF
+      
+!       IF (refinement == 0) THEN
+!         CALL rewrite_fort14(base)
+!       ENDIF
       
      
       END PROGRAM rimls

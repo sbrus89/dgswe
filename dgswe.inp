@@ -1,5 +1,5 @@
 ! /home/sbrus/Codes/dgswe/grids/inlet1.grd                                                                ! base grid - used to determine the rimls surface
-! /home/sbrus/Codes/dgswe/grids/inlet2.grd                                                                ! fine grid - used to determine rimls surface evaluation points
+! /home/sbrus/Codes/dgswe/grids/inlet2.grd                                                                ! eval grid - used to determine rimls surface evaluation points
 ! 5                                                                                                       ! ctp - parametric coordinate transformation order
 ! 1d0                                                                                                     ! Erad - radius of Earth
 ! 0d0,0d0                                                                                                 ! lambda0,phi0 - center of CPP coordinate system
@@ -7,7 +7,7 @@
 ! 1.5d0                                                                                                      ! sigma_n - smoothing parameter (0.5 - 1.5)
 
 ! ./galveston_tri.grd                                                                                     ! base grid - used to determine the rimls surface
-! ./galveston_tri.grd                                                                                     ! fine grid - used to determine rimls surface evaluation points
+! ./galveston_tri.grd                                                                                     ! eval grid - used to determine rimls surface evaluation points
 ! 4                                                                                                       ! ctp - parametric coordinate transformation order
 ! 1d0                                                                                                     ! Erad - radius of Earth
 ! 0d0,0d0                                                                                                 ! lambda0,phi0 - center of CPP coordinate system       
@@ -16,7 +16,7 @@
 
 /home/sbrus/data-drive/galveston/adcirc/refinedx64/ESL0/fort.14                                            ! base grid - used to determine the rimls surface
 ! /home/sbrus/data-drive/galveston/adcirc/refinedx64/ESL0/fort.14
-./galveston_tri.grd                                                                                        ! fine grid - used to determine rimls surface evaluation points
+./galveston_tri.grd                                                                                        ! eval grid - used to determine rimls surface evaluation points
 4                                                                                                          ! ctp - parametric coordinate transformation order
 1d0                                                                                                        ! Erad - radius of Earth
 0d0,0d0                                                                                                    ! lambda0,phi0 - center of CPP coordinate system       
@@ -24,7 +24,7 @@
 1.5d0                                                                                                      ! sigma_n - smoothing parameter (0.5 - 1.5)
 
 ! ./beaufort.grd                                                                                          ! base grid - used to determine the rimls surface
-! ./beaufort.grd                                                                                          ! fine grid - used to determine rimls surface evaluation points
+! ./beaufort.grd                                                                                          ! eval grid - used to determine rimls surface evaluation points
 ! 4                                                                                                       ! ctp - parametric coordinate transformation order
 ! 6378206.4d0                                                                                             ! Erad - radius of Earth
 ! -76d0,33d0                                                                                              ! lambda0,phi0 - center of CPP coordinate system
@@ -32,7 +32,7 @@
 ! 1.5d0                                                                                                   ! sigma_n - smoothing parameter (0.5 - 1.5)
 
 ! ./beaufort_hires.grd                                                                                    ! base grid - used to determine the rimls surface
-! ./beaufort_hires.grd                                                                                    ! fine grid - used to determine rimls surface evaluation points
+! ./beaufort_hires.grd                                                                                    ! eval grid - used to determine rimls surface evaluation points
 ! 4                                                                                                       ! ctp - parametric coordinate transformation order
 ! 6378206.4d0                                                                                             ! Erad - radius of Earth
 ! -76d0,33d0                                                                                              ! lambda0,phi0 - center of CPP coordinate system
@@ -40,7 +40,7 @@
 ! 1.5d0                                                                                                   ! sigma_n - smoothing parameter (0.5 - 1.5)
 
 ! ./shin.grd                                                                                              ! base grid - used to determine the rimls surface
-! ./shin.grd                                                                                              ! fine grid - used to determine rimls surface evaluation points
+! ./shin.grd                                                                                              ! eval grid - used to determine rimls surface evaluation points
 ! 4                                                                                                       ! ctp - parametric coordinate transformation order
 ! 6378206.4d0                                                                                             ! Erad - radius of Earth
 ! -72.432511d0,40.666091d0                                                                                ! lambda0,phi0 - center of CPP coordinate system
@@ -49,7 +49,7 @@
 
 
 ! /home/sbrus/data-drive/EC2001/fort.14                                                                   ! base grid - used to determine the rimls surface
-! /home/sbrus/data-drive/EC2001/fort.14                                                                   ! fine grid - used to determine rimls surface evaluation points
+! /home/sbrus/data-drive/EC2001/fort.14                                                                   ! eval grid - used to determine rimls surface evaluation points
 ! 3                                                                                                       ! ctp - parametric coordinate transformation order
 ! 6378206.4d0                                                                                             ! Erad - radius of Earth
 ! -79d0,35d0                                                                                              ! lambda0,phi0 - center of CPP coordinate system
@@ -58,7 +58,7 @@
 
 
 ! /home/sbrus/data-drive/PRVI/fort.14                                                                     ! base grid - used to determine the rimls surface
-! /home/sbrus/data-drive/PRVI/fort.14                                                                     ! fine grid - used to determine rimls surface evaluation points
+! /home/sbrus/data-drive/PRVI/fort.14                                                                     ! eval grid - used to determine rimls surface evaluation points
 ! 3                                                                                                       ! ctp - parametric coordinate transformation order
 ! 6378206.4d0                                                                                             ! Erad - radius of Earth
 ! -79d0,35d0                                                                                              ! lambda0,phi0 - center of CPP coordinate system
