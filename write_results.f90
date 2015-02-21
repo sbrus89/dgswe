@@ -138,6 +138,63 @@
 
       RETURN
       END SUBROUTINE write_rimls_nodes
+      
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+      SUBROUTINE rewrite_fort14(mesh)
+
+      IMPLICIT NONE
+      
+      INTEGER :: i,j
+      TYPE(grid) :: mesh
+      
+      PRINT*, ""
+      PRINT "(A)", "Writing fort.14 with rimls nodes..."  
+      PRINT*, ""            
+      
+      OPEN(UNIT = 14, FILE = "fort.14_rimls")
+      
+      
+      WRITE(14,*) mesh%grid_name      
+      WRITE(14,*) mesh%ne,mesh%nn         
+      
+      DO i = 1,mesh%nn
+        WRITE(14,*) i, (mesh%xyhv(1,i,j), j = 1,3)  ! write new rimls x,y, depth coordinates
+      ENDDO
+      
+      DO i = 1,mesh%ne
+        WRITE(14,*) i, mesh%nelnds(i), (mesh%ect(j,i), j = 1,mesh%nelnds(i))               
+      ENDDO
+      
+      WRITE(14,*) mesh%nope
+      WRITE(14,*) mesh%neta
+      
+      DO i = 1,mesh%nope
+        WRITE(14,*) mesh%obseg(i)
+        DO j = 1,mesh%obseg(i)
+          WRITE(14,*) mesh%obnds(j,i)
+        ENDDO
+      ENDDO
+      
+      WRITE(14,*) mesh%nbou      
+      WRITE(14,*) mesh%nvel
+      
+      DO i = 1,mesh%nbou
+        WRITE(14,*) mesh%fbseg(1,i), mesh%fbseg(2,i)
+        DO j = 1,mesh%fbseg(1,i)
+          WRITE(14,*) mesh%fbnds(j,i)
+        ENDDO
+      ENDDO
+      
+      CLOSE(14)
+      
+      
+
+
+
+      RETURN
+      END SUBROUTINE rewrite_fort14
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

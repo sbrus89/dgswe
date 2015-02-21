@@ -66,9 +66,11 @@
         CALL write_rimls_nodes(base)
       ENDIF
       
-!       IF (refinement == 0) THEN
-!         CALL rewrite_fort14(base)
-!       ENDIF
+      IF (refinement) THEN
+        CALL rewrite_fort14(eval)
+      ELSE
+        CALL rewrite_fort14(base)
+      ENDIF
       
      
       END PROGRAM rimls
