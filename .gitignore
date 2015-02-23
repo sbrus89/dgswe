@@ -2,4 +2,5 @@
 *.o
 *.mod
 *.d
+output
 rimls
