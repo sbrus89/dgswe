@@ -1,46 +1,60 @@
 CC = ifort
-CFLAGS1 = -c -132 -heap-arrays #-C -traceback -g 
-CFLAGS2 = -O3 -o 
+CFLAGS1 = -c -132 -heap-arrays -I$(ODIR) #-C -traceback -g 
+CFLAGS2 = -O3 -o -I$(ODIR) 
 LIB = -llapack
+ODIR = odir/
 
 objects = kdtree2.o globals.o allocation.o basis.o find_element.o write_results.o connect.o evaluate.o read_input.o read_grid.o rimls.o
+obj := $(patsubst %.o, $(ODIR)%.o,$(objects))
 
-main: $(objects)
-	$(CC) $(CFLAGS2) rimls $(objects) $(LIB)
+main: $(ODIR) $(obj)
+	$(CC) $(CFLAGS2) rimls $(obj) $(LIB)
 
-kdtree2.o: kdtree2.F
-	$(CC) $(CFLAGS1) $<	
+$(ODIR)kdtree2.o: kdtree2.F
+	$(CC) $(CFLAGS1) $< -o $@
+	mv kdtree2_precision_module.mod $(ODIR)
+	mv kdtree2_module.mod $(ODIR)
 
-globals.o: globals.f90 kdtree2.F
-	$(CC) $(CFLAGS1) $<
+$(ODIR)globals.o: globals.f90 kdtree2.F
+	$(CC) $(CFLAGS1) $< -o $@
+	mv globals.mod $(ODIR)	
 
-allocation.o: allocation.f90 globals.f90	
-	$(CC) $(CFLAGS1) $<
+$(ODIR)allocation.o: allocation.f90 globals.f90
+	$(CC) $(CFLAGS1) $< -o $@
+	mv allocation.mod $(ODIR)
 
-basis.o: basis.f90 globals.f90
-	$(CC) $(CFLAGS1) $<
+$(ODIR)basis.o: basis.f90 globals.f90
+	$(CC) $(CFLAGS1) $< -o $@
+	mv basis.mod $(ODIR)	
 	
-find_element.o: find_element.f90 globals.f90 basis.f90 kdtree2.F
-	$(CC) $(CFLAGS1) $<
+$(ODIR)find_element.o: find_element.f90 globals.f90 basis.f90 kdtree2.F
+	$(CC) $(CFLAGS1) $< -o $@
+	mv find_element.mod $(ODIR) 
 
-write_results.o: write_results.f90 globals.f90
-	$(CC) $(CFLAGS1) $<
+$(ODIR)write_results.o: write_results.f90 globals.f90
+	$(CC) $(CFLAGS1) $< -o $@
+	mv write_results.mod $(ODIR)
 
-connect.o: connect.f90 globals.f90
-	$(CC) $(CFLAGS1) $<
+$(ODIR)connect.o: connect.f90 globals.f90
+	$(CC) $(CFLAGS1) $< -o $@
 
-evaluate.o: evaluate.f90 basis.f90 globals.f90 kdtree2.F
-	$(CC) $(CFLAGS1) $<		
+$(ODIR)evaluate.o: evaluate.f90 basis.f90 globals.f90 kdtree2.F
+	$(CC) $(CFLAGS1) $< -o $@
+	mv evaluate.mod $(ODIR)
+	
+$(ODIR)read_input.o: read_input.f90 globals.f90
+	$(CC) $(CFLAGS1) $< -o $@
 
-read_input.o: read_input.f90 globals.f90
-	$(CC) $(CFLAGS1) $<	
+$(ODIR)read_grid.o: read_grid.f90 globals.f90
+	$(CC) $(CFLAGS1) $< -o $@
 
-read_grid.o: read_grid.f90 globals.f90
-	$(CC) $(CFLAGS1) $<
-
-rimls.o: rimls.f90 globals.f90 evaluate.f90 allocation.f90 write_results.f90 basis.f90 kdtree2.F
-	$(CC) $(CFLAGS1) $<
+$(ODIR)rimls.o: rimls.f90 globals.f90 evaluate.f90 allocation.f90 write_results.f90 basis.f90 kdtree2.F
+	$(CC) $(CFLAGS1) $< -o $@
 
 .PHONY : clean
 clean : 
-	rm rimls *.o *.mod	
+	rm -r rimls odir	
+	
+.PHONY : $(ODIR)
+$(ODIR) :
+	mkdir -p $@	
