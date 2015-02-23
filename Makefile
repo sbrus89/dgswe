@@ -14,6 +14,7 @@ $(ODIR)kdtree2.o: kdtree2.F
 	$(CC) $(CFLAGS1) $< -o $@
 	mv kdtree2_precision_module.mod $(ODIR)
 	mv kdtree2_module.mod $(ODIR)
+	mv kdtree2_priority_queue_module.mod $(ODIR)
 
 $(ODIR)globals.o: globals.f90 kdtree2.F
 	$(CC) $(CFLAGS1) $< -o $@
