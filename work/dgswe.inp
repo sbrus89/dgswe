@@ -3,11 +3,11 @@
 ! 5                                                                                                       ! ctp - parametric coordinate transformation order
 ! 1d0                                                                                                     ! Erad - radius of Earth
 ! 0d0,0d0                                                                                                 ! lambda0,phi0 - center of CPP coordinate system
-! 2.5d0                                                                                                       ! r - muliplier for search radius (1.5 - 4.0)
-! 1.5d0                                                                                                      ! sigma_n - smoothing parameter (0.5 - 1.5)
+! 2.5d0                                                                                                   ! r - muliplier for search radius (1.5 - 4.0)
+! 1.5d0                                                                                                   ! sigma_n - smoothing parameter (0.5 - 1.5)
 
-! ../galveston_tri.grd                                                                                     ! base grid - used to determine the rimls surface
-! ../galveston_tri.grd                                                                                     ! eval grid - used to determine rimls surface evaluation points
+! /home/sbrus/data-drive/galveston/adcirc/original/ESL0/fort.14                                           ! base grid - used to determine the rimls surface
+! /home/sbrus/data-drive/galveston/adcirc/original/ESL0/fort.14                                           ! eval grid - used to determine rimls surface evaluation points
 ! 4                                                                                                       ! ctp - parametric coordinate transformation order
 ! 1d0                                                                                                     ! Erad - radius of Earth
 ! 0d0,0d0                                                                                                 ! lambda0,phi0 - center of CPP coordinate system       
@@ -16,31 +16,31 @@
 
 /home/sbrus/data-drive/galveston/adcirc/refinedx64/ESL0/fort.14                                            ! base grid - used to determine the rimls surface
 !/home/sbrus/data-drive/galveston/adcirc/refinedx64/ESL0/fort.14
-../galveston_tri.grd                                                                                        ! eval grid - used to determine rimls surface evaluation points
+/home/sbrus/data-drive/galveston/adcirc/original/ESL0/fort.14                                              ! eval grid - used to determine rimls surface evaluation points
 2                                                                                                          ! ctp - parametric coordinate transformation order
 1d0                                                                                                        ! Erad - radius of Earth
 0d0,0d0                                                                                                    ! lambda0,phi0 - center of CPP coordinate system       
 15d0                                                                                                       ! r - muliplier for search radius (1.5 - 4.0)
 1.5d0                                                                                                      ! sigma_n - smoothing parameter (0.5 - 1.5)
 
-! ../beaufort.grd                                                                                          ! base grid - used to determine the rimls surface
-! ../beaufort.grd                                                                                          ! eval grid - used to determine rimls surface evaluation points
+! /home/sbrus/data-drive/beaufort/beaufort.grd                                                            ! base grid - used to determine the rimls surface
+! /home/sbrus/data-drive/beaufort/beaufort.grd                                                            ! eval grid - used to determine rimls surface evaluation points
 ! 4                                                                                                       ! ctp - parametric coordinate transformation order
 ! 6378206.4d0                                                                                             ! Erad - radius of Earth
 ! -76d0,33d0                                                                                              ! lambda0,phi0 - center of CPP coordinate system
 ! 2.5d0                                                                                                   ! r - muliplier for search radius (1.5 - 4.0)
 ! 1.5d0                                                                                                   ! sigma_n - smoothing parameter (0.5 - 1.5)
 
-! ../beaufort_hires.grd                                                                                    ! base grid - used to determine the rimls surface
-! ../beaufort_hires.grd                                                                                    ! eval grid - used to determine rimls surface evaluation points
+! /home/sbrus/data-drive/beaufort/beaufort_hires.grd                                                      ! base grid - used to determine the rimls surface
+! /home/sbrus/data-drive/beaufort/beaufort_hires.grd                                                      ! eval grid - used to determine rimls surface evaluation points
 ! 4                                                                                                       ! ctp - parametric coordinate transformation order
 ! 6378206.4d0                                                                                             ! Erad - radius of Earth
 ! -76d0,33d0                                                                                              ! lambda0,phi0 - center of CPP coordinate system
 ! 2.5d0                                                                                                   ! r - muliplier for search radius (1.5 - 4.0)
 ! 1.5d0                                                                                                   ! sigma_n - smoothing parameter (0.5 - 1.5)
 
-! ../shin.grd                                                                                              ! base grid - used to determine the rimls surface
-! ../shin.grd                                                                                              ! eval grid - used to determine rimls surface evaluation points
+! /home/sbrus/data-drive/shinnecock/fort.14                                                               ! base grid - used to determine the rimls surface
+! /home/sbrus/data-drive/shinnecock/fort.14                                                               ! eval grid - used to determine rimls surface evaluation points
 ! 4                                                                                                       ! ctp - parametric coordinate transformation order
 ! 6378206.4d0                                                                                             ! Erad - radius of Earth
 ! -72.432511d0,40.666091d0                                                                                ! lambda0,phi0 - center of CPP coordinate system

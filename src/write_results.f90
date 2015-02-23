@@ -23,7 +23,7 @@
       PRINT "(A)", "Writing linearly interpolated nodes..."   
       PRINT*, ""
       
-      OPEN(unit=9,file='interior_nodes.d')
+      OPEN(unit=9,file='../output/interior_nodes.d')
       WRITE(9,*) mesh%ne,mninds
       DO el = 1,mesh%ne
         DO i = 1,mninds
@@ -36,7 +36,7 @@
       
 !       CALL invcpp(ned,np(3)-1,mnnds,xyhe,xyhw)
       
-      OPEN(unit=10,file='edge_nodes.d')
+      OPEN(unit=10,file='../output/edge_nodes.d')
       WRITE(10,*) mesh%ned,np(3)-1
       DO ed = 1,mesh%ned      
         DO i = 1,np(3)-1
@@ -47,7 +47,7 @@
       
       CLOSE(10)
       
-      OPEN(unit=13,file='boundary_nodes.d')
+      OPEN(unit=13,file='../output/boundary_nodes.d')
       WRITE(13,*) mesh%ned,np(3)-1
       DO ed = 1,mesh%ned      
         DO i = 1,np(3)-1
@@ -74,7 +74,7 @@
       PRINT*, "" 
       PRINT "(A)", "Writing element normals..."             
       
-      OPEN(unit=11,file='centers.d')
+      OPEN(unit=11,file='../output/centers.d')
       WRITE(11,*) base%ne    
       DO el = 1,base%ne      
         WRITE(11,*) (base%xyhc(i,el), i = 1,3)
@@ -82,7 +82,7 @@
       
       CLOSE(11)
       
-      OPEN(unit=12,file='normals.d')
+      OPEN(unit=12,file='../output/normals.d')
       WRITE(12,*) base%ne
       DO el = 1,base%ne
         WRITE(12,*) (base%nhb(i,el),i=1,3)
@@ -107,7 +107,7 @@
       PRINT "(A)", "Writing rimls surface nodes..."  
       PRINT*, ""      
       
-      OPEN(unit=9,file='rimls_interior_nodes.d')
+      OPEN(unit=9,file='../output/rimls_interior_nodes.d')
       WRITE(9,*) mesh%ne,mninds
       DO el = 1,mesh%ne
         DO i = 1,mninds
@@ -118,7 +118,7 @@
       CLOSE(9)      
       
       
-      OPEN(unit=10,file='rimls_edge_nodes.d')
+      OPEN(unit=10,file='../output/rimls_edge_nodes.d')
       WRITE(10,*) mesh%ned,np(3)-1
       DO ed = 1,mesh%ned      
         DO i = 1,np(3)-1
@@ -128,7 +128,7 @@
       
       CLOSE(10)
       
-      OPEN(unit=11,file='rimls_vertex_nodes.d')
+      OPEN(unit=11,file='../output/rimls_vertex_nodes.d')
       WRITE(11,*) mesh%nn,1
       DO nd = 1,mesh%nn
           WRITE(11,*) (mesh%xyhv(1,nd,j), j = 1,3)
@@ -153,7 +153,7 @@
       PRINT "(A)", "Writing fort.14 with rimls nodes..."  
       PRINT*, ""            
       
-      OPEN(UNIT = 14, FILE = "fort.14_rimls")
+      OPEN(UNIT = 14, FILE = "../output/fort.14_rimls")
       
       
       WRITE(14,*) mesh%grid_name      
@@ -210,7 +210,7 @@
       PRINT "(A)", "Writing rimls element nodes..."  
       PRINT*, ""            
       
-      OPEN(UNIT = 14, FILE = "elem_nodes.d")
+      OPEN(UNIT = 14, FILE = "../output/elem_nodes.d")
       
       
       CLOSE(14)

@@ -7,8 +7,9 @@ clc
 % path(path,'/home/sbrus/Codes/SomeDGMaterials/ModNodeADCIRCDG')
 % path(path,'/home/sbrus/Codes/SomeDGMaterials/NodalDG')
 
+out_dir = '../output/';
 
-finp = fopen('dgswe.inp');
+finp = fopen('../work/dgswe.inp');
 
 n = 0;
 while n < 2 && ~feof(finp)
@@ -72,48 +73,48 @@ else
 end
 
 
-fid = fopen('edge_nodes.d');
+fid = fopen([out_dir,'edge_nodes.d']);
 N = fscanf(fid,'%g %g',2) ;
 nends = N(1)*N(2);
 ends = fscanf(fid,'%g %g %g \n', [3 nends])' ;
 fclose(fid);
 
-fid4 = fopen('interior_nodes.d');
+fid4 = fopen([out_dir,'interior_nodes.d']);
 N = fscanf(fid4,'%g %g',2) ;
 ninds = N(1)*N(2);
 inds = fscanf(fid4,'%g %g %g \n', [3 ninds])' ;
 fclose(fid4);
 
-fid2 = fopen('centers.d');
+fid2 = fopen([out_dir,'centers.d']);
 ne = fscanf(fid2,'%g',1) ;
 cnds = fscanf(fid2,'%g %g %g \n', [3 ne])' ;
 fclose(fid2);
 
-fid3 = fopen('normals.d');
+fid3 = fopen([out_dir,'normals.d']);
 ne = fscanf(fid3,'%g',1) ;
 nrm = fscanf(fid3,'%g %g %g \n', [3 ne])' ;
 fclose(fid3);
 
-fid8 = fopen('boundary_nodes.d');
+fid8 = fopen([out_dir,'boundary_nodes.d']);
 N = fscanf(fid8,'%g %g',2) ;
 nends = N(1)*N(2);
 bends = fscanf(fid8,'%g \n', [1 nends])' ;
 fclose(fid8);
 
 
-fid5 = fopen('rimls_edge_nodes.d');
+fid5 = fopen([out_dir,'rimls_edge_nodes.d']);
 N = fscanf(fid5,'%g %g',2) ;
 nends = N(1)*N(2);
 rimls_ends = fscanf(fid5,'%g %g %g \n', [3 nends])' ;
 fclose(fid5);
 
-fid6 = fopen('rimls_interior_nodes.d');
+fid6 = fopen([out_dir,'rimls_interior_nodes.d']);
 N = fscanf(fid6,'%g %g',2) ;
 ninds = N(1)*N(2);
 rimls_inds = fscanf(fid6,'%g %g %g \n', [3 ninds])' ;
 fclose(fid6);
 
-fid7 = fopen('rimls_vertex_nodes.d');
+fid7 = fopen([out_dir,'rimls_vertex_nodes.d']);
 N = fscanf(fid7,'%g %g',2) ;
 ninds = N(1)*N(2);
 rimls_vnds = fscanf(fid7,'%g %g %g \n', [3 ninds])' ;
