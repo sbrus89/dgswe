@@ -62,15 +62,14 @@
       
       IF (refinement) THEN
         CALL write_rimls_nodes(eval)
+        CALL rewrite_fort14(eval)  
+        CALL write_elem_nodes(eval)
       ELSE
         CALL write_rimls_nodes(base)
+        CALL rewrite_fort14(base)  
+        CALL write_elem_nodes(eval)
       ENDIF
-      
-      IF (refinement) THEN
-        CALL rewrite_fort14(eval)
-      ELSE
-        CALL rewrite_fort14(base)
-      ENDIF
+
       
      
       END PROGRAM rimls

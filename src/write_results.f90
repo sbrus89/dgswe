@@ -199,4 +199,30 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+      SUBROUTINE write_elem_nodes(mesh)
+
+      IMPLICIT NONE
+      
+      INTEGER :: i,j
+      TYPE(grid) :: mesh
+      
+      PRINT*, ""
+      PRINT "(A)", "Writing rimls element nodes..."  
+      PRINT*, ""            
+      
+      OPEN(UNIT = 14, FILE = "elem_nodes.d")
+      
+      
+      CLOSE(14)
+      
+      
+
+
+
+      RETURN
+      END SUBROUTINE write_elem_nodes
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
       END MODULE write_results

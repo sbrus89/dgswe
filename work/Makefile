@@ -2,6 +2,8 @@ CC = ifort
 CFLAGS1 = -c -132 -heap-arrays -I$(ODIR) #-C -traceback -g 
 CFLAGS2 = -O3 -o -I$(ODIR) 
 LIB = -llapack
+
+VPATH := ../src
 ODIR = odir/
 
 objects = kdtree2.o globals.o allocation.o basis.o find_element.o write_results.o connect.o evaluate.o read_input.o read_grid.o rimls.o
