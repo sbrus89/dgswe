@@ -1,6 +1,6 @@
       MODULE write_results
 
-      USE globals, ONLY: grid,np,mninds
+      USE globals, ONLY: pres,grid,np,mninds,mnnds
 
       CONTAINS
 
@@ -105,7 +105,6 @@
 
       PRINT*, ""
       PRINT "(A)", "Writing rimls surface nodes..."  
-      PRINT*, ""      
       
       OPEN(unit=9,file='../output/rimls_interior_nodes.d')
       WRITE(9,*) mesh%ne,mninds
@@ -149,9 +148,7 @@
       INTEGER :: i,j
       TYPE(grid) :: mesh
       
-      PRINT*, ""
-      PRINT "(A)", "Writing fort.14 with rimls nodes..."  
-      PRINT*, ""            
+      PRINT "(A)", "Writing fort.14 with rimls nodes..."       
       
       OPEN(UNIT = 14, FILE = "../output/fort.14_rimls")
       
@@ -200,23 +197,96 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
       SUBROUTINE write_elem_nodes(mesh)
+      
+      USE globals, ONLY: nverts,ctp,nnds
 
       IMPLICIT NONE
       
-      INTEGER :: i,j
+      INTEGER :: el,ed,et,nv,pt,i,pn,led,n,nd,v,nnd
       TYPE(grid) :: mesh
+      REAL(pres) :: nodes(mnnds,mesh%ne)
       
-      PRINT*, ""
+      nodes = 0d0
+      
       PRINT "(A)", "Writing rimls element nodes..."  
-      PRINT*, ""            
+      PRINT*, ""     
       
-      OPEN(UNIT = 14, FILE = "../output/elem_nodes.d")
+      ! Verticies
+      DO el = 1,mesh%ne
+        et = mesh%el_type(el)
+        nv = nverts(et)
+        
+        DO v = 1,nv
+          i = (v-1)*ctp + 1
+          nd = mesh%ect(v,el)
+          nodes(i,el) = mesh%xyhv(1,nd,3)
+        ENDDO
+      ENDDO
       
+      ! Edge points
+      DO ed = 1,mesh%ned
+        
+        el = mesh%ged2el(1,ed)
+        led = mesh%ged2led(1,ed)
+        et = mesh%el_type(el)
+        nv = nverts(et)       
+          
+        DO pt = 1,ctp-1          
+          i = mod(led,nv)*ctp + pt + 1
+          nodes(i,el) = mesh%xyhe(pt,ed,3)
+        ENDDO          
+          
+        IF (mesh%bed_flag(ed) == 0) THEN
+        
+          el = mesh%ged2el(2,ed)
+          led = mesh%ged2led(2,ed)
+          et = mesh%el_type(el)
+          nv = nverts(et)                 
+          
+          DO pt = 1,ctp-1          
+            i = mod(led,nv)*ctp + ctp - pt + 1            
+            nodes(i,el) = mesh%xyhe(pt,ed,3)
+          ENDDO            
+
+        ENDIF          
+          
+      ENDDO
+      
+      ! Interior points
+      DO el = 1,mesh%ne
+        et = mesh%el_type(el)
+        n = nnds(et)
+        nv = nverts(et)
+        
+        IF (mod(et,2) == 1) THEN   
+          nnd = nnds(3)
+        ELSE IF (mod(et,2) == 0) THEN
+          nnd = nnds(4)          
+        ENDIF    
+
+        pt = 0
+        DO i = nv*(ctp-1)+nv+1,nnd 
+          pt = pt + 1
+          nodes(i,el) = mesh%xyhi(pt,el,3) 
+        ENDDO
+      ENDDO
+      
+      
+      OPEN(UNIT = 14, FILE = "../output/elem_nodes.d")      
+      
+      DO el = 1,mesh%ne
+        et = mesh%el_type(el)
+        
+        IF (mod(et,2) == 1) THEN   
+          nnd = nnds(3)
+        ELSE IF (mod(et,2) == 0) THEN
+          nnd = nnds(4)          
+        ENDIF    
+
+        WRITE(14,"(2(I7),6(e24.17,1x))") el,nnd,(nodes(i,el), i = 1,nnd)
+      ENDDO
       
       CLOSE(14)
-      
-      
-
 
 
       RETURN
