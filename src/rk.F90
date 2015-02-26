@@ -207,6 +207,7 @@
                 IF (H(el,dof) /= H(el,dof)) THEN
                   PRINT*, "NaN detected in H solution"
                   PRINT("(A,e15.8)"), 't = ', t
+                  CALL write_output()
                   STOP
                 ENDIF
               ENDDO
@@ -215,6 +216,7 @@
                 IF (Qx(el,dof) /= Qx(el,dof)) THEN
                   PRINT*, "NaN detected in Qx solution"
                   PRINT("(A,e15.8)"), 't = ', t
+                  CALL write_output()
                   STOP
                 ENDIF
               ENDDO
@@ -223,6 +225,7 @@
                 IF (Qy(el,dof) /= Qy(el,dof)) THEN
                   PRINT*, "NaN detected in Qy solution"
                   PRINT("(A,e15.8)"), 't = ', t
+                  CALL write_output()
                   STOP
                 ENDIF
               ENDDO

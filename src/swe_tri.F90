@@ -13,10 +13,10 @@
       
 
 
-      coord_sys = 2
+      coord_sys = 1
       slam0 = -79.0d0*deg2rad
       sphi0 = 35.0d0*deg2rad
-      h0 = 10d0
+      h0 = 0d0
       
       CALL message_init()
       
@@ -97,25 +97,7 @@
          cnt = cnt + 1
          IF(cnt == tskp) THEN
 
-           IF(myrank == 0) THEN
-             PRINT("(A,e15.8)"), 't = ', t
-           ENDIF
-
-           WRITE(63,"(e24.17)") t
-           DO dof = 1,mndof
-             WRITE(63,"(16000(e24.17,1x))") (Hwrite(el,dof)%ptr, el = 1,ne)
-           ENDDO
-
-           WRITE(641,"(e24.17)") t
-           DO dof = 1,mndof
-             WRITE(641,"(16000(e24.17,1x))") (Qxwrite(el,dof)%ptr, el = 1,ne)
-           ENDDO
-
-           WRITE(642,"(e24.17)") t
-           DO dof = 1,mndof
-             WRITE(642,"(16000(e24.17,1x))") (Qywrite(el,dof)%ptr, el = 1,ne)
-           ENDDO           
-             
+           CALL write_output()             
            cnt = 0
 
          ENDIF
