@@ -69,8 +69,8 @@
       REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: xy ! x,y coordinates of nodes
       REAL(pres), ALLOCATABLE, DIMENSION(:,:,:) :: elxy            
       REAL(pres), ALLOCATABLE, DIMENSION(:) :: depth ! depth at each node
-      REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: elhb            
-
+      REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: elhb
+      REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: hbnodes 
 
       INTEGER :: nope ! number of open boundary segents
       INTEGER, ALLOCATABLE, DIMENSION(:) :: obseg ! number of nodes in each open boundary segment
@@ -143,18 +143,23 @@
       INTEGER, ALLOCATABLE, DIMENSION(:) :: bedn ! array of non-interior edge numbers
 
       REAL(pres), ALLOCATABLE, TARGET, DIMENSION(:,:) :: H ! degrees of freedom for water column height
+      REAL(pres), ALLOCATABLE, TARGET, DIMENSION(:,:) :: Z      
       REAL(pres), ALLOCATABLE, TARGET, DIMENSION(:,:) :: Qx ! degrees of freedom for x momentum
       REAL(pres), ALLOCATABLE, TARGET, DIMENSION(:,:) :: Qy ! degrees of freedom for y momentum
       
       REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: Hold,Hinit ! degrees of freedom for water column height
+      REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: Zold,Zinit 
       REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: Qxold,Qxinit ! degrees of freedom for x momentum
       REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: Qyold,Qyinit ! degrees of freedom for y momentum
+      
+      REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: hbqpta,hbqpta_init
+      REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: hbqpte,hbqpte_init            
 
 
-      REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: rhsH,rhsQx,rhsQy ! right hand side evaluation arrays
-      REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: MirhsH,MirhsQx,MirhsQy      
+      REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: rhsZ,rhsH,rhsQx,rhsQy ! right hand side evaluation arrays
+      REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: MirhsZ,MirhsH,MirhsQx,MirhsQy      
 
-      REAL(pres), ALLOCATABLE, TARGET, DIMENSION(:,:) :: Hqpt,Qxqpt,Qyqpt ! solution quadrature point evaluation arrays
+      REAL(pres), ALLOCATABLE, TARGET, DIMENSION(:,:) :: Zqpt,Hqpt,Qxqpt,Qyqpt ! solution quadrature point evaluation arrays
       REAL(pres), ALLOCATABLE, TARGET, DIMENSION(:,:) :: xmom,ymom,xymom ! momentum terms quadrature point evaluation arrays
       REAL(pres), ALLOCATABLE, DIMENSION(:) :: src_x,src_y
       REAL(pres), ALLOCATABLE, DIMENSION(:) :: tau
@@ -187,24 +192,25 @@
 
       REAL(pres) :: alpha,eig_in,eig_ex ! numerical flux constant calculation variables
       REAL(pres), DIMENSION(6) :: eig
-      REAL(pres) :: H_in,H_ex,Qx_in,Qx_ex,Qy_in,Qy_ex ! interior/exterior numerical flux solution variables
+      REAL(pres) :: Z_in,Z_ex,H_in,H_ex,Qx_in,Qx_ex,Qy_in,Qy_ex ! interior/exterior numerical flux solution variables
       REAL(pres) :: xmom_in,xmom_ex,ymom_in,ymom_ex,xymom_in,xymom_ex ! interior/exterior numerical flux momentum variables
       REAL(pres) :: nx,ny,nx2,ny2,nxny,tx,ty ! x and y edge normals
-      REAL(pres) :: Hhat,Qxhat,Qyhat ! numerical flux variables
-      REAL(pres), ALLOCATABLE, TARGET, DIMENSION(:,:) :: Hflux,Qxflux,Qyflux ! numerical flux arrays
+      REAL(pres) :: Zhat,Hhat,Qxhat,Qyhat ! numerical flux variables
+      REAL(pres), ALLOCATABLE, TARGET, DIMENSION(:,:) :: Zflux,Hflux,Qxflux,Qyflux ! numerical flux arrays
       REAL(pres) :: Qn,Qt
 
       REAL(pres), ALLOCATABLE, DIMENSION(:) :: const
       REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: inx,iny
       REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: icfac      
       REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: detJe_in,detJe_ex
-      REAL(pres), ALLOCATABLE, DIMENSION(:) :: Hhatv,Qxhatv,Qyhatv
+      REAL(pres), ALLOCATABLE, DIMENSION(:) :: Zhatv,Hhatv,Qxhatv,Qyhatv
       REAL(pres), ALLOCATABLE, DIMENSION(:) :: rHi,rHe
       REAL(pres), ALLOCATABLE, DIMENSION(:) :: xmomi,xmome,ymomi,ymome,xymomi,xymome     
       REAL(pres), ALLOCATABLE, TARGET, DIMENSION(:,:) :: fbHf,nfbHf,obHf  
       REAL(pres), ALLOCATABLE, TARGET, DIMENSION(:,:) :: fbQxf,nfbQxf,obQxf       
       REAL(pres), ALLOCATABLE, TARGET, DIMENSION(:,:) :: fbQyf,nfbQyf,obQyf  
-      REAL(pres), ALLOCATABLE, TARGET, DIMENSION(:,:) :: Hfluxi,Hfluxe      
+      REAL(pres), ALLOCATABLE, TARGET, DIMENSION(:,:) :: Hfluxi,Hfluxe     
+      REAL(pres), ALLOCATABLE, TARGET, DIMENSION(:,:) :: Zfluxi,Zfluxe      
       REAL(pres), ALLOCATABLE, TARGET, DIMENSION(:,:) :: Qxfluxi,Qxfluxe
       REAL(pres), ALLOCATABLE, TARGET, DIMENSION(:,:) :: Qyfluxi,Qyfluxe      
 
@@ -213,22 +219,24 @@
       END TYPE edge_ptr_array
 
       TYPE(edge_ptr_array), ALLOCATABLE, DIMENSION(:,:) :: Hi,He
+      TYPE(edge_ptr_array), ALLOCATABLE, DIMENSION(:,:) :: Zi,Ze      
       TYPE(edge_ptr_array), ALLOCATABLE, DIMENSION(:,:) :: Qxi,Qxe
       TYPE(edge_ptr_array), ALLOCATABLE, DIMENSION(:,:) :: Qyi,Qye
       TYPE(edge_ptr_array), ALLOCATABLE, DIMENSION(:,:) :: xmi,xme
       TYPE(edge_ptr_array), ALLOCATABLE, DIMENSION(:,:) :: ymi,yme
       TYPE(edge_ptr_array), ALLOCATABLE, DIMENSION(:,:) :: xymi,xyme
-      TYPE(edge_ptr_array), ALLOCATABLE, DIMENSION(:,:) :: Hfi,Qxfi,Qyfi
-      TYPE(edge_ptr_array), ALLOCATABLE, DIMENSION(:,:) :: Hfe,Qxfe,Qyfe
-      TYPE(edge_ptr_array), ALLOCATABLE, DIMENSION(:,:) :: Hf,Qxf,Qyf      
+      TYPE(edge_ptr_array), ALLOCATABLE, DIMENSION(:,:) :: Zfi,Hfi,Qxfi,Qyfi
+      TYPE(edge_ptr_array), ALLOCATABLE, DIMENSION(:,:) :: Zfe,Hfe,Qxfe,Qyfe
+      TYPE(edge_ptr_array), ALLOCATABLE, DIMENSION(:,:) :: Zf,Hf,Qxf,Qyf      
       
       TYPE(edge_ptr_array), ALLOCATABLE, DIMENSION(:,:) :: Hwrite
+      TYPE(edge_ptr_array), ALLOCATABLE, DIMENSION(:,:) :: Zwrite      
       TYPE(edge_ptr_array), ALLOCATABLE, DIMENSION(:,:) :: Qxwrite
       TYPE(edge_ptr_array), ALLOCATABLE, DIMENSION(:,:) :: Qywrite
       
       
-      REAL(pres), ALLOCATABLE, DIMENSION(:) :: Qxin,Qyin,Hin
-      REAL(pres), ALLOCATABLE, DIMENSION(:) :: Qxex,Qyex,Hex
+      REAL(pres), ALLOCATABLE, DIMENSION(:) :: Qxin,Qyin,Hin,Zin
+      REAL(pres), ALLOCATABLE, DIMENSION(:) :: Qxex,Qyex,Hex,Zex
       REAL(pres), ALLOCATABLE, DIMENSION(:) :: xmin,ymin,xymin
       REAL(pres), ALLOCATABLE, DIMENSION(:) :: xmex,ymex,xymex
       

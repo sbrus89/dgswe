@@ -3,29 +3,30 @@
       USE globals,  ONLY: pres,l,ind,el,ne,pt,led,ed,dof,ndof,nel_type,el_type, &
                           blk,elblk,nfblk,rnfblk,nrblk,npart,npartet,nverts, &
                           g,pt5g,tstage,ramp,arg,bfr, & 
-                          H,Qx,Qy, &
-                          rhsH,rhsQx,rhsQy, &
-                          Hqpt,Qxqpt,Qyqpt, &
+                          H,Z,Qx,Qy, &
+                          rhsH,rhsZ,rhsQx,rhsQy, &
+                          Hqpt,Zqpt,Qxqpt,Qyqpt, &
+                          hbqpta,hbqpte, &
                           nqpta,wpta,phia,phia_int,dpdx,dpdy,nqpte,wpte,phie,phie_int,mmi, &
                           press,recipH,xmom,ymom,xymom,cf,tau,u,v,src_x,src_y,dhbdx,dhbdy, &
                           el_in,el_ex,led_in,led_ex,gp_in,gp_ex, &
                           nx,ny,nx2,ny2,nxny,tx,ty, &
-                          H_in,H_ex,Qx_in,Qx_ex,Qy_in,Qy_ex,Qn,Qt, &
+                          H_in,H_ex,Z_in,Z_ex,Qx_in,Qx_ex,Qy_in,Qy_ex,Qn,Qt, &
                           xmom_in,xmom_ex,ymom_in,ymom_ex,xymom_in,xymom_ex, &
-                          Hhat,Qxhat,Qyhat, &
-                          Hflux,Qxflux,Qyflux, &
+                          Hhat,Zhat,Qxhat,Qyhat, &
+                          Hflux,Zflux,Qxflux,Qyflux, &
                           nied,iedn,nobed,obedn,nnfbed,nfbedn,nfbed,fbedn, &
                           nobfr,obfreq,obper,obnfact,obamp_qpt,obph_qpt,obeq,obdepth_qpt, &
                           nfbfr,fbfreq,fbper,fbnfact,fbamp_qpt,fbph_qpt,fbeq, &
                           ged2led,ged2el,gel2ael,ged, &
                           pressa,recipHa, & 
-                          Hi,He,Qxi,Qxe,Qyi,Qye, &
+                          Hi,He,Zi,Ze,Qxi,Qxe,Qyi,Qye, &
                           xmi,xme,ymi,yme,xymi,xyme, &
-                          Hfi,Hfe,Qxfi,Qxfe,Qyfi,Qyfe, &
+                          Hfi,Hfe,Zfi,Zfe,Qxfi,Qxfe,Qyfi,Qyfe, &
                           const,inx,iny,icfac,detJe_in,detJe_ex,detJe, &
                           nx_pt,ny_pt,Spe, &
-                          Hhatv,Qxhatv,Qyhatv, &
-                          MirhsH,MirhsQx,MirhsQy
+                          Hhatv,Zhatv,Qxhatv,Qyhatv, &
+                          MirhsH,MirhsZ,MirhsQx,MirhsQy
                           
 #ifdef CMPI                          
       USE messenger2, ONLY: message_recieve,message_send, &
@@ -43,21 +44,23 @@
                    
       IMPLICIT NONE
       INTEGER :: i,j,et,m,ete
-      REAL(pres) :: sp
+      REAL(pres) :: sp,hb
 
 !     ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !     c Area Integrals
 !     ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc  
 
 !!DIR$ VECTOR ALIGNED
-      rhsH(:,:) = 0d0
+!       rhsH(:,:) = 0d0
+      rhsZ(:,:) = 0d0
 !!DIR$ VECTOR ALIGNED
       rhsQx(:,:) = 0d0
 !!DIR$ VECTOR ALIGNED
       rhsQy(:,:) = 0d0   
       
 !!DIR$ VECTOR ALIGNED
-      MirhsH(:,:) = 0d0
+!       MirhsH(:,:) = 0d0
+      MirhsZ(:,:) = 0d0
 !!DIR$ VECTOR ALIGNED
       MirhsQx(:,:) = 0d0
 !!DIR$ VECTOR ALIGNED
@@ -66,17 +69,17 @@
       
 !$OMP parallel default(none)  &
 !$OMP             private(ind,blk,pt,dof,el,et,ete,l,m,ed,ged,led_in,gp_in,el_in, &
-!$OMP                     nx,ny,tx,ty,nx2,ny2,nxny,sp,H_in,H_ex,Qx_in,Qx_ex,Qy_in,Qy_ex, &
+!$OMP                     nx,ny,tx,ty,nx2,ny2,nxny,sp,hb,H_in,H_ex,Z_in,Z_ex,Qx_in,Qx_ex,Qy_in,Qy_ex, &
 !$OMP                     press,recipH,xmom_in,xmom_ex,ymom_in,ymom_ex,xymom_in,xymom_ex, &
-!$OMP                     Hhat,Qxhat,Qyhat, &
+!$OMP                     Hhat,Zhat,Qxhat,Qyhat, &
 !$OMP                     Qn,Qt,arg,bfr) &
-!$OMP             shared(nqpta,nqpte,ndof,nverts,H,Qx,Qy,Hqpt,Qxqpt,Qyqpt, & 
+!$OMP             shared(nqpta,nqpte,ndof,nverts,H,Z,Qx,Qy,Hqpt,Qxqpt,Qyqpt, & 
 !$OMP                    phia,phie,recipHa,xmom,ymom,xymom,tau,src_x,src_y, &
 !$OMP                    dhbdx,dhbdy,cf,phia_int,phie_int,dpdx,dpdy,mmi, &
-!$OMP                    MirhsH, MirhsQx,MirhsQy,rhsH,rhsQx,rhsQy, &
-!$OMP                    const,Qxi,Qxe,Qyi,Qye,Hi,He,xmi,xme,ymi,yme,xymi,xyme, &
-!$OMP                    Hhatv,Qxhatv,Qyhatv,Hfi,Hfe,Qxfi,Qxfe,Qyfi,Qyfe, &
-!$OMP                    Hflux,Qxflux,Qyflux,inx,iny,icfac,detJe_in,detJe_ex, &
+!$OMP                    MirhsH,MirhsZ,MirhsQx,MirhsQy,rhsH,rhsQx,rhsQy, &
+!$OMP                    const,Qxi,Qxe,Qyi,Qye,Hi,He,Zi,Ze,xmi,xme,ymi,yme,xymi,xyme, &
+!$OMP                    Hhatv,Zhatv,Qxhatv,Qyhatv,Hfi,Hfe,Zfi,Zfe,Qxfi,Qxfe,Qyfi,Qyfe, &
+!$OMP                    Hflux,Zflux,Qxflux,Qyflux,inx,iny,icfac,detJe_in,detJe_ex, &
 !$OMP                    nnfbed,nfbedn,nfbed,fbedn,nobed,obedn, &
 !$OMP                    nfbfr,fbfreq,fbper,fbeq,fbamp_qpt,fbnfact,fbph_qpt, &
 !$OMP                    nobfr,obfreq,obper,obeq,obamp_qpt,obnfact,obph_qpt,obdepth_qpt, &
@@ -102,7 +105,8 @@ a_points:   DO pt = 1,nqpta(et)
 
 !!DIR$ VECTOR ALIGNED
               DO el = elblk(1,blk,et),elblk(2,blk,et)  ! First basis function is 1
-                Hqpt(el,1)  = H(el,1)
+!                 Hqpt(el,1)  = H(el,1)
+                Zqpt(el,1)  = Z(el,1)
                 Qxqpt(el,1) = Qx(el,1)
                 Qyqpt(el,1) = Qy(el,1)
               ENDDO
@@ -111,7 +115,8 @@ a_points:   DO pt = 1,nqpta(et)
 !!DIR$ VECTOR ALIGNED
 ! ! DIR$ SIMD
                 DO el = elblk(1,blk,et),elblk(2,blk,et)   ! Evaluate solution at area quadrature point
-                  Hqpt(el,1)  = Hqpt(el,1)  + H(el,dof)*phia(dof,pt,et)
+!                   Hqpt(el,1)  = Hqpt(el,1)  + H(el,dof)*phia(dof,pt,et)
+                  Zqpt(el,1)  = Zqpt(el,1)  + Z(el,dof)*phia(dof,pt,et)
                   Qxqpt(el,1) = Qxqpt(el,1) + Qx(el,dof)*phia(dof,pt,et) 
                   Qyqpt(el,1) = Qyqpt(el,1) + Qy(el,dof)*phia(dof,pt,et)
                 ENDDO
@@ -120,10 +125,15 @@ a_points:   DO pt = 1,nqpta(et)
 !!DIR$ VECTOR ALIGNED
 ! !DIR$ SIMD
               DO el = elblk(1,blk,et),elblk(2,blk,et)   ! Compute momentum terms
+                Hqpt(el,1) = Zqpt(el,1) + hbqpta(el,pt)
+                
                 recipHa(el) = 1d0/Hqpt(el,1)
 
-                xmom(el,1) = pt5g*Hqpt(el,1)*Hqpt(el,1) + Qxqpt(el,1)*Qxqpt(el,1)*recipHa(el)
-                ymom(el,1) = pt5g*Hqpt(el,1)*Hqpt(el,1) + Qyqpt(el,1)*Qyqpt(el,1)*recipHa(el) 
+!                 xmom(el,1) = pt5g*Hqpt(el,1)*Hqpt(el,1) + Qxqpt(el,1)*Qxqpt(el,1)*recipHa(el)
+!                 ymom(el,1) = pt5g*Hqpt(el,1)*Hqpt(el,1) + Qyqpt(el,1)*Qyqpt(el,1)*recipHa(el) 
+
+                xmom(el,1) = pt5g*(Hqpt(el,1)*Hqpt(el,1)-hbqpta(el,pt)*hbqpta(el,pt)) + Qxqpt(el,1)*Qxqpt(el,1)*recipHa(el)
+                ymom(el,1) = pt5g*(Hqpt(el,1)*Hqpt(el,1)-hbqpta(el,pt)*hbqpta(el,pt)) + Qyqpt(el,1)*Qyqpt(el,1)*recipHa(el) 
                 xymom(el,1) = Qxqpt(el,1)*Qyqpt(el,1)*recipHa(el)
               ENDDO 
 
@@ -131,8 +141,11 @@ a_points:   DO pt = 1,nqpta(et)
 ! !DIR$ SIMD
               DO el =  elblk(1,blk,et),elblk(2,blk,et)   ! Compute source terms
                 tau(el) = cf*sqrt((Qxqpt(el,1)*recipHa(el))**2 + (Qyqpt(el,1)*recipHa(el))**2)*recipHa(el)
-                src_x(el) = g*Hqpt(el,1)*dhbdx(el,pt) - tau(el)*Qxqpt(el,1) 
-                src_y(el) = g*Hqpt(el,1)*dhbdy(el,pt) - tau(el)*Qyqpt(el,1)
+!                 src_x(el) = g*Hqpt(el,1)*dhbdx(el,pt) - tau(el)*Qxqpt(el,1) 
+!                 src_y(el) = g*Hqpt(el,1)*dhbdy(el,pt) - tau(el)*Qyqpt(el,1)
+
+                src_x(el) = g*Zqpt(el,1)*dhbdx(el,pt) - tau(el)*Qxqpt(el,1) 
+                src_y(el) = g*Zqpt(el,1)*dhbdy(el,pt) - tau(el)*Qyqpt(el,1)
               ENDDO
 
 !!DIR$ VECTOR ALIGNED
@@ -147,7 +160,9 @@ a_points:   DO pt = 1,nqpta(et)
 !!DIR$ VECTOR ALIGNED          
 ! !DIR$ SIMD
                 DO el = elblk(1,blk,et),elblk(2,blk,et)
-                  rhsH(el,l)  = rhsH(el,l)  + Qxqpt(el,1)*dpdx(el,ind) + Qyqpt(el,1)*dpdy(el,ind)
+!                   rhsH(el,l)  = rhsH(el,l)  + Qxqpt(el,1)*dpdx(el,ind) + Qyqpt(el,1)*dpdy(el,ind)
+
+                  rhsZ(el,l)  = rhsZ(el,l)  + Qxqpt(el,1)*dpdx(el,ind) + Qyqpt(el,1)*dpdy(el,ind)
 
                   rhsQx(el,l) = rhsQx(el,l) + xmom(el,1)*dpdx(el,ind)  + xymom(el,1)*dpdy(el,ind) + src_x(el)*phia_int(el,ind)           
                   rhsQy(el,l) = rhsQy(el,l) + xymom(el,1)*dpdx(el,ind) + ymom(el,1)*dpdy(el,ind)  + src_y(el)*phia_int(el,ind)
@@ -158,8 +173,9 @@ a_points:   DO pt = 1,nqpta(et)
             
           ENDIF
         ENDDO
-      ENDDO       
-
+      ENDDO      
+      
+      
 !$OMP end do 
       
 !     ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
@@ -197,7 +213,8 @@ ed_points: DO pt = 1,nverts(et)*nqpte(ete)
 
 !!DIR$ VECTOR ALIGNED               
               DO el = elblk(1,blk,et),elblk(2,blk,et)
-                Hqpt(el,pt) = H(el,1)
+!                 Hqpt(el,pt) = H(el,1)
+                Zqpt(el,pt)  = Z(el,1)
                 Qxqpt(el,pt) = Qx(el,1)
                 Qyqpt(el,pt) = Qy(el,1)
               ENDDO
@@ -205,7 +222,8 @@ ed_points: DO pt = 1,nverts(et)*nqpte(ete)
     ed_basis: DO dof = 2,ndof(et)
 !!DIR$ VECTOR ALIGNED
                 DO el = elblk(1,blk,et),elblk(2,blk,et)   ! Compute solutions at edge quadrature points                
-                  Hqpt(el,pt) = Hqpt(el,pt) + H(el,dof)*phie(dof,pt,ete)            
+!                   Hqpt(el,pt) = Hqpt(el,pt) + H(el,dof)*phie(dof,pt,ete)   
+                  Zqpt(el,pt)  = Zqpt(el,pt)  + Z(el,dof)*phie(dof,pt,ete)                  
                   Qxqpt(el,pt) = Qxqpt(el,pt) + Qx(el,dof)*phie(dof,pt,ete)            
                   Qyqpt(el,pt) = Qyqpt(el,pt) + Qy(el,dof)*phie(dof,pt,ete)            
                 ENDDO
@@ -213,11 +231,14 @@ ed_points: DO pt = 1,nverts(et)*nqpte(ete)
               ENDDO ed_basis
 
 !!DIR$ VECTOR ALIGNED
-              DO el = elblk(1,blk,et),elblk(2,blk,et)  ! Compute momentum terms       
+              DO el = elblk(1,blk,et),elblk(2,blk,et)  ! Compute momentum terms  
+                Hqpt(el,pt) = Zqpt(el,pt) + hbqpte(el,pt)
                 recipHa(el) = 1d0/Hqpt(el,pt)
                 
-                xmom(el,pt) = pt5g*Hqpt(el,pt)*Hqpt(el,pt) + Qxqpt(el,pt)*Qxqpt(el,pt)*recipHa(el) 
-                ymom(el,pt) = pt5g*Hqpt(el,pt)*Hqpt(el,pt) + Qyqpt(el,pt)*Qyqpt(el,pt)*recipHa(el) 
+!                 xmom(el,pt) = pt5g*Hqpt(el,pt)*Hqpt(el,pt) + Qxqpt(el,pt)*Qxqpt(el,pt)*recipHa(el) 
+!                 ymom(el,pt) = pt5g*Hqpt(el,pt)*Hqpt(el,pt) + Qyqpt(el,pt)*Qyqpt(el,pt)*recipHa(el) 
+                xmom(el,pt) = pt5g*(Hqpt(el,pt)*Hqpt(el,pt) - hbqpte(el,pt)*hbqpte(el,pt))+ Qxqpt(el,pt)*Qxqpt(el,pt)*recipHa(el) 
+                ymom(el,pt) = pt5g*(Hqpt(el,pt)*Hqpt(el,pt) - hbqpte(el,pt)*hbqpte(el,pt))+ Qyqpt(el,pt)*Qyqpt(el,pt)*recipHa(el) 
                 xymom(el,pt) = Qxqpt(el,pt)*Qyqpt(el,pt)*recipHa(el)
               ENDDO
 
@@ -232,7 +253,8 @@ ed_points: DO pt = 1,nverts(et)*nqpte(ete)
        ! Send will overlap with internal edge numerical flux calculations
        
        CALL message_send()
-#endif           
+#endif     
+   
                   
         
 ed_points2: DO pt = 1,nqpte(1) ! Compute numerical fluxes for all edges
@@ -248,8 +270,10 @@ ed_points2: DO pt = 1,nqpte(1) ! Compute numerical fluxes for all edges
 !DIR$ IVDEP
 !!DIR$ VECTOR ALIGNED
               DO ed = nfblk(1,blk),nfblk(2,blk)            
-                Hhatv(ed) = .5d0*(inx(ed,pt)*(Qxi(ed,pt)%ptr + Qxe(ed,pt)%ptr) + iny(ed,pt)*(Qyi(ed,pt)%ptr + Qye(ed,pt)%ptr) &
-                                        - const(ed)*(He(ed,pt)%ptr - Hi(ed,pt)%ptr))                                      
+!                 Hhatv(ed) = .5d0*(inx(ed,pt)*(Qxi(ed,pt)%ptr + Qxe(ed,pt)%ptr) + iny(ed,pt)*(Qyi(ed,pt)%ptr + Qye(ed,pt)%ptr) &
+!                                         - const(ed)*(He(ed,pt)%ptr - Hi(ed,pt)%ptr))        
+                Zhatv(ed) = .5d0*(inx(ed,pt)*(Qxi(ed,pt)%ptr + Qxe(ed,pt)%ptr) + iny(ed,pt)*(Qyi(ed,pt)%ptr + Qye(ed,pt)%ptr) &
+                                        - const(ed)*(Ze(ed,pt)%ptr - Zi(ed,pt)%ptr))           
               ENDDO
               
 !DIR$ IVDEP
@@ -267,8 +291,10 @@ ed_points2: DO pt = 1,nqpte(1) ! Compute numerical fluxes for all edges
               ENDDO
 !DIR$ IVDEP              
               DO ed = nfblk(1,blk),nfblk(2,blk) 
-                Hfe(ed,pt)%ptr = -detJe_ex(ed,pt)*Hhatv(ed)
-                Hfi(ed,pt)%ptr =  detJe_in(ed,pt)*Hhatv(ed)
+!                 Hfe(ed,pt)%ptr = -detJe_ex(ed,pt)*Hhatv(ed)
+!                 Hfi(ed,pt)%ptr =  detJe_in(ed,pt)*Hhatv(ed)
+                Zfe(ed,pt)%ptr = -detJe_ex(ed,pt)*Zhatv(ed)
+                Zfi(ed,pt)%ptr =  detJe_in(ed,pt)*Zhatv(ed)                
               ENDDO          
 !DIR$ IVDEP              
               DO ed = nfblk(1,blk),nfblk(2,blk)                              
@@ -282,7 +308,7 @@ ed_points2: DO pt = 1,nqpte(1) ! Compute numerical fluxes for all edges
               ENDDO               
 
         ENDDO ed_points2      
-      ENDDO        
+      ENDDO              
    
 !$OMP end do 
             
@@ -298,8 +324,10 @@ ed_points2: DO pt = 1,nqpte(1) ! Compute numerical fluxes for all edges
 !DIR$ IVDEP
 !!DIR$ VECTOR ALIGNED
               DO ed = rnfblk(1,blk),rnfblk(2,blk)
-                Hhatv(ed) = .5d0*(inx(ed,pt)*(Qxi(ed,pt)%ptr + Qxe(ed,pt)%ptr) + iny(ed,pt)*(Qyi(ed,pt)%ptr + Qye(ed,pt)%ptr) &
-                                        - const(ed)*(He(ed,pt)%ptr - Hi(ed,pt)%ptr))                                      
+!                 Hhatv(ed) = .5d0*(inx(ed,pt)*(Qxi(ed,pt)%ptr + Qxe(ed,pt)%ptr) + iny(ed,pt)*(Qyi(ed,pt)%ptr + Qye(ed,pt)%ptr) &
+!                                         - const(ed)*(He(ed,pt)%ptr - Hi(ed,pt)%ptr))
+                Zhatv(ed) = .5d0*(inx(ed,pt)*(Qxi(ed,pt)%ptr + Qxe(ed,pt)%ptr) + iny(ed,pt)*(Qyi(ed,pt)%ptr + Qye(ed,pt)%ptr) &
+                                        - const(ed)*(Ze(ed,pt)%ptr - Zi(ed,pt)%ptr))           
               ENDDO                                        
      
 !DIR$ IVDEP
@@ -318,8 +346,10 @@ ed_points2: DO pt = 1,nqpte(1) ! Compute numerical fluxes for all edges
 
 !DIR$ IVDEP              
               DO ed = rnfblk(1,blk),rnfblk(2,blk)                                     
-                Hfe(ed,pt)%ptr = -detJe_ex(ed,pt)*Hhatv(ed)
-                Hfi(ed,pt)%ptr =  detJe_in(ed,pt)*Hhatv(ed)               
+!                 Hfe(ed,pt)%ptr = -detJe_ex(ed,pt)*Hhatv(ed)
+!                 Hfi(ed,pt)%ptr =  detJe_in(ed,pt)*Hhatv(ed)   
+                Zfe(ed,pt)%ptr = -detJe_ex(ed,pt)*Zhatv(ed)
+                Zfi(ed,pt)%ptr =  detJe_in(ed,pt)*Zhatv(ed)                 
               ENDDO   
 !DIR$ IVDEP                              
               DO ed = rnfblk(1,blk),rnfblk(2,blk)                                          
@@ -396,6 +426,7 @@ ed_points2: DO pt = 1,nqpte(1) ! Compute numerical fluxes for all edges
 
 
 
+
         IF (nqpte(3) == nqpte(1)) THEN
 !$OMP do     
             ! No normal flow boundary condition 
@@ -412,13 +443,15 @@ ed_points2: DO pt = 1,nqpte(1) ! Compute numerical fluxes for all edges
               nx = nx_pt(ged,pt)
               ny = ny_pt(ged,pt)
               sp = Spe(ged,pt)
+              
+              hb = hbqpte(el_in,gp_in)              
 
               nx2 = nx*nx
               ny2 = ny*ny
               nxny = nx*ny
 
-              H_in = Hqpt(el_in,gp_in)
-              H_ex = H_in
+              Z_in = Zqpt(el_in,gp_in)
+              Z_ex = Z_in              
 
               Qx_in = Qxqpt(el_in,gp_in)
               Qy_in = Qyqpt(el_in,gp_in)
@@ -426,9 +459,10 @@ ed_points2: DO pt = 1,nqpte(1) ! Compute numerical fluxes for all edges
               Qx_ex = Qx_in*(ny2-nx2) - 2d0*nxny*Qy_in
               Qy_ex = Qy_in*(nx2-ny2) - 2d0*nxny*Qx_in
 
-              CALL numerical_flux(Qx_in,Qy_in,H_in,Qx_ex,Qy_ex,H_ex,nx,ny,sp,Qxhat,Qyhat,Hhat)
+              CALL numerical_flux(Qx_in,Qy_in,Z_in,Qx_ex,Qy_ex,Z_ex,hb,nx,ny,sp,Qxhat,Qyhat,Zhat)
 
-              Hflux(el_in,gp_in) = detJe(ged,pt)*Hhat
+!               Hflux(el_in,gp_in) = detJe(ged,pt)*Hhat
+              Zflux(el_in,gp_in) = detJe(ged,pt)*Zhat
 
               Qxflux(el_in,gp_in) = detJe(ged,pt)*Qxhat
 
@@ -453,33 +487,35 @@ ed_points2: DO pt = 1,nqpte(1) ! Compute numerical fluxes for all edges
 
                 nx = nx_pt(ged,pt)
                 ny = ny_pt(ged,pt)
-                sp = Spe(ged,pt)                
+                sp = Spe(ged,pt) 
+                
+                hb = hbqpte(el_in,gp_in)                
 
                 nx2 = nx*nx
                 ny2 = ny*ny
                 nxny = nx*ny
 
-                H_in = H(el_in,1)
+                Z_in = Z(el_in,1)
                 Qx_in = Qx(el_in,1)
                 Qy_in = Qy(el_in,1)
                 DO dof = 2,ndof(et)
-                  H_in  = H_in  + H(el_in,dof)*phie(dof,gp_in,et)
+                  Z_in  = Z_in  + Z(el_in,dof)*phie(dof,gp_in,et)
                   Qx_in = Qx_in + Qx(el_in,dof)*phie(dof,gp_in,et)
                   Qy_in = Qy_in + Qy(el_in,dof)*phie(dof,gp_in,et)
                 ENDDO            
               
-                H_ex = H_in
+                Z_ex = Z_in
                 Qx_ex = Qx_in*(ny2-nx2) - 2d0*nxny*Qy_in
                 Qy_ex = Qy_in*(nx2-ny2) - 2d0*nxny*Qx_in
 
-                CALL numerical_flux(Qx_in,Qy_in,H_in,Qx_ex,Qy_ex,H_ex,nx,ny,sp,Qxhat,Qyhat,Hhat)
-              
-                Hhat  = detJe(ged,pt)*Hhat              
+                CALL numerical_flux(Qx_in,Qy_in,Z_in,Qx_ex,Qy_ex,Z_ex,hb,nx,ny,sp,Qxhat,Qyhat,Zhat)
+           
+                Zhat  = detJe(ged,pt)*Zhat              
                 Qxhat = detJe(ged,pt)*Qxhat
                 Qyhat = detJe(ged,pt)*Qyhat
               
                 DO l = 1,ndof(et)
-                  rhsH(el_in,l)  = rhsH(el_in,l)  - Hhat*phie_int(l,gp_in,et)
+                  rhsZ(el_in,l)  = rhsZ(el_in,l)  - Zhat*phie_int(l,gp_in,et)
                   rhsQx(el_in,l) = rhsQx(el_in,l) - Qxhat*phie_int(l,gp_in,et)
                   rhsQy(el_in,l) = rhsQy(el_in,l) - Qyhat*phie_int(l,gp_in,et)                   
                 ENDDO  
@@ -505,19 +541,21 @@ ed_points2: DO pt = 1,nqpte(1) ! Compute numerical fluxes for all edges
        
               nx = nx_pt(ged,pt)
               ny = ny_pt(ged,pt)
-              sp = Spe(ged,pt)               
+              sp = Spe(ged,pt)      
+              
+              hb = hbqpte(el_in,gp_in)              
 
               tx = -ny
               ty = nx
 
-              H_in = Hqpt(el_in,gp_in)
-              H_ex = H_in
+              Z_in = Zqpt(el_in,gp_in)
+              Z_ex = Z_in
 
               Qx_in = Qxqpt(el_in,gp_in)
               Qy_in = Qyqpt(el_in,gp_in)
 
               Qn = 0d0
-              Qt= 0d0
+              Qt = 0d0
               DO bfr = 1,nfbfr
                 ind = (pt-1)*nfbfr + bfr
                 arg = fbfreq(bfr)*(tstage - INT(tstage/fbper(bfr))*fbper(bfr)) + fbeq(bfr)
@@ -529,9 +567,9 @@ ed_points2: DO pt = 1,nqpte(1) ! Compute numerical fluxes for all edges
               Qx_ex = ( ty*Qn - ny*Qt)/(nx*ty-ny*tx)
               Qy_ex = (-tx*Qn + nx*Qt)/(nx*ty-ny*tx)
  
-              CALL numerical_flux(Qx_in,Qy_in,H_in,Qx_ex,Qy_ex,H_ex,nx,ny,sp,Qxhat,Qyhat,Hhat)
+              CALL numerical_flux(Qx_in,Qy_in,Z_in,Qx_ex,Qy_ex,Z_ex,hb,nx,ny,sp,Qxhat,Qyhat,Zhat)
 
-              Hflux(el_in,gp_in) = detJe(ged,pt)*Hhat
+              Zflux(el_in,gp_in) = detJe(ged,pt)*Zhat
               
               Qxflux(el_in,gp_in) = detJe(ged,pt)*Qxhat
 
@@ -557,17 +595,19 @@ ed_points2: DO pt = 1,nqpte(1) ! Compute numerical fluxes for all edges
 
               nx = nx_pt(ged,pt)
               ny = ny_pt(ged,pt)
-              sp = Spe(ged,pt)              
+              sp = Spe(ged,pt)
+              
+              hb = hbqpte(el_in,gp_in)              
 
-              H_in = Hqpt(el_in,gp_in)
+              Z_in = Zqpt(el_in,gp_in)
 
-              H_ex = 0d0
+              Z_ex = 0d0
               DO bfr = 1,nobfr
                 ind = (pt-1)*nobfr + bfr
                 arg = obfreq(bfr)*(tstage-INT(tstage/obper(bfr))*obper(bfr)) + obeq(bfr)
-                H_ex = H_ex + obamp_qpt(ind,ed)*obnfact(bfr)*ramp*COS(arg-obph_qpt(ind,ed))
+                Z_ex = Z_ex + obamp_qpt(ind,ed)*obnfact(bfr)*ramp*COS(arg-obph_qpt(ind,ed))
               ENDDO
-              H_ex = H_ex + obdepth_qpt(ed,pt)
+!               H_ex = H_ex + obdepth_qpt(ed,pt)
 
               Qx_in = Qxqpt(el_in,gp_in)
               Qy_in = Qyqpt(el_in,gp_in)
@@ -575,9 +615,9 @@ ed_points2: DO pt = 1,nqpte(1) ! Compute numerical fluxes for all edges
               Qx_ex = Qx_in
               Qy_ex = Qy_in
  
-              CALL numerical_flux(Qx_in,Qy_in,H_in,Qx_ex,Qy_ex,H_ex,nx,ny,sp,Qxhat,Qyhat,Hhat)
+              CALL numerical_flux(Qx_in,Qy_in,Z_in,Qx_ex,Qy_ex,Z_ex,hb,nx,ny,sp,Qxhat,Qyhat,Zhat)
 
-              Hflux(el_in,gp_in) = detJe(ged,pt)*Hhat
+              Zflux(el_in,gp_in) = detJe(ged,pt)*Zhat
 
               Qxflux(el_in,gp_in) = detJe(ged,pt)*Qxhat
 
@@ -608,7 +648,7 @@ ed_points2: DO pt = 1,nqpte(1) ! Compute numerical fluxes for all edges
               DO l = 1,ndof(et)
 !!DIR$ VECTOR ALIGNED
                 DO el = elblk(1,blk,et),elblk(2,blk,et)
-                  rhsH(el,l)  = rhsH(el,l)  - Hflux(el,pt)*phie_int(l,pt,ete)
+                  rhsZ(el,l)  = rhsZ(el,l)  - Zflux(el,pt)*phie_int(l,pt,ete)
                   rhsQx(el,l) = rhsQx(el,l) - Qxflux(el,pt)*phie_int(l,pt,ete)
                   rhsQy(el,l) = rhsQy(el,l) - Qyflux(el,pt)*phie_int(l,pt,ete)                   
                 ENDDO
@@ -620,7 +660,7 @@ ed_points2: DO pt = 1,nqpte(1) ! Compute numerical fluxes for all edges
               CASE(1)
                 DO l = 1,ndof(et)
                   DO el = elblk(1,blk,et),elblk(2,blk,et)
-                    MirhsH(el,l)  = MirhsH(el,l)  + mmi(el,1)*rhsH(el,l) 
+                    MirhsZ(el,l)  = MirhsZ(el,l)  + mmi(el,1)*rhsZ(el,l) 
                     MirhsQx(el,l) = MirhsQx(el,l) + mmi(el,1)*rhsQx(el,l) 
                     MirhsQy(el,l) = MirhsQy(el,l) + mmi(el,1)*rhsQy(el,l) 
                   ENDDO
@@ -632,7 +672,7 @@ ed_points2: DO pt = 1,nqpte(1) ! Compute numerical fluxes for all edges
                 DO i = 1,ndof(et)
                   DO j = 1,ndof(et)
                     DO el = elblk(1,blk,et),elblk(2,blk,et)
-                      MirhsH(el,i)  = MirhsH(el,i)  + mmi(el,m)*rhsH(el,j) 
+                      MirhsZ(el,i)  = MirhsZ(el,i)  + mmi(el,m)*rhsZ(el,j) 
                       MirhsQx(el,i) = MirhsQx(el,i) + mmi(el,m)*rhsQx(el,j) 
                       MirhsQy(el,i) = MirhsQy(el,i) + mmi(el,m)*rhsQy(el,j) 
                     ENDDO

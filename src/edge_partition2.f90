@@ -127,18 +127,19 @@
       
       SUBROUTINE decomp2()
       
-      USE globals, ONLY: nn,ne,ndof,mndof,nqpta,mnqpta,part,npart,nel_type,el_type,nelnds, &
+      USE globals, ONLY: nn,ne,ndof,mndof,nqpta,mnqpta,mnqpte,part,npart,nel_type,el_type,nelnds, &
                          ged2el,&
                          npartel,nparted,npartet, &
                          gel2part,gel2lel,lel2gel, &
                          ael2gel,gel2ael, &
                          nied,iedn, &
-                         H,Qx,Qy,Hinit,Qxinit,Qyinit, &
+                         H,Z,Qx,Qy,Hinit,Zinit,Qxinit,Qyinit, &
                          dpdx,dpdy,dpdx_init,dpdy_init, &
                          dhbdx,dhbdy,dhbdx_init,dhbdy_init, &
+                         hbqpta,hbqpta_init,hbqpte,hbqpte_init, &
                          phia_int,phia_int_init, &
                          mmi,mmi_init, &
-                         Hwrite,Qxwrite,Qywrite, &
+                         Hwrite,Zwrite,Qxwrite,Qywrite, &
                          nblk,elblk,edblk,nfblk,nrblk,rnfblk, &
                          mnpartel,mnparted   
                          
@@ -185,8 +186,12 @@
           elcnt = elcnt + 1
         
           H(elcnt,1:mndof) = Hinit(lel2gel(el,pe),1:mndof)
+          Z(elcnt,1:mndof) = Zinit(lel2gel(el,pe),1:mndof)
           Qx(elcnt,1:mndof) = Qxinit(lel2gel(el,pe),1:mndof)
           Qy(elcnt,1:mndof) = Qyinit(lel2gel(el,pe),1:mndof)  
+          
+          hbqpta(elcnt,1:mnqpta) = hbqpta_init(lel2gel(el,pe),1:mnqpta)
+          hbqpte(elcnt,1:4*mnqpte) = hbqpte_init(lel2gel(el,pe),1:4*mnqpte)
           
           dpdx(elcnt,1:mndof*mnqpta) = dpdx_init(lel2gel(el,pe),1:mndof*mnqpta)
           dpdy(elcnt,1:mndof*mnqpta) = dpdy_init(lel2gel(el,pe),1:mndof*mnqpta)
@@ -211,6 +216,7 @@
       DO el = 1,ne
         DO dof = 1,mndof
           Hwrite(el,dof)%ptr => H(gel2ael(el),dof)
+          Zwrite(el,dof)%ptr => Z(gel2ael(el),dof)
           Qxwrite(el,dof)%ptr => Qx(gel2ael(el),dof)
           Qywrite(el,dof)%ptr => Qy(gel2ael(el),dof)
         ENDDO
@@ -389,12 +395,12 @@
       SUBROUTINE point_to_el(ed,ged,el_in,el_ex)
       
       USE globals, ONLY: nqpte,ged2led,gel2ael,gel2part, &
-                         Hqpt,Qxqpt,Qyqpt, &
+                         Hqpt,Zqpt,Qxqpt,Qyqpt, &
                          xmom,ymom,xymom, &
-                         Hflux,Qxflux,Qyflux, &
-                         Hi,He,Qxi,Qxe,Qyi,Qye, &
+                         Hflux,Zflux,Qxflux,Qyflux, &
+                         Hi,He,Zi,Ze,Qxi,Qxe,Qyi,Qye, &
                          xmi,xme,ymi,yme,xymi,xyme, &
-                         Hfi,Hfe,Qxfi,Qxfe,Qyfi,Qyfe, &
+                         Hfi,Hfe,Zfi,Zfe,Qxfi,Qxfe,Qyfi,Qyfe, &
                          nx_pt,ny_pt,detJe,Spe,cfac, &
                          inx,iny,detJe_in,detJe_ex,icfac
                       
@@ -424,6 +430,9 @@
 
         Hi(ed,pt)%ptr => Hqpt(ael_in,gp_in)
         He(ed,pt)%ptr => Hqpt(ael_ex,gp_ex)
+        
+        Zi(ed,pt)%ptr => Zqpt(ael_in,gp_in)
+        Ze(ed,pt)%ptr => Zqpt(ael_ex,gp_ex)        
 
         Qxi(ed,pt)%ptr => Qxqpt(ael_in,gp_in)
         Qxe(ed,pt)%ptr => Qxqpt(ael_ex,gp_ex)
@@ -442,6 +451,9 @@
 
         Hfi(ed,pt)%ptr => Hflux(ael_in,gp_in)
         Hfe(ed,pt)%ptr => Hflux(ael_ex,gp_ex)
+        
+        Zfi(ed,pt)%ptr => Zflux(ael_in,gp_in)
+        Zfe(ed,pt)%ptr => Zflux(ael_ex,gp_ex)        
 
         Qxfi(ed,pt)%ptr => Qxflux(ael_in,gp_in)
         Qxfe(ed,pt)%ptr => Qxflux(ael_ex,gp_ex)

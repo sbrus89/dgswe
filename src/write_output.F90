@@ -1,6 +1,6 @@
       SUBROUTINE write_output()
       
-      USE globals, ONLY: t,Hwrite,Qxwrite,Qywrite,mndof,ne
+      USE globals, ONLY: t,Hwrite,Zwrite,Qxwrite,Qywrite,mndof,ne
       USE messenger2, ONLY: myrank
 
       IMPLICIT NONE
@@ -13,7 +13,8 @@
 
       WRITE(63,"(e24.17)") t
       DO dof = 1,mndof
-        WRITE(63,"(16000(e24.17,1x))") (Hwrite(el,dof)%ptr, el = 1,ne)
+!         WRITE(63,"(16000(e24.17,1x))") (Hwrite(el,dof)%ptr, el = 1,ne)
+        WRITE(63,"(16000(e24.17,1x))") (Zwrite(el,dof)%ptr, el = 1,ne)
       ENDDO
 
       WRITE(641,"(e24.17)") t

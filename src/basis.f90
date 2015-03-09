@@ -593,13 +593,13 @@
       
 !       open(unit=60,file=DIRNAME//'/'//'tri.d')
 
-!       print*,' '
-!       print*, 'Triangle Points'
-!       do i = 1,np
-! !         write(60,61) r(i),s(i),x(i),y(i)
-!         print 21, r(i),s(i)
-!       enddo
-!       print*, ' '
+      print*,' '
+      print*, 'Triangle Points'
+      do i = 1,np
+!         write(60,61) r(i),s(i),x(i),y(i)
+        print 21, r(i),s(i)
+      enddo
+      print*, ' '
 
  21   format(28(f10.4,1x))
  61   format(16000(e24.17,1x))      

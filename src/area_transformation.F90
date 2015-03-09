@@ -4,13 +4,13 @@
                          ndof,wpta,dpdr,dpds,phia,mmi_init, &
                          psia,dpsidr,dpsids, &
                          detJa,dpdx_init,dpdy_init,phia,phia_int_init, &
-                         depth,dhbdx_init,dhbdy_init, &
+                         hbqpta_init,hbqpte_init,dhbdx_init,dhbdy_init, &
                          nx_pt,ny_pt,Spe,cfac, &
                          coord_sys,r_earth,sphi0
 
       IMPLICIT NONE
       
-      INTEGER :: i,j,nd,el,pt,m,dof,ind,ed,led
+      INTEGER :: i,j,nd,el,pt,m,dof,ind,ed,led,edpt,el1,el2,led1,led2
       INTEGER :: np,nnds,et,nnp,nqpta,nqpte,ndf
       INTEGER :: ipiv(nnds),ipiv2(ndof(et)),work(ndof(et)),info
       INTEGER :: nvert
@@ -77,6 +77,13 @@
 
       ndf = ndof(et)
       
+      OPEN(unit=45, file='dhb.d')
+      OPEN(unit=46, file='hb.d')
+      IF (et == 3) THEN
+        WRITE(45,*) ne,16
+        WRITE(46,*) ne, 16
+      ENDIF
+      
       DO el = 1,ne
         IF (el_type(el) == et) THEN
         
@@ -131,8 +138,11 @@
             
             dhbdx_init(el,pt) = 0d0
             dhbdy_init(el,pt) = 0d0
+            hbqpta_init(el,pt) = 0d0
             DO nd = 1,nelnds(el)  ! This assumes there is an equal order representation between the bathymetry and the coordinate transformation
               hb = elhb(nd,el)
+              
+              hbqpta_init(el,pt) =  hbqpta_init(el,pt) + l(nd,pt)*hb
               
               dhbdx_init(el,pt) = dhbdx_init(el,pt) + (dldr(nd,pt)*drdx + dlds(nd,pt)*dsdx)*hb*Sp
               dhbdy_init(el,pt) = dhbdy_init(el,pt) + (dldr(nd,pt)*drdy + dlds(nd,pt)*dsdy)*hb              
@@ -144,6 +154,9 @@
               ENDDO
             ENDDO
                      
+                     
+             WRITE(45,"(4(e24.17,1x))") xpt,ypt,dhbdx_init(el,pt),dhbdy_init(el,pt)      
+             WRITE(46,"(4(e24.17,1x))") xpt,ypt,hbqpta_init(el,pt)
           ENDDO pts
           
           CALL DGETRF(ndf,ndf,mm,ndf,ipiv2,info)          
@@ -179,7 +192,49 @@
         ENDIF
       ENDDO
       
+      CLOSE(45)
+      CLOSE(46)
       
+      DO ed = 1,ned
+      
+        el1 = ged2el(1,ed)
+        led1 = ged2led(1,ed)
+        el2 = ged2el(2,ed)
+        led2 = ged2led(2,ed)        
+        
+        IF (el_type(el1) == et ) THEN
+        
+        DO i = 1,nqpte
+          pt = nqpta + (led1-1)*nqpte+i
+          edpt = (led1-1)*nqpte+i          
+          
+          hbqpte_init(el1,edpt) = 0d0          
+          DO nd = 1,nelnds(el1)                                 
+            hbqpte_init(el1,edpt) = hbqpte_init(el1,edpt) + l(nd,pt)*elhb(nd,el1)     
+          ENDDO   
+        ENDDO          
+          
+        ENDIF          
+          
+        IF (el2 /= 0) THEN    
+        IF (el_type(el2) == et) THEN
+        DO i = 1,nqpte        
+          pt = nqpta + (led2-1)*nqpte+i
+          edpt = (led2-1)*nqpte+i          
+          
+          hbqpte_init(el2,edpt) = 0d0          
+          DO nd = 1,nelnds(el2)                                 
+            hbqpte_init(el2,edpt) = hbqpte_init(el2,edpt) + l(nd,pt)*elhb(nd,el2)     
+          ENDDO           
+        ENDDO
+        ENDIF
+        ENDIF
+        
+
+        
+
+        
+      ENDDO      
 
       
       DO ed = 1,ned
@@ -191,6 +246,7 @@
         
         DO i = 1,nqpte
           pt = nqpta + (led-1)*nqpte+i
+          edpt = (led-1)*nqpte+i
           
           dxdr = 0d0
           dxds = 0d0
@@ -200,9 +256,13 @@
           xpt = 0d0
           ypt = 0d0
           
+!           hbqpte_init(el,edpt) = 0d0
+          
           DO nd = 1,nelnds(el)
             x = elxy(nd,el,1)
             y = elxy(nd,el,2)
+            
+            hb = elhb(nd,el)
           
             dxdr = dxdr + dldr(nd,pt)*x
             dxds = dxds + dlds(nd,pt)*x
@@ -211,6 +271,8 @@
             
             xpt = xpt + l(nd,pt)*x
             ypt = ypt + l(nd,pt)*y
+            
+!             hbqpte_init(el,edpt) = hbqpte_init(el,edpt) + l(nd,pt)*hb
                         
           ENDDO
           

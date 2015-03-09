@@ -12,9 +12,9 @@
 
 ../grids/converge_quad.grd                                     ! grid file  
 ../grids/converge.bfr                                     ! forcing file
-1                                                         ! p - polynomial order
+2                                                         ! p - polynomial order
 2                                                         ! ctp - parametric coordinate transformation order
-1d0                                                       ! dt - timestep 
+0.25d0                                                       ! dt - timestep 
 1d0                                                       ! tf - final time (days)
 .08d0                                                     ! dramp - ramping parameter (days)
 .0025d0                                                   ! cf - friction coefficient 

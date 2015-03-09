@@ -2,7 +2,7 @@
 
       USE globals, ONLY: dof,ndof,el,ne,nel_type,blk,npart,npartet,elblk, &
                          t,tstage,dt,pt3333,ramp,dramp, &
-                         Hold,H,MirhsH,Qxold,Qx,MirhsQx,Qyold,Qy,MirhsQy
+                         Hold,H,MirhsH,Zold,Z,MirhsZ,Qxold,Qx,MirhsQx,Qyold,Qy,MirhsQy
 
       IMPLICIT NONE
       
@@ -20,7 +20,8 @@
             DO dof = 1,ndof(et)
 !!DIR$ VECTOR ALIGNED
               DO el = elblk(1,blk,et),elblk(2,blk,et)
-                Hold(el,dof) = H(el,dof)
+!                 Hold(el,dof) = H(el,dof)
+                Zold(el,dof) = Z(el,dof)
               ENDDO
 !!DIR$ VECTOR ALIGNED
               DO el = elblk(1,blk,et),elblk(2,blk,et)
@@ -51,7 +52,8 @@
             DO dof = 1,ndof(et)
 !!DIR$ VECTOR ALIGNED
               DO el = elblk(1,blk,et),elblk(2,blk,et)
-                H(el,dof) = Hold(el,dof) + dt*MirhsH(el,dof)
+!                 H(el,dof) = Hold(el,dof) + dt*MirhsH(el,dof)
+                Z(el,dof) = Zold(el,dof) + dt*MirhsZ(el,dof)
               ENDDO
 !!DIR$ VECTOR ALIGNED
               DO el = elblk(1,blk,et),elblk(2,blk,et)
@@ -66,6 +68,9 @@
           ENDIF
         ENDDO
       ENDDO
+      
+!       PRINT*, 1
+!      CALL nan_check()      
 
 #ifdef rk22
       ! Evaluate RHS
@@ -83,7 +88,8 @@
             DO dof = 1,ndof(et)
 !!DIR$ VECTOR ALIGNED
               DO el = elblk(1,blk,et),elblk(2,blk,et)
-                H(el,dof) = .5d0*(Hold(el,dof) + H(el,dof) + dt*MirhsH(el,dof))
+!                 H(el,dof) = .5d0*(Hold(el,dof) + H(el,dof) + dt*MirhsH(el,dof))
+                Z(el,dof) = .5d0*(Zold(el,dof) + Z(el,dof) + dt*MirhsZ(el,dof))
               ENDDO
 !!DIR$ VECTOR ALIGNED
               DO el = elblk(1,blk,et),elblk(2,blk,et)
@@ -121,7 +127,8 @@
 !DIR$ IVDEP
 !!DIR$ VECTOR ALIGNED
               DO el = elblk(1,blk,et),elblk(2,blk,et)
-                H(el,dof) = .25d0*(3d0*Hold(el,dof) + H(el,dof) + dt*MirhsH(el,dof))
+!                 H(el,dof) = .25d0*(3d0*Hold(el,dof) + H(el,dof) + dt*MirhsH(el,dof))
+                Z(el,dof) = .25d0*(3d0*Zold(el,dof) + Z(el,dof) + dt*MirhsZ(el,dof))
               ENDDO
 !DIR$ IVDEP
 !!DIR$ VECTOR ALIGNED
@@ -139,7 +146,8 @@
         ENDDO
       ENDDO   
       
-      
+!       PRINT*, 2      
+!      CALL nan_check()      
 
       ! Evaluate RHS
       tstage = t + .5d0*dt
@@ -157,7 +165,8 @@
 !DIR$ IVDEP      
 !!DIR$ VECTOR ALIGNED
               DO el = elblk(1,blk,et),elblk(2,blk,et)
-                H(el,dof) = pt3333*(Hold(el,dof) + 2d0*(H(el,dof) + dt*MirhsH(el,dof)))
+!                 H(el,dof) = pt3333*(Hold(el,dof) + 2d0*(H(el,dof) + dt*MirhsH(el,dof)))
+                Z(el,dof) = pt3333*(Zold(el,dof) + 2d0*(Z(el,dof) + dt*MirhsZ(el,dof)))
               ENDDO
 !DIR$ IVDEP        
 !!DIR$ VECTOR ALIGNED
@@ -176,6 +185,7 @@
       ENDDO      
 #endif
 
+!       PRINT*, 3
      CALL nan_check()
 
       RETURN
@@ -189,7 +199,7 @@
       SUBROUTINE nan_check()
       
       USE globals, ONLY: dof,ndof,el,ne, &
-                         H,Qx,Qy, &
+                         H,Z,Qx,Qy, &
                          blk,npart,nel_type,elblk,npartet, &
                          t
       
@@ -204,7 +214,8 @@
             DO dof = 1,ndof(et)
       
               DO el = elblk(1,blk,et),elblk(2,blk,et)
-                IF (H(el,dof) /= H(el,dof)) THEN
+!                 IF (H(el,dof) /= H(el,dof)) THEN
+                IF (Z(el,dof) /= Z(el,dof)) THEN
                   PRINT*, "NaN detected in H solution"
                   PRINT("(A,e15.8)"), 't = ', t
                   CALL write_output()

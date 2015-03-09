@@ -1,8 +1,8 @@
       SUBROUTINE read_grid()
       
-      USE globals, ONLY: grid_file,ne,nn,ect,vct,xy,depth,nelnds,elxy,elhb, &
+      USE globals, ONLY: pres,grid_file,ne,nn,ect,vct,xy,depth,nelnds,elxy,elhb,hbnodes, &
                          nope,neta,obseg,obnds,nvel,nbou,fbseg,fbnds,grid_name, &
-                         el_type,ctp,mnelnds,curved_grid,nverts, &
+                         el_type,ctp,mnelnds,curved_grid,nverts,mnnds, &
                          coord_sys,r_earth,slam0,sphi0,deg2rad,h0
                          
       USE allocation, ONLY: alloc_grid_arrays     
@@ -12,8 +12,9 @@
       INTEGER :: i,j,k,el
       INTEGER :: nbseg
       INTEGER :: btype
-      INTEGER :: nvert
+      INTEGER :: nvert,nnds
       LOGICAL :: file_exists
+
 
 
       ! open fort.14 grid file
@@ -165,6 +166,29 @@
 !       PRINT*, " "
 
       CLOSE(14) 
+      
+      INQUIRE(FILE='elem_nodes.d', EXIST = file_exists)
+      IF(file_exists == .FALSE.) THEN
+        PRINT*, "high order bathymetry file does not exist"    
+      ELSE
+!         ALLOCATE(hbnodes(mnnds,el))
+        OPEN(UNIT = 14, FILE = 'elem_nodes.d')
+      
+        DO i = 1,ne
+          READ(14,*) el,nnds,(elhb(j,el), j = 1,nnds)
+        ENDDO
+      
+        CLOSE(14)
+      ENDIF      
+      
+
+      
+!       DO el = 1,ne
+!         DO j = 1,3
+!           i = (j-1)*ctp + 1
+!           elhb(i,el) = hbnodes(i,el)
+!         ENDDO
+!       ENDDO
       
       IF (myrank == 0) THEN
         PRINT "(A)", "---------------------------------------------"
