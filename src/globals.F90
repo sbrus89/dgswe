@@ -108,6 +108,8 @@
       REAL(pres) :: arg
       INTEGER :: bfr
 
+      REAL(pres), ALLOCATABLE, DIMENSION(:,:,:) :: Vand
+      INTEGER, ALLOCATABLE, DIMENSION(:,:) :: ipiv
       REAL(pres), ALLOCATABLE, DIMENSION(:,:,:) :: psia
       REAL(pres), ALLOCATABLE, DIMENSION(:,:,:) :: dpsidr,dpsids   
       REAL(pres), ALLOCATABLE, DIMENSION(:,:,:) :: psie

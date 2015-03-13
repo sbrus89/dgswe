@@ -1,81 +1,58 @@
-      SUBROUTINE area_transformation(et,np,nnds,nqpta,nqpte)
+      SUBROUTINE area_transformation(et)
 
-      USE globals, ONLY: pres,ne,ned,el_type,nelnds,xy,ect,ged2el,ged2led,elxy,elhb, &
-                         ndof,wpta,dpdr,dpds,phia,mmi_init, &
+      USE globals, ONLY: pres,ne,ned,el_type,nelnds,mnnds,xy,ect,ged2el,ged2led,elxy,elhb, &
+                         ndof,nverts,nnds,nqpta,nqpte,wpta,dpdr,dpds,phia,mmi_init, &
                          psia,dpsidr,dpsids, &
                          detJa,dpdx_init,dpdy_init,phia,phia_int_init, &
                          hbqpta_init,hbqpte_init,dhbdx_init,dhbdy_init, &
                          nx_pt,ny_pt,Spe,cfac, &
-                         coord_sys,r_earth,sphi0
+                         coord_sys,r_earth,sphi0, &
+                         Vand,ipiv
 
       IMPLICIT NONE
       
       INTEGER :: i,j,nd,el,pt,m,dof,ind,ed,led,edpt,el1,el2,led1,led2
-      INTEGER :: np,nnds,et,nnp,nqpta,nqpte,ndf
-      INTEGER :: ipiv(nnds),ipiv2(ndof(et)),work(ndof(et)),info
-      INTEGER :: nvert
-      REAL(pres) :: V(nnds,nnds)
-      REAL(pres) :: l(nnds,nqpta+4*nqpte),dldr(nnds,nqpta+4*nqpte),dlds(nnds,nqpta+4*nqpte)
-      REAL(pres) :: phi(nnds,nqpta+4*nqpte),dphidr(nnds,nqpta+4*nqpte),dphids(nnds,nqpta+4*nqpte) 
+      INTEGER :: np,nnd,et,nqa,nqe,ndf,nv
+      INTEGER, ALLOCATABLE, DIMENSION(:) :: ipiv2,work
+      INTEGER ::info
+      REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: l,dldr,dlds
       REAL(pres) :: x,y,xpt,ypt
       REAL(pres) :: dxdr,dxds,dydr,dyds
       REAL(pres) :: drdx,drdy,dsdx,dsdy,detJ
       REAL(pres) :: Sp
       REAL(pres) :: nx,ny
       REAL(pres) :: hb 
-      REAL(pres) :: mm(ndof(et),ndof(et))
+      REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: mm
       REAL(pres) :: area,x1,x2,x3,y1,y2,y3
-      
+      INTEGER :: alloc_status      
 
+      
+      
+     ndf = ndof(et)
+     nnd = nnds(et)
+     nqa = nqpta(et)
+     nqe = nqpte(et)
+     nv = nverts(et)
 
-      IF (mod(et,2) == 1) THEN
-         
-        CALL tri_trans(et,np,nnds,nqpta,nqpte,V,phi,dphidr,dphids)
-        nvert = 3
-  
-      ELSE IF (mod(et,2) == 0) THEN
+     ALLOCATE(ipiv2(ndf),work(ndf*ndf)) 
+     ALLOCATE(mm(ndf,ndf)) 
+     ALLOCATE(l(nnd,nqa+nv*nqe),dldr(nnd,nqa+nv*nqe),dlds(nnd,nqa+nv*nqe))
+
       
-        CALL quad_trans(et,np,nnds,nqpta,nqpte,V,phi,dphidr,dphids)
-        nvert = 4
-            
-      ENDIF
+      l = 0d0
+      dldr = 0d0
+      dlds = 0d0     
       
-!       PRINT*, " "
-!       PRINT*, "Vandermonde matrix: "
-!       DO i = 1,nnds
-!           PRINT("(20(F20.15))"), (V(i,j), j = 1,nnds)
-!       ENDDO
-!       PRINT*, " "
-!       PRINT*, "RHS matrix: "      
-!       DO i = 1,nnds
-!         PRINT("(20(F15.5))"), (phi(i,j), j = 1,nqpta+nvert*nqpte)
-!       ENDDO
-      
-      
-      DO pt = 1,nqpta+nvert*nqpte
-        DO m = 1,nnds
-          l(m,pt) = phi(m,pt)
-          dldr(m,pt) = dphidr(m,pt)
-          dlds(m,pt) = dphids(m,pt)
+      DO pt = 1,nqa+nv*nqe
+        DO m = 1,nnd
+          l(m,pt) = psia(m,pt,et)   
+          dldr(m,pt) = dpsidr(m,pt,et)
+          dlds(m,pt) = dpsids(m,pt,et)
         ENDDO
-      ENDDO
-      
-      CALL DGETRF(nnds,nnds,V,nnds,ipiv,info)
-      CALL DGETRS("N",nnds,nqpta+nvert*nqpte,V,nnds,ipiv,l,nnds,info)
-      CALL DGETRS("N",nnds,nqpta+nvert*nqpte,V,nnds,ipiv,dldr,nnds,info)      
-      CALL DGETRS("N",nnds,nqpta+nvert*nqpte,V,nnds,ipiv,dlds,nnds,info)      
-      
- 
-      DO pt = 1,nqpta+nvert*nqpte
-        DO m = 1,nnds
-          psia(m,pt,et)   = l(m,pt)
-          dpsidr(m,pt,et) = dldr(m,pt)
-          dpsids(m,pt,et) = dlds(m,pt)
-        ENDDO
-      ENDDO 
+      ENDDO       
      
 
-      ndf = ndof(et)
+
       
       OPEN(unit=45, file='dhb.d')
       OPEN(unit=46, file='hb.d')
@@ -89,7 +66,7 @@
         
           mm = 0d0
         
-     pts: DO pt = 1,nqpta        
+     pts: DO pt = 1,nqa        
             dxdr = 0d0
             dxds = 0d0
             dydr = 0d0
@@ -127,7 +104,7 @@
                      
             
             DO dof = 1,ndf
-              ind = (dof-1)*nqpta + pt        
+              ind = (dof-1)*nqa + pt        
               
               dpdx_init(el,ind) = wpta(pt,et)*(dpdr(dof,pt,et)*drdx + dpds(dof,pt,et)*dsdx)*detJa(el,pt)*Sp
               dpdy_init(el,ind) = wpta(pt,et)*(dpdr(dof,pt,et)*drdy + dpds(dof,pt,et)*dsdy)*detJa(el,pt)  
@@ -159,9 +136,10 @@
              WRITE(46,"(4(e24.17,1x))") xpt,ypt,hbqpta_init(el,pt)
           ENDDO pts
           
-          CALL DGETRF(ndf,ndf,mm,ndf,ipiv2,info)          
-          CALL DGETRI(ndf,mm,ndf,ipiv2,work,ndf,info)
           
+          CALL DGETRF(ndf,ndf,mm,ndf,ipiv2,info)       
+          CALL DGETRI(ndf,mm,ndf,ipiv2,work,ndf*ndf,info)
+
           m = 1
           DO i = 1,ndf
             DO j = 1,ndf
@@ -204,9 +182,9 @@
         
         IF (el_type(el1) == et ) THEN
         
-        DO i = 1,nqpte
-          pt = nqpta + (led1-1)*nqpte+i
-          edpt = (led1-1)*nqpte+i          
+        DO i = 1,nqe
+          pt = nqa + (led1-1)*nqe+i
+          edpt = (led1-1)*nqe+i          
           
           hbqpte_init(el1,edpt) = 0d0          
           DO nd = 1,nelnds(el1)                                 
@@ -218,9 +196,9 @@
           
         IF (el2 /= 0) THEN    
         IF (el_type(el2) == et) THEN
-        DO i = 1,nqpte        
-          pt = nqpta + (led2-1)*nqpte+i
-          edpt = (led2-1)*nqpte+i          
+        DO i = 1,nqe        
+          pt = nqa + (led2-1)*nqe+i
+          edpt = (led2-1)*nqe+i          
           
           hbqpte_init(el2,edpt) = 0d0          
           DO nd = 1,nelnds(el2)                                 
@@ -244,9 +222,9 @@
         
         IF (el_type(el) == et ) THEN
         
-        DO i = 1,nqpte
-          pt = nqpta + (led-1)*nqpte+i
-          edpt = (led-1)*nqpte+i
+        DO i = 1,nqe
+          pt = nqa + (led-1)*nqe+i
+          edpt = (led-1)*nqe+i
           
           dxdr = 0d0
           dxds = 0d0
@@ -256,8 +234,7 @@
           xpt = 0d0
           ypt = 0d0
           
-!           hbqpte_init(el,edpt) = 0d0
-          
+
           DO nd = 1,nelnds(el)
             x = elxy(nd,el,1)
             y = elxy(nd,el,2)
@@ -271,8 +248,6 @@
             
             xpt = xpt + l(nd,pt)*x
             ypt = ypt + l(nd,pt)*y
-            
-!             hbqpte_init(el,edpt) = hbqpte_init(el,edpt) + l(nd,pt)*hb
                         
           ENDDO
           
@@ -289,7 +264,7 @@
           dsdx = -dydr/detJ
           dsdy =  dxdr/detJ
           
-          IF (nvert == 3) THEN
+          IF (nv == 3) THEN
               SELECT CASE(led)
                 CASE(1)
                   nx = drdx + dsdx
@@ -302,7 +277,7 @@
                   ny = -dsdy               
               END SELECT  
               
-          ELSE IF(nvert == 4) THEN        
+          ELSE IF(nv == 4) THEN        
               SELECT CASE(led)
                 CASE(1)
                   nx = drdx
@@ -330,122 +305,13 @@
         ENDIF
         
       ENDDO
+      
+      
+     DEALLOCATE(ipiv2,work)          
+     DEALLOCATE(mm)  
+     DEALLOCATE(l,dldr,dlds)   
+       
   
       RETURN
       END SUBROUTINE area_transformation
       
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!      
-      
-      SUBROUTINE tri_trans(et,np,nnds,nqpta,nqpte,V,phi,dphidr,dphids)
-      
-      USE globals, ONLY: pres,qpta,qpte
-      USE basis, ONLY: tri_nodes,tri_basis     
-      
-      IMPLICIT NONE
-
-      INTEGER :: i,j,k,pt,m,led,dof
-      INTEGER :: np,nnds,et,nqpta,nqpte
-      INTEGER :: tnds
-      REAL(pres) :: r(nnds+nqpta+3*nqpte),s(nnds+nqpta+3*nqpte)     
-      REAL(pres) :: p(nnds*(nnds+nqpta+3*nqpte)),dpdr(nnds*(nnds+nqpta+3*nqpte)),dpds(nnds*(nnds+nqpta+3*nqpte))
-      REAL(pres) :: V(nnds,nnds)  
-      REAL(pres) :: phi(nnds,nqpta+3*nqpte),dphidr(nnds,nqpta+3*nqpte),dphids(nnds,nqpta+3*nqpte)       
-      
-      ! Get triangular reference element nodes
-      CALL tri_nodes(1,np,nnds,r,s)   
-      
-      DO i = 1,nqpta
-        pt = nnds + i
-        r(pt) = qpta(i,1,et)
-        s(pt) = qpta(i,2,et)
-      ENDDO  
-      
-      DO i = 1,3*nqpte
-        pt = nnds+nqpta+i
-        r(pt) = qpte(i,1,et)
-        s(pt) = qpte(i,2,et)
-      ENDDO
-
-      tnds = nnds+nqpta+3*nqpte
-      CALL tri_basis(np,nnds,tnds,r,s,p,dpdr,dpds)       
-      
-      DO pt = 1,nnds
-        DO dof = 1,nnds
-          i = (dof-1)*tnds + pt
-          V(dof,pt) = p(i)
-        ENDDO
-      ENDDO
-      
-      DO pt = 1,nqpta+3*nqpte
-        DO dof = 1,nnds
-          i = nnds + (dof-1)*tnds + pt        
-          phi(dof,pt) = p(i)
-          dphidr(dof,pt) = dpdr(i)
-          dphids(dof,pt) = dpds(i)
-        ENDDO
-      ENDDO
-      
-      
-      RETURN
-      END SUBROUTINE tri_trans
-      
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!      
-      
-      SUBROUTINE quad_trans(et,np,nnds,nqpta,nqpte,V,phi,dphidr,dphids)
-      
-      USE globals, ONLY: pres,qpta,qpte
-      USE basis, ONLY: quad_nodes,quad_basis     
-      
-      IMPLICIT NONE
-      
-      INTEGER :: i,dof,pt
-      INTEGER :: np,nnds,et,nqpta,nqpte
-      INTEGER:: tnds
-      REAL(pres) :: r(nnds+nqpta+4*nqpte),s(nnds+nqpta+4*nqpte)    
-      REAL(pres) :: p(nnds*(nnds+nqpta+4*nqpte)),dpdr(nnds*(nnds+nqpta+4*nqpte)),dpds(nnds*(nnds+nqpta+4*nqpte))
-      REAL(pres) :: V(nnds,nnds)
-      REAL(pres) :: phi(nnds,nqpta+4*nqpte),dphidr(nnds,nqpta+4*nqpte),dphids(nnds,nqpta+4*nqpte)  
-         
-      CALL quad_nodes(1,np,nnds,r,s)   
-              
-      DO i = 1,nqpta
-        pt = nnds + i        
-        r(pt) = qpta(i,1,et)
-        s(pt) = qpta(i,2,et)
-      ENDDO
-      
-      DO i = 1,4*nqpte
-        pt = nnds+nqpta+i
-        r(pt) = qpte(i,1,et)
-        s(pt) = qpte(i,2,et)
-      ENDDO
-      
-      tnds = nnds+nqpta+4*nqpte
-      CALL quad_basis(np,nnds,tnds,r,s,p,dpdr,dpds)
-      
-      DO pt = 1,nnds 
-        DO dof = 1,nnds
-          i = (dof-1)*tnds + pt
-          V(dof,pt) = p(i)
-        ENDDO
-      ENDDO
-          
-      DO pt = 1,nqpta+4*nqpte        
-        DO dof = 1,nnds
-          i = nnds + (dof-1)*tnds + pt
-          phi(dof,pt) = p(i)
-          dphidr(dof,pt) = dpdr(i)
-          dphids(dof,pt) = dpds(i)
-        ENDDO        
-      ENDDO   
-      
-      
-      
-      RETURN
-      END SUBROUTINE quad_trans
-      
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!    
-

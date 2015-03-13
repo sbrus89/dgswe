@@ -23,7 +23,7 @@
       REAL(pres), ALLOCATABLE, DIMENSION(:) :: r,s
       REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: jac    
     
-      CALL alloc_trans_arrays()      
+      CALL alloc_trans_arrays()             
 
       nx_pt = 0d0
       ny_pt = 0d0    
@@ -33,9 +33,13 @@
         CALL curvilinear()    
       ENDIF
       
+      CALL vandermonde()
       
+      CALL shape_functions()
+            
       DO i = 1,nel_type
-        CALL area_transformation(i,np(i),nnds(i),nqpta(i),nqpte(i))
+!         CALL area_transformation(i,np(i),nnds(i),nqpta(i),nqpte(i))
+        CALL area_transformation(i)
       ENDDO
   
       

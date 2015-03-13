@@ -20,8 +20,8 @@ GIT_MOD := $(strip $(subst 0,,$(GIT_MOD)))
 ifeq ($(BUILDTYPE),dgswe)
   FC = ifort
   
-  CFLAGS_VEC  =  -O3 -xHost -align array32byte -align rec32byte -vec-report6 -I$(ODIR) -c
-  CFLAGS      =  -O3 -xHost -align array32byte -align rec32byte -I$(ODIR) -c 
+  CFLAGS_VEC  =  -O3 -xHost -align array32byte -align rec32byte -vec-report6  -I$(ODIR) -c
+  CFLAGS      =  -O3 -xHost -align array32byte -align rec32byte  -I$(ODIR) -c 
   CFLAGS_LINK = -O3 -xHost -o 
 
 #   ### Default compilation ###
@@ -112,7 +112,7 @@ METIS_LIB = -L../metis-4.0.3 -lmetis
 ########################################################################
 
 objects = globals.o messenger2.o allocation.o basis.o  area_qpts.o edge_qpts.o read_input.o read_grid.o read_forcing.o modal2nodal.o \
-	initial.o connect.o curvilinear.o element_data.o area_transformation.o edge_transformation.o edge_partition2.o  \
+	initial.o connect.o curvilinear.o element_data.o shape_functions.o vandermonde.o area_transformation.o edge_transformation.o edge_partition2.o  \
 	area_integration.o edge_integration.o rhs2.o  numerical_flux.o rk.o write_output.o swe_tri.o
 
 obj := $(patsubst %.o, $(ODIR)%.o,$(objects))
@@ -269,6 +269,12 @@ $(ODIR)element_data.o : element_data.f90 globals.F90 allocation.f90
 $(ODIR)edge_partition2.o : edge_partition2.f90 globals.F90 allocation.f90 messenger2.F90
 	$(FC) $(CFLAGS) $< -o $@
 
+$(ODIR)vandermonde.o : vandermonde.F90 globals.F90 basis.f90
+	$(FC) $(CFLAGS) $< -o $@
+	
+$(ODIR)shape_functions.o : shape_functions.F90 globals.F90 basis.f90
+	$(FC) $(CFLAGS) $< -o $@
+	
 $(ODIR)area_transformation.o : area_transformation.F90 globals.F90 basis.f90
 	$(FC) $(CFLAGS) $< -o $@
 

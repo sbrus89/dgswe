@@ -3,13 +3,13 @@ clear all
 close all
 clc
 
-% grd_direc = '~/Codes/dgswe/grids/';
-% sol_direc = '~/Codes/dgswe/output/';
-% % sol_direc = '~/data-drive/converge_quad/mesh1/P2/CTP2/';
-% % grd_name = 'inlet2.grd';
-% grd_name = 'converge_quad.grd';
-% % grd_name = 'beaufort_hb+2.grd';
-% plot_folder = 'velplot';
+grd_direc = '~/Codes/dgswe/grids/';
+sol_direc = '~/Codes/dgswe/output/';
+% sol_direc = '~/data-drive/converge_quad/mesh1/P2/CTP2/';
+% grd_name = 'inlet2.grd';
+grd_name = 'converge_quad.grd';
+% grd_name = 'beaufort_hb+2.grd';
+plot_folder = 'velplot';
 
 % grd_direc = '~/Codes/dgswe/work/PE0000/';
 % sol_direc = '~/Codes/dgswe/work/PE0000/';
@@ -53,10 +53,10 @@ clc
 % grd_name = 'galveston_tri.grd';
 % plot_folder = 'velplot_scale';
 
-grd_direc = '~/data-drive/galveston/dgswe/tri_ho-bath/p2/';
-sol_direc = '~/data-drive/galveston/dgswe/tri_ho-bath/p2/';
-grd_name = 'galveston_tri_spline.grd';
-plot_folder = 'velplot_scale';
+% grd_direc = '~/data-drive/galveston/dgswe/tri_ho-bath/p2/';
+% sol_direc = '~/data-drive/galveston/dgswe/tri_ho-bath/p2/';
+% grd_name = 'galveston_tri_spline.grd';
+% plot_folder = 'velplot_scale';
 
 
 ctp = 2;
@@ -77,16 +77,16 @@ zoom_area = [];
 [nn,~] = size(VX);
 
 
-fid = fopen([grd_direc,'elem_nodes.d']);
-idx = zeros(ne,8);
-for i = 1:ne
-    line = fgetl(fid);
-    v = sscanf(line,' %d %d %f %f %f %f %f %f',8)';
-    idx(i,1) = v(1);
-    idx(i,2) = v(2);
-    idx(i,3:v(2)+2) = v(3:v(2)+2);
-end
-hbnodes = idx(:,3:end);
+% fid = fopen([grd_direc,'elem_nodes.d']);
+% idx = zeros(ne,8);
+% for i = 1:ne
+%     line = fgetl(fid);
+%     v = sscanf(line,' %d %d %f %f %f %f %f %f',8)';
+%     idx(i,1) = v(1);
+%     idx(i,2) = v(2);
+%     idx(i,3:v(2)+2) = v(3:v(2)+2);
+% end
+% hbnodes = idx(:,3:end);
 
 
 FramesFolder = strcat(sol_direc,plot_folder) ;
@@ -171,7 +171,7 @@ while ~feof(fid_H) && snap < nsnap
         Qxv(1:n,el,snap) = m2n(1:n,1:ndof(et),et)*Qx(1:ndof(et),el);
         Qyv(1:n,el,snap) = m2n(1:n,1:ndof(et),et)*Qy(1:ndof(et),el);
         Hv(1:n,el,snap) = Zv(1:n,el,snap)+HB(EToV(el,1:n));
-        Hv(1:n,el,snap) = Zv(1:n,el,snap)+hbnodes(el,1:n)';        
+%         Hv(1:n,el,snap) = Zv(1:n,el,snap)+hbnodes(el,1:n)';        
 %         Zv(1:n,el,snap) = Hv(1:n,el,snap)-HB(EToV(el,1:n));        
         
     end
