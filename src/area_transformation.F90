@@ -15,7 +15,6 @@
       INTEGER :: np,nnd,et,nqa,nqe,ndf,nv
       INTEGER, ALLOCATABLE, DIMENSION(:) :: ipiv2,work
       INTEGER ::info
-      REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: l,dldr,dlds
       REAL(pres) :: x,y,xpt,ypt
       REAL(pres) :: dxdr,dxds,dydr,dyds
       REAL(pres) :: drdx,drdy,dsdx,dsdy,detJ
@@ -36,31 +35,9 @@
 
      ALLOCATE(ipiv2(ndf),work(ndf*ndf)) 
      ALLOCATE(mm(ndf,ndf)) 
-     ALLOCATE(l(nnd,nqa+nv*nqe),dldr(nnd,nqa+nv*nqe),dlds(nnd,nqa+nv*nqe))
+          
 
-      
-      l = 0d0
-      dldr = 0d0
-      dlds = 0d0     
-      
-      DO pt = 1,nqa+nv*nqe
-        DO m = 1,nnd
-          l(m,pt) = psia(m,pt,et)   
-          dldr(m,pt) = dpsidr(m,pt,et)
-          dlds(m,pt) = dpsids(m,pt,et)
-        ENDDO
-      ENDDO       
-     
-
-
-      
-      OPEN(unit=45, file='dhb.d')
-      OPEN(unit=46, file='hb.d')
-      IF (et == 3) THEN
-        WRITE(45,*) ne,16
-        WRITE(46,*) ne, 16
-      ENDIF
-      
+          
       DO el = 1,ne
         IF (el_type(el) == et) THEN
         
@@ -113,27 +90,13 @@
             
             ENDDO
             
-            dhbdx_init(el,pt) = 0d0
-            dhbdy_init(el,pt) = 0d0
-            hbqpta_init(el,pt) = 0d0
-            DO nd = 1,nelnds(el)  ! This assumes there is an equal order representation between the bathymetry and the coordinate transformation
-              hb = elhb(nd,el)
-              
-              hbqpta_init(el,pt) =  hbqpta_init(el,pt) + psia(nd,pt,et)*hb
-              
-              dhbdx_init(el,pt) = dhbdx_init(el,pt) + (dpsidr(nd,pt,et)*drdx + dpsids(nd,pt,et)*dsdx)*hb*Sp
-              dhbdy_init(el,pt) = dhbdy_init(el,pt) + (dpsidr(nd,pt,et)*drdy + dpsids(nd,pt,et)*dsdy)*hb              
-            ENDDO
             
             DO i = 1,ndf
               DO j = 1,ndf
                 mm(j,i) = mm(j,i) + wpta(pt,et)*phia(i,pt,et)*phia(j,pt,et)*detJa(el,pt)
               ENDDO
             ENDDO
-                     
-                     
-             WRITE(45,"(4(e24.17,1x))") xpt,ypt,dhbdx_init(el,pt),dhbdy_init(el,pt)      
-             WRITE(46,"(4(e24.17,1x))") xpt,ypt,hbqpta_init(el,pt)
+
           ENDDO pts
           
           
@@ -146,73 +109,12 @@
               mmi_init(el,m) = mm(i,j)
               m = m + 1
             ENDDO
-          ENDDO
-          
-!           print*, ' ' 
-!           DO i = 1,ndf
-!             print "(I5,16(e23.14))", el, (mm(i,j), j = 1,ndf)
-!           ENDDO
-!           IF (et == 1) THEN
-!             x1 = xy(1,ect(1,el))
-!             y1 = xy(2,ect(1,el))
-! 
-!             x2 = xy(1,ect(2,el))
-!             y2 = xy(2,ect(2,el))
-! 
-!              x3 = xy(1,ect(3,el))
-!              y3 = xy(2,ect(3,el))
-! 
-!             area = .5d0*((x2*y3-x3*y2) + (x3*y1-x1*y3) + (x1*y2-x2*y1))          
-!             print*, 1d0/area
-!           ENDIF
+          ENDDO          
           
 
         ENDIF
       ENDDO
       
-      CLOSE(45)
-      CLOSE(46)
-      
-      DO ed = 1,ned
-      
-        el1 = ged2el(1,ed)
-        led1 = ged2led(1,ed)
-        el2 = ged2el(2,ed)
-        led2 = ged2led(2,ed)        
-        
-        IF (el_type(el1) == et ) THEN
-        
-        DO i = 1,nqe
-          pt = nqa + (led1-1)*nqe+i
-          edpt = (led1-1)*nqe+i          
-          
-          hbqpte_init(el1,edpt) = 0d0          
-          DO nd = 1,nelnds(el1)                                 
-            hbqpte_init(el1,edpt) = hbqpte_init(el1,edpt) + psia(nd,pt,et)*elhb(nd,el1)     
-          ENDDO   
-        ENDDO          
-          
-        ENDIF          
-          
-        IF (el2 /= 0) THEN    
-        IF (el_type(el2) == et) THEN
-        DO i = 1,nqe        
-          pt = nqa + (led2-1)*nqe+i
-          edpt = (led2-1)*nqe+i          
-          
-          hbqpte_init(el2,edpt) = 0d0          
-          DO nd = 1,nelnds(el2)                                 
-            hbqpte_init(el2,edpt) = hbqpte_init(el2,edpt) + psia(nd,pt,et)*elhb(nd,el2)     
-          ENDDO           
-        ENDDO
-        ENDIF
-        ENDIF
-        
-
-        
-
-        
-      ENDDO      
 
       
       DO ed = 1,ned
@@ -307,9 +209,8 @@
       ENDDO
       
       
-     DEALLOCATE(ipiv2,work)          
-     DEALLOCATE(mm)  
-     DEALLOCATE(l,dldr,dlds)   
+      DEALLOCATE(ipiv2,work)          
+      DEALLOCATE(mm)  
        
   
       RETURN

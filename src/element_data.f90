@@ -38,16 +38,18 @@
       CALL shape_functions()
             
       DO i = 1,nel_type
-!         CALL area_transformation(i,np(i),nnds(i),nqpta(i),nqpte(i))
         CALL area_transformation(i)
       ENDDO
-  
       
       DO i = 1,nel_type
         CALL edge_transformation(i,np(i),nqpte(i))
       ENDDO
       
-
+      DO i = 1,nel_type
+        CALL bathymetry_interp(i)
+      ENDDO
+      
+      
       !!!!!!!!!!!!!!!!!!!!!!!!!!
       ! Calculate element area 
       !!!!!!!!!!!!!!!!!!!!!!!!!!

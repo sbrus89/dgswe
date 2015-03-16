@@ -112,7 +112,7 @@ METIS_LIB = -L../metis-4.0.3 -lmetis
 ########################################################################
 
 objects = globals.o messenger2.o allocation.o basis.o  area_qpts.o edge_qpts.o read_input.o read_grid.o read_forcing.o modal2nodal.o \
-	initial.o connect.o curvilinear.o element_data.o shape_functions.o vandermonde.o area_transformation.o edge_transformation.o edge_partition2.o  \
+	initial.o connect.o curvilinear.o element_data.o shape_functions.o vandermonde.o area_transformation.o edge_transformation.o bathymetry_interp.o edge_partition2.o  \
 	area_integration.o edge_integration.o rhs2.o  numerical_flux.o rk.o write_output.o swe_tri.o
 
 obj := $(patsubst %.o, $(ODIR)%.o,$(objects))
@@ -286,6 +286,9 @@ $(ODIR)area_integration.o : area_integration.F90 globals.F90
 
 $(ODIR)edge_integration.o : edge_integration.F90 globals.F90
 	$(FC) $(CFLAGS_VEC) $< -o $@
+	
+$(ODIR)bathymetry_interp.o : bathymetry_interp.F90 globals.F90
+	$(FC) $(CFLAGS_VEC) $< -o $@	
 
 $(ODIR)rk.o : rk.F90 globals.F90
 	$(FC) $(CFLAGS_VEC) $(RK) $< -o $@
