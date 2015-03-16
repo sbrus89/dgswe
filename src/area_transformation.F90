@@ -79,13 +79,13 @@
               x = elxy(nd,el,1)
               y = elxy(nd,el,2)
           
-              dxdr = dxdr + dldr(nd,pt)*x
-              dxds = dxds + dlds(nd,pt)*x
-              dydr = dydr + dldr(nd,pt)*y
-              dyds = dyds + dlds(nd,pt)*y
+              dxdr = dxdr + dpsidr(nd,pt,et)*x
+              dxds = dxds + dpsids(nd,pt,et)*x
+              dydr = dydr + dpsidr(nd,pt,et)*y
+              dyds = dyds + dpsids(nd,pt,et)*y
               
-              xpt = xpt + l(nd,pt)*x
-              ypt = ypt + l(nd,pt)*y
+              xpt = xpt + psia(nd,pt,et)*x
+              ypt = ypt + psia(nd,pt,et)*y
                         
             ENDDO
             
@@ -119,10 +119,10 @@
             DO nd = 1,nelnds(el)  ! This assumes there is an equal order representation between the bathymetry and the coordinate transformation
               hb = elhb(nd,el)
               
-              hbqpta_init(el,pt) =  hbqpta_init(el,pt) + l(nd,pt)*hb
+              hbqpta_init(el,pt) =  hbqpta_init(el,pt) + psia(nd,pt,et)*hb
               
-              dhbdx_init(el,pt) = dhbdx_init(el,pt) + (dldr(nd,pt)*drdx + dlds(nd,pt)*dsdx)*hb*Sp
-              dhbdy_init(el,pt) = dhbdy_init(el,pt) + (dldr(nd,pt)*drdy + dlds(nd,pt)*dsdy)*hb              
+              dhbdx_init(el,pt) = dhbdx_init(el,pt) + (dpsidr(nd,pt,et)*drdx + dpsids(nd,pt,et)*dsdx)*hb*Sp
+              dhbdy_init(el,pt) = dhbdy_init(el,pt) + (dpsidr(nd,pt,et)*drdy + dpsids(nd,pt,et)*dsdy)*hb              
             ENDDO
             
             DO i = 1,ndf
@@ -188,7 +188,7 @@
           
           hbqpte_init(el1,edpt) = 0d0          
           DO nd = 1,nelnds(el1)                                 
-            hbqpte_init(el1,edpt) = hbqpte_init(el1,edpt) + l(nd,pt)*elhb(nd,el1)     
+            hbqpte_init(el1,edpt) = hbqpte_init(el1,edpt) + psia(nd,pt,et)*elhb(nd,el1)     
           ENDDO   
         ENDDO          
           
@@ -202,7 +202,7 @@
           
           hbqpte_init(el2,edpt) = 0d0          
           DO nd = 1,nelnds(el2)                                 
-            hbqpte_init(el2,edpt) = hbqpte_init(el2,edpt) + l(nd,pt)*elhb(nd,el2)     
+            hbqpte_init(el2,edpt) = hbqpte_init(el2,edpt) + psia(nd,pt,et)*elhb(nd,el2)     
           ENDDO           
         ENDDO
         ENDIF
@@ -241,13 +241,13 @@
             
             hb = elhb(nd,el)
           
-            dxdr = dxdr + dldr(nd,pt)*x
-            dxds = dxds + dlds(nd,pt)*x
-            dydr = dydr + dldr(nd,pt)*y
-            dyds = dyds + dlds(nd,pt)*y
+            dxdr = dxdr + dpsidr(nd,pt,et)*x
+            dxds = dxds + dpsids(nd,pt,et)*x
+            dydr = dydr + dpsidr(nd,pt,et)*y
+            dyds = dyds + dpsids(nd,pt,et)*y
             
-            xpt = xpt + l(nd,pt)*x
-            ypt = ypt + l(nd,pt)*y
+            xpt = xpt + psia(nd,pt,et)*x
+            ypt = ypt + psia(nd,pt,et)*y
                         
           ENDDO
           
