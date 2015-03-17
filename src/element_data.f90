@@ -35,19 +35,13 @@
       
       CALL vandermonde()
       
-      CALL shape_functions()
-            
-      DO i = 1,nel_type
-        CALL area_transformation(i)
-      ENDDO
+      CALL shape_functions()            
+
+      CALL area_transformation()            
+
+      CALL edge_transformation()
       
-      DO i = 1,nel_type
-        CALL edge_transformation(i,np(i),nqpte(i))
-      ENDDO
-      
-      DO i = 1,nel_type
-        CALL bathymetry_interp(i)
-      ENDDO
+      CALL bathymetry_interp()
       
       
       !!!!!!!!!!!!!!!!!!!!!!!!!!

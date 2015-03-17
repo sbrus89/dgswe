@@ -1,45 +1,68 @@
       SUBROUTINE vandermonde()
       
-      USE globals, ONLY: pres,ctp,np,nnds,mnnds,nel_type,Vand,ipiv
-      USE basis, ONLY: tri_nodes,tri_basis,quad_nodes,quad_basis
+      USE globals, ONLY: pres,ctp,np,mnp,nnds,mnnds,nel_type,Va,ipiva,Ve,ipive
+      USE basis, ONLY: tri_nodes,tri_basis,quad_nodes,quad_basis,lglpts,jacobi
       
       IMPLICIT NONE
-      INTEGER :: et,pt,dof,i,n
-      REAL(pres) :: r(mnnds),s(mnnds)
+      INTEGER :: et,pt,dof,i,n,p
+      REAL(pres) :: r(mnnds),s(mnnds),xi(mnp)
       REAL(pres) :: phi(mnnds*mnnds)
       INTEGER :: info        
       
-      ALLOCATE(Vand(mnnds,mnnds,nel_type))
-      ALLOCATE(ipiv(mnnds,nel_type))
+      ALLOCATE(Va(mnnds,mnnds,nel_type))
+      ALLOCATE(ipiva(mnnds,nel_type))
       
-      Vand = 0d0
-      ipiv = 0
+      ALLOCATE(Ve(mnp,mnp,nel_type))
+      ALLOCATE(ipive(mnp,nel_type))
+      
+      Va = 0d0
+      ipiva = 0
+      Ve = 0d0
+      ipive = 0
       
       DO et = 1,nel_type
         n = nnds(et)
+        p = np(et)
         IF (mod(et,2) == 1) THEN
-          CALL tri_nodes(1,np(et),n,r,s)
-          CALL tri_basis(np(et),n,n,r,s,phi)       
+          CALL tri_nodes(1,p,n,r,s)
+          CALL tri_basis(p,n,n,r,s,phi)       
         ELSE IF (mod(et,2) == 0) THEN
-          CALL quad_nodes(1,np(et),n,r,s)
-          CALL quad_basis(np(et),n,n,r,s,phi)
+          CALL quad_nodes(1,p,n,r,s)
+          CALL quad_basis(p,n,n,r,s,phi)
         ENDIF
         
         DO pt = 1,n
           DO dof = 1,n
             i = (dof-1)*n + pt
-            Vand(dof,pt,et) = phi(i)
+            Va(dof,pt,et) = phi(i)
           ENDDO
         ENDDO
         
 
         
-        CALL DGETRF(n,n,Vand(1,1,et),mnnds,ipiv(1,et),info)  
+        CALL DGETRF(n,n,Va(1,1,et),mnnds,ipiva(1,et),info)  
         
 !         DO dof = 1,n
-!             PRINT("(100(e15.5))"), (Vand(dof,pt,et), pt = 1,n)
+!             PRINT("(100(e15.5))"), (Va(dof,pt,et), pt = 1,n)
 !         ENDDO        
-!         PRINT*, " "                
+!         PRINT*, " "    
+
+       
+        n = p+1
+      
+        CALL lglpts(p,xi)       
+      
+        DO i = 0,p      
+      
+          CALL jacobi(0,0,i,xi,n,phi)
+        
+          DO pt = 1,n
+            Ve(i+1,pt,et) = phi(pt)
+          ENDDO       
+        
+        ENDDO     
+      
+        CALL DGETRF(n,n,Ve(1,1,et),mnp,ipive(1,et),info)
         
 
         
