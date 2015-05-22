@@ -1,11 +1,11 @@
       SUBROUTINE read_input()
 
-      USE globals, ONLY: grid_file,forcing_file,p,ctp,dt,tf,dramp,cf,lines,out_direc,npart
+      USE globals, ONLY: grid_file,forcing_file,p,ctp,hbp,dt,tf,dramp,cf,lines,out_direc,npart
       USE messenger2, ONLY: myrank,dirname,lname,finish,nthreads
 
       IMPLICIT NONE
       
-      INTEGER, PARAMETER :: ninp = 11
+      INTEGER, PARAMETER :: ninp = 12
       INTEGER :: inp_read,skipped
       CHARACTER(55) :: temp
       LOGICAL :: file_exists
@@ -40,19 +40,21 @@
             CASE (4)
               READ(temp,*) ctp
             CASE (5)
-              READ(temp,*) dt
+              READ(temp,*) hbp            
             CASE (6)
+              READ(temp,*) dt
+            CASE (7)
               READ(temp,*) tf
               tf = tf*86400d0
-            CASE (7)
-              READ(temp,*) dramp
             CASE (8)
-              READ(temp,*) cf
+              READ(temp,*) dramp
             CASE (9)
-              READ(temp,*) lines
+              READ(temp,*) cf
             CASE (10)
-              out_direc = TRIM(temp)
+              READ(temp,*) lines
             CASE (11)
+              out_direc = TRIM(temp)
+            CASE (12)
               READ(temp,*) npart
           END SELECT
             
@@ -79,6 +81,7 @@
         PRINT*, "forcing_file = ", forcing_file 
         PRINT*, "p = ", p              
         PRINT*, "ctp = ", ctp       
+        PRINT*, "hbp = ", hbp             
         PRINT*, "dt = ", dt    
         PRINT*, "tf = ", tf        
         PRINT*, "dramp = ", dramp   

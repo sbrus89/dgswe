@@ -1,20 +1,61 @@
       SUBROUTINE curvilinear()
 
-      USE globals, ONLY: pres,nnfbed,nfbedn,ged2el,ged2led,nelnds,el_type,ctp,elxy,xy,ect,elhb
+      USE globals, ONLY: pres,nnfbed,nfbedn,ged2el,ged2led,pi, &
+                         nelnds,el_type,order,ctp,elxy,xy,ect,elhb,ne,mnnds,nnds, &
+                         psiv,psic
       USE basis, ONLY: quad_nodes,tri_nodes
 
       IMPLICIT NONE
       
       INTEGER :: ed,led,nd,pt
       INTEGER :: ged,el,ind
-      INTEGER :: nvert
-      REAL(pres) :: x,y,ytest,hb
-      REAL(pres) :: rq((ctp+1)**2),sq((ctp+1)**2)
-      REAL(pres) :: rt((ctp+1)*(ctp+2)/2),st((ctp+1)*(ctp+2)/2)      
+      INTEGER :: et,typ,eo
+      INTEGER :: nvert,nnd,npts
+      REAL(pres) :: x,y,xpt,ypt,ytest,hb
+      REAL(pres) :: rq(mnnds),sq(mnnds)
+      REAL(pres) :: rt(mnnds),st(mnnds)  
+      REAL(pres) :: xyhb(mnnds,ne,2)
       
       CALL tri_nodes(1,ctp,(ctp+1)*(ctp+2)/2,rt,st)   
       
-      CALL quad_nodes(1,ctp,(ctp+1)*(ctp+1),rq,sq)      
+      CALL quad_nodes(1,ctp,(ctp+1)*(ctp+1),rq,sq)   
+      
+      elhb = 50d0
+      
+      DO el = 1,ne
+      
+        et = el_type(el)
+        nnd = nnds(et)        
+        IF (mod(et,2) == 1) THEN
+          npts = nnds(5)
+          et = 5
+        ELSE IF (mod(et,2) == 0) THEN
+          npts = nnds(6)
+          et = 6
+        ENDIF
+        
+        DO pt = 1,npts    
+          
+          xpt = 0d0
+          ypt = 0d0
+          DO nd = 1,nnd
+            x = xy(1,ect(nd,el))
+            y = xy(2,ect(nd,el))
+
+            xpt = xpt + psiv(nd,pt,et)*x
+            ypt = ypt + psiv(nd,pt,et)*y
+          ENDDO
+          
+!           elhb(pt,el) = 10d0
+          elhb(pt,el) = 10d0 - 5d0*cos(2d0*pi/500d0*ypt)        
+          xyhb(pt,el,1) = xpt
+          xyhb(pt,el,2) = ypt
+        ENDDO  
+        
+      ENDDO      
+      
+      
+      
       
       
       DO ed = 1,nnfbed
@@ -25,32 +66,65 @@
         
         IF (nelnds(el) == 3) THEN
           el_type(el) = 3 
-          nelnds(el) = (ctp+1)*(ctp+2)/2
+          nnd = nnds(3)
           nvert = 3
+
                    
-          DO nd = 1,nelnds(el)            
-              
-            x = .5d0*(-(rt(nd)+st(nd))*xy(1,ect(1,el)) + (rt(nd)+1d0)*xy(1,ect(2,el)) + (st(nd)+1d0)*xy(1,ect(3,el)))
-            y = .5d0*(-(rt(nd)+st(nd))*xy(2,ect(1,el)) + (rt(nd)+1d0)*xy(2,ect(2,el)) + (st(nd)+1d0)*xy(2,ect(3,el)))            
-            
-            elxy(nd,el,1) = x
-            elxy(nd,el,2) = y
-          ENDDO
+!           DO nd = 1,nnd                           
+!             x = .5d0*(-(rt(nd)+st(nd))*xy(1,ect(1,el))  &
+!                      + (rt(nd)+1d0)*xy(1,ect(2,el))  & 
+!                      + (st(nd)+1d0)*xy(1,ect(3,el)))
+!             y = .5d0*(-(rt(nd)+st(nd))*xy(2,ect(1,el))  &
+!                      + (rt(nd)+1d0)*xy(2,ect(2,el))  &
+!                      + (st(nd)+1d0)*xy(2,ect(3,el)))            
+!             
+!             elxy(nd,el,1) = x
+!             elxy(nd,el,2) = y
+!           ENDDO
         
         ELSE IF (nelnds(el) == 4) THEN
           el_type(el) = 4
-          nelnds(el) = (ctp+1)*(ctp+1)
+          nnd = nnds(4)
           nvert = 4
                     
-          DO nd = 1,nelnds(el)
-          
-            x = .25d0*((1d0-rq(nd))*(1d0-sq(nd))*xy(1,ect(1,el)) + (1d0+rq(nd))*(1d0-sq(nd))*xy(1,ect(2,el)) + (1d0+rq(nd))*(1d0+sq(nd))*xy(1,ect(3,el)) + (1d0-rq(nd))*(1d0+sq(nd))*xy(1,ect(4,el)))
-            y = .25d0*((1d0-rq(nd))*(1d0-sq(nd))*xy(2,ect(1,el)) + (1d0+rq(nd))*(1d0-sq(nd))*xy(2,ect(2,el)) + (1d0+rq(nd))*(1d0+sq(nd))*xy(2,ect(3,el)) + (1d0-rq(nd))*(1d0+sq(nd))*xy(2,ect(4,el)))
-            
-            elxy(nd,el,1) = x
-            elxy(nd,el,2) = y
-          ENDDO          
+!           DO nd = 1,nelnds(el)
+!           
+!             x = .25d0*((1d0-rq(nd))*(1d0-sq(nd))*xy(1,ect(1,el)) &
+!                      + (1d0+rq(nd))*(1d0-sq(nd))*xy(1,ect(2,el)) &
+!                      + (1d0+rq(nd))*(1d0+sq(nd))*xy(1,ect(3,el)) &
+!                      + (1d0-rq(nd))*(1d0+sq(nd))*xy(1,ect(4,el)))
+!             y = .25d0*((1d0-rq(nd))*(1d0-sq(nd))*xy(2,ect(1,el)) &
+!                      + (1d0+rq(nd))*(1d0-sq(nd))*xy(2,ect(2,el)) &
+!                      + (1d0+rq(nd))*(1d0+sq(nd))*xy(2,ect(3,el)) &
+!                      + (1d0-rq(nd))*(1d0+sq(nd))*xy(2,ect(4,el)))
+!             
+!             elxy(nd,el,1) = x
+!             elxy(nd,el,2) = y
+!           ENDDO  
+
         ENDIF
+        
+        et = el_type(el)        
+        nelnds(el) = nnd  
+        
+        
+        DO pt = 1,nnd     
+          
+          xpt = 0d0
+          ypt = 0d0
+          DO nd = 1,nvert
+            x = xy(1,ect(nd,el))
+            y = xy(2,ect(nd,el))
+            
+            xpt = xpt + psiv(nd,pt,et)*x
+            ypt = ypt + psiv(nd,pt,et)*y
+          ENDDO
+          
+          elxy(pt,el,1) = xpt
+          elxy(pt,el,2) = ypt
+        ENDDO      
+        
+        
         
         DO nd = 1,ctp-1
           pt = mod(led,nvert)*ctp + 1 + nd
@@ -65,13 +139,58 @@
           ENDIF
           
           elxy(pt,el,2) = y
-        ENDDO
+        ENDDO       
         
-        DO nd = 1,nelnds(el)
-          elhb(nd,el) = 10d0
-        ENDDO
+        
+        
+        
+        et = el_type(el)
+        nnd = nnds(et)        
+        IF (mod(et,2) == 1) THEN
+          npts = nnds(5)
+          et = 5
+        ELSE IF (mod(et,2) == 0) THEN
+          npts = nnds(6)
+          et = 6
+        ENDIF
+        
+        DO pt = 1,npts    
+          
+          xpt = 0d0
+          ypt = 0d0
+          DO nd = 1,nnd
+            x = elxy(nd,el,1)
+            y = elxy(nd,el,2)
+
+            xpt = xpt + psic(nd,pt,et)*x
+            ypt = ypt + psic(nd,pt,et)*y
+          ENDDO
+          
+!           elhb(pt,el) = 10d0
+          elhb(pt,el) = 10d0 - 5d0*cos(2d0*pi/500d0*ypt)     
+          xyhb(pt,el,1) = xpt
+          xyhb(pt,el,2) = ypt          
+        ENDDO  
+        
         
       ENDDO
+      
+      OPEN(unit=242,file='bathy.d')
+      DO el = 1,ne
+      
+        et = el_type(el)     
+        IF (mod(et,2) == 1) THEN
+          npts = nnds(5)
+        ELSE IF (mod(et,2) == 0) THEN
+          npts = nnds(6)
+        ENDIF
+        
+        DO pt = 1,npts
+          WRITE(242,"(3(e24.17,1x))") xyhb(pt,el,1),xyhb(pt,el,2),elhb(pt,el)
+        ENDDO
+      ENDDO
+      CLOSE(242)
+
       
       
       RETURN

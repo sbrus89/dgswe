@@ -105,7 +105,8 @@
       
 
       
-      
+      nx_pt = 0d0
+      ny_pt = 0d0          
       
       DO ed = 1,ned
       

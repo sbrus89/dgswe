@@ -1,6 +1,6 @@
       MODULE allocation
       
-      USE globals, ONLY: nel_type,ne,nn,npart,nrblk, &
+      USE globals, ONLY: nel_type,norder,ne,nn,npart,nrblk, &
                          mndof,mnqpte,mnqpta,mnepn,mnnds,mnp, &
                          ned,nied,nobed,nnfbed,nfbed, &
                          nope,neta,nbou,nvel, &
@@ -17,8 +17,8 @@
 
       SUBROUTINE sizes()
       
-      USE globals, ONLY: p,ctp, &
-                         ndof,nverts,np,nnds, &
+      USE globals, ONLY: p,ctp,hbp, &
+                         ndof,nverts,np,nnds,order, &
                          mndof,mnp,mnnds
       
       IMPLICIT NONE
@@ -38,13 +38,26 @@
       np(2) = 1
       np(3) = ctp
       np(4) = ctp   
+      np(5) = hbp
+      np(6) = hbp
       mnp = maxval(np)+1
 
       nnds(1) = 3
       nnds(2) = 4
       nnds(3) = (ctp+1)*(ctp+2)/2
       nnds(4) = (ctp+1)*(ctp+1) 
-      mnnds = maxval(nnds)                
+      nnds(5) = (hbp+1)*(hbp+2)/2
+      nnds(6) = (hbp+1)*(hbp+1) 
+      mnnds = maxval(nnds)      
+      
+      order(1) = 1
+      order(2) = 2
+      order(3) = 3
+      order(4) = 4
+      order(5) = 5
+      order(6) = 6
+      order(7) = 5
+      order(8) = 6
       
       RETURN
       END SUBROUTINE sizes
@@ -278,14 +291,14 @@
       
       USE globals, ONLY: dhbdx,dhbdx_init,dhbdy,dhbdy_init, &
                          hbqpta,hbqpta_init,hbqpte,hbqpte_init, &      
-                         psia,dpsidr,dpsids, &
+                         psia,dpsidr,dpsids,psiv,psic, &
                          detJa,mmi,mmi_init, &
                          nx_pt,ny_pt,cfac,Spe, &
                          psie,dpsidxi,detJe, &                         
                          area,edlen,edlen_area,normal
       
       IMPLICIT NONE
-      INTEGER, PARAMETER :: n=12
+      INTEGER, PARAMETER :: n=13
       INTEGER :: alloc_status(n)
       INTEGER :: i
       
@@ -300,18 +313,19 @@
       ALLOCATE(hbqpte_init(ne,4*mnqpte),hbqpte(ne,4*mnqpte), STAT = alloc_status(4))      
       
       ! Area transformation information
-      ALLOCATE(psia(mnnds,mnqpta+4*mnqpte,nel_type),dpsidr(mnnds,mnqpta+4*mnqpte,nel_type),dpsids(mnnds,mnqpta+4*mnqpte,nel_type),STAT = alloc_status(5))
+      ALLOCATE(psia(mnnds,mnqpta+4*mnqpte,2*nel_type),dpsidr(mnnds,mnqpta+4*mnqpte,2*nel_type),dpsids(mnnds,mnqpta+4*mnqpte,2*nel_type),STAT = alloc_status(5))
       ALLOCATE(detJa(ne,mnqpta),mmi_init(ne,mndof*mndof),mmi(ne,mndof*mndof),STAT = alloc_status(6))
-      ALLOCATE(nx_pt(ned,mnqpte),ny_pt(ned,mnqpte),cfac(ned,mnqpte),Spe(ned,mnqpte),STAT = alloc_status(7))  
+      ALLOCATE(nx_pt(ned,mnqpte),ny_pt(ned,mnqpte),cfac(ned,mnqpte),Spe(ned,mnqpte),STAT = alloc_status(7)) 
+      ALLOCATE(psiv(mnnds,mnnds,norder),psic(mnnds,mnnds,norder),STAT = alloc_status(8))
       
       ! Edge transformation information
-      ALLOCATE(psie(mnp,mnqpte,nel_type),dpsidxi(mnp,mnqpte,nel_type),STAT = alloc_status(8))
-      ALLOCATE(detJe(ned,mnqpte),STAT = alloc_status(9))
+      ALLOCATE(psie(mnp,mnqpte,norder),dpsidxi(mnp,mnqpte,norder),STAT = alloc_status(9))
+      ALLOCATE(detJe(ned,mnqpte),STAT = alloc_status(10))
       
       ! Depreciated arrays, used as a check
-      ALLOCATE(area(ne),STAT = alloc_status(10))
-      ALLOCATE(edlen(ned),edlen_area(2,ned),STAT = alloc_status(11))      
-      ALLOCATE(normal(2,ned),STAT = alloc_status(12))
+      ALLOCATE(area(ne),STAT = alloc_status(11))
+      ALLOCATE(edlen(ned),edlen_area(2,ned),STAT = alloc_status(12))      
+      ALLOCATE(normal(2,ned),STAT = alloc_status(13))
       
       DO i = 1,n
         IF (alloc_status(i) /= 0) THEN

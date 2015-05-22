@@ -19,9 +19,12 @@
       CHARACTER(50) :: out_direc      
       
       INTEGER, PARAMETER :: nel_type = 4 !(type #s: 1 -> triangles, 2 -> quads, 3 -> curved triangles, 4-> curved quads)
+      INTEGER, PARAMETER :: norder = 6 ! # of different orders (straight sided elements for tri/quad = 1, curvilinear tri/quad = ctp, high-order bathymetry = hbp) 
       INTEGER :: ctp
+      INTEGER :: hbp
       INTEGER :: nverts(nel_type)
-      INTEGER :: np(nel_type), nnds(nel_type)
+      INTEGER :: np(norder), nnds(norder)
+      INTEGER :: order(2*nel_type)
       
       INTEGER :: curved_grid
       INTEGER, ALLOCATABLE, DIMENSION(:) :: el_type
@@ -110,9 +113,8 @@
 
       REAL(pres), ALLOCATABLE, DIMENSION(:,:,:) :: Va,Ve
       INTEGER, ALLOCATABLE, DIMENSION(:,:) :: ipiva,ipive
-      REAL(pres), ALLOCATABLE, DIMENSION(:,:,:) :: psia
+      REAL(pres), ALLOCATABLE, DIMENSION(:,:,:) :: psia,psie,psiv,psic
       REAL(pres), ALLOCATABLE, DIMENSION(:,:,:) :: dpsidr,dpsids   
-      REAL(pres), ALLOCATABLE, DIMENSION(:,:,:) :: psie
       REAL(pres), ALLOCATABLE, DIMENSION(:,:,:) :: dpsidxi
       REAL(pres), ALLOCATABLE, DIMENSION(:,:,:) :: m2n
       REAL(pres), ALLOCATABLE, DIMENSION(:) :: area ! element areas

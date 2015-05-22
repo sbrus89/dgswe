@@ -1,6 +1,6 @@
       SUBROUTINE vandermonde()
       
-      USE globals, ONLY: pres,ctp,np,mnp,nnds,mnnds,nel_type,Va,ipiva,Ve,ipive
+      USE globals, ONLY: pres,ctp,np,mnp,nnds,mnnds,norder,nel_type,Va,ipiva,Ve,ipive
       USE basis, ONLY: tri_nodes,tri_basis,quad_nodes,quad_basis,lglpts,jacobi
       
       IMPLICIT NONE
@@ -9,18 +9,19 @@
       REAL(pres) :: phi(mnnds*mnnds)
       INTEGER :: info        
       
-      ALLOCATE(Va(mnnds,mnnds,nel_type))
-      ALLOCATE(ipiva(mnnds,nel_type))
       
-      ALLOCATE(Ve(mnp,mnp,nel_type))
-      ALLOCATE(ipive(mnp,nel_type))
+      ALLOCATE(Va(mnnds,mnnds,norder))
+      ALLOCATE(ipiva(mnnds,norder))
+      
+      ALLOCATE(Ve(mnp,mnp,norder))
+      ALLOCATE(ipive(mnp,norder))
       
       Va = 0d0
       ipiva = 0
       Ve = 0d0
       ipive = 0
       
-      DO et = 1,nel_type
+      DO et = 1,norder
         n = nnds(et)
         p = np(et)
         IF (mod(et,2) == 1) THEN
@@ -37,9 +38,7 @@
             Va(dof,pt,et) = phi(i)
           ENDDO
         ENDDO
-        
-
-        
+                
         CALL DGETRF(n,n,Va(1,1,et),mnnds,ipiva(1,et),info)  
         
 !         DO dof = 1,n
@@ -47,7 +46,12 @@
 !         ENDDO        
 !         PRINT*, " "    
 
-       
+      ENDDO
+      
+      
+      DO et = 1,nel_type
+      
+        p = np(et)        
         n = p+1
       
         CALL lglpts(p,xi)       
@@ -62,9 +66,7 @@
         
         ENDDO     
       
-        CALL DGETRF(n,n,Ve(1,1,et),mnp,ipive(1,et),info)
-        
-
+        CALL DGETRF(n,n,Ve(1,1,et),mnp,ipive(1,et),info)       
         
       ENDDO
                   

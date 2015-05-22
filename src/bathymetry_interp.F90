@@ -1,6 +1,6 @@
       SUBROUTINE bathymetry_interp()
 
-      USE globals, ONLY: pres,el_type,nelnds,ndof,nnds,nqpta,nqpte,nverts, &
+      USE globals, ONLY: pres,el_type,nelnds,ndof,nnds,nqpta,nqpte,nverts,order, &
                          ne,ned,elxy,elhb,ged2el,ged2led, &
                          hbqpta_init,dhbdx_init,dhbdy_init,hbqpte_init, &
                          psia,dpsidr,dpsids, &
@@ -10,7 +10,7 @@
       IMPLICIT NONE
       
       INTEGER :: i,el,pt,nd,ed
-      INTEGER :: et,edpt,el1,el2,led1,led2
+      INTEGER :: typ,et,eo,edpt,el1,el2,led1,led2
       INTEGER :: ndf,nnd,nqa,nqe,nv
       REAL(pres) :: x,y,hb
       REAL(pres) :: xpt,ypt,detJ,Sp
@@ -26,7 +26,12 @@
       
       
       DO el = 1,ne
-        et = el_type(el)     
+      
+        et = el_type(el)
+        typ = et + 4
+        eo = order(typ)        
+        
+!         PRINT "(I5,200(f10.4))", et,(elhb(nd,el),   nd = 1,nnds(eo))          
         
      pts: DO pt = 1,nqpta(et)        
             dxdr = 0d0
@@ -63,30 +68,35 @@
             ELSE
               Sp = cos(sphi0)/cos(ypt/r_earth)        
             ENDIF            
+                                                                             
                                              
             dhbdx_init(el,pt) = 0d0
             dhbdy_init(el,pt) = 0d0
             hbqpta_init(el,pt) = 0d0
-            DO nd = 1,nnds(et)  
+            DO nd = 1,nnds(eo)  
               hb = elhb(nd,el)
               
-              hbqpta_init(el,pt) =  hbqpta_init(el,pt) + psia(nd,pt,et)*hb
+              hbqpta_init(el,pt) =  hbqpta_init(el,pt) + psia(nd,pt,typ)*hb
               
-              dhbdx_init(el,pt) = dhbdx_init(el,pt) + (dpsidr(nd,pt,et)*drdx + dpsids(nd,pt,et)*dsdx)*hb*Sp
-              dhbdy_init(el,pt) = dhbdy_init(el,pt) + (dpsidr(nd,pt,et)*drdy + dpsids(nd,pt,et)*dsdy)*hb              
+              dhbdx_init(el,pt) = dhbdx_init(el,pt) + (dpsidr(nd,pt,typ)*drdx + dpsids(nd,pt,typ)*dsdx)*hb*Sp
+              dhbdy_init(el,pt) = dhbdy_init(el,pt) + (dpsidr(nd,pt,typ)*drdy + dpsids(nd,pt,typ)*dsdy)*hb              
             ENDDO
                      
-             IF (et == 3) THEN        
-               WRITE(45,"(4(e24.17,1x))") xpt,ypt,dhbdx_init(el,pt),dhbdy_init(el,pt)      
-               WRITE(46,"(4(e24.17,1x))") xpt,ypt,hbqpta_init(el,pt)
-             ENDIF
+!              IF (et == 1) THEN        
+               WRITE(45,"(I7,4(e24.17,1x))") el,xpt,ypt,dhbdx_init(el,pt),dhbdy_init(el,pt)      
+               WRITE(46,"(I7,4(e24.17,1x))") el,xpt,ypt,hbqpta_init(el,pt)
+!              ENDIF
              
           ENDDO pts          
+          
+                 
                   
       ENDDO
       
       CLOSE(45)
       CLOSE(46)      
+      
+
       
       
       
@@ -99,15 +109,18 @@
         
         et = el_type(el1) 
         nqa = nqpta(et)
-        nqe = nqpte(et)        
+        nqe = nqpte(et)                    
+        
+        typ = et + 4
+        eo = order(typ)
         
         DO i = 1,nqe
           pt = nqa + (led1-1)*nqe+i
           edpt = (led1-1)*nqe+i          
           
           hbqpte_init(el1,edpt) = 0d0          
-          DO nd = 1,nnds(et)                                 
-            hbqpte_init(el1,edpt) = hbqpte_init(el1,edpt) + psia(nd,pt,et)*elhb(nd,el1)     
+          DO nd = 1,nnds(eo)                                 
+            hbqpte_init(el1,edpt) = hbqpte_init(el1,edpt) + psia(nd,pt,typ)*elhb(nd,el1)     
           ENDDO   
         ENDDO          
                             
@@ -116,15 +129,18 @@
 
           et = el_type(el2) 
           nqa = nqpta(et)
-          nqe = nqpte(et)          
+          nqe = nqpte(et)   
+
+          typ = et + 4          
+          eo = order(typ)      
         
           DO i = 1,nqe        
             pt = nqa + (led2-1)*nqe+i
             edpt = (led2-1)*nqe+i          
           
             hbqpte_init(el2,edpt) = 0d0          
-            DO nd = 1,nnds(et)                                 
-              hbqpte_init(el2,edpt) = hbqpte_init(el2,edpt) + psia(nd,pt,et)*elhb(nd,el2)     
+            DO nd = 1,nnds(eo)                                 
+              hbqpte_init(el2,edpt) = hbqpte_init(el2,edpt) + psia(nd,pt,typ)*elhb(nd,el2)     
             ENDDO           
           ENDDO
 

@@ -24,18 +24,15 @@
       REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: jac    
     
       CALL alloc_trans_arrays()             
-
-      nx_pt = 0d0
-      ny_pt = 0d0    
+      
+      CALL vandermonde() 
+      
+      CALL shape_functions()        
       
       IF (ctp > 1 .AND. curved_grid == 0) THEN  
 !       IF (ctp > 1) THEN
         CALL curvilinear()    
-      ENDIF
-      
-      CALL vandermonde()
-      
-      CALL shape_functions()            
+      ENDIF     
 
       CALL area_transformation()            
 

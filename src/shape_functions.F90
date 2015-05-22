@@ -1,14 +1,15 @@
       SUBROUTINE shape_functions()
 
-      USE globals, ONLY: pres,nel_type,nverts,nnds,mnnds,mnqpta,nqpta,mnqpte,nqpte,np,mnp, &
-                         qpta,qpte,psia,dpsidr,dpsids,psie,dpsidxi, &
+      USE globals, ONLY: pres,nel_type,norder,order,nverts,nnds,mnnds, &
+                         mnqpta,nqpta,mnqpte,nqpte,np,mnp, &
+                         qpta,qpte,psia,dpsidr,dpsids,psie,dpsidxi,psiv,psic, &
                          Va,ipiva,Ve,ipive
-      USE basis, ONLY: tri_basis,quad_basis,jacobi,djacobi
+      USE basis, ONLY: tri_nodes,quad_nodes,tri_basis,quad_basis,jacobi,djacobi
       
       IMPLICIT NONE      
       
       INTEGER :: pt,i,j,dof
-      INTEGER :: et,tpts
+      INTEGER :: typ,et,eo,tpts,npts
       INTEGER :: nv,nnd,nqa,nqe,p,n
       INTEGER :: info      
       REAL(pres) :: r(mnqpta+4*mnqpte),s(mnqpta+4*mnqpte),xi(mnqpte)
@@ -18,13 +19,23 @@
       dpsidr = 0d0
       dpsids = 0d0
       
-      DO et = 1,nel_type
       
+      DO typ = 1,2*nel_type
+      
+        IF (typ <= 4) THEN
+          et = typ
+        ELSE
+          et = typ - 4
+        ENDIF
+        
+        eo = order(typ)
+        
         nv = nverts(et)
-        nnd = nnds(et)
         nqa = nqpta(et)
         nqe = nv*nqpte(et)
-        p = np(et)      
+        
+        nnd = nnds(eo)
+        p = np(eo)      
       
         tpts = nqa+nqe     
       
@@ -40,9 +51,9 @@
         ENDDO
 
 
-        IF(mod(et,2) == 1) THEN
+        IF(nv == 3) THEN
           CALL tri_basis(p,nnd,tpts,r,s,phi,dphidr,dphids)             
-        ELSE IF (mod(et,2) == 0) THEN
+        ELSE IF (nv == 4) THEN
           CALL quad_basis(p,nnd,tpts,r,s,phi,dphidr,dphids)  
         ENDIF
       
@@ -50,9 +61,9 @@
           DO dof = 1,nnd
             i = (dof-1)*tpts + pt  
           
-            psia(dof,pt,et) = phi(i)
-            dpsidr(dof,pt,et) = dphidr(i)
-            dpsids(dof,pt,et) = dphids(i)
+            psia(dof,pt,typ) = phi(i)
+            dpsidr(dof,pt,typ) = dphidr(i)
+            dpsids(dof,pt,typ) = dphids(i)
           ENDDO
         ENDDO      
       
@@ -62,17 +73,87 @@
 !         PRINT("(20(F15.5))"), (l(i,j), j = 1,tpts)
 !       ENDDO      
       
-        CALL DGETRS("N",nnd,tpts,Va(1,1,et),mnnds,ipiva(1,et),psia(1,1,et),mnnds,info)
-        CALL DGETRS("N",nnd,tpts,Va(1,1,et),mnnds,ipiva(1,et),dpsidr(1,1,et),mnnds,info)      
-        CALL DGETRS("N",nnd,tpts,Va(1,1,et),mnnds,ipiva(1,et),dpsids(1,1,et),mnnds,info)  
+        CALL DGETRS("N",nnd,tpts,Va(1,1,eo),mnnds,ipiva(1,eo),psia(1,1,typ),mnnds,info)
+        CALL DGETRS("N",nnd,tpts,Va(1,1,eo),mnnds,ipiva(1,eo),dpsidr(1,1,typ),mnnds,info)      
+        CALL DGETRS("N",nnd,tpts,Va(1,1,eo),mnnds,ipiva(1,eo),dpsids(1,1,typ),mnnds,info)  
       
 !       PRINT*, "Psi : "      
 !       DO i = 1,nnd
 !         PRINT("(300(F27.17))"), (psia(i,j,et), j = 1,tpts)
 !       ENDDO         
 
+       ENDDO
 
-
+      
+      
+      DO eo = 1,norder
+        npts = nnds(eo)
+        p = np(eo)
+        
+        IF (mod(eo,2) == 1) THEN
+          et = 1
+          CALL tri_nodes(1,p,npts,r,s)
+          CALL tri_basis(np(et),nnds(et),npts,r,s,phi)       
+        ELSE IF (mod(eo,2) == 0) THEN
+          et = 2
+          CALL quad_nodes(1,p,npts,r,s)
+          CALL quad_basis(np(et),nnds(et),npts,r,s,phi)
+        ENDIF        
+        
+        DO pt = 1,npts
+          DO dof = 1,nnds(et)
+            i = (dof-1)*npts + pt  
+          
+            psiv(dof,pt,eo) = phi(i)
+          ENDDO
+        ENDDO            
+        
+        CALL DGETRS("N",nnds(et),npts,Va(1,1,et),mnnds,ipiva(1,et),psiv(1,1,eo),mnnds,info)   
+        
+        PRINT*, "psiv"
+        DO i = 1,nnds(et)
+          PRINT "(20(e20.6))", (psiv(i,j,eo), j = 1,npts)
+        ENDDO
+        PRINT*," "
+      ENDDO
+       
+       
+      DO eo = 1,norder
+        npts = nnds(eo)
+        p = np(eo)
+        
+        IF (mod(eo,2) == 1) THEN
+          et = 3
+          CALL tri_nodes(1,p,npts,r,s)
+          CALL tri_basis(np(et),nnds(et),npts,r,s,phi)       
+        ELSE IF (mod(eo,2) == 0) THEN
+          et = 4
+          CALL quad_nodes(1,p,npts,r,s)
+          CALL quad_basis(np(et),nnds(et),npts,r,s,phi)
+        ENDIF        
+        
+        DO pt = 1,npts
+          DO dof = 1,nnds(et)
+            i = (dof-1)*npts + pt  
+          
+            psic(dof,pt,eo) = phi(i)
+          ENDDO
+        ENDDO            
+        
+        CALL DGETRS("N",nnds(et),npts,Va(1,1,et),mnnds,ipiva(1,et),psic(1,1,eo),mnnds,info)   
+        
+        PRINT*, "psic"        
+        DO i = 1,nnds(et)
+          PRINT "(20(e20.6))", (psic(i,j,eo), j = 1,npts)
+        ENDDO
+        PRINT*," "
+      ENDDO       
+       
+       
+       
+      DO et = 1,nel_type
+       
+        p = np(et)    
         n = p+1
         nqe = nqpte(et)        
        
@@ -94,9 +175,6 @@
 
         CALL DGETRS("N",n,nqe,Ve(1,1,et),mnp,ipive(1,et),psie(1,1,et),mnp,info)
         CALL DGETRS("N",n,nqe,Ve(1,1,et),mnp,ipive(1,et),dpsidxi(1,1,et),mnp,info)
-      
-              
-      
  
       ENDDO
 
