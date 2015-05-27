@@ -7,7 +7,8 @@ grd_direc = '~/Codes/dgswe/grids/';
 sol_direc = '~/Codes/dgswe/output/';
 % sol_direc = '~/data-drive/converge_quad/mesh1/P2/CTP2/';
 % grd_name = 'inlet2.grd';
-grd_name = 'converge_quad.grd';
+grd_name = 'converge.grd';
+% grd_name = 'converge.grd';
 % grd_name = 'beaufort_hb+2.grd';
 plot_folder = 'velplot';
 
@@ -35,7 +36,7 @@ plot_folder = 'velplot';
 % sol_direc = '~/data-drive/galveston/dgswe/quad2/M2/p3/';
 % grd_name = 'galveston2.grd';
 % plot_folder = 'velplot_scale';
-
+% 
 % grd_direc = '~/data-drive/galveston/dgswe/quad2_spline/p1/';
 % sol_direc = '~/data-drive/galveston/dgswe/quad2_spline/p1/';
 % grd_name = 'galveston2_spline.grd';
@@ -61,7 +62,7 @@ plot_folder = 'velplot';
 
 ctp = 2;
 
-nsnap = 48;
+nsnap = 49;
 
 grid_on = 1;
 
@@ -112,13 +113,14 @@ fid = fopen([sol_direc,'modal2nodal.d']);
 
 nel_type = 4;
 
-nvert = zeros(1,nel_type);
-ndof = zeros(1,nel_type);
-m2n = zeros(9,36,nel_type);
-for et = 1:nel_type
+nvert = zeros(1,2*nel_type);
+ndof = zeros(1,2*nel_type);
+nnds = zeros(1,2*nel_type);
+m2n = zeros(9,36,2*nel_type);
+for et = 1:2*nel_type
     data  = fscanf(fid, '%d %d \n',2);
     ndof(et) = data(2);
-    nvert(et) = data(1);
+    nvert(et) = data(1);    
     m2n(1:nvert(et),1:ndof(et),et) = fscanf(fid,' %g ',[ndof(et) nvert(et)])';
 end
 fclose(fid);
@@ -128,9 +130,28 @@ fclose(fid);
 
 mndof = max(ndof);
 
+
+
+fid_hb = fopen([sol_direc,'hb_modal.d']);
+hbm = fscanf(fid_hb,' %g ', [ne mndof])'; 
+hb = zeros(9,ne,1);
+for el = 1:ne
+    
+    n = nelnds(el);
+    et = el_type(el);
+    
+    hb(1:n,el,1) = m2n(1:n,1:ndof(et+4),et+4)*hbm(1:ndof(et+4),el);
+    
+end
+fclose(fid_hb);
+
+
+
 fid_H = fopen([sol_direc,'solution_H.d']);
 fid_Qx = fopen([sol_direc,'solution_Qx.d']);
 fid_Qy = fopen([sol_direc,'solution_Qy.d']);
+
+
 
 line = fgetl(fid_H);
 line = fgetl(fid_Qx);
@@ -144,6 +165,8 @@ Hv = zeros(9,ne,nsnap);
 Qxv = zeros(9,ne,nsnap);
 Qyv = zeros(9,ne,nsnap);
 Zv = zeros(9,ne,nsnap);
+u = zeros(9,ne,nsnap);
+v = zeros(9,ne,nsnap);
 
 snap = 0;
 while ~feof(fid_H) && snap < nsnap
@@ -167,18 +190,23 @@ while ~feof(fid_H) && snap < nsnap
         et = el_type(el);
         
         Zv(1:n,el,snap) = m2n(1:n,1:ndof(et),et)*Z(1:ndof(et),el);
-%         Hv(1:n,el,snap) = m2n(1:n,1:ndof(et),et)*H(1:ndof(et),el);        
+%         Hv(1:n,el,snap) = m2n(1:n,1:ndof(et),et)*H(1:ndof(et),el);
         Qxv(1:n,el,snap) = m2n(1:n,1:ndof(et),et)*Qx(1:ndof(et),el);
         Qyv(1:n,el,snap) = m2n(1:n,1:ndof(et),et)*Qy(1:ndof(et),el);
         Hv(1:n,el,snap) = Zv(1:n,el,snap)+HB(EToV(el,1:n));
-%         Hv(1:n,el,snap) = Zv(1:n,el,snap)+hbnodes(el,1:n)';        
-%         Zv(1:n,el,snap) = Hv(1:n,el,snap)-HB(EToV(el,1:n));        
+%         Hv(1:n,el,snap) = Zv(1:n,el,snap)+hbnodes(el,1:n)';
+%         Zv(1:n,el,snap) = Hv(1:n,el,snap)-HB(EToV(el,1:n));
+        
+        u(1:n,el,snap) = Qxv(1:n,el,snap)./hb(1:n,el,1);
+        v(1:n,el,snap) = Qyv(1:n,el,snap)./hb(1:n,el,1);
         
     end
+    
 end
 
-u = Qxv./Hv;
-v = Qyv./Hv;
+% u = Qxv./Hv;
+% v = Qyv./Hv;
+
 vel = sqrt(u.^2 + v.^2);
 
 Hmax = max(max(max(Hv)));
@@ -198,26 +226,28 @@ if exist([sol_direc,'velscale.mat'])
     scale = 1;
 end
 
-% figure
-% 
-% hold on
-% 
-% for el = 1:ne
-%     
-%     n = nelnds(el);
-%     et = el_type(el);
-%     
-%     if n == 9
-%         n = n-1;
-%     end
-%     
-%     if grid_on == 0
+figure
+
+hold on
+
+for el = 1:ne
+    
+    n = nelnds(el);
+    et = el_type(el);
+    
+    if n == 9
+        n = n-1;
+    end
+    
+    if grid_on == 0
 %         fill(VX(EToV(el,1:n),1),VX(EToV(el,1:n),2),HB(EToV(el,1:n)),'EdgeColor','none')
-%     else
+        fill(VX(EToV(el,1:n),1),VX(EToV(el,1:n),2),hb(1:n,el),'EdgeColor','none')
+    else
 %         fill(VX(EToV(el,1:n),1),VX(EToV(el,1:n),2),HB(EToV(el,1:n)))
-%     end
-%     
-% end
+        fill(VX(EToV(el,1:n),1),VX(EToV(el,1:n),2),hb(1:n,el))
+    end
+    
+end
 % 
 % colorbar
 % set(gcf,'PaperPositionMode','auto')
@@ -233,9 +263,8 @@ end
 %     print('-depsc',sprintf('%s/bathy_zoom%02d',FramesFolder,zoom)) ;
 % end
     
-figure
 
-for tsnap = 1:snap
+for tsnap = snap
     
 %     figure('visible','off')
     figure
@@ -259,6 +288,9 @@ for tsnap = 1:snap
         if n == 9
             n = n-1;
         end
+        
+%         HB = 10 - 5*cos(2*pi/500*VX(EToV(el,1:n),2));
+%         vel(1:n,el,tsnap) = sqrt((Qxv(1:n,el,tsnap)./HB).^2 + (Qyv(1:n,el,tsnap)./HB).^2);
         
         if grid_on == 0
             fill(VX(EToV(el,1:n),1),VX(EToV(el,1:n),2),vel(1:n,el,tsnap),'EdgeColor','none')            
