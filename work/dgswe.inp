@@ -2,6 +2,7 @@
 !../grids/inlet1.bfr                                       ! forcing file
 !2                                                        ! p - polynomial order
 !1                                                        ! ctp - parametric coordinate transformation order
+!1                                                        ! hbp - bathymetry order
 !1d0                                                      ! dt - timestep (1d0 for p=1,2, .5d0 for p=3)
 !1d0                                                      ! tf - final time (days)
 !.5d0                                                     ! dramp - ramping parameter (days)
@@ -10,10 +11,11 @@
 !../output/                                               ! output directory
 !7
 
-../grids/converge_quad.grd                                     ! grid file  
+../grids/converge.grd                                     ! grid file  
 ../grids/converge.bfr                                     ! forcing file
-2                                                         ! p - polynomial order
+3                                                         ! p - polynomial order
 2                                                         ! ctp - parametric coordinate transformation order
+2                                                         ! hbp - bathymetry order
 0.25d0                                                       ! dt - timestep 
 1d0                                                       ! tf - final time (days)
 .08d0                                                     ! dramp - ramping parameter (days)
@@ -26,6 +28,7 @@
 !../grids/beaufort.bfr                                     ! forcing file
 !1                                                         ! p - polynomial order
 !1                                                         ! ctp - parametric coordinate transformation order
+!1                                                         ! hbp - bathymetry order
 !.5d0                                                      ! dt - timestep
 !1d0                                                       ! tf - final time (days)
 !2d0                                                       ! dramp - ramping parameter (days)
