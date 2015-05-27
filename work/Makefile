@@ -7,7 +7,8 @@ VPATH := ../src
 ODIR = odir/
 
 FULLNAME := $(shell hostname)
-GIT_SHA := $(shell git rev-parse --short HEAD)
+# GIT_SHA := $(shell git rev-parse --short HEAD)
+GIT_SHA := $(shell git rev-parse HEAD)
 GIT_MOD := $(shell git diff-index --quiet HEAD; echo $$?)
 
 GIT_MOD := $(strip $(subst 1,+,$(GIT_MOD)))
@@ -113,7 +114,7 @@ METIS_LIB = -L../metis-4.0.3 -lmetis
 
 objects = globals.o messenger2.o allocation.o basis.o  area_qpts.o edge_qpts.o read_input.o read_grid.o read_forcing.o modal2nodal.o \
 	initial.o connect.o curvilinear.o element_data.o shape_functions.o vandermonde.o area_transformation.o edge_transformation.o bathymetry_interp.o edge_partition2.o  \
-	area_integration.o edge_integration.o rhs2.o  numerical_flux.o rk.o write_output.o swe_tri.o
+	area_integration.o edge_integration.o rhs2.o  numerical_flux.o rk.o write_output.o version.o swe_tri.o
 
 obj := $(patsubst %.o, $(ODIR)%.o,$(objects))
 
@@ -163,6 +164,7 @@ dgswe : $(ODIR) $(obj)
 	@echo  " \n\033[35m$(MESSAGE) on $(FULLNAME) \033[0m \n"
 	@echo "Git SHA: $(GIT_SHA)"
 	@echo "Modified: $(GIT_MOD)"
+	@sed -i '6 c \      PRINT*, "$(GIT_SHA) $(GIT_MOD)" ' ../src/version.F90
 	$(FC) $(CFLAGS_LINK) dgswe $(obj) $(METIS_LIB) $(LAPACK_LIB)
 
 dgswe_omp : $(ODIR) $(obj)
@@ -307,6 +309,9 @@ $(ODIR)numerical_flux.o : numerical_flux.f90 globals.F90
 	
 $(ODIR)write_output.o : write_output.F90 globals.F90 messenger2.F90
 	$(FC) $(CFLAGS) $< -o $@	
+	
+$(ODIR)version.o : version.F90
+	$(FC) $(CFLAGS) $< -o $@		
 
 $(ODIR)swe_tri.o : swe_tri.F90 globals.F90 basis.f90 allocation.f90 messenger2.F90
 	$(FC) $(CFLAGS) $(RK) $< -o $@

@@ -163,6 +163,8 @@
         PRINT*, 'Started: ',date,time
         PRINT*, ' '        
       ENDIF      
+      
+      CALL version()
        
       RETURN           
       END SUBROUTINE message_init
