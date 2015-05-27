@@ -10,6 +10,7 @@ FULLNAME := $(shell hostname)
 # GIT_SHA := $(shell git rev-parse --short HEAD)
 GIT_SHA := $(shell git rev-parse HEAD)
 GIT_MOD := $(shell git diff-index --quiet HEAD; echo $$?)
+GIT_BRANCH := $(shell git rev-parse --abbrev-ref HEAD )
 
 GIT_MOD := $(strip $(subst 1,+,$(GIT_MOD)))
 GIT_MOD := $(strip $(subst 0,,$(GIT_MOD)))
@@ -160,11 +161,10 @@ post :
 
 else
 
-dgswe : $(ODIR) $(obj)
+dgswe : $(ODIR)  $(obj)
 	@echo  " \n\033[35m$(MESSAGE) on $(FULLNAME) \033[0m \n"
 	@echo "Git SHA: $(GIT_SHA)"
 	@echo "Modified: $(GIT_MOD)"
-	@sed -i '6 c \      PRINT*, "$(GIT_SHA) $(GIT_MOD)" ' ../src/version.F90
 	$(FC) $(CFLAGS_LINK) dgswe $(obj) $(METIS_LIB) $(LAPACK_LIB)
 
 dgswe_omp : $(ODIR) $(obj)
@@ -190,9 +190,10 @@ endif
 #                            Clean Targets                             #
 ########################################################################
 
-.PHONY : $(ODIR)
 $(ODIR) :
 	mkdir -p $@
+	@sed -i '6 c \      PRINT*, "  Branch: $(GIT_BRANCH)" ' ../src/version.F90	
+	@sed -i '7 c \      PRINT*, "  SHA: $(GIT_SHA) $(GIT_MOD)" ' ../src/version.F90	
 	
 clean : 
 	@echo "\n\n"
