@@ -1,21 +1,24 @@
       SUBROUTINE bathymetry_interp()
 
-      USE globals, ONLY: pres,el_type,nelnds,ndof,nnds,nqpta,nqpte,nverts,order, &
+      USE globals, ONLY: pres,el_type,nelnds,mndof,ndof,mnnds,nnds,nqpta,nqpte,nverts,order, &
                          ne,ned,elxy,elhb,ged2el,ged2led, &
-                         hbqpta_init,dhbdx_init,dhbdy_init,hbqpte_init, &
-                         psia,dpsidr,dpsids, &
-                         coord_sys,sphi0,r_earth
+                         hbqpta_init,dhbdx_init,dhbdy_init,hbqpte_init,hbm, &
+                         Va,ipiva,psia,dpsidr,dpsids, &
+                         coord_sys,sphi0,r_earth, &
+                         out_direc
                          
 
       IMPLICIT NONE
       
-      INTEGER :: i,el,pt,nd,ed
+      INTEGER :: i,el,pt,nd,ed,dof
       INTEGER :: typ,et,eo,edpt,el1,el2,led1,led2
       INTEGER :: ndf,nnd,nqa,nqe,nv
+      INTEGER :: info
       REAL(pres) :: x,y,hb
       REAL(pres) :: xpt,ypt,detJ,Sp
       REAL(pres) :: dxdr,dxds,dydr,dyds
       REAL(pres) :: drdx,drdy,dsdx,dsdy
+      REAL(pres) :: hbn(mnnds)
 
 
       OPEN(unit=45, file='dhb.d')
@@ -148,6 +151,31 @@
         
       ENDDO         
       
+      
+     
+      ALLOCATE(hbm(mnnds,ne))     
+      hbm = 0d0 
+      DO el = 1,ne
+      
+        et = el_type(el)
+        typ = et + 4
+        eo = order(typ)     
+                
+        DO nd = 1,nnds(eo)
+          hbm(nd,el) = elhb(nd,el)
+        ENDDO
+        
+        CALL DGETRS("T",nnds(eo),1,Va(1,1,eo),mnnds,ipiva(1,eo),hbm(1,el),mnnds,info)                         
+        
+      ENDDO
+      
+      OPEN(unit=65,FILE=trim(out_direc) //'hb_modal.d')
+      DO dof = 1,mnnds
+        WRITE(65,"(16000(e24.17,1x))") (hbm(dof,el), el = 1,ne)
+      ENDDO
+      CLOSE(65)
+      
+
 
       RETURN
       END SUBROUTINE bathymetry_interp

@@ -1,14 +1,14 @@
       SUBROUTINE modal2nodal()
 
-      USE globals, ONLY: pres,nel_type,p,np,nnds,mnnds,ndof,mndof,m2n,out_direc, &
-                         nqpta,mnqpta,wpta,phia,phil
+      USE globals, ONLY: pres,nel_type,p,np,nnds,mnnds,ndof,mndof,order,m2n,out_direc, &
+                         nqpta,mnqpta,wpta,phia,phil,hbp
       USE basis, ONLY: tri_basis,quad_basis,tri_nodes,quad_nodes,linear
 
       IMPLICIT NONE
       
       INTEGER :: i,j,m,dof
-      INTEGER :: et,pt
-      INTEGER :: nvert,n
+      INTEGER :: typ,et,pt
+      INTEGER :: nvert,n,ndf,pp,eo
       INTEGER :: alloc_status
       REAL(pres) :: r(25),s(25)
       REAL(pres) :: phi(25*mndof)
@@ -21,54 +21,44 @@
       
       OPEN(unit=111,file=trim(out_direc) // "modal2nodal.d")
       
-      DO et = 1,nel_type
+      DO typ = 1,2*nel_type
+      
+        IF (typ <= 4) THEN
+          et = typ
+          pp = p
+          ndf = ndof(et)
+        ELSE
+          et = typ - 4
+          pp = hbp
+          ndf = nnds(order(typ))
+        ENDIF      
         
+        eo = order(typ)                
         n = nnds(et)
         
-        IF (mod(et,2) == 1) THEN
-        
-!           nvert = 3
-!         
-!           CALL tri_nodes(0,1,nvert,r,s)  ! get vertex coordinates
-!           CALL tri_basis(p,ndof(et),nvert,r,s,phi)          
+        IF (mod(et,2) == 1) THEN    
         
           CALL tri_nodes(0,np(et),n,r,s)  ! get vertex coordinates     
-          CALL tri_basis(p,ndof(et),n,r,s,phi)             
+          CALL tri_basis(pp,ndf,n,r,s,phi)             
 
-        ELSE IF (mod(et,2) == 0) THEN
-        
-!           nvert = 4
-!           
-!           CALL quad_nodes(0,1,nvert,r,s)  ! get vertex coordinates
-!           CALL quad_basis(p,ndof(et),nvert,r,s,phi)                                      
+        ELSE IF (mod(et,2) == 0) THEN                                    
           
           CALL quad_nodes(0,np(et),n,r,s)  ! get vertex coordinates     
-          CALL quad_basis(p,ndof(et),n,r,s,phi)          
+          CALL quad_basis(pp,ndf,n,r,s,phi)          
 
         ENDIF
         
-!         DO dof = 1,ndof(et)            
-!           DO pt = 1,nvert 
-!             i = (dof-1)*nvert + pt            
-!             m2n(pt,dof,et) = phi(i)
-!           ENDDO
-!         ENDDO
-!         
-!         WRITE(111,"(I5,I5)") nvert, ndof(et)
-!         DO pt = 1,nvert
-!           WRITE(111,"(160(e24.17,1x))") (m2n(pt,dof,et), dof = 1,ndof(et))
-!         ENDDO        
 
-        DO dof = 1,ndof(et)            
+        DO dof = 1,ndf            
           DO pt = 1,n 
             i = (dof-1)*n + pt            
             m2n(pt,dof,et) = phi(i)
           ENDDO
         ENDDO
         
-        WRITE(111,"(I5,I5)") n, ndof(et)     
+        WRITE(111,"(I5,I5)") n, ndf   
         DO pt = 1,n
-          WRITE(111,"(160(e24.17,1x))") (m2n(pt,dof,et), dof = 1,ndof(et))
+          WRITE(111,"(160(e24.17,1x))") (m2n(pt,dof,et), dof = 1,ndf)
         ENDDO       
           
       ENDDO
@@ -76,6 +66,21 @@
       CLOSE(111)
         
 
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
         
       ! Write out L2 projection information (for use with pdeplot, only for triangles)        
       

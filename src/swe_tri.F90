@@ -50,6 +50,8 @@
       ! Compute element area, edge length, edge normals, and bathymetry derivatives
       CALL element_data()     
       
+!       STOP
+      
       ! Set up netcdf output files
 !       CALL file_setup()
 

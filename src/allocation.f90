@@ -37,7 +37,7 @@
       np(1) = 1
       np(2) = 1
       np(3) = ctp
-      np(4) = ctp   
+      np(4) = ctp  
       np(5) = hbp
       np(6) = hbp
       mnp = maxval(np)+1
@@ -349,7 +349,7 @@
                          Hqpt,Zqpt,Qxqpt,Qyqpt,xmom,ymom,xymom, &
                          Hflux,Zflux,Qxflux,Qyflux,tau,src_x,src_y,recipHa, &
                          MirhsH,MirhsZ,MirhsQx,MirhsQy, &
-                         Hwrite,Zwrite,Qxwrite,Qywrite                                                 
+                         Hwrite,Zwrite,Qxwrite,Qywrite
                          
       IMPLICIT NONE
       INTEGER, PARAMETER :: n=10
@@ -384,6 +384,8 @@
       
       ! Write arrays
       ALLOCATE(Hwrite(ne,mndof),Zwrite(ne,mndof),Qxwrite(ne,mndof),Qywrite(ne,mndof),STAT = alloc_status(10))
+      
+
 
       DO i = 1,n
         IF (alloc_status(i) /= 0) THEN

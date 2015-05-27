@@ -150,6 +150,7 @@
       REAL(pres), ALLOCATABLE, TARGET, DIMENSION(:,:) :: Z      
       REAL(pres), ALLOCATABLE, TARGET, DIMENSION(:,:) :: Qx ! degrees of freedom for x momentum
       REAL(pres), ALLOCATABLE, TARGET, DIMENSION(:,:) :: Qy ! degrees of freedom for y momentum
+      REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: hbm      
       
       REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: Hold,Hinit ! degrees of freedom for water column height
       REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: Zold,Zinit 
