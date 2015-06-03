@@ -18,6 +18,7 @@
       
       INTEGER :: p
       INTEGER :: ctp
+      INTEGER :: hbp
       REAL(pres) :: dt
       REAL(pres) :: tf
       REAL(pres) :: dramp

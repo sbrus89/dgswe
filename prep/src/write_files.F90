@@ -5,7 +5,7 @@
                          nobfr,obtag,obtag2,obfreq,obnfact,obeq,lobamp,lobph, &
                          nfbfr,fbtag,fbtag2,fbfreq,fbnfact,fbeq,lfbamp,lfbph,lnbouf, &
                          nsred,ned_sr,pe_sr,el_sr,led_sr,el_l2g,nd_l2g, &
-                         grid_file,forcing_file,p,ctp,dt,tf,dramp,cf,lines,nblk,npart,mndof
+                         grid_file,forcing_file,p,ctp,hbp,dt,tf,dramp,cf,lines,nblk,npart,mndof
 
       IMPLICIT NONE
 
@@ -226,6 +226,7 @@
         WRITE(10,"(A)") dirname(1:lname)//'/'//"fort.15"
         WRITE(10,"(I5)") p
         WRITE(10,"(I5)") ctp
+        WRITE(10,"(I5)") hbp
         WRITE(10,"(E24.17)") dt
         WRITE(10,"(E24.17)") tf
         WRITE(10,"(E24.17)") dramp

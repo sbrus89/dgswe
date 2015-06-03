@@ -1,11 +1,11 @@
       SUBROUTINE read_input()
 
       USE globals, ONLY: grid_file,forcing_file,out_direc, &
-                         p,ctp,dt,tf,dramp,cf,lines,nblk,npart,mndof
+                         p,ctp,hbp,dt,tf,dramp,cf,lines,nblk,npart,mndof
 
       IMPLICIT NONE
       
-      INTEGER, PARAMETER :: ninp = 11
+      INTEGER, PARAMETER :: ninp = 12
       INTEGER :: inp_read,skipped
       CHARACTER(50) :: temp
       LOGICAL :: file_exists
@@ -37,37 +37,28 @@
           SELECT CASE (inp_read)
             CASE (1)
               grid_file = TRIM(temp)
-              PRINT*, "grid_file = ", grid_file
             CASE (2)
               forcing_file = TRIM(temp)
-              PRINT*, "forcing_file = ", forcing_file
             CASE (3)
               READ(temp,*) p
-              PRINT*, "p = ", p
             CASE (4) 
               READ(temp,*) ctp
-              PRINT*, "ctp = ", ctp
-            CASE (5)
-              READ(temp,*) dt
-              PRINT*, "dt = ", dt
+            CASE (5) 
+              READ(temp,*) hbp
             CASE (6)
-              READ(temp,*) tf
-              PRINT*, "tf = ", tf
+              READ(temp,*) dt
             CASE (7)
-              READ(temp,*) dramp
-              PRINT*, "dramp = ", dramp
+              READ(temp,*) tf
             CASE (8)
-              READ(temp,*) cf
-              PRINT*, "cf = ", cf
+              READ(temp,*) dramp
             CASE (9)
-              READ(temp,*) lines
-              PRINT*, "lines = ", lines
+              READ(temp,*) cf
             CASE (10)
-              out_direc = TRIM(temp)
-              PRINT*, "out_direc = ", out_direc
+              READ(temp,*) lines
             CASE (11)
+              out_direc = TRIM(temp)
+            CASE (12)
               READ(temp,*) npart
-              PRINT*, "npart = ", npart
           END SELECT
             
         ENDIF
@@ -76,6 +67,23 @@
       ENDDO
       
       mndof = (p+1)**2
+      
+      PRINT "(A)", "---------------------------------------------"
+      PRINT "(A)", "             Input Information               "
+      PRINT "(A)", "---------------------------------------------"
+      PRINT "(A)", " "      
+      PRINT*, "grid_file = ", grid_file    
+      PRINT*, "forcing_file = ", forcing_file 
+      PRINT*, "p = ", p              
+      PRINT*, "ctp = ", ctp       
+      PRINT*, "hbp = ", hbp             
+      PRINT*, "dt = ", dt    
+      PRINT*, "tf = ", tf        
+      PRINT*, "dramp = ", dramp   
+      PRINT*, "cf = ", cf  
+      PRINT*, "lines = ", lines   
+      PRINT*, "out_direc = ", out_direc    
+      PRINT*, "npart = ", npart       
       
       PRINT*, " "
       PRINT*, "Lines skipped: ", skipped
