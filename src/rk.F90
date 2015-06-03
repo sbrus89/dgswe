@@ -2,7 +2,7 @@
 
       USE globals, ONLY: dof,ndof,el,ne,nel_type,blk,npart,npartet,elblk, &
                          t,tstage,dt,pt3333,ramp,dramp, &
-                         Hold,H,MirhsH,Zold,Z,MirhsZ,Qxold,Qx,MirhsQx,Qyold,Qy,MirhsQy
+                         Hold,H,MirhsH,Zold,Z,MirhsZ,Qxold,Qx,MirhsQx,Qyold,Qy,MirhsQy                                            
 
       IMPLICIT NONE
       
@@ -202,6 +202,8 @@
                          H,Z,Qx,Qy, &
                          blk,npart,nel_type,elblk,npartet, &
                          t
+                         
+      USE messenger2, ONLY: finish                               
       
       IMPLICIT NONE
       
@@ -219,7 +221,7 @@
                   PRINT*, "NaN detected in H solution"
                   PRINT("(A,e15.8)"), 't = ', t
                   CALL write_output()
-                  STOP
+                  CALL finish()
                 ENDIF
               ENDDO
         
@@ -228,7 +230,7 @@
                   PRINT*, "NaN detected in Qx solution"
                   PRINT("(A,e15.8)"), 't = ', t
                   CALL write_output()
-                  STOP
+                  CALL finish()
                 ENDIF
               ENDDO
         
@@ -237,7 +239,7 @@
                   PRINT*, "NaN detected in Qy solution"
                   PRINT("(A,e15.8)"), 't = ', t
                   CALL write_output()
-                  STOP
+                  CALL finish()
                 ENDIF
               ENDDO
         
