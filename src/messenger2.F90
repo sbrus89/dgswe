@@ -42,10 +42,11 @@
       END TYPE edge_ptr_array
       
       TYPE(edge_ptr_array), ALLOCATABLE, DIMENSION(:,:) :: Hri,Hre
+      TYPE(edge_ptr_array), ALLOCATABLE, DIMENSION(:,:) :: Zri,Zre      
       TYPE(edge_ptr_array), ALLOCATABLE, DIMENSION(:,:) :: Qxri,Qxre
       TYPE(edge_ptr_array), ALLOCATABLE, DIMENSION(:,:) :: Qyri,Qyre   
       TYPE(edge_ptr_array), ALLOCATABLE, DIMENSION(:,:) :: xmri,ymri,xymri    
-      TYPE(edge_ptr_array), ALLOCATABLE, DIMENSION(:,:) :: Hfri,Qxfri,Qyfri
+      TYPE(edge_ptr_array), ALLOCATABLE, DIMENSION(:,:) :: Zfri,Hfri,Qxfri,Qyfri
       
       REAL(pres), ALLOCATABLE, DIMENSION(:) :: xmre,ymre,xymre
       
@@ -65,27 +66,27 @@
       INTEGER, ALLOCATABLE, DIMENSION(:) :: win      
       
 #ifdef ALIGN64
-!DIR$ ATTRIBUTES ALIGN:64 :: Hri,Hre,Qxri,Qxre,Qyri,Qyre
+!DIR$ ATTRIBUTES ALIGN:64 :: Zri,Zre,Hri,Hre,Qxri,Qxre,Qyri,Qyre
 !DIR$ ATTRIBUTES ALIGN:64 :: xmri,xmre,ymri,ymre,xymri,xymre
-!DIR$ ATTRIBUTES ALIGN:64 :: Hfri,Qxfri,Qyfri
+!DIR$ ATTRIBUTES ALIGN:64 :: Zfri,Hfri,Qxfri,Qyfri
 !DIR$ ATTRIBUTES ALIGN:64 :: rnx,rny,len_area_recv
 !DIR$ ATTRIBUTES ALIGN:64 :: sol_send,sol_recv
 !DIR$ ATTRIBUTES ALIGN:64 :: send_ptr
 #endif
 
 #ifdef ALIGN32
-!DIR$ ATTRIBUTES ALIGN:32 :: Hri,Hre,Qxri,Qxre,Qyri,Qyre
+!DIR$ ATTRIBUTES ALIGN:32 :: Zri,Zre,Hri,Hre,Qxri,Qxre,Qyri,Qyre
 !DIR$ ATTRIBUTES ALIGN:32 :: xmri,xmre,ymri,ymre,xymri,xymre
-!DIR$ ATTRIBUTES ALIGN:32 :: Hfri,Qxfri,Qyfri
+!DIR$ ATTRIBUTES ALIGN:32 :: Zfri,Hfri,Qxfri,Qyfri
 !DIR$ ATTRIBUTES ALIGN:32 :: rnx,rny,len_area_recv
 !DIR$ ATTRIBUTES ALIGN:32 :: sol_send,sol_recv
 !DIR$ ATTRIBUTES ALIGN:32 :: send_ptr
 #endif 
 
 #ifdef ALIGN16
-!DIR$ ATTRIBUTES ALIGN:16 :: Hri,Hre,Qxri,Qxre,Qyri,Qyre
+!DIR$ ATTRIBUTES ALIGN:16 :: Zri,Zre,Hri,Hre,Qxri,Qxre,Qyri,Qyre
 !DIR$ ATTRIBUTES ALIGN:16 :: xmri,xmre,ymri,ymre,xymri,xymre
-!DIR$ ATTRIBUTES ALIGN:16 :: Hfri,Qxfri,Qyfri
+!DIR$ ATTRIBUTES ALIGN:16 :: Zfri,Hfri,Qxfri,Qyfri
 !DIR$ ATTRIBUTES ALIGN:16 :: rnx,rny,len_area_recv
 !DIR$ ATTRIBUTES ALIGN:16 :: sol_send,sol_recv
 !DIR$ ATTRIBUTES ALIGN:16 :: send_ptr
@@ -289,8 +290,8 @@
       SUBROUTINE message_setup()
       
       USE globals, ONLY: ned,mnqpte,nqpte,detJe,nx_pt,ny_pt, &
-                         Hflux,Qxflux,Qyflux, &
-                         Hqpt,Qxqpt,Qyqpt, &
+                         Zflux,Hflux,Qxflux,Qyflux, &
+                         Zqpt,Hqpt,Qxqpt,Qyqpt, &
                          xmom,ymom,xymom, &
                          ged2el,ged2led, &
                          gel2ael, &
@@ -320,7 +321,8 @@
           DO pt = 1,nqpte(1)
             i = i+1
             gpt = (led-1)*nqpte(1) + pt
-            send_ptr(i,pe)%ptr => Hqpt(el_in,gpt)
+!             send_ptr(i,pe)%ptr => Hqpt(el_in,gpt)
+            send_ptr(i,pe)%ptr => Zqpt(el_in,gpt)
             send_ptr(ned_sr(pe)*nqpte(1) + i,pe)%ptr => Qxqpt(el_in,gpt)
             send_ptr(2*ned_sr(pe)*nqpte(1) + i,pe)%ptr => Qyqpt(el_in,gpt)
           ENDDO
@@ -329,11 +331,11 @@
       
       
       ALLOCATE(sol_recv(3*mnedsr*mnqpte,nproc_sr))
-      ALLOCATE(Hre(nred,mnqpte),Qxre(nred,mnqpte),Qyre(nred,mnqpte))
-      ALLOCATE(Hri(nred,mnqpte),Qxri(nred,mnqpte),Qyri(nred,mnqpte))
+      ALLOCATE(Zre(nred,mnqpte),Hre(nred,mnqpte),Qxre(nred,mnqpte),Qyre(nred,mnqpte))
+      ALLOCATE(Zri(nred,mnqpte),Hri(nred,mnqpte),Qxri(nred,mnqpte),Qyri(nred,mnqpte))
       ALLOCATE(xmri(nred,mnqpte),ymri(nred,mnqpte),xymri(nred,mnqpte))
       ALLOCATE(xmre(nred),ymre(nred),xymre(nred))
-      ALLOCATE(Hfri(nred,mnqpte),Qxfri(nred,mnqpte),Qyfri(nred,mnqpte))      
+      ALLOCATE(Zfri(nred,mnqpte),Hfri(nred,mnqpte),Qxfri(nred,mnqpte),Qyfri(nred,mnqpte))      
       
       edcnt = 0     
       DO pe = 1,nproc_sr
@@ -347,7 +349,8 @@
             
             gp_ex = nqpte(1) - pt + 1
             
-            Hre(edcnt,gp_ex)%ptr => sol_recv(i,pe)
+!             Hre(edcnt,gp_ex)%ptr => sol_recv(i,pe)
+            Zre(edcnt,gp_ex)%ptr => sol_recv(i,pe)            
             Qxre(edcnt,gp_ex)%ptr => sol_recv(ned_sr(pe)*nqpte(1) + i,pe)
             Qyre(edcnt,gp_ex)%ptr => sol_recv(2*ned_sr(pe)*nqpte(1) + i,pe)
             
@@ -355,6 +358,7 @@
             el_in = gel2ael(el)
             
             Hri(edcnt,pt)%ptr  => Hqpt(el_in,gp_in)
+            Zri(edcnt,pt)%ptr  => Zqpt(el_in,gp_in)
             Qxri(edcnt,pt)%ptr => Qxqpt(el_in,gp_in)
             Qyri(edcnt,pt)%ptr => Qyqpt(el_in,gp_in)
             
@@ -363,6 +367,7 @@
             xymri(edcnt,pt)%ptr => xymom(el_in,gp_in)
             
             Hfri(edcnt,pt)%ptr  => Hflux(el_in,gp_in)
+            Zfri(edcnt,pt)%ptr  => Zflux(el_in,gp_in)            
             Qxfri(edcnt,pt)%ptr => Qxflux(el_in,gp_in)
             Qyfri(edcnt,pt)%ptr => Qyflux(el_in,gp_in)
           ENDDO
