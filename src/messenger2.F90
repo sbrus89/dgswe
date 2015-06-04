@@ -189,7 +189,7 @@
       INQUIRE(FILE=dirname(1:lname)//'/'//'fort.18', EXIST = file_exists)
       IF(file_exists == .FALSE.) THEN
         PRINT*, "fort.18 file does not exist for process", myrank
-        CALL finish()
+        CALL abort()
       ENDIF     
       
       OPEN(UNIT=18,FILE=dirname(1:lname)//'/'//'fort.18')
@@ -232,7 +232,7 @@
       INQUIRE(FILE=dirname(1:lname)//'/'//'fort.80', EXIST = file_exists)
       IF(file_exists == .FALSE.) THEN
         PRINT*, "fort.80 file does not exist for process", myrank
-        CALL finish()
+        CALL abort()
       ENDIF   
       
       OPEN(UNIT=80,FILE=dirname(1:lname)//'/'//'fort.80')  
@@ -247,22 +247,22 @@
       ! Check the post processing information against run input 
       IF(npe /= nproc) THEN
         PRINT*, "number of processors does not agree with files"
-        CALL finish()
+        CALL abort()
       ENDIF
       
       IF(ne /= ne2) THEN
         PRINT*, "number of elements does not agree with files"
-        CALL finish()
+        CALL abort()
       ENDIF
       
       IF(ndof2 /= (p+1)**2) THEN
         PRINT*, "number of degrees of freedom does not agree with files"
-        CALL finish()
+        CALL abort()
       ENDIF
       
       IF(lines2 /= lines) THEN
         PRINT*, "number of output lines does not agree with files"
-        CALL finish()
+        CALL abort()
       ENDIF
       
       ALLOCATE(lel2gel(ne))
@@ -400,7 +400,7 @@
           
           IF(match == 0) THEN
             PRINT*, "global edge not found for recieve edge"
-            CALL finish()
+            CALL abort()
           ENDIF
           
           
@@ -527,6 +527,30 @@
        ENDIF
 #endif
        STOP
+
+       RETURN
+       END SUBROUTINE finish
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+       SUBROUTINE abort()
+
+       IMPLICIT NONE
+       
+       INTEGER :: errorcode
+       
+       errorcode = 0
+        
+#ifdef CMPI       
+       CALL MPI_ABORT(MPI_COMM_WORLD,errorcode,ierr)
+       
+       PRINT*, "MPI aborted, status = ", ierr
+#else      
+
+       STOP  
+       
+#endif
 
        RETURN
        END SUBROUTINE finish

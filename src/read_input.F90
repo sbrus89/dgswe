@@ -15,7 +15,7 @@
       INQUIRE(FILE=dirname(1:lname)//'/'//'dgswe.inp', EXIST = file_exists)
       IF(file_exists == .FALSE.) THEN
         PRINT*, "dgswe.inp file does not exist"
-        CALL finish()
+        CALL abort()
       ENDIF      
       
       OPEN(UNIT=15,FILE=dirname(1:lname)//'/'//'dgswe.inp')      

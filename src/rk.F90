@@ -221,7 +221,7 @@
                   PRINT*, "NaN detected in H solution"
                   PRINT("(A,e15.8)"), 't = ', t
                   CALL write_output()
-                  CALL finish()
+                  CALL abort()
                 ENDIF
               ENDDO
         
@@ -230,7 +230,7 @@
                   PRINT*, "NaN detected in Qx solution"
                   PRINT("(A,e15.8)"), 't = ', t
                   CALL write_output()
-                  CALL finish()
+                  CALL abort()
                 ENDIF
               ENDDO
         
@@ -239,7 +239,7 @@
                   PRINT*, "NaN detected in Qy solution"
                   PRINT("(A,e15.8)"), 't = ', t
                   CALL write_output()
-                  CALL finish()
+                  CALL abort()
                 ENDIF
               ENDDO
         

@@ -16,7 +16,7 @@
       INQUIRE(FILE=forcing_file, EXIST = file_exists)
       IF(file_exists == .FALSE.) THEN
         PRINT*, "fort.15 file does not exist"
-        CALL finish()
+        CALL abort()
       ENDIF
       
       OPEN(UNIT=15, FILE=forcing_file)

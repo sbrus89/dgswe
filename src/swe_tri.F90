@@ -129,8 +129,8 @@
 !       WRITE(101,*) "mnpartel,mnparted = ", mnpartel,mnparted   
 !       WRITE(101,*) "CPU time = ", t_end-t_start
 !       WRITE(101,*) " "
-!       CLOSE(101)
+!       CLOSE(101)      
       
-
-      PRINT*, ' '
+      CALL finish()
+      
       END PROGRAM swe_tri

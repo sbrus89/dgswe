@@ -21,7 +21,7 @@
       INQUIRE(FILE=grid_file, EXIST = file_exists)
       IF(file_exists == .FALSE.) THEN
         PRINT*, "grid file does not exist"
-        CALL finish()        
+        CALL abort()        
       ENDIF
       
       OPEN(UNIT=14, FILE=grid_file)                 
@@ -77,7 +77,7 @@
           curved_grid = 1
         ELSE
           PRINT*, "Element type not supported or ctp not compatible with grid"
-          CALL finish()
+          CALL abort()
         ENDIF 
         
         DO j = 1,nelnds(el)
