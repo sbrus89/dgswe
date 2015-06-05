@@ -375,7 +375,7 @@ ed_points2: DO pt = 1,nqpte(1) ! Compute numerical fluxes for all edges
       DO pt = 1,nqpte(1)
       
         DO ed = 1,nred
-          Hre(ed) = Zre(ed,pt)%pt + hbr(ed,pt)
+          Hre(ed) = Zre(ed,pt)%ptr + hbr(ed,pt)
         ENDDO
       
 !!DIR$ VECTOR ALIGNED      
