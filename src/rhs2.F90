@@ -32,10 +32,10 @@
       USE messenger2, ONLY: message_recieve,message_send, &
                             nred,nproc_sr, &
                             solreq,solreq_send,solreq_recv,ierr, &
-                            Hri,Hre,Qxri,Qxre,Qyri,Qyre, &
+                            Zri,Zre,Hri,Hre,Qxri,Qxre,Qyri,Qyre, &
                             xmri,ymri,xymri,xmre,ymre,xymre, &
-                            Hfri,Qxfri,Qyfri, &
-                            rnx,rny,rcfac,detJe_recv         
+                            Zfri,Hfri,Qxfri,Qyfri, &
+                            rnx,rny,rcfac,detJe_recv,hbr         
                             
       USE mpi                            
 #endif       
@@ -374,27 +374,33 @@ ed_points2: DO pt = 1,nqpte(1) ! Compute numerical fluxes for all edges
       
       DO pt = 1,nqpte(1)
       
+        DO ed = 1,nred
+          Hre(ed) = Zre(ed,pt)%pt + hbr(ed,pt)
+        ENDDO
+      
 !!DIR$ VECTOR ALIGNED      
         DO ed = 1,nred
           const(ed) = max(abs(Qxri(ed,pt)%ptr*rnx(ed,pt) + Qyri(ed,pt)%ptr*rny(ed,pt))/Hri(ed,pt)%ptr + sqrt(g*Hri(ed,pt)%ptr*rcfac(ed,pt)), &
-                          abs(Qxre(ed,pt)%ptr*rnx(ed,pt) + Qyre(ed,pt)%ptr*rny(ed,pt))/Hre(ed,pt)%ptr + sqrt(g*Hre(ed,pt)%ptr*rcfac(ed,pt)))          
+                          abs(Qxre(ed,pt)%ptr*rnx(ed,pt) + Qyre(ed,pt)%ptr*rny(ed,pt))/Hre(ed)        + sqrt(g*Hre(ed)*rcfac(ed,pt)))          
         ENDDO
         
 
 !DIR$ IVDEP
 !!DIR$ VECTOR ALIGNED
         DO ed = 1,nred
-          Hhatv(ed) = .5d0*(rnx(ed,pt)*(Qxri(ed,pt)%ptr + Qxre(ed,pt)%ptr) + rny(ed,pt)*(Qyri(ed,pt)%ptr + Qyre(ed,pt)%ptr) &
-                                        - const(ed)*(Hre(ed,pt)%ptr - Hri(ed,pt)%ptr))
+!           Hhatv(ed) = .5d0*(rnx(ed,pt)*(Qxri(ed,pt)%ptr + Qxre(ed,pt)%ptr) + rny(ed,pt)*(Qyri(ed,pt)%ptr + Qyre(ed,pt)%ptr) &
+!                                         - const(ed)*(Hre(ed,pt)%ptr - Hri(ed,pt)%ptr))        
+          Zhatv(ed) = .5d0*(rnx(ed,pt)*(Qxri(ed,pt)%ptr + Qxre(ed,pt)%ptr) + rny(ed,pt)*(Qyri(ed,pt)%ptr + Qyre(ed,pt)%ptr) &
+                                        - const(ed)*(Zre(ed,pt)%ptr - Zri(ed,pt)%ptr))
         ENDDO
 
 !DIR$ IVDEP
 !!DIR$ VECTOR ALIGNED        
         DO ed = 1,nred
-          recipHa(ed) = 1d0/Hre(ed,pt)%ptr
+          recipHa(ed) = 1d0/Hre(ed)
           
-          xmre(ed) = pt5g*Hre(ed,pt)%ptr*Hre(ed,pt)%ptr + Qxre(ed,pt)%ptr*Qxre(ed,pt)%ptr*recipHa(ed)
-          ymre(ed) = pt5g*Hre(ed,pt)%ptr*Hre(ed,pt)%ptr + Qyre(ed,pt)%ptr*Qyre(ed,pt)%ptr*recipHa(ed)
+          xmre(ed) = pt5g*(Hre(ed)*Hre(ed) - hbr(ed,pt)*hbr(ed,pt)) + Qxre(ed,pt)%ptr*Qxre(ed,pt)%ptr*recipHa(ed)
+          ymre(ed) = pt5g*(Hre(ed)*Hre(ed) - hbr(ed,pt)*hbr(ed,pt)) + Qyre(ed,pt)%ptr*Qyre(ed,pt)%ptr*recipHa(ed)
           xymre(ed) = Qxre(ed,pt)%ptr*Qyre(ed,pt)%ptr*recipHa(ed)
         ENDDO
  
@@ -413,7 +419,8 @@ ed_points2: DO pt = 1,nqpte(1) ! Compute numerical fluxes for all edges
         ENDDO
 
         DO ed = 1,nred                                       
-          Hfri(ed,pt)%ptr =  detJe_recv(ed,pt)*Hhatv(ed)
+!           Hfri(ed,pt)%ptr =  detJe_recv(ed,pt)*Hhatv(ed)
+          Zfri(ed,pt)%ptr =  detJe_recv(ed,pt)*Zhatv(ed)          
         ENDDO   
         DO ed = 1,nred                                         
           Qxfri(ed,pt)%ptr =  detJe_recv(ed,pt)*Qxhatv(ed)        

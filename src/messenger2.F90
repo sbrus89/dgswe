@@ -41,7 +41,7 @@
         REAL(pres), POINTER :: ptr
       END TYPE edge_ptr_array
       
-      TYPE(edge_ptr_array), ALLOCATABLE, DIMENSION(:,:) :: Hri,Hre
+      TYPE(edge_ptr_array), ALLOCATABLE, DIMENSION(:,:) :: Hri !,Hre
       TYPE(edge_ptr_array), ALLOCATABLE, DIMENSION(:,:) :: Zri,Zre      
       TYPE(edge_ptr_array), ALLOCATABLE, DIMENSION(:,:) :: Qxri,Qxre
       TYPE(edge_ptr_array), ALLOCATABLE, DIMENSION(:,:) :: Qyri,Qyre   
@@ -49,12 +49,14 @@
       TYPE(edge_ptr_array), ALLOCATABLE, DIMENSION(:,:) :: Zfri,Hfri,Qxfri,Qyfri
       
       REAL(pres), ALLOCATABLE, DIMENSION(:) :: xmre,ymre,xymre
+      REAL(pres), ALLOCATABLE, DIMENSION(:) :: Hre
       
       REAL(pres), ALLOCATABLE, TARGET, DIMENSION(:,:) :: sol_recv
       REAL(pres), ALLOCATABLE, TARGET, DIMENSION(:,:) :: sol_send      
 
       TYPE(edge_ptr_array), ALLOCATABLE, DIMENSION(:,:) :: send_ptr    
       
+      REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: hbr      
       REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: rnx,rny
       REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: rcfac      
       REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: detJe_recv      
@@ -289,12 +291,11 @@
 
       SUBROUTINE message_setup()
       
-      USE globals, ONLY: ned,mnqpte,nqpte,detJe,nx_pt,ny_pt, &
+      USE globals, ONLY: ned,mnqpte,nqpte,detJe,nx_pt,ny_pt,hbqpte, &
                          Zflux,Hflux,Qxflux,Qyflux, &
                          Zqpt,Hqpt,Qxqpt,Qyqpt, &
                          xmom,ymom,xymom, &
-                         ged2el,ged2led, &
-                         gel2ael, &
+                         ged2el,ged2led,gel2ael, &
                          Spe,cfac
       
       IMPLICIT NONE
@@ -331,10 +332,13 @@
       
       
       ALLOCATE(sol_recv(3*mnedsr*mnqpte,nproc_sr))
-      ALLOCATE(Zre(nred,mnqpte),Hre(nred,mnqpte),Qxre(nred,mnqpte),Qyre(nred,mnqpte))
+!       ALLOCATE(Hre(nred,mnqpte))
+      ALLOCATE(Zre(nred,mnqpte),Qxre(nred,mnqpte),Qyre(nred,mnqpte))
       ALLOCATE(Zri(nred,mnqpte),Hri(nred,mnqpte),Qxri(nred,mnqpte),Qyri(nred,mnqpte))
       ALLOCATE(xmri(nred,mnqpte),ymri(nred,mnqpte),xymri(nred,mnqpte))
       ALLOCATE(xmre(nred),ymre(nred),xymre(nred))
+      ALLOCATE(Hre(nred))      
+      ALLOCATE(hbr(nred,mnqpte))
       ALLOCATE(Zfri(nred,mnqpte),Hfri(nred,mnqpte),Qxfri(nred,mnqpte),Qyfri(nred,mnqpte))      
       
       edcnt = 0     
@@ -356,6 +360,8 @@
             
             gp_in = (led-1)*nqpte(1) + pt
             el_in = gel2ael(el)
+            
+            hbr(edcnt,pt) = hbqpte(el_in,gp_in) ! assumes continuous bathymetry
             
             Hri(edcnt,pt)%ptr  => Hqpt(el_in,gp_in)
             Zri(edcnt,pt)%ptr  => Zqpt(el_in,gp_in)
