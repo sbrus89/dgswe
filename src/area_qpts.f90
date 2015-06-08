@@ -12,7 +12,7 @@
       INTEGER :: npt(nel_type)
       REAL(pres) :: r(13**2,3,nel_type)
       
-      order(1) = 2*(p+ctp)
+      order(1) = 2*p
       order(2) = order(1)
       order(3) = 2*(p+ctp)
       order(4) = order(3)
