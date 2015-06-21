@@ -3,7 +3,7 @@ SHELL = /bin/sh
 RK = -Drk33
 
 
-VPATH := ../src
+VPATH := ../src/
 ODIR = odir/
 
 FULLNAME := $(shell hostname)
@@ -39,8 +39,9 @@ ifeq ($(BUILDTYPE),dgswe)
 #   ### Profile compilation ###
 #   CFLAGS_VEC =  -O3 -xHost -align array32byte -vec-report3 -profile-loops=all -I$(ODIR) -c 
 #   CFLAGS =  -O3 -xHost -align array32byte -profile-loops=all -I$(ODIR) -c 
-#   CFLAGS_LINK = -O3 -xHost -profile-loops=all -I$(ODIR) -o   
-  
+#   CFLAGS_LINK = -O3 -xHost -profile-loops=all -I$(ODIR) -o
+
+  EXE_NAME = dgswe
   MESSAGE = Compling serial program with optimization flags
 endif
 
@@ -55,6 +56,7 @@ ifeq ($(BUILDTYPE),dgswe_omp)
 #   CFLAGS =  -O3 -mmic -openmp -Dopenmp -c 
 #   CFLAGS_LINK = -O3 -mmic -openmp -Dopenmp  -o   
   
+  EXE_NAME = dgswe_omp
   MESSAGE = Compling OpenMP program with optimization flags
 endif
 
@@ -63,6 +65,7 @@ ifeq ($(BUILDTYPE),pdgswe)
   CFLAGS_VEC  =  -O3 -xHost -vec-report6 -DCMPI -I$(ODIR) -c
   CFLAGS      =  -O3 -xHost -DCMPI -I$(ODIR) -c 
   CFLAGS_LINK = -O3 -xHost -o 
+  EXE_NAME = pdgswe
   MESSAGE = Compling parallel program with optimization flags
 endif
 
@@ -71,6 +74,7 @@ ifeq ($(BUILDTYPE),dgswe_debug)
   CFLAGS_VEC  =  -C -g -traceback -I$(ODIR) -c
   CFLAGS      =  -C -g -traceback -I$(ODIR) -c 
   CFLAGS_LINK = -o 
+  EXE_NAME = dgswe_debug
   MESSAGE =  Compling serial program with debug flags 
 endif
 
@@ -79,7 +83,8 @@ ifeq ($(BUILDTYPE),pdgswe_debug)
   CFLAGS_VEC  =  -C -g -traceback -DCMPI -I$(ODIR) -c
   CFLAGS      =  -C -g -traceback -DCMPI -I$(ODIR) -c 
   CFLAGS_LINK =  -o 
-  MESSAGE = warning (INFO) Compling parallel program with debug flags
+  EXE_NAME = pdgswe_debug
+  MESSAGE = Compling parallel program with debug flags
 endif
 
 ### Other compiler flags ###
@@ -129,23 +134,23 @@ ifeq ($(MAKELEVEL),0)
 
 dgswe : 
 	@echo "\n\n"
-	$(MAKE) BUILDTYPE=dgswe $@
+	$(MAKE) BUILDTYPE=dgswe dgswe
 	
 dgswe_omp : 
 	@echo "\n\n"
-	$(MAKE) BUILDTYPE=dgswe_omp $@	
+	$(MAKE) BUILDTYPE=dgswe_omp dgswe	
 
 pdgswe : 
 	@echo "\n\n"
-	$(MAKE) BUILDTYPE=pdgswe $@
+	$(MAKE) BUILDTYPE=pdgswe dgswe
 
 dgswe_debug : 
 	@echo "\n\n"
-	$(MAKE) BUILDTYPE=dgswe_debug $@
+	$(MAKE) BUILDTYPE=dgswe_debug dgswe
 
 pdgswe_debug : 
 	@echo "\n\n"
-	$(MAKE) BUILDTYPE=pdgswe_debug $@
+	$(MAKE) BUILDTYPE=pdgswe_debug dgswe
 
 metis : 
 	@echo "\n\n"
@@ -165,24 +170,7 @@ dgswe : $(ODIR)  $(obj)
 	@echo  " \n\033[35m$(MESSAGE) on $(FULLNAME) \033[0m \n"
 	@echo "Git SHA: $(GIT_SHA)"
 	@echo "Modified: $(GIT_MOD)"
-	$(FC) $(CFLAGS_LINK) dgswe $(obj) $(METIS_LIB) $(LAPACK_LIB)
-
-dgswe_omp : $(ODIR) $(obj)
-	@echo  " \n\033[35m$(MESSAGE) on $(FULLNAME) \033[0m \n"
-	$(FC) $(CFLAGS_LINK) dgswe_omp $(obj) $(METIS_LIB) $(LAPACK_LIB)	
-
-pdgswe : $(ODIR) $(obj)
-	@echo  " \n\033[35m$(MESSAGE) on $(FULLNAME) \033[0m \n"
-	$(FC) $(CFLAGS_LINK) pdgswe $(obj) $(METIS_LIB) $(LAPACK_LIB)
-
-dgswe_debug : $(ODIR) $(obj)
-	@echo  " \n\033[35m$(MESSAGE) on $(FULLNAME) \033[0m \n"
-	$(FC) $(CFLAGS_LINK) dgswe_debug $(obj) $(METIS_LIB) $(LAPACK_LIB)
-
-pdgswe_debug : $(ODIR) $(obj)
-	@echo  " \n\033[35m$(MESSAGE) on $(FULLNAME) \033[0m \n"
-	$(FC) $(CFLAGS_LINK) pdgswe_debug $(obj) $(METIS_LIB) $(LAPACK_LIB)	
-
+	$(FC) $(CFLAGS_LINK) $(EXE_NAME) $(obj) $(METIS_LIB) $(LAPACK_LIB)
 endif
 
 
@@ -192,8 +180,8 @@ endif
 
 $(ODIR) :
 	mkdir -p $@
-	@sed -i '6 c \      PRINT*, "  Branch: $(GIT_BRANCH)" ' ../src/version.F90	
-	@sed -i '7 c \      PRINT*, "  SHA: $(GIT_SHA) $(GIT_MOD)" ' ../src/version.F90	
+	@sed -i '6 c \      PRINT*, "  Branch: $(GIT_BRANCH)" ' $(VPATH)version.F90	
+	@sed -i '7 c \      PRINT*, "  SHA: $(GIT_SHA) $(GIT_MOD)" ' $(VPATH)version.F90	
 	
 clean : 
 	@echo "\n\n"
