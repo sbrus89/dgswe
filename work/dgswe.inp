@@ -11,18 +11,31 @@
 !../output/                                               ! output directory
 !7
 
-../grids/converge.grd                                     ! grid file  
-../grids/converge.bfr                                     ! forcing file
-3                                                         ! p - polynomial order
-2                                                         ! ctp - parametric coordinate transformation order
-2                                                         ! hbp - bathymetry order
-0.25d0                                                       ! dt - timestep 
-1d0                                                       ! tf - final time (days)
-.08d0                                                     ! dramp - ramping parameter (days)
-.0025d0                                                   ! cf - friction coefficient 
-10d0                                                      ! lines - lines in output files
-../output/                                                ! output directory
-1                                                         ! npart - edge blocking parameter
+! ../grids/converge.grd                                     ! grid file  
+! ../grids/converge.bfr                                     ! forcing file
+! 1                                                         ! p - polynomial order
+! 2                                                         ! ctp - parametric coordinate transformation order
+! 1                                                         ! hbp - bathymetry order
+! 0.5d0                                                       ! dt - timestep 
+! 1d0                                                       ! tf - final time (days)
+! .08d0                                                     ! dramp - ramping parameter (days)
+! .0025d0                                                   ! cf - friction coefficient 
+! 10d0                                                      ! lines - lines in output files
+! ../output/                                                ! output directory
+! 1                                                         ! npart - edge blocking parameter
+
+grid_file = ../grids/converge.grd
+forcing_file = ../grids/converge.bfr  
+p = 1
+ctp = 2
+hbp = 1
+dt = 0.5d0
+tf = 1d0
+dramp = 0.08d0 
+cf = .0025d0
+lines = 10d0
+out_direc = ../output
+npart = 1
 
 !../grids/beaufort.grd                                     ! grid file
 !../grids/beaufort.bfr                                     ! forcing file

@@ -5,6 +5,7 @@
       USE basis
       USE allocation
       USE messenger2
+      USE read_dginp
 
       IMPLICIT NONE
       INTEGER :: it,tskp,cnt
@@ -85,6 +86,7 @@
         PRINT "(A)", " "
       ENDIF
       
+      tf = tf*86400d0
       tstep = int(tf/dt)
       tskp = int(tf/(lines*dt))             
 

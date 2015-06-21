@@ -4,7 +4,7 @@
       SAVE
 
       INTEGER, PARAMETER :: pres = kind(1d0) ! double precision 
-      INTEGER :: p ! polynomial order
+      INTEGER, TARGET :: p ! polynomial order
       INTEGER :: ne ! number of elements
       INTEGER :: nn ! number of nodes
       REAL(pres), PARAMETER :: g = 9.81d0 ! gravitational constant
@@ -12,16 +12,16 @@
       REAL(pres), PARAMETER :: pi=3.141592653589793D0
       REAL(pres), PARAMETER :: deg2rad = pi/180d0      
       REAL(pres), PARAMETER :: r_earth = 6378206.4d0      
-      REAL(pres) :: cf ! bottom friction parameter
-      CHARACTER(50) :: grid_name ! name of the grid
-      CHARACTER(50) :: grid_file ! name of fort.14 file
-      CHARACTER(50) :: forcing_file ! name of fort.15 file
-      CHARACTER(50) :: out_direc      
+      REAL(pres), TARGET :: cf ! bottom friction parameter
+      CHARACTER(100) :: grid_name ! name of the grid
+      CHARACTER(100), TARGET :: grid_file ! name of fort.14 file
+      CHARACTER(100), TARGET :: forcing_file ! name of fort.15 file
+      CHARACTER(100), TARGET :: out_direc      
       
       INTEGER, PARAMETER :: nel_type = 4 !(type #s: 1 -> triangles, 2 -> quads, 3 -> curved triangles, 4-> curved quads)
       INTEGER, PARAMETER :: norder = 6 ! # of different orders (straight sided elements for tri/quad = 1, curvilinear tri/quad = ctp, high-order bathymetry = hbp) 
-      INTEGER :: ctp
-      INTEGER :: hbp
+      INTEGER, TARGET :: ctp
+      INTEGER, TARGET :: hbp
       INTEGER :: nverts(nel_type)
       INTEGER :: np(norder), nnds(norder)
       INTEGER :: order(2*nel_type)
@@ -41,7 +41,7 @@
       INTEGER, ALLOCATABLE, DIMENSION(:,:,:) :: elblk
       INTEGER :: mnpartel,mnparted      
       
-      INTEGER :: npart ! number of element partitions)
+      INTEGER, TARGET  :: npart ! number of element partitions)
       INTEGER, ALLOCATABLE, DIMENSION(:) :: part
       INTEGER, ALLOCATABLE, DIMENSION(:) :: npartel
       INTEGER, ALLOCATABLE, DIMENSION(:) :: nparted
@@ -52,19 +52,19 @@
       INTEGER, ALLOCATABLE, DIMENSION(:) :: gel2ael ! gives the aligned element number that corresponds to a global element number
       INTEGER, ALLOCATABLE, DIMENSION(:) :: ael2gel ! gives the global element number that corresponds to an aligned element number      
 
-      REAL(pres) :: dt ! time step
+      REAL(pres), TARGET :: dt ! time step
       REAL(pres) :: t ! simulation time
-      REAL(pres) :: tf ! final time
+      REAL(pres), TARGET :: tf ! final time
       REAL(pres) :: tstage ! rk stage time
       REAL(pres) :: ramp ! boundary condition ramp value
-      REAL(pres) :: dramp ! numer of ramp days
+      REAL(pres), TARGET :: dramp ! numer of ramp days
       REAL(pres), PARAMETER :: pt3333 = 1d0/3d0 ! 1/3 for 3rd order rk
       
       INTEGER :: coord_sys
       REAL(pres) :: slam0,sphi0
       REAL(pres) :: h0
       
-      REAL(pres) :: lines ! number of lines in output files
+      REAL(pres), TARGET :: lines ! number of lines in output files
       
       INTEGER, ALLOCATABLE, DIMENSION(:,:) :: ect,vct ! element connectivity table
       INTEGER, ALLOCATABLE, DIMENSION(:) :: nelnds
