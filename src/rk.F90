@@ -1,144 +1,213 @@
       SUBROUTINE rk()
 
       USE globals, ONLY: dof,ndof,el,ne,nel_type,blk,npart,npartet,elblk, &
-                         t,tstage,dt,pt3333,ramp,dramp, &
+                         t,tstage,dt,pt3333,ramp,dramp,ark,brk,crk, &
                          Hold,H,MirhsH,Zold,Z,MirhsZ,Qxold,Qx,MirhsQx,Qyold,Qy,MirhsQy                                            
 
       IMPLICIT NONE
       
-      INTEGER :: et
+      INTEGER :: et,stg
       
 
-!       CALL nan_check()
-!       PRINT*, "NaN checked initial condition"      
+! !       CALL nan_check()
+! !       PRINT*, "NaN checked initial condition"      
+! 
+!       ! Save previous solution
+!       DO blk = 1,npart
+!         DO et = 1,nel_type
+!           IF (npartet(et,blk) > 0) THEN
+!           
+!             DO dof = 1,ndof(et)
+! !!DIR$ VECTOR ALIGNED
+!               DO el = elblk(1,blk,et),elblk(2,blk,et)
+! !                 Hold(el,dof) = H(el,dof)
+!                 Zold(el,dof) = Z(el,dof)
+!               ENDDO
+! !!DIR$ VECTOR ALIGNED
+!               DO el = elblk(1,blk,et),elblk(2,blk,et)
+!                 Qxold(el,dof) = Qx(el,dof)
+!               ENDDO
+! !!DIR$ VECTOR ALIGNED
+!               DO el = elblk(1,blk,et),elblk(2,blk,et)
+!                 Qyold(el,dof) = Qy(el,dof)
+!               ENDDO
+!             ENDDO
+!             
+!           ENDIF
+!         ENDDO
+!       ENDDO
+! 
+!       ! Evalutate right hand side  
+!       tstage = t
+!       ramp = TANH((2d0*tstage)/(86400d0*dramp))
+!       CALL rhs2()
+! !       CALL rhs3()
+! !        CALL rhs4()
+!       
+!       ! First RK stage
+!       DO blk = 1,npart
+!         DO et  = 1,nel_type
+!           IF (npartet(et,blk) > 0) THEN
+!           
+!             DO dof = 1,ndof(et)
+! !!DIR$ VECTOR ALIGNED
+!               DO el = elblk(1,blk,et),elblk(2,blk,et)
+! !                 H(el,dof) = Hold(el,dof) + dt*MirhsH(el,dof)
+!                 Z(el,dof) = Zold(el,dof) + dt*MirhsZ(el,dof)
+!               ENDDO
+! !!DIR$ VECTOR ALIGNED
+!               DO el = elblk(1,blk,et),elblk(2,blk,et)
+!                 Qx(el,dof) = Qxold(el,dof) + dt*MirhsQx(el,dof)
+!               ENDDO
+! !!DIR$ VECTOR ALIGNED
+!               DO el = elblk(1,blk,et),elblk(2,blk,et)
+!                 Qy(el,dof) = Qyold(el,dof) + dt*MirhsQy(el,dof)
+!               ENDDO
+!             ENDDO
+!             
+!           ENDIF
+!         ENDDO
+!       ENDDO
+!       
+! !      CALL nan_check()      
+! 
+! #ifdef rk22
+!       ! Evaluate RHS
+!       tstage = t + dt
+!       ramp = TANH((2d0*tstage)/(86400d0*dramp))
+!       CALL rhs2()
+! !       CALL rhs3()
+! !        CALL rhs4()
+!       
+!       ! Second RK stage
+!       DO blk = 1,npart
+!         DO et  = 1,nel_type
+!           IF (npartet(et,blk) > 0) THEN   
+!           
+!             DO dof = 1,ndof(et)
+! !!DIR$ VECTOR ALIGNED
+!               DO el = elblk(1,blk,et),elblk(2,blk,et)
+! !                 H(el,dof) = .5d0*(Hold(el,dof) + H(el,dof) + dt*MirhsH(el,dof))
+!                 Z(el,dof) = .5d0*(Zold(el,dof) + Z(el,dof) + dt*MirhsZ(el,dof))
+!               ENDDO
+! !!DIR$ VECTOR ALIGNED
+!               DO el = elblk(1,blk,et),elblk(2,blk,et)
+!                 Qx(el,dof) = .5d0*(Qxold(el,dof) + Qx(el,dof) + dt*MirhsQx(el,dof))
+!               ENDDO
+! !!DIR$ VECTOR ALIGNED
+!               DO el = elblk(1,blk,et),elblk(2,blk,et)
+!                 Qy(el,dof) = .5d0*(Qyold(el,dof) + Qy(el,dof) + dt*MirhsQy(el,dof))
+!               ENDDO
+!             ENDDO
+!       
+!           ENDIF
+!         ENDDO
+!       ENDDO      
+! #endif
+! 
+! 
+! 
+! #ifdef rk33
+! ! 3rd order TVD-RK (1st stage is the same as 2nd order)
+! 
+!       ! Evaluate RHS
+!       tstage = t + dt
+!       ramp = TANH((2d0*tstage)/(86400d0*dramp))
+!        CALL rhs2()
+! !      CALL rhs3()
+! !        CALL rhs4()
+!       
+!       ! Second RK stage
+!       DO blk = 1,npart
+!         DO et  = 1,nel_type
+!           IF (npartet(et,blk) > 0) THEN    
+!           
+!             DO dof = 1,ndof(et)
+! !DIR$ IVDEP
+! !!DIR$ VECTOR ALIGNED
+!               DO el = elblk(1,blk,et),elblk(2,blk,et)
+! !                 H(el,dof) = .25d0*(3d0*Hold(el,dof) + H(el,dof) + dt*MirhsH(el,dof))
+!                 Z(el,dof) = .25d0*(3d0*Zold(el,dof) + Z(el,dof) + dt*MirhsZ(el,dof))
+!               ENDDO
+! !DIR$ IVDEP
+! !!DIR$ VECTOR ALIGNED
+!               DO el = elblk(1,blk,et),elblk(2,blk,et)
+!                 Qx(el,dof) = .25d0*(3d0*Qxold(el,dof) + Qx(el,dof) + dt*MirhsQx(el,dof))
+!               ENDDO
+! !DIR$ IVDEP        
+! !!DIR$ VECTOR ALIGNED
+!               DO el = elblk(1,blk,et),elblk(2,blk,et)
+!                 Qy(el,dof) = .25d0*(3d0*Qyold(el,dof) + Qy(el,dof) + dt*MirhsQy(el,dof))
+!               ENDDO
+!             ENDDO
+!       
+!           ENDIF
+!         ENDDO
+!       ENDDO   
+!       
+! !      CALL nan_check()      
+! 
+!       ! Evaluate RHS
+!       tstage = t + .5d0*dt
+!       ramp = TANH((2d0*tstage)/(86400d0*dramp))
+!       CALL rhs2()
+! !       CALL rhs3()
+! !       CALL rhs4()
+!       
+!       ! Third RK stage
+!       DO blk = 1,npart
+!         DO et  = 1,nel_type
+!           IF (npartet(et,blk) > 0) THEN      
+!           
+!             DO dof = 1,ndof(et)
+! !DIR$ IVDEP      
+! !!DIR$ VECTOR ALIGNED
+!               DO el = elblk(1,blk,et),elblk(2,blk,et)
+! !                 H(el,dof) = pt3333*(Hold(el,dof) + 2d0*(H(el,dof) + dt*MirhsH(el,dof)))
+!                 Z(el,dof) = pt3333*(Zold(el,dof) + 2d0*(Z(el,dof) + dt*MirhsZ(el,dof)))
+!               ENDDO
+! !DIR$ IVDEP        
+! !!DIR$ VECTOR ALIGNED
+!               DO el = elblk(1,blk,et),elblk(2,blk,et)
+!                 Qx(el,dof) = pt3333*(Qxold(el,dof) + 2d0*(Qx(el,dof) + dt*MirhsQx(el,dof)))
+!               ENDDO
+! !DIR$ IVDEP        
+! !!DIR$ VECTOR ALIGNED
+!               DO el = elblk(1,blk,et),elblk(2,blk,et)
+!                 Qy(el,dof) = pt3333*(Qyold(el,dof) + 2d0*(Qy(el,dof) + dt*MirhsQy(el,dof)))
+!               ENDDO
+!             ENDDO
+!       
+!           ENDIF
+!         ENDDO
+!       ENDDO      
+! #endif
 
-      ! Save previous solution
-      DO blk = 1,npart
-        DO et = 1,nel_type
-          IF (npartet(et,blk) > 0) THEN
-          
-            DO dof = 1,ndof(et)
-!!DIR$ VECTOR ALIGNED
-              DO el = elblk(1,blk,et),elblk(2,blk,et)
-!                 Hold(el,dof) = H(el,dof)
-                Zold(el,dof) = Z(el,dof)
-              ENDDO
-!!DIR$ VECTOR ALIGNED
-              DO el = elblk(1,blk,et),elblk(2,blk,et)
-                Qxold(el,dof) = Qx(el,dof)
-              ENDDO
-!!DIR$ VECTOR ALIGNED
-              DO el = elblk(1,blk,et),elblk(2,blk,et)
-                Qyold(el,dof) = Qy(el,dof)
-              ENDDO
-            ENDDO
-            
-          ENDIF
-        ENDDO
-      ENDDO
+      DO stg = 1,5
 
-      ! Evalutate right hand side  
-      tstage = t
+      tstage = t + crk(stg)*dt 
       ramp = TANH((2d0*tstage)/(86400d0*dramp))
       CALL rhs2()
-!       CALL rhs3()
-!        CALL rhs4()
       
-      ! First RK stage
-      DO blk = 1,npart
-        DO et  = 1,nel_type
-          IF (npartet(et,blk) > 0) THEN
-          
-            DO dof = 1,ndof(et)
-!!DIR$ VECTOR ALIGNED
-              DO el = elblk(1,blk,et),elblk(2,blk,et)
-!                 H(el,dof) = Hold(el,dof) + dt*MirhsH(el,dof)
-                Z(el,dof) = Zold(el,dof) + dt*MirhsZ(el,dof)
-              ENDDO
-!!DIR$ VECTOR ALIGNED
-              DO el = elblk(1,blk,et),elblk(2,blk,et)
-                Qx(el,dof) = Qxold(el,dof) + dt*MirhsQx(el,dof)
-              ENDDO
-!!DIR$ VECTOR ALIGNED
-              DO el = elblk(1,blk,et),elblk(2,blk,et)
-                Qy(el,dof) = Qyold(el,dof) + dt*MirhsQy(el,dof)
-              ENDDO
-            ENDDO
-            
-          ENDIF
-        ENDDO
-      ENDDO
-      
-!       PRINT*, 1
-!      CALL nan_check()      
-
-#ifdef rk22
-      ! Evaluate RHS
-      tstage = t + dt
-      ramp = TANH((2d0*tstage)/(86400d0*dramp))
-      CALL rhs2()
-!       CALL rhs3()
-!        CALL rhs4()
-      
-      ! Second RK stage
-      DO blk = 1,npart
-        DO et  = 1,nel_type
-          IF (npartet(et,blk) > 0) THEN   
-          
-            DO dof = 1,ndof(et)
-!!DIR$ VECTOR ALIGNED
-              DO el = elblk(1,blk,et),elblk(2,blk,et)
-!                 H(el,dof) = .5d0*(Hold(el,dof) + H(el,dof) + dt*MirhsH(el,dof))
-                Z(el,dof) = .5d0*(Zold(el,dof) + Z(el,dof) + dt*MirhsZ(el,dof))
-              ENDDO
-!!DIR$ VECTOR ALIGNED
-              DO el = elblk(1,blk,et),elblk(2,blk,et)
-                Qx(el,dof) = .5d0*(Qxold(el,dof) + Qx(el,dof) + dt*MirhsQx(el,dof))
-              ENDDO
-!!DIR$ VECTOR ALIGNED
-              DO el = elblk(1,blk,et),elblk(2,blk,et)
-                Qy(el,dof) = .5d0*(Qyold(el,dof) + Qy(el,dof) + dt*MirhsQy(el,dof))
-              ENDDO
-            ENDDO
-      
-          ENDIF
-        ENDDO
-      ENDDO      
-#endif
-
-
-
-#ifdef rk33
-! 3rd order TVD-RK (1st stage is the same as 2nd order)
-
-      ! Evaluate RHS
-      tstage = t + dt
-      ramp = TANH((2d0*tstage)/(86400d0*dramp))
-       CALL rhs2()
-!      CALL rhs3()
-!        CALL rhs4()
-      
-      ! Second RK stage
       DO blk = 1,npart
         DO et  = 1,nel_type
           IF (npartet(et,blk) > 0) THEN    
           
             DO dof = 1,ndof(et)
 !DIR$ IVDEP
-!!DIR$ VECTOR ALIGNED
               DO el = elblk(1,blk,et),elblk(2,blk,et)
-!                 H(el,dof) = .25d0*(3d0*Hold(el,dof) + H(el,dof) + dt*MirhsH(el,dof))
-                Z(el,dof) = .25d0*(3d0*Zold(el,dof) + Z(el,dof) + dt*MirhsZ(el,dof))
+                Zold(el,dof) = ark(stg)*Zold(el,dof) + dt*MirhsZ(el,dof)
+                Z(el,dof) = Z(el,dof) + brk(stg)*Zold(el,dof)
               ENDDO
 !DIR$ IVDEP
-!!DIR$ VECTOR ALIGNED
               DO el = elblk(1,blk,et),elblk(2,blk,et)
-                Qx(el,dof) = .25d0*(3d0*Qxold(el,dof) + Qx(el,dof) + dt*MirhsQx(el,dof))
+                Qxold(el,dof) = ark(stg)*Qxold(el,dof) + dt*MirhsQx(el,dof)
+                Qx(el,dof) = Qx(el,dof) + brk(stg)*Qxold(el,dof)
               ENDDO
 !DIR$ IVDEP        
-!!DIR$ VECTOR ALIGNED
               DO el = elblk(1,blk,et),elblk(2,blk,et)
-                Qy(el,dof) = .25d0*(3d0*Qyold(el,dof) + Qy(el,dof) + dt*MirhsQy(el,dof))
+                Qyold(el,dof) = ark(stg)*Qyold(el,dof) + dt*MirhsQy(el,dof)
+                Qy(el,dof) = Qy(el,dof) + brk(stg)*Qyold(el,dof)
               ENDDO
             ENDDO
       
@@ -146,46 +215,8 @@
         ENDDO
       ENDDO   
       
-!       PRINT*, 2      
-!      CALL nan_check()      
+      ENDDO
 
-      ! Evaluate RHS
-      tstage = t + .5d0*dt
-      ramp = TANH((2d0*tstage)/(86400d0*dramp))
-      CALL rhs2()
-!       CALL rhs3()
-!       CALL rhs4()
-      
-      ! Third RK stage
-      DO blk = 1,npart
-        DO et  = 1,nel_type
-          IF (npartet(et,blk) > 0) THEN      
-          
-            DO dof = 1,ndof(et)
-!DIR$ IVDEP      
-!!DIR$ VECTOR ALIGNED
-              DO el = elblk(1,blk,et),elblk(2,blk,et)
-!                 H(el,dof) = pt3333*(Hold(el,dof) + 2d0*(H(el,dof) + dt*MirhsH(el,dof)))
-                Z(el,dof) = pt3333*(Zold(el,dof) + 2d0*(Z(el,dof) + dt*MirhsZ(el,dof)))
-              ENDDO
-!DIR$ IVDEP        
-!!DIR$ VECTOR ALIGNED
-              DO el = elblk(1,blk,et),elblk(2,blk,et)
-                Qx(el,dof) = pt3333*(Qxold(el,dof) + 2d0*(Qx(el,dof) + dt*MirhsQx(el,dof)))
-              ENDDO
-!DIR$ IVDEP        
-!!DIR$ VECTOR ALIGNED
-              DO el = elblk(1,blk,et),elblk(2,blk,et)
-                Qy(el,dof) = pt3333*(Qyold(el,dof) + 2d0*(Qy(el,dof) + dt*MirhsQy(el,dof)))
-              ENDDO
-            ENDDO
-      
-          ENDIF
-        ENDDO
-      ENDDO      
-#endif
-
-!       PRINT*, 3
      CALL nan_check()
 
       RETURN

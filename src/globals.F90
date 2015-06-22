@@ -60,6 +60,8 @@
       REAL(pres), TARGET :: dramp ! numer of ramp days
       REAL(pres), PARAMETER :: pt3333 = 1d0/3d0 ! 1/3 for 3rd order rk
       
+      REAL(pres), DIMENSION(5) :: ark,brk,crk
+      
       INTEGER :: coord_sys
       REAL(pres) :: slam0,sphi0
       REAL(pres) :: h0
@@ -317,6 +319,8 @@
 !DIR$ ATTRIBUTES ALIGN:64 :: xmin,ymin,xymin
 !DIR$ ATTRIBUTES ALIGN:64 :: xmex,ymex,xymex
 #endif
+
+
      
       END MODULE globals
 

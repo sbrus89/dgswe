@@ -34,7 +34,7 @@ tf = 1d0
 dramp = 0.08d0 
 cf = .0025d0
 lines = 10d0
-out_direc = ../output
+out_direc = ../output/
 npart = 1
 
 !../grids/beaufort.grd                                     ! grid file
