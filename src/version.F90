@@ -5,7 +5,7 @@
       PRINT*, " "
       PRINT*, "Version information"
       PRINT*, "  Branch: master" 
-      PRINT*, "  SHA: 99535cfe4603da3b08c660e2572e21f229c70e79     " 
+      PRINT*, "  SHA: 467436a33e25f8e7c01eb3db78b1763267615f9e     +" 
       PRINT*, " "
  
       END SUBROUTINE version

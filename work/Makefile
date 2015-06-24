@@ -1,3 +1,5 @@
+VPATH := ../src 
+
 CC = ifort
 CFLAGS1 = -c -O3 -132  #-Dadcirc
 #  CFLAGS1 = -c -C -g -132 -traceback -Dadcirc
@@ -21,8 +23,8 @@ main: version $(objects)
 	$(CC) $(CFLAGS2) error $(objects) $(LIB)
 
 version:
-	@sed -i '7 c \      PRINT*, "  Branch: $(GIT_BRANCH)" ' version.F90
-	@sed -i '8 c \      PRINT*, "  SHA: $(GIT_SHA) $(GIT_MOD)" ' version.F90
+	@sed -i '7 c \      PRINT*, "  Branch: $(GIT_BRANCH)" ' ../src/version.F90
+	@sed -i '8 c \      PRINT*, "  SHA: $(GIT_SHA) $(GIT_MOD)" ' ../src/version.F90
 
 globals.o: globals.f90
 	$(CC) $(CFLAGS1) $<
