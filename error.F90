@@ -8,13 +8,15 @@
 
       IMPLICIT NONE
 
-      INTEGER :: nd,pt,elc,elf,elb,i,dof
-      INTEGER :: etf,etc,npts
+      INTEGER :: el,nd,pt,elc,elf,elb,i,dof
+      INTEGER :: et,etf,etc,npts
       INTEGER :: ne,mndof
 
       REAL(pres) :: HL2,QxL2,QyL2 
       REAL(pres) :: tcoarse,tfine
       REAL(pres) :: rfac,order
+      REAL(pres) :: Hdiff,Qxdiff,Qydiff
+      REAL(pres) :: Hmax,Qxmax,Qymax      
 
       
       CALL read_input()  ! read error.inp file
@@ -171,6 +173,48 @@ elemf:DO elf = 1,fine%ne  ! Calculate error integral in the fine grid elements
       PRINT("(A)"), "Fine Grid Error Estimates"
       PRINT("(A,F22.15)"), "EfH = ", HL2/(rfac**order-1d0)
       PRINT("(A,F22.15)"), "EfQx = ", QxL2/(rfac**order-1d0)
-      PRINT("(A,F22.15)"), "EfQy = ", QyL2/(rfac**order-1d0)         
+      PRINT("(A,F22.15)"), "EfQy = ", QyL2/(rfac**order-1d0)  
+      PRINT*, " "             
+      
+
+      
+      IF(coarse%grid_file == fine%grid_file .and. coarse%p == fine%p) THEN
+      
+        PRINT "(A)", "---------------------------------------------"
+        PRINT "(A)", "       Calculating Max DOF Difference        "
+        PRINT "(A)", "---------------------------------------------"
+        PRINT "(A)", " "            
+      
+        Hmax = 0d0
+        Qxmax = 0d0
+        Qymax = 0d0
+        
+        DO el = 1,fine%ne
+          et = fine%el_type(el)          
+          DO dof = 1,coarse%ndof(et)
+            Hdiff =  abs(coarse%H(el,dof)-fine%H(el,dof))  
+            IF (Hdiff > Hmax) THEN 
+              Hmax = Hdiff
+            ENDIF
+            
+            Qxdiff = abs(coarse%Qx(el,dof)-fine%Qx(el,dof))          
+            IF (Qxdiff > Qxmax) THEN
+              Qxmax = Qxdiff
+            ENDIF
+            
+            Qydiff = abs(coarse%Qy(el,dof)-fine%Qy(el,dof))  
+            IF (Qydiff > Qymax) THEN
+              Qymax = Qydiff
+            ENDIF
+          ENDDO          
+        ENDDO
+        
+        PRINT("(A)"), "Max DOF Differences"
+        PRINT("(A,E22.15)"), "Hmax = ", Hmax
+        PRINT("(A,E22.15)"), "Qxmax = ", Qxmax
+        PRINT("(A,E22.15)"), "Qymax = ", Qymax
+        PRINT*, " "          
+        
+      ENDIF
           
       END PROGRAM error
