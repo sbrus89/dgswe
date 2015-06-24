@@ -18,6 +18,7 @@
       REAL(pres) :: Hdiff,Qxdiff,Qydiff
       REAL(pres) :: Hmax,Qxmax,Qymax      
 
+      CALL version () ! print out current git branch/SHA
       
       CALL read_input()  ! read error.inp file
       
