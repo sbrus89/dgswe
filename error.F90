@@ -159,21 +159,30 @@ elemf:DO elf = 1,fine%ne  ! Calculate error integral in the fine grid elements
       QyL2 = sqrt(QyL2)
       
       PRINT("(A)"), "L2 Difference"
-      PRINT("(A,F22.15)"), "HL2 = ", HL2
+      PRINT("(A,F22.15)"), "HL2  = ", HL2      
+      PRINT("(A,ES22.15)"), "     = ", HL2       
       PRINT("(A,F22.15)"), "QxL2 = ", QxL2
+      PRINT("(A,ES22.15)"), "     = ", QxL2      
       PRINT("(A,F22.15)"), "QyL2 = ", QyL2
+      PRINT("(A,ES22.15)"), "     = ", QyL2      
       PRINT*, " " 
       
       PRINT("(A)"), "Coarse Grid Error Estimates"
-      PRINT("(A,F22.15)"), "EcH = ", HL2*rfac**order/(rfac**order-1d0)
+      PRINT("(A,F22.15)"), "EcH  = ", HL2*rfac**order/(rfac**order-1d0)
+      PRINT("(A,ES22.15)"), "     = ", HL2*rfac**order/(rfac**order-1d0)      
       PRINT("(A,F22.15)"), "EcQx = ", QxL2*rfac**order/(rfac**order-1d0)
+      PRINT("(A,ES22.15)"), "     = ", QxL2*rfac**order/(rfac**order-1d0)      
       PRINT("(A,F22.15)"), "EcQy = ", QyL2*rfac**order/(rfac**order-1d0)  
+      PRINT("(A,ES22.15)"), "     = ", QyL2*rfac**order/(rfac**order-1d0)        
       PRINT*, " "       
       
       PRINT("(A)"), "Fine Grid Error Estimates"
-      PRINT("(A,F22.15)"), "EfH = ", HL2/(rfac**order-1d0)
+      PRINT("(A,F22.15)"), "EfH  = ", HL2/(rfac**order-1d0)
+      PRINT("(A,ES22.15)"), "     = ", HL2/(rfac**order-1d0)      
       PRINT("(A,F22.15)"), "EfQx = ", QxL2/(rfac**order-1d0)
-      PRINT("(A,F22.15)"), "EfQy = ", QyL2/(rfac**order-1d0)  
+      PRINT("(A,ES22.15)"), "     = ", QxL2/(rfac**order-1d0)      
+      PRINT("(A,F22.15)"), "EfQy = ", QyL2/(rfac**order-1d0)
+      PRINT("(A,ES22.15)"), "     = ", QyL2/(rfac**order-1d0)       
       PRINT*, " "             
       
 
@@ -210,9 +219,9 @@ elemf:DO elf = 1,fine%ne  ! Calculate error integral in the fine grid elements
         ENDDO
         
         PRINT("(A)"), "Max DOF Differences"
-        PRINT("(A,E22.15)"), "Hmax = ", Hmax
-        PRINT("(A,E22.15)"), "Qxmax = ", Qxmax
-        PRINT("(A,E22.15)"), "Qymax = ", Qymax
+        PRINT("(A,ES22.15)"), "Hmax = ", Hmax
+        PRINT("(A,ES22.15)"), "Qxmax = ", Qxmax
+        PRINT("(A,ES22.15)"), "Qymax = ", Qymax
         PRINT*, " "          
         
       ENDIF
