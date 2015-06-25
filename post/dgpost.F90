@@ -142,7 +142,7 @@
       PRINT*, "Writing solutions"
       OPEN(UNIT=63,FILE='solution_H.d')
       WRITE(63,*) 'H solution'
-      DO tstep = 1,lines
+      DO tstep = 1,lines+1
         WRITE(63,*) t(tstep)
         DO dof = 1,ndof
           WRITE(63,6364) (H_global(el,dof,tstep), el=1,tne)
@@ -152,7 +152,7 @@
       
       OPEN(UNIT=641,FILE='solution_Qx.d')
       WRITE(641,*) 'Qx solution'
-      DO tstep = 1,lines
+      DO tstep = 1,lines+1
         WRITE(641,*) t(tstep)
         DO dof = 1,ndof
           WRITE(641,6364) (Qx_global(el,dof,tstep), el=1,tne)
@@ -162,7 +162,7 @@
       
       OPEN(UNIT=642,FILE='solution_Qy.d')
       WRITE(642,*) 'Qy solution'
-      DO tstep = 1,lines
+      DO tstep = 1,lines+1
         WRITE(642,*) t(tstep)
         DO dof = 1,ndof
           WRITE(642,6364) (Qy_global(el,dof,tstep), el=1,tne)
