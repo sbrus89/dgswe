@@ -117,6 +117,8 @@
           
             el = ged2el(i,ed)
             led = ged2led(i,ed)          
+            
+            et = el_type(el)
           
             ! Interior edge => assumed to be straight sided
             IF (mod(et,2) == 1) THEN
