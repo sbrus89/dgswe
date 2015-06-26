@@ -6,7 +6,7 @@
                           H,Z,Qx,Qy, &
                           rhsH,rhsZ,rhsQx,rhsQy, &
                           Hqpt,Zqpt,Qxqpt,Qyqpt, &
-                          hbqpta,hbqpte, &
+                          hbqpta,hbqpte,hbqpted, &
                           nqpta,wpta,phia,phia_int,dpdx,dpdy,nqpte,wpte,phie,phie_int,mmi, &
                           press,recipH,xmom,ymom,xymom,cf,tau,u,v,src_x,src_y,dhbdx,dhbdy, &
                           el_in,el_ex,led_in,led_ex,gp_in,gp_ex, &
@@ -451,7 +451,7 @@ ed_points2: DO pt = 1,nqpte(1) ! Compute numerical fluxes for all edges
               ny = ny_pt(ged,pt)
               sp = Spe(ged,pt)
               
-              hb = hbqpte(el_in,gp_in)              
+              hb = hbqpted(ged,pt)         
 
               nx2 = nx*nx
               ny2 = ny*ny
@@ -496,7 +496,7 @@ ed_points2: DO pt = 1,nqpte(1) ! Compute numerical fluxes for all edges
                 ny = ny_pt(ged,pt)
                 sp = Spe(ged,pt) 
                 
-                hb = hbqpte(el_in,gp_in)                
+                hb = hbqpted(ged,pt)                
 
                 nx2 = nx*nx
                 ny2 = ny*ny
@@ -550,7 +550,7 @@ ed_points2: DO pt = 1,nqpte(1) ! Compute numerical fluxes for all edges
               ny = ny_pt(ged,pt)
               sp = Spe(ged,pt)      
               
-              hb = hbqpte(el_in,gp_in)              
+              hb = hbqpted(ged,pt)              
 
               tx = -ny
               ty = nx
@@ -604,7 +604,7 @@ ed_points2: DO pt = 1,nqpte(1) ! Compute numerical fluxes for all edges
               ny = ny_pt(ged,pt)
               sp = Spe(ged,pt)
               
-              hb = hbqpte(el_in,gp_in)              
+              hb = hbqpted(ged,pt)                 
 
               Z_in = Zqpt(el_in,gp_in)
 

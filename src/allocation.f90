@@ -161,7 +161,8 @@
       SUBROUTINE alloc_connect_arrays(stage)
       
       USE globals, ONLY: epn,ged2nn,ged2el,ged2led,&
-                         iedn,obedn,fbedn,nfbedn,bedn
+                         iedn,obedn,fbedn,nfbedn,bedn, &
+                         ed_type
       
       IMPLICIT NONE
       INTEGER :: stage
@@ -175,10 +176,11 @@
         ! Elements associated with each node
         ALLOCATE(epn(mnepn,nn),STAT = alloc_status(1))
       ELSE IF (stage == 2) THEN
-        n = 2
+        n = 3
         ! Edge look-up tables
         ALLOCATE(ged2nn(2,ned),ged2el(2,ned),ged2led(2,ned),STAT = alloc_status(1))
         ALLOCATE(bedn(ned), STAT = alloc_status(2))
+        ALLOCATE(ed_type(ned), STAT = alloc_status(3))
       ELSE IF (stage == 3) THEN
         n = 3
         ! Edge look-up tables
@@ -290,7 +292,7 @@
       SUBROUTINE alloc_trans_arrays()
       
       USE globals, ONLY: dhbdx,dhbdx_init,dhbdy,dhbdy_init, &
-                         hbqpta,hbqpta_init,hbqpte,hbqpte_init, &      
+                         hbqpta,hbqpta_init,hbqpte,hbqpte_init,hbqpted, &      
                          psia,dpsidr,dpsids,psiv,psic, &
                          detJa,mmi,mmi_init, &
                          nx_pt,ny_pt,cfac,Spe, &
@@ -310,7 +312,7 @@
       
       ! Bathymetry evaluated at quadrature points
       ALLOCATE(hbqpta_init(ne,mnqpta),hbqpta(ne,mnqpta), STAT = alloc_status(3))
-      ALLOCATE(hbqpte_init(ne,4*mnqpte),hbqpte(ne,4*mnqpte), STAT = alloc_status(4))      
+      ALLOCATE(hbqpte_init(ne,4*mnqpte),hbqpte(ne,4*mnqpte),hbqpted(ned,mnqpte), STAT = alloc_status(4))      
       
       ! Area transformation information
       ALLOCATE(psia(mnnds,mnqpta+4*mnqpte,2*nel_type),dpsidr(mnnds,mnqpta+4*mnqpte,2*nel_type),dpsids(mnnds,mnqpta+4*mnqpte,2*nel_type),STAT = alloc_status(5))

@@ -5,7 +5,7 @@
                          ged2nn,ged2el,ged2led, &
                          nied,iedn,nobed,obedn,nfbed,fbedn,nnfbed,nfbedn,nbed,bedn, &
                          nope,neta,obseg,obnds,nbou,fbseg,nvel,fbnds, &
-                         nelnds, &
+                         nelnds,ed_type, &
                          out_direc
                          
       USE allocation, ONLY: alloc_connect_arrays    
@@ -151,6 +151,8 @@
 
 
       CALL alloc_connect_arrays(2)
+      
+      ed_type(:) = 0
 
       ged2nn(:,1:ned) = ged2nn_temp(:,1:ned)
       ged2el(:,1:ned) = ged2el_temp(:,1:ned)
@@ -175,7 +177,8 @@
         IF ((el1 /= 0) .AND. (el2 /= 0)) THEN
           nied = nied + 1
           ied_temp(nied) = ged
-          recv_edge(ged) = 0  
+          recv_edge(ged) = 0   
+          ed_type(ged) = 0
         ELSE 
           nbed = nbed + 1
           bedn(nbed) = ged
@@ -202,7 +205,8 @@
                ((n1ed2 == n2bed).AND.(n2ed2 == n1bed))) THEN
               nobed = nobed + 1
               bnd_temp(nobed) = ged
-              recv_edge(ged) = 0   
+              recv_edge(ged) = 0
+              ed_type(ged) = 1
               EXIT edges1
             ENDIF
           ENDDO edges1
@@ -243,6 +247,7 @@
                 nnfbed = nnfbed + 1
                 nfbnd_temp(nnfbed) = ged
                 recv_edge(ged) = 0
+                ed_type(ged) = 10
                 found = 1
                 EXIT edges2               
               ENDIF
@@ -252,6 +257,7 @@
                 nfbed = nfbed + 1
                 fbnd_temp(nfbed) = ged
                 recv_edge(ged) = 0
+                ed_type(ged) = 12
                 found = 1
                 EXIT edges2
               ENDIF

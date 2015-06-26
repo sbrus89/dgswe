@@ -2,7 +2,7 @@
 
       USE globals, ONLY: pres,el_type,nelnds,mndof,ndof,mnnds,nnds,nqpta,nqpte,nverts,order, &
                          ne,ned,elxy,elhb,ged2el,ged2led, &
-                         hbqpta_init,dhbdx_init,dhbdy_init,hbqpte_init,hbm, &
+                         hbqpta_init,dhbdx_init,dhbdy_init,hbqpte_init,hbm,hbqpted, &
                          Va,ipiva,psia,dpsidr,dpsids, &
                          coord_sys,sphi0,r_earth, &
                          out_direc
@@ -10,7 +10,7 @@
 
       IMPLICIT NONE
       
-      INTEGER :: i,el,pt,nd,ed,dof
+      INTEGER :: i,j,el,pt,nd,ed,dof,led
       INTEGER :: typ,et,eo,edpt,el1,el2,led1,led2
       INTEGER :: ndf,nnd,nqa,nqe,nv
       INTEGER :: info
@@ -108,29 +108,45 @@
         el1 = ged2el(1,ed)
         led1 = ged2led(1,ed)
         el2 = ged2el(2,ed)
-        led2 = ged2led(2,ed)        
-        
-        et = el_type(el1) 
-        nqa = nqpta(et)
-        nqe = nqpte(et)                    
-        
-        typ = et + 4
-        eo = order(typ)
-        
-        DO i = 1,nqe
-          pt = nqa + (led1-1)*nqe+i
-          edpt = (led1-1)*nqe+i          
-          
-          hbqpte_init(el1,edpt) = 0d0          
-          DO nd = 1,nnds(eo)                                 
-            hbqpte_init(el1,edpt) = hbqpte_init(el1,edpt) + psia(nd,pt,typ)*elhb(nd,el1)     
-          ENDDO   
-        ENDDO          
+        led2 = ged2led(2,ed)                      
                             
           
         IF (el2 /= 0) THEN    
+        
+          DO i = 1,2
+          
+            el = ged2el(i,ed)
+            led = ged2led(i,ed)          
+          
+            ! Interior edge => assumed to be straight sided
+            IF (mod(et,2) == 1) THEN
+              et = 1
+            ELSE IF (mod(et,2) == 0) THEN
+              et = 2
+            ENDIF
+          
+            nqa = nqpta(et)
+            nqe = nqpte(et)                    
+        
+            typ = et + 4
+            eo = order(typ)
+           
+            DO j = 1,nqe
+              pt = nqa + (led-1)*nqe+j
+              edpt = (led-1)*nqe+j       
+            
+              hbqpte_init(el,edpt) = 0d0          
+              DO nd = 1,nnds(eo)                                 
+                hbqpte_init(el,edpt) = hbqpte_init(el,edpt) + psia(nd,pt,typ)*elhb(nd,el)     
+              ENDDO   
+            ENDDO
+          
+          ENDDO
 
-          et = el_type(el2) 
+
+        ELSE 
+        
+          et = el_type(el1) 
           nqa = nqpta(et)
           nqe = nqpte(et)   
 
@@ -138,14 +154,14 @@
           eo = order(typ)      
         
           DO i = 1,nqe        
-            pt = nqa + (led2-1)*nqe+i
-            edpt = (led2-1)*nqe+i          
+            pt = nqa + (led1-1)*nqe+i
+!             edpt = (led1-1)*nqe+i          
           
-            hbqpte_init(el2,edpt) = 0d0          
+            hbqpted(ed,i) = 0d0          
             DO nd = 1,nnds(eo)                                 
-              hbqpte_init(el2,edpt) = hbqpte_init(el2,edpt) + psia(nd,pt,typ)*elhb(nd,el2)     
+              hbqpted(ed,i) = hbqpted(ed,i) + psia(nd,pt,typ)*elhb(nd,el1)     
             ENDDO           
-          ENDDO
+          ENDDO                            
 
         ENDIF
         

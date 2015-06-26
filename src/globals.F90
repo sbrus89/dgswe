@@ -147,6 +147,7 @@
       INTEGER, ALLOCATABLE, DIMENSION(:) :: nfbedn ! array of no normal flow boundary edge numbers
       INTEGER :: nbed ! total numer of non-interior edges
       INTEGER, ALLOCATABLE, DIMENSION(:) :: bedn ! array of non-interior edge numbers
+      INTEGER, ALLOCATABLE, DIMENSION(:) :: ed_type  ! open/flow boundary edge flags
 
       REAL(pres), ALLOCATABLE, TARGET, DIMENSION(:,:) :: H ! degrees of freedom for water column height
       REAL(pres), ALLOCATABLE, TARGET, DIMENSION(:,:) :: Z      
@@ -160,7 +161,8 @@
       REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: Qyold,Qyinit ! degrees of freedom for y momentum
       
       REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: hbqpta,hbqpta_init
-      REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: hbqpte,hbqpte_init            
+      REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: hbqpte,hbqpte_init
+      REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: hbqpted      
 
 
       REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: rhsZ,rhsH,rhsQx,rhsQy ! right hand side evaluation arrays
