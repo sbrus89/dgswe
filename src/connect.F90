@@ -298,6 +298,7 @@
         IF(recv_edge(ged) == 1) THEN
           nred = nred + 1
           redn(nred) = ged
+          ed_type(ged) = 0
         ENDIF
       ENDDO
 #endif      

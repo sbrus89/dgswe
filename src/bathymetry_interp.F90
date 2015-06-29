@@ -1,6 +1,6 @@
       SUBROUTINE bathymetry_interp()
 
-      USE globals, ONLY: pres,el_type,nelnds,mndof,ndof,mnnds,nnds,nqpta,nqpte,nverts,order, &
+      USE globals, ONLY: pres,el_type,ed_type,nelnds,mndof,ndof,mnnds,nnds,nqpta,nqpte,nverts,order, &
                          ne,ned,elxy,elhb,ged2el,ged2led, &
                          hbqpta_init,dhbdx_init,dhbdy_init,hbqpte_init,hbm,hbqpted, &
                          Va,ipiva,psia,dpsidr,dpsids, &
@@ -101,17 +101,16 @@
       
 
       
-      
+!       OPEN(unit=47, file='hbe.d')     
       
       DO ed = 1,ned
       
         el1 = ged2el(1,ed)
-        led1 = ged2led(1,ed)
+        led1 = ged2led(1,ed)          
         el2 = ged2el(2,ed)
-        led2 = ged2led(2,ed)                      
-                            
+        led2 = ged2led(2,ed)           
           
-        IF (el2 /= 0) THEN    
+        IF (ed_type(ed) == 0) THEN    
         
           DO i = 1,2
           
@@ -120,7 +119,7 @@
             
             et = el_type(el)
           
-            ! Interior edge => assumed to be straight sided
+            ! Interior edge => assumed to be straight
             IF (mod(et,2) == 1) THEN
               et = 1
             ELSE IF (mod(et,2) == 0) THEN
@@ -141,12 +140,17 @@
               DO nd = 1,nnds(eo)                                 
                 hbqpte_init(el,edpt) = hbqpte_init(el,edpt) + psia(nd,pt,typ)*elhb(nd,el)     
               ENDDO   
+              hbqpted(ed,j) = hbqpte_init(el,edpt)
+              
             ENDDO
+            
+!             PRINT*, (hbqpte_init(el,edpt), edpt = (led-1)*nqe+1,(led-1)*nqe+nqe)
           
           ENDDO
+!           PRINT*, "  "
 
 
-        ELSE 
+        ELSE IF (ed_type(ed) == 10) THEN
         
           et = el_type(el1) 
           nqa = nqpta(et)
@@ -156,8 +160,7 @@
           eo = order(typ)      
         
           DO i = 1,nqe        
-            pt = nqa + (led1-1)*nqe+i
-!             edpt = (led1-1)*nqe+i          
+            pt = nqa + (led1-1)*nqe+i         
           
             hbqpted(ed,i) = 0d0          
             DO nd = 1,nnds(eo)                                 
@@ -165,11 +168,40 @@
             ENDDO           
           ENDDO                            
 
+!             PRINT("(4(F24.17))"), (hbqpted(ed,i), i = 1,nqe)   
+            
+        ELSE
+        
+          et = el_type(el1) 
+          
+          ! Specified flow/open edge assumed to be straight
+          IF (mod(et,2) == 1) THEN
+            et = 1
+          ELSE IF (mod(et,2) == 0) THEN
+            et = 2
+          ENDIF      
+          
+          nqa = nqpta(et)
+          nqe = nqpte(et)           
+
+          typ = et + 4          
+          eo = order(typ)      
+        
+          DO i = 1,nqe        
+            pt = nqa + (led1-1)*nqe+i            
+          
+            hbqpted(ed,i) = 0d0          
+            DO nd = 1,nnds(eo)                                 
+              hbqpted(ed,i) = hbqpted(ed,i) + psia(nd,pt,typ)*elhb(nd,el1)     
+            ENDDO           
+          ENDDO                            
+        
+          
         ENDIF
         
       ENDDO         
       
-      
+!       CLOSE(47)
      
       ALLOCATE(hbm(mnnds,ne))     
       hbm = 0d0 
