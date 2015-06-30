@@ -142,8 +142,8 @@
           ENDDO
           DO bfr = 1,nfbfr
             WRITE(15,*) fbtag2(bfr)
-            DO seg = 1,nbou
-              segtype = fbseg(2,seg)
+            DO seg = 1,lnbou(pe)
+              segtype = lfbseg(2,seg,pe)
               IF(segtype == 2 .OR. segtype == 12 .OR. segtype == 22)THEN
                 DO nd = 1,lfbseg(1,seg,pe)
                   WRITE(15,*) lfbamp(nd,seg,bfr,pe), lfbph(nd,seg,bfr,pe)

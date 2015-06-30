@@ -15,17 +15,17 @@
 
       IMPLICIT NONE
 
-      INTEGER :: el,pe,nd,ed,j,bnd,eln
+      INTEGER :: el,pe,nd,ed,j,bnd,eln,bfr
       INTEGER :: ged,lnd
       INTEGER :: el1,el2
       INTEGER :: pe1,pe2
       INTEGER :: led1,led2
-      INTEGER :: ndcnt,bfnd
+      INTEGER :: ndcnt,bfnd,nlbnds
       INTEGER :: mnepe
       INTEGER :: mnobnds,mnfbnds
       INTEGER :: segtype
       INTEGER :: bnd_flag
-      INTEGER :: lbnd
+      INTEGER :: lbou
       
       INTEGER, ALLOCATABLE, DIMENSION(:) :: ndflag 
       INTEGER, ALLOCATABLE, DIMENSION(:,:) :: bou_l2g
@@ -144,7 +144,7 @@
       
       lobseg = 0
       lfbseg = 0
-      DO pe = 1,nproc
+  pes:DO pe = 1,nproc
         ndflag = 0
         nresnd(pe) = 0
         nd_g2l = 0 ! some nodes will be included in 2 subdomains so need to start a new global to local table each time
@@ -165,6 +165,9 @@
             ENDIF
           ENDDO
         ENDDO
+        
+        
+        
         
         lneta(pe) = 0 ! look for open boundary nodes in this subdomain
         lnope(pe) = 0
@@ -190,10 +193,13 @@
           ENDIF
         ENDDO
         
+        
+        
+        
         lnvel(pe) = 0     
         lnbou(pe) = 0
         lnbouf(pe) = 0
-        lbnd = 1
+        lbou = 1
         DO bnd = 1,nbou            ! look for flow boundary nodes in this subdomain            
           segtype = fbseg(2,bnd)   !   - this has to take into account that global island boundaries my be broken up into several local       
           bfnd = 0                 !     boundary segments, meaning there may be more than one local boundary per global boundary          
@@ -208,9 +214,9 @@
               IF (bnd_flag == 1) THEN
                 bnd_flag = 0 ! local boundary is broken
                 
-                IF (lfbseg(1,lbnd,pe) == 1) THEN ! boundary might break after one node
+                IF (lfbseg(1,lbou,pe) == 1) THEN ! boundary might break after one node
                   lnbou(pe) = lnbou(pe) - 1      ! if so, don't count it
-                  lfbseg(1,lbnd,pe) = 0          ! (that node will be included at the end of the global boundary)
+                  lfbseg(1,lbou,pe) = 0          ! (that node will be included at the end of the global boundary)
                 ENDIF
               ENDIF
               
@@ -223,49 +229,59 @@
                 ENDIF              
 
                 lnbou(pe) = lnbou(pe) + 1   ! start a new local boundary
-                lbnd = lnbou(pe)
-                bou_l2g(lbnd,pe) = bnd      ! keep track of what global boundary each local segement is from
+                lbou = lnbou(pe)
+                bou_l2g(lbou,pe) = bnd      ! keep track of what global boundary each local segement is from
                 
-                lfbseg(2,lbnd,pe) = segtype
+                lfbseg(2,lbou,pe) = segtype
                 bnd_flag = 1                ! boundary is no longer broken               
               ENDIF
              
-              lnvel(pe) = lnvel(pe) + 1
-              lfbseg(1,lbnd,pe) = lfbseg(1,lbnd,pe) + 1
-              lfbnds(lfbseg(1,lbnd,pe),lbnd,pe) = lnd              
+              lnvel(pe) = lnvel(pe) + 1                   ! increment total # of boundary nodes
+              lfbseg(1,lbou,pe) = lfbseg(1,lbou,pe) + 1   ! inrement # of segment boundary nodes
+              nlbnds = lfbseg(1,lbou,pe) 
+              lfbnds(nlbnds,lbou,pe) = lnd                ! keep track of local boundary node numbers
+              
+              IF(segtype == 2 .OR. segtype == 12 .OR. segtype == 22) THEN
+                lnbouf(pe) = lnbouf(pe) + 1   ! count local forced flow boundaries
+                DO bfr = 1,nfbfr              ! keep track of forcings
+                  lfbamp(nlbnds,lbou,bfr,pe) = fbamp(j,bnd,bfr)
+                  lfbph(nlbnds,lbou,bfr,pe) = fbph(j,bnd,bfr) 
+                ENDDO
+              ENDIF              
               
             ENDIF
           ENDDO nds                
         ENDDO
         
-        DO lbnd = 1,lnbou(pe) ! do book-keeping for local flow boundaries      
-          bnd = bou_l2g(lbnd,pe) ! global boundary that corresponds to local boundary
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        DO lbou = 1,lnbou(pe) ! check local flow boundaries      
+          bnd = bou_l2g(lbou,pe) ! global boundary that corresponds to local boundary
           
-          IF(lfbseg(1,lbnd,pe) > 1) THEN 
-            segtype = lfbseg(2,lbnd,pe)
-            
-            IF(segtype == 2 .OR. segtype == 12 .OR. segtype == 22) THEN
-              lnbouf(pe) = lnbouf(pe) + 1   ! count local forced flow boundaries
-              DO bfnd = 1,lfbseg(1,lbnd,pe) ! keep track of forcings
-                j = nd_l2g(bfnd,pe)
-                lfbamp(bfnd,lbnd,:,pe) = fbamp(j,bnd,:)
-                lfbph(bfnd,lbnd,:,pe) = fbph(j,bnd,:) 
-              ENDDO
-            ENDIF
-
+          IF(lfbseg(1,lbou,pe) > 1) THEN
+          
+            segtype = lfbseg(2,lbou,pe)             
             IF(segtype == 1 .OR. segtype == 11 .OR. segtype == 21) THEN 
-              IF(lfbseg(1,lbnd,pe) /= fbseg(1,bnd)) THEN  ! if the entire island boundary is not contained in the subdomain
-                lfbseg(2,lbnd,pe) = 10                    ! change it to a land boundary              
-                PRINT("(A,I7,A,I7,A,I7,A)"), "Island boundary: ", lbnd," / ",lnbou(pe), " on PE: ", pe-1, " changed to land"
+              IF(lfbseg(1,lbou,pe) /= fbseg(1,bnd)) THEN  ! if the entire island boundary is not contained in the subdomain
+                lfbseg(2,lbou,pe) = 10                    ! change it to a land boundary              
+                PRINT("(A,I7,A,I7,A,I7,A)"), "Island boundary: ", lbou," / ",lnbou(pe), " on PE: ", pe-1, " changed to land"
               ENDIF         
             ENDIF
             
-          ELSE IF(lfbseg(1,lbnd,pe) == 1) THEN
-            PRINT("(A,I7,A)"), "Error: boundary ",lbnd," only has one node"          
+          ELSE IF(lfbseg(1,lbou,pe) == 1) THEN
+            PRINT("(A,I7,A)"), "Error: boundary ",lbou," only has one node"          
           ENDIF  
         ENDDO
         
-      ENDDO
+      ENDDO pes
       
       
       RETURN 
