@@ -42,7 +42,7 @@ end
 
 % Nel = length(VK1(:,1)) ;
 % ncol = length(VK1(1,:)) ;
-Nel = length(EToV)  ;
+[Nel ~] = size(EToV)  ;
 %lcolor = 'k' ;
 for i = 1: Nel
     

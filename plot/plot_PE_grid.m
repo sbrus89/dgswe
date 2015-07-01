@@ -3,14 +3,14 @@ close all
 clc
 restoredefaultpath
 
-% direc = '/home/sbrus/Codes/dgswe/work/';
-direc = '/home/sbrus/data-drive/EC2001/dgswe/';
+direc = '/home/sbrus/Codes/dgswe/work/';
+% direc = '/home/sbrus/data-drive/EC2001/dgswe/';
 
 lcolor = lines;
 
-elem = 'off';
+elem = 'on';
 elcolor = 'r';
-node = 'off';
+node = 'on';
 ndcolor = 'k';
 
 npe = 0;
@@ -32,14 +32,15 @@ for i = 1:npe
     [EToV,VX,B,nelnds] = readfort14(mesh_name) ;
     p = 1 ;
     
-    DEToV = zeros(length(EToV),10);
+    [nel,~] = size(EToV);
+    DEToV = zeros(nel,10);
     DEToV(:,1) = nelnds;
     DEToV(:,2:end) = EToV ;
 
     figure(1);
     hold on
     drawNGonMesh4( VX, DEToV, lcolor(i,:), 'ElNum', elem, elcolor, 'NodeNum', node, ndcolor )  ;  
-    axis image
+    axis equal
     
     xmax = max(VX(:,1));
     xmin = min(VX(:,1));
@@ -59,8 +60,8 @@ for i = 1:npe
     
 end
 
-for i = 1:npe
-    figure(i+1);
-    ylim(ylimits);
-    xlim(xlimits);
-end
+% for i = 1:npe
+%     figure(i+1);
+%     ylim(ylimits);
+%     xlim(xlimits);
+% end

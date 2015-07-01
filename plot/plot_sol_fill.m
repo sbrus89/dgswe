@@ -141,6 +141,7 @@ for el = 1:ne
     et = el_type(el);
     
     hb(1:n,el,1) = m2n(1:n,1:ndof(et+4),et+4)*hbm(1:ndof(et+4),el);
+%     hb(1:n,el,1) = 10;
     
 end
 fclose(fid_hb);
