@@ -180,8 +180,8 @@ endif
 
 $(ODIR) :
 	mkdir -p $@
-	@sed -i '6 c \      PRINT*, "  Branch: $(GIT_BRANCH)" ' $(VPATH)version.F90	
-	@sed -i '7 c \      PRINT*, "  SHA: $(GIT_SHA) $(GIT_MOD)" ' $(VPATH)version.F90	
+	@sed -i '7 c \      gitBranch = "$(GIT_BRANCH)" ' $(VPATH)version.F90
+	@sed -i '8 c \      gitSHA = "$(GIT_SHA) $(GIT_MOD)" ' $(VPATH)version.F90
 	
 clean : 
 	@echo "\n\n"
