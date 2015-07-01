@@ -44,9 +44,9 @@ STEADY
 0.000000 0.000000
 0.000000 0.000000
 1                               ! NFFR
-STEADY                          
+FLOW                          
 0.000   1.000  0.000            ! FREQ, NODAL FACTOR, EQ ARG (DEG)
-STEADY 
+FLOW 
 5.000000 0.000000
 5.000000 0.000000
 5.000000 0.000000
