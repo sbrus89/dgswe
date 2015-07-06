@@ -5,6 +5,7 @@
                          qpta,qpte,psia,dpsidr,dpsids,psie,dpsidxi,psiv,psic, &
                          Va,ipiva,Ve,ipive
       USE basis, ONLY: tri_nodes,quad_nodes,tri_basis,quad_basis,jacobi,djacobi
+      USE messenger2, ONLY: myrank
       
       IMPLICIT NONE      
       
@@ -110,11 +111,13 @@
         
         CALL DGETRS("N",nnds(et),npts,Va(1,1,et),mnnds,ipiva(1,et),psiv(1,1,eo),mnnds,info)   
         
-        PRINT*, "psiv"
-        DO i = 1,nnds(et)
-          PRINT "(20(e20.6))", (psiv(i,j,eo), j = 1,npts)
-        ENDDO
-        PRINT*," "
+!         IF (myrank == 0) THEN
+!           PRINT*, "psiv"
+!           DO i = 1,nnds(et)
+!             PRINT "(20(e20.6))", (psiv(i,j,eo), j = 1,npts)
+!           ENDDO
+!           PRINT*," "
+!         ENDIF
       ENDDO
        
        
@@ -142,11 +145,13 @@
         
         CALL DGETRS("N",nnds(et),npts,Va(1,1,et),mnnds,ipiva(1,et),psic(1,1,eo),mnnds,info)   
         
-        PRINT*, "psic"        
-        DO i = 1,nnds(et)
-          PRINT "(20(e20.6))", (psic(i,j,eo), j = 1,npts)
-        ENDDO
-        PRINT*," "
+!         IF (myrank == 0) THEN
+!           PRINT*, "psic"        
+!           DO i = 1,nnds(et)
+!             PRINT "(20(e20.6))", (psic(i,j,eo), j = 1,npts)
+!           ENDDO
+!           PRINT*," "
+!         ENDIF
       ENDDO       
        
        

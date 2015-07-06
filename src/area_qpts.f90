@@ -47,15 +47,16 @@
         PRINT "(A)", "---------------------------------------------"
         PRINT "(A)", " "
 
-        PRINT "(A)", 'Area quadrature weights and points (r,s)'
+!         PRINT "(A)", 'Area quadrature weights and points (r,s)'
       
         DO i = 1,4
         PRINT "(A,I3)", "Number of area quadrature points",nqpta(i)      
-          DO pt = 1,nqpta(i)
-            PRINT "(3(F10.3))", wpta(pt,i),qpta(pt,1,i),qpta(pt,2,i)
-          ENDDO
-          PRINT*, ' '
+!           DO pt = 1,nqpta(i)
+!             PRINT "(3(F10.3))", wpta(pt,i),qpta(pt,1,i),qpta(pt,2,i)
+!           ENDDO
+!           PRINT*, ' '
         ENDDO      
+        PRINT*, " "
       ENDIF
 
       

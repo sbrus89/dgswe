@@ -180,8 +180,8 @@ endif
 
 $(ODIR) :
 	mkdir -p $@
-	@sed -i '7 c \      gitBranch = "$(GIT_BRANCH)" ' $(VPATH)version.F90
-	@sed -i '8 c \      gitSHA = "$(GIT_SHA) $(GIT_MOD)" ' $(VPATH)version.F90
+	@sed -i '8 c \      gitBranch = "$(GIT_BRANCH)" ' $(VPATH)version.F90
+	@sed -i '9 c \      gitSHA = "$(GIT_SHA) $(GIT_MOD)" ' $(VPATH)version.F90
 	
 clean : 
 	@echo "\n\n"
@@ -227,6 +227,10 @@ $(ODIR)basis.o : basis.f90 globals.F90 allocation.f90 messenger2.F90
 	$(FC) $(CFLAGS) $< -o $@
 	mv basis.mod $(ODIR)
 
+$(ODIR)read_grid.o : read_grid.f90 globals.F90 allocation.f90 messenger2.F90
+	$(FC) $(CFLAGS) $< -o $@
+	mv read_dginp.mod $(ODIR)
+
 $(ODIR)area_qpts.o : area_qpts.f90 globals.F90 allocation.f90 messenger2.F90
 	$(FC) $(CFLAGS) $< -o $@
 
@@ -235,9 +239,6 @@ $(ODIR)edge_qpts.o : edge_qpts.f90 globals.F90 allocation.f90 messenger2.F90
 
 $(ODIR)read_input.o : read_input.F90 globals.F90 messenger2.F90
 	$(FC) $(CFLAGS) $(RK) $< -o $@
-
-$(ODIR)read_grid.o : read_grid.f90 globals.F90 allocation.f90 messenger2.F90
-	$(FC) $(CFLAGS) $< -o $@
 
 $(ODIR)read_forcing.o : read_forcing.f90 globals.F90 allocation.f90
 	$(FC) $(CFLAGS) $< -o $@
@@ -299,7 +300,7 @@ $(ODIR)numerical_flux.o : numerical_flux.f90 globals.F90
 $(ODIR)write_output.o : write_output.F90 globals.F90 messenger2.F90
 	$(FC) $(CFLAGS) $< -o $@	
 	
-$(ODIR)version.o : version.F90
+$(ODIR)version.o : version.F90 globals.F90 messenger2.F90
 	$(FC) $(CFLAGS) $< -o $@		
 
 $(ODIR)swe_tri.o : swe_tri.F90 globals.F90 basis.f90 allocation.f90 messenger2.F90

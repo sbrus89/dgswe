@@ -167,19 +167,19 @@
 
       CLOSE(14) 
       
-      INQUIRE(FILE='elem_nodes.d', EXIST = file_exists)
-      IF(file_exists == .FALSE.) THEN
-        PRINT*, "high order bathymetry file does not exist"    
-      ELSE
-!         ALLOCATE(hbnodes(mnnds,el))
-        OPEN(UNIT = 14, FILE = 'elem_nodes.d')
-      
-        DO i = 1,ne
-          READ(14,*) el,nnds,(elhb(j,el), j = 1,nnds)
-        ENDDO
-      
-        CLOSE(14)
-      ENDIF      
+!       INQUIRE(FILE='elem_nodes.d', EXIST = file_exists)
+!       IF(file_exists == .FALSE.) THEN
+!         PRINT*, "high order bathymetry file does not exist"    
+!       ELSE
+! !         ALLOCATE(hbnodes(mnnds,el))
+!         OPEN(UNIT = 14, FILE = 'elem_nodes.d')
+!       
+!         DO i = 1,ne
+!           READ(14,*) el,nnds,(elhb(j,el), j = 1,nnds)
+!         ENDDO
+!       
+!         CLOSE(14)
+!       ENDIF      
       
 
       

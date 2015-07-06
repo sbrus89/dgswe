@@ -94,15 +94,16 @@
         PRINT "(A)", "---------------------------------------------"
         PRINT "(A)", " "
 
-        PRINT "(A)", 'Edge quadrature weights and points'
+!         PRINT "(A)", 'Edge quadrature weights and points'
       
         DO i = 1,nel_type
           PRINT "(A,I3)", "Number of edge quadrature points",nqpte(i)      
-          DO pt = 1,nqpte(i)
-            PRINT "(2(F10.3))", wpte(pt,i),qpte(pt,2,i)
-          ENDDO
-          PRINT*, ' '
+!           DO pt = 1,nqpte(i)
+!             PRINT "(2(F10.3))", wpte(pt,i),qpte(pt,2,i)
+!           ENDDO
+!           PRINT*, ' '
         ENDDO
+        PRINT*, " " 
       ENDIF
 
       RETURN

@@ -137,10 +137,14 @@
 
       IF (read_file == 1) THEN
         IF (INDEX(temp,"=") > 0) THEN
-          PRINT*, "Reading keyword format input file"
+          IF (myrank == 0) THEN
+            PRINT*, "Reading keyword format input file"
+          ENDIF
           CALL read_keyword_dginp()
         ELSE
-          PRINT*, "Reading fixed format input file"
+          IF (myrank == 0) THEN
+            PRINT*, "Reading fixed format input file"
+          ENDIF
           CALL read_fixed_dginp()
         ENDIF
       ELSE 

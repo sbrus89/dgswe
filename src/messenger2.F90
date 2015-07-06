@@ -134,8 +134,11 @@
       CALL MPI_COMM_SIZE(MPI_COMM_WORLD,nproc,ierr)
       CALL MPI_COMM_RANK(MPI_COMM_WORLD,myrank,ierr)
 !      CALL MPI_COMM_GROUP(MPI_COMM_WORLD,world_group,ierr)
-       
-      PRINT*, "Processor rank is ", myrank, "/", nproc
+
+
+      IF(myrank == 0) THEN       
+        PRINT*, "Processor rank is ", myrank, "/", nproc
+      ENDIF
        
       CALL MPI_BARRIER(MPI_COMM_WORLD,ierr)       
       

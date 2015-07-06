@@ -72,11 +72,11 @@
             ENDDO
             PRINT "(A)", ' '
 
-            PRINT "(A)", 'Basis functions at quadrature points'
-            DO i = 1,ndof(et)
-              PRINT "(100(F10.3))", (phia(i,j,et),j=1,nqpta(et))
-            ENDDO
-            PRINT "(A)", ' '             
+!             PRINT "(A)", 'Basis functions at quadrature points'
+!             DO i = 1,ndof(et)
+!               PRINT "(100(F10.3))", (phia(i,j,et),j=1,nqpta(et))
+!             ENDDO
+!             PRINT "(A)", ' '             
             
           ENDDO
         ENDIF
@@ -410,6 +410,7 @@
 !c     s(np) (output) : nodal s-coordinates for master element 
 
       use globals, only: pres
+      use messenger2, only: myrank
 
       implicit none
       integer p,np,i,j,m,space 
@@ -593,13 +594,15 @@
       
 !       open(unit=60,file=DIRNAME//'/'//'tri.d')
 
-      print*,' '
-      print*, 'Triangle Points'
-      do i = 1,np
-!         write(60,61) r(i),s(i),x(i),y(i)
-        print 21, r(i),s(i)
-      enddo
-      print*, ' '
+!       IF (myrank == 0) THEN
+!         print*,' '
+!         print*, 'Triangle Points'
+!         do i = 1,np
+! !           write(60,61) r(i),s(i),x(i),y(i)
+!           print 21, r(i),s(i)
+!         enddo
+!         print*, ' '
+!       ENDIF
 
  21   format(28(f10.4,1x))
  61   format(16000(e24.17,1x))      
@@ -613,6 +616,7 @@
       SUBROUTINE quad_nodes(space,np,nnds,r,s)
       
       USE globals, ONLY: pres
+      USE messenger2, ONLY: myrank
       
       IMPLICIT NONE
       
@@ -696,11 +700,13 @@
           
       ENDIF   
       
-!       PRINT*, ' '
-!       PRINT*, 'Quadrilateral Points'
-!       DO n = 1,nnds
-!         PRINT("(2(f10.4))"), r(n),s(n)
-!       ENDDO         
+!       IF (myrank == 0) THEN           
+!         PRINT*, ' '
+!         PRINT*, 'Quadrilateral Points'
+!         DO n = 1,nnds
+!           PRINT("(2(f10.4))"), r(n),s(n)
+!         ENDDO         
+!       ENDIF
       
       RETURN
       END SUBROUTINE
