@@ -64,6 +64,27 @@
       
       INTEGER :: nopt                             ! number of valid options in dginp structure
       INTEGER, DIMENSION(maxopt) :: dginp_ind    ! indicies of valid options in dginp structure
+      
+      
+      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      ! Input file variables
+      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      CHARACTER(100), TARGET  :: grid_file
+      CHARACTER(100), TARGET  :: forcing_file
+      CHARACTER(100), TARGET  :: out_direc      
+      INTEGER, TARGET :: p
+      INTEGER, TARGET :: ctp
+      INTEGER, TARGET :: hbp
+      INTEGER, TARGET :: rk_type 
+      INTEGER, TARGET  :: npart       
+      REAL(pres), TARGET  :: dt
+      REAL(pres), TARGET  :: tf
+      REAL(pres), TARGET  :: dramp
+      REAL(pres), TARGET  :: cf
+      REAL(pres), TARGET  :: lines
+     
+     
+     
  
       CONTAINS 
       
@@ -156,7 +177,6 @@
 
       SUBROUTINE read_fixed_dginp()
       
-      USE globals, ONLY: grid_file,forcing_file,p,ctp,hbp,dt,tf,dramp,cf,lines,out_direc,npart
       USE messenger2, ONLY: myrank,dirname,lname
 
       IMPLICIT NONE
@@ -439,17 +459,21 @@
       !   features while maintaining forward (and some degree of backward) compatibility 
       !
       !   - Options can be added to the fort.dg file by:
-      !       1) Specifying a keyword in a unused index (<= maxopt) of the dginp structure
-      !       2) Associating the appropriate pointer with the corresponding variable
+      !     
+      !     At the top of this (read_dginp) module:
+      !       1) Declaring the variable with the TARGET attribute 
+      !       
+      !     In the dginp structure (found in this subroutine):
+      !       2) Specifying a keyword in a unused index (<= maxopt) 
+      !       3) Associating the appropriate pointer with the corresponding variable
       !          Note: pointer must agree with the associated variable type 
       !                (iptr=integer, rptr=real, cptr=character)      
-      !          Note: the associated variable must be declared using the TARGET attribute
-      !       3) Specifying whether the variable is required 
-      !       4) Providing a default value
+      !       4) Specifying whether the variable is required 
+      !       5) Providing a default value
       ! 
       !   - Options can be removed from the fort.dg file by:
       !       1) Commenting out or deleting an existing entry in the dginp structure
-      !          Note: re-indexing subsequent entries is not necessary (see dginp(17) below)
+      !          Note: re-indexing subsequent entries is not necessary 
       !       
       !       OR
       !
@@ -464,7 +488,6 @@
       !     versions of the code because the new options will be ignored
       
       
-      USE globals, ONLY: grid_file,forcing_file,p,ctp,hbp,dt,tf,dramp,cf,lines,out_direc,npart
       
       IMPLICIT NONE        
       
@@ -492,13 +515,14 @@
       dginp(3)%key = "p";               dginp(3)%iptr => p;               dginp(3)%required = .true.;      dginp(3)%iptr = 1
       dginp(4)%key = "ctp";             dginp(4)%iptr => ctp;             dginp(4)%required = .false.;     dginp(4)%iptr = 1
       dginp(5)%key = "hbp";             dginp(5)%iptr => hbp;             dginp(5)%required = .false.;     dginp(5)%iptr = 1
-      dginp(6)%key = "dt";              dginp(6)%rptr => dt;              dginp(6)%required = .true.;      dginp(6)%rptr = 0.5d0
-      dginp(7)%key = "tf";              dginp(7)%rptr => tf;              dginp(7)%required = .true.;      dginp(7)%rptr = 1
-      dginp(8)%key = "dramp";           dginp(8)%rptr => dramp;           dginp(8)%required = .true.;      dginp(8)%rptr = 0.08d0
-      dginp(9)%key = "cf";              dginp(9)%rptr => cf;              dginp(9)%required = .true.;      dginp(9)%rptr = 0.0025d0
-      dginp(10)%key = "lines";          dginp(10)%rptr => lines;          dginp(10)%required = .true.;     dginp(10)%rptr = 10d0
-      dginp(11)%key = "out_direc";      dginp(11)%cptr => out_direc;      dginp(11)%required = .false.;    dginp(11)%cptr = "./"
-      dginp(12)%key = "npart";          dginp(12)%iptr => npart;          dginp(12)%required = .true.;     dginp(12)%iptr = 1
+      dginp(6)%key = "rk";              dginp(6)%iptr => rk_type;         dginp(6)%required = .false.;     dginp(6)%iptr = 22      
+      dginp(7)%key = "dt";              dginp(7)%rptr => dt;              dginp(7)%required = .true.;      dginp(7)%rptr = 0.5d0
+      dginp(8)%key = "tf";              dginp(8)%rptr => tf;              dginp(8)%required = .true.;      dginp(8)%rptr = 1
+      dginp(9)%key = "dramp";           dginp(9)%rptr => dramp;           dginp(9)%required = .true.;      dginp(9)%rptr = 0.08d0
+      dginp(10)%key = "cf";             dginp(10)%rptr => cf;             dginp(10)%required = .true.;     dginp(10)%rptr = 0.0025d0
+      dginp(11)%key = "lines";          dginp(11)%rptr => lines;          dginp(11)%required = .true.;     dginp(11)%rptr = 10d0
+      dginp(12)%key = "out_direc";      dginp(12)%cptr => out_direc;      dginp(12)%required = .false.;    dginp(12)%cptr = "./"
+      dginp(13)%key = "npart";          dginp(13)%iptr => npart;          dginp(13)%required = .true.;     dginp(13)%iptr = 1
 
       
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -552,8 +576,6 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!     
 
       SUBROUTINE write_local(pe)
-      
-      USE globals, ONLY: grid_file,forcing_file,out_direc
       
       IMPLICIT NONE
             

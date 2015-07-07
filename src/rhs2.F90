@@ -1,14 +1,14 @@
       SUBROUTINE rhs2()
 
       USE globals,  ONLY: pres,l,ind,el,ne,pt,led,ed,dof,ndof,nel_type,el_type, &
-                          blk,elblk,nfblk,rnfblk,nrblk,npart,npartet,nverts, &
+                          blk,elblk,nfblk,rnfblk,nrblk,npartet,nverts, &
                           g,pt5g,tstage,ramp,arg,bfr, & 
                           H,Z,Qx,Qy, &
                           rhsH,rhsZ,rhsQx,rhsQy, &
                           Hqpt,Zqpt,Qxqpt,Qyqpt, &
                           hbqpta,hbqpte,hbqpted, &
                           nqpta,wpta,phia,phia_int,dpdx,dpdy,nqpte,wpte,phie,phie_int,mmi, &
-                          press,recipH,xmom,ymom,xymom,cf,tau,u,v,src_x,src_y,dhbdx,dhbdy, &
+                          press,recipH,xmom,ymom,xymom,tau,u,v,src_x,src_y,dhbdx,dhbdy, &
                           el_in,el_ex,led_in,led_ex,gp_in,gp_ex, &
                           nx,ny,nx2,ny2,nxny,tx,ty, &
                           H_in,H_ex,Z_in,Z_ex,Qx_in,Qx_ex,Qy_in,Qy_ex,Qn,Qt, &
@@ -27,6 +27,8 @@
                           nx_pt,ny_pt,Spe, &
                           Hhatv,Zhatv,Qxhatv,Qyhatv, &
                           MirhsH,MirhsZ,MirhsQx,MirhsQy
+                          
+      USE read_dginp, ONLY: npart,cf                          
                           
 #ifdef CMPI                          
       USE messenger2, ONLY: message_recieve,message_send, &

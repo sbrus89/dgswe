@@ -1,11 +1,12 @@
       MODULE allocation
       
-      USE globals, ONLY: nel_type,norder,ne,nn,npart,nrblk, &
+      USE globals, ONLY: nel_type,norder,ne,nn,nrblk, &
                          mndof,mnqpte,mnqpta,mnepn,mnnds,mnp, &
                          ned,nied,nobed,nnfbed,nfbed, &
                          nope,neta,nbou,nvel, &
                          nobfr,nfbfr
-     USE messenger2, ONLY: mnelred,mnired,nred                            
+      USE messenger2, ONLY: mnelred,mnired,nred      
+      USE read_dginp, ONLY: npart      
 
       
       IMPLICIT NONE
@@ -17,9 +18,9 @@
 
       SUBROUTINE sizes()
       
-      USE globals, ONLY: p,ctp,hbp, &
-                         ndof,nverts,np,nnds,order, &
-                         mndof,mnp,mnnds
+      USE globals, ONLY: ndof,nverts,np,nnds,order, &
+                         mndof,mnp,mnnds,nlines                         
+      USE read_dginp, ONLY: p,ctp,hbp,lines
       
       IMPLICIT NONE
       
@@ -58,6 +59,8 @@
       order(6) = 6
       order(7) = 5
       order(8) = 6
+      
+      nlines = lines ! avoids module dependency between messenger2 and read_dginp
       
       RETURN
       END SUBROUTINE sizes

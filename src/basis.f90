@@ -4,12 +4,11 @@
 
       SUBROUTINE area_basis()
 
-        USE globals, ONLY: pres,nel_type,nqpta,mnqpta,wpta,qpta,p,ndof,mndof, &
-                           phia,dpdr,dpds
-                           
-        USE allocation, ONLY: alloc_basis_arrays     
-        
-        USE messenger2, ONLY: myrank
+        USE globals, ONLY: pres,nel_type,nqpta,mnqpta,wpta,qpta,ndof,mndof, &
+                           phia,dpdr,dpds                           
+        USE allocation, ONLY: alloc_basis_arrays             
+        USE messenger2, ONLY: myrank        
+        USE read_dginp, ONLY: p
 
         IMPLICIT NONE
         INTEGER :: i,j,pt,et,dof
@@ -90,7 +89,8 @@
 
       SUBROUTINE edge_basis()
 
-        USE globals, ONLY: pres,ndof,nverts,mndof,nqpte,mnqpte,qpte,wpte,p,phie,phie_int,nel_type
+        USE globals, ONLY: pres,ndof,nverts,mndof,nqpte,mnqpte,qpte,wpte,phie,phie_int,nel_type
+        USE read_dginp, ONLY: p
 
         IMPLICIT NONE
 

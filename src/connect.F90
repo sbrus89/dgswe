@@ -5,11 +5,11 @@
                          ged2nn,ged2el,ged2led, &
                          nied,iedn,nobed,obedn,nfbed,fbedn,nnfbed,nfbedn,nbed,bedn, &
                          nope,neta,obseg,obnds,nbou,fbseg,nvel,fbnds, &
-                         nelnds,ed_type, &
-                         out_direc
+                         nelnds,ed_type                       
                          
       USE allocation, ONLY: alloc_connect_arrays    
       USE messenger2, ONLY: dirname,lname,myrank,nred,redn      
+      USE read_dginp, ONLY: out_direc
                          
 
       IMPLICIT NONE

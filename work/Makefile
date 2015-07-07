@@ -118,9 +118,9 @@ METIS_LIB = -L../metis-4.0.3 -lmetis
 #                               Objects                                #
 ########################################################################
 
-objects = globals.o messenger2.o allocation.o basis.o  area_qpts.o edge_qpts.o read_input.o read_grid.o read_forcing.o modal2nodal.o \
-	initial.o connect.o curvilinear.o element_data.o shape_functions.o vandermonde.o area_transformation.o edge_transformation.o bathymetry_interp.o edge_partition2.o  \
-	area_integration.o edge_integration.o rhs2.o  numerical_flux.o rk.o write_output.o version.o swe_tri.o
+objects = globals.o messenger2.o read_input.o allocation.o basis.o  area_qpts.o edge_qpts.o read_grid.o read_forcing.o modal2nodal.o \
+	initial.o connect.o curvilinear.o element_data.o shape_functions.o vandermonde.o area_transformation.o edge_transformation.o \
+	bathymetry_interp.o edge_partition2.o area_integration.o edge_integration.o rhs2.o  numerical_flux.o rk.o write_output.o version.o swe_tri.o
 
 obj := $(patsubst %.o, $(ODIR)%.o,$(objects))
 

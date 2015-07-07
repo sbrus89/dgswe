@@ -1,10 +1,9 @@
       SUBROUTINE area_qpts( )
 
-      USE globals, ONLY: pres,p,nqpta,mnqpta,wpta,qpta,ctp,nel_type
-      
-      USE allocation, ONLY: alloc_qpt_arrays
-      
+      USE globals, ONLY: pres,nqpta,mnqpta,wpta,qpta,nel_type      
+      USE allocation, ONLY: alloc_qpt_arrays      
       USE messenger2, ONLY: myrank
+      USE read_dginp, ONLY: p,ctp
 
       IMPLICIT NONE 
       INTEGER :: i,pt,et

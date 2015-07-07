@@ -1,8 +1,10 @@
       SUBROUTINE rk()
 
-      USE globals, ONLY: dof,ndof,el,ne,nel_type,blk,npart,npartet,elblk, &
-                         t,tstage,dt,pt3333,ramp,dramp,ark,brk,crk,rk_type, &
-                         Hold,H,MirhsH,Zold,Z,MirhsZ,Qxold,Qx,MirhsQx,Qyold,Qy,MirhsQy                                            
+      USE globals, ONLY: dof,ndof,el,ne,nel_type,blk,npartet,elblk, &
+                         t,tstage,pt3333,ramp,ark,brk,crk, &
+                         Hold,H,MirhsH,Zold,Z,MirhsZ,Qxold,Qx,MirhsQx,Qyold,Qy,MirhsQy  
+                         
+      USE read_dginp, ONLY: npart,dt,dramp,rk_type
 
       IMPLICIT NONE
       
@@ -12,7 +14,6 @@
 !       CALL nan_check()
 !       PRINT*, "NaN checked initial condition"      
 
-      rk_type = 22
       SELECT CASE (rk_type)
       
         CASE(11)
@@ -193,8 +194,9 @@
 
       SUBROUTINE swap()
       
-      USE globals, ONLY: dof,ndof,el,nel_type,blk,npart,npartet,elblk, &
-                         Hold,H,Zold,Z,Qxold,Qx,Qyold,Qy      
+      USE globals, ONLY: dof,ndof,el,nel_type,blk,npartet,elblk, &
+                         Hold,H,Zold,Z,Qxold,Qx,Qyold,Qy   
+      USE read_dginp, ONLY: npart                         
                        
       IMPLICIT NONE                       
                        
@@ -238,9 +240,10 @@
 
       SUBROUTINE forward_euler()
       
-      USE globals, ONLY: dof,ndof,el,ne,nel_type,blk,npart,npartet,elblk, &
-                         t,tstage,dt,ramp,dramp, &
-                         Hold,H,MirhsH,Zold,Z,MirhsZ,Qxold,Qx,MirhsQx,Qyold,Qy,MirhsQy        
+      USE globals, ONLY: dof,ndof,el,ne,nel_type,blk,npartet,elblk, &
+                         t,tstage,ramp, &
+                         Hold,H,MirhsH,Zold,Z,MirhsZ,Qxold,Qx,MirhsQx,Qyold,Qy,MirhsQy    
+      USE read_dginp, ONLY: dt,npart,dramp
       
       IMPLICIT NONE
       
@@ -292,10 +295,11 @@
       
       USE globals, ONLY: dof,ndof,el,ne, &
                          H,Z,Qx,Qy, &
-                         blk,npart,nel_type,elblk,npartet, &
+                         blk,nel_type,elblk,npartet, &
                          t
                          
-      USE messenger2, ONLY: finish                               
+      USE messenger2, ONLY: finish 
+      USE read_dginp, ONLY: npart
       
       IMPLICIT NONE
       

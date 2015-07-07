@@ -2,16 +2,16 @@
 
       USE globals, ONLY: pres,ect,xy,depth,ne,nn,ned,ndof, &
                          nqpta,mnqpta,qpta,nqpte, &
-                         el_type,nel_type,p,ctp,np,nnds, &
+                         el_type,nel_type,np,nnds, &
                          area,edlen,edlen_area,normal,ged2nn,ged2el,ged2led, &
                          dhbdx_init,dhbdy_init, &
                          detJa,detJe, &
                          nx_pt,ny_pt, &
                          curved_grid
                          
-      USE basis, ONLY: 
-      
+      USE basis, ONLY:       
       USE allocation, ONLY: alloc_trans_arrays
+      USE read_dginp, ONLY: p,ctp
 
       IMPLICIT NONE
       INTEGER :: el,ed,led,dof,pt,i,nd

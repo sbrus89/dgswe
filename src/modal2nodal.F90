@@ -1,8 +1,9 @@
       SUBROUTINE modal2nodal()
 
-      USE globals, ONLY: pres,nel_type,p,np,nnds,mnnds,ndof,mndof,order,m2n,out_direc, &
-                         nqpta,mnqpta,wpta,phia,phil,hbp
+      USE globals, ONLY: pres,nel_type,np,nnds,mnnds,ndof,mndof,order,m2n, &
+                         nqpta,mnqpta,wpta,phia,phil
       USE basis, ONLY: tri_basis,quad_basis,tri_nodes,quad_nodes,linear
+      USE read_dginp, ONLY: out_direc,p,hbp
 
       IMPLICIT NONE
       

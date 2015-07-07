@@ -1,10 +1,9 @@
       SUBROUTINE edge_qpts()
 
-      USE globals, ONLY: pres,p,nqpte,mnqpte,wpte,qpte,ctp,nel_type
-      
-      USE allocation, ONLY: alloc_qpt_arrays
-      
+      USE globals, ONLY: pres,nqpte,mnqpte,wpte,qpte,nel_type      
+      USE allocation, ONLY: alloc_qpt_arrays      
       USE messenger2, ONLY: myrank
+      USE read_dginp, ONLY: p,ctp
 
       IMPLICIT NONE
       INTEGER :: alloc_status

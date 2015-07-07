@@ -1,10 +1,11 @@
       SUBROUTINE read_forcing()
 
-      USE globals, ONLY: pres,forcing_file,neta,nvel,nbou,fbseg, &
+      USE globals, ONLY: pres,neta,nvel,nbou,fbseg, &
                          nobfr,obtag,obtag2,obfreq,obnfact,obeq,obamp,obph, &
                          nfbfr,fbtag,fbtag2,fbfreq,fbnfact,fbeq,fbamp,fbph
                          
-      USE allocation, ONLY: alloc_forcing_arrays                         
+      USE allocation, ONLY: alloc_forcing_arrays    
+      USE read_dginp, ONLY: forcing_file
 
       IMPLICIT NONE
       INTEGER :: alloc_stat

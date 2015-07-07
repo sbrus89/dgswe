@@ -6,26 +6,12 @@
       
       INTEGER, PARAMETER :: pres = kind(1d0)
 
-      CHARACTER(100), TARGET  :: grid_file
       CHARACTER(100) :: grid_name
-      CHARACTER(100), TARGET  :: forcing_file
-      CHARACTER(100), TARGET  :: out_direc
       
       INTEGER, PARAMETER :: nel_type = 4
 
       INTEGER :: ne
-      INTEGER :: nn
-      
-      INTEGER, TARGET :: p
-      INTEGER, TARGET :: ctp
-      INTEGER, TARGET  :: hbp
-      REAL(pres), TARGET  :: dt
-      REAL(pres), TARGET  :: tf
-      REAL(pres), TARGET  :: dramp
-      REAL(pres), TARGET  :: cf
-      REAL(pres), TARGET  :: lines
-      INTEGER, TARGET  :: nblk
-      INTEGER, TARGET  :: npart
+      INTEGER :: nn      
       
       INTEGER, DIMENSION(nel_type) :: nverts
       INTEGER, DIMENSION(nel_type) :: np
@@ -33,9 +19,8 @@
       INTEGER, DIMENSION(nel_type) :: nnds
       INTEGER :: mnnds
       INTEGER, DIMENSION(nel_type) :: ndof
-      INTEGER :: mndof
-      
-      
+      INTEGER :: mndof           
+      INTEGER :: nlines
       
       INTEGER :: nproc
 

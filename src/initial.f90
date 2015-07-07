@@ -1,6 +1,6 @@
       SUBROUTINE initial()
 
-      USE globals, ONLY: pres,ne,nn,mndof,ndof,nel_type,mnnds,nnds,np,out_direc, &
+      USE globals, ONLY: pres,ne,nn,mndof,ndof,nel_type,mnnds,nnds,np, &
                          ect,xy,depth,elxy,elhb,hbnodes, &
                          nqpta,qpta,wpta,nqpte,qpte, &
                          H,Qx,Qy, &
@@ -10,12 +10,13 @@
                          nobed,nfbed,nobfr,nfbfr, &
                          obamp,obph,fbamp,fbph, &
                          obamp_qpt,obph_qpt,obdepth_qpt,fbamp_qpt,fbph_qpt, &
-                         depth,obnds,grid_file, &
+                         depth,obnds, &
                          el_type,mnelnds,nelnds,psia, &
                          detJa,mmi_init
                          
       USE allocation, ONLY: alloc_sol_arrays,alloc_forcing_arrays   
       USE basis, ONLY: tri_nodes,tri_basis,quad_nodes,quad_basis
+      USE read_dginp, ONLY: out_direc,grid_file
 
       IMPLICIT NONE
       INTEGER :: i,j,el,l,pt,dof,bfr,ed,ind,nd,k,seg,m,n,p

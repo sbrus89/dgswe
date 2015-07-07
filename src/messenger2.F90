@@ -181,7 +181,7 @@
 
       SUBROUTINE read_message_files()
       
-      USE globals, ONLY: pres,ne,ndof,lines,p
+      USE globals, ONLY: pres,ne,mndof,nlines
       
       IMPLICIT NONE
       
@@ -261,12 +261,12 @@
         CALL abort()
       ENDIF
       
-      IF(ndof2 /= (p+1)**2) THEN
+      IF(ndof2 /= mndof) THEN
         PRINT*, "number of degrees of freedom does not agree with files"
         CALL abort()
       ENDIF
       
-      IF(lines2 /= lines) THEN
+      IF(lines2 /= nlines) THEN
         PRINT*, "number of output lines does not agree with files"
         CALL abort()
       ENDIF

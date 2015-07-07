@@ -1,12 +1,13 @@
       SUBROUTINE read_forcing()
 
-      USE globals, ONLY: pres,forcing_file,neta,nvel,nbou,fbseg, &
+      USE globals, ONLY: pres,neta,nvel,nbou,fbseg, &
                          nobfr,obtag,obtag2,obfreq,obnfact,obeq,obamp,obph, &
                          nfbfr,fbtag,fbtag2,fbfreq,fbnfact,fbeq,fbamp,fbph, &
                          fbper,obper,pi,deg2rad
                          
       USE allocation, ONLY: alloc_forcing_arrays   
       USE messenger2, ONLY: finish,myrank
+      USE read_dginp, ONLY: forcing_file
 
       IMPLICIT NONE
       INTEGER :: bfr,node,seg,segtype

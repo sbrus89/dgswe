@@ -1,7 +1,8 @@
       SUBROUTINE vandermonde()
       
-      USE globals, ONLY: pres,ctp,np,mnp,nnds,mnnds,norder,nel_type,Va,ipiva,Ve,ipive
+      USE globals, ONLY: pres,np,mnp,nnds,mnnds,norder,nel_type,Va,ipiva,Ve,ipive
       USE basis, ONLY: tri_nodes,tri_basis,quad_nodes,quad_basis,lglpts,jacobi
+      USE read_dginp, ONLY: ctp
       
       IMPLICIT NONE
       INTEGER :: et,pt,dof,i,n,p

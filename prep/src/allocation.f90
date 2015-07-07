@@ -1,10 +1,12 @@
       MODULE allocation
       
-      USE globals, ONLY: nel_type,ne,nn,npart, &
+      USE globals, ONLY: nel_type,ne,nn, &
                          mnepn,mnnds, &
                          ned,nied,nobed,nnfbed,nfbed, &
                          nope,neta,nbou,nvel, &
-                         nobfr,nfbfr                     
+                         nobfr,nfbfr   
+                         
+      USE read_dginp, ONLY: p,ctp,npart,lines                         
 
       
       IMPLICIT NONE
@@ -16,9 +18,8 @@
 
       SUBROUTINE sizes()
       
-      USE globals, ONLY: p,ctp, &
-                         ndof,nverts,np,nnds, &
-                         mndof,mnp,mnnds
+      USE globals, ONLY: ndof,nverts,np,nnds, &
+                         mndof,mnp,mnnds,nlines
       
       IMPLICIT NONE
       
@@ -43,7 +44,9 @@
       nnds(2) = 4
       nnds(3) = (ctp+1)*(ctp+2)/2
       nnds(4) = (ctp+1)*(ctp+1) 
-      mnnds = maxval(nnds)                
+      mnnds = maxval(nnds)    
+      
+      nlines = lines
       
       RETURN
       END SUBROUTINE sizes

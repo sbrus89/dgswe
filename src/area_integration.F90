@@ -7,7 +7,9 @@
                          tau,src_x,src_y, &
                          dhbdx,dhbdy, &
                          rhsH,rhsQx,rhsQy,&
-                         g,pt5g,cf
+                         g,pt5g
+                         
+      USE read_dginp, ONLY: cf                         
 
       IMPLICIT NONE
 

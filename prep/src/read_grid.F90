@@ -1,10 +1,11 @@
       SUBROUTINE read_grid()
       
-      USE globals, ONLY: grid_file,ne,nn,ect,vct,xy,depth,nelnds,elxy,elhb, &
+      USE globals, ONLY: ne,nn,ect,vct,xy,depth,nelnds,elxy,elhb, &
                          nope,neta,obseg,obnds,nvel,nbou,fbseg,fbnds,grid_name, &
-                         el_type,ctp,mnelnds,curved_grid,nverts
+                         el_type,mnelnds,curved_grid,nverts
                          
-      USE allocation, ONLY: alloc_grid_arrays     
+      USE allocation, ONLY: alloc_grid_arrays 
+      USE read_dginp, ONLY: grid_file,ctp
 
       IMPLICIT NONE
       INTEGER :: i,j,k,el

@@ -1,9 +1,10 @@
       SUBROUTINE curvilinear()
 
       USE globals, ONLY: pres,nnfbed,nfbedn,ged2el,ged2led,pi, &
-                         nelnds,el_type,order,ctp,elxy,xy,ect,elhb,ne,mnnds,nnds, &
+                         nelnds,el_type,order,elxy,xy,ect,elhb,ne,mnnds,nnds, &
                          psiv,psic
       USE basis, ONLY: quad_nodes,tri_nodes
+      USE read_dginp, ONLY: ctp
 
       IMPLICIT NONE
       

@@ -1,12 +1,13 @@
       SUBROUTINE read_grid()
       
-      USE globals, ONLY: pres,grid_file,ne,nn,ect,vct,xy,depth,nelnds,elxy,elhb,hbnodes, &
+      USE globals, ONLY: pres,ne,nn,ect,vct,xy,depth,nelnds,elxy,elhb,hbnodes, &
                          nope,neta,obseg,obnds,nvel,nbou,fbseg,fbnds,grid_name, &
-                         el_type,ctp,mnelnds,curved_grid,nverts,mnnds, &
+                         el_type,mnelnds,curved_grid,nverts,mnnds, &
                          coord_sys,r_earth,slam0,sphi0,deg2rad,h0
                          
       USE allocation, ONLY: alloc_grid_arrays     
       USE messenger2, ONLY: finish,myrank
+      USE read_dginp, ONLY: grid_file,ctp
 
       IMPLICIT NONE
       INTEGER :: i,j,k,el

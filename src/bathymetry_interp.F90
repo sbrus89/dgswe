@@ -4,8 +4,9 @@
                          ne,ned,elxy,elhb,ged2el,ged2led, &
                          hbqpta_init,dhbdx_init,dhbdy_init,hbqpte_init,hbm,hbqpted, &
                          Va,ipiva,psia,dpsidr,dpsids, &
-                         coord_sys,sphi0,r_earth, &
-                         out_direc
+                         coord_sys,sphi0,r_earth
+                         
+      USE read_dginp, ONLY: out_direc                         
                          
 
       IMPLICIT NONE

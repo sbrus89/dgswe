@@ -1,8 +1,8 @@
       SUBROUTINE metis2()
 
-      USE globals, ONLY: nn,ne,ned,ged2el,npart,part
-      
+      USE globals, ONLY: nn,ne,ned,ged2el,part      
       USE messenger2, ONLY: myrank
+      USE read_dginp, ONLY: npart
 
       IMPLICIT NONE
       
@@ -127,7 +127,7 @@
       
       SUBROUTINE decomp2()
       
-      USE globals, ONLY: nn,ne,ndof,mndof,nqpta,mnqpta,mnqpte,part,npart,nel_type,el_type,nelnds, &
+      USE globals, ONLY: nn,ne,ndof,mndof,nqpta,mnqpta,mnqpte,part,nel_type,el_type,nelnds, &
                          ged2el,&
                          npartel,nparted,npartet, &
                          gel2part,gel2lel,lel2gel, &
@@ -143,9 +143,10 @@
                          nblk,elblk,edblk,nfblk,nrblk,rnfblk, &
                          mnpartel,mnparted   
                          
-      USE allocation, ONLY: alloc_ptr_arrays,alloc_blk_arrays,dealloc_init_arrays          
-      
+      USE allocation, ONLY: alloc_ptr_arrays,alloc_blk_arrays,dealloc_init_arrays                
       USE messenger2, ONLY: myrank
+      USE read_dginp, ONLY: npart
+      
 
 
       IMPLICIT NONE
