@@ -226,10 +226,10 @@ $(ODIR)allocation.o : allocation.f90 globals.F90 messenger2.F90
 $(ODIR)basis.o : basis.f90 globals.F90 allocation.f90 messenger2.F90
 	$(FC) $(CFLAGS) $< -o $@
 	mv basis.mod $(ODIR)
-
-$(ODIR)read_grid.o : read_grid.f90 globals.F90 allocation.f90 messenger2.F90
-	$(FC) $(CFLAGS) $< -o $@
-	mv read_dginp.mod $(ODIR)
+	
+$(ODIR)read_input.o : read_input.F90 globals.F90 messenger2.F90
+	$(FC) $(CFLAGS) $(RK) $< -o $@	
+	mv read_dginp.mod $(ODIR)		
 
 $(ODIR)area_qpts.o : area_qpts.f90 globals.F90 allocation.f90 messenger2.F90
 	$(FC) $(CFLAGS) $< -o $@
@@ -237,8 +237,8 @@ $(ODIR)area_qpts.o : area_qpts.f90 globals.F90 allocation.f90 messenger2.F90
 $(ODIR)edge_qpts.o : edge_qpts.f90 globals.F90 allocation.f90 messenger2.F90
 	$(FC) $(CFLAGS) $< -o $@
 
-$(ODIR)read_input.o : read_input.F90 globals.F90 messenger2.F90
-	$(FC) $(CFLAGS) $(RK) $< -o $@
+$(ODIR)read_grid.o : read_grid.f90 globals.F90 allocation.f90 messenger2.F90
+	$(FC) $(CFLAGS) $< -o $@
 
 $(ODIR)read_forcing.o : read_forcing.f90 globals.F90 allocation.f90
 	$(FC) $(CFLAGS) $< -o $@

@@ -6,6 +6,8 @@
                          nfbfr,fbtag,fbtag2,fbfreq,fbnfact,fbeq,lfbamp,lfbph,lnbouf, &
                          nsred,ned_sr,pe_sr,el_sr,led_sr,el_l2g,nd_l2g, &
                          grid_file,forcing_file,p,ctp,hbp,dt,tf,dramp,cf,lines,nblk,npart,mndof
+                         
+      USE read_dginp, ONLY: write_local                         
 
       IMPLICIT NONE
 
@@ -219,23 +221,25 @@
       
       ! Write the local input file
       DO pe = 1,nproc
-        WRITE(dirname(3:lname),"(I4.4)") pe-1         
-        OPEN(UNIT=10,FILE=dirname(1:lname)//'/'//'dgswe.inp')
-        
-        WRITE(10,"(A)") dirname(1:lname)//'/'//"fort.14"
-        WRITE(10,"(A)") dirname(1:lname)//'/'//"fort.15"
-        WRITE(10,"(I5)") p
-        WRITE(10,"(I5)") ctp
-        WRITE(10,"(I5)") hbp
-        WRITE(10,"(E24.17)") dt
-        WRITE(10,"(E24.17)") tf
-        WRITE(10,"(E24.17)") dramp
-        WRITE(10,"(E24.17)") cf
-        WRITE(10,"(I7)") int(lines)
-        WRITE(10,"(A)") './' // dirname(1:lname) // '/'
-        WRITE(10,"(I5)") npart
-        
-        CLOSE(10)
+!         WRITE(dirname(3:lname),"(I4.4)") pe-1         
+!         OPEN(UNIT=10,FILE=dirname(1:lname)//'/'//'dgswe.inp')
+!         
+!         WRITE(10,"(A)") dirname(1:lname)//'/'//"fort.14"
+!         WRITE(10,"(A)") dirname(1:lname)//'/'//"fort.15"
+!         WRITE(10,"(I5)") p
+!         WRITE(10,"(I5)") ctp
+!         WRITE(10,"(I5)") hbp
+!         WRITE(10,"(E24.17)") dt
+!         WRITE(10,"(E24.17)") tf
+!         WRITE(10,"(E24.17)") dramp
+!         WRITE(10,"(E24.17)") cf
+!         WRITE(10,"(I7)") int(lines)
+!         WRITE(10,"(A)") './' // dirname(1:lname) // '/'
+!         WRITE(10,"(I5)") npart
+!         
+!         CLOSE(10)
+
+        CALL write_local(pe)
       ENDDO
 
       

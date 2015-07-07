@@ -7,7 +7,8 @@ LIB = metis
 ODIR = odir/
 CFLAGS = -c -g -traceback -I$(ODIR)
 
-objects = globals.o allocation.o read_input.o read_grid.o read_forcing.o edge_connect.o metis2.o decomp2.o write_files.o dgprep.o
+objects = globals.o allocation.o read_input_vars.o read_input.o read_grid.o read_forcing.o  \
+          edge_connect.o metis2.o decomp2.o write_files.o dgprep.o
 obj = $(patsubst %.o, $(ODIR)%.o,$(objects))
 
 dgprep: $(ODIR) $(obj)
@@ -26,8 +27,13 @@ $(ODIR)allocation.o : allocation.f90
 	$(FC) $(CFLAGS) $< -o $@
 	mv allocation.mod $(ODIR)	
 
-$(ODIR)read_input.o : read_input.F90 globals.F90
+$(ODIR)read_input.o : ../../src/read_input.F90 globals.F90          # This is shared with dgswe 
 	$(FC) $(CFLAGS) $< -o $@
+	mv read_dginp.mod $(ODIR)
+	
+$(ODIR)read_input_vars.o : read_input_vars.F90 globals.F90
+	$(FC) $(CFLAGS) $< -o $@
+	mv messenger2.mod $(ODIR)
 
 $(ODIR)read_grid.o : read_grid.F90 globals.F90
 	$(FC) $(CFLAGS) $< -o $@

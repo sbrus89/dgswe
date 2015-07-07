@@ -2,6 +2,7 @@
       
       USE globals
       USE allocation, ONLY: sizes
+      USE read_dginp
 
       IMPLICIT NONE
       

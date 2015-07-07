@@ -72,7 +72,7 @@
       
       SUBROUTINE read_input()
       
-      USE messenger2, ONLY: abort,dirname,lname,myrank
+      USE messenger2, ONLY: abort,dirname,lname,myrank,nthreads
       
       IMPLICIT NONE
       
@@ -157,7 +157,7 @@
       SUBROUTINE read_fixed_dginp()
       
       USE globals, ONLY: grid_file,forcing_file,p,ctp,hbp,dt,tf,dramp,cf,lines,out_direc,npart
-      USE messenger2, ONLY: myrank,dirname,lname,finish,nthreads
+      USE messenger2, ONLY: myrank,dirname,lname
 
       IMPLICIT NONE
       
@@ -549,6 +549,50 @@
       END SUBROUTINE dginp_setup
       
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!            
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!     
+
+      SUBROUTINE write_local(pe)
+      
+      USE globals, ONLY: grid_file,forcing_file,out_direc
+      
+      IMPLICIT NONE
+            
+      INTEGER :: pe
+      CHARACTER(6) :: dirname
+      INTEGER,PARAMETER :: lname = 6
+      INTEGER :: i
+      
+      
+      
+      dirname = "PE0000"
+      
+      WRITE(dirname(3:lname),"(I4.4)") pe-1         
+      OPEN(UNIT=10,FILE=dirname(1:lname)//'/'//'dgswe.inp')    
+      
+      grid_file = dirname(1:lname)//'/'//"fort.14"
+      forcing_file = dirname(1:lname)//'/'//"fort.15"      
+      out_direc = './' // dirname(1:lname) // '/'
+      
+      ! write inputs
+      DO i = 1,maxopt        
+        IF (ASSOCIATED(dginp(i)%iptr)) THEN  
+          WRITE(10,"(A,A,I8)") dginp(i)%key," = ",dginp(i)%iptr
+        ENDIF
+        
+        IF (ASSOCIATED(dginp(i)%rptr)) THEN 
+          WRITE(10,"(A,A,E21.8)") dginp(i)%key," = ",dginp(i)%rptr
+        ENDIF
+        
+        IF (ASSOCIATED(dginp(i)%cptr)) THEN 
+          WRITE(10,"(A,A,A)") dginp(i)%key," = ",dginp(i)%cptr 
+        ENDIF
+      ENDDO      
+      
+      CLOSE(10)     
+      
+      END SUBROUTINE write_local
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!        
       
       END MODULE read_dginp
