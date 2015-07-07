@@ -54,6 +54,7 @@
       INTEGER, ALLOCATABLE, DIMENSION(:) :: gel2ael ! gives the aligned element number that corresponds to a global element number
       INTEGER, ALLOCATABLE, DIMENSION(:) :: ael2gel ! gives the global element number that corresponds to an aligned element number      
 
+      INTEGER, TARGET :: rk_type
       REAL(pres), TARGET :: dt ! time step
       REAL(pres) :: t ! simulation time
       REAL(pres), TARGET :: tf ! final time

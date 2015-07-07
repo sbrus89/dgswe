@@ -121,17 +121,7 @@
         PRINT "(A)", "---------------------------------------------"
         PRINT "(A)", "             Input Information               "
         PRINT "(A)", "---------------------------------------------"
-        PRINT "(A)", " "      
-
-      
-#ifdef rk22
-        PRINT*, "RK22 timestepping"
-#elif rk33
-        PRINT*, "RK33 timestepping"
-#else
-        PRINT*, "Forward Euler timestepping"
-#endif      
-        PRINT*, " "      
+        PRINT "(A)", " "            
       ENDIF        
       
 
