@@ -1,8 +1,5 @@
 SHELL = /bin/sh
 
-RK = -Drk33
-
-
 VPATH := ../src/
 ODIR = odir/
 
@@ -228,7 +225,7 @@ $(ODIR)basis.o : basis.f90 globals.F90 allocation.f90 messenger2.F90
 	mv basis.mod $(ODIR)
 	
 $(ODIR)read_input.o : read_input.F90 globals.F90 messenger2.F90
-	$(FC) $(CFLAGS) $(RK) $< -o $@	
+	$(FC) $(CFLAGS) $< -o $@	
 	mv read_dginp.mod $(ODIR)		
 
 $(ODIR)area_qpts.o : area_qpts.f90 globals.F90 allocation.f90 messenger2.F90
@@ -283,7 +280,7 @@ $(ODIR)bathymetry_interp.o : bathymetry_interp.F90 globals.F90
 	$(FC) $(CFLAGS_VEC) $< -o $@	
 
 $(ODIR)rk.o : rk.F90 globals.F90
-	$(FC) $(CFLAGS_VEC) $(RK) $< -o $@
+	$(FC) $(CFLAGS_VEC) $< -o $@
 
 $(ODIR)rhs2.o : rhs2.F90 globals.F90 messenger2.F90
 	$(FC) $(CFLAGS_VEC) $< -o $@
@@ -304,4 +301,4 @@ $(ODIR)version.o : version.F90 globals.F90 messenger2.F90
 	$(FC) $(CFLAGS) $< -o $@		
 
 $(ODIR)swe_tri.o : swe_tri.F90 globals.F90 basis.f90 allocation.f90 messenger2.F90
-	$(FC) $(CFLAGS) $(RK) $< -o $@
+	$(FC) $(CFLAGS) $< -o $@
