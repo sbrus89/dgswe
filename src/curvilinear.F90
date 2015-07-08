@@ -47,8 +47,8 @@
             ypt = ypt + psiv(nd,pt,et)*y
           ENDDO
           
-!           elhb(pt,el) = 10d0
-          elhb(pt,el) = 10d0 - 5d0*cos(2d0*pi/500d0*ypt)        
+          elhb(pt,el) = 10d0
+!           elhb(pt,el) = 10d0 - 5d0*cos(2d0*pi/500d0*ypt)        
           xyhb(pt,el,1) = xpt
           xyhb(pt,el,2) = ypt
         ENDDO  
@@ -167,8 +167,8 @@
             ypt = ypt + psic(nd,pt,et)*y
           ENDDO
           
-!           elhb(pt,el) = 10d0
-          elhb(pt,el) = 10d0 - 5d0*cos(2d0*pi/500d0*ypt)     
+          elhb(pt,el) = 10d0
+!           elhb(pt,el) = 10d0 - 5d0*cos(2d0*pi/500d0*ypt)     
           xyhb(pt,el,1) = xpt
           xyhb(pt,el,2) = ypt          
         ENDDO  
