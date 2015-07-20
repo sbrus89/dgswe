@@ -5,13 +5,15 @@
                          el_type,mnelnds,curved_grid,nverts
                          
       USE allocation, ONLY: alloc_grid_arrays 
-      USE read_dginp, ONLY: grid_file,ctp
+      USE read_dginp, ONLY: grid_file,ctp,bathy_file,hbp
 
       IMPLICIT NONE
       INTEGER :: i,j,k,el
       INTEGER :: nbseg
       INTEGER :: btype
       INTEGER :: nvert
+      INTEGER :: nnd
+      INTEGER :: ne_check,hbp_check
       LOGICAL :: file_exists
 
 
@@ -150,6 +152,29 @@
 !       PRINT*, " "
 
       CLOSE(14) 
+      
+      
+      
+      INQUIRE(FILE=bathy_file, EXIST = file_exists)
+      IF(file_exists == .FALSE.) THEN
+        PRINT*, "high order bathymetry file does not exist"    
+      ELSE
+      
+        PRINT*, "reading in high order bathymetry file"  
+
+        OPEN(UNIT = 14, FILE = bathy_file)
+      
+        READ(14,*) ne_check, hbp_check
+        IF (ne_check /= ne .or. hbp_check /= hbp) THEN
+          PRINT*, "incorrect high order bathymetry file"
+        ENDIF
+        
+        DO i = 1,ne
+          READ(14,*) el,nnd,(elhb(j,el), j = 1,nnd)
+        ENDDO
+      
+        CLOSE(14)
+      ENDIF            
       
       PRINT "(A)", "---------------------------------------------"
       PRINT "(A)", "             Grid Information                "

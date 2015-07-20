@@ -4,16 +4,18 @@
                          lnope,lneta,lobseg,lobnds,lnbou,lnvel,lfbseg,lfbnds, &
                          nobfr,obtag,obtag2,obfreq,obnfact,obeq,lobamp,lobph, &
                          nfbfr,fbtag,fbtag2,fbfreq,fbnfact,fbeq,lfbamp,lfbph,lnbouf, &
-                         nsred,ned_sr,pe_sr,el_sr,led_sr,el_l2g,nd_l2g,mndof,nlines
+                         nsred,ned_sr,pe_sr,el_sr,led_sr,el_l2g,nd_l2g,mndof,nlines, &
+                         el_type,elhb
                          
-      USE read_dginp, ONLY: write_local                         
+      USE read_dginp, ONLY: write_local,hbp                         
 
       IMPLICIT NONE
 
       
       INTEGER :: pe,pes,nd,el,bnd,bfr,seg,ed
-      INTEGER :: segtype
-      INTEGER :: gnd
+      INTEGER :: segtype,et
+      INTEGER :: gnd,gel
+      INTEGER :: nnd
       INTEGER :: npes,ned2pes
       INTEGER :: match
       INTEGER :: lname
@@ -217,6 +219,28 @@
         ENDDO
         
       ENDDO  
+      
+      
+      ! Write the high order bathymetry file
+      DO pe = 1,nproc
+        
+        WRITE(dirname(3:lname),"(I4.4)") pe-1      
+        OPEN(UNIT=14,FILE=dirname(1:lname)//'/'//'fort.hb')
+        
+        DO el = 1,nresel(pe)
+          gel = el_l2g(el,pe)
+          et = el_type(gel)
+          
+          IF (mod(et,2) == 1) THEN
+            nnd = (hbp+1)*(hbp+2)/2
+          ELSE IF (mod(et,2) == 0) THEN
+            nnd = (hbp+1)**2
+          ENDIF
+          
+          WRITE(14,"(2(I7),60(e24.17,1x))") el, nnd, (elhb(nd,gel), nd = 1,nnd)
+        ENDDO
+      ENDDO
+      
       
       ! Write the local input file
       DO pe = 1,nproc

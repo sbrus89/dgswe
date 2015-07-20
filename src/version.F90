@@ -6,7 +6,7 @@
       IMPLICIT NONE
       
       gitBranch = "quadtri_mixed_mpi" 
-      gitSHA = "d85806ba690e75bb01658b3274e74db30f80ec87 +" 
+      gitSHA = "d008fbb5a186f02ee61f178479e2be916aa89957 +" 
       
       IF (myrank == 0) THEN     
             

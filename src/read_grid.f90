@@ -7,13 +7,14 @@
                          
       USE allocation, ONLY: alloc_grid_arrays     
       USE messenger2, ONLY: finish,myrank
-      USE read_dginp, ONLY: grid_file,ctp
+      USE read_dginp, ONLY: grid_file,ctp,hbp,bathy_file
 
       IMPLICIT NONE
       INTEGER :: i,j,k,el
       INTEGER :: nbseg
       INTEGER :: btype
       INTEGER :: nvert,nnds
+      INTEGER :: ne_check,hbp_check
       LOGICAL :: file_exists
 
 
@@ -166,21 +167,30 @@
 !       ENDDO
 !       PRINT*, " "
 
-      CLOSE(14) 
+      CLOSE(14)       
       
-!       INQUIRE(FILE='elem_nodes.d', EXIST = file_exists)
-!       IF(file_exists == .FALSE.) THEN
-!         PRINT*, "high order bathymetry file does not exist"    
-!       ELSE
-! !         ALLOCATE(hbnodes(mnnds,el))
-!         OPEN(UNIT = 14, FILE = 'elem_nodes.d')
-!       
-!         DO i = 1,ne
-!           READ(14,*) el,nnds,(elhb(j,el), j = 1,nnds)
-!         ENDDO
-!       
-!         CLOSE(14)
-!       ENDIF      
+      INQUIRE(FILE=bathy_file, EXIST = file_exists)
+      IF(file_exists == .FALSE.) THEN
+        PRINT*, "high order bathymetry file does not exist"    
+      ELSE
+      
+        PRINT*, "reading in high order bathymetry file"  
+        
+        OPEN(UNIT = 14, FILE = bathy_file)
+      
+        READ(14,*) ne_check, hbp_check
+        IF (ne_check /= ne .or. hbp_check /= hbp) THEN
+          PRINT*, "incorrect high order bathymetry file"
+        ENDIF
+        
+        DO i = 1,ne
+          READ(14,*) el,nnds,(elhb(j,el), j = 1,nnds)
+        ENDDO
+      
+        CLOSE(14)
+      ENDIF      
+      
+      
       
 
       

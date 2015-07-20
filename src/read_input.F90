@@ -69,9 +69,10 @@
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       ! Input file variables
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-      CHARACTER(100), TARGET  :: grid_file
-      CHARACTER(100), TARGET  :: forcing_file
-      CHARACTER(100), TARGET  :: out_direc      
+      CHARACTER(100), TARGET :: grid_file
+      CHARACTER(100), TARGET :: forcing_file
+      CHARACTER(100), TARGET :: out_direc 
+      CHARACTER(100), TARGET :: bathy_file
       INTEGER, TARGET :: p
       INTEGER, TARGET :: ctp
       INTEGER, TARGET :: hbp
@@ -523,6 +524,7 @@
       dginp(11)%key = "lines";          dginp(11)%rptr => lines;          dginp(11)%required = .true.;     dginp(11)%rptr = 10d0
       dginp(12)%key = "out_direc";      dginp(12)%cptr => out_direc;      dginp(12)%required = .false.;    dginp(12)%cptr = "./"
       dginp(13)%key = "npart";          dginp(13)%iptr => npart;          dginp(13)%required = .true.;     dginp(13)%iptr = 1
+      dginp(14)%key = "bathy_file";     dginp(14)%cptr => bathy_file;     dginp(14)%required = .false.;    dginp(14)%cptr = "./elem_nodes.d"      
 
       
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -593,7 +595,8 @@
       
       grid_file = dirname(1:lname)//'/'//"fort.14"
       forcing_file = dirname(1:lname)//'/'//"fort.15"      
-      out_direc = './' // dirname(1:lname) // '/'
+      out_direc = './' // dirname(1:lname) //'/'
+      bathy_file = './' // dirname(1:lname) //'/'//"fort.hb"
       
       ! write inputs
       DO i = 1,maxopt        

@@ -1,28 +1,16 @@
-!../grids/inlet1.grd                                       ! grid file
-!../grids/inlet1.bfr                                       ! forcing file
-!1                                                        ! p - polynomial order
-!1                                                        ! ctp - parametric coordinate transformation order
-!1                                                        ! hbp - bathymetry order
-!.1d0                                                      ! dt - timestep (1d0 for p=1,2, .5d0 for p=3)
-!1d0                                                      ! tf - final time (days)
-!.5d0                                                     ! dramp - ramping parameter (days)
-!.003d0                                                   ! cf - friction coefficient 
-!100d0                                                    ! lines - lines in output files
-!../output/                                               ! output directory
-!1
-
-../grids/converge.grd                                     ! grid file  
-../grids/converge.bfr                                     ! forcing file
-1                                                         ! p - polynomial order
-2                                                         ! ctp - parametric coordinate transformation order
-1                                                         ! hbp - bathymetry order
-0.5d0                                                       ! dt - timestep 
-1d0                                                       ! tf - final time (days)
-.08d0                                                     ! dramp - ramping parameter (days)
-.0025d0                                                   ! cf - friction coefficient 
-10d0                                                      ! lines - lines in output files
-../output/                                                ! output directory
-1                                                         ! npart - edge blocking parameter
+grid_file = ../grids/inlet1.grd                                ! grid file
+forcing_file = ../grids/inlet1.bfr                              ! forcing file
+p = 3                                                          ! polynomial order
+ctp = 1                                                        ! parametric coordinate transformation order
+hbp = 3                                                        ! bathymetry order
+rk = 45                                                        ! rk order
+dt = .25d0                                                      ! timestep 
+tf = 1d0                                                       ! final time (days)
+dramp = .5d0                                                   ! ramping parameter (days)
+cf = .003d0                                                    ! friction coefficient 
+lines = 100d0                                                  ! lines in output files
+out_direc = ../output/                                         ! output directory
+npart = 1
 
 !grid_file = ../grids/converge.grd
 !forcing_file = ../grids/converge.bfr  

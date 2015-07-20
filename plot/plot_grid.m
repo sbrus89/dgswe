@@ -5,15 +5,16 @@ restoredefaultpath
 
 elcolor = 'b';
 ndcolor = 'r';
-lcolor = 'r';
+lcolor = 'm';
 
 elem = 'off';
 node = 'off';
 
 p = 1 ;
 
-grd_direc = '~/data-drive/converge_quad/';
-grd_name = 'converge_quad4.grd';
+grd_direc = '/home/sbrus/data-drive/dgswe_inlet_bath/';
+% grd_direc = '/home/sbrus/Codes/dgswe/grids/';
+grd_name = 'inlet2.grd';
 
 [EToV,VX,HB,nelnds,~,~,~] = readfort14([grd_direc,grd_name]);
 [ne,nc] = size(EToV);

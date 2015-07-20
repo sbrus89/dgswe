@@ -6,8 +6,9 @@ clc
 grd_direc = '~/Codes/dgswe/grids/';
 sol_direc = '~/Codes/dgswe/output/';
 % sol_direc = '~/data-drive/converge_quad/mesh1/P2/CTP2/';
-% grd_name = 'inlet2.grd';
-grd_name = 'converge.grd';
+% sol_direc = '/home/sbrus/data-drive/dgswe_converge_curve_bath/converge3/p3/ctp3/hbp3/';
+grd_name = 'inlet1.grd';
+% grd_name = 'converge3.grd';
 % grd_name = 'converge.grd';
 % grd_name = 'beaufort_hb+2.grd';
 plot_folder = 'velplot';
@@ -60,11 +61,11 @@ plot_folder = 'velplot';
 % plot_folder = 'velplot_scale';
 
 
-ctp = 2;
+ctp = 1;
 
 nsnap = 49;
 
-grid_on = 1;
+grid_on = 0;
 
 % zoom_area = [3.2e5 3.4e5 3.24e6 3.26e6;
 %              2.84e5 3.04e5 3.205e6 3.2325e6];
@@ -264,11 +265,12 @@ end
 %     print('-depsc',sprintf('%s/bathy_zoom%02d',FramesFolder,zoom)) ;
 % end
     
+figure
 
-for tsnap = snap
+for tsnap = 1:snap
     
 %     figure('visible','off')
-    figure
+%     figure
 
 
     axis equal
@@ -314,7 +316,7 @@ for tsnap = snap
     if scale == 1
         caxis([0 velscale(tsnap)])
     else
-        caxis([0 1])
+%         caxis([0 1])
 %         caxis('auto')
     end
     axis image
@@ -330,54 +332,54 @@ for tsnap = snap
 %         print('-depsc',sprintf('%s/vel%04d_zoom%02d',FramesFolder,tsnap,zoom)) ;
 %     end
     
-        figure
-    
-        axis equal
-    
-        disp(['Time snap: ',num2str(tsnap),'/',num2str(snap)])
-        [day,hr,minute,sec] = s2dhms(t(tsnap));
-    
-        hold on
-        
-        for el = 1:ne
-            
-            n = nelnds(el);
-            et = el_type(el);             
-            
-            if n == 9
-                n = n-1;
-            end
-            
-            if grid_on == 0
-                fill(VX(EToV(el,1:n),1),VX(EToV(el,1:n),2),Zv(1:n,el,tsnap),'EdgeColor','none')
-%                fill(VX(EToV(el,1:n),1),VX(EToV(el,1:n),2),hbnodes(el,1:n),'EdgeColor','none')
-            else
-                fill(VX(EToV(el,1:n),1),VX(EToV(el,1:n),2),Zv(1:n,el,tsnap))
-%                fill(VX(EToV(el,1:n),1),VX(EToV(el,1:n),2),hbnodes(el,1:n))
-            end
-        end
-        
-        
-        hold off
-    
-        ttext = ['Surface solution: t = ',num2str(t(tsnap)),' (Day:  ',num2str(day),', Hour:  ',num2str(hr),', Minute:  ',num2str(minute),', Second:  ',num2str(sec),')'] ;
-        title(ttext)
-        xlabel('x')
-        ylabel('y')
-        zmin = min(min(Zv(:,:,tsnap)));
-        zmax = max(max(Zv(:,:,tsnap)));
-%         caxis([Zmin Zmax])        
-        colorbar
-        axis image
-        
-        drawnow
-    
-    %     print('-r400','-dpng',sprintf('%s/vel%04d',FramesFolder,tsnap)) ;
-    %
-    %     for zoom = 1:nzoom
-    %         axis(zoom_area(zoom,:))
-    %         print('-r400','-dpng',sprintf('%s/vel%04d_zoom%02d',FramesFolder,tsnap,zoom)) ;
-    %     end
-    
-    %     pause(.01)
+%         figure
+%     
+%         axis equal
+%     
+%         disp(['Time snap: ',num2str(tsnap),'/',num2str(snap)])
+%         [day,hr,minute,sec] = s2dhms(t(tsnap));
+%     
+%         hold on
+%         
+%         for el = 1:ne
+%             
+%             n = nelnds(el);
+%             et = el_type(el);             
+%             
+%             if n == 9
+%                 n = n-1;
+%             end
+%             
+%             if grid_on == 0
+%                 fill(VX(EToV(el,1:n),1),VX(EToV(el,1:n),2),Zv(1:n,el,tsnap),'EdgeColor','none')
+% %                fill(VX(EToV(el,1:n),1),VX(EToV(el,1:n),2),hbnodes(el,1:n),'EdgeColor','none')
+%             else
+%                 fill(VX(EToV(el,1:n),1),VX(EToV(el,1:n),2),Zv(1:n,el,tsnap))
+% %                fill(VX(EToV(el,1:n),1),VX(EToV(el,1:n),2),hbnodes(el,1:n))
+%             end
+%         end
+%         
+%         
+%         hold off
+%     
+%         ttext = ['Surface solution: t = ',num2str(t(tsnap)),' (Day:  ',num2str(day),', Hour:  ',num2str(hr),', Minute:  ',num2str(minute),', Second:  ',num2str(sec),')'] ;
+%         title(ttext)
+%         xlabel('x')
+%         ylabel('y')
+%         zmin = min(min(Zv(:,:,tsnap)));
+%         zmax = max(max(Zv(:,:,tsnap)));
+% %         caxis([Zmin Zmax])        
+%         colorbar
+%         axis image
+%         
+%         drawnow
+%     
+%     %     print('-r400','-dpng',sprintf('%s/vel%04d',FramesFolder,tsnap)) ;
+%     %
+%     %     for zoom = 1:nzoom
+%     %         axis(zoom_area(zoom,:))
+%     %         print('-r400','-dpng',sprintf('%s/vel%04d_zoom%02d',FramesFolder,tsnap,zoom)) ;
+%     %     end
+%     
+        pause(.01)
 end
