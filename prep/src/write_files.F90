@@ -226,7 +226,7 @@
         
         WRITE(dirname(3:lname),"(I4.4)") pe-1      
         OPEN(UNIT=14,FILE=dirname(1:lname)//'/'//'fort.hb')
-        
+        WRITE(14,"(2(I7))") nresel(pe),hbp
         DO el = 1,nresel(pe)
           gel = el_l2g(el,pe)
           et = el_type(gel)
