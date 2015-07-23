@@ -19,9 +19,15 @@ GIT_MOD := $(strip $(subst 0,,$(GIT_MOD)))
 ifeq ($(BUILDTYPE),dgswe)
   FC = ifort
   
-  CFLAGS_VEC  =  -O3 -xHost -align array32byte -align rec32byte -vec-report6  -I$(ODIR) -c
-  CFLAGS      =  -O3 -xHost -align array32byte -align rec32byte  -I$(ODIR) -c 
-  CFLAGS_LINK = -O3 -xHost -o 
+#   CFLAGS_VEC  =  -O3 -xHost -align array32byte -align rec32byte -vec-report6  -I$(ODIR) -c
+#   CFLAGS      =  -O3 -xHost -align array32byte -align rec32byte  -I$(ODIR) -c 
+#   MESSAGE = Compling serial program with optimization flags  
+#   CFLAGS_LINK = -O3 -xHost -o 
+  
+  CFLAGS_VEC  =  -O0  -I$(ODIR) -c
+  CFLAGS      =  -O0  -I$(ODIR) -c 
+  MESSAGE = Compling serial program without optimization flags  
+  CFLAGS_LINK = -o   
 
 #   ### Default compilation ###
 #   CFLAGS_VEC = -vec-report3 -I$(ODIR) -c 
@@ -39,7 +45,7 @@ ifeq ($(BUILDTYPE),dgswe)
 #   CFLAGS_LINK = -O3 -xHost -profile-loops=all -I$(ODIR) -o
 
   EXE_NAME = dgswe
-  MESSAGE = Compling serial program with optimization flags
+  
 endif
 
 ifeq ($(BUILDTYPE),dgswe_omp)
@@ -59,11 +65,18 @@ endif
 
 ifeq ($(BUILDTYPE),pdgswe)
   FC = mpif90
-  CFLAGS_VEC  =  -O3 -xHost -vec-report6 -DCMPI -I$(ODIR) -c
-  CFLAGS      =  -O3 -xHost -DCMPI -I$(ODIR) -c 
-  CFLAGS_LINK = -O3 -xHost -o 
+  
+#   CFLAGS_VEC  =  -O3 -xHost -vec-report6 -DCMPI -I$(ODIR) -c
+#   CFLAGS      =  -O3 -xHost -DCMPI -I$(ODIR) -c 
+#   CFLAGS_LINK = -O3 -xHost -o 
+#   MESSAGE = Compling parallel program with optimization flags
+  
+  CFLAGS_VEC  =  -O0 -DCMPI -I$(ODIR) -c
+  CFLAGS      =  -O0 -DCMPI -I$(ODIR) -c 
+  CFLAGS_LINK =  -o 
+  MESSAGE = Compling parallel program without optimization flags  
+  
   EXE_NAME = pdgswe
-  MESSAGE = Compling parallel program with optimization flags
 endif
 
 ifeq ($(BUILDTYPE),dgswe_debug)
