@@ -51,7 +51,7 @@
         s(i) = qpta(i,2,2)
       ENDDO
 
-      PRINT*, " "
+!       PRINT*, " "
       DO el = 1,ne
         x1 = xy(1,ect(1,el))
         y1 = xy(2,ect(1,el))

@@ -174,7 +174,7 @@
         PRINT*, "high order bathymetry file does not exist"    
       ELSE
       
-        PRINT*, "reading in high order bathymetry file"  
+        IF (myrank == 0 ) PRINT*, "reading in high order bathymetry file"  
         
         OPEN(UNIT = 14, FILE = bathy_file)
       

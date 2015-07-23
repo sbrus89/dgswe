@@ -370,11 +370,11 @@
         ENDIF
       ENDDO 
       
-      PRINT*, ""
+      IF (myrank == 0 ) PRINT*, ""
      
       CALL check_errors(opt_read)
       
-      PRINT*, ""
+      IF (myrank == 0 ) PRINT*, ""
       CLOSE(25)
             
       END SUBROUTINE read_keyword_dginp
