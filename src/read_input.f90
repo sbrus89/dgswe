@@ -1,6 +1,6 @@
       SUBROUTINE read_input()
 
-      USE globals, ONLY: coarse,fine,base,lines,tf
+      USE globals, ONLY: coarse,fine,base,lines,tf,exclude_bndel
 
       IMPLICIT NONE
       
@@ -94,5 +94,9 @@
       coarse%sol_name = "coarse"
       base%sol_name = "base"
       
+      exclude_bndel = .false.
+      IF (base%ctp > 1 .or. coarse%ctp > 1 .or. fine%ctp > 1) THEN
+        exclude_bndel = .true.
+      ENDIF
 
       END SUBROUTINE  read_input

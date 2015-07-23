@@ -47,7 +47,7 @@
 
       SUBROUTINE read_nodes(sol)
       
-      USE globals, ONLY: pres,solution
+      USE globals, ONLY: pres,solution,exclude_bndel
       USE allocation, ONLY: grid_alloc
 
       IMPLICIT NONE
@@ -268,6 +268,8 @@
       ! Find elements on land boundaries (these are left out of the L2 error calculation in case they're curve)
       ALLOCATE(sol%bndel(sol%ne))
       sol%bndel = 0
+      
+      IF (exclude_bndel) THEN
       DO i = 1,sol%nbou
         btype = sol%fbseg(2,i)
         nbseg = sol%fbseg(1,i)-1
@@ -311,6 +313,7 @@
             ENDDO elem2
           ENDDO
       ENDDO
+      ENDIF
 
 
       RETURN

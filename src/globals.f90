@@ -6,7 +6,9 @@
       INTEGER, PARAMETER :: nel_type = 4 !(type #s: 1 -> triangles, 2 -> quads, 3 -> curved triangles, 4-> curved quads)         
 
       INTEGER :: lines ! number of lines in output files  
-      REAL(pres) :: tf ! final time           
+      REAL(pres) :: tf ! final time   
+      
+      LOGICAL :: exclude_bndel
       
       TYPE :: solution 
         CHARACTER(10) :: sol_name
