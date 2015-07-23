@@ -4,7 +4,7 @@
                          ne,ned,elxy,elhb,ged2el,ged2led, &
                          hbqpta_init,dhbdx_init,dhbdy_init,hbqpte_init,hbm,hbqpted, &
                          Va,ipiva,psia,dpsidr,dpsids, &
-                         coord_sys,sphi0,r_earth
+                         coord_sys,sphi0,r_earth,recv_edge
                          
       USE read_dginp, ONLY: out_direc                         
                          
@@ -12,7 +12,7 @@
       IMPLICIT NONE
       
       INTEGER :: i,j,el,pt,nd,ed,dof,led
-      INTEGER :: typ,et,eo,edpt,el1,el2,led1,led2
+      INTEGER :: typ,et,eo,edpt,el1,el2,led1,led2,gp1,gp2
       INTEGER :: ndf,nnd,nqa,nqe,nv
       INTEGER :: info
       REAL(pres) :: x,y,hb
@@ -99,6 +99,9 @@
       
       CLOSE(45)
       CLOSE(46)      
+      
+
+      
       
 
       
@@ -201,6 +204,32 @@
         ENDIF
         
       ENDDO         
+      
+!       edpt = 0
+!       DO ed = 1,ned
+!       
+!         el1 = ged2el(1,ed)
+!         led1 = ged2led(1,ed)          
+!         el2 = ged2el(2,ed)
+!         led2 = ged2led(2,ed)  
+!         
+!         DO pt = 1,nqpte(1)
+!         
+!           gp1 = (led1-1)*nqpte(1) + pt
+!           gp2 = (led2-1)*nqpte(1) + nqpte(1) - pt + 1
+!           
+!           IF (abs(hbqpte_init(el1,gp1)- hbqpte_init(el2,gp2)) > 1d-13 .and. recv_edge(ed) == 0 ) THEN
+!             PRINT*, "edge batymetry values don't match"
+!             PRINT*, "recv_edge =", recv_edge(ed)
+!             PRINT*, hbqpte_init(el1,gp1),hbqpte_init(el2,gp2)   
+!             edpt = edpt + 1
+!           ENDIF
+!           
+!         
+!         ENDDO
+! 
+!       ENDDO      
+!       PRINT*, "# of unmatched points", edpt
       
 !       CLOSE(47)
      

@@ -127,7 +127,8 @@
       INTEGER, ALLOCATABLE, DIMENSION(:,:) :: ged2nn ! gives the two node numbers that make up a global edge number
       INTEGER, ALLOCATABLE, DIMENSION(:,:) :: ged2el ! gives the two element numbers that share a global edge number
       INTEGER, ALLOCATABLE, DIMENSION(:,:) :: ged2led ! gives the two local edge numbers that share a global edge number
-
+      INTEGER, ALLOCATABLE, DIMENSION(:) :: recv_edge    
+      
       INTEGER :: nied ! total number of interior edges
       INTEGER, ALLOCATABLE, DIMENSION(:) :: iedn ! array of interior edge numbers
       INTEGER :: nobed ! total number of open boundary edges

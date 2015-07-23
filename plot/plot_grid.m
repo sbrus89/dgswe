@@ -5,16 +5,16 @@ restoredefaultpath
 
 elcolor = 'b';
 ndcolor = 'r';
-lcolor = 'm';
+lcolor = 'k';
 
-elem = 'off';
-node = 'off';
+elem = 'on';
+node = 'on';
 
 p = 1 ;
 
 grd_direc = '/home/sbrus/data-drive/dgswe_inlet_bath/';
 % grd_direc = '/home/sbrus/Codes/dgswe/grids/';
-grd_name = 'inlet2.grd';
+grd_name = 'inlet1.grd';
 
 [EToV,VX,HB,nelnds,~,~,~] = readfort14([grd_direc,grd_name]);
 [ne,nc] = size(EToV);

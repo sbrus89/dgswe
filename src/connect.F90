@@ -5,7 +5,7 @@
                          ged2nn,ged2el,ged2led, &
                          nied,iedn,nobed,obedn,nfbed,fbedn,nnfbed,nfbedn,nbed,bedn, &
                          nope,neta,obseg,obnds,nbou,fbseg,nvel,fbnds, &
-                         nelnds,ed_type                       
+                         nelnds,ed_type,recv_edge                       
                          
       USE allocation, ONLY: alloc_connect_arrays    
       USE messenger2, ONLY: dirname,lname,myrank,nred,redn      
@@ -27,7 +27,7 @@
       INTEGER, ALLOCATABLE, DIMENSION(:,:) :: ged2nn_temp, ged2el_temp, ged2led_temp ! temporary arrays for edge connectivity
       INTEGER, ALLOCATABLE, DIMENSION(:,:) :: edflag
       
-      INTEGER, ALLOCATABLE, DIMENSION(:) :: recv_edge      
+        
 
       
       OPEN(unit=17,file=trim(out_direc) // 'connect.d')      

@@ -181,6 +181,7 @@
         READ(14,*) ne_check, hbp_check
         IF (ne_check /= ne .or. hbp_check /= hbp) THEN
           PRINT*, "incorrect high order bathymetry file"
+          CALL abort()
         ENDIF
         
         DO i = 1,ne
