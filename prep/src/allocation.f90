@@ -6,7 +6,7 @@
                          nope,neta,nbou,nvel, &
                          nobfr,nfbfr   
                          
-      USE read_dginp, ONLY: p,ctp,npart,lines                         
+      USE read_dginp, ONLY: p,ctp,npart,lines,hbp                         
 
       
       IMPLICIT NONE
@@ -19,7 +19,9 @@
       SUBROUTINE sizes()
       
       USE globals, ONLY: ndof,nverts,np,nnds, &
-                         mndof,mnp,mnnds,nlines
+                         mndof,mnp,mnnds,nlines, &
+                         hbnds,mhbnds
+                         
       
       IMPLICIT NONE
       
@@ -46,6 +48,12 @@
       nnds(4) = (ctp+1)*(ctp+1) 
       mnnds = maxval(nnds)    
       
+      hbnds(1) = (hbp+1)*(hbp+2)/2
+      hbnds(2) = (hbp+1)*(hbp+1)       
+      hbnds(3) = hbnds(1)
+      hbnds(4) = hbnds(2)
+      mhbnds = maxval(hbnds)
+      
       nlines = lines
       
       RETURN
@@ -57,7 +65,7 @@
       SUBROUTINE alloc_grid_arrays(stage)
       
       USE globals, ONLY: ect,vct,xy,depth,nelnds,el_type,elxy,elhb,nepn, &
-                         obseg,obnds,fbseg,fbnds
+                         obseg,obnds,fbseg,fbnds,mhbnds
       
       IMPLICIT NONE
       INTEGER :: stage
@@ -70,7 +78,7 @@
         n = 3      
         ! Node information
         ALLOCATE(ect(mnnds,ne),vct(4,ne),xy(2,nn),depth(nn),nelnds(ne),el_type(ne),STAT = alloc_status(1))  
-        ALLOCATE(elxy(mnnds,ne,2),elhb(mnnds,ne), STAT = alloc_status(2))
+        ALLOCATE(elxy(mnnds,ne,2),elhb(mhbnds,ne), STAT = alloc_status(2))
         ALLOCATE(nepn(nn),STAT = alloc_status(3))
       ELSE IF (stage == 2) THEN
         n = 1

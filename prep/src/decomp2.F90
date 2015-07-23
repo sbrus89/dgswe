@@ -16,7 +16,8 @@
       IMPLICIT NONE
 
       INTEGER :: el,pe,nd,ed,j,bnd,eln,bfr
-      INTEGER :: ged,lnd
+      INTEGER :: ged,lnd,nv
+      INTEGER :: lled,gled,ln1,ln2,gn1,gn2,n1,n2
       INTEGER :: el1,el2
       INTEGER :: pe1,pe2
       INTEGER :: led1,led2
@@ -25,7 +26,7 @@
       INTEGER :: mnobnds,mnfbnds
       INTEGER :: segtype
       INTEGER :: bnd_flag
-      INTEGER :: lbou
+      INTEGER :: lbou,mlbou
       
       INTEGER, ALLOCATABLE, DIMENSION(:) :: ndflag 
       INTEGER, ALLOCATABLE, DIMENSION(:,:) :: bou_l2g
@@ -133,14 +134,15 @@
       ALLOCATE(lobph(neta,nobfr,nproc))
       
       mnfbnds = MAXVAL(fbseg(1,:))
-      ALLOCATE(lfbseg(2,nbou,nproc))
-      ALLOCATE(lfbnds(mnfbnds,nbou,nproc))
+      mlbou = nproc*nbou
+      ALLOCATE(lfbseg(2,mlbou,nproc))
+      ALLOCATE(lfbnds(mnfbnds,mlbou,nproc))
       ALLOCATE(lnvel(nproc))
       ALLOCATE(lnbou(nproc))
-      ALLOCATE(lfbamp(mnfbnds,nbou,nfbfr,nproc))
-      ALLOCATE(lfbph(mnfbnds,nbou,nfbfr,nproc))
+      ALLOCATE(lfbamp(mnfbnds,mlbou,nfbfr,nproc))
+      ALLOCATE(lfbph(mnfbnds,mlbou,nfbfr,nproc))
       ALLOCATE(lnbouf(nproc))
-      ALLOCATE(bou_l2g(nbou,nproc))
+      ALLOCATE(bou_l2g(mlbou,nproc))
       
       lobseg = 0
       lfbseg = 0
@@ -165,6 +167,35 @@
             ENDIF
           ENDDO
         ENDDO
+        
+        
+!         DO el = 1,nresel(pe)
+!           eln = el_l2g(el,pe)
+!           nv = nelnds(eln)
+!           DO lled = 1,nv
+!             ln1 = lect(mod(lled+0,nv)+1,el,pe)
+!             ln2 = lect(mod(lled+1,nv)+1,el,pe)
+!             
+!             gn1 = nd_l2g(ln1,pe)
+!             gn2 = nd_l2g(ln2,pe)
+!             
+!             DO gled = 1,nv
+!               n1 = ect(mod(gled+0,nv)+1,eln)
+!               n2 = ect(mod(gled+1,nv)+1,eln)              
+!               
+!               IF (((n1 == gn1) .AND. (n2 == gn2)) .OR. &
+!                   ((n1 == gn2) .AND. (n2 == gn1))) THEN
+!                 IF (gled /= lled) THEN
+!                   PRINT*, "LOCAL EDGE CHANGED"
+!                 ELSE  
+! !                   PRINT*, "LOCAL EDGE SAME"
+!                 ENDIF
+!                 
+!               ENDIF
+!             ENDDO
+!             
+!           ENDDO          
+!         ENDDO
         
         
         

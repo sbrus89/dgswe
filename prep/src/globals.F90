@@ -19,7 +19,9 @@
       INTEGER, DIMENSION(nel_type) :: nnds
       INTEGER :: mnnds
       INTEGER, DIMENSION(nel_type) :: ndof
-      INTEGER :: mndof           
+      INTEGER :: mndof        
+      INTEGER, DIMENSION(nel_type) :: hbnds
+      INTEGER :: mhbnds
       INTEGER :: nlines
       
       INTEGER :: nproc

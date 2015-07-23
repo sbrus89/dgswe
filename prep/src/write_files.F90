@@ -5,7 +5,7 @@
                          nobfr,obtag,obtag2,obfreq,obnfact,obeq,lobamp,lobph, &
                          nfbfr,fbtag,fbtag2,fbfreq,fbnfact,fbeq,lfbamp,lfbph,lnbouf, &
                          nsred,ned_sr,pe_sr,el_sr,led_sr,el_l2g,nd_l2g,mndof,nlines, &
-                         el_type,elhb
+                         el_type,elhb,hbnds
                          
       USE read_dginp, ONLY: write_local,hbp                         
 
@@ -75,7 +75,7 @@
         WRITE(14,*) lnbou(pe)
         WRITE(14,*) lnvel(pe)
         
-        DO bnd = 1,nbou
+        DO bnd = 1,lnbou(pe)
           IF(lfbseg(1,bnd,pe) > 0) THEN
             WRITE(14,*) lfbseg(1,bnd,pe),lfbseg(2,bnd,pe)
             DO nd = 1,lfbseg(1,bnd,pe) 
@@ -103,7 +103,7 @@
         WRITE(141,*) lnbou(pe)
         WRITE(141,*) lnvel(pe)
         
-        DO bnd = 1,nbou
+        DO bnd = 1,lnbou(pe)
           IF(lfbseg(1,bnd,pe) > 0) THEN
             WRITE(141,*) lfbseg(1,bnd,pe),lfbseg(2,bnd,pe)
             DO nd = 1,lfbseg(1,bnd,pe) 
@@ -217,7 +217,7 @@
         DO el = 1,nresel(pe)
           WRITE(80,*) el_l2g(el,pe) 
         ENDDO
-        
+        CLOSE(80)
       ENDDO  
       
       
@@ -231,16 +231,14 @@
           gel = el_l2g(el,pe)
           et = el_type(gel)
           
-          IF (mod(et,2) == 1) THEN
-            nnd = (hbp+1)*(hbp+2)/2
-          ELSE IF (mod(et,2) == 0) THEN
-            nnd = (hbp+1)**2
-          ENDIF
+          nnd = hbnds(et)
           
-          WRITE(14,"(2(I7),60(e24.17,1x))") el, nnd, (elhb(nd,gel), nd = 1,nnd)
+          WRITE(14,"(2(I7),1x,60(e24.17,1x))") el, nnd, (elhb(nd,gel), nd = 1,nnd)
         ENDDO
+        
+        CLOSE(14)
       ENDDO
-      
+            
       
       ! Write the local input file
       DO pe = 1,nproc
