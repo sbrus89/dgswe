@@ -1,10 +1,10 @@
       SUBROUTINE write_files()
       
-      USE globals, ONLY: nproc,ne,nresel,nresnd,nd_l2g,xy,depth,lect,lnelnds,nope,nbou,fbseg, &
+      USE globals, ONLY: nproc,ne,nn,nresel,nresnd,nd_l2g,xy,depth,lect,lnelnds,nope,nbou,fbseg, &
                          lnope,lneta,lobseg,lobnds,lnbou,lnvel,lfbseg,lfbnds, &
                          nobfr,obtag,obtag2,obfreq,obnfact,obeq,lobamp,lobph, &
                          nfbfr,fbtag,fbtag2,fbfreq,fbnfact,fbeq,lfbamp,lfbph,lnbouf, &
-                         nsred,ned_sr,pe_sr,el_sr,led_sr,el_l2g,nd_l2g,mndof,nlines, &
+                         nsred,ned_sr,pe_sr,el_sr,led_sr,el_l2g,mndof,nlines, &
                          el_type,elhb,hbnds
                          
       USE read_dginp, ONLY: write_local,hbp                         
@@ -53,7 +53,7 @@
         
         DO nd = 1,nresnd(pe)
           gnd = nd_l2g(nd,pe)
-          WRITE(14,"(I8,1X,3(E24.17,1X))") nd, xy(1,gnd), xy(2,gnd), depth(gnd)
+          WRITE(14,"(I8,1X,3(D24.17,1X))") nd, xy(1,gnd), xy(2,gnd), depth(gnd)
         ENDDO
         
         DO el = 1,nresel(pe)
@@ -125,12 +125,12 @@
           WRITE(15,*) nobfr
           DO bfr = 1,nobfr
             WRITE(15,*) obtag(bfr)
-            WRITE(15,*) obfreq(bfr),obnfact(bfr),obeq(bfr)
+            WRITE(15,"(3(D24.17,1x))") obfreq(bfr),obnfact(bfr),obeq(bfr)
           ENDDO
           DO bfr = 1,nobfr
             WRITE(15,*) obtag2(bfr)
             DO nd = 1,lneta(pe)
-              WRITE(15,*) lobamp(nd,bfr,pe),lobph(nd,bfr,pe)
+              WRITE(15,"(2(D24.17,1x))") lobamp(nd,bfr,pe),lobph(nd,bfr,pe)
             ENDDO
           ENDDO
         ELSE
@@ -141,7 +141,7 @@
           WRITE(15,*) nfbfr
           DO bfr = 1,nfbfr
             WRITE(15,*) fbtag(bfr)
-            WRITE(15,*) fbfreq(bfr),fbnfact(bfr),fbeq(bfr)
+            WRITE(15,"(3(D24.17,1x))") fbfreq(bfr),fbnfact(bfr),fbeq(bfr)
           ENDDO
           DO bfr = 1,nfbfr
             WRITE(15,*) fbtag2(bfr)
@@ -149,7 +149,7 @@
               segtype = lfbseg(2,seg,pe)
               IF(segtype == 2 .OR. segtype == 12 .OR. segtype == 22)THEN
                 DO nd = 1,lfbseg(1,seg,pe)
-                  WRITE(15,*) lfbamp(nd,seg,bfr,pe), lfbph(nd,seg,bfr,pe)
+                  WRITE(15,"(2(D24.17,1x))") lfbamp(nd,seg,bfr,pe), lfbph(nd,seg,bfr,pe)
                 ENDDO
               ENDIF
             ENDDO
@@ -221,6 +221,26 @@
       ENDDO  
       
       
+      
+      ! Write the local to global node table
+      DO pe = 1,nproc
+        WRITE(dirname(3:lname),"(I4.4)") pe-1      
+        OPEN(UNIT=81,FILE=dirname(1:lname)//'/'//'fort.81') 
+        
+        WRITE(81,*) nproc
+        WRITE(81,*) nn
+        WRITE(81,*) MAXVAL(nresnd)
+        WRITE(81,*) nresnd(pe)
+        WRITE(81,*) mndof
+        WRITE(81,*) nlines
+        
+        DO el = 1,nresnd(pe)
+          WRITE(81,*) nd_l2g(el,pe) 
+        ENDDO
+        CLOSE(81)
+      ENDDO        
+      
+      
       ! Write the high order bathymetry file
       DO pe = 1,nproc
         
@@ -233,7 +253,7 @@
           
           nnd = hbnds(et)
           
-          WRITE(14,"(2(I7),1x,60(e24.17,1x))") el, nnd, (elhb(nd,gel), nd = 1,nnd)
+          WRITE(14,"(2(I7),1x,60(e24.12,1x))") el, nnd, (elhb(nd,gel), nd = 1,nnd)
         ENDDO
         
         CLOSE(14)
