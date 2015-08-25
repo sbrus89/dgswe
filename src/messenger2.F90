@@ -324,7 +324,10 @@
           led = led_sr(ed,pe)          
           DO pt = 1,nqpte(1)
             i = i+1
-            gpt = (led-1)*nqpte(1) + pt
+            
+!             gpt = (led-1)*nqpte(1) + pt
+            gpt = (led-1)*nqpte(1) + nqpte(1) - pt + 1            
+            
 !             send_ptr(i,pe)%ptr => Hqpt(el_in,gpt)
             send_ptr(i,pe)%ptr => Zqpt(el_in,gpt)
             send_ptr(ned_sr(pe)*nqpte(1) + i,pe)%ptr => Qxqpt(el_in,gpt)
@@ -354,7 +357,8 @@
           DO pt = 1,nqpte(1)
             i = i+1
             
-            gp_ex = nqpte(1) - pt + 1
+!             gp_ex = nqpte(1) - pt + 1
+            gp_ex = pt
             
 !             Hre(edcnt,gp_ex)%ptr => sol_recv(i,pe)
             Zre(edcnt,gp_ex)%ptr => sol_recv(i,pe)            
