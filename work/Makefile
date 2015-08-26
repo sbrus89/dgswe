@@ -19,9 +19,9 @@ GIT_MOD := $(strip $(subst 0,,$(GIT_MOD)))
 ifeq ($(BUILDTYPE),dgswe)
   FC = ifort
   
-  CFLAGS_VEC  =  -O3 -xHost -align array32byte -align rec32byte -vec-report6  -I$(ODIR) -c
-  CFLAGS      =  -O3 -xHost -align array32byte -align rec32byte  -I$(ODIR) -c 
-  CFLAGS_LINK = -O3 -xHost -o 
+  CFLAGS_VEC  =  -O0 -fp-model strict -vec-report6  -I$(ODIR) -c
+  CFLAGS      =  -O0 -fp-model strict  -I$(ODIR) -c 
+  CFLAGS_LINK = -O0 -fp-model strict -o 
 
 #   ### Default compilation ###
 #   CFLAGS_VEC = -vec-report3 -I$(ODIR) -c 
@@ -59,9 +59,9 @@ endif
 
 ifeq ($(BUILDTYPE),pdgswe)
   FC = mpif90
-  CFLAGS_VEC  =  -O3 -xHost -vec-report6 -DCMPI -I$(ODIR) -c
-  CFLAGS      =  -O3 -xHost -DCMPI -I$(ODIR) -c 
-  CFLAGS_LINK = -O3 -xHost -o 
+  CFLAGS_VEC  =  -O0 -fp-model strict -DCMPI -I$(ODIR) -c
+  CFLAGS      =  -O0 -fp-model strict -DCMPI -I$(ODIR) -c 
+  CFLAGS_LINK = -O0 -fp-model strict -o 
   EXE_NAME = pdgswe
   MESSAGE = Compling parallel program with optimization flags
 endif
