@@ -567,7 +567,7 @@ ed_points2: DO pt = 1,nqpte(1) ! Compute numerical fluxes for all edges
               Qt = 0d0
               DO bfr = 1,nfbfr
                 ind = (pt-1)*nfbfr + bfr
-                arg = fbfreq(bfr)*(tstage - INT(tstage/fbper(bfr))*fbper(bfr)) + fbeq(bfr)
+                arg = fbfreq(bfr)*(tstage - real(INT(tstage/fbper(bfr)),pres)*fbper(bfr)) + fbeq(bfr)
                 Qn = Qn + fbamp_qpt(ind,ed)*fbnfact(bfr)*ramp*COS(arg-fbph_qpt(ind,ed))
               ENDDO
 
@@ -613,7 +613,7 @@ ed_points2: DO pt = 1,nqpte(1) ! Compute numerical fluxes for all edges
               Z_ex = 0d0
               DO bfr = 1,nobfr
                 ind = (pt-1)*nobfr + bfr
-                arg = obfreq(bfr)*(tstage-INT(tstage/obper(bfr))*obper(bfr)) + obeq(bfr)
+                arg = obfreq(bfr)*(tstage-real(INT(tstage/obper(bfr)),pres)*obper(bfr)) + obeq(bfr)
                 Z_ex = Z_ex + obamp_qpt(ind,ed)*obnfact(bfr)*ramp*COS(arg-obph_qpt(ind,ed))
               ENDDO
 !               H_ex = H_ex + obdepth_qpt(ed,pt)

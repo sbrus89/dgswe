@@ -34,7 +34,7 @@
         READ(15,*) obtag(bfr)
         READ(15,*) obfreq(bfr),obnfact(bfr),obeq(bfr)
         obeq(bfr) = obeq(bfr)*deg2rad
-        IF(obfreq(bfr) == 0.) THEN
+        IF(obfreq(bfr) == 0d0) THEN
           obper(bfr) = 1d0
         ELSE
           obper(bfr) = 2d0*pi/obfreq(bfr)
@@ -71,7 +71,7 @@
           READ(15,*) fbtag(bfr)     
           READ(15,*) fbfreq(bfr),fbnfact(bfr),fbeq(bfr)
           fbeq(bfr) = fbeq(bfr)*deg2rad
-          IF(fbfreq(bfr) == 0.) THEN
+          IF(fbfreq(bfr) == 0d0) THEN
             fbper(bfr) = 1d0
           ELSE
             fbper(bfr) = 2d0*pi/fbfreq(bfr)        
