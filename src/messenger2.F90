@@ -65,7 +65,9 @@
       INTEGER, ALLOCATABLE, DIMENSION(:) :: solreq_send
       INTEGER, ALLOCATABLE, DIMENSION(:) :: solreq      
       
-      INTEGER, ALLOCATABLE, DIMENSION(:) :: win      
+      INTEGER, ALLOCATABLE, DIMENSION(:) :: win    
+      
+      INTEGER :: match_edge
       
 #ifdef ALIGN64
 !DIR$ ATTRIBUTES ALIGN:64 :: Zri,Zre,Hri,Hre,Qxri,Qxre,Qyri,Qyre
@@ -347,6 +349,7 @@
       ALLOCATE(hbr(nred,mnqpte))
       ALLOCATE(Zfri(nred,mnqpte),Hfri(nred,mnqpte),Qxfri(nred,mnqpte),Qyfri(nred,mnqpte))      
       
+      match_edge = 1
       edcnt = 0     
       DO pe = 1,nproc_sr
         i = 0
@@ -354,6 +357,18 @@
           edcnt = edcnt + 1
           el = el_sr(ed,pe)
           led = led_sr(ed,pe)
+          
+          IF (myrank == 0) THEN
+            IF (el == 214 .and. led = 1) THEN
+              match_edge = ed
+            ENDIF
+          ENDIF
+          IF (myrank == 1) THEN
+            IF (el ==  280 .and. led = 2) THEN
+              match_edge = ed
+            ENDIF
+          ENDIF                    
+          
           DO pt = 1,nqpte(1)
             i = i+1
             

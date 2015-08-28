@@ -5,7 +5,7 @@
                          ged2nn,ged2el,ged2led, &
                          nied,iedn,nobed,obedn,nfbed,fbedn,nnfbed,nfbedn,nbed,bedn, &
                          nope,neta,obseg,obnds,nbou,fbseg,nvel,fbnds, &
-                         nelnds,ed_type,recv_edge                       
+                         nelnds,ed_type,recv_edge,check_edge                       
                          
       USE allocation, ONLY: alloc_connect_arrays    
       USE messenger2, ONLY: dirname,lname,myrank,nred,redn      
@@ -167,6 +167,7 @@
       
       ALLOCATE(recv_edge(ned))
       recv_edge = 1      
+      check_edge = 1
 
       nied = 0
       nbed = 0
@@ -182,6 +183,11 @@
         ELSE 
           nbed = nbed + 1
           bedn(nbed) = ged
+        ENDIF
+        
+        IF ((el1 == 1057 .and. el2 == 1013) .or. &
+            (el1 == 1013 .and. el2 == 1057)) THEN
+          check_edge = nied
         ENDIF
       ENDDO
 

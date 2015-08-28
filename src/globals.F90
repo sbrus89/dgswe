@@ -140,6 +140,8 @@
       INTEGER :: nbed ! total numer of non-interior edges
       INTEGER, ALLOCATABLE, DIMENSION(:) :: bedn ! array of non-interior edge numbers
       INTEGER, ALLOCATABLE, DIMENSION(:) :: ed_type  ! open/flow boundary edge flags
+      
+      INTEGER :: check_edge
 
       REAL(pres), ALLOCATABLE, TARGET, DIMENSION(:,:) :: H ! degrees of freedom for water column height
       REAL(pres), ALLOCATABLE, TARGET, DIMENSION(:,:) :: Z      

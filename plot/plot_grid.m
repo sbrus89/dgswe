@@ -8,12 +8,12 @@ ndcolor = 'r';
 lcolor = 'k';
 
 elem = 'on';
-node = 'on';
+node = 'off';
 
 p = 1 ;
 
-grd_direc = '/home/sbrus/data-drive/dgswe_inlet_bath/';
-% grd_direc = '/home/sbrus/Codes/dgswe/grids/';
+% grd_direc = '/home/sbrus/data-drive/dgswe_inlet_bath/';
+grd_direc = '/home/sbrus/Codes/dgswe/grids/';
 grd_name = 'inlet1.grd';
 
 [EToV,VX,HB,nelnds,~,~,~] = readfort14([grd_direc,grd_name]);

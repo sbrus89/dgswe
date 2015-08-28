@@ -9,7 +9,7 @@
                           hbqpta,hbqpte,hbqpted, &
                           nqpta,wpta,phia,phia_int,dpdx,dpdy,nqpte,wpte,phie,phie_int,mmi, &
                           press,recipH,xmom,ymom,xymom,tau,u,v,src_x,src_y,dhbdx,dhbdy, &
-                          el_in,el_ex,led_in,led_ex,gp_in,gp_ex, &
+                          el_in,el_ex,led_in,led_ex,gp_in,gp_ex,check_edge, &
                           nx,ny,nx2,ny2,nxny,tx,ty, &
                           H_in,H_ex,Z_in,Z_ex,Qx_in,Qx_ex,Qy_in,Qy_ex,Qn,Qt, &
                           xmom_in,xmom_ex,ymom_in,ymom_ex,xymom_in,xymom_ex, &
@@ -31,8 +31,8 @@
       USE read_dginp, ONLY: npart,cf                          
                           
 #ifdef CMPI                          
-      USE messenger2, ONLY: message_recieve,message_send, &
-                            nred,nproc_sr, &
+      USE messenger2, ONLY: myrank,message_recieve,message_send, &
+                            nred,nproc_sr,match_edge, &
                             solreq,solreq_send,solreq_recv,ierr, &
                             Zri,Zre,Hri,Hre,Qxri,Qxre,Qyri,Qyre, &
                             xmri,ymri,xymri,xmre,ymre,xymre, &
@@ -255,6 +255,13 @@ ed_points: DO pt = 1,nverts(et)*nqpte(ete)
        ! Send will overlap with internal edge numerical flux calculations
        
        CALL message_send()
+       
+#else
+
+        WRITE(195,"(ES24.17)") tstage
+        WRITE(195,"(6(ES24.17))") (Qxi(check_edge,pt)%ptr, pt = 1,nqpte(1))
+        WRITE(195,"(6(ES24.17))") (Qxe(check_edge,pt)%ptr, pt = 1,nqpte(1))
+   
 #endif     
    
                   
@@ -372,7 +379,10 @@ ed_points2: DO pt = 1,nqpte(1) ! Compute numerical fluxes for all edges
 #ifdef CMPI      
 
       CALL MPI_WAITALL(2*nproc_sr,solreq,MPI_STATUSES_IGNORE,ierr)
-
+      
+      WRITE(195,"(ES24.17)") tstage
+      WRITE(195,"(6(ES24.17))") (Qxri(match_edge,pt)%ptr, pt = 1,nqpte(1))
+      WRITE(195,"(6(ES24.17))") (Qxre(match_edge,pt)%ptr, pt = 1,nqpte(1))
       
       DO pt = 1,nqpte(1)
       
