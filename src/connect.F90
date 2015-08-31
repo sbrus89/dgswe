@@ -5,7 +5,7 @@
                          ged2nn,ged2el,ged2led, &
                          nied,iedn,nobed,obedn,nfbed,fbedn,nnfbed,nfbedn,nbed,bedn, &
                          nope,neta,obseg,obnds,nbou,fbseg,nvel,fbnds, &
-                         nelnds,ed_type,recv_edge,check_edge                       
+                         nelnds,ed_type,recv_edge,check_iedge,check_gedge                       
                          
       USE allocation, ONLY: alloc_connect_arrays    
       USE messenger2, ONLY: dirname,lname,myrank,nred,redn      
@@ -187,7 +187,8 @@
         
         IF ((el1 == 1057 .and. el2 == 1013) .or. &
             (el1 == 1013 .and. el2 == 1057)) THEN
-          check_edge = nied
+          check_iedge = nied
+          check_gedge = ged
         ENDIF
       ENDDO
 
