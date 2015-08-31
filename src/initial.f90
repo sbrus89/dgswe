@@ -188,13 +188,14 @@
       ENDDO
 
 
-      OPEN(unit=195,file='edge_check.d')
+      OPEN(unit=195,file=trim(out_direc) // 'edge_check.d')
       
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       ! Interpolate boundary forcing data ( qpte(1:nqpte,2,1) are the 1-D edge quadrature points ) 
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       
       mnqpte = maxval(nqpte)
+
 
       CALL alloc_forcing_arrays(3)
 

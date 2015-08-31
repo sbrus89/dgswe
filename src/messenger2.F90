@@ -358,14 +358,14 @@
           el = el_sr(ed,pe)
           led = led_sr(ed,pe)
           
-          IF (myrank == 0) THEN
-            IF (el == 214 .and. led = 1) THEN
-              match_edge = ed
+          IF (myrank == 1) THEN
+            IF (el == 214 .and. led == 1) THEN
+              match_edge = edcnt
             ENDIF
           ENDIF
-          IF (myrank == 1) THEN
-            IF (el ==  280 .and. led = 2) THEN
-              match_edge = ed
+          IF (myrank == 0) THEN
+            IF (el ==  280 .and. led == 2) THEN
+              match_edge = edcnt
             ENDIF
           ENDIF                    
           

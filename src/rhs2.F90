@@ -385,7 +385,6 @@ ed_points2: DO pt = 1,nqpte(1) ! Compute numerical fluxes for all edges
 !       WRITE(195,"(6(ES24.17))") (Qxri(match_iedge,pt)%ptr, pt = 1,nqpte(1))
 !       WRITE(195,"(6(ES24.17))") (Qxre(match_iedge,pt)%ptr, pt = 1,nqpte(1))
       WRITE(195,"(6(ES24.17))") (rnx(match_iedge,pt), pt = 1,nqpte(1))
-
       
       DO pt = 1,nqpte(1)
       
