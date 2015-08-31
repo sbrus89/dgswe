@@ -1,16 +1,16 @@
 grid_file = ../grids/inlet1_dble.grd                                ! grid file
 forcing_file = ../grids/inlet1_dble.bfr                              ! forcing file
-bathy_file = /home/sbrus/data-drive/dgswe_inlet_bath/inlet1_hbp3.d  
-p = 3                                                          ! polynomial order
+!bathy_file = /home/sbrus/data-drive/dgswe_inlet_bath/inlet1_hbp3.d  
+p = 2                                                         ! polynomial order
 ctp = 1                                                        ! parametric coordinate transformation order
-hbp = 3                                                        ! bathymetry order
-rk = 45                                                        ! rk order
-dt = .125d0                                                      ! timestep 
-tf = 1d0                                                       ! final time (days)
+hbp = 1                                                        ! bathymetry order
+rk = 33                                                        ! rk order
+dt = .25d0                                                      ! timestep 
+tf = .01d0                                                       ! final time (days)
 dramp = .5d0                                                   ! ramping parameter (days)
 cf = .003d0                                                    ! friction coefficient 
-lines = 100d0                                                  ! lines in output files
-out_direc = ../output/                                         ! output directory
+lines = 1d0                                                   ! lines in output files
+out_direc = ./                                                 ! output director
 npart = 1
 
 !grid_file = ../grids/converge.grd
