@@ -301,14 +301,14 @@
                          Zqpt,Hqpt,Qxqpt,Qyqpt, &
                          xmom,ymom,xymom, &
                          ged2el,ged2led,gel2ael, &
-                         Spe,cfac
+                         Spe,cfac,xy,ect
       
       IMPLICIT NONE
       
 #ifdef CMPI
       INTEGER :: pe,ed,pt
       INTEGER :: el,led,gpt,ged,el_in
-      INTEGER :: i,edcnt
+      INTEGER :: i,j,edcnt
       INTEGER :: gp_in,gp_ex
       INTEGER :: mnedsr
       INTEGER :: match
@@ -361,11 +361,15 @@
           IF (myrank == 1) THEN
             IF (el == 214 .and. led == 1) THEN
               match_edge = edcnt
+              WRITE(195,"(6(ES24.17,1x))") (xy(1,ect(j,214)), j = 1,3)
+              WRITE(195,"(6(ES24.17,1x))") (xy(2,ect(j,214)), j = 1,3)
             ENDIF
           ENDIF
           IF (myrank == 0) THEN
             IF (el ==  280 .and. led == 2) THEN
               match_edge = edcnt
+              WRITE(195,"(6(ES24.17,1x))") (xy(1,ect(j,280)), j = 1,3)
+              WRITE(195,"(6(ES24.17,1x))") (xy(2,ect(j,280)), j = 1,3)
             ENDIF
           ENDIF                    
           

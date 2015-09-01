@@ -9,7 +9,7 @@
 
       IMPLICIT NONE
       INTEGER :: it,tskp,cnt
-      INTEGER :: i,j
+      INTEGER :: i,j,et
       REAL(pres) :: tstep,t_start,t_end
       
 
@@ -66,7 +66,13 @@
       CALL message_setup()
       
       CALL communication_setup()      
-      
+
+      DO et = 1,2*nel_type
+        DO i = 1,mnnds
+          WRITE(195,"(100(ES24.17,1x))") (dpsids(i,j,et), j = 1,mnqpta+4*mnqpte)
+        ENDDO
+      WRITE(195,*) " "
+      ENDDO      
       
 #ifdef openmp
       t_start = omp_get_wtime()

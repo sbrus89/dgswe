@@ -259,9 +259,18 @@ ed_points: DO pt = 1,nverts(et)*nqpte(ete)
 #else
 
         WRITE(195,"(ES24.17)") tstage
-!         WRITE(195,"(6(ES24.17))") (Qxi(check_iedge,pt)%ptr, pt = 1,nqpte(1))
-!         WRITE(195,"(6(ES24.17))") (Qxe(check_iedge,pt)%ptr, pt = 1,nqpte(1))
-        WRITE(195,"(6(ES24.17))") (inx(check_iedge,pt), pt = 1,nqpte(1)) 
+!         WRITE(195,"(6(ES24.17,1x))") (Qxi(check_iedge,pt)%ptr, pt = 1,nqpte(1))
+!         WRITE(195,"(6(ES24.17,1x))") (Qxe(check_iedge,pt)%ptr, pt = 1,nqpte(1))
+!         WRITE(195,"(6(ES24.17,1x))") (Qyi(check_iedge,pt)%ptr, pt = 1,nqpte(1))
+!         WRITE(195,"(6(ES24.17,1x))") (Qye(check_iedge,pt)%ptr, pt = 1,nqpte(1))
+!         WRITE(195,"(6(ES24.17,1x))") (Zi(check_iedge,pt)%ptr, pt = 1,nqpte(1))
+!         WRITE(195,"(6(ES24.17,1x))") (Ze(check_iedge,pt)%ptr, pt = 1,nqpte(1))
+          WRITE(195,"(6(ES24.17,1x))") (inx(check_iedge,pt), pt = 1,nqpte(1)) 
+!         WRITE(195,"(6(ES24.17,1x))") (iny(check_iedge,pt), pt = 1,nqpte(1)) 
+!         WRITE(195,"(6(ES24.17,1x))") (detJe_ex(check_iedge,pt), pt = 1,nqpte(1))
+!         WRITE(195,"(6(ES24.17,1x))") (detJe_in(check_iedge,pt), pt = 1,nqpte(1))
+!         WRITE(195,"(6(ES24.17,1x))") (hbqpted(check_gedge,pt), pt = 1,nqpte(1))
+
    
 #endif     
    
@@ -382,9 +391,17 @@ ed_points2: DO pt = 1,nqpte(1) ! Compute numerical fluxes for all edges
       CALL MPI_WAITALL(2*nproc_sr,solreq,MPI_STATUSES_IGNORE,ierr)
       
       WRITE(195,"(ES24.17)") tstage
-!       WRITE(195,"(6(ES24.17))") (Qxri(match_iedge,pt)%ptr, pt = 1,nqpte(1))
-!       WRITE(195,"(6(ES24.17))") (Qxre(match_iedge,pt)%ptr, pt = 1,nqpte(1))
-      WRITE(195,"(6(ES24.17))") (rnx(match_iedge,pt), pt = 1,nqpte(1))
+!       WRITE(195,"(6(ES24.17,1x))") (Qxri(match_edge,pt)%ptr, pt = 1,nqpte(1))
+!       WRITE(195,"(6(ES24.17,1x))") (Qxre(match_edge,pt)%ptr, pt = 1,nqpte(1))
+!       WRITE(195,"(6(ES24.17,1x))") (Qyri(match_edge,pt)%ptr, pt = 1,nqpte(1))
+!       WRITE(195,"(6(ES24.17,1x))") (Qyre(match_edge,pt)%ptr, pt = 1,nqpte(1))
+!       WRITE(195,"(6(ES24.17,1x))") (Zri(match_edge,pt)%ptr, pt = 1,nqpte(1))
+!       WRITE(195,"(6(ES24.17,1x))") (Zre(match_edge,pt)%ptr, pt = 1,nqpte(1))
+        WRITE(195,"(6(ES24.17,1x))") (rnx(match_edge,pt), pt = 1,nqpte(1))
+!       WRITE(195,"(6(ES24.17,1x))") (rny(match_edge,pt), pt = 1,nqpte(1))
+!      WRITE(195,"(6(ES24.17,1x))") (detJe_recv(match_edge,pt), pt = 1,nqpte(1))
+!       WRITE(195,"(6(ES24.17,1x))") (hbr(match_edge,pt), pt = 1,nqpte(1))
+
       
       DO pt = 1,nqpte(1)
       

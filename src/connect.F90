@@ -1,6 +1,6 @@
       SUBROUTINE connect()
 
-      USE globals, ONLY: pres,nn,ne,ned,vct,el_type,nverts,curved_grid, &
+      USE globals, ONLY: pres,nn,ne,ned,xy,ect,vct,el_type,nverts,curved_grid, &
                          mnepn,epn,nepn, &
                          ged2nn,ged2el,ged2led, &
                          nied,iedn,nobed,obedn,nfbed,fbedn,nnfbed,nfbedn,nbed,bedn, &
@@ -167,7 +167,8 @@
       
       ALLOCATE(recv_edge(ned))
       recv_edge = 1      
-      check_edge = 1
+      check_iedge = 1
+      check_gedge = 1
 
       nied = 0
       nbed = 0
@@ -189,7 +190,15 @@
             (el1 == 1013 .and. el2 == 1057)) THEN
           check_iedge = nied
           check_gedge = ged
+#ifndef CMPI
+          PRINT("(6(ES24.17,1x))"), (xy(1,ect(i,1013)), i = 1,3)
+          PRINT("(6(ES24.17,1x))"), (xy(2,ect(i,1013)), i = 1,3)
+
+          PRINT("(6(ES24.17,1x))"), (xy(1,ect(i,1057)), i = 1,3)
+          PRINT("(6(ES24.17,1x))"), (xy(2,ect(i,1057)), i = 1,3)
+#endif
         ENDIF
+
       ENDDO
 
 
