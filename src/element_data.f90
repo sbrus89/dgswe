@@ -36,7 +36,9 @@
         CALL curvilinear()    
       ENDIF     
 
-      CALL area_transformation()            
+      CALL area_transformation() 
+      
+      CALL normals()
 
       CALL edge_transformation()
       
