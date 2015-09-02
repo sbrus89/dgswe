@@ -25,7 +25,9 @@
     
       CALL alloc_trans_arrays()             
       
-      CALL vandermonde() 
+      CALL area_vandermonde() 
+      
+      CALL edge_vandermonde()
       
       CALL shape_functions()        
       

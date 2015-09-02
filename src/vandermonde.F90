@@ -1,12 +1,11 @@
-      SUBROUTINE vandermonde()
+      SUBROUTINE area_vandermonde()
       
-      USE globals, ONLY: pres,np,mnp,nnds,mnnds,norder,nel_type,Va,ipiva,Ve,ipive
-      USE basis, ONLY: tri_nodes,tri_basis,quad_nodes,quad_basis,lglpts,jacobi
-      USE read_dginp, ONLY: ctp
+      USE globals, ONLY: pres,np,mnp,nnds,mnnds,norder,Va,ipiva
+      USE basis, ONLY: tri_nodes,tri_basis,quad_nodes,quad_basis
       
       IMPLICIT NONE
       INTEGER :: et,pt,dof,i,n,p
-      REAL(pres) :: r(mnnds),s(mnnds),xi(mnp)
+      REAL(pres) :: r(mnnds),s(mnnds)
       REAL(pres) :: phi(mnnds*mnnds)
       INTEGER :: info        
       
@@ -14,13 +13,10 @@
       ALLOCATE(Va(mnnds,mnnds,norder))
       ALLOCATE(ipiva(mnnds,norder))
       
-      ALLOCATE(Ve(mnp,mnp,norder))
-      ALLOCATE(ipive(mnp,norder))
-      
+
       Va = 0d0
       ipiva = 0
-      Ve = 0d0
-      ipive = 0
+
       
       DO et = 1,norder
         n = nnds(et)
@@ -49,6 +45,29 @@
 
       ENDDO
       
+      END SUBROUTINE area_vandermonde      
+      
+      
+      
+      
+      
+      
+      SUBROUTINE edge_vandermonde()
+      
+      USE globals, ONLY: pres,np,mnp,norder,nel_type,Ve,ipive
+      USE basis, ONLY: lglpts,jacobi
+      
+      IMPLICIT NONE
+      INTEGER :: et,pt,i,n,p
+      REAL(pres) :: xi(mnp)
+      REAL(pres) :: phi(mnp*mnp)
+      INTEGER :: info          
+      
+      ALLOCATE(Ve(mnp,mnp,norder))
+      ALLOCATE(ipive(mnp,norder)) 
+      
+      Ve = 0d0
+      ipive = 0      
       
       DO et = 1,nel_type
       
@@ -72,4 +91,4 @@
       ENDDO
                   
       RETURN      
-      END SUBROUTINE vandermonde
+      END SUBROUTINE edge_vandermonde
