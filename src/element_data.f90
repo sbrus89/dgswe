@@ -29,7 +29,13 @@
       
       CALL edge_vandermonde()
       
-      CALL shape_functions()        
+      CALL shape_functions_qpts()        
+      
+      CALL shape_functions_vertex()
+      
+      CALL shape_functions_curve()
+      
+      CALL shape_functions_edge()
       
       IF (ctp > 1 .AND. curved_grid == 0) THEN  
 !       IF (ctp > 1) THEN

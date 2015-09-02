@@ -1,20 +1,20 @@
-      SUBROUTINE shape_functions()
+      SUBROUTINE shape_functions_qpts()
 
-      USE globals, ONLY: pres,nel_type,norder,order,nverts,nnds,mnnds, &
-                         mnqpta,nqpta,mnqpte,nqpte,np,mnp, &
-                         qpta,qpte,psia,dpsidr,dpsids,psie,dpsidxi,psiv,psic, &
-                         Va,ipiva,Ve,ipive
-      USE basis, ONLY: tri_nodes,quad_nodes,tri_basis,quad_basis,jacobi,djacobi
+      USE globals, ONLY: pres,nel_type,order,nverts,nnds,mnnds, &
+                         mnqpta,nqpta,mnqpte,nqpte,np, &
+                         qpta,qpte,psia,dpsidr,dpsids, &
+                         Va,ipiva
+      USE basis, ONLY: tri_basis,quad_basis
       USE messenger2, ONLY: myrank
       
       IMPLICIT NONE      
       
       INTEGER :: pt,i,j,dof
-      INTEGER :: typ,et,eo,tpts,npts
-      INTEGER :: nv,nnd,nqa,nqe,p,n
+      INTEGER :: typ,et,eo,tpts
+      INTEGER :: nv,nnd,nqa,nqe,p
       INTEGER :: info      
-      REAL(pres) :: r(mnqpta+4*mnqpte),s(mnqpta+4*mnqpte),xi(mnqpte)
-      REAL(pres) :: phi(mnnds*(mnqpta+4*mnqpte)),dphidr(mnnds*(mnqpta+4*mnqpte)),dphids(mnnds*(mnqpta+4*mnqpte)),dphi(mnqpte)
+      REAL(pres) :: r(mnqpta+4*mnqpte),s(mnqpta+4*mnqpte)
+      REAL(pres) :: phi(mnnds*(mnqpta+4*mnqpte)),dphidr(mnnds*(mnqpta+4*mnqpte)),dphids(mnnds*(mnqpta+4*mnqpte))
 
       psia = 0d0
       dpsidr = 0d0
@@ -84,8 +84,36 @@
 !       ENDDO         
 
        ENDDO
-
+       
+      END SUBROUTINE shape_functions_qpts
       
+      
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      
+       
+      SUBROUTINE shape_functions_vertex()
+
+      USE globals, ONLY: pres,norder,nnds,mnnds,np, &
+                         psiv,Va,ipiva
+      USE basis, ONLY: tri_nodes,quad_nodes,tri_basis,quad_basis
+      USE messenger2, ONLY: myrank
+      
+      IMPLICIT NONE      
+      
+      INTEGER :: pt,i,j,dof
+      INTEGER :: et,eo,npts,p
+      INTEGER :: info      
+      REAL(pres) :: r(mnnds),s(mnnds)
+      REAL(pres) :: phi(mnnds*mnnds)
+       
+
+      ! Evaluates linear shape functions at straight/curved element nodal sets
+      !
+      ! Used to create additional nodes which can then be adjusted to make 
+      ! straight elements curved.  See curvilinear.F90
+      
+      psiv = 0d0
       
       DO eo = 1,norder
         npts = nnds(eo)
@@ -118,8 +146,37 @@
 !           ENDDO
 !           PRINT*," "
 !         ENDIF
+
       ENDDO
+      
+      END SUBROUTINE shape_functions_vertex
+      
+      
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!      
+      
+      
+      SUBROUTINE shape_functions_curve()
+
+      USE globals, ONLY: pres,norder,nnds,mnnds,np, &
+                         psic,Va,ipiva
+      USE basis, ONLY: tri_nodes,quad_nodes,tri_basis,quad_basis
+      USE messenger2, ONLY: myrank
+      
+      IMPLICIT NONE      
+      
+      INTEGER :: pt,i,j,dof
+      INTEGER :: et,eo,npts,p
+      INTEGER :: info      
+      REAL(pres) :: r(mnnds),s(mnnds)
+      REAL(pres) :: phi(mnnds*mnnds)
+      
+      ! Evaluates curvilinear shape functions at high-order batymetry nodal sets
+      !
+      ! Used to compute function-specified bathymetry at high-order batymetry nodes
+      ! for curved elements. See curvilinear.F90      
        
+      psic = 0d0 
        
       DO eo = 1,norder
         npts = nnds(eo)
@@ -152,9 +209,38 @@
 !           ENDDO
 !           PRINT*," "
 !         ENDIF
-      ENDDO       
+
+      ENDDO     
+      
+      END SUBROUTINE shape_functions_curve
+      
+      
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!       
        
        
+      SUBROUTINE shape_functions_edge()
+
+      USE globals, ONLY: pres,nel_type, &
+                         mnqpte,nqpte,np,mnp, &
+                         qpte,psie,dpsidxi, &
+                         Ve,ipive
+      USE basis, ONLY: jacobi,djacobi
+      USE messenger2, ONLY: myrank
+      
+      IMPLICIT NONE      
+      
+      INTEGER :: pt,i
+      INTEGER :: et
+      INTEGER :: nqe,p,n
+      INTEGER :: info      
+      REAL(pres) :: xi(mnqpte)
+      REAL(pres) :: phi(mnqpte),dphi(mnqpte)
+      
+      ! Evaulates 1-D edge shape functions at 1-D guass points
+      !
+      ! Used in computing the Jacobians for the edge integrals.
+      ! See edge_transformation.F90
        
       DO et = 1,nel_type
        
@@ -184,4 +270,4 @@
       ENDDO
 
       RETURN
-      END SUBROUTINE shape_functions
+      END SUBROUTINE shape_functions_edge
