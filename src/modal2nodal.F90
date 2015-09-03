@@ -39,12 +39,12 @@
         
         IF (mod(et,2) == 1) THEN    
         
-          CALL tri_nodes(0,np(et),n,r,s)  ! get vertex coordinates     
+          CALL tri_nodes(0,np(et),r,s)  ! get vertex coordinates     
           CALL tri_basis(pp,n,r,s,phi)             
 
         ELSE IF (mod(et,2) == 0) THEN                                    
           
-          CALL quad_nodes(0,np(et),n,r,s)  ! get vertex coordinates     
+          CALL quad_nodes(0,np(et),r,s)  ! get vertex coordinates     
           CALL quad_basis(pp,n,r,s,phi)          
 
         ENDIF

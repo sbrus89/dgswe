@@ -21,10 +21,10 @@
         n = nnds(et)
         p = np(et)
         IF (mod(et,2) == 1) THEN
-          CALL tri_nodes(1,p,n,r,s)
+          CALL tri_nodes(1,p,r,s)
           CALL tri_basis(p,n,r,s,Va(:,:,et))       
         ELSE IF (mod(et,2) == 0) THEN
-          CALL quad_nodes(1,p,n,r,s)
+          CALL quad_nodes(1,p,r,s)
           CALL quad_basis(p,n,r,s,Va(:,:,et))
         ENDIF
 

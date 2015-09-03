@@ -395,39 +395,53 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!      
       
-      subroutine tri_nodes(space,p,np,r,s)
+      SUBROUTINE tri_nodes(space,p,r,s)
 !c     Calculates nodal set for well-behaved interpolation
 !c     p (input) : the order of the basis
 !c     np (input): the number of points in the triangle
 !c     r(np) (output) ; nodal r-coordinates for master element
 !c     s(np) (output) : nodal s-coordinates for master element 
 
-      use globals, only: pres
-      use messenger2, only: myrank
+      USE globals, ONLY: pres
+      USE messenger2, ONLY: myrank
 
-      implicit none
-      integer p,np,i,j,m,space 
-      real(pres) ii,jj,a,dx,tol
-      real(pres) r(np),s(np),x(np),y(np),l1(np),l2(np),l3(np)
-      real(pres) aopt(15),b1(np),b2(np),b3(np)
-      real(pres) wx(np),wy(np),w1(np),w2(np),w3(np)
-      real(pres) w1e(np),w2e(np),w3e(np)
-      real(pres) w1mat(np,p+1),w2mat(np,p+1),w3mat(np,p+1)
-      real(pres) var1(np),var2(np),var3(np)
-      real(pres) lgl(p+1),xeq(p+1)
-      !c DW
-      
+      IMPLICIT NONE
+      INTEGER :: p,space 
+      INTEGER :: np,i,j,m
+      REAL(pres) :: ii,jj,a,dx,tol
+      REAL(pres) :: aopt(15)
+      REAL(pres) :: lgl(p+1),xeq(p+1)      
+      REAL(pres), DIMENSION(:) :: r,s
+      REAL(pres), ALLOCATABLE, DIMENSION(:) :: x,y
+      REAL(pres), ALLOCATABLE, DIMENSION(:) :: l1,l2,l3      
+      REAL(pres), ALLOCATABLE, DIMENSION(:) :: b1,b2,b3
+      REAL(pres), ALLOCATABLE, DIMENSION(:) :: wx,wy,w1,w2,w3
+      REAL(pres), ALLOCATABLE, DIMENSION(:) :: w1e,w2e,w3e
+      REAL(pres), ALLOCATABLE, DIMENSION(:) :: var1,var2,var3
+      REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: w1mat,w2mat,w3mat     
+     
+     
 
 !c     Define optimal alpha values
-      data aopt/0d0,0d0,1.4152d0,0.1001d0,0.2751d0,0.9800d0,1.0999d0 &
+      DATA aopt/0d0,0d0,1.4152d0,0.1001d0,0.2751d0,0.9800d0,1.0999d0 &
                ,1.2832d0,1.3648d0,1.4773d0,1.4959d0,1.5743d0,1.5770d0 &
                ,1.6223d0,1.6258d0/
 
-      if(p.lt.16) then
+      IF(p.lt.16) THEN
         a = aopt(p)
-      else
+      ELSE
         a = 5d0/3d0
-      endif
+      ENDIF
+      
+      np = (p+1)*(p+2)/2
+      
+      ALLOCATE(x(np),y(np))            
+      ALLOCATE(l1(np),l2(np),l3(np))
+      ALLOCATE(b1(np),b2(np),b3(np))
+      ALLOCATE(wx(np),wy(np),w1(np),w2(np),w3(np))
+      ALLOCATE(w1e(np),w2e(np),w3e(np))
+      ALLOCATE(var1(np),var2(np),var3(np))
+      ALLOCATE(w1mat(np,p+1),w2mat(np,p+1),w3mat(np,p+1))
 
 !c     Create equally distributed nodes on equalateral triangle
 
@@ -436,44 +450,44 @@
 ! Edge 3 points
       i = 1
       ii = dble(i)
-      do j = 1,p+1
+      DO j = 1,p+1
         jj = dble(j)
         m = m+1
         l1(m) = (ii-1d0)/dble(p)
         l3(m) = (jj-1d0)/dble(p)
-      enddo
+      ENDDO
 
 ! Edge 1 points
-      do i = 2,p+1
+      DO i = 2,p+1
         ii = dble(i)
         j = p+2-i 
         jj = dble(j)
         m = m+1
         l1(m) = (ii-1d0)/dble(p)
         l3(m) = (jj-1d0)/dble(p)
-      enddo
+      ENDDO
 
 
 ! Edge 2 points
-      do i = p,2,-1
+      DO i = p,2,-1
         ii = dble(i)
         j = 1
         jj = dble(j)
         m = m+1
         l1(m) = (ii-1d0)/dble(p)
         l3(m) = (jj-1d0)/dble(p)
-      enddo
+      ENDDO
 
 ! Internal points
-      do i = 2,p
+      DO i = 2,p
         ii = dble(i)
-        do j = 2,p+1-i 
+        DO j = 2,p+1-i 
           jj = dble(j)
           m = m+1
           l1(m) = (ii-1d0)/dble(p)
           l3(m) = (jj-1d0)/dble(p)
-        enddo
-      enddo
+        ENDDO
+      ENDDO
 
 !       do i = 1,p+1
 !         ii = dble(i)
@@ -485,26 +499,26 @@
 !         enddo
 !       enddo
 
-      do i = 1,m
+      DO i = 1,m
         l2(i) = 1d0-l1(i)-l3(i)
         x(i) = -l2(i)+l3(i)
         y(i) = (-l2(i)-l3(i)+2d0*l1(i))/dsqrt(3d0)
-      enddo
+      ENDDO
 
-      if(space.eq.0)then
-        call xytors(np,x,y,r,s) ;
-        return
-      endif
+      IF(space.eq.0)then
+        CALL xytors(np,x,y,r,s) ;
+        RETURN
+      ENDIF
 
 !c     Compute blending function
-      do i = 1,np
+      DO i = 1,np
         b1(i) = 4d0*l2(i)*l3(i)
         b2(i) = 4d0*l3(i)*l1(i)
         b3(i) = 4d0*l2(i)*l1(i)
-      enddo
+      ENDDO
 
 !c     Compute 1-D Legendre-Gauss-Lobotto points on (-1,1)
-      call lglpts(p,lgl)
+      CALL lglpts(p,lgl)
 
 !       do i = 1,p+1
 !         write(40,*) lgl(i)
@@ -513,22 +527,22 @@
 !c     Compute equadistant points on (-1,1)
       dx = 2d0/dble(p)
       xeq(1)=-1d0
-      do i = 2,p+1
+      DO i = 2,p+1
         xeq(i) = xeq(i-1)+dx
-      enddo
+      ENDDO
       xeq(p+1) = 1d0
 
 !c     Compute warping function arugments
-      do i = 1,np
+      DO i = 1,np
         w1e(i) = l3(i)-l2(i)
         w2e(i) = l1(i)-l3(i)
         w3e(i) = l2(i)-l1(i)
-      enddo
+      ENDDO
 
 !c     Elvaluate Lagrange polynomials based on equa-spaced nodes
-      call lagrange(p+1,np,xeq,w1e,w1mat)
-      call lagrange(p+1,np,xeq,w2e,w2mat)
-      call lagrange(p+1,np,xeq,w3e,w3mat)
+      CALL lagrange(p+1,np,xeq,w1e,w1mat)
+      CALL lagrange(p+1,np,xeq,w2e,w2mat)
+      CALL lagrange(p+1,np,xeq,w3e,w3mat)
 
 !       do j = 1,np
 !         write(50,41) (w1mat(j,i), i = 1,p+1)
@@ -539,51 +553,51 @@
 
       tol = 1d0 - 1.0d-10
 
-      do i = 1,np
-        if(dabs(w1e(i)).lt.tol) then
+      DO i = 1,np
+        IF(dabs(w1e(i)).lt.tol) THEN
           var1(i) = 1d0
-        else
+        ELSE
           var1(i) = 0d0
-        endif
-        if(dabs(w2e(i)).lt.tol) then
+        ENDIF
+        IF(dabs(w2e(i)).lt.tol) THEN
           var2(i) = 1d0
-        else
+        ELSE
           var2(i) = 0d0
-        endif
-        if(dabs(w3e(i)).lt.tol) then
+        ENDIF
+        IF(dabs(w3e(i)).lt.tol) THEN
           var3(i) = 1d0
-        else
+        ELSE
           var3(i) = 0d0
-        endif
-      enddo
+        ENDIF
+      ENDDO
 
-      do j = 1,np
+      DO j = 1,np
         w1(j) = 0d0
         w2(j) = 0d0
         w3(j) = 0d0
-      enddo
+      ENDDO
 
-      do j = 1,np
-        do i = 1,p+1
+      DO j = 1,np
+        DO i = 1,p+1
          w1(j) = w1(j) + (lgl(i)-xeq(i))*w1mat(j,i)
          w2(j) = w2(j) + (lgl(i)-xeq(i))*w2mat(j,i)
          w3(j) = w3(j) + (lgl(i)-xeq(i))*w3mat(j,i)
-        enddo
+        ENDDO
         w1(j) = w1(j)/(1d0-(var1(j)*w1e(j))**2)+w1(j)*(var1(j)-1d0)
         w2(j) = w2(j)/(1d0-(var2(j)*w2e(j))**2)+w2(j)*(var2(j)-1d0)
         w3(j) = w3(j)/(1d0-(var3(j)*w3e(j))**2)+w3(j)*(var3(j)-1d0)
-      enddo
+      ENDDO
 
 !c     Apply gerneralized warping function to equally distributed nodes on equalateral triangle
-      do i = 1,np
+      DO i = 1,np
         x(i) = x(i)+(1d0+(a*l1(i))**2d0)*b1(i)*w1(i) &
                    -.5d0*(1d0+(a*l2(i))**2d0)*b2(i)*w2(i) &
                    -.5d0*(1d0+(a*l3(i))**2d0)*b3(i)*w3(i)
         y(i) = y(i)+dsqrt(3d0)/2d0*(1d0+(a*l2(i))**2d0)*b2(i)*w2(i) &
                    -dsqrt(3d0)/2d0*(1d0+(a*l3(i))**2d0)*b3(i)*w3(i)
-      enddo
+      ENDDO
 
-      call xytors(np,x,y,r,s)
+      CALL xytors(np,x,y,r,s)
       
 !       open(unit=60,file=DIRNAME//'/'//'tri.d')
 
@@ -600,24 +614,26 @@
  21   format(28(f10.4,1x))
  61   format(16000(e24.17,1x))      
 
-      return
-      end subroutine
+      RETURN
+      END SUBROUTINE
       
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!       
 
-      SUBROUTINE quad_nodes(space,np,nnds,r,s)
+      SUBROUTINE quad_nodes(space,np,r,s)
       
       USE globals, ONLY: pres
       USE messenger2, ONLY: myrank
       
       IMPLICIT NONE
       
-      INTEGER :: space,np,nnds
-      INTEGER :: i,k,j,n,nnp
+      INTEGER :: space,np
+      INTEGER :: i,k,j,n,nnp,nnds
       REAL(pres) :: xi(np+1)
-      REAL(pres) :: r(nnds),s(nnds)
+      REAL(pres), DIMENSION(:) :: r,s
       
+      
+      nnds = (np+1)**2
       
       ! Get 1-D LGL points 
       

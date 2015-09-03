@@ -17,9 +17,9 @@
       REAL(pres) :: rt(mnnds),st(mnnds)  
       REAL(pres) :: xyhb(mnnds,ne,2)
       
-      CALL tri_nodes(1,ctp,(ctp+1)*(ctp+2)/2,rt,st)   
+      CALL tri_nodes(1,ctp,rt,st)   
       
-      CALL quad_nodes(1,ctp,(ctp+1)*(ctp+1),rq,sq)   
+      CALL quad_nodes(1,ctp,rq,sq)   
       
       elhb = 50d0
       

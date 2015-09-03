@@ -108,11 +108,11 @@
         
         IF (mod(eo,2) == 1) THEN
           et = 1
-          CALL tri_nodes(1,p,npts,r,s)
+          CALL tri_nodes(1,p,r,s)
           CALL tri_basis(np(et),npts,r,s,psiv(:,:,eo))       
         ELSE IF (mod(eo,2) == 0) THEN
           et = 2
-          CALL quad_nodes(1,p,npts,r,s)
+          CALL quad_nodes(1,p,r,s)
           CALL quad_basis(np(et),npts,r,s,psiv(:,:,eo))
         ENDIF        
         
@@ -162,11 +162,11 @@
         
         IF (mod(eo,2) == 1) THEN
           et = 3
-          CALL tri_nodes(1,p,npts,r,s)
+          CALL tri_nodes(1,p,r,s)
           CALL tri_basis(np(et),npts,r,s,psic(:,:,eo))       
         ELSE IF (mod(eo,2) == 0) THEN
           et = 4
-          CALL quad_nodes(1,p,npts,r,s)
+          CALL quad_nodes(1,p,r,s)
           CALL quad_basis(np(et),npts,r,s,psic(:,:,eo))
         ENDIF               
         
