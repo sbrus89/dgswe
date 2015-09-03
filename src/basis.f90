@@ -14,27 +14,23 @@
         INTEGER :: i,j,pt,et,dof
         REAL(pres) :: qint
         REAL(pres) :: mm(mndof,mndof)
-        REAL(pres) :: phi(mndof*mnqpta),dphidr(mndof*mnqpta),dphids(mndof*mnqpta)
   
         CALL alloc_basis_arrays()
       
-        DO et = 1,nel_type
-        
-          IF (mod(et,2) == 1) THEN
-            CALL tri_basis(p,ndof(et),nqpta(et),qpta(:,1,et),qpta(:,2,et),phi,dphidr,dphids)
-          ELSE IF (mod(et,2) == 0) THEN
-            CALL quad_basis(p,ndof(et),nqpta(et),qpta(:,1,et),qpta(:,2,et),phi,dphidr,dphids)
-          ENDIF
+        DO et = 1,nel_type        
           
-
-          DO pt = 1,nqpta(et)
-            DO dof = 1,ndof(et)
-              i = (dof-1)*nqpta(et) + pt
-              phia(dof,pt,et) = phi(i)
-              dpdr(dof,pt,et) = dphidr(i)
-              dpds(dof,pt,et) = dphids(i)
-            ENDDO
+          IF (mod(et,2) == 1) THEN
+            CALL tri_basis(p,nqpta(et),qpta(:,1,et),qpta(:,2,et),phia(:,:,et),dpdr(:,:,et),dpds(:,:,et))
+          ELSE IF (mod(et,2) == 0) THEN
+            CALL quad_basis(p,nqpta(et),qpta(:,1,et),qpta(:,2,et),phia(:,:,et),dpdr(:,:,et),dpds(:,:,et))
+          ENDIF            
+          
+          PRINT "(A)", 'Basis functions at quadrature points'
+          DO i = 1,ndof(et)
+            PRINT "(100(F10.3))", (phia(i,j,et),j=1,nqpta(et))
           ENDDO
+          PRINT "(A)", ' '            
+            
           
           ! Compute mass matrix (constant*indentity matrix)
           DO i = 1,ndof(et)
@@ -102,15 +98,13 @@
           
           tpts = nverts(et)*nqpte(et)
           IF (mod(et,2) == 1) THEN
-            CALL tri_basis(p,ndof(et),tpts,qpte(:,1,et),qpte(:,2,et),phi)
+            CALL tri_basis(p,tpts,qpte(:,1,et),qpte(:,2,et),phie(:,:,et))
           ELSE IF (mod(et,2) == 0) THEN
-            CALL quad_basis(p,ndof(et),tpts,qpte(:,1,et),qpte(:,2,et),phi)
+            CALL quad_basis(p,tpts,qpte(:,1,et),qpte(:,2,et),phie(:,:,et))
           ENDIF
           
           DO pt = 1,tpts
             DO dof = 1,ndof(et)
-              i = (dof-1)*tpts + pt
-              phie(dof,pt,et) = phi(i)
               phie_int(dof,pt,et) = phie(dof,pt,et)*wpte(pt,et)
             ENDDO
           ENDDO
@@ -123,23 +117,23 @@
       
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-        SUBROUTINE tri_basis(p,ndof,npts,r,s,phi,dpdr,dpds)
+        
+        SUBROUTINE tri_basis(p,npts,r,s,phi,dpdr,dpds)
         
         USE globals, ONLY: pres
         
         IMPLICIT NONE
         INTEGER :: p,npts
-        INTEGER :: ndof
-        REAL(pres) :: r(npts),s(npts)        
+        REAL(pres) :: r(npts),s(npts)  
+        
         INTEGER :: m,i,j,pt
         REAL(pres) :: dpda,dpdb,dadr,dads,ii       
         REAL(pres) :: a(npts),b(npts)
         REAL(pres) :: Pi(npts),Pj(npts)
         REAL(pres) :: dPi(npts),dPj(npts)
         
-        REAL(pres) :: phi(ndof*npts)
-        REAL(pres), OPTIONAL :: dpdr(ndof*npts),dpds(ndof*npts)  
+        REAL(pres), DIMENSION(:,:) :: phi
+        REAL(pres), DIMENSION(:,:), OPTIONAL :: dpdr,dpds 
         INTEGER :: calc_deriv
         
         IF (PRESENT(dpdr) .AND. PRESENT(dpds)) THEN
@@ -172,7 +166,7 @@
             ! Calculate function values
             DO pt = 1,npts 
 !               phi(m,pt) = sqrt(2d0)*Pi(pt)*Pj(pt)*(1d0-b(pt))**i
-              phi((m-1)*npts+pt) = 2d0*Pi(pt)*Pj(pt)*(1d0-b(pt))**i
+              phi(m,pt) = 2d0*Pi(pt)*Pj(pt)*(1d0-b(pt))**i
             ENDDO
 
             IF (calc_deriv == 1) THEN
@@ -189,35 +183,34 @@
                 dpda = 2d0*dPi(pt)*Pj(pt)*(1d0-b(pt))**ii
                 dpdb = 2d0*Pi(pt)*(dPj(pt)*(1d0-b(pt))**ii - ii*(1d0-b(pt))**(ii-1d0)*Pj(pt))
               
-                dpdr((m-1)*npts+pt) = dpda*dadr
-                dpds((m-1)*npts+pt) = dpda*dads + dpdb
+                dpdr(m,pt) = dpda*dadr
+                dpds(m,pt) = dpda*dads + dpdb
               ENDDO
             ENDIF
 
           ENDDO
         ENDDO  
         
-        END SUBROUTINE tri_basis
+        END SUBROUTINE tri_basis        
         
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-        SUBROUTINE quad_basis(p,ndof,npts,r,s,phi,dpdr,dpds)
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!   
+        
+        SUBROUTINE quad_basis(p,npts,r,s,phi,dpdr,dpds)
         
         USE globals, ONLY: pres
         
         IMPLICIT NONE
         
         INTEGER :: p,npts
-        INTEGER :: ndof
         REAL(pres) :: r(npts),s(npts)
         
         INTEGER :: m,i,j,pt    
         REAL(pres) :: Pi(npts),Pj(npts)
         REAL(pres) :: dPi(npts),dPj(npts)
         
-        REAL(pres) :: phi(ndof*npts)
-        REAL(pres), OPTIONAL :: dpdr(ndof*npts),dpds(ndof*npts)
+        REAL(pres), DIMENSION(:,:) :: phi
+        REAL(pres), DIMENSION(:,:), OPTIONAL :: dpdr,dpds
         INTEGER :: calc_deriv
         
         IF (PRESENT(dpdr) .AND. PRESENT(dpds)) THEN
@@ -238,7 +231,7 @@
 
             ! Calculate function values
             DO pt = 1,npts 
-              phi((m-1)*npts+pt) = 2d0*Pi(pt)*Pj(pt)
+              phi(m,pt) = 2d0*Pi(pt)*Pj(pt)
             ENDDO
 
             IF (calc_deriv == 1) THEN
@@ -247,8 +240,8 @@
             
               ! Calculate derivative values
               DO pt = 1,npts
-                dpdr((m-1)*npts+pt) = 2d0*dPi(pt)*Pj(pt)
-                dpds((m-1)*npts+pt) = 2d0*Pi(pt)*dPj(pt)
+                dpdr(m,pt) = 2d0*dPi(pt)*Pj(pt)
+                dpds(m,pt) = 2d0*Pi(pt)*dPj(pt)
               ENDDO
             ENDIF
 
@@ -256,7 +249,7 @@
         ENDDO
 
         
-        END SUBROUTINE quad_basis        
+        END SUBROUTINE quad_basis            
       
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

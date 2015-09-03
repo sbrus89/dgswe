@@ -6,7 +6,6 @@
       IMPLICIT NONE
       INTEGER :: et,pt,dof,i,n,p
       REAL(pres) :: r(mnnds),s(mnnds)
-      REAL(pres) :: phi(mnnds*mnnds)
       INTEGER :: info        
       
       
@@ -23,18 +22,12 @@
         p = np(et)
         IF (mod(et,2) == 1) THEN
           CALL tri_nodes(1,p,n,r,s)
-          CALL tri_basis(p,n,n,r,s,phi)       
+          CALL tri_basis(p,n,r,s,Va(:,:,et))       
         ELSE IF (mod(et,2) == 0) THEN
           CALL quad_nodes(1,p,n,r,s)
-          CALL quad_basis(p,n,n,r,s,phi)
+          CALL quad_basis(p,n,r,s,Va(:,:,et))
         ENDIF
-        
-        DO pt = 1,n
-          DO dof = 1,n
-            i = (dof-1)*n + pt
-            Va(dof,pt,et) = phi(i)
-          ENDDO
-        ENDDO
+
                 
         CALL DGETRF(n,n,Va(1,1,et),mnnds,ipiva(1,et),info)  
         

@@ -107,53 +107,7 @@
 !         ENDDO
 !       ENDDO
       
-      DO et = 1,nel_type
-        n = nnds(et)
-        p = np(et)
-        IF (mod(et,2) == 1) THEN
-          CALL tri_nodes(1,p,n,r,s)
-          CALL tri_basis(p,n,n,r,s,phi)       
-        ELSE IF (mod(et,2) == 0) THEN
-          CALL quad_nodes(1,p,n,r,s)
-          CALL quad_basis(p,n,n,r,s,phi)
-        ENDIF
-        
-        DO pt = 1,n
-          DO dof = 1,n
-            i = (dof-1)*n + pt
-            V(dof,pt,et) = phi(i)
-          ENDDO
-        ENDDO
-        
-        CALL DGETRF(n,n,V(1,1,et),mnnds,ipiv(1,et),info)        
-!         DO pt = 1,n
-!             PRINT("(100(e15.5))"), (V(dof,pt,et), dof = 1,n)
-!         ENDDO        
-!         PRINT*, " "
-        
-      ENDDO
-            
-      
-      
-!       DO el = 1,ne
-!         et = el_type(el)
-!         n = nnds(et)
-!         
-!         DO i = 1,n 
-!           hb(i) = elhb(i,el)
-!         ENDDO
-!       
-!         CALL DGETRS("T",n,1,V(1,1,et),mnnds,ipiv(1,et),hb,mnnds,info)
-!         
-!         DO i = 1,n
-!           Hinit(el,i) = hb(i)
-!         ENDDO
-!       ENDDO
-      
-!       DO el = 1,ne
-!         PRINT("(I5,3(e24.17),10x,3(e24.17))"), el, (rhsH2(el,l), l = 1,ndof(1)), (Hinit(el,l), l = 1,ndof(1))
-!         PRINT("(I5,3(e24.17))"), el, (abs(rhsH2(el,l) - Hinit(el,l)), l = 1,ndof(1))
-!       ENDDO
+
 
 
 

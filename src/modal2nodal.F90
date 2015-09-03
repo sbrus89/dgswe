@@ -12,7 +12,7 @@
       INTEGER :: nvert,n,ndf,pp,eo
       INTEGER :: alloc_status
       REAL(pres) :: r(25),s(25)
-      REAL(pres) :: phi(25*mndof)
+      REAL(pres) :: phi(mndof,25)
       
       REAL(pres) :: ml2(3,ndof(1)),mml(3,3)
       REAL(pres) :: qint      
@@ -40,20 +40,19 @@
         IF (mod(et,2) == 1) THEN    
         
           CALL tri_nodes(0,np(et),n,r,s)  ! get vertex coordinates     
-          CALL tri_basis(pp,ndf,n,r,s,phi)             
+          CALL tri_basis(pp,n,r,s,phi)             
 
         ELSE IF (mod(et,2) == 0) THEN                                    
           
           CALL quad_nodes(0,np(et),n,r,s)  ! get vertex coordinates     
-          CALL quad_basis(pp,ndf,n,r,s,phi)          
+          CALL quad_basis(pp,n,r,s,phi)          
 
         ENDIF
         
 
         DO dof = 1,ndf            
-          DO pt = 1,n 
-            i = (dof-1)*n + pt            
-            m2n(pt,dof,et) = phi(i)
+          DO pt = 1,n        
+            m2n(pt,dof,et) = phi(dof,pt)
           ENDDO
         ENDDO
         

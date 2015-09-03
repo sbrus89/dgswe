@@ -14,7 +14,6 @@
       INTEGER :: nv,nnd,nqa,nqe,p
       INTEGER :: info      
       REAL(pres) :: r(mnqpta+4*mnqpte),s(mnqpta+4*mnqpte)
-      REAL(pres) :: phi(mnnds*(mnqpta+4*mnqpte)),dphidr(mnnds*(mnqpta+4*mnqpte)),dphids(mnnds*(mnqpta+4*mnqpte))
 
       psia = 0d0
       dpsidr = 0d0
@@ -53,21 +52,10 @@
 
 
         IF(nv == 3) THEN
-          CALL tri_basis(p,nnd,tpts,r,s,phi,dphidr,dphids)             
+          CALL tri_basis(p,tpts,r,s,psia(:,:,typ),dpsidr(:,:,typ),dpsids(:,:,typ))             
         ELSE IF (nv == 4) THEN
-          CALL quad_basis(p,nnd,tpts,r,s,phi,dphidr,dphids)  
-        ENDIF
-      
-        DO pt = 1,tpts
-          DO dof = 1,nnd
-            i = (dof-1)*tpts + pt  
-          
-            psia(dof,pt,typ) = phi(i)
-            dpsidr(dof,pt,typ) = dphidr(i)
-            dpsids(dof,pt,typ) = dphids(i)
-          ENDDO
-        ENDDO      
-      
+          CALL quad_basis(p,tpts,r,s,psia(:,:,typ),dpsidr(:,:,typ),dpsids(:,:,typ))  
+        ENDIF      
 
 !       PRINT*, "RHS matrix: "      
 !       DO i = 1,nnds
@@ -105,7 +93,6 @@
       INTEGER :: et,eo,npts,p
       INTEGER :: info      
       REAL(pres) :: r(mnnds),s(mnnds)
-      REAL(pres) :: phi(mnnds*mnnds)
        
 
       ! Evaluates linear shape functions at straight/curved element nodal sets
@@ -122,20 +109,12 @@
         IF (mod(eo,2) == 1) THEN
           et = 1
           CALL tri_nodes(1,p,npts,r,s)
-          CALL tri_basis(np(et),nnds(et),npts,r,s,phi)       
+          CALL tri_basis(np(et),npts,r,s,psiv(:,:,eo))       
         ELSE IF (mod(eo,2) == 0) THEN
           et = 2
           CALL quad_nodes(1,p,npts,r,s)
-          CALL quad_basis(np(et),nnds(et),npts,r,s,phi)
+          CALL quad_basis(np(et),npts,r,s,psiv(:,:,eo))
         ENDIF        
-        
-        DO pt = 1,npts
-          DO dof = 1,nnds(et)
-            i = (dof-1)*npts + pt  
-          
-            psiv(dof,pt,eo) = phi(i)
-          ENDDO
-        ENDDO            
         
         CALL DGETRS("N",nnds(et),npts,Va(1,1,et),mnnds,ipiva(1,et),psiv(1,1,eo),mnnds,info)   
         
@@ -169,7 +148,6 @@
       INTEGER :: et,eo,npts,p
       INTEGER :: info      
       REAL(pres) :: r(mnnds),s(mnnds)
-      REAL(pres) :: phi(mnnds*mnnds)
       
       ! Evaluates curvilinear shape functions at high-order batymetry nodal sets
       !
@@ -185,20 +163,12 @@
         IF (mod(eo,2) == 1) THEN
           et = 3
           CALL tri_nodes(1,p,npts,r,s)
-          CALL tri_basis(np(et),nnds(et),npts,r,s,phi)       
+          CALL tri_basis(np(et),npts,r,s,psic(:,:,eo))       
         ELSE IF (mod(eo,2) == 0) THEN
           et = 4
           CALL quad_nodes(1,p,npts,r,s)
-          CALL quad_basis(np(et),nnds(et),npts,r,s,phi)
-        ENDIF        
-        
-        DO pt = 1,npts
-          DO dof = 1,nnds(et)
-            i = (dof-1)*npts + pt  
-          
-            psic(dof,pt,eo) = phi(i)
-          ENDDO
-        ENDDO            
+          CALL quad_basis(np(et),npts,r,s,psic(:,:,eo))
+        ENDIF               
         
         CALL DGETRS("N",nnds(et),npts,Va(1,1,et),mnnds,ipiva(1,et),psic(1,1,eo),mnnds,info)   
         
