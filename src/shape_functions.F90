@@ -1,10 +1,64 @@
+      MODULE shape_functions
+      
+      CONTAINS
+      
+      
+      SUBROUTINE shape_functions_eval(nv,p,nnd,npts,r,s,V,psi,dpdr,dpds)
+      
+      USE globals, ONLY, pres
+      
+      IMPLICIT NONE
+      
+      INTEGER, INTENT(IN) :: nv,p,npts
+      INTEGER, INTENT(OUT) :: nnd
+      REAL(pres), DIMENSION(:), INTENT(IN) :: r,s
+      REAL(pres), DIMENSION(:,:), INTENT(IN) :: V
+      REAL(pres), DIMENSION(:,:), INTENT(OUT) :: psi
+      REAL(pres), DIMENSION(:,:), INTENT(OUT) :: dpdr,dpds      
+            
+      INTEGER :: info
+      INTEGER :: ld1,ld2
+      INTEGER :: calc_derv
+      INTEGER, DIMENSION(:), ALLOCATABLE :: ipiv
+      
+      IF (PRESENT(dpdr) .AND. PRESENT(dpds)) THEN
+        calc_derv = 1
+      ELSE
+        calc_derv = 0
+      ENDIF
+            
+      ld1 = SIZE(V,1)
+      ld2 = SIZE(psi,1)
+      
+      ALLOCATE(ipiv(nnd))
+      
+      IF (calc_derv == 0) THEN
+      
+        CALL element_basis(nv,p,nnd,npts,r,s,psi) 
+        CALL DGESV(nnd,npts,V,ld1,ipiv,psi,ld2,info)      
+        
+      ELSE 
+      
+        CALL element_basis(nv,p,nnd,npts,r,s,psi,dpdr,dpds) 
+        CALL DGESV(nnd,npts,V,ld1,ipiv,psi,ld2,info)    
+        CALL DGESV(nnd,npts,V,ld1,ipiv,dpdr,ld2,info) 
+        CALL DGESV(nnd,npts,V,ld1,ipiv,dpds,ld2,info)         
+      
+      ENDIF
+      
+      END SUBROUTINE shape_functions_eval
+      
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!      
+      
+      
       SUBROUTINE shape_functions_qpts()
 
       USE globals, ONLY: pres,nel_type,order,nverts,nnds,mnnds, &
                          mnqpta,nqpta,mnqpte,nqpte,np, &
                          qpta,qpte,psia,dpsidr,dpsids, &
                          Va,ipiva
-      USE basis, ONLY: tri_basis,quad_basis
+      USE basis, ONLY: element_basis
       USE messenger2, ONLY: myrank
       
       IMPLICIT NONE      
@@ -51,25 +105,28 @@
         ENDDO
 
 
-        IF(nv == 3) THEN
-          CALL tri_basis(p,tpts,r,s,psia(:,:,typ),dpsidr(:,:,typ),dpsids(:,:,typ))             
-        ELSE IF (nv == 4) THEN
-          CALL quad_basis(p,tpts,r,s,psia(:,:,typ),dpsidr(:,:,typ),dpsids(:,:,typ))  
-        ENDIF      
+        CALL shape_functions_eval(nv,p,nnd,tpts,r,s,Va(:,:,eo),psi(:,:,typ),dpdr(:,:,typ),dpds(:,:,typ))        
+        
+      PRINT*, "Psi : "      
+      DO i = 1,nnd
+        PRINT("(300(F27.17))"), (psia(i,j,et), j = 1,tpts)
+      ENDDO            
 
+        CALL element_basis(nv,p,nnd,tpts,r,s,psia(:,:,typ),dpsidr(:,:,typ),dpsids(:,:,typ))             
+ 
 !       PRINT*, "RHS matrix: "      
 !       DO i = 1,nnds
-!         PRINT("(20(F15.5))"), (l(i,j), j = 1,tpts)
+!         PRINT("(20(F15.5))"), (psia(i,j,typ), j = 1,tpts)
 !       ENDDO      
       
         CALL DGETRS("N",nnd,tpts,Va(1,1,eo),mnnds,ipiva(1,eo),psia(1,1,typ),mnnds,info)
         CALL DGETRS("N",nnd,tpts,Va(1,1,eo),mnnds,ipiva(1,eo),dpsidr(1,1,typ),mnnds,info)      
         CALL DGETRS("N",nnd,tpts,Va(1,1,eo),mnnds,ipiva(1,eo),dpsids(1,1,typ),mnnds,info)  
       
-!       PRINT*, "Psi : "      
-!       DO i = 1,nnd
-!         PRINT("(300(F27.17))"), (psia(i,j,et), j = 1,tpts)
-!       ENDDO         
+      PRINT*, "Psi : "      
+      DO i = 1,nnd
+        PRINT("(300(F27.17))"), (psia(i,j,et), j = 1,tpts)
+      ENDDO         
 
        ENDDO
        
@@ -241,3 +298,5 @@
 
       RETURN
       END SUBROUTINE shape_functions_edge
+      
+      END MODULE shape_functions

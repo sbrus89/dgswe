@@ -1,4 +1,35 @@
-      SUBROUTINE area_vandermonde()
+     MODULE vandermonde
+     
+     CONTAINS
+          
+     
+     SUBROUTINE vandermonde_matrix(et,p,ndf,V)
+     
+     USE globals, ONLY: pres
+     USE basis, ONLY: tri_nodes,tri_basis,quad_nodes,quad_basis
+     
+     IMPLICIT NONE
+       
+     INTEGER :: et,p
+     REAL(pres), DIMENSION(:,:) :: V
+     
+     INTEGER :: npt,ndf
+     INTEGER :: info
+     REAL(pres), DIMENSION((p+1)**2) :: r,s
+   
+   
+     CALL element_nodes(et,1,p,npt,r,s)
+     CALL element_basis(et,p,ndf,npt,r,s,V)
+     
+     
+     END SUBROUTINE vandermonde_matrix
+     
+     
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!        
+     
+     
+     SUBROUTINE area_vandermonde()
       
       USE globals, ONLY: pres,np,mnp,nnds,mnnds,norder,Va,ipiva
       USE basis, ONLY: tri_nodes,tri_basis,quad_nodes,quad_basis
@@ -18,16 +49,9 @@
 
       
       DO et = 1,norder
-        n = nnds(et)
         p = np(et)
-        IF (mod(et,2) == 1) THEN
-          CALL tri_nodes(1,p,r,s)
-          CALL tri_basis(p,n,r,s,Va(:,:,et))       
-        ELSE IF (mod(et,2) == 0) THEN
-          CALL quad_nodes(1,p,r,s)
-          CALL quad_basis(p,n,r,s,Va(:,:,et))
-        ENDIF
 
+        CALL vandermonde_matrix(et,p,n,Va(:,:,et))
                 
         CALL DGETRF(n,n,Va(1,1,et),mnnds,ipiva(1,et),info)  
         
@@ -41,8 +65,8 @@
       END SUBROUTINE area_vandermonde      
       
       
-      
-      
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!               
       
       
       SUBROUTINE edge_vandermonde()
@@ -85,3 +109,7 @@
                   
       RETURN      
       END SUBROUTINE edge_vandermonde
+      
+      
+      
+      END MODULE vandermonde

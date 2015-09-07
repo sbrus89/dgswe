@@ -6,10 +6,10 @@ ctp = 1                                                        ! parametric coor
 hbp = 1                                                        ! bathymetry order
 rk = 33                                                        ! rk order
 dt = .25d0                                                      ! timestep 
-tf = .01d0                                                       ! final time (days)
+tf = 1d0                                                       ! final time (days)
 dramp = .5d0                                                   ! ramping parameter (days)
 cf = .003d0                                                    ! friction coefficient 
-lines = 1d0                                                   ! lines in output files
+lines = 100d0                                                   ! lines in output files
 out_direc = ./                                                 ! output director
 npart = 1
 

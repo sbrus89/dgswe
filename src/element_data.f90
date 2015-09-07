@@ -12,6 +12,9 @@
       USE basis, ONLY:       
       USE allocation, ONLY: alloc_trans_arrays
       USE read_dginp, ONLY: p,ctp
+      USE vandermonde, ONLY: area_vandermonde,edge_vandermonde
+      USE shape_functions, ONLY: shape_functions_qpts,shape_functions_vertex, &
+                                 shape_functions_curve,shape_functions_edge
 
       IMPLICIT NONE
       INTEGER :: el,ed,led,dof,pt,i,nd

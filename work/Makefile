@@ -68,8 +68,8 @@ endif
 
 ifeq ($(BUILDTYPE),dgswe_debug)
   FC = ifort
-  CFLAGS_VEC  =  -C -g -traceback -I$(ODIR) -c
-  CFLAGS      =  -C -g -traceback -I$(ODIR) -c 
+  CFLAGS_VEC  =  -C -g -traceback  -I$(ODIR) -c
+  CFLAGS      =  -C -g -traceback  -I$(ODIR) -c 
   CFLAGS_LINK = -o 
   EXE_NAME = dgswe_debug
   MESSAGE =  Compling serial program with debug flags 
@@ -116,8 +116,8 @@ METIS_LIB = -L../metis-4.0.3 -lmetis
 #                               Objects                                #
 ########################################################################
 
-objects = globals.o messenger2.o read_input.o allocation.o basis.o  area_qpts.o edge_qpts.o read_grid.o read_forcing.o modal2nodal.o \
-	initial.o connect.o curvilinear.o element_data.o shape_functions.o vandermonde.o area_transformation.o normals.o edge_transformation.o \
+objects = globals.o messenger2.o read_input.o allocation.o basis.o vandermonde.o shape_functions.o area_qpts.o edge_qpts.o read_grid.o read_forcing.o modal2nodal.o \
+	initial.o connect.o curvilinear.o element_data.o   area_transformation.o normals.o edge_transformation.o \
 	bathymetry_interp.o edge_partition2.o area_integration.o edge_integration.o rhs2.o  numerical_flux.o rk.o write_output.o version.o swe_tri.o
 
 obj := $(patsubst %.o, $(ODIR)%.o,$(objects))
@@ -227,7 +227,15 @@ $(ODIR)basis.o : basis.f90 globals.F90 allocation.f90 messenger2.F90
 	
 $(ODIR)read_input.o : read_input.F90 globals.F90 messenger2.F90
 	$(FC) $(CFLAGS) $< -o $@	
-	mv read_dginp.mod $(ODIR)		
+	mv read_dginp.mod $(ODIR)
+
+$(ODIR)vandermonde.o : vandermonde.F90 globals.F90 basis.f90
+	$(FC) $(CFLAGS) $< -o $@
+	mv vandermonde.mod $(ODIR)
+	
+$(ODIR)shape_functions.o : shape_functions.F90 globals.F90 basis.f90
+	$(FC) $(CFLAGS) $< -o $@
+	mv shape_functions.mod $(ODIR)
 
 $(ODIR)area_qpts.o : area_qpts.f90 globals.F90 allocation.f90 messenger2.F90
 	$(FC) $(CFLAGS) $< -o $@
@@ -257,12 +265,6 @@ $(ODIR)element_data.o : element_data.f90 globals.F90 allocation.f90
 	$(FC) $(CFLAGS) $< -o $@
 
 $(ODIR)edge_partition2.o : edge_partition2.f90 globals.F90 allocation.f90 messenger2.F90
-	$(FC) $(CFLAGS) $< -o $@
-
-$(ODIR)vandermonde.o : vandermonde.F90 globals.F90 basis.f90
-	$(FC) $(CFLAGS) $< -o $@
-	
-$(ODIR)shape_functions.o : shape_functions.F90 globals.F90 basis.f90
 	$(FC) $(CFLAGS) $< -o $@
 	
 $(ODIR)area_transformation.o : area_transformation.F90 globals.F90 basis.f90

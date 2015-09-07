@@ -2,7 +2,7 @@
 
       USE globals, ONLY: pres,nel_type,np,nnds,mnnds,ndof,mndof,order,m2n, &
                          nqpta,mnqpta,wpta,phia,phil
-      USE basis, ONLY: tri_basis,quad_basis,tri_nodes,quad_nodes,linear
+      USE basis, ONLY: element_basis,element_nodes,linear
       USE read_dginp, ONLY: out_direc,p,hbp
 
       IMPLICIT NONE
@@ -27,29 +27,14 @@
         IF (typ <= 4) THEN
           et = typ
           pp = p
-          ndf = ndof(et)
         ELSE
           et = typ - 4
           pp = hbp
-          ndf = nnds(order(typ))
         ENDIF      
         
-        eo = order(typ)                
-        n = nnds(et)
+        CALL element_nodes(et,0,np(et),n,r,s)
+        CALL element_basis(et,pp,ndf,n,r,s,phi)
         
-        IF (mod(et,2) == 1) THEN    
-        
-          CALL tri_nodes(0,np(et),r,s)  ! get vertex coordinates     
-          CALL tri_basis(pp,n,r,s,phi)             
-
-        ELSE IF (mod(et,2) == 0) THEN                                    
-          
-          CALL quad_nodes(0,np(et),r,s)  ! get vertex coordinates     
-          CALL quad_basis(pp,n,r,s,phi)          
-
-        ENDIF
-        
-
         DO dof = 1,ndf            
           DO pt = 1,n        
             m2n(pt,dof,et) = phi(dof,pt)

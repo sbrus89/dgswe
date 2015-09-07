@@ -11,7 +11,7 @@
         USE read_dginp, ONLY: p
 
         IMPLICIT NONE
-        INTEGER :: i,j,pt,et,dof
+        INTEGER :: i,j,pt,et,dof,ndf
         REAL(pres) :: qint
         REAL(pres) :: mm(mndof,mndof)
   
@@ -19,22 +19,19 @@
       
         DO et = 1,nel_type        
           
-          IF (mod(et,2) == 1) THEN
-            CALL tri_basis(p,nqpta(et),qpta(:,1,et),qpta(:,2,et),phia(:,:,et),dpdr(:,:,et),dpds(:,:,et))
-          ELSE IF (mod(et,2) == 0) THEN
-            CALL quad_basis(p,nqpta(et),qpta(:,1,et),qpta(:,2,et),phia(:,:,et),dpdr(:,:,et),dpds(:,:,et))
-          ENDIF            
+
+          CALL element_basis(et,p,ndf,nqpta(et),qpta(:,1,et),qpta(:,2,et),phia(:,:,et),dpdr(:,:,et),dpds(:,:,et))         
           
           PRINT "(A)", 'Basis functions at quadrature points'
-          DO i = 1,ndof(et)
+          DO i = 1,ndf
             PRINT "(100(F10.3))", (phia(i,j,et),j=1,nqpta(et))
           ENDDO
           PRINT "(A)", ' '            
             
           
           ! Compute mass matrix (constant*indentity matrix)
-          DO i = 1,ndof(et)
-            DO j = 1,ndof(et)
+          DO i = 1,ndf
+            DO j = 1,ndf
               mm(i,j) = 0d0
               DO pt = 1,nqpta(et)
                 mm(i,j) = mm(i,j) + wpta(pt,et)*phia(i,pt,et)*phia(j,pt,et)
@@ -58,17 +55,17 @@
 
             PRINT "(A,I5)", "Polynomial order:",p           
           
-            PRINT "(A,I5)", "Number of degrees of freedom:",ndof(et)
+            PRINT "(A,I5)", "Number of degrees of freedom:",ndf
             PRINT "(A)", " "        
 
             PRINT "(A)", 'Mass matrix'
-            DO i = 1,ndof(et)
+            DO i = 1,ndf
               PRINT "(100(F10.3))", (mm(i,j),j=1,ndof(et))
             ENDDO
             PRINT "(A)", ' '
 
 !             PRINT "(A)", 'Basis functions at quadrature points'
-!             DO i = 1,ndof(et)
+!             DO i = 1,ndf
 !               PRINT "(100(F10.3))", (phia(i,j,et),j=1,nqpta(et))
 !             ENDDO
 !             PRINT "(A)", ' '             
@@ -91,20 +88,16 @@
         IMPLICIT NONE
 
         INTEGER :: dof,pt,et,i
-        INTEGER :: tpts
+        INTEGER :: tpts,ndf
         REAL(pres) :: phi(mndof*4*mnqpte)       
 
         DO et = 1,nel_type
           
           tpts = nverts(et)*nqpte(et)
-          IF (mod(et,2) == 1) THEN
-            CALL tri_basis(p,tpts,qpte(:,1,et),qpte(:,2,et),phie(:,:,et))
-          ELSE IF (mod(et,2) == 0) THEN
-            CALL quad_basis(p,tpts,qpte(:,1,et),qpte(:,2,et),phie(:,:,et))
-          ENDIF
+          CALL element_basis(et,p,ndf,tpts,qpte(:,1,et),qpte(:,2,et),phie(:,:,et))
           
           DO pt = 1,tpts
-            DO dof = 1,ndof(et)
+            DO dof = 1,ndf
               phie_int(dof,pt,et) = phie(dof,pt,et)*wpte(pt,et)
             ENDDO
           ENDDO
@@ -117,24 +110,76 @@
       
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+      SUBROUTINE element_basis(et,p,ndfs,npts,r,s,phi,dpdr,dpds)
+      
+      USE globals, ONLY: pres
+      
+      IMPLICIT NONE
+      
+      INTEGER, INTENT(IN) :: p,et,npts
+      INTEGER, INTENT(OUT) :: ndfs
+      REAL(pres), DIMENSION(:), INTENT(IN) :: r,s
+      REAL(pres), DIMENSION(:,:), INTENT(OUT) :: phi
+      REAL(pres), DIMENSION(:,:), OPTIONAL, INTENT(OUT) :: dpdr,dpds
+      
+      INTEGER :: calc_deriv
+      
+      
+      
+      IF (PRESENT(dpdr) .AND. PRESENT(dpds)) THEN
+        calc_deriv = 1
+      ELSE
+        calc_deriv = 0
+      ENDIF      
+      
+      
+      
+      IF (mod(et,2) == 1) THEN
+      
+        IF (calc_deriv == 1) THEN
+          CALL tri_basis(p,ndfs,npts,r,s,phi,dpdr,dpds)
+        ELSE
+          CALL tri_basis(p,ndfs,npts,r,s,phi)
+        ENDIF
         
-        SUBROUTINE tri_basis(p,npts,r,s,phi,dpdr,dpds)
+      ELSE IF (mod(et,2) == 0) THEN
+      
+        IF (calc_deriv == 1) THEN
+          CALL quad_basis(p,ndfs,npts,r,s,phi,dpdr,dpds)
+        ELSE
+          CALL quad_basis(p,ndfs,npts,r,s,phi)
+        ENDIF
+        
+      ENDIF
+      
+      
+      
+      END SUBROUTINE element_basis
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        
+        SUBROUTINE tri_basis(p,ndfs,npts,r,s,phi,dpdr,dpds)
         
         USE globals, ONLY: pres
         
         IMPLICIT NONE
-        INTEGER :: p,npts
-        REAL(pres) :: r(npts),s(npts)  
+        INTEGER, INTENT(IN) :: p,npts
+        INTEGER, INTENT(OUT) :: ndfs
+        REAL(pres), INTENT(IN) :: r(npts),s(npts) 
+        REAL(pres), DIMENSION(:,:), INTENT(OUT) :: phi
+        REAL(pres), DIMENSION(:,:), OPTIONAL, INTENT(OUT) :: dpdr,dpds         
         
         INTEGER :: m,i,j,pt
+        INTEGER :: calc_deriv        
         REAL(pres) :: dpda,dpdb,dadr,dads,ii       
         REAL(pres) :: a(npts),b(npts)
         REAL(pres) :: Pi(npts),Pj(npts)
         REAL(pres) :: dPi(npts),dPj(npts)
+
         
-        REAL(pres), DIMENSION(:,:) :: phi
-        REAL(pres), DIMENSION(:,:), OPTIONAL :: dpdr,dpds 
-        INTEGER :: calc_deriv
+        ndfs = (p+1)*(p+2)/2
         
         IF (PRESENT(dpdr) .AND. PRESENT(dpds)) THEN
           calc_deriv = 1
@@ -196,22 +241,24 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!   
         
-        SUBROUTINE quad_basis(p,npts,r,s,phi,dpdr,dpds)
+        SUBROUTINE quad_basis(p,ndfs,npts,r,s,phi,dpdr,dpds)
         
         USE globals, ONLY: pres
         
         IMPLICIT NONE
         
-        INTEGER :: p,npts
-        REAL(pres) :: r(npts),s(npts)
+        INTEGER, INTENT(IN) :: p,npts
+        INTEGER, INTENT(OUT) :: ndfs
+        REAL(pres), INTENT(IN) :: r(npts),s(npts)
+        REAL(pres), DIMENSION(:,:), INTENT(OUT) :: phi
+        REAL(pres), DIMENSION(:,:), OPTIONAL, INTENT(OUT) :: dpdr,dpds
         
         INTEGER :: m,i,j,pt    
         REAL(pres) :: Pi(npts),Pj(npts)
-        REAL(pres) :: dPi(npts),dPj(npts)
-        
-        REAL(pres), DIMENSION(:,:) :: phi
-        REAL(pres), DIMENSION(:,:), OPTIONAL :: dpdr,dpds
+        REAL(pres) :: dPi(npts),dPj(npts)  
         INTEGER :: calc_deriv
+        
+        ndfs = (p+1)**2
         
         IF (PRESENT(dpdr) .AND. PRESENT(dpds)) THEN
           calc_deriv = 1
@@ -393,12 +440,33 @@
       END FUNCTION fact
       
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!    
+
+      SUBROUTINE element_nodes(et,space,p,n,r,s)
+      
+      USE globals, ONLY: pres
+      
+      IMPLICIT NONE
+      
+      INTEGER, INTENT(IN) :: et,space,p
+      INTEGER, INTENT(OUT) :: n
+      REAL(pres), DIMENSION(:), INTENT(OUT) :: r,s
+      
+      IF (mod(et,2) == 1) THEN
+        CALL tri_nodes(1,p,n,r,s)
+      ELSE IF  (mod(et,2) == 0) THEN
+        CALL quad_nodes(1,p,n,r,s)
+      ENDIF
+      
+      END SUBROUTINE element_nodes
+      
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!      
       
-      SUBROUTINE tri_nodes(space,p,r,s)
+      SUBROUTINE tri_nodes(space,p,n,r,s)
 !c     Calculates nodal set for well-behaved interpolation
 !c     p (input) : the order of the basis
-!c     np (input): the number of points in the triangle
+!c     n (input): the number of points in the triangle
 !c     r(np) (output) ; nodal r-coordinates for master element
 !c     s(np) (output) : nodal s-coordinates for master element 
 
@@ -406,12 +474,14 @@
       USE messenger2, ONLY: myrank
 
       IMPLICIT NONE
-      INTEGER :: p,space 
-      INTEGER :: np,i,j,m
+      INTEGER, INTENT(IN) :: p,space 
+      INTEGER, INTENT(OUT) :: n
+      REAL(pres), DIMENSION(:), INTENT(OUT) :: r,s      
+      
+      INTEGER :: i,j,m
       REAL(pres) :: ii,jj,a,dx,tol
       REAL(pres) :: aopt(15)
-      REAL(pres) :: lgl(p+1),xeq(p+1)      
-      REAL(pres), DIMENSION(:) :: r,s
+      REAL(pres) :: lgl(p+1),xeq(p+1)           
       REAL(pres), ALLOCATABLE, DIMENSION(:) :: x,y
       REAL(pres), ALLOCATABLE, DIMENSION(:) :: l1,l2,l3      
       REAL(pres), ALLOCATABLE, DIMENSION(:) :: b1,b2,b3
@@ -433,15 +503,15 @@
         a = 5d0/3d0
       ENDIF
       
-      np = (p+1)*(p+2)/2
+      n = (p+1)*(p+2)/2
       
-      ALLOCATE(x(np),y(np))            
-      ALLOCATE(l1(np),l2(np),l3(np))
-      ALLOCATE(b1(np),b2(np),b3(np))
-      ALLOCATE(wx(np),wy(np),w1(np),w2(np),w3(np))
-      ALLOCATE(w1e(np),w2e(np),w3e(np))
-      ALLOCATE(var1(np),var2(np),var3(np))
-      ALLOCATE(w1mat(np,p+1),w2mat(np,p+1),w3mat(np,p+1))
+      ALLOCATE(x(n),y(n))            
+      ALLOCATE(l1(n),l2(n),l3(n))
+      ALLOCATE(b1(n),b2(n),b3(n))
+      ALLOCATE(wx(n),wy(n),w1(n),w2(n),w3(n))
+      ALLOCATE(w1e(n),w2e(n),w3e(n))
+      ALLOCATE(var1(n),var2(n),var3(n))
+      ALLOCATE(w1mat(n,p+1),w2mat(n,p+1),w3mat(n,p+1))
 
 !c     Create equally distributed nodes on equalateral triangle
 
@@ -506,12 +576,12 @@
       ENDDO
 
       IF(space.eq.0)then
-        CALL xytors(np,x,y,r,s) ;
+        CALL xytors(n,x,y,r,s) ;
         RETURN
       ENDIF
 
 !c     Compute blending function
-      DO i = 1,np
+      DO i = 1,n
         b1(i) = 4d0*l2(i)*l3(i)
         b2(i) = 4d0*l3(i)*l1(i)
         b3(i) = 4d0*l2(i)*l1(i)
@@ -533,18 +603,18 @@
       xeq(p+1) = 1d0
 
 !c     Compute warping function arugments
-      DO i = 1,np
+      DO i = 1,n
         w1e(i) = l3(i)-l2(i)
         w2e(i) = l1(i)-l3(i)
         w3e(i) = l2(i)-l1(i)
       ENDDO
 
 !c     Elvaluate Lagrange polynomials based on equa-spaced nodes
-      CALL lagrange(p+1,np,xeq,w1e,w1mat)
-      CALL lagrange(p+1,np,xeq,w2e,w2mat)
-      CALL lagrange(p+1,np,xeq,w3e,w3mat)
+      CALL lagrange(p+1,n,xeq,w1e,w1mat)
+      CALL lagrange(p+1,n,xeq,w2e,w2mat)
+      CALL lagrange(p+1,n,xeq,w3e,w3mat)
 
-!       do j = 1,np
+!       do j = 1,n
 !         write(50,41) (w1mat(j,i), i = 1,p+1)
 !       enddo
 !  41   format(16000(e24.17,1x))
@@ -553,7 +623,7 @@
 
       tol = 1d0 - 1.0d-10
 
-      DO i = 1,np
+      DO i = 1,n
         IF(dabs(w1e(i)).lt.tol) THEN
           var1(i) = 1d0
         ELSE
@@ -571,13 +641,13 @@
         ENDIF
       ENDDO
 
-      DO j = 1,np
+      DO j = 1,n
         w1(j) = 0d0
         w2(j) = 0d0
         w3(j) = 0d0
       ENDDO
 
-      DO j = 1,np
+      DO j = 1,n
         DO i = 1,p+1
          w1(j) = w1(j) + (lgl(i)-xeq(i))*w1mat(j,i)
          w2(j) = w2(j) + (lgl(i)-xeq(i))*w2mat(j,i)
@@ -589,7 +659,7 @@
       ENDDO
 
 !c     Apply gerneralized warping function to equally distributed nodes on equalateral triangle
-      DO i = 1,np
+      DO i = 1,n
         x(i) = x(i)+(1d0+(a*l1(i))**2d0)*b1(i)*w1(i) &
                    -.5d0*(1d0+(a*l2(i))**2d0)*b2(i)*w2(i) &
                    -.5d0*(1d0+(a*l3(i))**2d0)*b3(i)*w3(i)
@@ -597,14 +667,14 @@
                    -dsqrt(3d0)/2d0*(1d0+(a*l3(i))**2d0)*b3(i)*w3(i)
       ENDDO
 
-      CALL xytors(np,x,y,r,s)
+      CALL xytors(n,x,y,r,s)
       
 !       open(unit=60,file=DIRNAME//'/'//'tri.d')
 
 !       IF (myrank == 0) THEN
 !         print*,' '
 !         print*, 'Triangle Points'
-!         do i = 1,np
+!         do i = 1,n
 ! !           write(60,61) r(i),s(i),x(i),y(i)
 !           print 21, r(i),s(i)
 !         enddo
@@ -618,102 +688,106 @@
       END SUBROUTINE
       
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!       
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!      
 
-      SUBROUTINE quad_nodes(space,np,r,s)
+      SUBROUTINE quad_nodes(space,p,n,r,s)
       
       USE globals, ONLY: pres
       USE messenger2, ONLY: myrank
       
       IMPLICIT NONE
       
-      INTEGER :: space,np
-      INTEGER :: i,k,j,n,nnp,nnds
-      REAL(pres) :: xi(np+1)
-      REAL(pres), DIMENSION(:) :: r,s
+      INTEGER, INTENT(IN) :: space,p
+      INTEGER, INTENT(OUT) :: n      
+      REAL(pres), DIMENSION(:), INTENT(OUT) :: r,s
+      
+
+      INTEGER :: i,k,j,nl,m
+      REAL(pres) :: xi(p+1)
+
       
       
-      nnds = (np+1)**2
+      n = (p+1)**2
       
       ! Get 1-D LGL points 
       
       IF (space == 1) THEN
-        CALL lglpts(np,xi)
+        CALL lglpts(p,xi)
       ELSE
         xi(1) = -1d0
-        DO i = 1,np-1
-          xi(i+1) = xi(i) + 2d0/real(np,pres)
+        DO i = 1,p-1
+          xi(i+1) = xi(i) + 2d0/real(p,pres)
         ENDDO
-        xi(np+1) = 1d0
+        xi(p+1) = 1d0
       ENDIF
         
       ! Do tensor product, ordering the nodes counter-clockwise
 
       ! Find number of loops around refence quad element, excluding middle points
-      IF (np <= 2)THEN
-        nnp = 1
+      IF (p <= 2)THEN
+        nl = 1
       ELSE
-        IF(mod(np,2) == 1) THEN
-          nnp = np-1
-        ELSE IF (mod(np,2) == 0) THEN
-          nnp = np-2
+        IF(mod(p,2) == 1) THEN
+          nl = p-1
+        ELSE IF (mod(p,2) == 0) THEN
+          nl = p-2
         ENDIF
       ENDIF
         
-      n = 1
-      DO k = 1,nnp ! loop over number of loops
+      m = 1
+      DO k = 1,nl ! loop over number of loops
          
         ! Edge 4
-        DO i = k,np+1 - (k-1)
+        DO i = k,p+1 - (k-1)
           j = k
-          r(n) = xi(i)
-          s(n) = xi(j)
+          r(m) = xi(i)
+          s(m) = xi(j)
           
-          n = n+1
+          m = m+1
         ENDDO
         
         ! Edge 1
-        DO j = 2 + (k-1),np+1 - (k-1)
-          i = np+1 - (k-1)
-          r(n) = xi(i)
-          s(n) = xi(j)
+        DO j = 2 + (k-1),p+1 - (k-1)
+          i = p+1 - (k-1)
+          r(m) = xi(i)
+          s(m) = xi(j)
           
-          n = n+1
+          m = m+1
         ENDDO
 
         ! Edge 2
-        DO i = np - (k-1),1 + (k-1),-1
-          j = np+1 - (k-1)
-          r(n) = xi(i)
-          s(n) = xi(j)
+        DO i = p - (k-1),1 + (k-1),-1
+          j = p+1 - (k-1)
+          r(m) = xi(i)
+          s(m) = xi(j)
           
-          n = n+1      
+          m = m+1      
         ENDDO
 
         ! Edge 3
-        DO j = np - (k-1),2 + (k-1),-1
+        DO j = p - (k-1),2 + (k-1),-1
           i = 1 + (k-1)
-          r(n) = xi(i)
-          s(n) = xi(j)
+          r(m) = xi(i)
+          s(m) = xi(j)
 
-          n = n+1
+          m = m+1
         ENDDO    
           
       ENDDO
         
       ! middle point
-      IF (mod(np+1,2) == 1) THEN
-        i = np/2 + 1
-        r(n) = xi(i)
-        s(n) = xi(i)
+      IF (mod(p+1,2) == 1) THEN
+        i = p/2 + 1
+        r(m) = xi(i)
+        s(m) = xi(i)
           
       ENDIF   
       
 !       IF (myrank == 0) THEN           
 !         PRINT*, ' '
 !         PRINT*, 'Quadrilateral Points'
-!         DO n = 1,nnds
-!           PRINT("(2(f10.4))"), r(n),s(n)
+!         DO m = 1,n
+!           PRINT("(2(f10.4))"), r(m),s(m)
 !         ENDDO         
 !       ENDIF
       

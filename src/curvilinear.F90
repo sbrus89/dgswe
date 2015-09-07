@@ -11,15 +11,15 @@
       INTEGER :: ed,led,nd,pt
       INTEGER :: ged,el,ind
       INTEGER :: et,typ,eo
-      INTEGER :: nvert,nnd,npts
+      INTEGER :: nvert,nnd,npts,nt,nq
       REAL(pres) :: x,y,xpt,ypt,ytest,hb
       REAL(pres) :: rq(mnnds),sq(mnnds)
       REAL(pres) :: rt(mnnds),st(mnnds)  
       REAL(pres) :: xyhb(mnnds,ne,2)
       
-      CALL tri_nodes(1,ctp,rt,st)   
+      CALL tri_nodes(1,ctp,nt,rt,st)   
       
-      CALL quad_nodes(1,ctp,rq,sq)   
+      CALL quad_nodes(1,ctp,nq,rq,sq)   
       
       elhb = 50d0
       
