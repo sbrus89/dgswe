@@ -16,7 +16,7 @@ GIT_MOD := $(strip $(subst 0,,$(GIT_MOD)))
 
 FC = ifort
 FFLAGS1 = -c -O3 -132 -I$(ODIR) #-Dadcirc
-#FFLAGS1 = -c -132 -C -g -traceback -I$(ODIR) -Dadcirc
+# FFLAGS1 = -c -132 -C -g -traceback -I$(ODIR) #-Dadcirc
 FFLAGS2 = -O3 -o 
 
 LIB = -llapack

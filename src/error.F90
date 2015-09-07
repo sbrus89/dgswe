@@ -16,7 +16,8 @@
       REAL(pres) :: tcoarse,tfine
       REAL(pres) :: rfac,order
       REAL(pres) :: Hdiff,Qxdiff,Qydiff
-      REAL(pres) :: Hmax,Qxmax,Qymax      
+      REAL(pres) :: Hmax,Qxmax,Qymax
+      REAL(pres), ALLOCATABLE, DIMENSION(:) :: Hel,Qxel,Qyel
 
       CALL version () ! print out current git branch/SHA
       
@@ -199,23 +200,41 @@ elemf:DO elf = 1,fine%ne  ! Calculate error integral in the fine grid elements
         Qxmax = 0d0
         Qymax = 0d0
         
+        ALLOCATE(Hel(fine%ne),Qxel(fine%ne),Qyel(fine%ne))
+
+        Hel(:) = 0d0
+        Qxel(:) = 0d0
+        Qyel(:) = 0d0
+        
         DO el = 1,fine%ne
-          et = fine%el_type(el)          
+          et = fine%el_type(el)               
+        
           DO dof = 1,coarse%ndof(et)
+          
             Hdiff =  abs(coarse%H(el,dof)-fine%H(el,dof))  
             IF (Hdiff > Hmax) THEN 
               Hmax = Hdiff
+            ENDIF 
+            IF (Hdiff > Hel(el)) THEN
+              Hel(el) = Hdiff
             ENDIF
             
             Qxdiff = abs(coarse%Qx(el,dof)-fine%Qx(el,dof))          
             IF (Qxdiff > Qxmax) THEN
               Qxmax = Qxdiff
             ENDIF
+            IF (Qxdiff > Qxel(el)) THEN
+              Qxel(el) = Qxdiff
+            ENDIF
             
             Qydiff = abs(coarse%Qy(el,dof)-fine%Qy(el,dof))  
             IF (Qydiff > Qymax) THEN
               Qymax = Qydiff
             ENDIF
+            IF (Qydiff > Qyel(el)) THEN
+              Qyel(el) = Qydiff
+            ENDIF
+            
           ENDDO          
         ENDDO
         
@@ -223,7 +242,16 @@ elemf:DO elf = 1,fine%ne  ! Calculate error integral in the fine grid elements
         PRINT("(A,ES22.15)"), "Hmax = ", Hmax
         PRINT("(A,ES22.15)"), "Qxmax = ", Qxmax
         PRINT("(A,ES22.15)"), "Qymax = ", Qymax
-        PRINT*, " "          
+        PRINT*, " " 
+        
+        OPEN(UNIT=10,FILE='maxdiff_el.d')
+        
+        WRITE(10,"(I8)") fine%ne
+        DO el = 1,fine%ne
+          WRITE(10,"(3(E24.17))") Hel(el),Qxel(el),Qyel(el)
+        ENDDO
+        
+        CLOSE(10)
         
       ENDIF
           
