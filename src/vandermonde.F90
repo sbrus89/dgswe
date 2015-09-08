@@ -6,7 +6,7 @@
      SUBROUTINE vandermonde_matrix(et,p,ndf,V)
      
      USE globals, ONLY: pres
-     USE basis, ONLY: tri_nodes,tri_basis,quad_nodes,quad_basis
+     USE basis, ONLY: element_nodes,element_basis
      
      IMPLICIT NONE
        
@@ -53,7 +53,7 @@
 
         CALL vandermonde_matrix(et,p,n,Va(:,:,et))
                 
-        CALL DGETRF(n,n,Va(1,1,et),mnnds,ipiva(1,et),info)  
+!         CALL DGETRF(n,n,Va(1,1,et),mnnds,ipiva(1,et),info)  
         
 !         DO dof = 1,n
 !             PRINT("(100(e15.5))"), (Va(dof,pt,et), pt = 1,n)

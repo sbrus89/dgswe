@@ -1,5 +1,5 @@
-grid_file = ../grids/inlet1_dble.grd                                ! grid file
-forcing_file = ../grids/inlet1_dble.bfr                              ! forcing file
+grid_file = ../grids/inlet1.grd                                ! grid file
+forcing_file = ../grids/inlet1.bfr                              ! forcing file
 !bathy_file = /home/sbrus/data-drive/dgswe_inlet_bath/inlet1_hbp3.d  
 p = 2                                                         ! polynomial order
 ctp = 1                                                        ! parametric coordinate transformation order

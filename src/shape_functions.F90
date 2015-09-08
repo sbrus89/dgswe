@@ -5,7 +5,8 @@
       
       SUBROUTINE shape_functions_eval(nv,p,nnd,npts,r,s,V,psi,dpdr,dpds)
       
-      USE globals, ONLY, pres
+      USE globals, ONLY: pres
+      USE basis, ONLY: element_basis
       
       IMPLICIT NONE
       
@@ -14,7 +15,7 @@
       REAL(pres), DIMENSION(:), INTENT(IN) :: r,s
       REAL(pres), DIMENSION(:,:), INTENT(IN) :: V
       REAL(pres), DIMENSION(:,:), INTENT(OUT) :: psi
-      REAL(pres), DIMENSION(:,:), INTENT(OUT) :: dpdr,dpds      
+      REAL(pres), DIMENSION(:,:), OPTIONAL, INTENT(OUT) :: dpdr,dpds      
             
       INTEGER :: info
       INTEGER :: ld1,ld2
@@ -41,8 +42,8 @@
       
         CALL element_basis(nv,p,nnd,npts,r,s,psi,dpdr,dpds) 
         CALL DGESV(nnd,npts,V,ld1,ipiv,psi,ld2,info)    
-        CALL DGESV(nnd,npts,V,ld1,ipiv,dpdr,ld2,info) 
-        CALL DGESV(nnd,npts,V,ld1,ipiv,dpds,ld2,info)         
+        CALL DGETRS("N",nnd,npts,V,ld1,ipiv,dpdr,ld2,info) 
+        CALL DGETRS("N",nnd,npts,V,ld1,ipiv,dpds,ld2,info)         
       
       ENDIF
       
@@ -105,28 +106,33 @@
         ENDDO
 
 
-        CALL shape_functions_eval(nv,p,nnd,tpts,r,s,Va(:,:,eo),psi(:,:,typ),dpdr(:,:,typ),dpds(:,:,typ))        
+        CALL shape_functions_eval(nv,p,nnd,tpts,r,s,Va(:,:,eo),psia(:,:,typ),dpsidr(:,:,typ),dpsids(:,:,typ))        
         
-      PRINT*, "Psi : "      
-      DO i = 1,nnd
-        PRINT("(300(F27.17))"), (psia(i,j,et), j = 1,tpts)
-      ENDDO            
-
-        CALL element_basis(nv,p,nnd,tpts,r,s,psia(:,:,typ),dpsidr(:,:,typ),dpsids(:,:,typ))             
- 
-!       PRINT*, "RHS matrix: "      
-!       DO i = 1,nnds
-!         PRINT("(20(F15.5))"), (psia(i,j,typ), j = 1,tpts)
-!       ENDDO      
-      
-        CALL DGETRS("N",nnd,tpts,Va(1,1,eo),mnnds,ipiva(1,eo),psia(1,1,typ),mnnds,info)
-        CALL DGETRS("N",nnd,tpts,Va(1,1,eo),mnnds,ipiva(1,eo),dpsidr(1,1,typ),mnnds,info)      
-        CALL DGETRS("N",nnd,tpts,Va(1,1,eo),mnnds,ipiva(1,eo),dpsids(1,1,typ),mnnds,info)  
-      
-      PRINT*, "Psi : "      
+!         CALL element_basis(nv,p,nnd,tpts,r,s,psia(:,:,typ),dpsidr(:,:,typ),dpsids(:,:,typ))             
+!  
+! !       PRINT*, "RHS matrix: "      
+! !       DO i = 1,nnds
+! !         PRINT("(20(F15.5))"), (psia(i,j,typ), j = 1,tpts)
+! !       ENDDO      
+!       
+!         CALL DGETRS("N",nnd,tpts,Va(1,1,eo),mnnds,ipiva(1,eo),psia(1,1,typ),mnnds,info)
+!         CALL DGETRS("N",nnd,tpts,Va(1,1,eo),mnnds,ipiva(1,eo),dpsidr(1,1,typ),mnnds,info)      
+!         CALL DGETRS("N",nnd,tpts,Va(1,1,eo),mnnds,ipiva(1,eo),dpsids(1,1,typ),mnnds,info)  
+!       
+      PRINT*, "psi : "      
       DO i = 1,nnd
         PRINT("(300(F27.17))"), (psia(i,j,et), j = 1,tpts)
       ENDDO         
+
+      PRINT*, "dpsidr : "      
+      DO i = 1,nnd
+        PRINT("(300(F27.17))"), (dpsidr(i,j,et), j = 1,tpts)
+      ENDDO     
+
+      PRINT*, "dpsids : "      
+      DO i = 1,nnd
+        PRINT("(300(F27.17))"), (dpsids(i,j,et), j = 1,tpts)
+      ENDDO            
 
        ENDDO
        
@@ -145,53 +151,53 @@
       USE messenger2, ONLY: myrank
       
       IMPLICIT NONE      
-      
-      INTEGER :: pt,i,j,dof
-      INTEGER :: et,eo,npts,p
-      INTEGER :: info      
-      REAL(pres) :: r(mnnds),s(mnnds)
-       
-
-      ! Evaluates linear shape functions at straight/curved element nodal sets
-      !
-      ! Used to create additional nodes which can then be adjusted to make 
-      ! straight elements curved.  See curvilinear.F90
-      
-      psiv = 0d0
-      
-      DO eo = 1,norder
-        npts = nnds(eo)
-        p = np(eo)
-        
-        IF (mod(eo,2) == 1) THEN
-          et = 1
-          CALL tri_nodes(1,p,r,s)
-          CALL tri_basis(np(et),npts,r,s,psiv(:,:,eo))       
-        ELSE IF (mod(eo,2) == 0) THEN
-          et = 2
-          CALL quad_nodes(1,p,r,s)
-          CALL quad_basis(np(et),npts,r,s,psiv(:,:,eo))
-        ENDIF        
-        
-        CALL DGETRS("N",nnds(et),npts,Va(1,1,et),mnnds,ipiva(1,et),psiv(1,1,eo),mnnds,info)   
-        
-!         IF (myrank == 0) THEN
-!           PRINT*, "psiv"
-!           DO i = 1,nnds(et)
-!             PRINT "(20(e20.6))", (psiv(i,j,eo), j = 1,npts)
-!           ENDDO
-!           PRINT*," "
-!         ENDIF
-
-      ENDDO
-      
+!       
+!       INTEGER :: pt,i,j,dof
+!       INTEGER :: et,eo,npts,p
+!       INTEGER :: info      
+!       REAL(pres) :: r(mnnds),s(mnnds)
+!        
+! 
+!       ! Evaluates linear shape functions at straight/curved element nodal sets
+!       !
+!       ! Used to create additional nodes which can then be adjusted to make 
+!       ! straight elements curved.  See curvilinear.F90
+!       
+!       psiv = 0d0
+!       
+!       DO eo = 1,norder
+!         npts = nnds(eo)
+!         p = np(eo)
+!         
+!         IF (mod(eo,2) == 1) THEN
+!           et = 1
+!           CALL tri_nodes(1,p,r,s)
+!           CALL tri_basis(np(et),npts,r,s,psiv(:,:,eo))       
+!         ELSE IF (mod(eo,2) == 0) THEN
+!           et = 2
+!           CALL quad_nodes(1,p,r,s)
+!           CALL quad_basis(np(et),npts,r,s,psiv(:,:,eo))
+!         ENDIF        
+!         
+!         CALL DGETRS("N",nnds(et),npts,Va(1,1,et),mnnds,ipiva(1,et),psiv(1,1,eo),mnnds,info)   
+!         
+! !         IF (myrank == 0) THEN
+! !           PRINT*, "psiv"
+! !           DO i = 1,nnds(et)
+! !             PRINT "(20(e20.6))", (psiv(i,j,eo), j = 1,npts)
+! !           ENDDO
+! !           PRINT*," "
+! !         ENDIF
+! 
+!       ENDDO
+!       
       END SUBROUTINE shape_functions_vertex
-      
-      
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!      
-      
-      
+!       
+!       
+! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!      
+!       
+!       
       SUBROUTINE shape_functions_curve()
 
       USE globals, ONLY: pres,norder,nnds,mnnds,np, &
@@ -200,47 +206,47 @@
       USE messenger2, ONLY: myrank
       
       IMPLICIT NONE      
-      
-      INTEGER :: pt,i,j,dof
-      INTEGER :: et,eo,npts,p
-      INTEGER :: info      
-      REAL(pres) :: r(mnnds),s(mnnds)
-      
-      ! Evaluates curvilinear shape functions at high-order batymetry nodal sets
-      !
-      ! Used to compute function-specified bathymetry at high-order batymetry nodes
-      ! for curved elements. See curvilinear.F90      
-       
-      psic = 0d0 
-       
-      DO eo = 1,norder
-        npts = nnds(eo)
-        p = np(eo)
-        
-        IF (mod(eo,2) == 1) THEN
-          et = 3
-          CALL tri_nodes(1,p,r,s)
-          CALL tri_basis(np(et),npts,r,s,psic(:,:,eo))       
-        ELSE IF (mod(eo,2) == 0) THEN
-          et = 4
-          CALL quad_nodes(1,p,r,s)
-          CALL quad_basis(np(et),npts,r,s,psic(:,:,eo))
-        ENDIF               
-        
-        CALL DGETRS("N",nnds(et),npts,Va(1,1,et),mnnds,ipiva(1,et),psic(1,1,eo),mnnds,info)   
-        
-!         IF (myrank == 0) THEN
-!           PRINT*, "psic"        
-!           DO i = 1,nnds(et)
-!             PRINT "(20(e20.6))", (psic(i,j,eo), j = 1,npts)
-!           ENDDO
-!           PRINT*," "
-!         ENDIF
-
-      ENDDO     
-      
+!       
+!       INTEGER :: pt,i,j,dof
+!       INTEGER :: et,eo,npts,p
+!       INTEGER :: info      
+!       REAL(pres) :: r(mnnds),s(mnnds)
+!       
+!       ! Evaluates curvilinear shape functions at high-order batymetry nodal sets
+!       !
+!       ! Used to compute function-specified bathymetry at high-order batymetry nodes
+!       ! for curved elements. See curvilinear.F90      
+!        
+!       psic = 0d0 
+!        
+!       DO eo = 1,norder
+!         npts = nnds(eo)
+!         p = np(eo)
+!         
+!         IF (mod(eo,2) == 1) THEN
+!           et = 3
+!           CALL tri_nodes(1,p,r,s)
+!           CALL tri_basis(np(et),npts,r,s,psic(:,:,eo))       
+!         ELSE IF (mod(eo,2) == 0) THEN
+!           et = 4
+!           CALL quad_nodes(1,p,r,s)
+!           CALL quad_basis(np(et),npts,r,s,psic(:,:,eo))
+!         ENDIF               
+!         
+!         CALL DGETRS("N",nnds(et),npts,Va(1,1,et),mnnds,ipiva(1,et),psic(1,1,eo),mnnds,info)   
+!         
+! !         IF (myrank == 0) THEN
+! !           PRINT*, "psic"        
+! !           DO i = 1,nnds(et)
+! !             PRINT "(20(e20.6))", (psic(i,j,eo), j = 1,npts)
+! !           ENDDO
+! !           PRINT*," "
+! !         ENDIF
+! 
+!       ENDDO     
+!       
       END SUBROUTINE shape_functions_curve
-      
+!       
       
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!       

@@ -34,9 +34,9 @@
       
       CALL shape_functions_qpts()        
       
-      CALL shape_functions_vertex()
-      
-      CALL shape_functions_curve()
+!       CALL shape_functions_vertex()
+!       
+!       CALL shape_functions_curve()
       
       CALL shape_functions_edge()
       
