@@ -51,112 +51,112 @@
       ! Compute element area, edge length, edge normals, and bathymetry derivatives
       CALL element_data()     
       
-! !       STOP
-!       
-!       ! Set up netcdf output files
-! !       CALL file_setup()
-! 
-!       ! Compute initial condition, boundary forcing interpolation
-!       CALL initial()
-!       
-!       CALL metis2()
-!       
-!       CALL decomp2()
-!       
-!       CALL message_setup()
-!       
-!       CALL communication_setup()      
-! 
-!       DO et = 1,2*nel_type
-!         DO i = 1,mnnds
-!           WRITE(195,"(100(ES24.17,1x))") (dpsids(i,j,et), j = 1,mnqpta+4*mnqpte)
-!         ENDDO
-!       WRITE(195,*) " "
-!       ENDDO      
-!       
-! #ifdef openmp
-!       t_start = omp_get_wtime()
-! #else
-!       CALL CPU_TIME(t_start)
+!       STOP
+      
+      ! Set up netcdf output files
+!       CALL file_setup()
+
+      ! Compute initial condition, boundary forcing interpolation
+      CALL initial()
+      
+      CALL metis2()
+      
+      CALL decomp2()
+      
+      CALL message_setup()
+      
+      CALL communication_setup()      
+
+      DO et = 1,2*nel_type
+        DO i = 1,mnnds
+          WRITE(195,"(100(ES24.17,1x))") (dpsids(i,j,et), j = 1,mnqpta+4*mnqpte)
+        ENDDO
+      WRITE(195,*) " "
+      ENDDO      
+      
+#ifdef openmp
+      t_start = omp_get_wtime()
+#else
+      CALL CPU_TIME(t_start)
+#endif
+      
+      IF (myrank == 0) THEN
+        PRINT "(A)", "---------------------------------------------"
+        PRINT "(A)", "               Time Stepping                 "
+        PRINT "(A)", "---------------------------------------------"
+        PRINT "(A)", " "
+
+        PRINT "(A,e12.4)", "Time step: ",dt
+        PRINT "(A,e12.4)", "Final time: ",tf
+
+        PRINT "(A)", " "
+      ENDIF
+      
+      tf = tf*86400d0
+      tstep = int(tf/dt)
+      tskp = int(tf/(lines*dt))     
+      
+      ark(1) = 0d0
+      ark(2) = - 567301805773d0 / 1357537059087d0
+      ark(3) = -2404267990393d0 / 2016746695238d0
+      ark(4) = -3550918686646d0 / 2091501179385d0
+      ark(5) = -1275806237668d0 / 842570457699d0
+      
+      brk(1) = 1432997174477d0 / 9575080441755d0
+      brk(2) = 5161836677717d0 / 13612068292357d0
+      brk(3) = 1720146321549d0 / 2090206949498d0
+      brk(4) = 3134564353537d0 / 4481467310338d0
+      brk(5) = 2277821191437d0 / 14882151754819d0
+      
+      crk(1) = 0d0
+      crk(2) = 1432997174477d0 / 9575080441755d0
+      crk(3) = 2526269341429d0 / 6820363962896d0
+      crk(4) = 2006345519317d0 / 3224310063776d0
+      crk(5) = 2802321613138d0 / 2924317926251d0           
+
+      t = 0d0
+      cnt = 0
+      DO it = 1,tstep
+
+        CALL rk()
+
+         t = t + dt
+
+         cnt = cnt + 1
+         IF(cnt == tskp) THEN
+
+           CALL write_output()             
+           cnt = 0
+
+         ENDIF
+
+      ENDDO
+
+#ifdef openmp      
+      t_end = omp_get_wtime()
+#else
+      CALL CPU_TIME(t_end)
+#endif
+
+      PRINT*, ' '
+      PRINT("(A,F25.5,A)"), "CPU time = ",t_end-t_start," seconds"
+      
+!       OPEN(UNIT=101, FILE='CPUtime.log', STATUS='OLD', POSITION='APPEND')
+!       WRITE(101,*) "grid = ", grid_file
+!       WRITE(101,*) "p = ", p
+!       WRITE(101,*) "dt, tf = ", dt,tf
+! #ifdef rk22
+!       WRITE(101,*) "RK 22"
 ! #endif
-!       
-!       IF (myrank == 0) THEN
-!         PRINT "(A)", "---------------------------------------------"
-!         PRINT "(A)", "               Time Stepping                 "
-!         PRINT "(A)", "---------------------------------------------"
-!         PRINT "(A)", " "
-! 
-!         PRINT "(A,e12.4)", "Time step: ",dt
-!         PRINT "(A,e12.4)", "Final time: ",tf
-! 
-!         PRINT "(A)", " "
-!       ENDIF
-!       
-!       tf = tf*86400d0
-!       tstep = int(tf/dt)
-!       tskp = int(tf/(lines*dt))     
-!       
-!       ark(1) = 0d0
-!       ark(2) = - 567301805773d0 / 1357537059087d0
-!       ark(3) = -2404267990393d0 / 2016746695238d0
-!       ark(4) = -3550918686646d0 / 2091501179385d0
-!       ark(5) = -1275806237668d0 / 842570457699d0
-!       
-!       brk(1) = 1432997174477d0 / 9575080441755d0
-!       brk(2) = 5161836677717d0 / 13612068292357d0
-!       brk(3) = 1720146321549d0 / 2090206949498d0
-!       brk(4) = 3134564353537d0 / 4481467310338d0
-!       brk(5) = 2277821191437d0 / 14882151754819d0
-!       
-!       crk(1) = 0d0
-!       crk(2) = 1432997174477d0 / 9575080441755d0
-!       crk(3) = 2526269341429d0 / 6820363962896d0
-!       crk(4) = 2006345519317d0 / 3224310063776d0
-!       crk(5) = 2802321613138d0 / 2924317926251d0           
-! 
-!       t = 0d0
-!       cnt = 0
-!       DO it = 1,tstep
-! 
-!         CALL rk()
-! 
-!          t = t + dt
-! 
-!          cnt = cnt + 1
-!          IF(cnt == tskp) THEN
-! 
-!            CALL write_output()             
-!            cnt = 0
-! 
-!          ENDIF
-! 
-!       ENDDO
-! 
-! #ifdef openmp      
-!       t_end = omp_get_wtime()
-! #else
-!       CALL CPU_TIME(t_end)
+! #ifdef rk33
+!       WRITE(101,*) "RK 33"
 ! #endif
-! 
-!       PRINT*, ' '
-!       PRINT("(A,F25.5,A)"), "CPU time = ",t_end-t_start," seconds"
-!       
-! !       OPEN(UNIT=101, FILE='CPUtime.log', STATUS='OLD', POSITION='APPEND')
-! !       WRITE(101,*) "grid = ", grid_file
-! !       WRITE(101,*) "p = ", p
-! !       WRITE(101,*) "dt, tf = ", dt,tf
-! ! #ifdef rk22
-! !       WRITE(101,*) "RK 22"
-! ! #endif
-! ! #ifdef rk33
-! !       WRITE(101,*) "RK 33"
-! ! #endif
-! !       WRITE(101,*) "nblk, npart = ", nblk, npart
-! !       WRITE(101,*) "mnpartel,mnparted = ", mnpartel,mnparted   
-! !       WRITE(101,*) "CPU time = ", t_end-t_start
-! !       WRITE(101,*) " "
-! !       CLOSE(101)      
-!       
-!       CALL finish()
+!       WRITE(101,*) "nblk, npart = ", nblk, npart
+!       WRITE(101,*) "mnpartel,mnparted = ", mnpartel,mnparted   
+!       WRITE(101,*) "CPU time = ", t_end-t_start
+!       WRITE(101,*) " "
+!       CLOSE(101)      
+      
+      CALL finish()
       
       END PROGRAM swe_tri

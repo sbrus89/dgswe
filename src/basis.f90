@@ -22,11 +22,11 @@
 
           CALL element_basis(et,p,ndf,nqpta(et),qpta(:,1,et),qpta(:,2,et),phia(:,:,et),dpdr(:,:,et),dpds(:,:,et))         
           
-          PRINT "(A)", 'Basis functions at quadrature points'
-          DO i = 1,ndf
-            PRINT "(100(F10.3))", (phia(i,j,et),j=1,nqpta(et))
-          ENDDO
-          PRINT "(A)", ' '            
+!           PRINT "(A)", 'Basis functions at quadrature points'
+!           DO i = 1,ndf
+!             PRINT "(100(F10.3))", (phia(i,j,et),j=1,nqpta(et))
+!           ENDDO
+!           PRINT "(A)", ' '            
             
           
           ! Compute mass matrix (constant*indentity matrix)

@@ -18,10 +18,14 @@ GIT_MOD := $(strip $(subst 0,,$(GIT_MOD)))
 
 ifeq ($(BUILDTYPE),dgswe)
   FC = ifort
-  
-  CFLAGS_VEC  =  -O0 -fp-model strict -vec-report6  -I$(ODIR) -c
-  CFLAGS      =  -O0 -fp-model strict  -I$(ODIR) -c 
-  CFLAGS_LINK = -O0 -fp-model strict -o 
+ 
+  CFLAGS_VEC  = -O3 -xHost -vec-report6  -I$(ODIR) -c
+  CFLAGS      = -O3 -xHost  -I$(ODIR) -c
+  CFLAGS_LINK = -O3 -xHost -o
+ 
+#  CFLAGS_VEC  =  -O0 -fp-model strict -vec-report6  -I$(ODIR) -c
+#  CFLAGS      =  -O0 -fp-model strict  -I$(ODIR) -c 
+#  CFLAGS_LINK = -O0 -fp-model strict -o 
 
 #   ### Default compilation ###
 #   CFLAGS_VEC = -vec-report3 -I$(ODIR) -c 
@@ -121,7 +125,8 @@ METIS_LIB = -L../metis-4.0.3 -lmetis
 #                               Objects                                #
 ########################################################################
 
-objects = globals.o messenger2.o read_input.o allocation.o basis.o vandermonde.o shape_functions.o area_qpts.o edge_qpts.o read_grid.o read_forcing.o modal2nodal.o \
+objects = globals.o lapack_interfaces.o messenger2.o read_input.o allocation.o basis.o vandermonde.o shape_functions.o \
+        area_qpts.o edge_qpts.o read_grid.o read_forcing.o modal2nodal.o \
 	initial.o connect.o curvilinear.o element_data.o   area_transformation.o normals.o edge_transformation.o \
 	bathymetry_interp.o edge_partition2.o area_integration.o edge_integration.o rhs2.o  numerical_flux.o rk.o write_output.o version.o swe_tri.o
 
@@ -217,6 +222,10 @@ cleanpost :
 $(ODIR)globals.o : globals.F90
 	$(FC) $(CFLAGS) $(ALIGN) $< -o $@
 	mv globals.mod $(ODIR)
+
+$(ODIR)lapack_interfaces.o : lapack_interfaces.F90
+	$(FC) $(CFLAGS) $< -o $@
+	mv lapack_interfaces.mod $(ODIR)
 
 $(ODIR)messenger2.o : messenger2.F90 globals.F90
 	$(FC) $(CFLAGS) $(ALIGN) $< -o $@

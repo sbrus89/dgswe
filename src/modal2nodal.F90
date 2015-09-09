@@ -11,14 +11,14 @@
       INTEGER :: typ,et,pt
       INTEGER :: nvert,n,ndf,pp,eo
       INTEGER :: alloc_status
-      REAL(pres) :: r(25),s(25)
-      REAL(pres) :: phi(mndof,25)
+      REAL(pres) :: r(mnnds),s(mnnds)
+      REAL(pres) :: phi(mnnds,mnnds)
       
       REAL(pres) :: ml2(3,ndof(1)),mml(3,3)
       REAL(pres) :: qint      
 
       
-      ALLOCATE(m2n(mnnds,mndof,nel_type))      
+      ALLOCATE(m2n(mnnds,mnnds,nel_type))      
       
       OPEN(unit=111,file=trim(out_direc) // "modal2nodal.d")
       
