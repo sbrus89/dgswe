@@ -1,25 +1,27 @@
       SUBROUTINE bathymetry_interp()
 
-      USE globals, ONLY: pres,el_type,ed_type,nelnds,mndof,ndof,mnnds,nnds,nqpta,nqpte,nverts,order, &
+      USE globals, ONLY: pres,el_type,ed_type,nelnds,mndof,ndof,mnnds,nnds,nqpta,nqpte,nverts,norder,order, &
                          ne,ned,elxy,elhb,ged2el,ged2led, &
                          hbqpta_init,dhbdx_init,dhbdy_init,hbqpte_init,hbm,hbqpted, &
                          Va,ipiva,psia,dpsidr,dpsids, &
                          coord_sys,sphi0,r_earth,recv_edge
                          
-      USE read_dginp, ONLY: out_direc                         
+      USE read_dginp, ONLY: out_direc   
+      USE lapack_interfaces                      
                          
 
       IMPLICIT NONE
       
       INTEGER :: i,j,el,pt,nd,ed,dof,led
       INTEGER :: typ,et,eo,edpt,el1,el2,led1,led2,gp1,gp2
-      INTEGER :: ndf,nnd,nqa,nqe,nv
+      INTEGER :: ndf,nnd,nqa,nqe,nv,n
       INTEGER :: info
       REAL(pres) :: x,y,hb
       REAL(pres) :: xpt,ypt,detJ,Sp
       REAL(pres) :: dxdr,dxds,dydr,dyds
       REAL(pres) :: drdx,drdy,dsdx,dsdy
       REAL(pres) :: hbn(mnnds)
+      REAL(pres) :: V(mnnds,mnnds,norder)
 
 
       OPEN(unit=45, file='dhb.d')
@@ -232,6 +234,14 @@
 !       PRINT*, "# of unmatched points", edpt
       
 !       CLOSE(47)
+
+
+
+      V = Va
+      DO et = 1,norder
+        n = nnds(et)
+        CALL DGETRF(n,n,V(1,1,et),mnnds,ipiva(1,et),info)  
+      ENDDO
      
       ALLOCATE(hbm(mnnds,ne))     
       hbm = 0d0 
@@ -239,13 +249,14 @@
       
         et = el_type(el)
         typ = et + 4
-        eo = order(typ)     
+        eo = order(typ) 
+        n = nnds(eo)    
                 
-        DO nd = 1,nnds(eo)
+        DO nd = 1,n
           hbm(nd,el) = elhb(nd,el)
         ENDDO
         
-        CALL DGETRS("T",nnds(eo),1,Va(1,1,eo),mnnds,ipiva(1,eo),hbm(1,el),mnnds,info)                         
+        CALL DGETRS("T",n,1,V(1,1,eo),mnnds,ipiva(1,eo),hbm(1,el),mnnds,info)                         
         
       ENDDO
       
