@@ -1,25 +1,21 @@
       SUBROUTINE rhs2()
 
-      USE globals,  ONLY: pres,l,ind,el,ne,pt,led,ed,dof,ndof,nel_type,el_type, &
-                          blk,elblk,nfblk,rnfblk,nrblk,npartet,nverts, &
-                          g,pt5g,tstage,ramp,arg,bfr, & 
+      USE globals,  ONLY: pres,ne,ndof,nel_type,el_type, &
+                          elblk,nfblk,rnfblk,nrblk,npartet,nverts, &
+                          g,pt5g,tstage,ramp, & 
                           H,Z,Qx,Qy, &
                           rhsH,rhsZ,rhsQx,rhsQy, &
                           Hqpt,Zqpt,Qxqpt,Qyqpt, &
                           hbqpta,hbqpte,hbqpted, &
                           nqpta,wpta,phia,phia_int,dpdx,dpdy,nqpte,wpte,phie,phie_int,mmi, &
-                          press,recipH,xmom,ymom,xymom,tau,u,v,src_x,src_y,dhbdx,dhbdy, &
-                          el_in,el_ex,led_in,led_ex,gp_in,gp_ex,check_iedge,check_gedge, &
-                          nx,ny,nx2,ny2,nxny,tx,ty, &
-                          H_in,H_ex,Z_in,Z_ex,Qx_in,Qx_ex,Qy_in,Qy_ex,Qn,Qt, &
-                          xmom_in,xmom_ex,ymom_in,ymom_ex,xymom_in,xymom_ex, &
-                          Hhat,Zhat,Qxhat,Qyhat, &
+                          xmom,ymom,xymom,tau,src_x,src_y,dhbdx,dhbdy, &
+                          check_iedge,check_gedge, &
                           Hflux,Zflux,Qxflux,Qyflux, &
                           nied,iedn,nobed,obedn,nnfbed,nfbedn,nfbed,fbedn, &
                           nobfr,obfreq,obper,obnfact,obamp_qpt,obph_qpt,obeq,obdepth_qpt, &
                           nfbfr,fbfreq,fbper,fbnfact,fbamp_qpt,fbph_qpt,fbeq, &
-                          ged2led,ged2el,gel2ael,ged, &
-                          pressa,recipHa, & 
+                          ged2led,ged2el,gel2ael, &
+                          recipHa, & 
                           Hi,He,Zi,Ze,Qxi,Qxe,Qyi,Qye, &
                           xmi,xme,ymi,yme,xymi,xyme, &
                           Hfi,Hfe,Zfi,Zfe,Qxfi,Qxfe,Qyfi,Qyfe, &
@@ -45,8 +41,11 @@
                           
                    
       IMPLICIT NONE
-      INTEGER :: i,j,et,m,ete
-      REAL(pres) :: sp,hb
+      INTEGER :: i,j,m,l,et,el,ed,pt,dof,blk,bfr
+      INTEGER :: ind,ete,ged,led_in,led_ex,el_in,el_ex,gp_in,gp_ex
+      REAL(pres) :: sp,hb,arg,nx,ny,nx2,ny2,nxny,tx,ty,Qn,Qt
+      REAL(pres) :: Zhat,Qxhat,Qyhat,Z_in,Z_ex,Qx_in,Qx_ex,Qy_in,Qy_ex
+      REAL(pres) :: xmom_in,xmom_ex,ymom_in,ymom_ex,xymom_in,xymom_ex
 
 !     ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !     c Area Integrals

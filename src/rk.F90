@@ -1,6 +1,6 @@
       SUBROUTINE rk()
 
-      USE globals, ONLY: dof,ndof,el,ne,nel_type,blk,npartet,elblk, &
+      USE globals, ONLY: ndof,ne,nel_type,npartet,elblk, &
                          t,tstage,pt3333,ramp,ark,brk,crk, &
                          Hold,H,MirhsH,Zold,Z,MirhsZ,Qxold,Qx,MirhsQx,Qyold,Qy,MirhsQy  
                          
@@ -8,7 +8,8 @@
 
       IMPLICIT NONE
       
-      INTEGER :: et,stg
+      INTEGER :: et,stg,dof,el,blk
+         
       
    
 !       CALL nan_check()
@@ -194,13 +195,13 @@
 
       SUBROUTINE swap()
       
-      USE globals, ONLY: dof,ndof,el,nel_type,blk,npartet,elblk, &
+      USE globals, ONLY: ndof,nel_type,npartet,elblk, &
                          Hold,H,Zold,Z,Qxold,Qx,Qyold,Qy   
       USE read_dginp, ONLY: npart                         
                        
       IMPLICIT NONE                       
                        
-      INTEGER :: et                         
+      INTEGER :: et,dof,el,blk                         
                          
 !       CALL nan_check()
 !       PRINT*, "NaN checked initial condition"      
@@ -240,14 +241,14 @@
 
       SUBROUTINE forward_euler()
       
-      USE globals, ONLY: dof,ndof,el,ne,nel_type,blk,npartet,elblk, &
+      USE globals, ONLY: ndof,ne,nel_type,npartet,elblk, &
                          t,tstage,ramp, &
                          Hold,H,MirhsH,Zold,Z,MirhsZ,Qxold,Qx,MirhsQx,Qyold,Qy,MirhsQy    
       USE read_dginp, ONLY: dt,npart,dramp
       
       IMPLICIT NONE
       
-      INTEGER :: et
+      INTEGER :: et,dof,el,blk
       
       ! Evalutate right hand side  
       tstage = t
@@ -293,9 +294,9 @@
       
       SUBROUTINE nan_check()
       
-      USE globals, ONLY: dof,ndof,el,ne, &
+      USE globals, ONLY: ndof,ne, &
                          H,Z,Qx,Qy, &
-                         blk,nel_type,elblk,npartet, &
+                         nel_type,elblk,npartet, &
                          t
                          
       USE messenger2, ONLY: finish 
@@ -303,7 +304,7 @@
       
       IMPLICIT NONE
       
-      INTEGER :: et
+      INTEGER :: et,dof,el,blk
       
       DO blk = 1,npart
         DO et = 1,nel_type

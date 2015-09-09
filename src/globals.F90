@@ -29,7 +29,6 @@
       INTEGER, DIMENSION(nel_type) :: nqpte ! number of edge quadrature points      
       INTEGER :: mnqpta,mnnds,mnqpte,mndof,mnp      
       
-      INTEGER :: blk
       INTEGER :: nblk,nrblk
       INTEGER, ALLOCATABLE, DIMENSION(:,:) :: edblk,nfblk,rnfblk
       INTEGER, ALLOCATABLE, DIMENSION(:,:) :: iediblk,bediblk
@@ -101,8 +100,6 @@
       REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: fbamp_qpt ! flow boundary amplitude interpolated to edge quadrature points
       REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: fbph ! flow boundary node phase
       REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: fbph_qpt ! flow boundary phase interpolated to edge quadrature points
-      REAL(pres) :: arg
-      INTEGER :: bfr
 
       REAL(pres), ALLOCATABLE, DIMENSION(:,:,:) :: Va,Ve
       INTEGER, ALLOCATABLE, DIMENSION(:,:) :: ipiva,ipive
@@ -166,7 +163,6 @@
       REAL(pres), ALLOCATABLE, TARGET, DIMENSION(:,:) :: xmom,ymom,xymom ! momentum terms quadrature point evaluation arrays
       REAL(pres), ALLOCATABLE, DIMENSION(:) :: src_x,src_y
       REAL(pres), ALLOCATABLE, DIMENSION(:) :: tau
-      REAL(pres) :: u,v
 
       REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: wpta ! area and edge quadrature weights
       REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: wpte      
@@ -185,22 +181,9 @@
       REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: detJa     
       REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: detJe            
 
-      REAL(pres), ALLOCATABLE, DIMENSION(:) :: pressa,recipHa ! temporary variables for momentum term calculation
-      REAL(pres) :: press,recipH ! temporary variables for momentum term calculation
+      REAL(pres), ALLOCATABLE, DIMENSION(:) :: recipHa ! temporary variables for momentum term calculation
 
-      INTEGER :: el,dof,l,pt,ind,ed,led,ged ! do loop variables
-      INTEGER :: el_in,el_ex ! interior/exterior element variables
-      INTEGER :: led_in,led_ex ! interior/exterior local edge variables
-      INTEGER :: gp_in,gp_ex
-
-      REAL(pres) :: alpha,eig_in,eig_ex ! numerical flux constant calculation variables
-      REAL(pres), DIMENSION(6) :: eig
-      REAL(pres) :: Z_in,Z_ex,H_in,H_ex,Qx_in,Qx_ex,Qy_in,Qy_ex ! interior/exterior numerical flux solution variables
-      REAL(pres) :: xmom_in,xmom_ex,ymom_in,ymom_ex,xymom_in,xymom_ex ! interior/exterior numerical flux momentum variables
-      REAL(pres) :: nx,ny,nx2,ny2,nxny,tx,ty ! x and y edge normals
-      REAL(pres) :: Zhat,Hhat,Qxhat,Qyhat ! numerical flux variables
       REAL(pres), ALLOCATABLE, TARGET, DIMENSION(:,:) :: Zflux,Hflux,Qxflux,Qyflux ! numerical flux arrays
-      REAL(pres) :: Qn,Qt
 
       REAL(pres), ALLOCATABLE, DIMENSION(:) :: const
       REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: inx,iny
