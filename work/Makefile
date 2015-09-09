@@ -125,7 +125,8 @@ METIS_LIB = -L../metis-4.0.3 -lmetis
 #                               Objects                                #
 ########################################################################
 
-objects = globals.o lapack_interfaces.o messenger2.o read_input.o allocation.o basis.o vandermonde.o shape_functions.o \
+objects = globals.o lapack_interfaces.o messenger2.o read_input.o allocation.o basis.o \
+        vandermonde.o shape_functions.o transformation.o\
         area_qpts.o edge_qpts.o read_grid.o read_forcing.o modal2nodal.o \
 	initial.o connect.o curvilinear.o element_data.o   area_transformation.o normals.o edge_transformation.o \
 	bathymetry_interp.o edge_partition2.o area_integration.o edge_integration.o rhs2.o  numerical_flux.o rk.o write_output.o version.o swe_tri.o
@@ -250,6 +251,10 @@ $(ODIR)vandermonde.o : vandermonde.F90 globals.F90 basis.f90
 $(ODIR)shape_functions.o : shape_functions.F90 globals.F90 basis.f90
 	$(FC) $(CFLAGS) $< -o $@
 	mv shape_functions.mod $(ODIR)
+
+$(ODIR)transformation.o : transformation.F90 globals.F90 
+	$(FC) $(CFLAGS) $< -o $@
+	mv transformation.mod $(ODIR)
 
 $(ODIR)area_qpts.o : area_qpts.f90 globals.F90 allocation.f90 messenger2.F90
 	$(FC) $(CFLAGS) $< -o $@

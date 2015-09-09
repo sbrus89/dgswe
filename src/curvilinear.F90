@@ -5,6 +5,7 @@
                          psiv,psic
       USE basis, ONLY: quad_nodes,tri_nodes
       USE read_dginp, ONLY: ctp
+      USE transformation, ONLY: element_transformation
 
       IMPLICIT NONE
       
@@ -12,7 +13,8 @@
       INTEGER :: ged,el,ind
       INTEGER :: et,typ,eo
       INTEGER :: nvert,nnd,npts,nt,nq
-      REAL(pres) :: x,y,xpt,ypt,ytest,hb
+      REAL(pres) :: xpt,ypt,ytest,hb
+      REAL(pres) :: x(mnnds),y(mnnds)      
       REAL(pres) :: rq(mnnds),sq(mnnds)
       REAL(pres) :: rt(mnnds),st(mnnds)  
       REAL(pres) :: xyhb(mnnds,ne,2)
@@ -37,18 +39,15 @@
         
         DO pt = 1,npts    
           
-          xpt = 0d0
-          ypt = 0d0
           DO nd = 1,nnd
-            x = xy(1,ect(nd,el))
-            y = xy(2,ect(nd,el))
-
-            xpt = xpt + psiv(nd,pt,et)*x
-            ypt = ypt + psiv(nd,pt,et)*y
+            x(nd) = xy(1,ect(nd,el))
+            y(nd) = xy(2,ect(nd,el))
           ENDDO
+
+          CALL element_transformation(nnd,x,y,psiv(:,pt,et),xpt,ypt)
           
-!           elhb(pt,el) = 10d0
-          elhb(pt,el) = 10d0 - 5d0*cos(2d0*pi/500d0*ypt)        
+          elhb(pt,el) = 10d0
+!           elhb(pt,el) = 10d0 - 5d0*cos(2d0*pi/500d0*ypt)        
           xyhb(pt,el,1) = xpt
           xyhb(pt,el,2) = ypt
         ENDDO  
@@ -111,15 +110,12 @@
         
         DO pt = 1,nnd     
           
-          xpt = 0d0
-          ypt = 0d0
           DO nd = 1,nvert
-            x = xy(1,ect(nd,el))
-            y = xy(2,ect(nd,el))
-            
-            xpt = xpt + psiv(nd,pt,et)*x
-            ypt = ypt + psiv(nd,pt,et)*y
+            x(nd) = xy(1,ect(nd,el))
+            y(nd) = xy(2,ect(nd,el))
           ENDDO
+
+          CALL element_transformation(nvert,x,y,psiv(:,pt,et),xpt,ypt)
           
           elxy(pt,el,1) = xpt
           elxy(pt,el,2) = ypt
@@ -131,15 +127,15 @@
           pt = mod(led,nvert)*ctp + 1 + nd
           
           ytest = elxy(pt,el,2)
-          x = elxy(pt,el,1) 
+          xpt = elxy(pt,el,1) 
           
           IF (ytest < 250d0) THEN
-            y = 0d0 + 100d0*(1d0/(COSH(4d0*(x-2000d0)/500d0)))
+            ypt = 0d0 + 100d0*(1d0/(COSH(4d0*(xpt-2000d0)/500d0)))
           ELSE IF (ytest > 250d0) THEN
-            y = 500d0 - 100d0*(1d0/(COSH(4d0*(x-2000d0)/500d0)))
+            ypt = 500d0 - 100d0*(1d0/(COSH(4d0*(xpt-2000d0)/500d0)))
           ENDIF
           
-          elxy(pt,el,2) = y
+          elxy(pt,el,2) = ypt
         ENDDO       
         
         
@@ -155,20 +151,12 @@
           et = 6
         ENDIF
         
-        DO pt = 1,npts    
-          
-          xpt = 0d0
-          ypt = 0d0
-          DO nd = 1,nnd
-            x = elxy(nd,el,1)
-            y = elxy(nd,el,2)
+        DO pt = 1,npts              
 
-            xpt = xpt + psic(nd,pt,et)*x
-            ypt = ypt + psic(nd,pt,et)*y
-          ENDDO
+          CALL element_transformation(nnd,elxy(:,el,1),elxy(:,el,2),psic(:,pt,et),xpt,ypt)
           
-!           elhb(pt,el) = 10d0
-          elhb(pt,el) = 10d0 - 5d0*cos(2d0*pi/500d0*ypt)     
+          elhb(pt,el) = 10d0
+!           elhb(pt,el) = 10d0 - 5d0*cos(2d0*pi/500d0*ypt)     
           xyhb(pt,el,1) = xpt
           xyhb(pt,el,2) = ypt          
         ENDDO  

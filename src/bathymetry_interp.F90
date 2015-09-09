@@ -4,8 +4,8 @@
                          ne,ned,elxy,elhb,ged2el,ged2led, &
                          hbqpta_init,dhbdx_init,dhbdy_init,hbqpte_init,hbm,hbqpted, &
                          Va,ipiva,psia,dpsidr,dpsids, &
-                         coord_sys,sphi0,r_earth,recv_edge
-                         
+                         recv_edge
+      USE transformation, ONLY: element_transformation,cpp_transformation                         
       USE read_dginp, ONLY: out_direc   
       USE lapack_interfaces                      
                          
@@ -16,9 +16,8 @@
       INTEGER :: typ,et,eo,edpt,el1,el2,led1,led2,gp1,gp2
       INTEGER :: ndf,nnd,nqa,nqe,nv,n
       INTEGER :: info
-      REAL(pres) :: x,y,hb
+      REAL(pres) :: hb
       REAL(pres) :: xpt,ypt,detJ,Sp
-      REAL(pres) :: dxdr,dxds,dydr,dyds
       REAL(pres) :: drdx,drdy,dsdx,dsdy
       REAL(pres) :: hbn(mnnds)
       REAL(pres) :: V(mnnds,mnnds,norder)
@@ -40,40 +39,13 @@
 !         PRINT "(I5,200(f10.4))", et,(elhb(nd,el),   nd = 1,nnds(eo))          
         
      pts: DO pt = 1,nqpta(et)        
-            dxdr = 0d0
-            dxds = 0d0
-            dydr = 0d0
-            dyds = 0d0
+    
+
+            CALL element_transformation(nnds(et),elxy(:,el,1),elxy(:,el,2),psia(:,pt,et),xpt,ypt, &
+                                        dpsidr(:,pt,et),dpsids(:,pt,et),drdx,drdy,dsdx,dsdy,detJ)
             
-            xpt = 0d0
-            ypt = 0d0
-          
-            DO nd = 1,nnds(et)
-              x = elxy(nd,el,1)
-              y = elxy(nd,el,2)
-          
-              dxdr = dxdr + dpsidr(nd,pt,et)*x
-              dxds = dxds + dpsids(nd,pt,et)*x
-              dydr = dydr + dpsidr(nd,pt,et)*y
-              dyds = dyds + dpsids(nd,pt,et)*y
-              
-              xpt = xpt + psia(nd,pt,et)*x
-              ypt = ypt + psia(nd,pt,et)*y
-                        
-            ENDDO
-            
-            detJ = dxdr*dyds - dxds*dydr
-            
-            drdx =  dyds/detJ
-            drdy = -dxds/detJ
-            dsdx = -dydr/detJ
-            dsdy =  dxdr/detJ 
-            
-            IF (coord_sys == 1) THEN
-              Sp = 1d0
-            ELSE
-              Sp = cos(sphi0)/cos(ypt/r_earth)        
-            ENDIF            
+            CALL cpp_transformation(ypt,Sp)
+                     
                                                                              
                                              
             dhbdx_init(el,pt) = 0d0

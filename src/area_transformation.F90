@@ -3,8 +3,9 @@
       USE globals, ONLY: pres,ne,el_type,mndof,elxy, &
                          ndof,nnds,nqpta,wpta,dpdr,dpds,phia,mmi_init, &
                          psia,dpsidr,dpsids, &
-                         detJa,dpdx_init,dpdy_init,phia,phia_int_init, &
-                         coord_sys,r_earth,sphi0
+                         detJa,dpdx_init,dpdy_init,phia,phia_int_init
+                         
+      USE transformation, ONLY: element_transformation,cpp_transformation
 
       IMPLICIT NONE
       
@@ -13,8 +14,7 @@
       INTEGER :: ipiv(mndof),work(mndof*mndof)
       INTEGER ::info
       REAL(pres) :: mm(mndof,mndof)      
-      REAL(pres) :: x,y,xpt,ypt
-      REAL(pres) :: dxdr,dxds,dydr,dyds
+      REAL(pres) :: xpt,ypt
       REAL(pres) :: drdx,drdy,dsdx,dsdy
       REAL(pres) :: Sp
 
@@ -32,40 +32,11 @@
         mm = 0d0
         
    pts: DO pt = 1,nqa        
-          dxdr = 0d0
-          dxds = 0d0
-          dydr = 0d0
-          dyds = 0d0
+
+          CALL element_transformation(nnd,elxy(:,el,1),elxy(:,el,2),psia(:,pt,et),xpt,ypt, &
+                                      dpsidr(:,pt,et),dpsids(:,pt,et),drdx,drdy,dsdx,dsdy,detJa(el,pt))
             
-          xpt = 0d0
-          ypt = 0d0
-          
-          DO nd = 1,nnd
-            x = elxy(nd,el,1)
-            y = elxy(nd,el,2)
-          
-            dxdr = dxdr + dpsidr(nd,pt,et)*x
-            dxds = dxds + dpsids(nd,pt,et)*x
-            dydr = dydr + dpsidr(nd,pt,et)*y
-            dyds = dyds + dpsids(nd,pt,et)*y
-              
-            xpt = xpt + psia(nd,pt,et)*x
-            ypt = ypt + psia(nd,pt,et)*y
-                      
-          ENDDO
-            
-          detJa(el,pt) = dxdr*dyds - dxds*dydr
-            
-          drdx =  dyds/detJa(el,pt)
-          drdy = -dxds/detJa(el,pt)
-          dsdx = -dydr/detJa(el,pt)
-          dsdy =  dxdr/detJa(el,pt)
-            
-          IF (coord_sys == 1) THEN
-            Sp = 1d0
-          ELSE
-            Sp = cos(sphi0)/cos(ypt/r_earth)        
-          ENDIF
+          CALL cpp_transformation(ypt,Sp)
                      
             
           DO dof = 1,ndf

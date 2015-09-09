@@ -3,15 +3,16 @@
       USE globals, ONLY: pres,ned,el_type,ged2el,ged2led,elxy, &
                          nverts,nnds,nqpta,nqpte, &
                          psia,dpsidr,dpsids, &
-                         nx_pt,ny_pt,Spe,cfac, &
-                         coord_sys,r_earth,sphi0
+                         nx_pt,ny_pt,Spe,cfac
+
+      USE transformation, ONLY: element_transformation,cpp_transformation
+
 
       IMPLICIT NONE
       
       INTEGER :: i,nd,el,pt,ed,led,edpt
       INTEGER :: et,nnd,nqa,nqe,nv    
-      REAL(pres) :: x,y,xpt,ypt
-      REAL(pres) :: dxdr,dxds,dydr,dyds
+      REAL(pres) :: xpt,ypt
       REAL(pres) :: drdx,drdy,dsdx,dsdy,detJ
       REAL(pres) :: Sp
       REAL(pres) :: nx,ny
@@ -37,41 +38,12 @@
           pt = nqa + (led-1)*nqe+i
           edpt = (led-1)*nqe+i
           
-          dxdr = 0d0
-          dxds = 0d0
-          dydr = 0d0
-          dyds = 0d0
-          
-          xpt = 0d0
-          ypt = 0d0
-          
 
-          DO nd = 1,nnd
-            x = elxy(nd,el,1)
-            y = elxy(nd,el,2)
-          
-            dxdr = dxdr + dpsidr(nd,pt,et)*x
-            dxds = dxds + dpsids(nd,pt,et)*x
-            dydr = dydr + dpsidr(nd,pt,et)*y
-            dyds = dyds + dpsids(nd,pt,et)*y
+          CALL element_transformation(nnd,elxy(:,el,1),elxy(:,el,2),psia(:,pt,et),xpt,ypt, &
+                                      dpsidr(:,pt,et),dpsids(:,pt,et),drdx,drdy,dsdx,dsdy,detJ)
             
-            xpt = xpt + psia(nd,pt,et)*x
-            ypt = ypt + psia(nd,pt,et)*y
-                        
-          ENDDO
-          
-          IF (coord_sys == 1) THEN
-            Sp = 1d0
-          ELSE
-            Sp = cos(sphi0)/cos(ypt/r_earth)        
-          ENDIF          
-            
-          detJ = dxdr*dyds - dxds*dydr
-            
-          drdx =  dyds/detJ
-          drdy = -dxds/detJ
-          dsdx = -dydr/detJ
-          dsdy =  dxdr/detJ
+          CALL cpp_transformation(ypt,Sp)
+                     
           
           IF (nv == 3) THEN
               SELECT CASE(led)
@@ -112,8 +84,7 @@
         ENDDO
         
       ENDDO
-
-!        
+      
   
       RETURN
       END SUBROUTINE normals
