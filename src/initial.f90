@@ -19,7 +19,7 @@
       USE read_dginp, ONLY: out_direc,grid_file
 
       IMPLICIT NONE
-      INTEGER :: i,j,el,l,pt,dof,bfr,ed,ind,nd,k,seg,m,n,p
+      INTEGER :: i,j,el,l,pt,dof,bfr,ed,nd,k,seg,m,n,p
       INTEGER :: segtype,et
       INTEGER :: mnqpte
       INTEGER :: ipiv(mnnds,nel_type),info
@@ -27,6 +27,7 @@
       REAL(pres) :: sigma,xc,yc,h0,h00
       REAL(pres) :: qint,f,qint2
       REAL(pres) :: xn,yn
+      REAL(pres) :: xi,l1,l2
       REAL(pres),ALLOCATABLE :: rhsH(:,:),rhsH2(:,:)      
       REAL(pres) :: r(mnnds),s(mnnds),phi(mnnds*mnnds),hb(mnnds)
       REAL(pres) :: V(mnnds,mnnds,nel_type)
@@ -155,14 +156,16 @@
 
       nd = 1
       DO pt = 1,nqpte(1)
+        xi = qpte(pt,2,1)
+        l1 = .5d0*(1d0-xi)
+        l2 = .5d0*(1d0+xi)
         DO bfr = 1,nobfr
           ed = 1
-          ind = (pt-1)*nobfr + bfr
           DO seg = 1,nope
             DO k = 1,obseg(seg)-1
-              obamp_qpt(ind,ed) = .5d0*( obamp(nd,bfr)*(1d0-qpte(pt,2,1)) + obamp(nd+1,bfr)*(1d0+qpte(pt,2,1)) )
-              obdepth_qpt(ed,pt) =  .5d0*( depth(obnds(k,seg))*(1d0-qpte(pt,2,1)) + depth(obnds(k+1,seg))*(1d0+qpte(pt,2,1)) )
-              obph_qpt(ind,ed) =  .5d0*( obph(nd,bfr)*(1d0-qpte(pt,2,1)) + obph(nd+1,bfr)*(1d0+qpte(pt,2,1)) )
+              obamp_qpt(bfr,pt,ed) = obamp(nd,bfr)*l1 + obamp(nd+1,bfr)*l2
+              obph_qpt(bfr,pt,ed)  =  obph(nd,bfr)*l1 +  obph(nd+1,bfr)*l2
+              obdepth_qpt(ed,pt) = depth(obnds(k,seg))*l1 + depth(obnds(k+1,seg))*l2
               ed = ed + 1
               nd = nd + 1
             ENDDO
@@ -174,15 +177,17 @@
 
       nd = 1
       DO pt = 1,nqpte(1)
+        xi = qpte(pt,2,1)
+        l1 = .5d0*(1d0-xi)
+        l2 = .5d0*(1d0+xi)
         DO bfr = 1,nfbfr
           ed = 1
           DO seg = 1,nbou
             segtype = fbseg(2,seg)
             IF(segtype == 2 .OR. segtype == 12 .OR. segtype == 22)THEN
-              ind = (pt-1)*nfbfr + bfr 
               DO k = 1,fbseg(1,seg)-1
-                fbamp_qpt(ind,ed) = .5d0*( fbamp(nd,bfr)+fbamp(nd+1,bfr) + (fbamp(nd+1,bfr)-fbamp(nd,bfr))*qpte(pt,2,1) ) 
-                fbph_qpt(ind,ed) =  .5d0*( fbph(nd,bfr)+fbph(nd+1,bfr) + (fbph(nd+1,bfr)-fbph(nd,bfr))*qpte(pt,2,1) ) 
+                fbamp_qpt(bfr,pt,ed) = fbamp(nd,bfr)*l1 + fbamp(nd+1,bfr)*l2
+                fbph_qpt(bfr,pt,ed)  =  fbph(nd,bfr)*l1 + fbph(nd+1,bfr)*l2
                 nd = nd + 1
                 ed = ed + 1
               ENDDO

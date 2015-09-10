@@ -140,8 +140,8 @@
       ELSE IF (stage == 3) THEN
         n = 2
         ! Boundary information interpolated to quadrature points
-        ALLOCATE(obamp_qpt(mnqpte*nobfr,nobed),obph_qpt(mnqpte*nobfr,nobed),obdepth_qpt(nobed,mnqpte),STAT=alloc_status(1))
-        ALLOCATE(fbamp_qpt(mnqpte*nfbfr,nfbed),fbph_qpt(mnqpte*nfbfr,nfbed),STAT=alloc_status(2))
+        ALLOCATE(obamp_qpt(nobfr,mnqpte,nobed),obph_qpt(nobfr,mnqpte,nobed),obdepth_qpt(nobed,mnqpte),STAT=alloc_status(1))
+        ALLOCATE(fbamp_qpt(nfbfr,mnqpte,nfbed),fbph_qpt(nfbfr,mnqpte,nfbed),STAT=alloc_status(2))
       ENDIF
       
       

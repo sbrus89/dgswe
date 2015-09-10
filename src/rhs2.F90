@@ -42,7 +42,7 @@
                    
       IMPLICIT NONE
       INTEGER :: i,j,m,l,et,el,ed,pt,dof,blk,bfr
-      INTEGER :: ind,ete,ged,led_in,led_ex,el_in,el_ex,gp_in,gp_ex
+      INTEGER :: ete,ged,led_in,led_ex,el_in,el_ex,gp_in,gp_ex
       REAL(pres) :: sp,hb,arg,nx,ny,nx2,ny2,nxny,tx,ty,Qn,Qt
       REAL(pres) :: Zhat,Qxhat,Qyhat,Z_in,Z_ex,Qx_in,Qx_ex,Qy_in,Qy_ex
       REAL(pres) :: xmom_in,xmom_ex,ymom_in,ymom_ex,xymom_in,xymom_ex
@@ -593,9 +593,8 @@ ed_points2: DO pt = 1,nqpte(1) ! Compute numerical fluxes for all edges
               Qn = 0d0
               Qt = 0d0
               DO bfr = 1,nfbfr
-                ind = (pt-1)*nfbfr + bfr
                 arg = fbfreq(bfr)*(tstage - real(INT(tstage/fbper(bfr)),pres)*fbper(bfr)) + fbeq(bfr)
-                Qn = Qn + fbamp_qpt(ind,ed)*fbnfact(bfr)*ramp*COS(arg-fbph_qpt(ind,ed))
+                Qn = Qn + fbamp_qpt(bfr,pt,ed)*fbnfact(bfr)*ramp*COS(arg-fbph_qpt(bfr,pt,ed))
               ENDDO
 
               Qn = -Qn
@@ -639,9 +638,8 @@ ed_points2: DO pt = 1,nqpte(1) ! Compute numerical fluxes for all edges
 
               Z_ex = 0d0
               DO bfr = 1,nobfr
-                ind = (pt-1)*nobfr + bfr
                 arg = obfreq(bfr)*(tstage-real(INT(tstage/obper(bfr)),pres)*obper(bfr)) + obeq(bfr)
-                Z_ex = Z_ex + obamp_qpt(ind,ed)*obnfact(bfr)*ramp*COS(arg-obph_qpt(ind,ed))
+                Z_ex = Z_ex + obamp_qpt(bfr,pt,ed)*obnfact(bfr)*ramp*COS(arg-obph_qpt(bfr,pt,ed))
               ENDDO
 !               H_ex = H_ex + obdepth_qpt(ed,pt)
 
