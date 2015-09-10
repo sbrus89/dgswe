@@ -152,21 +152,20 @@ a_points:   DO pt = 1,nqpta(et)
 !!DIR$ VECTOR ALIGNED
 ! !DIR$ SIMD
               DO el = elblk(1,blk,et),elblk(2,blk,et)   ! Derivatives are 0 for first dof
-                rhsQx(el,1) = rhsQx(el,1) + src_x(el)*phia_int(el,pt)
-                rhsQy(el,1) = rhsQy(el,1) + src_y(el)*phia_int(el,pt)
+                rhsQx(el,1) = rhsQx(el,1) + src_x(el)*phia_int(el,1,pt)
+                rhsQy(el,1) = rhsQy(el,1) + src_y(el)*phia_int(el,1,pt)
               ENDDO
 
              DO l = 2,ndof(et) 
-                ind = (l-1)*nqpta(et)+pt
 !!DIR$ VECTOR ALIGNED          
 ! !DIR$ SIMD
                 DO el = elblk(1,blk,et),elblk(2,blk,et)
 !                   rhsH(el,l)  = rhsH(el,l)  + Qxqpt(el,1)*dpdx(el,ind) + Qyqpt(el,1)*dpdy(el,ind)
 
-                  rhsZ(el,l)  = rhsZ(el,l)  + Qxqpt(el,1)*dpdx(el,ind) + Qyqpt(el,1)*dpdy(el,ind)
+                  rhsZ(el,l)  = rhsZ(el,l)  + Qxqpt(el,1)*dpdx(el,l,pt) + Qyqpt(el,1)*dpdy(el,l,pt)
 
-                  rhsQx(el,l) = rhsQx(el,l) + xmom(el,1)*dpdx(el,ind)  + xymom(el,1)*dpdy(el,ind) + src_x(el)*phia_int(el,ind)           
-                  rhsQy(el,l) = rhsQy(el,l) + xymom(el,1)*dpdx(el,ind) + ymom(el,1)*dpdy(el,ind)  + src_y(el)*phia_int(el,ind)
+                  rhsQx(el,l) = rhsQx(el,l) + xmom(el,1)*dpdx(el,l,pt)  + xymom(el,1)*dpdy(el,l,pt) + src_x(el)*phia_int(el,l,pt)           
+                  rhsQy(el,l) = rhsQy(el,l) + xymom(el,1)*dpdx(el,l,pt) + ymom(el,1)*dpdy(el,l,pt)  + src_y(el)*phia_int(el,l,pt)
                 ENDDO
               ENDDO  
 

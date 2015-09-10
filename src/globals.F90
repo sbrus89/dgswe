@@ -170,14 +170,14 @@
       REAL(pres), ALLOCATABLE, DIMENSION(:,:,:) :: qpta ! area quadrature points
 
       REAL(pres), ALLOCATABLE, DIMENSION(:,:,:) :: phia ! basis functions evaluated at area quadrature points
-      REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: phia_int,phia_int_init ! basis functions evaluated at area quadrature points multiplied by quadrature weights
+      REAL(pres), ALLOCATABLE, DIMENSION(:,:,:) :: phia_int,phia_int_init ! basis functions evaluated at area quadrature points multiplied by quadrature weights
       REAL(pres), ALLOCATABLE, DIMENSION(:,:,:) :: phie ! basis functions evaluated at edge quadrature points
       REAL(pres), ALLOCATABLE, DIMENSION(:,:,:) :: phie_int 
       REAL(pres), ALLOCATABLE, DIMENSION(:,:,:) :: phi
       REAL(pres), ALLOCATABLE, DIMENSION(:,:,:) :: phil ! linear nodal basis functions evaluated at area quadrature points
       REAL(pres), ALLOCATABLE, DIMENSION(:,:,:) :: dpdr,dpds ! basis function derivatives evaluated at area quadrature points
-      REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: dpdx,dpdy            
-      REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: dpdx_init,dpdy_init
+      REAL(pres), ALLOCATABLE, DIMENSION(:,:,:) :: dpdx,dpdy            
+      REAL(pres), ALLOCATABLE, DIMENSION(:,:,:) :: dpdx_init,dpdy_init
       REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: detJa     
       REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: detJe            
 

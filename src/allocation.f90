@@ -266,12 +266,12 @@
       
       
       ! Basis function arrays for area quadrature points
-      ALLOCATE(phia(mndof,mnqpta,nel_type),phia_int(ne,mndof*mnqpta),phia_int_init(ne,mndof*mnqpta),STAT = alloc_status(1))
+      ALLOCATE(phia(mndof,mnqpta,nel_type),phia_int(ne,mndof,mnqpta),phia_int_init(ne,mndof,mnqpta),STAT = alloc_status(1))
     
       ! Basis function derivative arrays for area quadrature points    
       ALLOCATE(dpdr(mndof,mnqpta,nel_type),dpds(mndof,mnqpta,nel_type),STAT = alloc_status(2))
-      ALLOCATE(dpdx(ne,mndof*mnqpta),dpdy(ne,mndof*mnqpta),STAT = alloc_status(3))        
-      ALLOCATE(dpdx_init(ne,mndof*mnqpta),dpdy_init(ne,mndof*mnqpta),STAT = alloc_status(4))
+      ALLOCATE(dpdx(ne,mndof,mnqpta),dpdy(ne,mndof,mnqpta),STAT = alloc_status(3))        
+      ALLOCATE(dpdx_init(ne,mndof,mnqpta),dpdy_init(ne,mndof,mnqpta),STAT = alloc_status(4))
       
       ! Basis function arrays for edge quadrature points
       ALLOCATE(phie(mndof,4*mnqpte,nel_type),phie_int(mndof,4*mnqpte,nel_type),STAT = alloc_status(5))

@@ -194,10 +194,10 @@
           hbqpta(elcnt,1:mnqpta) = hbqpta_init(lel2gel(el,pe),1:mnqpta)
           hbqpte(elcnt,1:4*mnqpte) = hbqpte_init(lel2gel(el,pe),1:4*mnqpte)
           
-          dpdx(elcnt,1:mndof*mnqpta) = dpdx_init(lel2gel(el,pe),1:mndof*mnqpta)
-          dpdy(elcnt,1:mndof*mnqpta) = dpdy_init(lel2gel(el,pe),1:mndof*mnqpta)
+          dpdx(elcnt,1:mndof,1:mnqpta) = dpdx_init(lel2gel(el,pe),1:mndof,1:mnqpta)
+          dpdy(elcnt,1:mndof,1:mnqpta) = dpdy_init(lel2gel(el,pe),1:mndof,1:mnqpta)
           
-          phia_int(elcnt,1:mndof*mnqpta) = phia_int_init(lel2gel(el,pe),1:mndof*mnqpta)
+          phia_int(elcnt,1:mndof,1:mnqpta) = phia_int_init(lel2gel(el,pe),1:mndof,1:mnqpta)
           
           dhbdx(elcnt,1:mnqpta) = dhbdx_init(lel2gel(el,pe),1:mnqpta)
           dhbdy(elcnt,1:mnqpta) = dhbdy_init(lel2gel(el,pe),1:mnqpta)

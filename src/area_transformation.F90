@@ -42,10 +42,10 @@
           DO dof = 1,ndf
             i = (dof-1)*nqa + pt        
               
-            dpdx_init(el,i) = wpta(pt,et)*(dpdr(dof,pt,et)*drdx + dpds(dof,pt,et)*dsdx)*detJa(el,pt)*Sp
-            dpdy_init(el,i) = wpta(pt,et)*(dpdr(dof,pt,et)*drdy + dpds(dof,pt,et)*dsdy)*detJa(el,pt)  
+            dpdx_init(el,dof,pt) = wpta(pt,et)*(dpdr(dof,pt,et)*drdx + dpds(dof,pt,et)*dsdx)*detJa(el,pt)*Sp
+            dpdy_init(el,dof,pt) = wpta(pt,et)*(dpdr(dof,pt,et)*drdy + dpds(dof,pt,et)*dsdy)*detJa(el,pt)  
               
-            phia_int_init(el,i) = wpta(pt,et)*phia(dof,pt,et)*detJa(el,pt)
+            phia_int_init(el,dof,pt) = wpta(pt,et)*phia(dof,pt,et)*detJa(el,pt)
            
           ENDDO
             
