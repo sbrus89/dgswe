@@ -178,10 +178,11 @@ post :
 else
 
 dgswe : $(ODIR)  $(obj)
-	@echo  " \n\033[35m$(MESSAGE) on $(FULLNAME) \033[0m \n"
+	@echo  " \n\033[35m$(MESSAGE) on $(FULLNAME) \033[0m"
 	@echo "Git SHA: $(GIT_SHA)"
-	@echo "Modified: $(GIT_MOD)"
+	@echo "Modified: $(GIT_MOD) \n"
 	$(FC) $(CFLAGS_LINK) $(EXE_NAME) $(obj) $(METIS_LIB) $(LAPACK_LIB)
+	@echo "\n\n"
 endif
 
 
@@ -230,117 +231,114 @@ $(ODIR)lapack_interfaces.o : lapack_interfaces.F90
 	$(FC) $(CFLAGS) $< -o $@
 	mv lapack_interfaces.mod $(ODIR)
 
-$(ODIR)messenger2.o : messenger2.F90 globals.F90
+$(ODIR)messenger2.o : messenger2.F90                           $(ODIR)globals.o
 	$(FC) $(CFLAGS) $(ALIGN) $< -o $@
 	mv messenger2.mod $(ODIR)	
 
-$(ODIR)allocation.o : allocation.f90 globals.F90 messenger2.F90
+$(ODIR)allocation.o : allocation.F90                           $(ODIR)globals.o $(ODIR)messenger2.o $(ODIR)read_input.o
 	$(FC) $(CFLAGS) $< -o $@
 	mv allocation.mod $(ODIR)
 
-$(ODIR)basis.o : basis.f90 globals.F90 allocation.f90 messenger2.F90
+$(ODIR)basis.o : basis.F90                                     $(ODIR)globals.o $(ODIR)messenger2.o $(ODIR)read_input.o $(ODIR)allocation.o
 	$(FC) $(CFLAGS) $< -o $@
 	mv basis.mod $(ODIR)
 	
-$(ODIR)read_input.o : read_input.F90 globals.F90 messenger2.F90
+$(ODIR)read_input.o : read_input.F90                           $(ODIR)globals.o $(ODIR)messenger2.o
 	$(FC) $(CFLAGS) $< -o $@	
 	mv read_dginp.mod $(ODIR)
 
-$(ODIR)vandermonde.o : vandermonde.F90 globals.F90 basis.f90
+$(ODIR)vandermonde.o : vandermonde.F90                         $(ODIR)globals.o $(ODIR)basis.o
 	$(FC) $(CFLAGS) $< -o $@
 	mv vandermonde.mod $(ODIR)
 	
-$(ODIR)shape_functions.o : shape_functions.F90 globals.F90 basis.f90
+$(ODIR)shape_functions.o : shape_functions.F90                 $(ODIR)globals.o $(ODIR)messenger2.o $(ODIR)basis.o $(ODIR)lapack_interfaces.o
 	$(FC) $(CFLAGS) $< -o $@
 	mv shape_functions.mod $(ODIR)
 
-$(ODIR)transformation.o : transformation.F90 globals.F90 
+$(ODIR)transformation.o : transformation.F90                   $(ODIR)globals.o $(ODIR)read_input.o
 	$(FC) $(CFLAGS) $< -o $@
 	mv transformation.mod $(ODIR)
 
-$(ODIR)area_qpts.o : area_qpts.f90 globals.F90 allocation.f90 messenger2.F90
+$(ODIR)area_qpts.o : area_qpts.F90                             $(ODIR)globals.o $(ODIR)messenger2.o $(ODIR)read_input.o $(ODIR)allocation.o
 	$(FC) $(CFLAGS) $< -o $@
 
-$(ODIR)edge_qpts.o : edge_qpts.f90 globals.F90 allocation.f90 messenger2.F90
+$(ODIR)edge_qpts.o : edge_qpts.F90                             $(ODIR)globals.o $(ODIR)messenger2.o $(ODIR)read_input.o $(ODIR)allocation.o
 	$(FC) $(CFLAGS) $< -o $@
 
-$(ODIR)read_grid.o : read_grid.f90 globals.F90 allocation.f90 messenger2.F90
+$(ODIR)read_grid.o : read_grid.F90                             $(ODIR)globals.o $(ODIR)messenger2.o $(ODIR)read_input.o $(ODIR)allocation.o
 	$(FC) $(CFLAGS) $< -o $@
 
-$(ODIR)read_forcing.o : read_forcing.f90 globals.F90 allocation.f90
+$(ODIR)read_forcing.o : read_forcing.F90                       $(ODIR)globals.o $(ODIR)messenger2.o $(ODIR)read_input.o $(ODIR)allocation.o
 	$(FC) $(CFLAGS) $< -o $@
 
-$(ODIR)modal2nodal.o : modal2nodal.F90 globals.F90 basis.f90
+$(ODIR)modal2nodal.o : modal2nodal.F90                         $(ODIR)globals.o  $(ODIR)read_input.o $(ODIR)basis.o
 	$(FC) $(CFLAGS) $< -o $@
 
-$(ODIR)interp_forcing.o : interp_forcing.F90 globals.F90 allocation.f90
+$(ODIR)interp_forcing.o : interp_forcing.F90                   $(ODIR)globals.o $(ODIR)allocation.o
 	$(FC) $(CFLAGS) $< -o $@
 
-$(ODIR)initial.o : initial.f90 globals.F90 allocation.f90
+$(ODIR)initial.o : initial.F90                                 $(ODIR)globals.o $(ODIR)read_input.o $(ODIR)allocation.o $(ODIR)basis.o
 	$(FC) $(CFLAGS) $< -o $@
 
-$(ODIR)connect.o : connect.F90 globals.F90 allocation.f90
+$(ODIR)connect.o : connect.F90                                 $(ODIR)globals.o $(ODIR)messenger2.o $(ODIR)read_input.o $(ODIR)allocation.o
 	$(FC) $(CFLAGS) $< -o $@
 
-$(ODIR)curvilinear.o : curvilinear.F90 globals.F90 basis.f90
+$(ODIR)curvilinear.o : curvilinear.F90                         $(ODIR)globals.o $(ODIR)read_input.o $(ODIR)basis.o $(ODIR)transformation.o
 	$(FC) $(CFLAGS) $< -o $@
 
-$(ODIR)element_data.o : element_data.f90 globals.F90 allocation.f90
+$(ODIR)element_data.o : element_data.F90                       $(ODIR)globals.o $(ODIR)read_input.o $(ODIR)allocation.o $(ODIR)basis.o $(ODIR)transformation.o $(ODIR)vandermonde.o
 	$(FC) $(CFLAGS) $< -o $@
 
-$(ODIR)edge_partition2.o : edge_partition2.f90 globals.F90 allocation.f90 messenger2.F90
+$(ODIR)edge_partition2.o : edge_partition2.F90                 $(ODIR)globals.o $(ODIR)messenger2.o $(ODIR)read_input.o $(ODIR)allocation.o
 	$(FC) $(CFLAGS) $< -o $@
 	
-$(ODIR)area_transformation.o : area_transformation.F90 globals.F90 basis.f90
+$(ODIR)area_transformation.o : area_transformation.F90         $(ODIR)globals.o $(ODIR)transformation.o
 	$(FC) $(CFLAGS) $< -o $@
 
-$(ODIR)edge_transformation.o : edge_transformation.F90 globals.F90 basis.f90
+$(ODIR)edge_transformation.o : edge_transformation.F90         $(ODIR)globals.o $(ODIR)basis.o
 	$(FC) $(CFLAGS) $< -o $@
 
-$(ODIR)area_integration.o : area_integration.F90 globals.F90
+$(ODIR)area_integration.o : area_integration.F90               $(ODIR)globals.o $(ODIR)read_input.o
 	$(FC) $(CFLAGS_VEC) $< -o $@
 	
-$(ODIR)normals.o : normals.F90 globals.F90
-	$(FC) $(CFLAGS_VEC) $< -o $@	
+$(ODIR)normals.o : normals.F90                                 $(ODIR)globals.o $(ODIR)transformation.o
+	$(FC) $(CFLAGS) $< -o $@	
 
-$(ODIR)edge_integration.o : edge_integration.F90 globals.F90
+$(ODIR)edge_integration.o : edge_integration.F90               $(ODIR)globals.o $(ODIR)messenger2.o
 	$(FC) $(CFLAGS_VEC) $< -o $@
 	
-$(ODIR)bathymetry_interp.o : bathymetry_interp.F90 globals.F90
-	$(FC) $(CFLAGS_VEC) $< -o $@	
+$(ODIR)bathymetry_interp.o : bathymetry_interp.F90             $(ODIR)globals.o $(ODIR)lapack_interfaces.o $(ODIR)read_input.o $(ODIR)transformation.o
+	$(FC) $(CFLAGS) $< -o $@	
 
-$(ODIR)rk.o : rk.F90 globals.F90
+$(ODIR)rk.o : rk.F90                                           $(ODIR)globals.o $(ODIR)messenger2.o $(ODIR)read_input.o
 	$(FC) $(CFLAGS_VEC) $< -o $@
 
-$(ODIR)rhs2.o : rhs2.F90 globals.F90 messenger2.F90
+$(ODIR)rhs2.o : rhs2.F90                                       $(ODIR)globals.o $(ODIR)messenger2.o $(ODIR)read_input.o
 	$(FC) $(CFLAGS_VEC) $< -o $@
 
-$(ODIR)rhs3.o : rhs3.F90 globals.F90
+$(ODIR)rhs3.o : rhs3.F90                                       $(ODIR)globals.o $(ODIR)messenger2.o $(ODIR)read_input.o
 	$(FC) $(CFLAGS_VEC) $< -o $@
 
-$(ODIR)rhs4.o : rhs4.F90 globals.F90
-	$(FC) $(CFLAGS_VEC) $< -o $@
-
-$(ODIR)numerical_flux.o : numerical_flux.f90 globals.F90
+$(ODIR)numerical_flux.o : numerical_flux.F90                   $(ODIR)globals.o
 	$(FC) $(CFLAGS) $< -o $@
 
-$(ODIR)boundary_edge_land.o : boundary_edge_land.F90 globals.F90
+$(ODIR)boundary_edge_land.o : boundary_edge_land.F90           $(ODIR)globals.o
 	$(FC) $(CFLAGS) $< -o $@
 
-$(ODIR)boundary_edge_flow.o : boundary_edge_flow.F90 globals.F90
+$(ODIR)boundary_edge_flow.o : boundary_edge_flow.F90           $(ODIR)globals.o
 	$(FC) $(CFLAGS) $< -o $@
 
-$(ODIR)boundary_edge_elev.o : boundary_edge_elev.F90 globals.F90
+$(ODIR)boundary_edge_elev.o : boundary_edge_elev.F90           $(ODIR)globals.o
 	$(FC) $(CFLAGS) $< -o $@
 
-$(ODIR)linear_solve.o : linear_solve.F90 globals.F90
-	$(FC) $(CFLAGS_VEC) $< -o $@
+$(ODIR)linear_solve.o : linear_solve.F90                       $(ODIR)globals.o
+	$(FC) $(CFLAGS) $< -o $@
 	
-$(ODIR)write_output.o : write_output.F90 globals.F90 messenger2.F90
+$(ODIR)write_output.o : write_output.F90                       $(ODIR)globals.o $(ODIR)messenger2.o $(ODIR)read_input.o
 	$(FC) $(CFLAGS) $< -o $@	
 	
-$(ODIR)version.o : version.F90 globals.F90 messenger2.F90
+$(ODIR)version.o : version.F90                                 $(ODIR)globals.o $(ODIR)messenger2.o 
 	$(FC) $(CFLAGS) $< -o $@		
 
-$(ODIR)dgswe.o : dgswe.F90 globals.F90 basis.f90 allocation.f90 messenger2.F90
+$(ODIR)dgswe.o : dgswe.F90                                     $(ODIR)globals.o $(ODIR)messenger2.o $(ODIR)read_input.o $(ODIR)allocation.o $(ODIR)basis.o
 	$(FC) $(CFLAGS) $< -o $@
