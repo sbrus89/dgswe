@@ -6,28 +6,22 @@
                          H,Qx,Qy, &
                          Zinit,Hinit,Qxinit,Qyinit, &
                          phia,phil, &
-                         nope,obseg,nbou,fbseg, &
-                         nobed,nfbed,nobfr,nfbfr, &
-                         obamp,obph,fbamp,fbph, &
-                         obamp_qpt,obph_qpt,obdepth_qpt,fbamp_qpt,fbph_qpt, &
-                         depth,obnds, &
                          el_type,mnelnds,nelnds,psia, &
                          detJa,mmi_init
                          
-      USE allocation, ONLY: alloc_sol_arrays,alloc_forcing_arrays   
+      USE allocation, ONLY: alloc_sol_arrays   
       USE basis, ONLY: tri_nodes,tri_basis,quad_nodes,quad_basis
       USE read_dginp, ONLY: out_direc,grid_file
 
       IMPLICIT NONE
-      INTEGER :: i,j,el,l,pt,dof,bfr,ed,nd,k,seg,m,n,p
-      INTEGER :: segtype,et
+      INTEGER :: i,j,el,l,pt,dof,ed,nd,k,m,n,p
+      INTEGER :: et
       INTEGER :: mnqpte
       INTEGER :: ipiv(mnnds,nel_type),info
       REAL(pres) :: x1,x2,x3,y1,y2,y3,x,y
       REAL(pres) :: sigma,xc,yc,h0,h00
       REAL(pres) :: qint,f,qint2
       REAL(pres) :: xn,yn
-      REAL(pres) :: xi,l1,l2
       REAL(pres),ALLOCATABLE :: rhsH(:,:),rhsH2(:,:)      
       REAL(pres) :: r(mnnds),s(mnnds),phi(mnnds*mnnds),hb(mnnds)
       REAL(pres) :: V(mnnds,mnnds,nel_type)
@@ -117,86 +111,33 @@
       Zinit(:,:) = 0d0
       
 
-!       Write initial condition
-
-      OPEN(unit=63,file=trim(out_direc) // 'solution_H.d')
-      OPEN(unit=641,file=trim(out_direc) // 'solution_Qx.d')
-      OPEN(unit=642,file=trim(out_direc) // 'solution_Qy.d')
-      
-      WRITE(63,"(A)") grid_file
-      WRITE(63,"(e24.17)") 0d0
-      DO dof = 1,mndof
-!         WRITE(63,"(16000(e24.17,1x))") (Hinit(el,dof),el=1,ne)
-        WRITE(63,"(16000(e24.17,1x))") (Zinit(el,dof),el=1,ne)
-      ENDDO
-
-      WRITE(641,"(A)") grid_file
-      WRITE(641,"(e24.17)") 0d0
-      DO dof = 1,mndof
-        WRITE(641,"(16000(e24.17,1x))") (Qxinit(el,dof),el=1,ne)
-      ENDDO
-
-      WRITE(642,"(A)") grid_file
-      WRITE(642,"(e24.17)") 0d0
-      DO dof = 1,mndof
-        WRITE(642,"(16000(e24.17,1x))") (Qyinit(el,dof),el=1,ne)
-      ENDDO
-
-
-      OPEN(unit=195,file=trim(out_direc) // 'edge_check.d')
-      
-      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-      ! Interpolate boundary forcing data ( qpte(1:nqpte,2,1) are the 1-D edge quadrature points ) 
-      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-      
-      mnqpte = maxval(nqpte)
+! !       Write initial condition
+! 
+!       OPEN(unit=63,file=trim(out_direc) // 'solution_H.d')
+!       OPEN(unit=641,file=trim(out_direc) // 'solution_Qx.d')
+!       OPEN(unit=642,file=trim(out_direc) // 'solution_Qy.d')
+!       
+!       WRITE(63,"(A)") grid_file
+!       WRITE(63,"(e24.17)") 0d0
+!       DO dof = 1,mndof
+! !         WRITE(63,"(16000(e24.17,1x))") (Hinit(el,dof),el=1,ne)
+!         WRITE(63,"(16000(e24.17,1x))") (Zinit(el,dof),el=1,ne)
+!       ENDDO
+! 
+!       WRITE(641,"(A)") grid_file
+!       WRITE(641,"(e24.17)") 0d0
+!       DO dof = 1,mndof
+!         WRITE(641,"(16000(e24.17,1x))") (Qxinit(el,dof),el=1,ne)
+!       ENDDO
+! 
+!       WRITE(642,"(A)") grid_file
+!       WRITE(642,"(e24.17)") 0d0
+!       DO dof = 1,mndof
+!         WRITE(642,"(16000(e24.17,1x))") (Qyinit(el,dof),el=1,ne)
+!       ENDDO
 
 
-      CALL alloc_forcing_arrays(3)
 
-      nd = 1
-      DO pt = 1,nqpte(1)
-        xi = qpte(pt,2,1)
-        l1 = .5d0*(1d0-xi)
-        l2 = .5d0*(1d0+xi)
-        DO bfr = 1,nobfr
-          ed = 1
-          DO seg = 1,nope
-            DO k = 1,obseg(seg)-1
-              obamp_qpt(bfr,pt,ed) = obamp(nd,bfr)*l1 + obamp(nd+1,bfr)*l2
-              obph_qpt(bfr,pt,ed)  =  obph(nd,bfr)*l1 +  obph(nd+1,bfr)*l2
-              obdepth_qpt(ed,pt) = depth(obnds(k,seg))*l1 + depth(obnds(k+1,seg))*l2
-              ed = ed + 1
-              nd = nd + 1
-            ENDDO
-            nd = nd + 1
-          ENDDO
-          nd = 1
-        ENDDO
-      ENDDO
-
-      nd = 1
-      DO pt = 1,nqpte(1)
-        xi = qpte(pt,2,1)
-        l1 = .5d0*(1d0-xi)
-        l2 = .5d0*(1d0+xi)
-        DO bfr = 1,nfbfr
-          ed = 1
-          DO seg = 1,nbou
-            segtype = fbseg(2,seg)
-            IF(segtype == 2 .OR. segtype == 12 .OR. segtype == 22)THEN
-              DO k = 1,fbseg(1,seg)-1
-                fbamp_qpt(bfr,pt,ed) = fbamp(nd,bfr)*l1 + fbamp(nd+1,bfr)*l2
-                fbph_qpt(bfr,pt,ed)  =  fbph(nd,bfr)*l1 + fbph(nd+1,bfr)*l2
-                nd = nd + 1
-                ed = ed + 1
-              ENDDO
-              nd = nd + 1
-            ENDIF
-          ENDDO
-          nd = 1
-        ENDDO
-      ENDDO
 
       RETURN
       END SUBROUTINE

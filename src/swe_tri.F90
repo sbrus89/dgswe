@@ -56,8 +56,11 @@
       ! Set up netcdf output files
 !       CALL file_setup()
 
-      ! Compute initial condition, boundary forcing interpolation
+      ! Compute initial condition
       CALL initial()
+
+      ! Boundary forcing interpolation
+      CALL interp_forcing()
       
       CALL metis2()
       
@@ -65,7 +68,9 @@
       
       CALL message_setup()
       
-      CALL communication_setup()      
+      CALL communication_setup()    
+
+      OPEN(unit=195,file=trim(out_direc) // 'edge_check.d')        
 
       DO et = 1,2*nel_type
         DO i = 1,mnnds
@@ -116,6 +121,9 @@
 
       t = 0d0
       cnt = 0
+ 
+      CALL write_output(.true.)
+
       DO it = 1,tstep
 
         CALL rk()
@@ -125,7 +133,7 @@
          cnt = cnt + 1
          IF(cnt == tskp) THEN
 
-           CALL write_output()             
+           CALL write_output(.false.)             
            cnt = 0
 
          ENDIF
