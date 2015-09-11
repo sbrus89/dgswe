@@ -44,11 +44,11 @@
       !         * Responsible for configuring fort.dg options
       !         * MODIFICATIONS FOR ADDITION/REMOVAL OF FORT.DG OPTIONS SHOULD BE DONE HERE
       
-      USE globals, ONLY: pres
+      USE globals, ONLY: rp
       
       TYPE :: key_val
         CHARACTER(15) :: key            ! keyword
-        REAL(pres), POINTER :: rptr       ! pointer to real target
+        REAL(rp), POINTER :: rptr       ! pointer to real target
         INTEGER, POINTER :: iptr        ! pointer to integer target
         CHARACTER(100), POINTER :: cptr ! pointer to character target      
         
@@ -78,11 +78,11 @@
       INTEGER, TARGET :: hbp
       INTEGER, TARGET :: rk_type 
       INTEGER, TARGET  :: npart       
-      REAL(pres), TARGET  :: dt
-      REAL(pres), TARGET  :: tf
-      REAL(pres), TARGET  :: dramp
-      REAL(pres), TARGET  :: cf
-      REAL(pres), TARGET  :: lines
+      REAL(rp), TARGET  :: dt
+      REAL(rp), TARGET  :: tf
+      REAL(rp), TARGET  :: dramp
+      REAL(rp), TARGET  :: cf
+      REAL(rp), TARGET  :: lines
      
      
      

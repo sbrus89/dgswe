@@ -1,6 +1,6 @@
       SUBROUTINE boundary_edge_flow()
 
-      USE globals, ONLY: pres,el_type,ndof,nqpte, &
+      USE globals, ONLY: rp,el_type,ndof,nqpte, &
                          nfbed,fbedn,nfbfr, &
                          tstage,ramp, &
                          fbfreq,fbper,fbeq, &
@@ -15,10 +15,10 @@
       INTEGER :: ed,pt,bfr
       INTEGER :: ged
       INTEGER :: led_in,el_in,gp_in
-      REAL(pres) :: Z_in,Z_ex,Qx_in,Qx_ex,Qy_in,Qy_ex
-      REAL(pres) :: Zhat,Qxhat,Qyhat
-      REAL(pres) :: tx,ty,nx,ny,nx2,ny2,nxny,sp,hb
-      REAL(pres) :: arg,Qn,Qt
+      REAL(rp) :: Z_in,Z_ex,Qx_in,Qx_ex,Qy_in,Qy_ex
+      REAL(rp) :: Zhat,Qxhat,Qyhat
+      REAL(rp) :: tx,ty,nx,ny,nx2,ny2,nxny,sp,hb
+      REAL(rp) :: arg,Qn,Qt
       
 
 !$OMP do
@@ -52,7 +52,7 @@
           Qn = 0d0
           Qt = 0d0
           DO bfr = 1,nfbfr
-            arg = fbfreq(bfr)*(tstage - real(INT(tstage/fbper(bfr)),pres)*fbper(bfr)) + fbeq(bfr)
+            arg = fbfreq(bfr)*(tstage - real(INT(tstage/fbper(bfr)),rp)*fbper(bfr)) + fbeq(bfr)
             Qn = Qn + fbamp_qpt(bfr,pt,ed)*fbnfact(bfr)*ramp*COS(arg-fbph_qpt(bfr,pt,ed))
           ENDDO
 

@@ -1,6 +1,6 @@
       SUBROUTINE read_grid()
       
-      USE globals, ONLY: pres,ne,nn,ect,vct,xy,depth,nelnds,elxy,elhb,hbnodes, &
+      USE globals, ONLY: rp,ne,nn,ect,vct,xy,depth,nelnds,elxy,elhb,hbnodes, &
                          nope,neta,obseg,obnds,nvel,nbou,fbseg,fbnds,grid_name, &
                          el_type,mnelnds,curved_grid,nverts,mnnds, &
                          coord_sys,r_earth,slam0,sphi0,deg2rad,h0

@@ -1,6 +1,6 @@
       SUBROUTINE rhs4()
 
-      USE globals,  ONLY: pres,l,ind,el,ne,pt,led,ed,dof,ndof, &
+      USE globals,  ONLY: rp,l,ind,el,ne,pt,led,ed,dof,ndof, &
                           blk,nblk,elblk,edblk,nfblk,rnfblk,nrblk,npart, &
                           g,pt5g,tstage,ramp,arg,bfr, & 
                           H,Qx,Qy, &

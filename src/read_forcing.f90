@@ -1,6 +1,6 @@
       SUBROUTINE read_forcing()
 
-      USE globals, ONLY: pres,neta,nvel,nbou,fbseg, &
+      USE globals, ONLY: rp,neta,nvel,nbou,fbseg, &
                          nobfr,obtag,obtag2,obfreq,obnfact,obeq,obamp,obph, &
                          nfbfr,fbtag,fbtag2,fbfreq,fbnfact,fbeq,fbamp,fbph, &
                          fbper,obper,pi,deg2rad

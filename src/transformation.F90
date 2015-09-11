@@ -4,20 +4,20 @@
 
       SUBROUTINE element_transformation(nnd,x,y,l,xpt,ypt,dldr,dlds,drdx,drdy,dsdx,dsdy,detJ)
 
-      USE globals, ONLY: pres
+      USE globals, ONLY: rp
 
       IMPLICIT NONE
 
       INTEGER, INTENT(IN) :: nnd
 
-      REAL(pres), DIMENSION(:), INTENT(IN) :: x,y
-      REAL(pres), DIMENSION(:), INTENT(IN) :: l
-      REAL(pres), INTENT(OUT) :: xpt,ypt
-      REAL(pres), DIMENSION(:), INTENT(IN), OPTIONAL :: dldr,dlds
-      REAL(pres), INTENT(OUT), OPTIONAL :: drdx,drdy,dsdx,dsdy,detJ
+      REAL(rp), DIMENSION(:), INTENT(IN) :: x,y
+      REAL(rp), DIMENSION(:), INTENT(IN) :: l
+      REAL(rp), INTENT(OUT) :: xpt,ypt
+      REAL(rp), DIMENSION(:), INTENT(IN), OPTIONAL :: dldr,dlds
+      REAL(rp), INTENT(OUT), OPTIONAL :: drdx,drdy,dsdx,dsdy,detJ
 
       INTEGER :: nd
-      REAL(pres) :: dxdr,dxds,dydr,dyds
+      REAL(rp) :: dxdr,dxds,dydr,dyds
       INTEGER :: calc_inv
 
 
@@ -75,12 +75,12 @@
 
       SUBROUTINE cpp_transformation(ypt,Sp)
 
-      USE globals, ONLY: pres,coord_sys,sphi0,r_earth
+      USE globals, ONLY: rp,coord_sys,sphi0,r_earth
 
       IMPLICIT NONE
 
-      REAL(pres), INTENT(IN) :: ypt
-      REAL(pres), INTENT(OUT) :: Sp
+      REAL(rp), INTENT(IN) :: ypt
+      REAL(rp), INTENT(OUT) :: Sp
 
       IF (coord_sys == 1) THEN
         Sp = 1d0

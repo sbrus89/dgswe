@@ -1,6 +1,6 @@
       SUBROUTINE edge_qpts()
 
-      USE globals, ONLY: pres,nqpte,mnqpte,wpte,qpte,nel_type      
+      USE globals, ONLY: rp,nqpte,mnqpte,wpte,qpte,nel_type      
       USE allocation, ONLY: alloc_qpt_arrays      
       USE messenger2, ONLY: myrank
       USE read_dginp, ONLY: p,ctp
@@ -9,7 +9,7 @@
       INTEGER :: alloc_status
       INTEGER :: pt,et,led,i
       INTEGER :: order(nel_type),npt(nel_type)
-      REAL(pres) :: w(13,nel_type),r(13,nel_type)
+      REAL(rp) :: w(13,nel_type),r(13,nel_type)
       
       order(1) = p+1
       order(2) = order(1)
@@ -113,12 +113,12 @@
       
       SUBROUTINE guass_qpts(p,nqpte,wpte,qpte)
 
-      USE globals, ONLY: pres
+      USE globals, ONLY: rp
       
       IMPLICIT NONE
       INTEGER :: p
       INTEGER :: nqpte
-      REAL(pres) :: wpte(13),qpte(13)
+      REAL(rp) :: wpte(13),qpte(13)
 
       wpte = 0d0
       qpte = 0d0

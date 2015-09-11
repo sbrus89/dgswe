@@ -5,7 +5,7 @@
       
       SUBROUTINE shape_functions_eval(nv,p,nnd,npts,r,s,V,psi,dpdr,dpds)
       
-      USE globals, ONLY: pres
+      USE globals, ONLY: rp
       USE basis, ONLY: element_basis
       USE lapack_interfaces
       
@@ -13,16 +13,16 @@
       
       INTEGER, INTENT(IN) :: nv,p,npts
       INTEGER, INTENT(OUT) :: nnd
-      REAL(pres), DIMENSION(:), INTENT(IN) :: r,s
-      REAL(pres), DIMENSION(:,:), INTENT(IN) :: V
-      REAL(pres), DIMENSION(:,:), INTENT(OUT) :: psi
-      REAL(pres), DIMENSION(:,:), OPTIONAL, INTENT(OUT) :: dpdr,dpds      
+      REAL(rp), DIMENSION(:), INTENT(IN) :: r,s
+      REAL(rp), DIMENSION(:,:), INTENT(IN) :: V
+      REAL(rp), DIMENSION(:,:), INTENT(OUT) :: psi
+      REAL(rp), DIMENSION(:,:), OPTIONAL, INTENT(OUT) :: dpdr,dpds      
             
       INTEGER :: info
       INTEGER :: Vd1,Vd2,pd1
       INTEGER :: calc_derv
       INTEGER, DIMENSION(:), ALLOCATABLE :: ipiv
-      REAL(pres), DIMENSION(:,:), ALLOCATABLE :: Vf
+      REAL(rp), DIMENSION(:,:), ALLOCATABLE :: Vf
       
       IF (PRESENT(dpdr) .AND. PRESENT(dpds)) THEN
         calc_derv = 1
@@ -60,7 +60,7 @@
       
       SUBROUTINE shape_functions_qpts()
 
-      USE globals, ONLY: pres,nel_type,order,nverts,nnds,mnnds, &
+      USE globals, ONLY: rp,nel_type,order,nverts,nnds,mnnds, &
                          mnqpta,nqpta,mnqpte,nqpte,np, &
                          qpta,qpte,psia,dpsidr,dpsids, &
                          Va,ipiva
@@ -73,7 +73,7 @@
       INTEGER :: typ,et,eo,tpts
       INTEGER :: nv,nnd,nqa,nqe,p
       INTEGER :: info      
-      REAL(pres) :: r(mnqpta+4*mnqpte),s(mnqpta+4*mnqpte)
+      REAL(rp) :: r(mnqpta+4*mnqpte),s(mnqpta+4*mnqpte)
 
       psia = 0d0
       dpsidr = 0d0
@@ -139,7 +139,7 @@
        
       SUBROUTINE shape_functions_vertex()
 
-      USE globals, ONLY: pres,norder,nnds,mnnds,np, &
+      USE globals, ONLY: rp,norder,nnds,mnnds,np, &
                          psiv,Va,ipiva
       USE basis, ONLY: element_nodes
       USE messenger2, ONLY: myrank
@@ -149,7 +149,7 @@
       INTEGER :: pt,i,j,dof
       INTEGER :: et,eo,npts,p,nnd
       INTEGER :: info      
-      REAL(pres) :: r(mnnds),s(mnnds)
+      REAL(rp) :: r(mnnds),s(mnnds)
        
 
       ! Evaluates linear shape functions at straight/curved element nodal sets
@@ -191,7 +191,7 @@
 !       
       SUBROUTINE shape_functions_curve()
 
-      USE globals, ONLY: pres,norder,nnds,mnnds,np, &
+      USE globals, ONLY: rp,norder,nnds,mnnds,np, &
                          psic,Va,ipiva
       USE basis, ONLY: element_nodes
       USE messenger2, ONLY: myrank
@@ -201,7 +201,7 @@
       INTEGER :: pt,i,j,dof
       INTEGER :: et,eo,npts,p,nnd
       INTEGER :: info      
-      REAL(pres) :: r(mnnds),s(mnnds)
+      REAL(rp) :: r(mnnds),s(mnnds)
       
       ! Evaluates curvilinear shape functions at high-order batymetry nodal sets
       !
@@ -242,7 +242,7 @@
        
       SUBROUTINE shape_functions_edge()
 
-      USE globals, ONLY: pres,nel_type, &
+      USE globals, ONLY: rp,nel_type, &
                          mnqpte,nqpte,np,mnp, &
                          qpte,psie,dpsidxi, &
                          Ve,ipive
@@ -255,8 +255,8 @@
       INTEGER :: et
       INTEGER :: nqe,p,n
       INTEGER :: info      
-      REAL(pres) :: xi(mnqpte)
-      REAL(pres) :: phi(mnqpte),dphi(mnqpte)
+      REAL(rp) :: xi(mnqpte)
+      REAL(rp) :: phi(mnqpte),dphi(mnqpte)
       
       ! Evaulates 1-D edge shape functions at 1-D guass points
       !

@@ -1,6 +1,6 @@
       SUBROUTINE area_qpts( )
 
-      USE globals, ONLY: pres,nqpta,mnqpta,wpta,qpta,nel_type      
+      USE globals, ONLY: rp,nqpta,mnqpta,wpta,qpta,nel_type      
       USE allocation, ONLY: alloc_qpt_arrays      
       USE messenger2, ONLY: myrank
       USE read_dginp, ONLY: p,ctp
@@ -9,7 +9,7 @@
       INTEGER :: i,pt,et
       INTEGER :: order(nel_type)
       INTEGER :: npt(nel_type)
-      REAL(pres) :: r(13**2,3,nel_type)
+      REAL(rp) :: r(13**2,3,nel_type)
       
       order(1) = 2*p
       order(2) = order(1)
@@ -67,15 +67,15 @@
       
       SUBROUTINE cubature(eltype,p,nqpta,qpta)
       
-      USE globals, ONLY: pres
+      USE globals, ONLY: rp
       
       IMPLICIT NONE
       
       INTEGER :: p,eltype
       INTEGER :: i,j,n
       INTEGER :: nqpta,npt
-      REAL(pres) :: qpta(13**2,3)
-      REAL(pres) :: w(13),r(13)
+      REAL(rp) :: qpta(13**2,3)
+      REAL(rp) :: w(13),r(13)
       
       IF (eltype == 1) THEN
       

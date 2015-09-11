@@ -5,17 +5,17 @@
      
      SUBROUTINE vandermonde_matrix(et,p,ndf,V)
      
-     USE globals, ONLY: pres
+     USE globals, ONLY: rp
      USE basis, ONLY: element_nodes,element_basis
      
      IMPLICIT NONE
        
      INTEGER :: et,p
-     REAL(pres), DIMENSION(:,:) :: V
+     REAL(rp), DIMENSION(:,:) :: V
      
      INTEGER :: npt,ndf
      INTEGER :: info
-     REAL(pres), DIMENSION((p+1)**2) :: r,s
+     REAL(rp), DIMENSION((p+1)**2) :: r,s
    
    
      CALL element_nodes(et,1,p,npt,r,s)
@@ -31,12 +31,12 @@
      
      SUBROUTINE area_vandermonde()
       
-      USE globals, ONLY: pres,np,mnp,nnds,mnnds,norder,Va,ipiva
+      USE globals, ONLY: rp,np,mnp,nnds,mnnds,norder,Va,ipiva
       USE basis, ONLY: tri_nodes,tri_basis,quad_nodes,quad_basis
       
       IMPLICIT NONE
       INTEGER :: et,pt,dof,i,n,p
-      REAL(pres) :: r(mnnds),s(mnnds)
+      REAL(rp) :: r(mnnds),s(mnnds)
       INTEGER :: info        
       
       
@@ -71,13 +71,13 @@
       
       SUBROUTINE edge_vandermonde()
       
-      USE globals, ONLY: pres,np,mnp,norder,nel_type,Ve,ipive
+      USE globals, ONLY: rp,np,mnp,norder,nel_type,Ve,ipive
       USE basis, ONLY: lglpts,jacobi
       
       IMPLICIT NONE
       INTEGER :: et,pt,i,n,p
-      REAL(pres) :: xi(mnp)
-      REAL(pres) :: phi(mnp*mnp)
+      REAL(rp) :: xi(mnp)
+      REAL(rp) :: phi(mnp*mnp)
       INTEGER :: info          
       
       ALLOCATE(Ve(mnp,mnp,norder))

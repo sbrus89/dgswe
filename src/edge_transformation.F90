@@ -1,6 +1,6 @@
       SUBROUTINE edge_transformation()
       
-      USE globals, ONLY: pres,ned,el_type,nverts,np,nqpte,qpte, &
+      USE globals, ONLY: rp,ned,el_type,nverts,np,nqpte,qpte, &
                          psie,dpsidxi,detJe, &
                          ect,xy,elxy,ged2el,ged2led
       USE basis, ONLY: lglpts,jacobi,djacobi
@@ -11,7 +11,7 @@
       INTEGER :: n,nnds,et,nqpts  
       INTEGER :: el_in,el_ex,led_in
       INTEGER :: nv,ind 
-      REAL(pres) :: x,y,dxdxi,dydxi
+      REAL(rp) :: x,y,dxdxi,dydxi
       
       
       

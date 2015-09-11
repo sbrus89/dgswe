@@ -1,6 +1,6 @@
       SUBROUTINE curvilinear()
 
-      USE globals, ONLY: pres,nnfbed,nfbedn,ged2el,ged2led,pi, &
+      USE globals, ONLY: rp,nnfbed,nfbedn,ged2el,ged2led,pi, &
                          nelnds,el_type,order,elxy,xy,ect,elhb,ne,mnnds,nnds, &
                          psiv,psic
       USE basis, ONLY: quad_nodes,tri_nodes
@@ -13,11 +13,11 @@
       INTEGER :: ged,el,ind
       INTEGER :: et,typ,eo
       INTEGER :: nvert,nnd,npts,nt,nq
-      REAL(pres) :: xpt,ypt,ytest,hb
-      REAL(pres) :: x(mnnds),y(mnnds)      
-      REAL(pres) :: rq(mnnds),sq(mnnds)
-      REAL(pres) :: rt(mnnds),st(mnnds)  
-      REAL(pres) :: xyhb(mnnds,ne,2)
+      REAL(rp) :: xpt,ypt,ytest,hb
+      REAL(rp) :: x(mnnds),y(mnnds)      
+      REAL(rp) :: rq(mnnds),sq(mnnds)
+      REAL(rp) :: rt(mnnds),st(mnnds)  
+      REAL(rp) :: xyhb(mnnds,ne,2)
       
       CALL tri_nodes(1,ctp,nt,rt,st)   
       

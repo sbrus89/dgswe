@@ -39,7 +39,7 @@
                    
       IMPLICIT NONE
       INTEGER :: i
-      REAL(pres), EXTERNAL :: compute_const
+      REAL(rp), EXTERNAL :: compute_const
 
 !     ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !     c Area Integrals
@@ -572,16 +572,16 @@ ed_points2: DO pt = 1,nqpte ! Compute numerical fluxes for all edges
       
       FUNCTION compute_const(Qxi,Qxe,Qyi,Qye,Hi,He,nx,ny,g) RESULT (const)
       
-      USE globals, ONLY: pres
+      USE globals, ONLY: rp
       
       IMPLICIT NONE
       
-      REAL(pres) :: Qxi,Qxe
-      REAL(pres) :: Qyi,Qye
-      REAL(pres) :: Hi,He
-      REAL(pres) :: nx,ny
-      REAL(pres) :: g
-      REAL(pres) :: const
+      REAL(rp) :: Qxi,Qxe
+      REAL(rp) :: Qyi,Qye
+      REAL(rp) :: Hi,He
+      REAL(rp) :: nx,ny
+      REAL(rp) :: g
+      REAL(rp) :: const
       
       const = max(abs(nx*Qxi+ny*Qyi)/Hi+sqrt(g*Hi),abs(nx*Qxe+ny*Qye)/He+sqrt(g*He))
       
@@ -592,21 +592,21 @@ ed_points2: DO pt = 1,nqpte ! Compute numerical fluxes for all edges
       
       SUBROUTINE compute_flux(Qxi,Qxe,Qyi,Qye,Hi,He,xmomi,xmome,ymomi,ymome,xymomi,xymome,nx,ny,g,Hhat,Qxhat,Qyhat)
       
-      USE globals, ONLY: pres
+      USE globals, ONLY: rp
       
       IMPLICIT NONE
       
-      REAL(pres) :: Qxi,Qxe
-      REAL(pres) :: Qyi,Qye
-      REAL(pres) :: Hi,He
-      REAL(pres) :: xmomi,xmome
-      REAL(pres) :: ymomi,ymome
-      REAL(pres) :: xymomi,xymome
-      REAL(pres) :: nx,ny
-      REAL(pres) :: g
-      REAL(pres) :: const
-      REAL(pres) :: Hhat,Qxhat,Qyhat
-      REAL(pres) :: rHi,rHe
+      REAL(rp) :: Qxi,Qxe
+      REAL(rp) :: Qyi,Qye
+      REAL(rp) :: Hi,He
+      REAL(rp) :: xmomi,xmome
+      REAL(rp) :: ymomi,ymome
+      REAL(rp) :: xymomi,xymome
+      REAL(rp) :: nx,ny
+      REAL(rp) :: g
+      REAL(rp) :: const
+      REAL(rp) :: Hhat,Qxhat,Qyhat
+      REAL(rp) :: rHi,rHe
       
       
       const = max(abs(nx*Qxi+ny*Qyi)/Hi+sqrt(g*Hi),abs(nx*Qxe+ny*Qye)/He+sqrt(g*He))

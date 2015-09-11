@@ -4,7 +4,7 @@
 
       SUBROUTINE area_basis()
 
-        USE globals, ONLY: pres,nel_type,nqpta,mnqpta,wpta,qpta,ndof,mndof, &
+        USE globals, ONLY: rp,nel_type,nqpta,mnqpta,wpta,qpta,ndof,mndof, &
                            phia,dpdr,dpds                           
         USE allocation, ONLY: alloc_basis_arrays             
         USE messenger2, ONLY: myrank        
@@ -12,8 +12,8 @@
 
         IMPLICIT NONE
         INTEGER :: i,j,pt,et,dof,ndf
-        REAL(pres) :: qint
-        REAL(pres) :: mm(mndof,mndof)
+        REAL(rp) :: qint
+        REAL(rp) :: mm(mndof,mndof)
   
         CALL alloc_basis_arrays()
       
@@ -82,14 +82,14 @@
 
       SUBROUTINE edge_basis()
 
-        USE globals, ONLY: pres,ndof,nverts,mndof,nqpte,mnqpte,qpte,wpte,phie,phie_int,nel_type
+        USE globals, ONLY: rp,ndof,nverts,mndof,nqpte,mnqpte,qpte,wpte,phie,phie_int,nel_type
         USE read_dginp, ONLY: p
 
         IMPLICIT NONE
 
         INTEGER :: dof,pt,et,i
         INTEGER :: tpts,ndf
-        REAL(pres) :: phi(mndof*4*mnqpte)       
+        REAL(rp) :: phi(mndof*4*mnqpte)       
 
         DO et = 1,nel_type
           
@@ -113,15 +113,15 @@
 
       SUBROUTINE element_basis(et,p,ndfs,npts,r,s,phi,dpdr,dpds)
       
-      USE globals, ONLY: pres
+      USE globals, ONLY: rp
       
       IMPLICIT NONE
       
       INTEGER, INTENT(IN) :: p,et,npts
       INTEGER, INTENT(OUT) :: ndfs
-      REAL(pres), DIMENSION(:), INTENT(IN) :: r,s
-      REAL(pres), DIMENSION(:,:), INTENT(OUT) :: phi
-      REAL(pres), DIMENSION(:,:), OPTIONAL, INTENT(OUT) :: dpdr,dpds
+      REAL(rp), DIMENSION(:), INTENT(IN) :: r,s
+      REAL(rp), DIMENSION(:,:), INTENT(OUT) :: phi
+      REAL(rp), DIMENSION(:,:), OPTIONAL, INTENT(OUT) :: dpdr,dpds
       
       INTEGER :: calc_deriv
       
@@ -162,21 +162,21 @@
         
         SUBROUTINE tri_basis(p,ndfs,npts,r,s,phi,dpdr,dpds)
         
-        USE globals, ONLY: pres
+        USE globals, ONLY: rp
         
         IMPLICIT NONE
         INTEGER, INTENT(IN) :: p,npts
         INTEGER, INTENT(OUT) :: ndfs
-        REAL(pres), INTENT(IN) :: r(npts),s(npts) 
-        REAL(pres), DIMENSION(:,:), INTENT(OUT) :: phi
-        REAL(pres), DIMENSION(:,:), OPTIONAL, INTENT(OUT) :: dpdr,dpds         
+        REAL(rp), INTENT(IN) :: r(npts),s(npts) 
+        REAL(rp), DIMENSION(:,:), INTENT(OUT) :: phi
+        REAL(rp), DIMENSION(:,:), OPTIONAL, INTENT(OUT) :: dpdr,dpds         
         
         INTEGER :: m,i,j,pt
         INTEGER :: calc_deriv        
-        REAL(pres) :: dpda,dpdb,dadr,dads,ii       
-        REAL(pres) :: a(npts),b(npts)
-        REAL(pres) :: Pi(npts),Pj(npts)
-        REAL(pres) :: dPi(npts),dPj(npts)
+        REAL(rp) :: dpda,dpdb,dadr,dads,ii       
+        REAL(rp) :: a(npts),b(npts)
+        REAL(rp) :: Pi(npts),Pj(npts)
+        REAL(rp) :: dPi(npts),dPj(npts)
 
         
         ndfs = (p+1)*(p+2)/2
@@ -200,7 +200,7 @@
         ! Calculate basis function values and derivative values at area quadrature points
         m = 0
         DO i = 0,p
-          ii = real(i,pres)
+          ii = real(i,rp)
           DO j = 0,p-i
 
             m = m+1
@@ -243,19 +243,19 @@
         
         SUBROUTINE quad_basis(p,ndfs,npts,r,s,phi,dpdr,dpds)
         
-        USE globals, ONLY: pres
+        USE globals, ONLY: rp
         
         IMPLICIT NONE
         
         INTEGER, INTENT(IN) :: p,npts
         INTEGER, INTENT(OUT) :: ndfs
-        REAL(pres), INTENT(IN) :: r(npts),s(npts)
-        REAL(pres), DIMENSION(:,:), INTENT(OUT) :: phi
-        REAL(pres), DIMENSION(:,:), OPTIONAL, INTENT(OUT) :: dpdr,dpds
+        REAL(rp), INTENT(IN) :: r(npts),s(npts)
+        REAL(rp), DIMENSION(:,:), INTENT(OUT) :: phi
+        REAL(rp), DIMENSION(:,:), OPTIONAL, INTENT(OUT) :: dpdr,dpds
         
         INTEGER :: m,i,j,pt    
-        REAL(pres) :: Pi(npts),Pj(npts)
-        REAL(pres) :: dPi(npts),dPj(npts)  
+        REAL(rp) :: Pi(npts),Pj(npts)
+        REAL(rp) :: dPi(npts),dPj(npts)  
         INTEGER :: calc_deriv
         
         ndfs = (p+1)**2
@@ -303,23 +303,23 @@
 
       SUBROUTINE jacobi(alpha_i,beta_i,deg,x,npts,v)
 
-        USE globals, ONLY: pres
+        USE globals, ONLY: rp
 
         IMPLICIT NONE
         INTEGER, INTENT(IN) :: alpha_i,beta_i,deg,npts
-        REAL(pres), INTENT(IN) :: x(npts)
-        REAL(pres), INTENT(OUT) :: v(npts)
+        REAL(rp), INTENT(IN) :: x(npts)
+        REAL(rp), INTENT(OUT) :: v(npts)
         INTEGER :: i,j,np1
-        REAL(pres) :: pnm1(npts),pn(npts),pnp1(npts)
-        REAL(pres) :: alpha,beta,an,anp1,bn,n
+        REAL(rp) :: pnm1(npts),pn(npts),pnp1(npts)
+        REAL(rp) :: alpha,beta,an,anp1,bn,n
 
-        alpha = real(alpha_i,pres)
-        beta = real(beta_i,pres)
+        alpha = real(alpha_i,rp)
+        beta = real(beta_i,rp)
 
         ! Calculate constant P0
         DO i = 1,npts
-          pnm1(i) = sqrt(2d0**(-alpha-beta-1d0)*real(fact(alpha_i+beta_i+1),pres) &
-                         /(real(fact(alpha_i),pres)*real(fact(beta_i),pres))) 
+          pnm1(i) = sqrt(2d0**(-alpha-beta-1d0)*real(fact(alpha_i+beta_i+1),rp) &
+                         /(real(fact(alpha_i),rp)*real(fact(beta_i),rp))) 
           v(i) = pnm1(i)          
         ENDDO
 
@@ -344,7 +344,7 @@
 
         ! Loop for Pn+1
         DO np1 = 2,deg 
-          n = real(np1,pres)
+          n = real(np1,rp)
           anp1 = (2d0/(2d0*n+alpha+beta)) &
                   *sqrt((n*(n+alpha+beta)*(n+alpha)*(n+beta))/((2d0*n+alpha+beta-1d0)*(2d0*n+alpha+beta+1d0)))
           DO i = 1,npts
@@ -365,18 +365,18 @@
 
       SUBROUTINE djacobi(alpha_i,beta_i,deg_i,x,npts,dP)
 
-        USE globals, ONLY: pres
+        USE globals, ONLY: rp
 
         IMPLICIT NONE
         INTEGER, INTENT(IN) :: alpha_i,beta_i,deg_i,npts
-        REAL(pres), INTENT(IN) :: x(npts)
-        REAL(pres), INTENT(OUT) :: dP(npts)
-        REAL(pres):: v(npts),deg,alpha,beta
+        REAL(rp), INTENT(IN) :: x(npts)
+        REAL(rp), INTENT(OUT) :: dP(npts)
+        REAL(rp):: v(npts),deg,alpha,beta
         INTEGER :: i,pt
 
-        deg = real(deg_i,pres)
-        alpha = real(alpha_i,pres)
-        beta = real(beta_i,pres)
+        deg = real(deg_i,rp)
+        alpha = real(alpha_i,rp)
+        beta = real(beta_i,rp)
         
         IF (deg == 0) THEN
 
@@ -403,12 +403,12 @@
 
       SUBROUTINE linear(phil)
       
-        USE globals, ONLY: pres,nqpta,qpta
+        USE globals, ONLY: rp,nqpta,qpta
 
         IMPLICIT NONE
-        REAL(pres),INTENT(OUT) :: phil(3,nqpta(1))
+        REAL(rp),INTENT(OUT) :: phil(3,nqpta(1))
         INTEGER :: pt
-        REAL(pres) :: r,s
+        REAL(rp) :: r,s
         
         DO pt = 1,nqpta(1)
           r = qpta(pt,1,1)
@@ -444,13 +444,13 @@
 
       SUBROUTINE element_nodes(et,space,p,n,r,s)
       
-      USE globals, ONLY: pres
+      USE globals, ONLY: rp
       
       IMPLICIT NONE
       
       INTEGER, INTENT(IN) :: et,space,p
       INTEGER, INTENT(OUT) :: n
-      REAL(pres), DIMENSION(:), INTENT(OUT) :: r,s
+      REAL(rp), DIMENSION(:), INTENT(OUT) :: r,s
       
       IF (mod(et,2) == 1) THEN
         CALL tri_nodes(1,p,n,r,s)
@@ -470,25 +470,25 @@
 !c     r(np) (output) ; nodal r-coordinates for master element
 !c     s(np) (output) : nodal s-coordinates for master element 
 
-      USE globals, ONLY: pres
+      USE globals, ONLY: rp
       USE messenger2, ONLY: myrank
 
       IMPLICIT NONE
       INTEGER, INTENT(IN) :: p,space 
       INTEGER, INTENT(OUT) :: n
-      REAL(pres), DIMENSION(:), INTENT(OUT) :: r,s      
+      REAL(rp), DIMENSION(:), INTENT(OUT) :: r,s      
       
       INTEGER :: i,j,m
-      REAL(pres) :: ii,jj,a,dx,tol
-      REAL(pres) :: aopt(15)
-      REAL(pres) :: lgl(p+1),xeq(p+1)           
-      REAL(pres), ALLOCATABLE, DIMENSION(:) :: x,y
-      REAL(pres), ALLOCATABLE, DIMENSION(:) :: l1,l2,l3      
-      REAL(pres), ALLOCATABLE, DIMENSION(:) :: b1,b2,b3
-      REAL(pres), ALLOCATABLE, DIMENSION(:) :: wx,wy,w1,w2,w3
-      REAL(pres), ALLOCATABLE, DIMENSION(:) :: w1e,w2e,w3e
-      REAL(pres), ALLOCATABLE, DIMENSION(:) :: var1,var2,var3
-      REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: w1mat,w2mat,w3mat     
+      REAL(rp) :: ii,jj,a,dx,tol
+      REAL(rp) :: aopt(15)
+      REAL(rp) :: lgl(p+1),xeq(p+1)           
+      REAL(rp), ALLOCATABLE, DIMENSION(:) :: x,y
+      REAL(rp), ALLOCATABLE, DIMENSION(:) :: l1,l2,l3      
+      REAL(rp), ALLOCATABLE, DIMENSION(:) :: b1,b2,b3
+      REAL(rp), ALLOCATABLE, DIMENSION(:) :: wx,wy,w1,w2,w3
+      REAL(rp), ALLOCATABLE, DIMENSION(:) :: w1e,w2e,w3e
+      REAL(rp), ALLOCATABLE, DIMENSION(:) :: var1,var2,var3
+      REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: w1mat,w2mat,w3mat     
      
      
 
@@ -692,18 +692,18 @@
 
       SUBROUTINE quad_nodes(space,p,n,r,s)
       
-      USE globals, ONLY: pres
+      USE globals, ONLY: rp
       USE messenger2, ONLY: myrank
       
       IMPLICIT NONE
       
       INTEGER, INTENT(IN) :: space,p
       INTEGER, INTENT(OUT) :: n      
-      REAL(pres), DIMENSION(:), INTENT(OUT) :: r,s
+      REAL(rp), DIMENSION(:), INTENT(OUT) :: r,s
       
 
       INTEGER :: i,k,j,nl,m
-      REAL(pres) :: xi(p+1)
+      REAL(rp) :: xi(p+1)
 
       
       
@@ -716,7 +716,7 @@
       ELSE
         xi(1) = -1d0
         DO i = 1,p-1
-          xi(i+1) = xi(i) + 2d0/real(p,pres)
+          xi(i+1) = xi(i) + 2d0/real(p,rp)
         ENDDO
         xi(p+1) = 1d0
       ENDIF
@@ -802,14 +802,14 @@
 !c     n (input) : order 
 !c     r(n+1) (output) : Legendre-Gauss-Lebotto points
 
-      use globals, only: pres
+      use globals, only: rp
 
       implicit none
       integer n,nn,i
-      real(pres) ii,h
+      real(rp) ii,h
       integer info
-      real(pres) r(n+1),d(n+1),e(n)
-      real(pres) z(n+1,n+1),work(1,2*n-2)
+      real(rp) r(n+1),d(n+1),e(n)
+      real(rp) z(n+1,n+1),work(1,2*n-2)
 
       if(n.eq.1) then
         r(1) = -1d0
@@ -871,11 +871,11 @@
 !c     [L0(x2)  L1(x2)  L2(x2)]
 !c     [L0(x3)  L1(x3)  L3(x3)]
 
-      use globals, only: pres
+      use globals, only: rp
 
       implicit none
       integer nn,ne,n,i,j
-      real(pres) p,xn(nn),xe(ne),pmat(ne,nn)
+      real(rp) p,xn(nn),xe(ne),pmat(ne,nn)
 
       do n = 1,ne
         do i = 1,nn
@@ -896,13 +896,13 @@
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc	
       subroutine xytors(np,x,y,r,s)
       
-      use globals, only: pres      
+      use globals, only: rp      
       
       implicit none
       integer np,i
-      real(pres) x(np),y(np)
-      real(pres) r(np),s(np)
-      real(pres) l1(np),l2(np),l3(np)
+      real(rp) x(np),y(np)
+      real(rp) r(np),s(np)
+      real(rp) l1(np),l2(np),l3(np)
 
 !c     Convert from x,y to r,s
       do i = 1,np

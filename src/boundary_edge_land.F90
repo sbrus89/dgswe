@@ -1,6 +1,6 @@
       SUBROUTINE boundary_edge_land()
 
-      USE globals, ONLY: pres,el_type,ndof,nqpte,nnfbed,nfbedn, &
+      USE globals, ONLY: rp,el_type,ndof,nqpte,nnfbed,nfbedn, &
                          ged2led,ged2el,gel2ael, &
                          nx_pt,ny_pt,Spe,detJe,hbqpted, &
                          Z,Qx,Qy, &
@@ -15,9 +15,9 @@
       INTEGER :: ed,pt,l,dof
       INTEGER :: ged,et
       INTEGER :: led_in,el_in,gp_in
-      REAL(pres) :: Z_in,Z_ex,Qx_in,Qx_ex,Qy_in,Qy_ex
-      REAL(pres) :: Zhat,Qxhat,Qyhat
-      REAL(pres) :: nx,ny,nx2,ny2,nxny,sp,hb
+      REAL(rp) :: Z_in,Z_ex,Qx_in,Qx_ex,Qy_in,Qy_ex
+      REAL(rp) :: Zhat,Qxhat,Qyhat
+      REAL(rp) :: nx,ny,nx2,ny2,nxny,sp,hb
 
       IF (nqpte(3) == nqpte(1)) THEN
 !$OMP do     

@@ -1,6 +1,6 @@
       SUBROUTINE interp_forcing()
 
-      USE globals, ONLY: pres,nqpte,qpte, &
+      USE globals, ONLY: rp,nqpte,qpte, &
                          nope,obseg,nbou,fbseg, &
                          nobed,nfbed,nobfr,nfbfr, &
                          obamp,obph,fbamp,fbph, &
@@ -13,7 +13,7 @@
       INTEGER :: pt,bfr,seg,k
       INTEGER :: nd,ed
       INTEGER :: segtype
-      REAL(pres) :: xi,l1,l2
+      REAL(rp) :: xi,l1,l2
              
 
       ! Interpolate boundary forcing data !

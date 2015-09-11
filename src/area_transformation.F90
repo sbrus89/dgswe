@@ -1,6 +1,6 @@
       SUBROUTINE area_transformation()
 
-      USE globals, ONLY: pres,ne,el_type,mndof,elxy, &
+      USE globals, ONLY: rp,ne,el_type,mndof,elxy, &
                          ndof,nnds,nqpta,wpta,dpdr,dpds,phia,mmi_init, &
                          psia,dpsidr,dpsids, &
                          detJa,dpdx_init,dpdy_init,phia,phia_int_init
@@ -13,10 +13,10 @@
       INTEGER :: et,nnd,nqa,ndf
       INTEGER :: ipiv(mndof),work(mndof*mndof)
       INTEGER ::info
-      REAL(pres) :: mm(mndof,mndof)      
-      REAL(pres) :: xpt,ypt
-      REAL(pres) :: drdx,drdy,dsdx,dsdy
-      REAL(pres) :: Sp
+      REAL(rp) :: mm(mndof,mndof)      
+      REAL(rp) :: xpt,ypt
+      REAL(rp) :: drdx,drdy,dsdx,dsdy
+      REAL(rp) :: Sp
 
     
           

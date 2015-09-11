@@ -1,6 +1,6 @@
       SUBROUTINE normals()
 
-      USE globals, ONLY: pres,ned,el_type,ged2el,ged2led,elxy, &
+      USE globals, ONLY: rp,ned,el_type,ged2el,ged2led,elxy, &
                          nverts,nnds,nqpta,nqpte, &
                          psia,dpsidr,dpsids, &
                          nx_pt,ny_pt,Spe,cfac
@@ -12,10 +12,10 @@
       
       INTEGER :: i,nd,el,pt,ed,led,edpt
       INTEGER :: et,nnd,nqa,nqe,nv    
-      REAL(pres) :: xpt,ypt
-      REAL(pres) :: drdx,drdy,dsdx,dsdy,detJ
-      REAL(pres) :: Sp
-      REAL(pres) :: nx,ny
+      REAL(rp) :: xpt,ypt
+      REAL(rp) :: drdx,drdy,dsdx,dsdy,detJ
+      REAL(rp) :: Sp
+      REAL(rp) :: nx,ny
     
 
       

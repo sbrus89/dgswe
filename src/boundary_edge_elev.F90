@@ -1,6 +1,6 @@
       SUBROUTINE boundary_edge_elev()
 
-      USE globals, ONLY: pres,el_type,ndof,nqpte, &
+      USE globals, ONLY: rp,el_type,ndof,nqpte, &
                          nobed,obedn,nobfr, &
                          tstage,ramp, &
                          obfreq,obper,obeq, &
@@ -15,10 +15,10 @@
       INTEGER :: ed,pt,bfr
       INTEGER :: ged
       INTEGER :: led_in,el_in,gp_in
-      REAL(pres) :: Z_in,Z_ex,Qx_in,Qx_ex,Qy_in,Qy_ex
-      REAL(pres) :: Zhat,Qxhat,Qyhat
-      REAL(pres) :: tx,ty,nx,ny,nx2,ny2,nxny,sp,hb
-      REAL(pres) :: arg,Qn,Qt
+      REAL(rp) :: Z_in,Z_ex,Qx_in,Qx_ex,Qy_in,Qy_ex
+      REAL(rp) :: Zhat,Qxhat,Qyhat
+      REAL(rp) :: tx,ty,nx,ny,nx2,ny2,nxny,sp,hb
+      REAL(rp) :: arg,Qn,Qt
       
 !$OMP do
 
@@ -43,7 +43,7 @@
 
           Z_ex = 0d0
           DO bfr = 1,nobfr
-            arg = obfreq(bfr)*(tstage-real(INT(tstage/obper(bfr)),pres)*obper(bfr)) + obeq(bfr)
+            arg = obfreq(bfr)*(tstage-real(INT(tstage/obper(bfr)),rp)*obper(bfr)) + obeq(bfr)
             Z_ex = Z_ex + obamp_qpt(bfr,pt,ed)*obnfact(bfr)*ramp*COS(arg-obph_qpt(bfr,pt,ed))
           ENDDO
 

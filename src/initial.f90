@@ -1,6 +1,6 @@
       SUBROUTINE initial()
 
-      USE globals, ONLY: pres,ne,nn,mndof,ndof,nel_type,mnnds,nnds,np, &
+      USE globals, ONLY: rp,ne,nn,mndof,ndof,nel_type,mnnds,nnds,np, &
                          ect,xy,depth,elxy,elhb,hbnodes, &
                          nqpta,qpta,wpta,nqpte,qpte, &
                          H,Qx,Qy, &
@@ -18,13 +18,13 @@
       INTEGER :: et
       INTEGER :: mnqpte
       INTEGER :: ipiv(mnnds,nel_type),info
-      REAL(pres) :: x1,x2,x3,y1,y2,y3,x,y
-      REAL(pres) :: sigma,xc,yc,h0,h00
-      REAL(pres) :: qint,f,qint2
-      REAL(pres) :: xn,yn
-      REAL(pres),ALLOCATABLE :: rhsH(:,:),rhsH2(:,:)      
-      REAL(pres) :: r(mnnds),s(mnnds),phi(mnnds*mnnds),hb(mnnds)
-      REAL(pres) :: V(mnnds,mnnds,nel_type)
+      REAL(rp) :: x1,x2,x3,y1,y2,y3,x,y
+      REAL(rp) :: sigma,xc,yc,h0,h00
+      REAL(rp) :: qint,f,qint2
+      REAL(rp) :: xn,yn
+      REAL(rp),ALLOCATABLE :: rhsH(:,:),rhsH2(:,:)      
+      REAL(rp) :: r(mnnds),s(mnnds),phi(mnnds*mnnds),hb(mnnds)
+      REAL(rp) :: V(mnnds,mnnds,nel_type)
 
       sigma = 10d0
       xc = 0d0 

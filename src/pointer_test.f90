@@ -1,17 +1,17 @@
       PROGRAM pointer_test
       IMPLICIT NONE
-      INTEGER, PARAMETER :: pres = kind(1d0)
+      INTEGER, PARAMETER :: rp = kind(1d0)
 
       INTEGER :: m,i,j
 
       TYPE :: ptr_array
-        REAL(pres), POINTER :: ptr
+        REAL(rp), POINTER :: ptr
       END TYPE ptr_array
 
       TYPE(ptr_array), ALLOCATABLE, DIMENSION(:) :: test
 
-      REAL(pres), TARGET, DIMENSION(5,2) :: H
-      REAL(pres), DIMENSION(10) :: H2
+      REAL(rp), TARGET, DIMENSION(5,2) :: H
+      REAL(rp), DIMENSION(10) :: H2
 
 !       TYPE(ptr_array), POINTER :: ptr2type
 
@@ -83,13 +83,13 @@
        
       IMPLICIT NONE
       
-      INTEGER, PARAMETER :: pres = kind(1d0)      
+      INTEGER, PARAMETER :: rp = kind(1d0)      
       INTEGER :: i,m,j
       
-      REAL(pres) :: H_pass(5,2)
+      REAL(rp) :: H_pass(5,2)
 
       TYPE :: ptr_array
-        REAL(pres), POINTER :: ptr
+        REAL(rp), POINTER :: ptr
       END TYPE ptr_array
       
       TYPE(ptr_array) :: test_pass(10)      

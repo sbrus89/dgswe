@@ -1,6 +1,6 @@
       SUBROUTINE element_data()
 
-      USE globals, ONLY: pres,ect,xy,depth,ne,nn,ned,ndof, &
+      USE globals, ONLY: rp,ect,xy,depth,ne,nn,ned,ndof, &
                          nqpta,mnqpta,qpta,nqpte, &
                          el_type,nel_type,np,nnds, &
                          area,edlen,edlen_area,normal,ged2nn,ged2el,ged2led, &
@@ -19,12 +19,12 @@
       IMPLICIT NONE
       INTEGER :: el,ed,led,dof,pt,i,nd
       INTEGER :: ind,et
-      REAL(pres) :: x1,x2,x3,x4,y1,y2,y3,y4
-      REAL(pres) :: dxdr,dxds,dydr,dyds   
-      REAL(pres) :: drdx,drdy,dsdx,dsdy      
-      REAL(pres) :: hb1,hb2,hb3,hb4,hb,dhbdx1,dhbdy1 
-      REAL(pres), ALLOCATABLE, DIMENSION(:) :: r,s
-      REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: jac    
+      REAL(rp) :: x1,x2,x3,x4,y1,y2,y3,y4
+      REAL(rp) :: dxdr,dxds,dydr,dyds   
+      REAL(rp) :: drdx,drdy,dsdx,dsdy      
+      REAL(rp) :: hb1,hb2,hb3,hb4,hb,dhbdx1,dhbdy1 
+      REAL(rp), ALLOCATABLE, DIMENSION(:) :: r,s
+      REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: jac    
     
       CALL alloc_trans_arrays()             
       

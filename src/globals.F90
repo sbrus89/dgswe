@@ -3,14 +3,14 @@
 
       SAVE
 
-      INTEGER, PARAMETER :: pres = kind(1d0) ! double precision 
+      INTEGER, PARAMETER :: rp = kind(1d0) ! double precision 
       INTEGER :: ne ! number of elements
       INTEGER :: nn ! number of nodes
-      REAL(pres), PARAMETER :: g = 9.81d0 ! gravitational constant
-      REAL(pres), PARAMETER :: pt5g = 0.5d0*g
-      REAL(pres), PARAMETER :: pi=3.141592653589793D0
-      REAL(pres), PARAMETER :: deg2rad = pi/180d0      
-      REAL(pres), PARAMETER :: r_earth = 6378206.4d0      
+      REAL(rp), PARAMETER :: g = 9.81d0 ! gravitational constant
+      REAL(rp), PARAMETER :: pt5g = 0.5d0*g
+      REAL(rp), PARAMETER :: pi=3.141592653589793D0
+      REAL(rp), PARAMETER :: deg2rad = pi/180d0      
+      REAL(rp), PARAMETER :: r_earth = 6378206.4d0      
       CHARACTER(100) :: grid_name ! name of the grid
       CHARACTER(50) :: gitSHA
       CHARACTER(50) :: gitBranch
@@ -45,27 +45,27 @@
       INTEGER, ALLOCATABLE, DIMENSION(:) :: gel2ael ! gives the aligned element number that corresponds to a global element number
       INTEGER, ALLOCATABLE, DIMENSION(:) :: ael2gel ! gives the global element number that corresponds to an aligned element number      
 
-      REAL(pres) :: t ! simulation time
-      REAL(pres) :: tstage ! rk stage time
-      REAL(pres) :: ramp ! boundary condition ramp value
-      REAL(pres), PARAMETER :: pt3333 = 1d0/3d0 ! 1/3 for 3rd order rk
+      REAL(rp) :: t ! simulation time
+      REAL(rp) :: tstage ! rk stage time
+      REAL(rp) :: ramp ! boundary condition ramp value
+      REAL(rp), PARAMETER :: pt3333 = 1d0/3d0 ! 1/3 for 3rd order rk
       
-      REAL(pres), DIMENSION(5) :: ark,brk,crk
+      REAL(rp), DIMENSION(5) :: ark,brk,crk
       
       INTEGER :: coord_sys
-      REAL(pres) :: slam0,sphi0
-      REAL(pres) :: h0
+      REAL(rp) :: slam0,sphi0
+      REAL(rp) :: h0
       
-      REAL(pres) :: nlines
+      REAL(rp) :: nlines
       
       INTEGER, ALLOCATABLE, DIMENSION(:,:) :: ect,vct ! element connectivity table
       INTEGER, ALLOCATABLE, DIMENSION(:) :: nelnds
       INTEGER :: mnelnds
-      REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: xy ! x,y coordinates of nodes
-      REAL(pres), ALLOCATABLE, DIMENSION(:,:,:) :: elxy            
-      REAL(pres), ALLOCATABLE, DIMENSION(:) :: depth ! depth at each node
-      REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: elhb
-      REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: hbnodes 
+      REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: xy ! x,y coordinates of nodes
+      REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: elxy            
+      REAL(rp), ALLOCATABLE, DIMENSION(:) :: depth ! depth at each node
+      REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: elhb
+      REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: hbnodes 
 
       INTEGER :: nope ! number of open boundary segents
       INTEGER, ALLOCATABLE, DIMENSION(:) :: obseg ! number of nodes in each open boundary segment
@@ -79,43 +79,43 @@
 
       INTEGER :: nobfr ! number of periodic forcings on elevation boundaries
       CHARACTER(10), ALLOCATABLE, DIMENSION(:) :: obtag,obtag2 ! constituent name
-      REAL(pres), ALLOCATABLE, DIMENSION(:) :: obfreq ! open bounday constituent frequency
-      REAL(pres), ALLOCATABLE, DIMENSION(:) :: obper
-      REAL(pres), ALLOCATABLE, DIMENSION(:) :: obnfact ! open boundary constituent nodal factor
-      REAL(pres), ALLOCATABLE, DIMENSION(:) :: obeq ! open bounday constituent equilibrium argument
-      REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: obamp ! open boundary node amplitute
-      REAL(pres), ALLOCATABLE, DIMENSION(:,:,:) :: obamp_qpt !open boundary amplitude interpolated to edge quatrature points 
-      REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: obdepth_qpt
-      REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: obph ! open boundary node phase
-      REAL(pres), ALLOCATABLE, DIMENSION(:,:,:) :: obph_qpt ! open boundary phase interpolated to edge quadrature points
+      REAL(rp), ALLOCATABLE, DIMENSION(:) :: obfreq ! open bounday constituent frequency
+      REAL(rp), ALLOCATABLE, DIMENSION(:) :: obper
+      REAL(rp), ALLOCATABLE, DIMENSION(:) :: obnfact ! open boundary constituent nodal factor
+      REAL(rp), ALLOCATABLE, DIMENSION(:) :: obeq ! open bounday constituent equilibrium argument
+      REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: obamp ! open boundary node amplitute
+      REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: obamp_qpt !open boundary amplitude interpolated to edge quatrature points 
+      REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: obdepth_qpt
+      REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: obph ! open boundary node phase
+      REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: obph_qpt ! open boundary phase interpolated to edge quadrature points
 
 
       INTEGER :: nfbfr ! number of periodic forcings on flow boundaries
       CHARACTER(10), ALLOCATABLE, DIMENSION(:) :: fbtag,fbtag2 ! constituent name
-      REAL(pres), ALLOCATABLE, DIMENSION(:) :: fbfreq ! flow bounday constituent frequency
-      REAL(pres), ALLOCATABLE, DIMENSION(:) :: fbper
-      REAL(pres), ALLOCATABLE, DIMENSION(:) :: fbnfact ! flow boundary constituent nodal factor
-      REAL(pres), ALLOCATABLE, DIMENSION(:) :: fbeq ! flow bounday constituent equilibrium argument
-      REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: fbamp ! flow boundary node amplitute  
-      REAL(pres), ALLOCATABLE, DIMENSION(:,:,:) :: fbamp_qpt ! flow boundary amplitude interpolated to edge quadrature points
-      REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: fbph ! flow boundary node phase
-      REAL(pres), ALLOCATABLE, DIMENSION(:,:,:) :: fbph_qpt ! flow boundary phase interpolated to edge quadrature points
+      REAL(rp), ALLOCATABLE, DIMENSION(:) :: fbfreq ! flow bounday constituent frequency
+      REAL(rp), ALLOCATABLE, DIMENSION(:) :: fbper
+      REAL(rp), ALLOCATABLE, DIMENSION(:) :: fbnfact ! flow boundary constituent nodal factor
+      REAL(rp), ALLOCATABLE, DIMENSION(:) :: fbeq ! flow bounday constituent equilibrium argument
+      REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: fbamp ! flow boundary node amplitute  
+      REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: fbamp_qpt ! flow boundary amplitude interpolated to edge quadrature points
+      REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: fbph ! flow boundary node phase
+      REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: fbph_qpt ! flow boundary phase interpolated to edge quadrature points
 
-      REAL(pres), ALLOCATABLE, DIMENSION(:,:,:) :: Va,Ve
+      REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: Va,Ve
       INTEGER, ALLOCATABLE, DIMENSION(:,:) :: ipiva,ipive
-      REAL(pres), ALLOCATABLE, DIMENSION(:,:,:) :: psia,psie,psiv,psic
-      REAL(pres), ALLOCATABLE, DIMENSION(:,:,:) :: dpsidr,dpsids   
-      REAL(pres), ALLOCATABLE, DIMENSION(:,:,:) :: dpsidxi
-      REAL(pres), ALLOCATABLE, DIMENSION(:,:,:) :: m2n
-      REAL(pres), ALLOCATABLE, DIMENSION(:) :: area ! element areas
-      REAL(pres), ALLOCATABLE, DIMENSION(:) :: edlen ! element edge lengths
-      REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: edlen_area
-      REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: normal ! element edge normals
-      REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: nx_pt,ny_pt    
-      REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: Spe,cfac
-      REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: dhbdx,dhbdy ! elemental x and y derivatives of linear bathymetry
-      REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: dhbdx_init,dhbdy_init   
-      REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: mmi,mmi_init      
+      REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: psia,psie,psiv,psic
+      REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: dpsidr,dpsids   
+      REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: dpsidxi
+      REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: m2n
+      REAL(rp), ALLOCATABLE, DIMENSION(:) :: area ! element areas
+      REAL(rp), ALLOCATABLE, DIMENSION(:) :: edlen ! element edge lengths
+      REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: edlen_area
+      REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: normal ! element edge normals
+      REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: nx_pt,ny_pt    
+      REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: Spe,cfac
+      REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: dhbdx,dhbdy ! elemental x and y derivatives of linear bathymetry
+      REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: dhbdx_init,dhbdy_init   
+      REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: mmi,mmi_init      
 
       INTEGER :: ned ! total number of edges
       INTEGER, ALLOCATABLE, DIMENSION(:) :: nepn ! number of elements per node
@@ -140,68 +140,68 @@
       
       INTEGER :: check_iedge,check_gedge
 
-      REAL(pres), ALLOCATABLE, TARGET, DIMENSION(:,:) :: H ! degrees of freedom for water column height
-      REAL(pres), ALLOCATABLE, TARGET, DIMENSION(:,:) :: Z      
-      REAL(pres), ALLOCATABLE, TARGET, DIMENSION(:,:) :: Qx ! degrees of freedom for x momentum
-      REAL(pres), ALLOCATABLE, TARGET, DIMENSION(:,:) :: Qy ! degrees of freedom for y momentum
-      REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: hbm      
+      REAL(rp), ALLOCATABLE, TARGET, DIMENSION(:,:) :: H ! degrees of freedom for water column height
+      REAL(rp), ALLOCATABLE, TARGET, DIMENSION(:,:) :: Z      
+      REAL(rp), ALLOCATABLE, TARGET, DIMENSION(:,:) :: Qx ! degrees of freedom for x momentum
+      REAL(rp), ALLOCATABLE, TARGET, DIMENSION(:,:) :: Qy ! degrees of freedom for y momentum
+      REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: hbm      
       
-      REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: Hold,Hinit ! degrees of freedom for water column height
-      REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: Zold,Zinit 
-      REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: Qxold,Qxinit ! degrees of freedom for x momentum
-      REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: Qyold,Qyinit ! degrees of freedom for y momentum
+      REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: Hold,Hinit ! degrees of freedom for water column height
+      REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: Zold,Zinit 
+      REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: Qxold,Qxinit ! degrees of freedom for x momentum
+      REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: Qyold,Qyinit ! degrees of freedom for y momentum
       
-      REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: hbqpta,hbqpta_init
-      REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: hbqpte,hbqpte_init
-      REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: hbqpted      
+      REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: hbqpta,hbqpta_init
+      REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: hbqpte,hbqpte_init
+      REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: hbqpted      
 
 
-      REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: rhsZ,rhsH,rhsQx,rhsQy ! right hand side evaluation arrays
-      REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: MirhsZ,MirhsH,MirhsQx,MirhsQy      
+      REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: rhsZ,rhsH,rhsQx,rhsQy ! right hand side evaluation arrays
+      REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: MirhsZ,MirhsH,MirhsQx,MirhsQy      
 
-      REAL(pres), ALLOCATABLE, TARGET, DIMENSION(:,:) :: Zqpt,Hqpt,Qxqpt,Qyqpt ! solution quadrature point evaluation arrays
-      REAL(pres), ALLOCATABLE, TARGET, DIMENSION(:,:) :: xmom,ymom,xymom ! momentum terms quadrature point evaluation arrays
-      REAL(pres), ALLOCATABLE, DIMENSION(:) :: src_x,src_y
-      REAL(pres), ALLOCATABLE, DIMENSION(:) :: tau
+      REAL(rp), ALLOCATABLE, TARGET, DIMENSION(:,:) :: Zqpt,Hqpt,Qxqpt,Qyqpt ! solution quadrature point evaluation arrays
+      REAL(rp), ALLOCATABLE, TARGET, DIMENSION(:,:) :: xmom,ymom,xymom ! momentum terms quadrature point evaluation arrays
+      REAL(rp), ALLOCATABLE, DIMENSION(:) :: src_x,src_y
+      REAL(rp), ALLOCATABLE, DIMENSION(:) :: tau
 
-      REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: wpta ! area and edge quadrature weights
-      REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: wpte      
-      REAL(pres), ALLOCATABLE, DIMENSION(:,:,:) :: qpte ! edge quadrature points
-      REAL(pres), ALLOCATABLE, DIMENSION(:,:,:) :: qpta ! area quadrature points
+      REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: wpta ! area and edge quadrature weights
+      REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: wpte      
+      REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: qpte ! edge quadrature points
+      REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: qpta ! area quadrature points
 
-      REAL(pres), ALLOCATABLE, DIMENSION(:,:,:) :: phia ! basis functions evaluated at area quadrature points
-      REAL(pres), ALLOCATABLE, DIMENSION(:,:,:) :: phia_int,phia_int_init ! basis functions evaluated at area quadrature points multiplied by quadrature weights
-      REAL(pres), ALLOCATABLE, DIMENSION(:,:,:) :: phie ! basis functions evaluated at edge quadrature points
-      REAL(pres), ALLOCATABLE, DIMENSION(:,:,:) :: phie_int 
-      REAL(pres), ALLOCATABLE, DIMENSION(:,:,:) :: phi
-      REAL(pres), ALLOCATABLE, DIMENSION(:,:,:) :: phil ! linear nodal basis functions evaluated at area quadrature points
-      REAL(pres), ALLOCATABLE, DIMENSION(:,:,:) :: dpdr,dpds ! basis function derivatives evaluated at area quadrature points
-      REAL(pres), ALLOCATABLE, DIMENSION(:,:,:) :: dpdx,dpdy            
-      REAL(pres), ALLOCATABLE, DIMENSION(:,:,:) :: dpdx_init,dpdy_init
-      REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: detJa     
-      REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: detJe            
+      REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: phia ! basis functions evaluated at area quadrature points
+      REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: phia_int,phia_int_init ! basis functions evaluated at area quadrature points multiplied by quadrature weights
+      REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: phie ! basis functions evaluated at edge quadrature points
+      REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: phie_int 
+      REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: phi
+      REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: phil ! linear nodal basis functions evaluated at area quadrature points
+      REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: dpdr,dpds ! basis function derivatives evaluated at area quadrature points
+      REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: dpdx,dpdy            
+      REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: dpdx_init,dpdy_init
+      REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: detJa     
+      REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: detJe            
 
-      REAL(pres), ALLOCATABLE, DIMENSION(:) :: recipHa ! temporary variables for momentum term calculation
+      REAL(rp), ALLOCATABLE, DIMENSION(:) :: recipHa ! temporary variables for momentum term calculation
 
-      REAL(pres), ALLOCATABLE, TARGET, DIMENSION(:,:) :: Zflux,Hflux,Qxflux,Qyflux ! numerical flux arrays
+      REAL(rp), ALLOCATABLE, TARGET, DIMENSION(:,:) :: Zflux,Hflux,Qxflux,Qyflux ! numerical flux arrays
 
-      REAL(pres), ALLOCATABLE, DIMENSION(:) :: const
-      REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: inx,iny
-      REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: icfac      
-      REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: detJe_in,detJe_ex
-      REAL(pres), ALLOCATABLE, DIMENSION(:) :: Zhatv,Hhatv,Qxhatv,Qyhatv
-      REAL(pres), ALLOCATABLE, DIMENSION(:) :: rHi,rHe
-      REAL(pres), ALLOCATABLE, DIMENSION(:) :: xmomi,xmome,ymomi,ymome,xymomi,xymome     
-      REAL(pres), ALLOCATABLE, TARGET, DIMENSION(:,:) :: fbHf,nfbHf,obHf  
-      REAL(pres), ALLOCATABLE, TARGET, DIMENSION(:,:) :: fbQxf,nfbQxf,obQxf       
-      REAL(pres), ALLOCATABLE, TARGET, DIMENSION(:,:) :: fbQyf,nfbQyf,obQyf  
-      REAL(pres), ALLOCATABLE, TARGET, DIMENSION(:,:) :: Hfluxi,Hfluxe     
-      REAL(pres), ALLOCATABLE, TARGET, DIMENSION(:,:) :: Zfluxi,Zfluxe      
-      REAL(pres), ALLOCATABLE, TARGET, DIMENSION(:,:) :: Qxfluxi,Qxfluxe
-      REAL(pres), ALLOCATABLE, TARGET, DIMENSION(:,:) :: Qyfluxi,Qyfluxe      
+      REAL(rp), ALLOCATABLE, DIMENSION(:) :: const
+      REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: inx,iny
+      REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: icfac      
+      REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: detJe_in,detJe_ex
+      REAL(rp), ALLOCATABLE, DIMENSION(:) :: Zhatv,Hhatv,Qxhatv,Qyhatv
+      REAL(rp), ALLOCATABLE, DIMENSION(:) :: rHi,rHe
+      REAL(rp), ALLOCATABLE, DIMENSION(:) :: xmomi,xmome,ymomi,ymome,xymomi,xymome     
+      REAL(rp), ALLOCATABLE, TARGET, DIMENSION(:,:) :: fbHf,nfbHf,obHf  
+      REAL(rp), ALLOCATABLE, TARGET, DIMENSION(:,:) :: fbQxf,nfbQxf,obQxf       
+      REAL(rp), ALLOCATABLE, TARGET, DIMENSION(:,:) :: fbQyf,nfbQyf,obQyf  
+      REAL(rp), ALLOCATABLE, TARGET, DIMENSION(:,:) :: Hfluxi,Hfluxe     
+      REAL(rp), ALLOCATABLE, TARGET, DIMENSION(:,:) :: Zfluxi,Zfluxe      
+      REAL(rp), ALLOCATABLE, TARGET, DIMENSION(:,:) :: Qxfluxi,Qxfluxe
+      REAL(rp), ALLOCATABLE, TARGET, DIMENSION(:,:) :: Qyfluxi,Qyfluxe      
 
       TYPE :: edge_ptr_array
-        REAL(pres), POINTER :: ptr
+        REAL(rp), POINTER :: ptr
       END TYPE edge_ptr_array
 
       TYPE(edge_ptr_array), ALLOCATABLE, DIMENSION(:,:) :: Hi,He
@@ -221,10 +221,10 @@
       TYPE(edge_ptr_array), ALLOCATABLE, DIMENSION(:,:) :: Qywrite
       
       
-      REAL(pres), ALLOCATABLE, DIMENSION(:) :: Qxin,Qyin,Hin,Zin
-      REAL(pres), ALLOCATABLE, DIMENSION(:) :: Qxex,Qyex,Hex,Zex
-      REAL(pres), ALLOCATABLE, DIMENSION(:) :: xmin,ymin,xymin
-      REAL(pres), ALLOCATABLE, DIMENSION(:) :: xmex,ymex,xymex
+      REAL(rp), ALLOCATABLE, DIMENSION(:) :: Qxin,Qyin,Hin,Zin
+      REAL(rp), ALLOCATABLE, DIMENSION(:) :: Qxex,Qyex,Hex,Zex
+      REAL(rp), ALLOCATABLE, DIMENSION(:) :: xmin,ymin,xymin
+      REAL(rp), ALLOCATABLE, DIMENSION(:) :: xmex,ymex,xymex
       
       
 #ifdef ALIGN16      

@@ -6,7 +6,7 @@
 
 !$    USE omp_lib 
 
-      USE globals, ONLY: pres,nrblk
+      USE globals, ONLY: rp,nrblk
 
       IMPLICIT NONE
       
@@ -38,7 +38,7 @@
       INTEGER :: mnelred
       
       TYPE :: edge_ptr_array
-        REAL(pres), POINTER :: ptr
+        REAL(rp), POINTER :: ptr
       END TYPE edge_ptr_array
       
       TYPE(edge_ptr_array), ALLOCATABLE, DIMENSION(:,:) :: Hri !,Hre
@@ -48,18 +48,18 @@
       TYPE(edge_ptr_array), ALLOCATABLE, DIMENSION(:,:) :: xmri,ymri,xymri    
       TYPE(edge_ptr_array), ALLOCATABLE, DIMENSION(:,:) :: Zfri,Hfri,Qxfri,Qyfri
       
-      REAL(pres), ALLOCATABLE, DIMENSION(:) :: xmre,ymre,xymre
-      REAL(pres), ALLOCATABLE, DIMENSION(:) :: Hre
+      REAL(rp), ALLOCATABLE, DIMENSION(:) :: xmre,ymre,xymre
+      REAL(rp), ALLOCATABLE, DIMENSION(:) :: Hre
       
-      REAL(pres), ALLOCATABLE, TARGET, DIMENSION(:,:) :: sol_recv
-      REAL(pres), ALLOCATABLE, TARGET, DIMENSION(:,:) :: sol_send      
+      REAL(rp), ALLOCATABLE, TARGET, DIMENSION(:,:) :: sol_recv
+      REAL(rp), ALLOCATABLE, TARGET, DIMENSION(:,:) :: sol_send      
 
       TYPE(edge_ptr_array), ALLOCATABLE, DIMENSION(:,:) :: send_ptr    
       
-      REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: hbr      
-      REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: rnx,rny
-      REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: rcfac      
-      REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: detJe_recv      
+      REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: hbr      
+      REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: rnx,rny
+      REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: rcfac      
+      REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: detJe_recv      
       
       INTEGER, ALLOCATABLE, DIMENSION(:) :: solreq_recv
       INTEGER, ALLOCATABLE, DIMENSION(:) :: solreq_send
@@ -183,7 +183,7 @@
 
       SUBROUTINE read_message_files()
       
-      USE globals, ONLY: pres,ne,mndof,nlines
+      USE globals, ONLY: rp,ne,mndof,nlines
       
       IMPLICIT NONE
       
@@ -191,7 +191,7 @@
       INTEGER :: pe,ed,el,j
       LOGICAL :: file_exists
       INTEGER :: npe,tne,mne,ne2,ndof2
-      REAL(pres) :: lines2
+      REAL(rp) :: lines2
       INTEGER :: reorder,info
       
       INQUIRE(FILE=dirname(1:lname)//'/'//'fort.18', EXIST = file_exists)
@@ -455,7 +455,7 @@
 
       SUBROUTINE communication_setup()
       
-      USE globals, ONLY: nqpte,pres
+      USE globals, ONLY: nqpte,rp
       
       IMPLICIT NONE
 #ifdef CMPI      
@@ -498,7 +498,7 @@
 !       ALLOCATE(win(nproc_sr))
 !       
 !       DO pe = 1,nproc_sr
-!         CALL MPI_Win_create(sol_send(1,pe),3*ned_sr(pe)*nqpte(1)*pres,pres, &
+!         CALL MPI_Win_create(sol_send(1,pe),3*ned_sr(pe)*nqpte(1)*rp,rp, &
 !                             MPI_INFO_NULL,MPI_COMM_WORLD,win(pe))
 !       ENDDO
       

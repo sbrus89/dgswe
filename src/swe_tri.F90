@@ -10,7 +10,7 @@
       IMPLICIT NONE
       INTEGER :: it,tskp,cnt
       INTEGER :: i,j,et
-      REAL(pres) :: tstep,t_start,t_end
+      REAL(rp) :: tstep,t_start,t_end
       
 
 

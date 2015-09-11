@@ -1,6 +1,6 @@
       SUBROUTINE rhs2()
 
-      USE globals,  ONLY: pres,ndof,nel_type, &
+      USE globals,  ONLY: rp,ndof,nel_type, &
                           elblk,nfblk,rnfblk,nrblk,npartet,nverts, &                        
                           Hi,He,Qxi,Qxe,Qyi,Qye,hbqpted, &
                           nqpta,nqpte, &                     

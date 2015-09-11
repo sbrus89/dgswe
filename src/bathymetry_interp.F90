@@ -1,6 +1,6 @@
       SUBROUTINE bathymetry_interp()
 
-      USE globals, ONLY: pres,el_type,ed_type,nelnds,mndof,ndof,mnnds,nnds,nqpta,nqpte,nverts,norder,order, &
+      USE globals, ONLY: rp,el_type,ed_type,nelnds,mndof,ndof,mnnds,nnds,nqpta,nqpte,nverts,norder,order, &
                          ne,ned,elxy,elhb,ged2el,ged2led, &
                          hbqpta_init,dhbdx_init,dhbdy_init,hbqpte_init,hbm,hbqpted, &
                          Va,ipiva,psia,dpsidr,dpsids, &
@@ -16,11 +16,11 @@
       INTEGER :: typ,et,eo,edpt,el1,el2,led1,led2,gp1,gp2
       INTEGER :: ndf,nnd,nqa,nqe,nv,n
       INTEGER :: info
-      REAL(pres) :: hb
-      REAL(pres) :: xpt,ypt,detJ,Sp
-      REAL(pres) :: drdx,drdy,dsdx,dsdy
-      REAL(pres) :: hbn(mnnds)
-      REAL(pres) :: V(mnnds,mnnds,norder)
+      REAL(rp) :: hb
+      REAL(rp) :: xpt,ypt,detJ,Sp
+      REAL(rp) :: drdx,drdy,dsdx,dsdy
+      REAL(rp) :: hbn(mnnds)
+      REAL(rp) :: V(mnnds,mnnds,norder)
 
 
       OPEN(unit=45, file='dhb.d')

@@ -1,25 +1,25 @@
       SUBROUTINE numerical_flux(Qx_in,Qy_in,Z_in,Qx_ex,Qy_ex,Z_ex,hb,nx,ny,sp,Qxhat,Qyhat,Zhat)
       
-!       USE globals, ONLY:pres,nx,ny,g,eig_in,eig_ex,alpha, &
+!       USE globals, ONLY:rp,nx,ny,g,eig_in,eig_ex,alpha, &
 !                         H_in,H_ex,Qx_in,Qx_ex,Qy_in,Qy_ex, &
 !                         xmom_in,xmom_ex,ymom_in,ymom_ex,xymom_in,xymom_ex, &
 !                         Hhat,Qxhat,Qyhat
 
-      USE globals, ONLY:pres,g
+      USE globals, ONLY:rp,g
 
 
       IMPLICIT NONE
       
-      REAL(pres) :: eig_in,eig_ex,alpha
-      REAL(pres) :: Qx_in,Qy_in,Z_in
-      REAL(pres) :: Qx_ex,Qy_ex,Z_ex
-      REAL(pres) :: nx,ny,sp,hb
-      REAL(pres) :: Qxhat,Qyhat,Zhat
-      REAL(pres) :: H_in,H_ex,hb_in,hb_ex
-      REAL(pres) :: xmom_in,ymom_in,xymom_in
-      REAL(pres) :: xmom_ex,ymom_ex,xymom_ex
-      REAL(pres) :: rHin,rHex
-      REAL(pres) :: nxsp,cfac
+      REAL(rp) :: eig_in,eig_ex,alpha
+      REAL(rp) :: Qx_in,Qy_in,Z_in
+      REAL(rp) :: Qx_ex,Qy_ex,Z_ex
+      REAL(rp) :: nx,ny,sp,hb
+      REAL(rp) :: Qxhat,Qyhat,Zhat
+      REAL(rp) :: H_in,H_ex,hb_in,hb_ex
+      REAL(rp) :: xmom_in,ymom_in,xymom_in
+      REAL(rp) :: xmom_ex,ymom_ex,xymom_ex
+      REAL(rp) :: rHin,rHex
+      REAL(rp) :: nxsp,cfac
       
       hb_in = hb
       hb_ex = hb

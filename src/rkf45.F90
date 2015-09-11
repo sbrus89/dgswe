@@ -1,6 +1,6 @@
       SUBROUTINE rkf45()
 
-      USE globals, ONLY: pres,dof,ndof,el,ne,nel_type,blk,npart,npartet,elblk, &
+      USE globals, ONLY: rp,dof,ndof,el,ne,nel_type,blk,npart,npartet,elblk, &
                          t,tstage,dt,pt3333,ramp,dramp, &
                          Hold,H,MirhsH,Qxold,Qx,MirhsQx,Qyold,Qy,MirhsQy
 
@@ -11,8 +11,8 @@
       INTEGER :: maxit
       INTEGER :: k
       
-      REAL(pres) :: maxdt
-      REAL(pres) :: a(6,6),ta(6),b(6),c(5)
+      REAL(rp) :: maxdt
+      REAL(rp) :: a(6,6),ta(6),b(6),c(5)
       
       
       maxit = 100

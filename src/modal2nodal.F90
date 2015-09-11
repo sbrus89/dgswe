@@ -1,6 +1,6 @@
       SUBROUTINE modal2nodal()
 
-      USE globals, ONLY: pres,nel_type,np,nnds,mnnds,ndof,mndof,order,m2n, &
+      USE globals, ONLY: rp,nel_type,np,nnds,mnnds,ndof,mndof,order,m2n, &
                          nqpta,mnqpta,wpta,phia,phil
       USE basis, ONLY: element_basis,element_nodes,linear
       USE read_dginp, ONLY: out_direc,p,hbp
@@ -11,11 +11,12 @@
       INTEGER :: typ,et,pt
       INTEGER :: nvert,n,ndf,pp,eo
       INTEGER :: alloc_status
-      REAL(pres) :: r(mnnds+mndof),s(mnnds+mndof)
-      REAL(pres) :: phi(mnnds+mndof,mnnds+mndof)
+      REAL(rp) :: r(mnnds+mndof),s(mnnds+mndof)
+      REAL(rp) :: phi(mnnds+mndof,mnnds+mndof)
+
       
-      REAL(pres) :: ml2(3,ndof(1)),mml(3,3)
-      REAL(pres) :: qint      
+      REAL(rp) :: ml2(3,ndof(1)),mml(3,3)
+      REAL(rp) :: qint      
 
       
       ALLOCATE(m2n(mnnds+mndof,mnnds+mndof,nel_type))      
@@ -131,7 +132,7 @@
       
 !       SUBROUTINE modal2nodal()
 ! 
-!       USE globals, ONLY: pres,nel_type,p,nnds,mnnds,ndof,mndof,m2n,out_direc, &
+!       USE globals, ONLY: rp,nel_type,p,nnds,mnnds,ndof,mndof,m2n,out_direc, &
 !                          nqpta,mnqpta,wpta,phia,phil
 !       USE basis, ONLY: tri_basis,quad_basis,tri_nodes,quad_nodes,linear
 ! 
@@ -141,11 +142,11 @@
 !       INTEGER :: et,pt
 !       INTEGER :: nvert
 !       INTEGER :: alloc_status
-!       REAL(pres) :: r(4),s(4)
-!       REAL(pres) :: phi(4*mndof)
+!       REAL(rp) :: r(4),s(4)
+!       REAL(rp) :: phi(4*mndof)
 !       
-!       REAL(pres) :: ml2(3,ndof(1)),mml(3,3)
-!       REAL(pres) :: qint      
+!       REAL(rp) :: ml2(3,ndof(1)),mml(3,3)
+!       REAL(rp) :: qint      
 ! 
 !       
 !       ALLOCATE(m2n(mnnds,mndof,nel_type))      
