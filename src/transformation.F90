@@ -75,7 +75,8 @@
 
       SUBROUTINE cpp_transformation(ypt,Sp)
 
-      USE globals, ONLY: rp,coord_sys,sphi0,r_earth
+      USE globals, ONLY: rp,r_earth
+      USE read_dginp, ONLY: coord_sys,sphi0
 
       IMPLICIT NONE
 

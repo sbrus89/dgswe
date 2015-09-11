@@ -131,7 +131,7 @@ objects = globals.o lapack_interfaces.o messenger2.o read_input.o allocation.o b
 	initial.o connect.o curvilinear.o element_data.o area_transformation.o normals.o edge_transformation.o \
 	bathymetry_interp.o edge_partition2.o area_integration.o edge_integration.o rhs2.o numerical_flux.o rk.o \
         boundary_edge_land.o boundary_edge_flow.o boundary_edge_elev.o linear_solve.o \
-        write_output.o version.o swe_tri.o
+        write_output.o version.o dgswe.o
 
 obj := $(patsubst %.o, $(ODIR)%.o,$(objects))
 
@@ -342,5 +342,5 @@ $(ODIR)write_output.o : write_output.F90 globals.F90 messenger2.F90
 $(ODIR)version.o : version.F90 globals.F90 messenger2.F90
 	$(FC) $(CFLAGS) $< -o $@		
 
-$(ODIR)swe_tri.o : swe_tri.F90 globals.F90 basis.f90 allocation.f90 messenger2.F90
+$(ODIR)dgswe.o : dgswe.F90 globals.F90 basis.f90 allocation.f90 messenger2.F90
 	$(FC) $(CFLAGS) $< -o $@

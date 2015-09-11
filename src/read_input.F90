@@ -77,12 +77,15 @@
       INTEGER, TARGET :: ctp
       INTEGER, TARGET :: hbp
       INTEGER, TARGET :: rk_type 
-      INTEGER, TARGET  :: npart       
+      INTEGER, TARGET  :: npart 
+      INTEGER, TARGET :: coord_sys      
       REAL(rp), TARGET  :: dt
       REAL(rp), TARGET  :: tf
       REAL(rp), TARGET  :: dramp
       REAL(rp), TARGET  :: cf
       REAL(rp), TARGET  :: lines
+      REAL(rp), TARGET :: slam0,sphi0
+      REAL(rp), TARGET :: h0      
      
      
      
@@ -506,9 +509,9 @@
         dginp(i)%flag = 0        
       ENDDO
       
-      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       ! Configure fort.dg options here:
-      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       
       !    keywords                         target variables                      requirement                 default values
       dginp(1)%key = "grid_file";       dginp(1)%cptr => grid_file ;      dginp(1)%required = .true.;      dginp(1)%cptr = ""
@@ -524,12 +527,24 @@
       dginp(11)%key = "lines";          dginp(11)%rptr => lines;          dginp(11)%required = .true.;     dginp(11)%rptr = 10d0
       dginp(12)%key = "out_direc";      dginp(12)%cptr => out_direc;      dginp(12)%required = .false.;    dginp(12)%cptr = "./"
       dginp(13)%key = "npart";          dginp(13)%iptr => npart;          dginp(13)%required = .true.;     dginp(13)%iptr = 1
-      dginp(14)%key = "bathy_file";     dginp(14)%cptr => bathy_file;     dginp(14)%required = .false.;    dginp(14)%cptr = "./elem_nodes.d"      
+      dginp(14)%key = "bathy_file";     dginp(14)%cptr => bathy_file;     dginp(14)%required = .false.;    dginp(14)%cptr = "./elem_nodes.d"
+      dginp(15)%key = "coord_sys";      dginp(15)%iptr => coord_sys;      dginp(15)%required = .false.;    dginp(15)%iptr = 1
+      dginp(16)%key = "slam0";          dginp(16)%rptr => slam0;          dginp(16)%required = .false.;    dginp(16)%rptr = -79.0d0 
+      dginp(17)%key = "sphi0";          dginp(17)%rptr => sphi0;          dginp(17)%required = .false.;    dginp(17)%rptr = 35.0d0 
+      dginp(18)%key = "h0";             dginp(18)%rptr => h0;             dginp(18)%required = .false.;    dginp(18)%rptr = 1d0   
+!       dginp(19)%key = "??";             dginp(19)%?ptr => ??;             dginp(19)%required = .false.;    dginp(19)%?ptr = ??   
+!       dginp(20)%key = "??";             dginp(20)%?ptr => ??;             dginp(20)%required = .false.;    dginp(20)%?ptr = ??  
+!       dginp(21)%key = "??";             dginp(21)%?ptr => ??;             dginp(21)%required = .false.;    dginp(21)%?ptr = ??  
+!       dginp(22)%key = "??";             dginp(22)%?ptr => ??;             dginp(22)%required = .false.;    dginp(22)%?ptr = ??  
+!       dginp(23)%key = "??";             dginp(23)%?ptr => ??;             dginp(23)%required = .false.;    dginp(23)%?ptr = ??  
+!       dginp(24)%key = "??";             dginp(24)%?ptr => ??;             dginp(24)%required = .false.;    dginp(24)%?ptr = ??  
+!       dginp(25)%key = "??";             dginp(25)%?ptr => ??;             dginp(25)%required = .false.;    dginp(25)%?ptr = ??  
+      
 
       
-      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       ! End configuration
-      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       
       nopt = 0
       ncheck = 0

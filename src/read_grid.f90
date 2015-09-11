@@ -3,11 +3,11 @@
       USE globals, ONLY: rp,ne,nn,ect,vct,xy,depth,nelnds,elxy,elhb,hbnodes, &
                          nope,neta,obseg,obnds,nvel,nbou,fbseg,fbnds,grid_name, &
                          el_type,mnelnds,curved_grid,nverts,mnnds, &
-                         coord_sys,r_earth,slam0,sphi0,deg2rad,h0
+                         r_earth,deg2rad
                          
       USE allocation, ONLY: alloc_grid_arrays     
       USE messenger2, ONLY: finish,myrank
-      USE read_dginp, ONLY: grid_file,ctp,hbp,bathy_file
+      USE read_dginp, ONLY: grid_file,ctp,hbp,bathy_file,h0,coord_sys,slam0,sphi0
 
       IMPLICIT NONE
       INTEGER :: i,j,k,el

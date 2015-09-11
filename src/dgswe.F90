@@ -14,15 +14,14 @@
       
 
 
-      coord_sys = 1
-      slam0 = -79.0d0*deg2rad
-      sphi0 = 35.0d0*deg2rad
-      h0 = 0d0
       
+      ! Initialize MPI and determine rank if appropriate
       CALL message_init()
       
+      ! Read in the keyword (or fixed) format input file 
       CALL read_input()
 
+      ! Compute # of dofs and # of nodes straight/curved elements etc.
       CALL sizes()
 
       ! Read in grid file
@@ -31,6 +30,7 @@
       ! Read in forcing file
       CALL read_forcing()
       
+      ! Read the local-to-global element and message passing files
       CALL read_message_files()
    
       ! Find edge connectivity
@@ -49,9 +49,7 @@
       CALL edge_basis()            
       
       ! Compute element area, edge length, edge normals, and bathymetry derivatives
-      CALL element_data()     
-      
-!       STOP
+      CALL element_data()           
       
       ! Set up netcdf output files
 !       CALL file_setup()
@@ -62,12 +60,16 @@
       ! Boundary forcing interpolation
       CALL interp_forcing()
       
+      ! Partition domain for element/edge blocking
       CALL metis2()
       
+      ! Decompose domain and prep element/edge blocking
       CALL decomp2()
       
+      ! Set up send/recieve buffers and edge data structures
       CALL message_setup()
       
+      ! Initialize the MPI persistent message passing calls
       CALL communication_setup()    
 
       OPEN(unit=195,file=trim(out_direc) // 'edge_check.d')        
@@ -85,17 +87,7 @@
       CALL CPU_TIME(t_start)
 #endif
       
-      IF (myrank == 0) THEN
-        PRINT "(A)", "---------------------------------------------"
-        PRINT "(A)", "               Time Stepping                 "
-        PRINT "(A)", "---------------------------------------------"
-        PRINT "(A)", " "
 
-        PRINT "(A,e12.4)", "Time step: ",dt
-        PRINT "(A,e12.4)", "Final time: ",tf
-
-        PRINT "(A)", " "
-      ENDIF
       
       tf = tf*86400d0
       tstep = int(tf/dt)

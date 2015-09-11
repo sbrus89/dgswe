@@ -1,8 +1,9 @@
       SUBROUTINE write_output(init)
       
-      USE globals, ONLY: t,Hwrite,Zwrite,Qxwrite,Qywrite,mndof,ne
+      USE globals, ONLY: t,mndof,ne, &
+                         Hwrite,Zwrite,Qxwrite,Qywrite
       USE messenger2, ONLY: myrank
-      USE read_dginp, ONLY: out_direc,grid_file
+      USE read_dginp, ONLY: out_direc,grid_file,dt,tf
 
       IMPLICIT NONE
 
@@ -10,7 +11,20 @@
       LOGICAL :: init
 
       IF (init) THEN
-!       Write initial condition
+      
+        ! Initialize files and write initial condition      
+      
+        IF (myrank == 0) THEN
+          PRINT "(A)", "---------------------------------------------"
+          PRINT "(A)", "               Time Stepping                 "
+          PRINT "(A)", "---------------------------------------------"
+          PRINT "(A)", " "
+
+          PRINT "(A,e12.4)", "Time step: ",dt
+          PRINT "(A,e12.4)", "Final time: ",tf
+
+          PRINT "(A)", " "
+        ENDIF      
 
         OPEN(unit=63,file=trim(out_direc) // 'solution_H.d')
         OPEN(unit=641,file=trim(out_direc) // 'solution_Qx.d')
