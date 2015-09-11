@@ -54,7 +54,7 @@ ed_points: DO pt = 1,tnqpte
                           Zi,Ze,Hi,He,Qxi,Qxe,Qyi,Qye, &
                           xmi,xme,ymi,yme,xymi,xyme, &
                           Zhatv,Qxhatv,Qyhatv, &
-                          inx,iny,detJe_in,detJe_ex, &
+                          detJe_in,detJe_ex, &
                           Zfe,Zfi,Qxfi,Qxfe,Qyfi,Qyfe  
    
       IMPLICIT NONE
@@ -122,13 +122,89 @@ ed_points: DO pt = 1,nqpte ! Compute numerical fluxes for all edges
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!       
        
        
+      SUBROUTINE recieve_edge_nflux(nred,nqpte)
+
+      USE globals, ONLY: const,g,pt5g,recipHa, &
+                         Zhatv,Qxhatv,Qyhatv
+         
+      USE messenger2, ONLY: Zri,Zre,Hri,Hre,Qxri,Qxre,Qyri,Qyre, &
+                            xmri,xmre,ymri,ymre,xymri,xymre, &
+                            detJe_recv,rcfac,hbr,rnx,rny, &
+                            Zfri,Qxfri,Qyfri  
+   
+      IMPLICIT NONE
+
+      INTEGER :: nred,nqpte
+      INTEGER :: pt,ed
+                  
+        
+      DO pt = 1,nqpte
+      
+        DO ed = 1,nred
+          Hre(ed) = Zre(ed,pt)%ptr + hbr(ed,pt)
+        ENDDO
+      
+!!DIR$ VECTOR ALIGNED      
+        DO ed = 1,nred
+          const(ed) = max(abs(Qxri(ed,pt)%ptr*rnx(ed,pt) + Qyri(ed,pt)%ptr*rny(ed,pt))/Hri(ed,pt)%ptr + sqrt(g*Hri(ed,pt)%ptr*rcfac(ed,pt)), &
+                          abs(Qxre(ed,pt)%ptr*rnx(ed,pt) + Qyre(ed,pt)%ptr*rny(ed,pt))/Hre(ed)        + sqrt(g*Hre(ed)*rcfac(ed,pt)))          
+        ENDDO
+        
+
+!DIR$ IVDEP
+!!DIR$ VECTOR ALIGNED
+        DO ed = 1,nred      
+          Zhatv(ed) = .5d0*(rnx(ed,pt)*(Qxri(ed,pt)%ptr + Qxre(ed,pt)%ptr) + rny(ed,pt)*(Qyri(ed,pt)%ptr + Qyre(ed,pt)%ptr) &
+                                        - const(ed)*(Zre(ed,pt)%ptr - Zri(ed,pt)%ptr))
+        ENDDO
+
+!DIR$ IVDEP
+!!DIR$ VECTOR ALIGNED        
+        DO ed = 1,nred
+          recipHa(ed) = 1d0/Hre(ed)
+          
+          xmre(ed) = pt5g*(Hre(ed)*Hre(ed) - hbr(ed,pt)*hbr(ed,pt)) + Qxre(ed,pt)%ptr*Qxre(ed,pt)%ptr*recipHa(ed)
+          ymre(ed) = pt5g*(Hre(ed)*Hre(ed) - hbr(ed,pt)*hbr(ed,pt)) + Qyre(ed,pt)%ptr*Qyre(ed,pt)%ptr*recipHa(ed)
+          xymre(ed) = Qxre(ed,pt)%ptr*Qyre(ed,pt)%ptr*recipHa(ed)
+        ENDDO
+ 
+!DIR$ IVDEP
+!!DIR$ VECTOR ALIGNED 
+        DO ed = 1,nred
+          Qxhatv(ed) = .5d0*(rnx(ed,pt)*(xmri(ed,pt)%ptr + xmre(ed)) + rny(ed,pt)*(xymri(ed,pt)%ptr + xymre(ed))  &
+                                        - const(ed)*(Qxre(ed,pt)%ptr - Qxri(ed,pt)%ptr))
+        ENDDO
+  
+!DIR$ IVDEP
+!!DIR$ VECTOR ALIGNED  
+        DO ed = 1,nred
+          Qyhatv(ed) = .5d0*(rnx(ed,pt)*(xymri(ed,pt)%ptr + xymre(ed)) + rny(ed,pt)*(ymri(ed,pt)%ptr + ymre(ed))  &
+                                        - const(ed)*(Qyre(ed,pt)%ptr - Qyri(ed,pt)%ptr))
+        ENDDO
+
+        DO ed = 1,nred                                       
+          Zfri(ed,pt)%ptr =  detJe_recv(ed,pt)*Zhatv(ed)          
+        ENDDO   
+        DO ed = 1,nred                                         
+          Qxfri(ed,pt)%ptr =  detJe_recv(ed,pt)*Qxhatv(ed)        
+        ENDDO        
+        DO ed = 1,nred 
+          Qyfri(ed,pt)%ptr =  detJe_recv(ed,pt)*Qyhatv(ed)        
+        ENDDO
+      ENDDO
+
+      RETURN 
+      END SUBROUTINE recieve_edge_nflux
+       
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!         
        
        
+       SUBROUTINE edge_integration(et,sel,eel,ndof,tnqpte)
        
-       SUBROUTINE edge_integration(et,sel,eel,ndof,nqpte)
-       
-       USE globals, ONLY: rhsH,rhsQx,rhsQy, &
-                          Hflux,Qxflux,Qyflux, &
+       USE globals, ONLY: rhsZ,rhsQx,rhsQy, &
+                          Zflux,Qxflux,Qyflux, &
                           phie_int
        
        IMPLICIT NONE
@@ -136,13 +212,13 @@ ed_points: DO pt = 1,nqpte ! Compute numerical fluxes for all edges
        INTEGER pt,l,el
        INTEGER :: et
        INTEGER :: sel,eel
-       INTEGER :: ndof,nqpte
+       INTEGER :: ndof,tnqpte
        
-       DO pt = 1,3*nqpte
+       DO pt = 1,tnqpte
          DO l = 1,ndof
 !!DIR$ VECTOR ALIGNED
            DO el = sel,eel
-             rhsH(el,l) = rhsH(el,l) - Hflux(el,pt)*phie_int(l,pt,et)
+             rhsZ(el,l) = rhsZ(el,l) - Zflux(el,pt)*phie_int(l,pt,et)
              rhsQx(el,l) = rhsQx(el,l) - Qxflux(el,pt)*phie_int(l,pt,et)
              rhsQy(el,l) = rhsQy(el,l) - Qyflux(el,pt)*phie_int(l,pt,et)                   
            ENDDO

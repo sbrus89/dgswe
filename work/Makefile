@@ -128,8 +128,10 @@ METIS_LIB = -L../metis-4.0.3 -lmetis
 objects = globals.o lapack_interfaces.o messenger2.o read_input.o allocation.o basis.o \
         vandermonde.o shape_functions.o transformation.o\
         area_qpts.o edge_qpts.o read_grid.o read_forcing.o modal2nodal.o \
-	initial.o connect.o curvilinear.o element_data.o   area_transformation.o normals.o edge_transformation.o \
-	bathymetry_interp.o edge_partition2.o area_integration.o edge_integration.o rhs2.o  numerical_flux.o rk.o write_output.o version.o swe_tri.o
+	initial.o connect.o curvilinear.o element_data.o area_transformation.o normals.o edge_transformation.o \
+	bathymetry_interp.o edge_partition2.o area_integration.o edge_integration.o rhs2.o numerical_flux.o rk.o \
+        boundary_edge_land.o boundary_edge_flow.o boundary_edge_elev.o linear_solve.o \
+        write_output.o version.o swe_tri.o
 
 obj := $(patsubst %.o, $(ODIR)%.o,$(objects))
 
@@ -318,6 +320,18 @@ $(ODIR)rhs4.o : rhs4.F90 globals.F90
 
 $(ODIR)numerical_flux.o : numerical_flux.f90 globals.F90
 	$(FC) $(CFLAGS) $< -o $@
+
+$(ODIR)boundary_edge_land.o : boundary_edge_land.F90 globals.F90
+	$(FC) $(CFLAGS) $< -o $@
+
+$(ODIR)boundary_edge_flow.o : boundary_edge_flow.F90 globals.F90
+	$(FC) $(CFLAGS) $< -o $@
+
+$(ODIR)boundary_edge_elev.o : boundary_edge_elev.F90 globals.F90
+	$(FC) $(CFLAGS) $< -o $@
+
+$(ODIR)linear_solve.o : linear_solve.F90 globals.F90
+	$(FC) $(CFLAGS_VEC) $< -o $@
 	
 $(ODIR)write_output.o : write_output.F90 globals.F90 messenger2.F90
 	$(FC) $(CFLAGS) $< -o $@	

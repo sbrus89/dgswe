@@ -1,38 +1,23 @@
       SUBROUTINE rhs2()
 
-      USE globals,  ONLY: pres,ne,ndof,nel_type,el_type, &
-                          elblk,nfblk,rnfblk,nrblk,npartet,nverts, &
-                          g,pt5g,tstage,ramp, & 
-                          H,Z,Qx,Qy, &
-                          rhsH,rhsZ,rhsQx,rhsQy, &
-                          Hqpt,Zqpt,Qxqpt,Qyqpt, &
-                          hbqpta,hbqpte,hbqpted, &
-                          nqpta,wpta,phia,phia_int,dpdx,dpdy,nqpte,wpte,phie,phie_int,mmi, &
-                          xmom,ymom,xymom,tau,src_x,src_y,dhbdx,dhbdy, &
-                          check_iedge,check_gedge, &
-                          Hflux,Zflux,Qxflux,Qyflux, &
-                          nied,iedn,nobed,obedn,nnfbed,nfbedn,nfbed,fbedn, &
-                          nobfr,obfreq,obper,obnfact,obamp_qpt,obph_qpt,obeq,obdepth_qpt, &
-                          nfbfr,fbfreq,fbper,fbnfact,fbamp_qpt,fbph_qpt,fbeq, &
-                          ged2led,ged2el,gel2ael, &
-                          recipHa, & 
-                          Hi,He,Zi,Ze,Qxi,Qxe,Qyi,Qye, &
-                          xmi,xme,ymi,yme,xymi,xyme, &
-                          Hfi,Hfe,Zfi,Zfe,Qxfi,Qxfe,Qyfi,Qyfe, &
+      USE globals,  ONLY: pres,ndof,nel_type, &
+                          elblk,nfblk,rnfblk,nrblk,npartet,nverts, &                        
+                          Hi,He,Qxi,Qxe,Qyi,Qye,hbqpted, &
+                          nqpta,nqpte, &                     
+                          check_iedge,check_gedge, &                     
                           const,inx,iny,icfac,detJe_in,detJe_ex,detJe, &
                           nx_pt,ny_pt,Spe, &
-                          Hhatv,Zhatv,Qxhatv,Qyhatv, &
-                          MirhsH,MirhsZ,MirhsQx,MirhsQy
+                          rhsZ,rhsQx,rhsQy, &
+                          MirhsZ,MirhsQx,MirhsQy
+
                           
-      USE read_dginp, ONLY: npart,cf                          
+      USE read_dginp, ONLY: npart                          
                           
 #ifdef CMPI                          
       USE messenger2, ONLY: myrank,message_recieve,message_send, &
                             nred,nproc_sr,match_edge, &
                             solreq,solreq_send,solreq_recv,ierr, &
-                            Zri,Zre,Hri,Hre,Qxri,Qxre,Qyri,Qyre, &
-                            xmri,ymri,xymri,xmre,ymre,xymre, &
-                            Zfri,Hfri,Qxfri,Qyfri, &
+                            Zri,Zre,Qxri,Qxre,Qyri,Qyre, &
                             rnx,rny,rcfac,detJe_recv,hbr         
                             
       USE mpi                            
@@ -41,18 +26,14 @@
                           
                    
       IMPLICIT NONE
-      INTEGER :: i,j,m,l,et,el,ed,pt,dof,blk,bfr
-      INTEGER :: ete,ged,led_in,led_ex,el_in,el_ex,gp_in,gp_ex
-      REAL(pres) :: sp,hb,arg,nx,ny,nx2,ny2,nxny,tx,ty,Qn,Qt
-      REAL(pres) :: Zhat,Qxhat,Qyhat,Z_in,Z_ex,Qx_in,Qx_ex,Qy_in,Qy_ex
-      REAL(pres) :: xmom_in,xmom_ex,ymom_in,ymom_ex,xymom_in,xymom_ex
+      INTEGER :: et,blk
+      INTEGER :: ete
 
 !     ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !     c Area Integrals
 !     ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc  
 
 !!DIR$ VECTOR ALIGNED
-!       rhsH(:,:) = 0d0
       rhsZ(:,:) = 0d0
 !!DIR$ VECTOR ALIGNED
       rhsQx(:,:) = 0d0
@@ -60,7 +41,6 @@
       rhsQy(:,:) = 0d0   
       
 !!DIR$ VECTOR ALIGNED
-!       MirhsH(:,:) = 0d0
       MirhsZ(:,:) = 0d0
 !!DIR$ VECTOR ALIGNED
       MirhsQx(:,:) = 0d0
@@ -119,14 +99,7 @@
       
 
 !$OMP do
-!       DO blk = 1,npart
-!         DO et = 1,nel_type       
-!           IF (npartet(et,blk) > 0) THEN
-!             CALL interior_edge_calculations(et,elblk(1,blk,et),elblk(2,blk,et),nfblk(1,blk),nfblk(2,blk),ndof(et),nqpta(et))
-!           ENDIF
-!         ENDDO
-!       ENDDO
-      
+
        DO blk = 1,npart 
         DO et = 1,nel_type   
         
@@ -199,265 +172,19 @@
 ! !      WRITE(195,"(6(ES24.17,1x))") (detJe_recv(match_edge,pt), pt = 1,nqpte(1))
 ! !       WRITE(195,"(6(ES24.17,1x))") (hbr(match_edge,pt), pt = 1,nqpte(1))
 
-      
-      DO pt = 1,nqpte(1)
-      
-        DO ed = 1,nred
-          Hre(ed) = Zre(ed,pt)%ptr + hbr(ed,pt)
-        ENDDO
-      
-!!DIR$ VECTOR ALIGNED      
-        DO ed = 1,nred
-          const(ed) = max(abs(Qxri(ed,pt)%ptr*rnx(ed,pt) + Qyri(ed,pt)%ptr*rny(ed,pt))/Hri(ed,pt)%ptr + sqrt(g*Hri(ed,pt)%ptr*rcfac(ed,pt)), &
-                          abs(Qxre(ed,pt)%ptr*rnx(ed,pt) + Qyre(ed,pt)%ptr*rny(ed,pt))/Hre(ed)        + sqrt(g*Hre(ed)*rcfac(ed,pt)))          
-        ENDDO
-        
+      CALL recieve_edge_nflux(nred,nqpte(1))      
 
-!DIR$ IVDEP
-!!DIR$ VECTOR ALIGNED
-        DO ed = 1,nred
-!           Hhatv(ed) = .5d0*(rnx(ed,pt)*(Qxri(ed,pt)%ptr + Qxre(ed,pt)%ptr) + rny(ed,pt)*(Qyri(ed,pt)%ptr + Qyre(ed,pt)%ptr) &
-!                                         - const(ed)*(Hre(ed,pt)%ptr - Hri(ed,pt)%ptr))        
-          Zhatv(ed) = .5d0*(rnx(ed,pt)*(Qxri(ed,pt)%ptr + Qxre(ed,pt)%ptr) + rny(ed,pt)*(Qyri(ed,pt)%ptr + Qyre(ed,pt)%ptr) &
-                                        - const(ed)*(Zre(ed,pt)%ptr - Zri(ed,pt)%ptr))
-        ENDDO
-
-!DIR$ IVDEP
-!!DIR$ VECTOR ALIGNED        
-        DO ed = 1,nred
-          recipHa(ed) = 1d0/Hre(ed)
-          
-          xmre(ed) = pt5g*(Hre(ed)*Hre(ed) - hbr(ed,pt)*hbr(ed,pt)) + Qxre(ed,pt)%ptr*Qxre(ed,pt)%ptr*recipHa(ed)
-          ymre(ed) = pt5g*(Hre(ed)*Hre(ed) - hbr(ed,pt)*hbr(ed,pt)) + Qyre(ed,pt)%ptr*Qyre(ed,pt)%ptr*recipHa(ed)
-          xymre(ed) = Qxre(ed,pt)%ptr*Qyre(ed,pt)%ptr*recipHa(ed)
-        ENDDO
- 
-!DIR$ IVDEP
-!!DIR$ VECTOR ALIGNED 
-        DO ed = 1,nred
-          Qxhatv(ed) = .5d0*(rnx(ed,pt)*(xmri(ed,pt)%ptr + xmre(ed)) + rny(ed,pt)*(xymri(ed,pt)%ptr + xymre(ed))  &
-                                        - const(ed)*(Qxre(ed,pt)%ptr - Qxri(ed,pt)%ptr))
-        ENDDO
-  
-!DIR$ IVDEP
-!!DIR$ VECTOR ALIGNED  
-        DO ed = 1,nred
-          Qyhatv(ed) = .5d0*(rnx(ed,pt)*(xymri(ed,pt)%ptr + xymre(ed)) + rny(ed,pt)*(ymri(ed,pt)%ptr + ymre(ed))  &
-                                        - const(ed)*(Qyre(ed,pt)%ptr - Qyri(ed,pt)%ptr))
-        ENDDO
-
-        DO ed = 1,nred                                       
-!           Hfri(ed,pt)%ptr =  detJe_recv(ed,pt)*Hhatv(ed)
-          Zfri(ed,pt)%ptr =  detJe_recv(ed,pt)*Zhatv(ed)          
-        ENDDO   
-        DO ed = 1,nred                                         
-          Qxfri(ed,pt)%ptr =  detJe_recv(ed,pt)*Qxhatv(ed)        
-        ENDDO        
-        DO ed = 1,nred 
-          Qyfri(ed,pt)%ptr =  detJe_recv(ed,pt)*Qyhatv(ed)        
-        ENDDO
-      ENDDO
 #endif              
 
 
 
 
-        IF (nqpte(3) == nqpte(1)) THEN
-!$OMP do     
-            ! No normal flow boundary condition 
-            DO ed = 1,nnfbed
-            
-              ged = nfbedn(ed)
-              led_in = ged2led(1,ged)        
-              el_in = gel2ael(ged2el(1,ged))  
-              
-              DO pt = 1,nqpte(3)
-
-              gp_in = (led_in-1)*nqpte(3) + pt
-
-              nx = nx_pt(ged,pt)
-              ny = ny_pt(ged,pt)
-              sp = Spe(ged,pt)
-              
-              hb = hbqpted(ged,pt)         
-
-              nx2 = nx*nx
-              ny2 = ny*ny
-              nxny = nx*ny
-
-              Z_in = Zqpt(el_in,gp_in)
-              Z_ex = Z_in              
-
-              Qx_in = Qxqpt(el_in,gp_in)
-              Qy_in = Qyqpt(el_in,gp_in)
-
-              Qx_ex = Qx_in*(ny2-nx2) - 2d0*nxny*Qy_in
-              Qy_ex = Qy_in*(nx2-ny2) - 2d0*nxny*Qx_in
-
-              CALL numerical_flux(Qx_in,Qy_in,Z_in,Qx_ex,Qy_ex,Z_ex,hb,nx,ny,sp,Qxhat,Qyhat,Zhat)
-
-!               Hflux(el_in,gp_in) = detJe(ged,pt)*Hhat
-              Zflux(el_in,gp_in) = detJe(ged,pt)*Zhat
-
-              Qxflux(el_in,gp_in) = detJe(ged,pt)*Qxhat
-
-              Qyflux(el_in,gp_in) = detJe(ged,pt)*Qyhat
-              
-              ENDDO
-            ENDDO
-!$OMP end do
-        ELSE
-!$OMP do     
-            ! No normal flow boundary condition 
-            DO ed = 1,nnfbed
-            
-              ged = nfbedn(ed)
-              led_in = ged2led(1,ged)            
-              el_in = gel2ael(ged2el(1,ged))
-              et = el_type(ged2el(1,ged)) 
-              
-              DO pt = 1,nqpte(et)
-
-                gp_in = (led_in-1)*nqpte(et) + pt
-
-                nx = nx_pt(ged,pt)
-                ny = ny_pt(ged,pt)
-                sp = Spe(ged,pt) 
-                
-                hb = hbqpted(ged,pt)                
-
-                nx2 = nx*nx
-                ny2 = ny*ny
-                nxny = nx*ny
-
-                Z_in = Z(el_in,1)
-                Qx_in = Qx(el_in,1)
-                Qy_in = Qy(el_in,1)
-                DO dof = 2,ndof(et)
-                  Z_in  = Z_in  + Z(el_in,dof)*phie(dof,gp_in,et)
-                  Qx_in = Qx_in + Qx(el_in,dof)*phie(dof,gp_in,et)
-                  Qy_in = Qy_in + Qy(el_in,dof)*phie(dof,gp_in,et)
-                ENDDO            
-              
-                Z_ex = Z_in
-                Qx_ex = Qx_in*(ny2-nx2) - 2d0*nxny*Qy_in
-                Qy_ex = Qy_in*(nx2-ny2) - 2d0*nxny*Qx_in
-
-                CALL numerical_flux(Qx_in,Qy_in,Z_in,Qx_ex,Qy_ex,Z_ex,hb,nx,ny,sp,Qxhat,Qyhat,Zhat)
-           
-                Zhat  = detJe(ged,pt)*Zhat              
-                Qxhat = detJe(ged,pt)*Qxhat
-                Qyhat = detJe(ged,pt)*Qyhat
-              
-                DO l = 1,ndof(et)
-                  rhsZ(el_in,l)  = rhsZ(el_in,l)  - Zhat*phie_int(l,gp_in,et)
-                  rhsQx(el_in,l) = rhsQx(el_in,l) - Qxhat*phie_int(l,gp_in,et)
-                  rhsQy(el_in,l) = rhsQy(el_in,l) - Qyhat*phie_int(l,gp_in,et)                   
-                ENDDO  
-              
-              ENDDO
-            ENDDO
-!$OMP end do
-        ENDIF
+      CALL boundary_edge_land()
         
-        
-!$OMP do
+      CALL boundary_edge_flow()        
 
-            ! Flow specified boundary edges
-            DO ed = 1,nfbed
-            
-              ged = fbedn(ed)
-              led_in = ged2led(1,ged)  
-              el_in = gel2ael(ged2el(1,ged))      
-              
-              DO pt = 1,nqpte(1)
-
-              gp_in = (led_in-1)*nqpte(1) + pt
-       
-              nx = nx_pt(ged,pt)
-              ny = ny_pt(ged,pt)
-              sp = Spe(ged,pt)      
-              
-              hb = hbqpted(ged,pt)              
-
-              tx = -ny
-              ty = nx
-
-              Z_in = Zqpt(el_in,gp_in)
-              Z_ex = Z_in
-
-              Qx_in = Qxqpt(el_in,gp_in)
-              Qy_in = Qyqpt(el_in,gp_in)
-
-              Qn = 0d0
-              Qt = 0d0
-              DO bfr = 1,nfbfr
-                arg = fbfreq(bfr)*(tstage - real(INT(tstage/fbper(bfr)),pres)*fbper(bfr)) + fbeq(bfr)
-                Qn = Qn + fbamp_qpt(bfr,pt,ed)*fbnfact(bfr)*ramp*COS(arg-fbph_qpt(bfr,pt,ed))
-              ENDDO
-
-              Qn = -Qn
-
-              Qx_ex = ( ty*Qn - ny*Qt)/(nx*ty-ny*tx)
-              Qy_ex = (-tx*Qn + nx*Qt)/(nx*ty-ny*tx)
- 
-              CALL numerical_flux(Qx_in,Qy_in,Z_in,Qx_ex,Qy_ex,Z_ex,hb,nx,ny,sp,Qxhat,Qyhat,Zhat)
-
-              Zflux(el_in,gp_in) = detJe(ged,pt)*Zhat
-              
-              Qxflux(el_in,gp_in) = detJe(ged,pt)*Qxhat
-
-              Qyflux(el_in,gp_in) = detJe(ged,pt)*Qyhat
-              
-              ENDDO
-            ENDDO
-            
-!$OMP end do
-
-!$OMP do
-
-             ! Open boundary edges (elevation specified)
-            DO ed = 1,nobed
-            
-              ged = obedn(ed)
-              led_in = ged2led(1,ged)
-              el_in = gel2ael(ged2el(1,ged))
-              
-              DO pt = 1,nqpte(1)
-
-              gp_in = (led_in-1)*nqpte(1) + pt
-
-              nx = nx_pt(ged,pt)
-              ny = ny_pt(ged,pt)
-              sp = Spe(ged,pt)
-              
-              hb = hbqpted(ged,pt)                 
-
-              Z_in = Zqpt(el_in,gp_in)
-
-              Z_ex = 0d0
-              DO bfr = 1,nobfr
-                arg = obfreq(bfr)*(tstage-real(INT(tstage/obper(bfr)),pres)*obper(bfr)) + obeq(bfr)
-                Z_ex = Z_ex + obamp_qpt(bfr,pt,ed)*obnfact(bfr)*ramp*COS(arg-obph_qpt(bfr,pt,ed))
-              ENDDO
-!               H_ex = H_ex + obdepth_qpt(ed,pt)
-
-              Qx_in = Qxqpt(el_in,gp_in)
-              Qy_in = Qyqpt(el_in,gp_in)
-
-              Qx_ex = Qx_in
-              Qy_ex = Qy_in
- 
-              CALL numerical_flux(Qx_in,Qy_in,Z_in,Qx_ex,Qy_ex,Z_ex,hb,nx,ny,sp,Qxhat,Qyhat,Zhat)
-
-              Zflux(el_in,gp_in) = detJe(ged,pt)*Zhat
-
-              Qxflux(el_in,gp_in) = detJe(ged,pt)*Qxhat
-
-              Qyflux(el_in,gp_in) = detJe(ged,pt)*Qyhat                            
-              ENDDO
-             ENDDO
-!$OMP end do        
+      CALL boundary_edge_elev()
+      
 
 
 
@@ -472,47 +199,13 @@
             ete = 2
           ELSE   
             ete = et
-          ENDIF
-          
+          ENDIF          
           
           IF (npartet(et,blk) > 0) THEN    
           
-            DO pt = 1,nverts(et)*nqpte(ete)
-              DO l = 1,ndof(et)
-!!DIR$ VECTOR ALIGNED
-                DO el = elblk(1,blk,et),elblk(2,blk,et)
-                  rhsZ(el,l)  = rhsZ(el,l)  - Zflux(el,pt)*phie_int(l,pt,ete)
-                  rhsQx(el,l) = rhsQx(el,l) - Qxflux(el,pt)*phie_int(l,pt,ete)
-                  rhsQy(el,l) = rhsQy(el,l) - Qyflux(el,pt)*phie_int(l,pt,ete)                   
-                ENDDO
-              ENDDO                                    
-            ENDDO  
+            CALL edge_integration(ete,elblk(1,blk,et),elblk(2,blk,et),ndof(et),nverts(et)*nqpte(ete))  
  
-            SELECT CASE(et)
-               
-              CASE(1)
-                DO l = 1,ndof(et)
-                  DO el = elblk(1,blk,et),elblk(2,blk,et)
-                    MirhsZ(el,l)  = MirhsZ(el,l)  + mmi(el,1)*rhsZ(el,l) 
-                    MirhsQx(el,l) = MirhsQx(el,l) + mmi(el,1)*rhsQx(el,l) 
-                    MirhsQy(el,l) = MirhsQy(el,l) + mmi(el,1)*rhsQy(el,l) 
-                  ENDDO
-                ENDDO
- 
-              CASE DEFAULT
-              
-                m = 1
-                DO i = 1,ndof(et)
-                  DO j = 1,ndof(et)
-                    DO el = elblk(1,blk,et),elblk(2,blk,et)
-                      MirhsZ(el,i)  = MirhsZ(el,i)  + mmi(el,m)*rhsZ(el,j) 
-                      MirhsQx(el,i) = MirhsQx(el,i) + mmi(el,m)*rhsQx(el,j) 
-                      MirhsQy(el,i) = MirhsQy(el,i) + mmi(el,m)*rhsQy(el,j) 
-                    ENDDO
-                    m = m + 1
-                  ENDDO
-                ENDDO            
-            END SELECT
+            CALL linear_solve(et,elblk(1,blk,et),elblk(2,blk,et),ndof(et))
             
           ENDIF
         ENDDO
