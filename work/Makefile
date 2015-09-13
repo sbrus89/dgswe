@@ -1,7 +1,6 @@
 SHELL = /bin/sh
 
 VPATH := ../src/
-ODIR = odir/
 
 FULLNAME := $(shell hostname)
 # GIT_SHA := $(shell git rev-parse --short HEAD)
@@ -18,6 +17,7 @@ GIT_MOD := $(strip $(subst 0,,$(GIT_MOD)))
 
 ifeq ($(BUILDTYPE),dgswe)
   FC = ifort
+  ODIR = odir_dgswe/
  
   CFLAGS_VEC  = -O3 -xHost -vec-report6  -I$(ODIR) -c
   CFLAGS      = -O3 -xHost  -I$(ODIR) -c
@@ -48,6 +48,8 @@ endif
 
 ifeq ($(BUILDTYPE),dgswe_omp)
   FC = ifort
+  ODIR = odir_omp/
+  
   CFLAGS_VEC  =  -O3 -xHost -align array32byte -openmp -Dopenmp -vec-report6 -I$(ODIR) -c
   CFLAGS      =  -O3 -xHost -align array32byte -openmp -Dopenmp -I$(ODIR) -c 
   CFLAGS_LINK = -O3 -xHost -openmp -Dopenmp -o 
@@ -63,27 +65,36 @@ endif
 
 ifeq ($(BUILDTYPE),pdgswe)
   FC = mpif90
+  ODIR = odir_pdgswe/
+  
   CFLAGS_VEC  =  -O0 -fp-model strict -DCMPI -I$(ODIR) -c
   CFLAGS      =  -O0 -fp-model strict -DCMPI -I$(ODIR) -c 
   CFLAGS_LINK = -O0 -fp-model strict -o 
+  
   EXE_NAME = pdgswe
   MESSAGE = Compling parallel program with optimization flags
 endif
 
 ifeq ($(BUILDTYPE),dgswe_debug)
   FC = ifort
+  ODIR = odir_debug/
+  
   CFLAGS_VEC  =  -C -g -traceback  -I$(ODIR) -c
   CFLAGS      =  -C -g -traceback  -I$(ODIR) -c 
   CFLAGS_LINK = -o 
+  
   EXE_NAME = dgswe_debug
   MESSAGE =  Compling serial program with debug flags 
 endif
 
 ifeq ($(BUILDTYPE),pdgswe_debug)
   FC = mpif90
+  ODIR = odir_pdebug/
+  
   CFLAGS_VEC  =  -C -g -traceback -DCMPI -I$(ODIR) -c
   CFLAGS      =  -C -g -traceback -DCMPI -I$(ODIR) -c 
   CFLAGS_LINK =  -o 
+  
   EXE_NAME = pdgswe_debug
   MESSAGE = Compling parallel program with debug flags
 endif
@@ -197,11 +208,11 @@ $(ODIR) :
 	
 clean : 
 	@echo "\n\n"
-	rm -r odir
+	rm -r odir*/*.o odir*/*.mod
 	
 clobber :
 	@echo "\n\n"
-	rm -r odir
+	rm -rf odir*
 	rm dgswe pdgswe dgswe_debug pdgswe_debug
 
 cleanmetis : 
