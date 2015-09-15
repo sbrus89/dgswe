@@ -4,7 +4,7 @@
 
       SAVE
       
-      INTEGER, PARAMETER :: pres = kind(1d0)
+      INTEGER, PARAMETER :: rp = kind(1d0)
 
       CHARACTER(100) :: grid_name
       
@@ -31,10 +31,10 @@
       INTEGER, ALLOCATABLE, DIMENSION(:) :: nelnds
       INTEGER :: mnelnds
       INTEGER, ALLOCATABLE, DIMENSION(:) :: el_type    
-      REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: xy
-      REAL(pres), ALLOCATABLE, DIMENSION(:) :: depth      
-      REAL(pres), ALLOCATABLE, DIMENSION(:,:,:) :: elxy
-      REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: elhb   
+      REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: xy
+      REAL(rp), ALLOCATABLE, DIMENSION(:) :: depth      
+      REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: elxy
+      REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: elhb   
       INTEGER :: curved_grid
 
       INTEGER :: nope
@@ -103,25 +103,25 @@
       
       INTEGER :: nobfr ! number of periodic forcings on elevation boundaries
       CHARACTER(10), ALLOCATABLE, DIMENSION(:) :: obtag,obtag2 ! constituent name
-      REAL(pres), ALLOCATABLE, DIMENSION(:) :: obfreq ! open bounday constituent frequency
-      REAL(pres), ALLOCATABLE, DIMENSION(:) :: obnfact ! open boundary constituent nodal factor
-      REAL(pres), ALLOCATABLE, DIMENSION(:) :: obeq ! open bounday constituent equilibrium argument
-      REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: obamp ! open boundary node amplitute
-      REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: obph ! open boundary node phase
+      REAL(rp), ALLOCATABLE, DIMENSION(:) :: obfreq ! open bounday constituent frequency
+      REAL(rp), ALLOCATABLE, DIMENSION(:) :: obnfact ! open boundary constituent nodal factor
+      REAL(rp), ALLOCATABLE, DIMENSION(:) :: obeq ! open bounday constituent equilibrium argument
+      REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: obamp ! open boundary node amplitute
+      REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: obph ! open boundary node phase
       
-      REAL(pres), ALLOCATABLE, DIMENSION(:,:,:) :: lobamp      
-      REAL(pres), ALLOCATABLE, DIMENSION(:,:,:) :: lobph
+      REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: lobamp      
+      REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: lobph
 
       INTEGER :: nfbfr ! number of periodic forcings on flow boundaries
       CHARACTER(10), ALLOCATABLE, DIMENSION(:) :: fbtag,fbtag2 ! constituent name
-      REAL(pres), ALLOCATABLE, DIMENSION(:) :: fbfreq ! flow bounday constituent frequency
-      REAL(pres), ALLOCATABLE, DIMENSION(:) :: fbnfact ! flow boundary constituent nodal factor
-      REAL(pres), ALLOCATABLE, DIMENSION(:) :: fbeq ! flow bounday constituent equilibrium argument
-      REAL(pres), ALLOCATABLE, DIMENSION(:,:,:) :: fbamp ! flow boundary node amplitute  
-      REAL(pres), ALLOCATABLE, DIMENSION(:,:,:) :: fbph ! flow boundary node phase
+      REAL(rp), ALLOCATABLE, DIMENSION(:) :: fbfreq ! flow bounday constituent frequency
+      REAL(rp), ALLOCATABLE, DIMENSION(:) :: fbnfact ! flow boundary constituent nodal factor
+      REAL(rp), ALLOCATABLE, DIMENSION(:) :: fbeq ! flow bounday constituent equilibrium argument
+      REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: fbamp ! flow boundary node amplitute  
+      REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: fbph ! flow boundary node phase
 
-      REAL(pres), ALLOCATABLE, DIMENSION(:,:,:,:) :: lfbamp
-      REAL(pres), ALLOCATABLE, DIMENSION(:,:,:,:) :: lfbph 
+      REAL(rp), ALLOCATABLE, DIMENSION(:,:,:,:) :: lfbamp
+      REAL(rp), ALLOCATABLE, DIMENSION(:,:,:,:) :: lfbph 
       INTEGER, ALLOCATABLE, DIMENSION(:) :: lnbouf
       
       END MODULE globals

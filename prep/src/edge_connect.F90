@@ -1,6 +1,6 @@
       SUBROUTINE edge_connect()
 
-      USE globals, ONLY: pres,nn,ne,ned,vct,el_type,nverts,curved_grid, &
+      USE globals, ONLY: rp,nn,ne,ned,vct,el_type,nverts,curved_grid, &
                          mnepn,epn,nepn, &
                          ged2nn,ged2el,ged2led, &
                          nied,iedn,nobed,obedn,nfbed,fbedn,nnfbed,nfbedn,nbed,bedn, &
@@ -19,7 +19,7 @@
       INTEGER :: alloc_status
       INTEGER :: found
       INTEGER :: nvert1,nvert2,nvert
-      REAL(pres) :: x1,x2,x3,y1,y2,y3
+      REAL(rp) :: x1,x2,x3,y1,y2,y3
       
       INTEGER, ALLOCATABLE, DIMENSION(:) :: ied_temp,bnd_temp,nfbnd_temp,fbnd_temp ! temporary arrary for boundary edges
       INTEGER, ALLOCATABLE, DIMENSION(:,:) :: ged2nn_temp, ged2el_temp, ged2led_temp ! temporary arrays for edge connectivity
