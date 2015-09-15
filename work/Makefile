@@ -136,13 +136,16 @@ METIS_LIB = -L../metis-4.0.3 -lmetis
 #                               Objects                                #
 ########################################################################
 
-objects = globals.o lapack_interfaces.o messenger2.o read_input.o allocation.o basis.o \
-        vandermonde.o shape_functions.o transformation.o\
-        area_qpts.o edge_qpts.o read_grid.o read_forcing.o modal2nodal.o interp_forcing.o\
-	initial.o connect.o curvilinear.o element_data.o area_transformation.o normals.o edge_transformation.o \
-	bathymetry_interp.o edge_partition2.o area_integration.o edge_integration.o rhs2.o numerical_flux.o rk.o \
-        boundary_edge_land.o boundary_edge_flow.o boundary_edge_elev.o linear_solve.o \
-        write_output.o version.o dgswe.o
+objects = globals.o lapack_interfaces.o messenger2.o allocation.o  \
+          read_input.o read_grid.o read_forcing.o bathymetry_interp.o \
+          connect.o initial.o interp_forcing.o edge_partition2.o curvilinear.o \
+          vandermonde.o shape_functions.o transformation.o \
+          element_data.o area_transformation.o normals.o edge_transformation.o \
+          basis.o area_qpts.o edge_qpts.o \
+          rhs2.o rk.o \
+          area_integration.o edge_integration.o  numerical_flux.o linear_solve.o \
+          boundary_edge_land.o boundary_edge_flow.o boundary_edge_elev.o  \
+          write_output.o modal2nodal.o version.o dgswe.o
 
 obj := $(patsubst %.o, $(ODIR)%.o,$(objects))
 
@@ -160,7 +163,7 @@ dgswe :
 	
 dgswe_omp : 
 	@echo "\n\n"
-	$(MAKE) BUILDTYPE=dgswe_omp dgswe	
+	$(MAKE) BUILDTYPE=dgswe_omp dgswe
 
 pdgswe : 
 	@echo "\n\n"
@@ -184,7 +187,7 @@ prep :
 
 post : 
 	@echo "\n\n"
-	$(MAKE) -C ../post dgpost	
+	$(MAKE) -C ../post dgpost
 
 else
 
@@ -244,7 +247,7 @@ $(ODIR)lapack_interfaces.o : lapack_interfaces.F90
 
 $(ODIR)messenger2.o : messenger2.F90                           $(ODIR)globals.o
 	$(FC) $(CFLAGS) $(ALIGN) $< -o $@
-	mv messenger2.mod $(ODIR)	
+	mv messenger2.mod $(ODIR)
 
 $(ODIR)allocation.o : allocation.F90                           $(ODIR)globals.o $(ODIR)messenger2.o $(ODIR)read_input.o
 	$(FC) $(CFLAGS) $< -o $@
@@ -255,7 +258,7 @@ $(ODIR)basis.o : basis.F90                                     $(ODIR)globals.o 
 	mv basis.mod $(ODIR)
 	
 $(ODIR)read_input.o : read_input.F90                           $(ODIR)globals.o $(ODIR)messenger2.o
-	$(FC) $(CFLAGS) $< -o $@	
+	$(FC) $(CFLAGS) $< -o $@
 	mv read_dginp.mod $(ODIR)
 
 $(ODIR)vandermonde.o : vandermonde.F90                         $(ODIR)globals.o $(ODIR)basis.o
@@ -313,13 +316,13 @@ $(ODIR)area_integration.o : area_integration.F90               $(ODIR)globals.o 
 	$(FC) $(CFLAGS_VEC) $< -o $@
 	
 $(ODIR)normals.o : normals.F90                                 $(ODIR)globals.o $(ODIR)transformation.o
-	$(FC) $(CFLAGS) $< -o $@	
+	$(FC) $(CFLAGS) $< -o $@
 
 $(ODIR)edge_integration.o : edge_integration.F90               $(ODIR)globals.o $(ODIR)messenger2.o
 	$(FC) $(CFLAGS_VEC) $< -o $@
 	
 $(ODIR)bathymetry_interp.o : bathymetry_interp.F90             $(ODIR)globals.o $(ODIR)lapack_interfaces.o $(ODIR)read_input.o $(ODIR)transformation.o
-	$(FC) $(CFLAGS) $< -o $@	
+	$(FC) $(CFLAGS) $< -o $@
 
 $(ODIR)rk.o : rk.F90                                           $(ODIR)globals.o $(ODIR)messenger2.o $(ODIR)read_input.o
 	$(FC) $(CFLAGS_VEC) $< -o $@
@@ -346,10 +349,10 @@ $(ODIR)linear_solve.o : linear_solve.F90                       $(ODIR)globals.o
 	$(FC) $(CFLAGS) $< -o $@
 	
 $(ODIR)write_output.o : write_output.F90                       $(ODIR)globals.o $(ODIR)messenger2.o $(ODIR)read_input.o
-	$(FC) $(CFLAGS) $< -o $@	
+	$(FC) $(CFLAGS) $< -o $@
 	
 $(ODIR)version.o : version.F90                                 $(ODIR)globals.o $(ODIR)messenger2.o 
-	$(FC) $(CFLAGS) $< -o $@		
+	$(FC) $(CFLAGS) $< -o $@
 
 $(ODIR)dgswe.o : dgswe.F90                                     $(ODIR)globals.o $(ODIR)messenger2.o $(ODIR)read_input.o $(ODIR)allocation.o $(ODIR)basis.o
 	$(FC) $(CFLAGS) $< -o $@
