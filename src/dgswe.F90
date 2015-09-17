@@ -64,7 +64,7 @@
       CALL metis2()
       
       ! Decompose domain and prep element/edge blocking
-      CALL decomp2()
+      CALL edge_partition2()
       
       ! Set up send/recieve buffers and edge data structures
       CALL message_setup()
