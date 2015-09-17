@@ -1,18 +1,19 @@
       SUBROUTINE write_files()
       
-      USE globals, ONLY: nproc,ne,nn,nresel,nresnd,nd_l2g,xy,depth,lect,lnelnds,nope,nbou,fbseg, &
+      USE globals, ONLY: ne,nn,nresel,nresnd,nd_l2g,xy,depth,lect,lnelnds,nope,nbou,fbseg, &
                          lnope,lneta,lobseg,lobnds,lnbou,lnvel,lfbseg,lfbnds, &
                          nobfr,obtag,obtag2,obfreq,obnfact,obeq,lobamp,lobph, &
                          nfbfr,fbtag,fbtag2,fbfreq,fbnfact,fbeq,lfbamp,lfbph,lnbouf, &
                          nsred,ned_sr,pe_sr,el_sr,led_sr,el_l2g,mndof,nlines, &
-                         el_type,elhb,hbnds
+                         el_type,elhb
                          
-      USE read_dginp, ONLY: write_local,hbp                         
+      USE read_dginp, ONLY: write_local,hbp   
+      USE messenger2, ONLY: nproc
 
       IMPLICIT NONE
 
       
-      INTEGER :: pe,pes,nd,el,bnd,bfr,seg,ed
+      INTEGER :: i,pe,pes,nd,el,bnd,bfr,seg,ed
       INTEGER :: segtype,et
       INTEGER :: gnd,gel
       INTEGER :: nnd
@@ -23,6 +24,11 @@
       LOGICAL :: file_exists
 
       INTEGER, ALLOCATABLE, DIMENSION(:) :: sended
+      
+      PRINT "(A)", ""
+      PRINT "(A)", "---------------------------------------------"
+      PRINT "(A)", "           Subdomain Information             "
+      PRINT "(A)", "---------------------------------------------"      
 
       lname = 6
       dirname = "PE0000"
@@ -48,38 +54,43 @@
         OPEN(UNIT=14,FILE=dirname(1:lname)//'/'//'fort.14')
 
         WRITE(14,"(A)") dirname(1:lname)
-        WRITE(14,*) nresel(pe),nresnd(pe)
+        WRITE(14,"(2(I8,1x))") nresel(pe),nresnd(pe)
+        
         PRINT*, pe, nresel(pe),nresnd(pe),ned_sr(pe)
         
         DO nd = 1,nresnd(pe)
           gnd = nd_l2g(nd,pe)
-          WRITE(14,"(I8,1X,3(D24.17,1X))") nd, xy(1,gnd), xy(2,gnd), depth(gnd)
+          WRITE(14,"(I8,1X,3(E24.17,1X))") nd, xy(1,gnd), xy(2,gnd), depth(gnd)
         ENDDO
         
         DO el = 1,nresel(pe)
-          WRITE(14,*) el, lnelnds(el,pe), (lect(nd,el,pe), nd = 1,lnelnds(el,pe))
+          WRITE(14,"(15(I8,1x))") el, lnelnds(el,pe), (lect(nd,el,pe), nd = 1,lnelnds(el,pe))
         ENDDO
         
-        WRITE(14,*) lnope(pe)
-        WRITE(14,*) lneta(pe)
+        WRITE(14,"(I8,19x,A)") lnope(pe), "! number of open boundaries"
+        WRITE(14,"(I8,19x,A)") lneta(pe), "! number of total elevation specified boundary nodes"
         
+        i = 0
         DO bnd = 1,nope
           IF(lobseg(bnd,pe) > 0) THEN
-            WRITE(14,*) lobseg(bnd,pe)
+            i = i + 1
+            WRITE(14,"(I8,10x,A,1x,I8)") lobseg(bnd,pe), "! number of nodes in open boundary", i
             DO nd = 1,lobseg(bnd,pe)
-              WRITE(14,*) lobnds(nd,bnd,pe)
+              WRITE(14,"(I8)") lobnds(nd,bnd,pe)
             ENDDO
           ENDIF
         ENDDO
         
-        WRITE(14,*) lnbou(pe)
-        WRITE(14,*) lnvel(pe)
+        WRITE(14,"(I8,19x,A)") lnbou(pe), "! number of normal flow boundaries"
+        WRITE(14,"(I8,19x,A)") lnvel(pe), "! total number of normal flow nodes"
         
+        i = 0
         DO bnd = 1,lnbou(pe)
           IF(lfbseg(1,bnd,pe) > 0) THEN
-            WRITE(14,*) lfbseg(1,bnd,pe),lfbseg(2,bnd,pe)
+            i = i + 1
+            WRITE(14,"(I8,1x,I8,10x,A,1x,I8)") lfbseg(1,bnd,pe),lfbseg(2,bnd,pe), "! number of nodes in normal flow boundary", i
             DO nd = 1,lfbseg(1,bnd,pe) 
-              WRITE(14,*) lfbnds(nd,bnd,pe)
+              WRITE(14,"(I8)") lfbnds(nd,bnd,pe)
             ENDDO
           ENDIF
         ENDDO
@@ -129,8 +140,10 @@
           ENDDO
           DO bfr = 1,nobfr
             WRITE(15,*) obtag2(bfr)
-            DO nd = 1,lneta(pe)
-              WRITE(15,"(2(D24.17,1x))") lobamp(nd,bfr,pe),lobph(nd,bfr,pe)
+            DO seg = 1,lnope(pe)
+              DO nd = 1,lobseg(seg,pe)
+                WRITE(15,"(2(D24.17,1x))") lobamp(nd,seg,bfr,pe),lobph(nd,seg,bfr,pe)
+              ENDDO
             ENDDO
           ENDDO
         ELSE

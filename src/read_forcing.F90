@@ -10,7 +10,7 @@
       USE read_dginp, ONLY: forcing_file
 
       IMPLICIT NONE
-      INTEGER :: bfr,node,seg,segtype
+      INTEGER :: bfr,nd,seg,segtype
       LOGICAL :: file_exists,any_nfb
       
       
@@ -38,8 +38,8 @@
       DO bfr = 1,nobfr
         READ(15,*) obtag2(bfr) 
         DO seg = 1,nope
-          DO node = 1,obseg(seg)
-            READ(15,*) obamp(node,seg,bfr),obph(node,seg,bfr)
+          DO nd = 1,obseg(seg)
+            READ(15,*) obamp(nd,seg,bfr),obph(nd,seg,bfr)
           ENDDO
         ENDDO
       ENDDO
@@ -73,8 +73,8 @@
           DO seg = 1,nbou
             segtype = fbseg(2,seg)
             IF(segtype == 2 .OR. segtype == 12 .OR. segtype == 22)THEN
-              DO node = 1,fbseg(1,seg)
-                READ(15,*) fbamp(node,seg,bfr),fbph(node,seg,bfr)
+              DO nd = 1,fbseg(1,seg)
+                READ(15,*) fbamp(nd,seg,bfr),fbph(nd,seg,bfr)
               ENDDO
             ENDIF
           ENDDO

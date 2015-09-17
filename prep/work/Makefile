@@ -8,7 +8,7 @@ ODIR = odir/
 ########################################################################
 
 FC = ifort
-CFLAGS = -c -g -traceback -I$(ODIR)
+CFLAGS = -c -C -g -traceback -I$(ODIR)
 
 ########################################################################
 #                           Library Links                              #
@@ -21,8 +21,8 @@ LIB = metis
 #                               Objects                                #
 ########################################################################
 
-objects = globals.o read_input_vars.o read_input.o allocation.o read_grid.o read_forcing.o  \
-          edge_connect.o metis2.o decomp2.o write_files.o dgprep.o
+objects = globals.o messenger2.o read_input.o allocation.o read_grid.o read_forcing.o  \
+          connect.o metis2.o decomp2.o write_files.o version.o dgprep.o
 obj = $(patsubst %.o, $(ODIR)%.o,$(objects))
 
 ########################################################################
@@ -57,47 +57,44 @@ clean :
 # $< = first prerequisite/depenency
 # $@ = name of the target		
 
-$(ODIR)globals.o : globals.F90
+$(ODIR)globals.o : ../../src/globals.F90
 	$(FC) $(CFLAGS) $< -o $@
 	mv globals.mod $(ODIR)
 	
-$(ODIR)allocation.o : allocation.f90                                   $(ODIR)globals.o $(ODIR)read_input.o
+$(ODIR)allocation.o : ../../src/allocation.F90                 $(ODIR)globals.o $(ODIR)read_input.o $(ODIR)read_input.o $(ODIR)messenger2.o
 	$(FC) $(CFLAGS) $< -o $@
 	mv allocation.mod $(ODIR)
 
-$(ODIR)read_input_vars.o : read_input_vars.F90 
+$(ODIR)messenger2.o : ../../src/messenger2.F90                 $(ODIR)globals.o 
 	$(FC) $(CFLAGS) $< -o $@
 	mv messenger2.mod $(ODIR)
 	
-# This is shared with dgswe 
-$(ODIR)read_input.o : ../../src/read_input.F90                         $(ODIR)globals.o $(ODIR)read_input_vars.o         
+$(ODIR)read_input.o : ../../src/read_input.F90                 $(ODIR)globals.o $(ODIR)messenger2.o         
 	$(FC) $(CFLAGS) $< -o $@
 	mv read_dginp.mod $(ODIR)
 
-# This is shared with dgswe 
-$(ODIR)read_input.o : ../../src/read_input.F90                         $(ODIR)globals.o $(ODIR)read_input_vars.o         
-	$(FC) $(CFLAGS) $< -o $@
-	mv read_dginp.mod $(ODIR)
-
-$(ODIR)read_grid.o : read_grid.F90                                     $(ODIR)globals.o $(ODIR)allocation.o
+$(ODIR)read_grid.o : read_grid.F90                             $(ODIR)globals.o $(ODIR)allocation.o $(ODIR)read_input.o $(ODIR)messenger2.o
 	$(FC) $(CFLAGS) $< -o $@
 
-$(ODIR)read_forcing.o : read_forcing.F90                               $(ODIR)globals.o $(ODIR)allocation.o $(ODIR)read_input.o
+$(ODIR)read_forcing.o : ../../src/read_forcing.F90             $(ODIR)globals.o $(ODIR)allocation.o $(ODIR)read_input.o $(ODIR)messenger2.o
 	$(FC) $(CFLAGS) $< -o $@
 
-$(ODIR)edge_connect.o : edge_connect.F90                               $(ODIR)globals.o $(ODIR)allocation.o
+$(ODIR)connect.o : ../../src/connect.F90                       $(ODIR)globals.o $(ODIR)allocation.o $(ODIR)read_input.o $(ODIR)messenger2.o 
 	$(FC) $(CFLAGS) $< -o $@
 
-$(ODIR)metis2.o : metis2.F90                                           $(ODIR)globals.o
+$(ODIR)metis2.o : ../../src/metis2.F90                         $(ODIR)globals.o
 	$(FC) $(CFLAGS) $< -o $@
 
-$(ODIR)decomp2.o : decomp2.F90                                         $(ODIR)globals.o
+$(ODIR)decomp2.o : decomp2.F90                                 $(ODIR)globals.o $(ODIR)messenger2.o 
 	$(FC) $(CFLAGS) $< -o $@
 
-$(ODIR)write_files.o : write_files.F90                                 $(ODIR)globals.o $(ODIR)read_input.o
+$(ODIR)write_files.o : write_files.F90                         $(ODIR)globals.o $(ODIR)read_input.o $(ODIR)messenger2.o 
 	$(FC) $(CFLAGS) $< -o $@
 
-$(ODIR)dgprep.o : dgprep.F90                                           $(ODIR)globals.o $(ODIR)allocation.o $(ODIR)read_input.o
+$(ODIR)version.o : ../../src/version.F90                       $(ODIR)globals.o $(ODIR)messenger2.o 
+	$(FC) $(CFLAGS) $< -o $@	
+
+$(ODIR)dgprep.o : dgprep.F90                                   $(ODIR)globals.o $(ODIR)allocation.o $(ODIR)read_input.o $(ODIR)messenger2.o 
 	$(FC) $(CFLAGS) $< -o $@
 
 

@@ -1,6 +1,6 @@
       SUBROUTINE decomp2()
       
-      USE globals, ONLY: nn,ne,ned,part,nproc,ect,nelnds,mnelnds,xy,lect,lnelnds, &
+      USE globals, ONLY: nn,ne,ned,part,ect,nelnds,mnelnds,lect,lnelnds, &
                          ged2el,ged2led,&
                          nsred,sredn, &
                          nresel,el_g2l,el_l2g, &
@@ -12,6 +12,8 @@
                          lnbou,lnvel,lfbseg,lfbnds, &
                          nobfr,obamp,obph,lobamp,lobph, &
                          nfbfr,fbamp,fbph,lfbamp,lfbph,lnbouf
+                         
+      USE messenger2, ONLY: nproc                         
 
       IMPLICIT NONE
 
@@ -130,8 +132,8 @@
       ALLOCATE(lobnds(mnobnds,nope,nproc))
       ALLOCATE(lneta(nproc))
       ALLOCATE(lnope(nproc))
-      ALLOCATE(lobamp(neta,nobfr,nproc))
-      ALLOCATE(lobph(neta,nobfr,nproc))
+      ALLOCATE(lobamp(mnobnds,nope,nobfr,nproc))
+      ALLOCATE(lobph(mnobnds,nope,nobfr,nproc))
       
       mnfbnds = MAXVAL(fbseg(1,:))
       mlbou = nproc*nbou
@@ -213,15 +215,21 @@
             ELSE
               lneta(pe) = lneta(pe) + 1
               lobseg(bnd,pe) = lobseg(bnd,pe) + 1
-              lobnds(lobseg(bnd,pe),bnd,pe) = lnd 
+              nlbnds = lobseg(bnd,pe)
+              lobnds(nlbnds,bnd,pe) = lnd 
               
-              lobamp(lneta(pe),:,pe) = obamp(ndcnt,:)
-              lobph(lneta(pe),:,pe) = obph(ndcnt,:)
+              IF(lobseg(bnd,pe) == 1) THEN
+                lnope(pe) = lnope(pe) + 1
+                lbou = lnope(pe)
+              ENDIF              
+              
+              DO bfr = 1,nobfr             
+                lobamp(nlbnds,lbou,bfr,pe) = obamp(j,bnd,bfr)
+                lobph(nlbnds,lbou,bfr,pe) = obph(j,bnd,bfr)              
+              ENDDO
+              
             ENDIF
           ENDDO
-          IF(lobseg(bnd,pe) > 0) THEN
-            lnope(pe) = lnope(pe) + 1
-          ENDIF
         ENDDO
         
         

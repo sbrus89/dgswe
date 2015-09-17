@@ -61,7 +61,7 @@
       CALL interp_forcing()
       
       ! Partition domain for element/edge blocking
-      CALL metis2()
+      CALL metis2(npart)
       
       ! Decompose domain and prep element/edge blocking
       CALL edge_partition2()

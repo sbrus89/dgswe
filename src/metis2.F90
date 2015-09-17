@@ -1,10 +1,11 @@
-      SUBROUTINE metis2()
+      SUBROUTINE metis2(nparts)
 
       USE globals, ONLY: nn,ne,ned,ged2el,part      
       USE messenger2, ONLY: myrank
-      USE read_dginp, ONLY: npart
 
       IMPLICIT NONE
+      
+      INTEGER :: nparts
       
       INTEGER :: ed,nd,j,el
       INTEGER :: el1,el2,nd2
@@ -16,7 +17,6 @@
       
       INTEGER :: numflag,wgtflag
       INTEGER :: edgecut
-      INTEGER :: nparts
       INTEGER, ALLOCATABLE, DIMENSION(:) :: xadj
       INTEGER, ALLOCATABLE, DIMENSION(:) :: adjncy
       INTEGER, ALLOCATABLE, DIMENSION(:) :: vwgt
@@ -101,8 +101,14 @@
       options(3) = 1 ! use multilevel recursive bisection algorithm during initial partitioning 
       options(4) = 3 ! minimize connectivity among the subdomains 
       options(5) = 0 ! always set to zero
-      
-      nparts = npart ! number of partitions
+
+      IF (myrank == 0) THEN
+        PRINT "(A)", "---------------------------------------------"
+        PRINT "(A)", "      Metis Partitioning Information         "
+        PRINT "(A)", "---------------------------------------------"  
+        PRINT "(A)", " "
+        PRINT*, "Partitioning into ", nparts, " subdomains"      
+      ENDIF
       
       ALLOCATE(part(ne))
       

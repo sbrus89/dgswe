@@ -3,6 +3,7 @@
       USE globals
       USE allocation, ONLY: sizes
       USE read_dginp
+      USE messenger2, ONLY: message_init,nproc
 
       IMPLICIT NONE
       
@@ -10,7 +11,9 @@
       REAL :: elsum,elavg,elstd
 
       PRINT*, "dgprep"
-      PRINT*, " "
+      PRINT*, " "            
+
+      CALL message_init()      
 
       PRINT*, "Input number of processors"
       READ(*,*) nproc
@@ -24,9 +27,9 @@
       
       CALL read_forcing()
       
-      CALL edge_connect()
+      CALL connect()
       
-      CALL metis2()
+      CALL metis2(nproc)
       
       CALL decomp2()
       
@@ -50,5 +53,6 @@
       
       PRINT*, "Maximum number of elements", MAXVAL(nresel)
       PRINT*, "Minimum number of elements", MINVAL(nresel)
+      PRINT*, " "
       
       END PROGRAM dgprep

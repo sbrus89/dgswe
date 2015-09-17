@@ -237,6 +237,43 @@
       REAL(rp), ALLOCATABLE, DIMENSION(:) :: xmex,ymex,xymex
       
       
+      INTEGER, ALLOCATABLE, DIMENSION(:) :: nresel
+      INTEGER, ALLOCATABLE, DIMENSION(:,:) :: el_g2l,el_l2g
+
+      INTEGER :: nsred
+      INTEGER, ALLOCATABLE, DIMENSION(:) :: sredn
+      
+      INTEGER :: mned_sr
+      INTEGER, ALLOCATABLE, DIMENSION(:) :: ned_sr
+      INTEGER, ALLOCATABLE, DIMENSION(:,:) :: pe_sr
+      INTEGER, ALLOCATABLE, DIMENSION(:,:) :: el_sr
+      INTEGER, ALLOCATABLE, DIMENSION(:,:) :: led_sr
+      
+      INTEGER, ALLOCATABLE, DIMENSION(:) :: nresnd
+      INTEGER, ALLOCATABLE, DIMENSION(:,:) :: nd_l2g      
+      INTEGER, ALLOCATABLE, DIMENSION(:) :: nd_g2l
+       
+      INTEGER, ALLOCATABLE, DIMENSION(:,:,:) :: lect
+      INTEGER, ALLOCATABLE, DIMENSION(:,:) :: lnelnds
+      
+      INTEGER, ALLOCATABLE, DIMENSION(:,:) :: lobseg
+      INTEGER, ALLOCATABLE, DIMENSION(:,:,:) :: lobnds
+      INTEGER, ALLOCATABLE, DIMENSION(:) :: lneta
+      INTEGER, ALLOCATABLE, DIMENSION(:) :: lnope      
+      
+      INTEGER, ALLOCATABLE, DIMENSION(:,:,:) :: lfbseg
+      INTEGER, ALLOCATABLE, DIMENSION(:,:,:) :: lfbnds
+      INTEGER, ALLOCATABLE, DIMENSION(:) :: lnvel
+      INTEGER, ALLOCATABLE, DIMENSION(:) :: lnbou           
+      
+      REAL(rp), ALLOCATABLE, DIMENSION(:,:,:,:) :: lobamp      
+      REAL(rp), ALLOCATABLE, DIMENSION(:,:,:,:) :: lobph
+
+      REAL(rp), ALLOCATABLE, DIMENSION(:,:,:,:) :: lfbamp
+      REAL(rp), ALLOCATABLE, DIMENSION(:,:,:,:) :: lfbph 
+      INTEGER, ALLOCATABLE, DIMENSION(:) :: lnbouf  
+      
+      
 #ifdef ALIGN16      
 !DIR$ ATTRIBUTES ALIGN:16 :: rhsH,rhsQx,rhsQy
 !DIR$ ATTRIBUTES ALIGN:16 :: Hqpt,Qxqpt,Qyqpt
