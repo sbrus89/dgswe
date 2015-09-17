@@ -94,7 +94,7 @@
 
 #ifdef CMPI 
 !       post a non-blocking recieve from all processes
-      CALL message_recieve()
+!       CALL message_recieve()
 #endif    
       
 
@@ -117,7 +117,7 @@
         ENDDO
         
 #ifdef CMPI    
-       ! Post an non-blocking send to all processes 
+       ! Post an non-blocking combined send/recieve to all processes 
        ! all edge quadrature point evaluations have been completed 
        ! for edges in this subdomain and can be passed to the neighbors 
        ! Send will overlap with internal edge numerical flux calculations

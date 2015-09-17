@@ -541,8 +541,8 @@
         ENDDO
       ENDDO
       
-     CALL MPI_STARTALL(nproc_sr,solreq_send,ierr)
-!       CALL MPI_STARTALL(2*nproc_sr,solreq,ierr)
+!      CALL MPI_STARTALL(nproc_sr,solreq_send,ierr)
+      CALL MPI_STARTALL(2*nproc_sr,solreq,ierr)
       
       RETURN
       END SUBROUTINE message_send
