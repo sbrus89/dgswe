@@ -11,10 +11,10 @@ nsnap = 100;
 % direc = '../quad_loop/';
 %direc = '../LDG/';
 %direc = '../openmp/';
-direc = '~/dgswe/';
-grd_direc = '~/data-drive/galveston/dgswe/';
-sol_direc = '~/data-drive/galveston/dgswe/';
-grd_name = 'galveston.grd';
+direc = '~/Codes/dgswe/work/';
+grd_direc = '~/Codes/dgswe/grids/';
+sol_direc = '~/Codes/dgswe/work/';
+grd_name = 'inlet1.grd';
 
 % direc = '..';
 
@@ -158,13 +158,13 @@ for el = 1:ne
     end
 end
 
-HL2 = M\B_H; % Compute L2 projected solution
+ZL2 = M\B_H; % Compute L2 projected solution
 QxL2 = M\B_Qx;
 QyL2 = M\B_Qy;
 
-zeta(:,snap) = HL2-HB;
-u(:,snap) = QxL2./HL2;
-v(:,snap) = QyL2./HL2;
+zeta(:,snap) = ZL2;
+u(:,snap) = QxL2./(ZL2+HB);
+v(:,snap) = QyL2./(ZL2+HB);
 vel(:,snap) = sqrt(u(:,snap).^2 + v(:,snap).^2);
 end
 
