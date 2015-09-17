@@ -93,10 +93,10 @@
       REAL(rp), ALLOCATABLE, DIMENSION(:) :: obper
       REAL(rp), ALLOCATABLE, DIMENSION(:) :: obnfact ! open boundary constituent nodal factor
       REAL(rp), ALLOCATABLE, DIMENSION(:) :: obeq ! open bounday constituent equilibrium argument
-      REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: obamp ! open boundary node amplitute
+      REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: obamp ! open boundary node amplitute
       REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: obamp_qpt !open boundary amplitude interpolated to edge quatrature points 
       REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: obdepth_qpt
-      REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: obph ! open boundary node phase
+      REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: obph ! open boundary node phase
       REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: obph_qpt ! open boundary phase interpolated to edge quadrature points
 
 
@@ -106,9 +106,9 @@
       REAL(rp), ALLOCATABLE, DIMENSION(:) :: fbper
       REAL(rp), ALLOCATABLE, DIMENSION(:) :: fbnfact ! flow boundary constituent nodal factor
       REAL(rp), ALLOCATABLE, DIMENSION(:) :: fbeq ! flow bounday constituent equilibrium argument
-      REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: fbamp ! flow boundary node amplitute  
+      REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: fbamp ! flow boundary node amplitute  
       REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: fbamp_qpt ! flow boundary amplitude interpolated to edge quadrature points
-      REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: fbph ! flow boundary node phase
+      REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: fbph ! flow boundary node phase
       REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: fbph_qpt ! flow boundary phase interpolated to edge quadrature points
 
       REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: Va,Ve

@@ -1,6 +1,6 @@
       SUBROUTINE read_forcing()
 
-      USE globals, ONLY: rp,neta,nvel,nbou,fbseg, &
+      USE globals, ONLY: rp,neta,nvel,nope,nbou,obseg,fbseg, &
                          nobfr,obtag,obtag2,obfreq,obnfact,obeq,obamp,obph, &
                          nfbfr,fbtag,fbtag2,fbfreq,fbnfact,fbeq,fbamp,fbph, &
                          fbper,obper,pi,deg2rad
@@ -33,19 +33,14 @@
       DO bfr = 1,nobfr
         READ(15,*) obtag(bfr)
         READ(15,*) obfreq(bfr),obnfact(bfr),obeq(bfr)
-        obeq(bfr) = obeq(bfr)*deg2rad
-        IF(obfreq(bfr) == 0d0) THEN
-          obper(bfr) = 1d0
-        ELSE
-          obper(bfr) = 2d0*pi/obfreq(bfr)
-        ENDIF
       ENDDO
 
       DO bfr = 1,nobfr
         READ(15,*) obtag2(bfr) 
-        DO node = 1,neta
-          READ(15,*) obamp(node,bfr),obph(node,bfr)
-          obph(node,bfr) = obph(node,bfr)*deg2rad
+        DO seg = 1,nope
+          DO node = 1,obseg(seg)
+            READ(15,*) obamp(node,seg,bfr),obph(node,seg,bfr)
+          ENDDO
         ENDDO
       ENDDO
 
@@ -70,12 +65,6 @@
         DO bfr = 1,nfbfr
           READ(15,*) fbtag(bfr)     
           READ(15,*) fbfreq(bfr),fbnfact(bfr),fbeq(bfr)
-          fbeq(bfr) = fbeq(bfr)*deg2rad
-          IF(fbfreq(bfr) == 0d0) THEN
-            fbper(bfr) = 1d0
-          ELSE
-            fbper(bfr) = 2d0*pi/fbfreq(bfr)        
-          ENDIF
         ENDDO
 
 
@@ -85,12 +74,12 @@
             segtype = fbseg(2,seg)
             IF(segtype == 2 .OR. segtype == 12 .OR. segtype == 22)THEN
               DO node = 1,fbseg(1,seg)
-                READ(15,*) fbamp(node,bfr),fbph(node,bfr)
-                fbph(node,bfr) = fbph(node,bfr)*deg2rad
+                READ(15,*) fbamp(node,seg,bfr),fbph(node,seg,bfr)
               ENDDO
             ENDIF
           ENDDO
         ENDDO
+        
       ENDIF
       
       CLOSE(15)

@@ -131,12 +131,12 @@
         n = 2
         ! Open boundary forcing arrays
         ALLOCATE(obtag(nobfr),obfreq(nobfr),obnfact(nobfr),obeq(nobfr),obper(nobfr),STAT = alloc_status(1))
-        ALLOCATE(obtag2(nobfr),obamp(neta,nobfr),obph(neta,nobfr),STAT = alloc_status(2))
+        ALLOCATE(obtag2(nobfr),obamp(neta,nope,nobfr),obph(neta,nope,nobfr),STAT = alloc_status(2))
       ELSE IF (stage == 2) THEN
         n = 2
         ! Flow boundary forcing arrays
         ALLOCATE(fbtag(nfbfr),fbfreq(nfbfr),fbnfact(nfbfr),fbeq(nfbfr),fbper(nfbfr),STAT = alloc_status(1))
-        ALLOCATE(fbtag2(nfbfr),fbamp(nvel,nfbfr),fbph(nvel,nfbfr),STAT = alloc_status(2))
+        ALLOCATE(fbtag2(nfbfr),fbamp(nvel,nbou,nfbfr),fbph(nvel,nbou,nfbfr),STAT = alloc_status(2))
       ELSE IF (stage == 3) THEN
         n = 2
         ! Boundary information interpolated to quadrature points
