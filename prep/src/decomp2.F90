@@ -35,7 +35,16 @@
       
       ALLOCATE(nresel(nproc))
       ALLOCATE(el_g2l(2,ne))
-      ALLOCATE(el_l2g(ne,nproc))
+      
+      nresel = 0
+      DO el = 1,ne
+        pe = part(el) 
+        nresel(pe) = nresel(pe) + 1 ! count resident elements in subdomain pe
+      ENDDO
+      
+      mnepe = MAXVAL(nresel)          
+      ALLOCATE(el_l2g(mnepe,nproc))
+
       
       nresel = 0
       DO el = 1,ne
@@ -47,7 +56,6 @@
         el_l2g(nresel(pe),pe) = el ! local element nresel(pe) on subdomain pe has global element number el
       ENDDO
       
-      mnepe = MAXVAL(nresel)     
       
       
       ! Find the commincation edges and 
