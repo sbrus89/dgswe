@@ -1,9 +1,11 @@
       PROGRAM dgprep
       
       USE globals
-      USE allocation, ONLY: sizes
+      USE allocation, ONLY: sizes, alloc_trans_arrays
       USE read_dginp
       USE messenger2, ONLY: message_init,nproc
+      USE vandermonde, ONLY: area_vandermonde
+      USE shape_functions, ONLY: shape_functions_qpts
 
       IMPLICIT NONE
       
@@ -28,6 +30,19 @@
       CALL read_forcing()
       
       CALL connect()
+      
+      CALL edge_qpts()
+      
+      mnqpta = 0
+      nqpta = 0 
+      
+      CALL alloc_trans_arrays()
+      
+      CALL area_vandermonde()
+      
+      CALL shape_functions_qpts()
+      
+      CALL normals()
       
       CALL metis2(nproc)
       

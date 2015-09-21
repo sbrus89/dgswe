@@ -22,7 +22,7 @@ LIB = metis
 ########################################################################
 
 objects = globals.o messenger2.o read_input.o allocation.o read_grid.o read_forcing.o  \
-          connect.o metis2.o decomp2.o write_files.o version.o dgprep.o
+          connect.o edge_qpts.o metis2.o decomp2.o write_files.o version.o dgprep.o
 obj = $(patsubst %.o, $(ODIR)%.o,$(objects))
 
 ########################################################################
@@ -81,8 +81,11 @@ $(ODIR)read_forcing.o : ../../src/read_forcing.F90             $(ODIR)globals.o 
 
 $(ODIR)connect.o : ../../src/connect.F90                       $(ODIR)globals.o $(ODIR)allocation.o $(ODIR)read_input.o $(ODIR)messenger2.o 
 	$(FC) $(CFLAGS) $< -o $@
+	
+$(ODIR)edge_qpts.o : ../../src/edge_qpts.F90                   $(ODIR)globals.o $(ODIR)allocation.o $(ODIR)read_input.o $(ODIR)messenger2.o 
+	$(FC) $(CFLAGS) $< -o $@	
 
-$(ODIR)metis2.o : ../../src/metis2.F90                         $(ODIR)globals.o
+$(ODIR)metis2.o : ../../src/metis2.F90                         $(ODIR)globals.o $(ODIR)messenger2.o 
 	$(FC) $(CFLAGS) $< -o $@
 
 $(ODIR)decomp2.o : decomp2.F90                                 $(ODIR)globals.o $(ODIR)messenger2.o 

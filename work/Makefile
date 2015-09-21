@@ -99,6 +99,18 @@ ifeq ($(BUILDTYPE),pdgswe_debug)
   MESSAGE = Compling parallel program with debug flags
 endif
 
+ifeq ($(BUILDTYPE),dgprep)
+  FC = ifort
+  ODIR = odir_dgprep/
+  
+  CFLAGS_VEC  =  -C -g -traceback -I$(ODIR) -c
+  CFLAGS      =  -C -g -traceback -I$(ODIR) -c 
+  CFLAGS_LINK =  -o 
+  
+  EXE_NAME = dgprep
+  MESSAGE = Compling prep program with debug flags
+endif
+
 ### Other compiler flags ###
 # -no-prec-div
 # -opt-report3 -opt-report-file=opt_report 
@@ -136,25 +148,36 @@ METIS_LIB = -L../metis-4.0.3 -lmetis
 #                               Objects                                #
 ########################################################################
 
-objects = globals.o lapack_interfaces.o messenger2.o allocation.o  \
-          read_input.o read_grid.o read_forcing.o bathymetry_interp.o \
-          connect.o initial.o interp_forcing.o curvilinear.o \
-          edge_partition2.o metis2.o \
-          vandermonde.o shape_functions.o transformation.o \
-          element_data.o area_transformation.o normals.o edge_transformation.o \
-          basis.o area_qpts.o edge_qpts.o \
-          rhs2.o rk.o \
-          area_integration.o edge_integration.o  numerical_flux.o linear_solve.o \
-          boundary_edge_land.o boundary_edge_flow.o boundary_edge_elev.o  \
-          write_output.o modal2nodal.o version.o dgswe.o
+dgswe_objects = globals.o lapack_interfaces.o messenger2.o allocation.o  \
+                read_input.o read_grid.o read_forcing.o bathymetry_interp.o \
+                connect.o initial.o interp_forcing.o curvilinear.o \
+                edge_partition2.o metis2.o \
+                vandermonde.o shape_functions.o transformation.o \
+                element_data.o area_transformation.o normals.o edge_transformation.o \
+                basis.o area_qpts.o edge_qpts.o \
+                rhs2.o rk.o \
+                area_integration.o edge_integration.o  numerical_flux.o linear_solve.o \
+                boundary_edge_land.o boundary_edge_flow.o boundary_edge_elev.o  \
+                write_output.o modal2nodal.o version.o dgswe.o
 
-obj := $(patsubst %.o, $(ODIR)%.o,$(objects))
+dgswe_obj := $(patsubst %.o, $(ODIR)%.o,$(dgswe_objects))
+
+dgprep_objects = globals.o messenger2.o read_input.o allocation.o \
+                 read_grid.o read_forcing.o  \
+                 connect.o edge_qpts.o metis2.o decomp2.o \
+                 basis.o vandermonde.o shape_functions.o transformation.o \
+                 normals.o modal2nodal.o \
+                 write_files.o version.o dgprep.o
+                 
+dgprep_obj := $(patsubst %.o, $(ODIR)%.o,$(dgprep_objects))                 
 
 ########################################################################
 #                          Executable Targets                          #
 ########################################################################
 
-.PHONY : $(ODIR) dgswe dgswe_omp pdgswe dgswe_debug pdgswe_debug clean metis cleanmetis prep cleanprep post cleanpost
+.PHONY : $(ODIR) dgswe dgswe_omp pdgswe dgswe_debug pdgswe_debug 
+.PHONY : metis dgprep post 
+.PHONY : clean cleanmetis cleandgprep cleanpost
 
 ifeq ($(MAKELEVEL),0)
 
@@ -182,9 +205,9 @@ metis :
 	@echo "\n\n"
 	$(MAKE) -C ../metis-4.0.3/
 
-prep : 
+dgprep : 
 	@echo "\n\n"
-	$(MAKE) -C ../prep/work/ dgprep
+	$(MAKE) BUILDTYPE=dgprep dgprep
 
 post : 
 	@echo "\n\n"
@@ -192,11 +215,18 @@ post :
 
 else
 
-dgswe : $(ODIR)  $(obj)
+dgswe : $(ODIR)  $(dgswe_obj)
 	@echo  " \n\033[35m$(MESSAGE) on $(FULLNAME) \033[0m"
 	@echo "Git SHA: $(GIT_SHA)"
 	@echo "Modified: $(GIT_MOD) \n"
-	$(FC) $(CFLAGS_LINK) $(EXE_NAME) $(obj) $(METIS_LIB) $(LAPACK_LIB)
+	$(FC) $(CFLAGS_LINK) $(EXE_NAME) $(dgswe_obj) $(METIS_LIB) $(LAPACK_LIB)
+	@echo "\n\n"
+	
+dgprep : $(ODIR)  $(dgprep_obj)
+	@echo  " \n\033[35m$(MESSAGE) on $(FULLNAME) \033[0m"
+	@echo "Git SHA: $(GIT_SHA)"
+	@echo "Modified: $(GIT_MOD) \n"
+	$(FC) $(CFLAGS_LINK) $(EXE_NAME) $(dgprep_obj) $(METIS_LIB) $(LAPACK_LIB)
 	@echo "\n\n"
 endif
 
@@ -212,7 +242,7 @@ $(ODIR) :
 	
 clean : 
 	@echo "\n\n"
-	rm -r odir*/*.o odir*/*.mod
+	rm odir*/*.o odir*/*.mod
 	
 clobber :
 	@echo "\n\n"
@@ -223,9 +253,9 @@ cleanmetis :
 	@echo "\n\n"
 	$(MAKE) -C ../metis-4.0.3/ clean
 
-cleanprep : 
+cleandgprep : 
 	@echo "\n\n"
-	$(MAKE) -C ../prep/work/ clean
+	rm -r odir_dgprep/*.o odir_dgprep/*.mod
 
 cleanpost : 
 	@echo "\n\n"
@@ -301,13 +331,13 @@ $(ODIR)connect.o : connect.F90                                 $(ODIR)globals.o 
 $(ODIR)curvilinear.o : curvilinear.F90                         $(ODIR)globals.o $(ODIR)read_input.o $(ODIR)basis.o $(ODIR)transformation.o
 	$(FC) $(CFLAGS) $< -o $@
 
-$(ODIR)element_data.o : element_data.F90                       $(ODIR)globals.o $(ODIR)read_input.o $(ODIR)allocation.o $(ODIR)basis.o $(ODIR)transformation.o $(ODIR)vandermonde.o
+$(ODIR)element_data.o : element_data.F90                       $(ODIR)globals.o $(ODIR)read_input.o $(ODIR)allocation.o $(ODIR)basis.o $(ODIR)vandermonde.o $(ODIR)shape_functions.o
 	$(FC) $(CFLAGS) $< -o $@
 
 $(ODIR)edge_partition2.o : edge_partition2.F90                 $(ODIR)globals.o $(ODIR)messenger2.o $(ODIR)read_input.o $(ODIR)allocation.o
 	$(FC) $(CFLAGS) $< -o $@
 
-$(ODIR)metis2.o : metis2.F90                                   $(ODIR)globals.o $(ODIR)messenger2.o $(ODIR)read_input.o
+$(ODIR)metis2.o : metis2.F90                                   $(ODIR)globals.o $(ODIR)messenger2.o 
 	$(FC) $(CFLAGS) $< -o $@	
 	
 $(ODIR)area_transformation.o : area_transformation.F90         $(ODIR)globals.o $(ODIR)transformation.o
@@ -360,3 +390,15 @@ $(ODIR)version.o : version.F90                                 $(ODIR)globals.o 
 
 $(ODIR)dgswe.o : dgswe.F90                                     $(ODIR)globals.o $(ODIR)messenger2.o $(ODIR)read_input.o $(ODIR)allocation.o $(ODIR)basis.o
 	$(FC) $(CFLAGS) $< -o $@
+
+# prep file targets
+
+$(ODIR)decomp2.o : ../prep/src/decomp2.F90                     $(ODIR)globals.o $(ODIR)messenger2.o 
+	$(FC) $(CFLAGS) $< -o $@
+
+$(ODIR)write_files.o : ../prep/src/write_files.F90             $(ODIR)globals.o $(ODIR)read_input.o $(ODIR)messenger2.o 
+	$(FC) $(CFLAGS) $< -o $@
+
+$(ODIR)dgprep.o :../prep/src/dgprep.F90                        $(ODIR)globals.o $(ODIR)allocation.o $(ODIR)read_input.o $(ODIR)messenger2.o $(ODIR)vandermonde.o $(ODIR)shape_functions.o
+	$(FC) $(CFLAGS) $< -o $@
+	
