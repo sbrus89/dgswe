@@ -189,12 +189,12 @@
 
       SUBROUTINE read_message_files()
       
-      USE globals, ONLY: rp,ne,mndof,nlines
+      USE globals, ONLY: rp,ne,mndof,nlines,mnqpte
       
       IMPLICIT NONE
       
 #ifdef CMPI      
-      INTEGER :: pe,ed,el,j
+      INTEGER :: pe,ed,el,j,pt
       LOGICAL :: file_exists
       INTEGER :: npe,tne,mne,ne2,ndof2
       REAL(rp) :: lines2
@@ -214,6 +214,7 @@
       ALLOCATE(el_sr(ne,nproc_sr),led_sr(ne,nproc_sr))
       ALLOCATE(nx_sr(mnqpte,nred,nproc_sr),ny_sr(mnqpte,nred,nproc_sr))
       ALLOCATE(hb_sr(mnqpte,nred,nproc_sr))
+      ALLOCATE(nqpte_sr(nred,nproc_sr))
       
       DO pe = 1,nproc_sr
 !        j = mod(pe-1+myrank,nproc_sr)+1 ! DG ADCIRC method
