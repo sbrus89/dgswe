@@ -44,6 +44,8 @@
       
       CALL normals()
       
+      CALL bathymetry_interp()
+      
       CALL metis2(nproc)
       
       CALL decomp2()

@@ -4,16 +4,17 @@
                          lnope,lneta,lobseg,lobnds,lnbou,lnvel,lfbseg,lfbnds, &
                          nobfr,obtag,obtag2,obfreq,obnfact,obeq,lobamp,lobph, &
                          nfbfr,fbtag,fbtag2,fbfreq,fbnfact,fbeq,lfbamp,lfbph,lnbouf, &
-                         nsred,ned_sr,pe_sr,el_sr,led_sr,el_l2g,mndof,nlines, &
+                         nsred,el_l2g,mndof,nlines, &
                          el_type,elhb
                          
       USE read_dginp, ONLY: write_local,hbp   
-      USE messenger2, ONLY: nproc
+      USE messenger2, ONLY: nproc,nx_sr,ny_sr,nqpte_sr,hb_sr, &
+                            ned_sr,pe_sr,el_sr,led_sr
 
       IMPLICIT NONE
 
       
-      INTEGER :: i,pe,pes,nd,el,bnd,bfr,seg,ed
+      INTEGER :: i,pe,pes,nd,el,bnd,bfr,seg,ed,pt
       INTEGER :: segtype,et
       INTEGER :: gnd,gel
       INTEGER :: nnd
@@ -206,6 +207,12 @@
               WRITE(18,181) pes-1,ned2pes
               WRITE(18,180) (el_sr(sended(ed),pe), ed = 1,ned2pes)
               WRITE(18,180) (led_sr(sended(ed),pe), ed = 1,ned2pes)
+              DO ed = 1,ned2pes
+                WRITE(18,182) nqpte_sr(sended(ed),pe)
+                DO pt = 1,nqpte_sr(sended(ed),pe)
+                  WRITE(18,183) nx_sr(pt,sended(ed),pe), ny_sr(pt,sended(ed),pe), hb_sr(pt,sended(ed),pe)
+                ENDDO
+              ENDDO  
             ENDIF
           ENDIF
         ENDDO
@@ -300,6 +307,7 @@
  180  FORMAT(8X,9I8)
  181  FORMAT(8X,2I8) 
  182  FORMAT(8X,I8)
+ 183  FORMAT(8X,3(D24.17,1X))
  
       RETURN
       END SUBROUTINE write_files

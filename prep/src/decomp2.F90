@@ -1,28 +1,32 @@
       SUBROUTINE decomp2()
       
       USE globals, ONLY: nn,ne,ned,part,ect,nelnds,mnelnds,lect,lnelnds, &
-                         ged2el,ged2led,&
+                         ged2el,ged2led,el_type, &
                          nsred,sredn, &
                          nresel,el_g2l,el_l2g, &
-                         mned_sr,ned_sr,pe_sr,el_sr,led_sr, &
+                         mned_sr, &
                          nresnd,nd_g2l,nd_l2g, &
                          nope,neta,obseg,obnds, &
                          nbou,nvel,fbseg,fbnds, &
                          lnope,lneta,lobseg,lobnds, &
                          lnbou,lnvel,lfbseg,lfbnds, &
                          nobfr,obamp,obph,lobamp,lobph, &
-                         nfbfr,fbamp,fbph,lfbamp,lfbph,lnbouf
+                         nfbfr,fbamp,fbph,lfbamp,lfbph,lnbouf, &
+                         nx_pt,ny_pt, &
+                         hbqpted,nqpte,mnqpte
                          
-      USE messenger2, ONLY: nproc                         
+      USE messenger2, ONLY: nproc,nqpte_sr,hb_sr,nx_sr,ny_sr, &
+                            ned_sr,pe_sr,el_sr,led_sr                       
 
       IMPLICIT NONE
 
-      INTEGER :: el,pe,nd,ed,j,bnd,eln,bfr
+      INTEGER :: el,pe,nd,ed,j,bnd,eln,bfr,pt
       INTEGER :: ged,lnd,nv
       INTEGER :: lled,gled,ln1,ln2,gn1,gn2,n1,n2
       INTEGER :: el1,el2
       INTEGER :: pe1,pe2
       INTEGER :: led1,led2
+      INTEGER :: et1,et2,et
       INTEGER :: ndcnt,bfnd,nlbnds
       INTEGER :: mnepe
       INTEGER :: mnobnds,mnfbnds
@@ -89,7 +93,9 @@
       mned_sr = MAXVAL(ned_sr) ! find the maximum number of communication edges
       
       ALLOCATE(pe_sr(mned_sr,nproc),el_sr(mned_sr,nproc),led_sr(mned_sr,nproc))
-      
+      ALLOCATE(nx_sr(mnqpte,mned_sr,nproc),ny_sr(mnqpte,mned_sr,nproc))
+      ALLOCATE(hb_sr(mnqpte,mned_sr,nproc))
+      ALLOCATE(nqpte_sr(mned_sr,nproc))
       
       
       
@@ -120,7 +126,26 @@
       
         led_sr(ned_sr(pe1),pe1) = led1 ! pe1 sends local edge led1 from el1 to pe2
         led_sr(ned_sr(pe2),pe2) = led2 ! pe2 sends local edge led2 from el2 to pe1
-
+        
+        et1 = el_type(el1)
+        et2 = el_type(el2)
+        
+        et = max(et1,et2)
+        
+        nqpte_sr(ned_sr(pe1),pe1) = nqpte(et)
+        nqpte_sr(ned_sr(pe2),pe2) = nqpte(et)
+        
+        DO pt = 1,nqpte(et)        
+          nx_sr(pt,ned_sr(pe1),pe1) = nx_pt(ged,pt)
+          nx_sr(pt,ned_sr(pe2),pe2) = nx_pt(ged,pt)  
+        
+          ny_sr(pt,ned_sr(pe1),pe1) = ny_pt(ged,pt)
+          ny_sr(pt,ned_sr(pe2),pe2) = ny_pt(ged,pt)   
+          
+          hb_sr(pt,ned_sr(pe1),pe1) = hbqpted(ged,pt)
+          hb_sr(pt,ned_sr(pe2),pe2) = hbqpted(ged,pt)
+        ENDDO
+        
       ENDDO
       
       

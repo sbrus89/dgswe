@@ -244,10 +244,6 @@
       INTEGER, ALLOCATABLE, DIMENSION(:) :: sredn
       
       INTEGER :: mned_sr
-      INTEGER, ALLOCATABLE, DIMENSION(:) :: ned_sr
-      INTEGER, ALLOCATABLE, DIMENSION(:,:) :: pe_sr
-      INTEGER, ALLOCATABLE, DIMENSION(:,:) :: el_sr
-      INTEGER, ALLOCATABLE, DIMENSION(:,:) :: led_sr
       
       INTEGER, ALLOCATABLE, DIMENSION(:) :: nresnd
       INTEGER, ALLOCATABLE, DIMENSION(:,:) :: nd_l2g      
@@ -273,6 +269,7 @@
       REAL(rp), ALLOCATABLE, DIMENSION(:,:,:,:) :: lfbph 
       INTEGER, ALLOCATABLE, DIMENSION(:) :: lnbouf  
       
+
       
 #ifdef ALIGN16      
 !DIR$ ATTRIBUTES ALIGN:16 :: rhsH,rhsQx,rhsQy

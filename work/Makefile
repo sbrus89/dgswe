@@ -166,7 +166,7 @@ dgprep_objects = globals.o messenger2.o read_input.o allocation.o \
                  read_grid.o read_forcing.o  \
                  connect.o edge_qpts.o metis2.o decomp2.o \
                  basis.o vandermonde.o shape_functions.o transformation.o \
-                 normals.o modal2nodal.o \
+                 normals.o bathymetry_interp.o modal2nodal.o \
                  write_files.o version.o dgprep.o
                  
 dgprep_obj := $(patsubst %.o, $(ODIR)%.o,$(dgprep_objects))                 

@@ -25,8 +25,14 @@
       INTEGER nproc_sr
       INTEGER, ALLOCATABLE, DIMENSION(:) :: proc_sr
       INTEGER, ALLOCATABLE, DIMENSION(:) :: ned_sr
+      INTEGER, ALLOCATABLE, DIMENSION(:,:) :: pe_sr      
       INTEGER, ALLOCATABLE, DIMENSION(:,:) :: el_sr
       INTEGER, ALLOCATABLE, DIMENSION(:,:) :: led_sr
+      INTEGER, ALLOCATABLE, DIMENSION(:,:) :: nqpte_sr
+      REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: nx_sr
+      REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: ny_sr
+      REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: hb_sr
+      
       INTEGER, ALLOCATABLE, DIMENSION(:) :: proc_group
       
       INTEGER, ALLOCATABLE, DIMENSION(:) :: lel2gel
@@ -206,6 +212,8 @@
       
       ALLOCATE(proc_sr(nproc_sr),ned_sr(nproc_sr))
       ALLOCATE(el_sr(ne,nproc_sr),led_sr(ne,nproc_sr))
+      ALLOCATE(nx_sr(mnqpte,nred,nproc_sr),ny_sr(mnqpte,nred,nproc_sr))
+      ALLOCATE(hb_sr(mnqpte,nred,nproc_sr))
       
       DO pe = 1,nproc_sr
 !        j = mod(pe-1+myrank,nproc_sr)+1 ! DG ADCIRC method
@@ -217,6 +225,12 @@
         READ(18,181) proc_sr(pe),ned_sr(pe) !DG ADCIRC may try to do some straggering here, not really sure about what they are doing 
         READ(18,180) (el_sr(ed,pe), ed = 1,ned_sr(pe))
         READ(18,180) (led_sr(ed,pe), ed = 1,ned_sr(pe))
+        DO ed = 1,ned_sr(pe)
+          READ(18,182) nqpte_sr(ed,pe)
+          DO pt = 1,nqpte_sr(ed,pe)
+            READ(18,183) nx_sr(pt,ed,pe),ny_sr(pt,ed,pe),hb_sr(pt,ed,pe)
+          ENDDO
+        ENDDO
       ENDDO
  
       CLOSE(18)
@@ -285,6 +299,7 @@
  180  FORMAT(8X,9I8)
  181  FORMAT(8X,2I8) 
  182  FORMAT(8X,I8) 
+ 183  FORMAT(8X,3(D24.17,1X))
 #endif   
       RETURN      
       END SUBROUTINE read_message_files
@@ -310,7 +325,7 @@
       INTEGER :: el,led,gpt,ged,el_in
       INTEGER :: i,j,edcnt
       INTEGER :: gp_in,gp_ex
-      INTEGER :: mnedsr
+      INTEGER :: mnedsr,nqpt
       INTEGER :: match
       
       mnedsr = MAXVAL(ned_sr)
@@ -385,9 +400,7 @@
             Qyre(edcnt,gp_ex)%ptr => sol_recv(2*ned_sr(pe)*nqpte(1) + i,pe)
             
             gp_in = (led-1)*nqpte(1) + pt
-            el_in = gel2ael(el)
-            
-            hbr(edcnt,pt) = hbqpte(el_in,gp_in) ! assumes continuous bathymetry
+            el_in = gel2ael(el)            
             
             Hri(edcnt,pt)%ptr  => Hqpt(el_in,gp_in)
             Zri(edcnt,pt)%ptr  => Zqpt(el_in,gp_in)
@@ -415,6 +428,7 @@
           
           el = el_sr(ed,pe)
           led = led_sr(ed,pe)
+          nqpt = nqpte_sr(ed,pe)
           
           match = 0
           DO i = 1,nred
@@ -422,10 +436,15 @@
             IF(el == ged2el(1,ged) .and. led == ged2led(1,ged)) THEN
             
               DO pt = 1,nqpte(1)
-                rnx(edcnt,pt) = nx_pt(ged,pt)*Spe(ged,pt)
-                rny(edcnt,pt) = ny_pt(ged,pt)
+!                 rnx(edcnt,pt) = nx_pt(ged,pt)*Spe(ged,pt)
+!                 rny(edcnt,pt) = ny_pt(ged,pt)
+                rnx(edcnt,pt) = nx_sr(pt,ed,pe)*Spe(ged,pt)
+                rny(edcnt,pt) = ny_sr(pt,ed,pe)
                 
-                rcfac(edcnt,pt) = cfac(ed,pt)
+                hbr(edcnt,pt) = hb_sr(pt,ed,pe) ! assumes continuous bathymetry                
+                
+!                 rcfac(edcnt,pt) = cfac(ed,pt)
+                rcfac(edcnt,pt) = ny_sr(pt,ed,pe)**2+(nx_sr(pt,ed,pe)*Spe(ged,pt))**2
               
                 detJe_recv(edcnt,pt) = detJe(ged,pt)
               ENDDO
