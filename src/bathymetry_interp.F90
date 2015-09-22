@@ -13,7 +13,8 @@
       IMPLICIT NONE
       
       INTEGER :: i,j,el,pt,nd,ed,dof,led
-      INTEGER :: typ,et,eo,edpt,el1,el2,led1,led2,gp1,gp2
+      INTEGER :: typ,et,eo,edpt
+      INTEGER :: el_in,el_ex,led_in,led_ex,gp_in,gp_ex
       INTEGER :: ndf,nnd,nqa,nqe,nv,n
       INTEGER :: info
       REAL(rp) :: hb
@@ -83,54 +84,54 @@
       
       DO ed = 1,ned
       
-        el1 = ged2el(1,ed)
-        led1 = ged2led(1,ed)          
-        el2 = ged2el(2,ed)
-        led2 = ged2led(2,ed)           
+        el_in = ged2el(1,ed)
+        led_in = ged2led(1,ed)          
+        el_ex = ged2el(2,ed)
+        led_ex = ged2led(2,ed)           
           
         IF (ed_type(ed) == 0) THEN    
-        
-          DO i = 1,2
-          
-            el = ged2el(i,ed)
-            led = ged2led(i,ed)          
-            
-            et = el_type(el)
-          
-            ! Interior edge => assumed to be straight
-            IF (mod(et,2) == 1) THEN
-              et = 1
-            ELSE IF (mod(et,2) == 0) THEN
-              et = 2
-            ENDIF
-          
-            nqa = nqpta(et)
-            nqe = nqpte(et)                    
-        
-            typ = et + 4
-            eo = order(typ)
-           
-            DO j = 1,nqe
-              pt = nqa + (led-1)*nqe+j
-              edpt = (led-1)*nqe+j       
-            
-              hbqpte_init(el,edpt) = 0d0          
-              DO nd = 1,nnds(eo)                                 
-                hbqpte_init(el,edpt) = hbqpte_init(el,edpt) + psia(nd,pt,typ)*elhb(nd,el)     
-              ENDDO   
-              hbqpted(ed,j) = hbqpte_init(el,edpt)
-              
-            ENDDO
-            
-!             PRINT*, (hbqpte_init(el,edpt), edpt = (led-1)*nqe+1,(led-1)*nqe+nqe)
-          
-          ENDDO
-!           PRINT*, "  "
 
+          et = el_type(el_in)
+          
+          ! Interior edge => assumed to be straight
+          IF (mod(et,2) == 1) THEN
+            et = 1
+          ELSE IF (mod(et,2) == 0) THEN
+            et = 2
+          ENDIF
+          
+          nqa = nqpta(et)
+          nqe = nqpte(et)                    
+        
+          typ = et + 4
+          eo = order(typ)
+           
+          DO j = 1,nqe
+            pt = nqa + (led_in-1)*nqe + j
+            gp_in = (led_in-1)*nqe + j  
+            gp_ex = (led_ex-1)*nqe + nqe - j + 1
+            
+            hb = 0d0          
+            DO nd = 1,nnds(eo)                                 
+              hb = hb + psia(nd,pt,typ)*elhb(nd,el_in)     
+            ENDDO   
+              
+            hbqpte_init(el_in,gp_in) = hb
+            hbqpte_init(el_ex,gp_ex) = hb
+
+            hbqpted(ed,j) = hb
+            
+          ENDDO
+            
+!           PRINT("(6(E24.17))"), (hbqpte_init(el_in,gp_in), gp_in = (led_in-1)*nqe+1,(led_in-1)*nqe+nqe)   
+!           PRINT("(6(E24.17))"), (hbqpte_init(el_ex,gp_ex), gp_ex = (led_ex-1)*nqe+1,(led_ex-1)*nqe+nqe)  
+!           PRINT*, "  "
 
         ELSE IF (ed_type(ed) == 10) THEN
         
-          et = el_type(el1) 
+          ! No normal flow boundary treated as curved
+        
+          et = el_type(el_in) 
           nqa = nqpta(et)
           nqe = nqpte(et)   
 
@@ -138,11 +139,11 @@
           eo = order(typ)      
         
           DO i = 1,nqe        
-            pt = nqa + (led1-1)*nqe+i         
+            pt = nqa + (led_in-1)*nqe+i         
           
             hbqpted(ed,i) = 0d0          
             DO nd = 1,nnds(eo)                                 
-              hbqpted(ed,i) = hbqpted(ed,i) + psia(nd,pt,typ)*elhb(nd,el1)     
+              hbqpted(ed,i) = hbqpted(ed,i) + psia(nd,pt,typ)*elhb(nd,el_in)     
             ENDDO           
           ENDDO                            
 
@@ -150,7 +151,7 @@
             
         ELSE
         
-          et = el_type(el1) 
+          et = el_type(el_in) 
           
           ! Specified flow/open edge assumed to be straight
           IF (mod(et,2) == 1) THEN
@@ -166,11 +167,11 @@
           eo = order(typ)      
         
           DO i = 1,nqe        
-            pt = nqa + (led1-1)*nqe+i            
+            pt = nqa + (led_in-1)*nqe+i            
           
             hbqpted(ed,i) = 0d0          
             DO nd = 1,nnds(eo)                                 
-              hbqpted(ed,i) = hbqpted(ed,i) + psia(nd,pt,typ)*elhb(nd,el1)     
+              hbqpted(ed,i) = hbqpted(ed,i) + psia(nd,pt,typ)*elhb(nd,el_in)     
             ENDDO           
           ENDDO                            
         
@@ -182,20 +183,20 @@
 !       edpt = 0
 !       DO ed = 1,ned
 !       
-!         el1 = ged2el(1,ed)
-!         led1 = ged2led(1,ed)          
-!         el2 = ged2el(2,ed)
-!         led2 = ged2led(2,ed)  
+!         el_in = ged2el(1,ed)
+!         led_in = ged2led(1,ed)          
+!         el_ex = ged2el(2,ed)
+!         led_ex = ged2led(2,ed)  
 !         
 !         DO pt = 1,nqpte(1)
 !         
-!           gp1 = (led1-1)*nqpte(1) + pt
-!           gp2 = (led2-1)*nqpte(1) + nqpte(1) - pt + 1
+!           gp_in = (led_in-1)*nqpte(1) + pt
+!           gp_ex = (led_ex-1)*nqpte(1) + nqpte(1) - pt + 1
 !           
-!           IF (abs(hbqpte_init(el1,gp1)- hbqpte_init(el2,gp2)) > 1d-13 .and. recv_edge(ed) == 0 ) THEN
+!           IF (abs(hbqpte_init(el_in,gp_in)- hbqpte_init(el_ex,gp_ex)) > 1d-13 .and. recv_edge(ed) == 0 ) THEN
 !             PRINT*, "edge batymetry values don't match"
 !             PRINT*, "recv_edge =", recv_edge(ed)
-!             PRINT*, hbqpte_init(el1,gp1),hbqpte_init(el2,gp2)   
+!             PRINT*, hbqpte_init(el_in,gp_in),hbqpte_init(el_ex,gp_ex)   
 !             edpt = edpt + 1
 !           ENDIF
 !           
