@@ -89,11 +89,11 @@
         el_ex = ged2el(2,ed)
         led_ex = ged2led(2,ed)           
           
-        IF (ed_type(ed) == 0) THEN    
+        IF (ed_type(ed) == 0 .OR. ed_type(ed) == -1) THEN    
 
           et = el_type(el_in)
           
-          ! Interior edge => assumed to be straight
+          ! Interior edge or recieve edge => assumed to be straight
           IF (mod(et,2) == 1) THEN
             et = 1
           ELSE IF (mod(et,2) == 0) THEN
@@ -117,7 +117,10 @@
             ENDDO   
               
             hbqpte_init(el_in,gp_in) = hb
-            hbqpte_init(el_ex,gp_ex) = hb
+            
+            IF (ed_type(ed) /= -1) THEN
+              hbqpte_init(el_ex,gp_ex) = hb
+            ENDIF
 
             hbqpted(ed,j) = hb
             
