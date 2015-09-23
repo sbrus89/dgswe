@@ -27,6 +27,7 @@
       INTEGER :: pe1,pe2
       INTEGER :: led1,led2
       INTEGER :: et1,et2,et
+      INTEGER :: gp_in,gp_ex
       INTEGER :: ndcnt,bfnd,nlbnds
       INTEGER :: mnepe
       INTEGER :: mnobnds,mnfbnds
@@ -135,15 +136,19 @@
         nqpte_sr(ned_sr(pe1),pe1) = nqpte(et)
         nqpte_sr(ned_sr(pe2),pe2) = nqpte(et)
         
-        DO pt = 1,nqpte(et)        
-          nx_sr(pt,ned_sr(pe1),pe1) = nx_pt(ged,pt)
-          nx_sr(pt,ned_sr(pe2),pe2) = nx_pt(ged,pt)  
+        DO pt = 1,nqpte(et) 
         
-          ny_sr(pt,ned_sr(pe1),pe1) = ny_pt(ged,pt)
-          ny_sr(pt,ned_sr(pe2),pe2) = ny_pt(ged,pt)   
+          gp_in = pt
+          gp_ex = nqpte(et) + 1 - pt
           
-          hb_sr(pt,ned_sr(pe1),pe1) = hbqpted(ged,pt)
-          hb_sr(pt,ned_sr(pe2),pe2) = hbqpted(ged,pt)
+          nx_sr(pt,ned_sr(pe1),pe1) = nx_pt(ged,gp_in)
+          nx_sr(pt,ned_sr(pe2),pe2) = -nx_pt(ged,gp_ex)  
+        
+          ny_sr(pt,ned_sr(pe1),pe1) = ny_pt(ged,gp_in)
+          ny_sr(pt,ned_sr(pe2),pe2) = -ny_pt(ged,gp_ex)   
+          
+          hb_sr(pt,ned_sr(pe1),pe1) = hbqpted(ged,gp_in)
+          hb_sr(pt,ned_sr(pe2),pe2) = hbqpted(ged,gp_ex)
         ENDDO
         
       ENDDO
