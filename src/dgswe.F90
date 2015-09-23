@@ -28,10 +28,7 @@
       CALL read_grid()
 
       ! Read in forcing file
-      CALL read_forcing()
-      
-      ! Read the local-to-global element and message passing files
-      CALL read_message_files()
+      CALL read_forcing()     
    
       ! Find edge connectivity
       CALL connect()
@@ -65,6 +62,9 @@
       
       ! Decompose domain and prep element/edge blocking
       CALL edge_partition2()
+      
+      ! Read the local-to-global element and message passing files
+      CALL read_message_files()      
       
       ! Set up send/recieve buffers and edge data structures
       CALL message_setup()
