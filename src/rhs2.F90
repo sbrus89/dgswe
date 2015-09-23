@@ -1,6 +1,6 @@
       SUBROUTINE rhs2()
 
-      USE globals,  ONLY: rp,ndof,nel_type, &
+      USE globals,  ONLY: rp,ndof,nel_type,tstage, &
                           elblk,nfblk,rnfblk,nrblk,npartet,nverts, &                        
                           Hi,He,Qxi,Qxe,Qyi,Qye,hbqpted, &
                           nqpta,nqpte, &                     
@@ -26,7 +26,7 @@
                           
                    
       IMPLICIT NONE
-      INTEGER :: et,blk
+      INTEGER :: et,blk,pt
       INTEGER :: ete
 
 !     ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
@@ -160,7 +160,7 @@
 
       CALL MPI_WAITALL(2*nproc_sr,solreq,MPI_STATUSES_IGNORE,ierr)
       
-!       WRITE(195,"(ES24.17)") tstage
+!          WRITE(195,"(ES24.17)") tstage
 ! !       WRITE(195,"(6(ES24.17,1x))") (Qxri(match_edge,pt)%ptr, pt = 1,nqpte(1))
 ! !       WRITE(195,"(6(ES24.17,1x))") (Qxre(match_edge,pt)%ptr, pt = 1,nqpte(1))
 ! !       WRITE(195,"(6(ES24.17,1x))") (Qyri(match_edge,pt)%ptr, pt = 1,nqpte(1))
@@ -169,8 +169,8 @@
 ! !       WRITE(195,"(6(ES24.17,1x))") (Zre(match_edge,pt)%ptr, pt = 1,nqpte(1))
 !         WRITE(195,"(6(ES24.17,1x))") (rnx(match_edge,pt), pt = 1,nqpte(1))
 ! !       WRITE(195,"(6(ES24.17,1x))") (rny(match_edge,pt), pt = 1,nqpte(1))
-! !      WRITE(195,"(6(ES24.17,1x))") (detJe_recv(match_edge,pt), pt = 1,nqpte(1))
-! !       WRITE(195,"(6(ES24.17,1x))") (hbr(match_edge,pt), pt = 1,nqpte(1))
+! !       WRITE(195,"(6(ES24.17,1x))") (detJe_recv(match_edge,pt), pt = 1,nqpte(1))
+!          WRITE(195,"(6(ES24.17,1x))") (hbr(match_edge,pt), pt = 1,nqpte(1))
 
       CALL recieve_edge_nflux(nred,nqpte(1))      
 
