@@ -2,7 +2,7 @@
 
       IMPLICIT NONE
       
-      INTEGER :: pe,el,dof
+      INTEGER :: i,pe,el,dof
       INTEGER :: npe,tne,mne,ne,ndof,lines
       INTEGER :: tstep
       INTEGER :: read_stat
@@ -40,7 +40,7 @@
         ENDIF
         
         DO el = 1,ne
-          READ(19,*) lel2gel(el)
+          READ(19,*) i, lel2gel(el)
         ENDDO
         
         CLOSE(19)   

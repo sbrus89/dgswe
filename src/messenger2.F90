@@ -291,7 +291,7 @@
       ALLOCATE(lel2gel(ne))
       
       DO el = 1,ne
-        READ(80,*) lel2gel(el)
+        READ(80,*) j, lel2gel(el)
       ENDDO
       
       CLOSE(80)

@@ -235,7 +235,7 @@
         WRITE(80,*) nlines
         
         DO el = 1,nresel(pe)
-          WRITE(80,*) el_l2g(el,pe) 
+          WRITE(80,*) el, el_l2g(el,pe) 
         ENDDO
         CLOSE(80)
       ENDDO  
