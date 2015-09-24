@@ -430,6 +430,7 @@
           el = el_sr(ed,pe)
           led = led_sr(ed,pe)
           nqpt = nqpte_sr(ed,pe)
+          el_in = gel2ael(el)
           
           match = 0
           DO i = 1,nred
@@ -437,12 +438,16 @@
             IF(el == ged2el(1,ged) .and. led == ged2led(1,ged)) THEN
             
               DO pt = 1,nqpte(1)
+              
+                gp_in = (led-1)*nqpte(1) + pt
+                
 !                 rnx(edcnt,pt) = nx_pt(ged,pt)*Spe(ged,pt)
 !                 rny(edcnt,pt) = ny_pt(ged,pt)
                 rnx(edcnt,pt) = nx_sr(pt,ed,pe)*Spe(ged,pt)
                 rny(edcnt,pt) = ny_sr(pt,ed,pe)
                 
-                hbr(edcnt,pt) = hb_sr(pt,ed,pe) ! assumes continuous bathymetry                
+                hbr(edcnt,pt) = hb_sr(pt,ed,pe) ! assumes continuous bathymetry     
+                hbqpte(el_in,gp_in) = hb_sr(pt,ed,pe)
                 
 !                 rcfac(edcnt,pt) = cfac(ed,pt)
                 rcfac(edcnt,pt) = ny_sr(pt,ed,pe)**2+(nx_sr(pt,ed,pe)*Spe(ged,pt))**2
