@@ -67,6 +67,10 @@ ifeq ($(BUILDTYPE),pdgswe)
   FC = mpif90
   ODIR = odir_pdgswe/
   
+#   CFLAGS_VEC  = -O3 -xHost -vec-report6 -DCMPI -I$(ODIR) -c
+#   CFLAGS      = -O3 -xHost -DCMPI -I$(ODIR) -c
+#   CFLAGS_LINK = -O3 -xHost -o  
+  
   CFLAGS_VEC  =  -O0 -fp-model strict -DCMPI -I$(ODIR) -c
   CFLAGS      =  -O0 -fp-model strict -DCMPI -I$(ODIR) -c 
   CFLAGS_LINK = -O0 -fp-model strict -o 
