@@ -182,52 +182,52 @@ dgprep_obj := $(patsubst %.o, $(ODIR)%.o,$(dgprep_objects))
 ifeq ($(MAKELEVEL),0)
 
 dgswe : 
-	@echo "\n\n"
+	@echo -e "\n\n"
 	$(MAKE) BUILDTYPE=dgswe dgswe
 	
 dgswe_omp : 
-	@echo "\n\n"
+	@echo -e "\n\n"
 	$(MAKE) BUILDTYPE=dgswe_omp dgswe
 
 pdgswe : 
-	@echo "\n\n"
+	@echo -e "\n\n"
 	$(MAKE) BUILDTYPE=pdgswe dgswe
 
 dgswe_debug : 
-	@echo "\n\n"
+	@echo -e "\n\n"
 	$(MAKE) BUILDTYPE=dgswe_debug dgswe
 
 pdgswe_debug : 
-	@echo "\n\n"
+	@echo -e "\n\n"
 	$(MAKE) BUILDTYPE=pdgswe_debug dgswe
 
 metis : 
-	@echo "\n\n"
+	@echo -e "\n\n"
 	$(MAKE) -C ../metis-4.0.3/
 
 dgprep : 
-	@echo "\n\n"
+	@echo -e "\n\n"
 	$(MAKE) BUILDTYPE=dgprep dgprep
 
 post : 
-	@echo "\n\n"
+	@echo -e "\n\n"
 	$(MAKE) -C ../post dgpost
 
 else
 
 dgswe : $(ODIR)  $(dgswe_obj)
-	@echo  " \n\033[35m$(MESSAGE) on $(FULLNAME) \033[0m"
-	@echo "Git SHA: $(GIT_SHA)"
-	@echo "Modified: $(GIT_MOD) \n"
+	@echo -e  " \n\033[35m$(MESSAGE) on $(FULLNAME) \033[0m"
+	@echo -e "Git SHA: $(GIT_SHA)"
+	@echo -e "Modified: $(GIT_MOD) \n"
 	$(FC) $(CFLAGS_LINK) $(EXE_NAME) $(dgswe_obj) $(METIS_LIB) $(LAPACK_LIB)
-	@echo "\n\n"
+	@echo -e "\n\n"
 	
 dgprep : $(ODIR)  $(dgprep_obj)
-	@echo  " \n\033[35m$(MESSAGE) on $(FULLNAME) \033[0m"
-	@echo "Git SHA: $(GIT_SHA)"
-	@echo "Modified: $(GIT_MOD) \n"
+	@echo -e " \n\033[35m$(MESSAGE) on $(FULLNAME) \033[0m"
+	@echo -e "Git SHA: $(GIT_SHA)"
+	@echo -e "Modified: $(GIT_MOD) \n"
 	$(FC) $(CFLAGS_LINK) $(EXE_NAME) $(dgprep_obj) $(METIS_LIB) $(LAPACK_LIB)
-	@echo "\n\n"
+	@echo -e "\n\n"
 endif
 
 
@@ -241,24 +241,24 @@ $(ODIR) :
 	@sed -i '9 c \      gitSHA = "$(GIT_SHA) $(GIT_MOD)" ' $(VPATH)version.F90
 	
 clean : 
-	@echo "\n\n"
+	@echo -e "\n\n"
 	rm odir*/*.o odir*/*.mod
 	
 clobber :
-	@echo "\n\n"
+	@echo -e "\n\n"
 	rm -rf odir*
 	rm dgswe pdgswe dgswe_debug pdgswe_debug
 
 cleanmetis : 
-	@echo "\n\n"
+	@echo -e "\n\n"
 	$(MAKE) -C ../metis-4.0.3/ clean
 
 cleandgprep : 
-	@echo "\n\n"
+	@echo -e "\n\n"
 	rm -r odir_dgprep/*.o odir_dgprep/*.mod
 
 cleanpost : 
-	@echo "\n\n"
+	@echo -e "\n\n"
 	$(MAKE) -C ../post clean
 
 ########################################################################
