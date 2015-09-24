@@ -182,52 +182,52 @@ dgprep_obj := $(patsubst %.o, $(ODIR)%.o,$(dgprep_objects))
 ifeq ($(MAKELEVEL),0)
 
 dgswe : 
-	@echo -e "\n\n"
+	@printf "\n\n"
 	$(MAKE) BUILDTYPE=dgswe dgswe
 	
 dgswe_omp : 
-	@echo -e "\n\n"
+	@printf "\n\n"
 	$(MAKE) BUILDTYPE=dgswe_omp dgswe
 
 pdgswe : 
-	@echo -e "\n\n"
+	@printf "\n\n"
 	$(MAKE) BUILDTYPE=pdgswe dgswe
 
 dgswe_debug : 
-	@echo -e "\n\n"
+	@printf "\n\n"
 	$(MAKE) BUILDTYPE=dgswe_debug dgswe
 
 pdgswe_debug : 
-	@echo -e "\n\n"
+	@printf "\n\n"
 	$(MAKE) BUILDTYPE=pdgswe_debug dgswe
 
 metis : 
-	@echo -e "\n\n"
+	@printf "\n\n"
 	$(MAKE) -C ../metis-4.0.3/
 
 dgprep : 
-	@echo -e "\n\n"
+	@printf "\n\n"
 	$(MAKE) BUILDTYPE=dgprep dgprep
 
 post : 
-	@echo -e "\n\n"
+	@printf "\n\n"
 	$(MAKE) -C ../post dgpost
 
 else
 
 dgswe : $(ODIR)  $(dgswe_obj)
-	@echo -e  " \n\033[35m$(MESSAGE) on $(FULLNAME) \033[0m"
-	@echo -e "Git SHA: $(GIT_SHA)"
-	@echo -e "Modified: $(GIT_MOD) \n"
+	@printf  " \n\033[35m$(MESSAGE) on $(FULLNAME) \033[0m \n"
+	@printf "Git SHA: $(GIT_SHA) \n"
+	@printf "Modified: $(GIT_MOD) \n\n"
 	$(FC) $(CFLAGS_LINK) $(EXE_NAME) $(dgswe_obj) $(METIS_LIB) $(LAPACK_LIB)
-	@echo -e "\n\n"
+	@printf "\n\n"
 	
 dgprep : $(ODIR)  $(dgprep_obj)
-	@echo -e " \n\033[35m$(MESSAGE) on $(FULLNAME) \033[0m"
-	@echo -e "Git SHA: $(GIT_SHA)"
-	@echo -e "Modified: $(GIT_MOD) \n"
+	@printf " \n\033[35m$(MESSAGE) on $(FULLNAME) \033[0m \n"
+	@printf "Git SHA: $(GIT_SHA) \n"
+	@printf "Modified: $(GIT_MOD) \n\n"
 	$(FC) $(CFLAGS_LINK) $(EXE_NAME) $(dgprep_obj) $(METIS_LIB) $(LAPACK_LIB)
-	@echo -e "\n\n"
+	@printf "\n\n"
 endif
 
 
@@ -241,24 +241,24 @@ $(ODIR) :
 	@sed -i '9 c \      gitSHA = "$(GIT_SHA) $(GIT_MOD)" ' $(VPATH)version.F90
 	
 clean : 
-	@echo -e "\n\n"
+	@printf "\n\n"
 	rm odir*/*.o odir*/*.mod
 	
 clobber :
-	@echo -e "\n\n"
+	@printf "\n\n"
 	rm -rf odir*
 	rm dgswe pdgswe dgswe_debug pdgswe_debug
 
 cleanmetis : 
-	@echo -e "\n\n"
+	@printf "\n\n"
 	$(MAKE) -C ../metis-4.0.3/ clean
 
 cleandgprep : 
-	@echo -e "\n\n"
+	@printf "\n\n"
 	rm -r odir_dgprep/*.o odir_dgprep/*.mod
 
 cleanpost : 
-	@echo -e "\n\n"
+	@printf "\n\n"
 	$(MAKE) -C ../post clean
 
 ########################################################################
@@ -401,4 +401,4 @@ $(ODIR)write_files.o : ../prep/src/write_files.F90             $(ODIR)globals.o 
 
 $(ODIR)dgprep.o :../prep/src/dgprep.F90                        $(ODIR)globals.o $(ODIR)allocation.o $(ODIR)read_input.o $(ODIR)messenger2.o $(ODIR)vandermonde.o $(ODIR)shape_functions.o
 	$(FC) $(CFLAGS) $< -o $@
-	
+
