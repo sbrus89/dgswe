@@ -9,6 +9,8 @@
                          rhsZ,rhsQx,rhsQy, &
                          phie,phie_int
                          
+      USE read_dginp, ONLY: ctp                         
+                         
 
       IMPLICIT NONE
 
@@ -19,7 +21,7 @@
       REAL(rp) :: Zhat,Qxhat,Qyhat
       REAL(rp) :: nx,ny,nx2,ny2,nxny,sp,hb
 
-      IF (nqpte(3) == nqpte(1)) THEN
+      IF (ctp == 1) THEN
 !$OMP do     
         ! No normal flow boundary condition 
         DO ed = 1,nnfbed
@@ -28,9 +30,9 @@
           led_in = ged2led(1,ged)        
           el_in = gel2ael(ged2el(1,ged))  
               
-          DO pt = 1,nqpte(3)
+          DO pt = 1,nqpte(1)
 
-            gp_in = (led_in-1)*nqpte(3) + pt
+            gp_in = (led_in-1)*nqpte(1) + pt
 
             nx = nx_pt(ged,pt)
             ny = ny_pt(ged,pt)
