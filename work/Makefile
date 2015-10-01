@@ -176,6 +176,7 @@ GIT_BRANCH := $(shell git rev-parse --abbrev-ref HEAD )
 GIT_MOD := $(shell git diff-index --quiet HEAD; echo $$?)
 GIT_MOD := $(strip $(subst 1,+,$(GIT_MOD)))
 GIT_MOD := $(strip $(subst 0,,$(GIT_MOD)))
+GIT_MFILES := $(strip $(shell git ls-files ../* -m))
 
 dgswe : $(ODIR)  $(dgswe_obj)
 	@printf  " \n\033[35m$(MESSAGE) on $(FULLNAME) \033[0m \n"
@@ -203,6 +204,8 @@ $(ODIR) :
 	@sed -i '9 c \      gitSHA = "$(GIT_SHA) $(GIT_MOD)" ' $(VPATH)version.F90
 	@sed -i '10 c \      compiler_version = "$(FC_VERSION)" ' $(VPATH)version.F90
 	@sed -i '11 c \      compiler_flags = "$(FFLAGS)" ' $(VPATH)version.F90
+	@sed -i '12 c \      modified_files = "$(GIT_MFILES)" ' $(VPATH)version.F90	
+	
 	
 clean : 
 	@printf "\n\n"
