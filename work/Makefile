@@ -3,117 +3,86 @@ SHELL = /bin/sh
 VPATH := ../src/
 
 FULLNAME := $(shell hostname)
-# GIT_SHA := $(shell git rev-parse --short HEAD)
-GIT_SHA := $(shell git rev-parse HEAD)
-GIT_MOD := $(shell git diff-index --quiet HEAD; echo $$?)
-GIT_BRANCH := $(shell git rev-parse --abbrev-ref HEAD )
-
-GIT_MOD := $(strip $(subst 1,+,$(GIT_MOD)))
-GIT_MOD := $(strip $(subst 0,,$(GIT_MOD)))
 
 ########################################################################
 #                  Compiler Flags (Build Specific)                     #
 ########################################################################
 
+ifeq ($(findstring debug,$(OPTS)),debug)
+  FFLAGS += -C -g -traceback
+  FLAG_TYPE += debug and bounds checking
+endif
+ifeq ($(findstring strict,$(OPTS)),strict)
+  FFLAGS += -O0 -fp-model strict
+  FLAG_TYPE += strict floating point 
+endif
+ifeq ($(findstring default,$(OPTS)),default)
+  FFLAGS += -O2
+  FLAG_TYPE += default  
+endif
+
+FFLAGS ?= -O3 -xHost
+FLAG_TYPE ?= optimized
+
+ifeq ($(findstring prof,$(OPTS)),prof)
+  FFLAGS += -profile-loops=all
+  FLAG_TYPE += profiling  
+endif
+ifeq ($(findstring align,$(OPTS)),align)
+  FFLAGS += -align array32byte -align rec32byte
+  FLAG_TYPE += aligned  
+endif
+ifeq ($(findstring ipo,$(OPTS)),ipo)
+  FFLAGS += -ipo
+  FLAG_TYPE += ipo  
+endif
+
+ifeq ($(findstring mpi,$(OPTS)),mpi)
+  FFLAGS += -DCMPI
+endif
+ifeq ($(findstring omp,$(OPTS)),omp)
+  FFLAGS += -openmp -Dopenmp
+endif
+# ifeq ($(findstring mic,$(OPTS)),mic)
+#   FFLAGS += -mmic
+# endif
+
+FFLAGS += -I$(ODIR)
+OPT_REPORT = -vec_report6 
+# OPT_REPORT = -qopt-report -qopt-report-phase=vec
+
 ifeq ($(BUILDTYPE),dgswe)
-  FC = ifort
+  FC := ifort
   ODIR = odir_dgswe/
- 
-  CFLAGS_VEC  = -O3 -xHost -vec-report6  -I$(ODIR) -c
-  CFLAGS      = -O3 -xHost  -I$(ODIR) -c
-  CFLAGS_LINK = -O3 -xHost -o
- 
-#  CFLAGS_VEC  =  -O0 -fp-model strict -vec-report6  -I$(ODIR) -c
-#  CFLAGS      =  -O0 -fp-model strict  -I$(ODIR) -c 
-#  CFLAGS_LINK = -O0 -fp-model strict -o 
-
-#   ### Default compilation ###
-#   CFLAGS_VEC = -vec-report3 -I$(ODIR) -c 
-#   CFLAGS = -I$(ODIR) -c
-#   CFLAGS_LINK = -o
-
-#   ### IPO compilation ###
-#   CFLAGS =  -O3 -xHost -ipo -I$(ODIR) -c 
-#   CFLAGS_VEC =  -O3 -xHost -ipo -I$(ODIR) -c 
-#   CFLAGS_LINK = -O3 -xHost -ipo -vec-report3 -I$(ODIR) -o 
-  
-#   ### Profile compilation ###
-#   CFLAGS_VEC =  -O3 -xHost -align array32byte -vec-report3 -profile-loops=all -I$(ODIR) -c 
-#   CFLAGS =  -O3 -xHost -align array32byte -profile-loops=all -I$(ODIR) -c 
-#   CFLAGS_LINK = -O3 -xHost -profile-loops=all -I$(ODIR) -o
 
   EXE_NAME = dgswe
-  MESSAGE = Compling serial program with optimization flags
+  MESSAGE = Compling serial program with $(FLAG_TYPE) flags
 endif
 
-ifeq ($(BUILDTYPE),dgswe_omp)
-  FC = ifort
-  ODIR = odir_omp/
-  
-  CFLAGS_VEC  =  -O3 -xHost -align array32byte -openmp -Dopenmp -vec-report6 -I$(ODIR) -c
-  CFLAGS      =  -O3 -xHost -align array32byte -openmp -Dopenmp -I$(ODIR) -c 
-  CFLAGS_LINK = -O3 -xHost -openmp -Dopenmp -o 
-  
-#   ### Mic compilation ###
-#   CFLAGS_VEC =  -O3 -mmic -vec-report6 -openmp -Dopenmp -c
-#   CFLAGS =  -O3 -mmic -openmp -Dopenmp -c 
-#   CFLAGS_LINK = -O3 -mmic -openmp -Dopenmp  -o   
-  
-  EXE_NAME = dgswe_omp
-  MESSAGE = Compling OpenMP program with optimization flags
-endif
-
-ifeq ($(BUILDTYPE),pdgswe)
-  FC = mpif90
+ifeq ($(findstring mpi,$(OPTS)),mpi)
+  FC := mpif90
   ODIR = odir_pdgswe/
   
-#   CFLAGS_VEC  = -O3 -xHost -vec-report6 -DCMPI -I$(ODIR) -c
-#   CFLAGS      = -O3 -xHost -DCMPI -I$(ODIR) -c
-#   CFLAGS_LINK = -O3 -xHost -o  
-  
-  CFLAGS_VEC  =  -O0 -fp-model strict -DCMPI -I$(ODIR) -c
-  CFLAGS      =  -O0 -fp-model strict -DCMPI -I$(ODIR) -c 
-  CFLAGS_LINK = -O0 -fp-model strict -o 
-  
   EXE_NAME = pdgswe
-  MESSAGE = Compling parallel program with optimization flags
+  MESSAGE = Compling MPI program with $(FLAG_TYPE) flags  
 endif
 
-ifeq ($(BUILDTYPE),dgswe_debug)
-  FC = ifort
-  ODIR = odir_debug/
+ifeq ($(findstring omp,$(OPTS)),omp)
+  FC := ifort
+  ODIR = odir_dgswe_omp/
   
-  CFLAGS_VEC  =  -C -g -traceback  -I$(ODIR) -c
-  CFLAGS      =  -C -g -traceback  -I$(ODIR) -c 
-  CFLAGS_LINK = -o 
-  
-  EXE_NAME = dgswe_debug
-  MESSAGE =  Compling serial program with debug flags 
-endif
-
-ifeq ($(BUILDTYPE),pdgswe_debug)
-  FC = mpif90
-  ODIR = odir_pdebug/
-  
-  CFLAGS_VEC  =  -C -g -traceback -DCMPI -I$(ODIR) -c
-  CFLAGS      =  -C -g -traceback -DCMPI -I$(ODIR) -c 
-  CFLAGS_LINK =  -o 
-  
-  EXE_NAME = pdgswe_debug
-  MESSAGE = Compling parallel program with debug flags
+  EXE_NAME = dgswe_omp
+  MESSAGE = Compling OpenMP program with $(FLAG_TYPE) flags  
 endif
 
 ifeq ($(BUILDTYPE),dgprep)
-  FC = ifort
+  FC := ifort
   ODIR = odir_dgprep/
-  
-  CFLAGS_VEC  =  -C -g -traceback -I$(ODIR) -c
-  CFLAGS      =  -C -g -traceback -I$(ODIR) -c 
-  CFLAGS_LINK =  -o 
-  
+
   EXE_NAME = dgprep
-  MESSAGE = Compling prep program with debug flags
+  MESSAGE = Compling prep program with $(FLAG_TYPE) flags
 endif
+
 
 ### Other compiler flags ###
 # -no-prec-div
@@ -127,23 +96,19 @@ endif
 NAME := $(strip $(subst ., , $(FULLNAME)))
 ifeq ($(NAME),chl-tilos)
   LAPACK_LIB = -llapack
-  ALIGN = #-DALIGN64
 endif
 
 ifeq ($(NAME),sbrus-laptop)
   LAPACK_LIB = -llapack
-  ALIGN = #-DALIGN64
 endif
 
 ifeq ($(filter crc nd edu,$(NAME)),crc nd edu)
-#  LAPACK_LIB = -Wl,--start-group $(MKLROOT)/lib/intel64/libmkl_intel_lp64.a $(MKLROOT)/lib/intel64/libmkl_sequential.a  $(MKLROOT)/lib/intel64/libmkl_core.a -Wl,--end-group -lpthread -lm
-  LAPACK_LIB = -L./ -llapack -lrefblas -ltmglib
-  ALIGN = #-DALIGN32
+ LAPACK_LIB = -Wl,--start-group $(MKLROOT)/lib/intel64/libmkl_intel_lp64.a $(MKLROOT)/lib/intel64/libmkl_sequential.a  $(MKLROOT)/lib/intel64/libmkl_core.a -Wl,--end-group -lpthread -lm
+#   LAPACK_LIB = -L./ -llapack -lrefblas -ltmglib
 endif
 
 ifeq ($(filter tacc utexas edu,$(NAME)),tacc utexas edu)
   LAPACK_LIB =  -Wl,--start-group $(MKLROOT)/lib/intel64/libmkl_intel_lp64.a $(MKLROOT)/lib/intel64/libmkl_core.a $(MKLROOT)/lib/intel64/libmkl_sequential.a -Wl,--end-group -lpthread -lm
-  ALIGN = #-DALIGN64
 endif
 
 METIS_LIB = -L../metis-4.0.3 -lmetis
@@ -180,57 +145,51 @@ dgprep_obj := $(patsubst %.o, $(ODIR)%.o,$(dgprep_objects))
 ########################################################################
 
 .PHONY : $(ODIR) dgswe dgswe_omp pdgswe dgswe_debug pdgswe_debug 
-.PHONY : metis dgprep post 
+.PHONY : metis dgprep dgpost 
 .PHONY : clean cleanmetis cleandgprep cleanpost
 
 ifeq ($(MAKELEVEL),0)
 
 dgswe : 
 	@printf "\n\n"
-	$(MAKE) BUILDTYPE=dgswe dgswe
+	$(MAKE) BUILDTYPE=dgswe OPTS=$(OPTS) dgswe
 	
-dgswe_omp : 
-	@printf "\n\n"
-	$(MAKE) BUILDTYPE=dgswe_omp dgswe
-
-pdgswe : 
-	@printf "\n\n"
-	$(MAKE) BUILDTYPE=pdgswe dgswe
-
-dgswe_debug : 
-	@printf "\n\n"
-	$(MAKE) BUILDTYPE=dgswe_debug dgswe
-
-pdgswe_debug : 
-	@printf "\n\n"
-	$(MAKE) BUILDTYPE=pdgswe_debug dgswe
-
 metis : 
 	@printf "\n\n"
 	$(MAKE) -C ../metis-4.0.3/
 
 dgprep : 
 	@printf "\n\n"
-	$(MAKE) BUILDTYPE=dgprep dgprep
+	$(MAKE) BUILDTYPE=dgprep OPTS=$(OPTS) dgprep
 
-post : 
+dgpost : 
 	@printf "\n\n"
 	$(MAKE) -C ../post dgpost
 
 else
 
+FC_VERSION := $(shell $(FC) -v 2>&1)
+
+# GIT_SHA := $(shell git rev-parse --short HEAD)
+GIT_SHA := $(shell git rev-parse HEAD)
+GIT_MOD := $(shell git diff-index --quiet HEAD; echo $$?)
+GIT_BRANCH := $(shell git rev-parse --abbrev-ref HEAD )
+
+GIT_MOD := $(strip $(subst 1,+,$(GIT_MOD)))
+GIT_MOD := $(strip $(subst 0,,$(GIT_MOD)))
+
 dgswe : $(ODIR)  $(dgswe_obj)
 	@printf  " \n\033[35m$(MESSAGE) on $(FULLNAME) \033[0m \n"
 	@printf "Git SHA: $(GIT_SHA) \n"
 	@printf "Modified: $(GIT_MOD) \n\n"
-	$(FC) $(CFLAGS_LINK) $(EXE_NAME) $(dgswe_obj) $(METIS_LIB) $(LAPACK_LIB)
+	$(FC) $(FFLAGS) -o $(EXE_NAME) $(dgswe_obj) $(METIS_LIB) $(LAPACK_LIB)
 	@printf "\n\n"
 	
 dgprep : $(ODIR)  $(dgprep_obj)
 	@printf " \n\033[35m$(MESSAGE) on $(FULLNAME) \033[0m \n"
 	@printf "Git SHA: $(GIT_SHA) \n"
 	@printf "Modified: $(GIT_MOD) \n\n"
-	$(FC) $(CFLAGS_LINK) $(EXE_NAME) $(dgprep_obj) $(METIS_LIB) $(LAPACK_LIB)
+	$(FC) $(FFLAGS) -o $(EXE_NAME) $(dgprep_obj) $(METIS_LIB) $(LAPACK_LIB)
 	@printf "\n\n"
 endif
 
@@ -243,6 +202,8 @@ $(ODIR) :
 	mkdir -p $@
 	@sed -i '8 c \      gitBranch = "$(GIT_BRANCH)" ' $(VPATH)version.F90
 	@sed -i '9 c \      gitSHA = "$(GIT_SHA) $(GIT_MOD)" ' $(VPATH)version.F90
+	@sed -i '10 c \      compiler_version = "$(FC_VERSION)" ' $(VPATH)version.F90
+	@sed -i '11 c \      compiler_flags = "$(FFLAGS)" ' $(VPATH)version.F90
 	
 clean : 
 	@printf "\n\n"
@@ -273,136 +234,136 @@ cleanpost :
 # $@ = name of the target	
 
 $(ODIR)globals.o : globals.F90
-	$(FC) $(CFLAGS) $(ALIGN) $< -o $@
+	$(FC) $(FFLAGS) -c $< -o $@
 	mv globals.mod $(ODIR)
 
 $(ODIR)lapack_interfaces.o : lapack_interfaces.F90
-	$(FC) $(CFLAGS) $< -o $@
+	$(FC) $(FFLAGS) -c $< -o $@
 	mv lapack_interfaces.mod $(ODIR)
 
 $(ODIR)messenger2.o : messenger2.F90                           $(ODIR)globals.o
-	$(FC) $(CFLAGS) $(ALIGN) $< -o $@
+	$(FC) $(FFLAGS) -c $< -o $@
 	mv messenger2.mod $(ODIR)
 
 $(ODIR)allocation.o : allocation.F90                           $(ODIR)globals.o $(ODIR)messenger2.o $(ODIR)read_input.o
-	$(FC) $(CFLAGS) $< -o $@
+	$(FC) $(FFLAGS) -c $< -o $@
 	mv allocation.mod $(ODIR)
 
 $(ODIR)basis.o : basis.F90                                     $(ODIR)globals.o $(ODIR)messenger2.o $(ODIR)read_input.o $(ODIR)allocation.o
-	$(FC) $(CFLAGS) $< -o $@
+	$(FC) $(FFLAGS) -c $< -o $@
 	mv basis.mod $(ODIR)
 	
 $(ODIR)read_input.o : read_input.F90                           $(ODIR)globals.o $(ODIR)messenger2.o
-	$(FC) $(CFLAGS) $< -o $@
+	$(FC) $(FFLAGS) -c $< -o $@
 	mv read_dginp.mod $(ODIR)
 
 $(ODIR)vandermonde.o : vandermonde.F90                         $(ODIR)globals.o $(ODIR)basis.o
-	$(FC) $(CFLAGS) $< -o $@
+	$(FC) $(FFLAGS) -c $< -o $@
 	mv vandermonde.mod $(ODIR)
 	
 $(ODIR)shape_functions.o : shape_functions.F90                 $(ODIR)globals.o $(ODIR)messenger2.o $(ODIR)basis.o $(ODIR)lapack_interfaces.o
-	$(FC) $(CFLAGS) $< -o $@
+	$(FC) $(FFLAGS) -c $< -o $@
 	mv shape_functions.mod $(ODIR)
 
 $(ODIR)transformation.o : transformation.F90                   $(ODIR)globals.o $(ODIR)read_input.o
-	$(FC) $(CFLAGS) $< -o $@
+	$(FC) $(FFLAGS) -c $< -o $@
 	mv transformation.mod $(ODIR)
 
 $(ODIR)area_qpts.o : area_qpts.F90                             $(ODIR)globals.o $(ODIR)messenger2.o $(ODIR)read_input.o $(ODIR)allocation.o
-	$(FC) $(CFLAGS) $< -o $@
+	$(FC) $(FFLAGS) -c $< -o $@
 
 $(ODIR)edge_qpts.o : edge_qpts.F90                             $(ODIR)globals.o $(ODIR)messenger2.o $(ODIR)read_input.o $(ODIR)allocation.o
-	$(FC) $(CFLAGS) $< -o $@
+	$(FC) $(FFLAGS) -c $< -o $@
 
 $(ODIR)read_grid.o : read_grid.F90                             $(ODIR)globals.o $(ODIR)messenger2.o $(ODIR)read_input.o $(ODIR)allocation.o
-	$(FC) $(CFLAGS) $< -o $@
+	$(FC) $(FFLAGS) -c $< -o $@
 
 $(ODIR)read_forcing.o : read_forcing.F90                       $(ODIR)globals.o $(ODIR)messenger2.o $(ODIR)read_input.o $(ODIR)allocation.o
-	$(FC) $(CFLAGS) $< -o $@
+	$(FC) $(FFLAGS) -c $< -o $@
 
 $(ODIR)modal2nodal.o : modal2nodal.F90                         $(ODIR)globals.o  $(ODIR)read_input.o $(ODIR)basis.o
-	$(FC) $(CFLAGS) $< -o $@
+	$(FC) $(FFLAGS) -c $< -o $@
 
 $(ODIR)interp_forcing.o : interp_forcing.F90                   $(ODIR)globals.o $(ODIR)allocation.o
-	$(FC) $(CFLAGS) $< -o $@
+	$(FC) $(FFLAGS) -c $< -o $@
 
 $(ODIR)initial.o : initial.F90                                 $(ODIR)globals.o $(ODIR)read_input.o $(ODIR)allocation.o $(ODIR)basis.o
-	$(FC) $(CFLAGS) $< -o $@
+	$(FC) $(FFLAGS) -c $< -o $@
 
 $(ODIR)connect.o : connect.F90                                 $(ODIR)globals.o $(ODIR)messenger2.o $(ODIR)read_input.o $(ODIR)allocation.o
-	$(FC) $(CFLAGS) $< -o $@
+	$(FC) $(FFLAGS) -c $< -o $@
 
 $(ODIR)curvilinear.o : curvilinear.F90                         $(ODIR)globals.o $(ODIR)read_input.o $(ODIR)basis.o $(ODIR)transformation.o
-	$(FC) $(CFLAGS) $< -o $@
+	$(FC) $(FFLAGS) -c $< -o $@
 
 $(ODIR)element_data.o : element_data.F90                       $(ODIR)globals.o $(ODIR)read_input.o $(ODIR)allocation.o $(ODIR)basis.o $(ODIR)vandermonde.o $(ODIR)shape_functions.o
-	$(FC) $(CFLAGS) $< -o $@
+	$(FC) $(FFLAGS) -c $< -o $@
 
 $(ODIR)edge_partition2.o : edge_partition2.F90                 $(ODIR)globals.o $(ODIR)messenger2.o $(ODIR)read_input.o $(ODIR)allocation.o
-	$(FC) $(CFLAGS) $< -o $@
+	$(FC) $(FFLAGS) -c $< -o $@
 
 $(ODIR)metis2.o : metis2.F90                                   $(ODIR)globals.o $(ODIR)messenger2.o 
-	$(FC) $(CFLAGS) $< -o $@	
+	$(FC) $(FFLAGS) -c $< -o $@	
 	
 $(ODIR)area_transformation.o : area_transformation.F90         $(ODIR)globals.o $(ODIR)transformation.o
-	$(FC) $(CFLAGS) $< -o $@
+	$(FC) $(FFLAGS) -c $< -o $@
 
 $(ODIR)edge_transformation.o : edge_transformation.F90         $(ODIR)globals.o $(ODIR)basis.o
-	$(FC) $(CFLAGS) $< -o $@
+	$(FC) $(FFLAGS) -c $< -o $@
 
 $(ODIR)area_integration.o : area_integration.F90               $(ODIR)globals.o $(ODIR)read_input.o
-	$(FC) $(CFLAGS_VEC) $< -o $@
+	$(FC) $(FFLAGS) $(OPT_REPORT) -c $< -o $@
 	
 $(ODIR)normals.o : normals.F90                                 $(ODIR)globals.o $(ODIR)transformation.o
-	$(FC) $(CFLAGS) $< -o $@
+	$(FC) $(FFLAGS) -c $< -o $@
 
 $(ODIR)edge_integration.o : edge_integration.F90               $(ODIR)globals.o $(ODIR)messenger2.o
-	$(FC) $(CFLAGS_VEC) $< -o $@
+	$(FC) $(FFLAGS) $(OPT_REPORT) -c $< -o $@
 	
 $(ODIR)bathymetry_interp.o : bathymetry_interp.F90             $(ODIR)globals.o $(ODIR)lapack_interfaces.o $(ODIR)read_input.o $(ODIR)transformation.o
-	$(FC) $(CFLAGS) $< -o $@
+	$(FC) $(FFLAGS) -c $< -o $@
 
 $(ODIR)rk.o : rk.F90                                           $(ODIR)globals.o $(ODIR)messenger2.o $(ODIR)read_input.o
-	$(FC) $(CFLAGS_VEC) $< -o $@
+	$(FC) $(FFLAGS) $(OPT_REPORT) -c $< -o $@
 
 $(ODIR)rhs2.o : rhs2.F90                                       $(ODIR)globals.o $(ODIR)messenger2.o $(ODIR)read_input.o
-	$(FC) $(CFLAGS_VEC) $< -o $@
+	$(FC) $(FFLAGS) $(OPT_REPORT) -c $< -o $@
 
 $(ODIR)rhs3.o : rhs3.F90                                       $(ODIR)globals.o $(ODIR)messenger2.o $(ODIR)read_input.o
-	$(FC) $(CFLAGS_VEC) $< -o $@
+	$(FC) $(FFLAGS) $(OPT_REPORT) -c $< -o $@
 
 $(ODIR)numerical_flux.o : numerical_flux.F90                   $(ODIR)globals.o
-	$(FC) $(CFLAGS) $< -o $@
+	$(FC) $(FFLAGS) -c $< -o $@
 
 $(ODIR)boundary_edge_land.o : boundary_edge_land.F90           $(ODIR)globals.o
-	$(FC) $(CFLAGS) $< -o $@
+	$(FC) $(FFLAGS) -c $< -o $@
 
 $(ODIR)boundary_edge_flow.o : boundary_edge_flow.F90           $(ODIR)globals.o
-	$(FC) $(CFLAGS) $< -o $@
+	$(FC) $(FFLAGS) -c $< -o $@
 
 $(ODIR)boundary_edge_elev.o : boundary_edge_elev.F90           $(ODIR)globals.o
-	$(FC) $(CFLAGS) $< -o $@
+	$(FC) $(FFLAGS) -c $< -o $@
 
 $(ODIR)linear_solve.o : linear_solve.F90                       $(ODIR)globals.o
-	$(FC) $(CFLAGS) $< -o $@
+	$(FC) $(FFLAGS) -c $< -o $@
 	
 $(ODIR)write_output.o : write_output.F90                       $(ODIR)globals.o $(ODIR)messenger2.o $(ODIR)read_input.o
-	$(FC) $(CFLAGS) $< -o $@
+	$(FC) $(FFLAGS) -c $< -o $@
 	
 $(ODIR)version.o : version.F90                                 $(ODIR)globals.o $(ODIR)messenger2.o 
-	$(FC) $(CFLAGS) $< -o $@
+	$(FC) $(FFLAGS) -c $< -o $@
 
 $(ODIR)dgswe.o : dgswe.F90                                     $(ODIR)globals.o $(ODIR)messenger2.o $(ODIR)read_input.o $(ODIR)allocation.o $(ODIR)basis.o
-	$(FC) $(CFLAGS) $< -o $@
+	$(FC) $(FFLAGS) -c $< -o $@
 
 # prep file targets
 
 $(ODIR)decomp2.o : ../prep/src/decomp2.F90                     $(ODIR)globals.o $(ODIR)messenger2.o 
-	$(FC) $(CFLAGS) $< -o $@
+	$(FC) $(FFLAGS) -c $< -o $@
 
 $(ODIR)write_files.o : ../prep/src/write_files.F90             $(ODIR)globals.o $(ODIR)read_input.o $(ODIR)messenger2.o 
-	$(FC) $(CFLAGS) $< -o $@
+	$(FC) $(FFLAGS) -c $< -o $@
 
 $(ODIR)dgprep.o :../prep/src/dgprep.F90                        $(ODIR)globals.o $(ODIR)allocation.o $(ODIR)read_input.o $(ODIR)messenger2.o $(ODIR)vandermonde.o $(ODIR)shape_functions.o
-	$(FC) $(CFLAGS) $< -o $@
+	$(FC) $(FFLAGS) -c $< -o $@
 
