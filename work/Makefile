@@ -146,7 +146,7 @@ dgprep_obj := $(patsubst %.o, $(ODIR)%.o,$(dgprep_objects))
 
 .PHONY : $(ODIR) dgswe 
 .PHONY : metis dgprep dgpost 
-.PHONY : clean cleanmetis cleandgprep cleanpost
+.PHONY : clean cleanmetis cleandgprep cleandgpost
 
 ifeq ($(MAKELEVEL),0)
 
@@ -211,7 +211,7 @@ clean :
 clobber :
 	@printf "\n\n"
 	rm -rf odir*
-	rm dgswe pdgswe dgswe_debug pdgswe_debug
+	rm dgswe dgswe_mpi dgswe_omp
 
 cleanmetis : 
 	@printf "\n\n"
@@ -221,9 +221,46 @@ cleandgprep :
 	@printf "\n\n"
 	rm -r odir_dgprep/*.o odir_dgprep/*.mod
 
-cleanpost : 
+cleandgpost : 
 	@printf "\n\n"
 	$(MAKE) -C ../post clean
+	
+help : 
+	@printf "\n\n"
+	@printf "This Makefile uses commands of the form: \n"
+	@printf "    make target OPTS=opt1,opt2,... \n"
+	@printf "\n"
+	@printf "The executable targets are: \n"
+	@printf "    dgswe  : makes the main program executable \n"
+	@printf "    dgprep : makes the domain decomposition executable \n"
+	@printf "    dgpost : makes the solution globalization executable \n"
+	@printf "    metis  : makes the METIS library used by dgprep \n"
+	@printf "\n"
+	@printf "The clean targets are: \n"
+	@printf "    clean       : removes object files for dgswe \n"
+	@printf "    clobber     : removes all object file directories and executables for dgswe \n"
+	@printf "    cleandgprep : removes object files for dgprep \n"
+	@printf "    cleandgpost : cleans the dgpost complication directory \n"
+	@printf "    cleanmetis  : cleans the METIS compliation directory \n"
+	@printf "\n"
+	@printf "Valid options for the OPTS variable are: \n"
+	@printf " - The following options affect the type of executable produced: \n"
+	@printf "     mpi : compiles the MPI parallel version of dgswe \n"
+	@printf "     omp : compiles the OpenMP paralel version of dgswe \n"
+	@printf "     ** not specifying one of these options makes the serial version \n"
+	@printf "\n"
+	@printf " - The following options specify the un-optimized compiler flags used: \n"
+	@printf "     debug   : compiles with bounds checking and debugging flags \n"
+	@printf "     strict  : compiles with strict floating point flags \n"
+	@printf "     default : compiles with default ifort flags \n"
+	@printf "     ** not specifying one of these options defaults to: -O3 -xHost \n"
+	@printf "\n"
+	@printf " - The following options specify the optimized compiler flags used: \n"
+	@printf "     align : compiles with array and derived type alignment flags \n" 
+	@printf "     prof  : compiles with profiling flags \n"
+	@printf "     ipo   : complies with inter procedural optimization flags \n"
+
+
 
 ########################################################################
 #                            File Targets                              #
