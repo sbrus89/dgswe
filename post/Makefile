@@ -1,8 +1,10 @@
 FC = ifort
 
+.PHONY : dgpost clean
+
 dgpost : dgpost.F90
 	$(FC) $< -o $@
 	cp dgpost ../work/
 	
-.PHONY : clean
+clean :
 	rm *.o dgpost
