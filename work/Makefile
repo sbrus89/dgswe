@@ -61,9 +61,9 @@ endif
 
 ifeq ($(findstring mpi,$(OPTS)),mpi)
   FC := mpif90
-  ODIR = odir_pdgswe/
+  ODIR = odir_dgswe_mpi/
   
-  EXE_NAME = pdgswe
+  EXE_NAME = dgswe_mpi
   MESSAGE = Compling MPI program with $(FLAG_TYPE) flags  
 endif
 
@@ -144,7 +144,7 @@ dgprep_obj := $(patsubst %.o, $(ODIR)%.o,$(dgprep_objects))
 #                          Executable Targets                          #
 ########################################################################
 
-.PHONY : $(ODIR) dgswe dgswe_omp pdgswe dgswe_debug pdgswe_debug 
+.PHONY : $(ODIR) dgswe 
 .PHONY : metis dgprep dgpost 
 .PHONY : clean cleanmetis cleandgprep cleanpost
 
@@ -172,9 +172,8 @@ FC_VERSION := $(shell $(FC) -v 2>&1)
 
 # GIT_SHA := $(shell git rev-parse --short HEAD)
 GIT_SHA := $(shell git rev-parse HEAD)
-GIT_MOD := $(shell git diff-index --quiet HEAD; echo $$?)
 GIT_BRANCH := $(shell git rev-parse --abbrev-ref HEAD )
-
+GIT_MOD := $(shell git diff-index --quiet HEAD; echo $$?)
 GIT_MOD := $(strip $(subst 1,+,$(GIT_MOD)))
 GIT_MOD := $(strip $(subst 0,,$(GIT_MOD)))
 
