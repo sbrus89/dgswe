@@ -6,20 +6,20 @@
       IMPLICIT NONE
       
       gitBranch = "quadtri_mixed_mpi" 
-      gitSHA = "c1f188714ef321d0f44a1eaf980b6da0f271e05a +" 
+      gitSHA = "a90514ca26982fbef203aab77c5aa0913acaa9c3 +" 
       compiler_version = "ifort version 14.0.0" 
-      compiler_flags = "-O2 -align array32byte -align rec32byte -Iodir_dgswe/" 
+      compiler_flags = "-O3 -xHost -Iodir_dgswe/" 
       
       
       IF (myrank == 0) THEN     
             
         PRINT*, "Version Information"
-        PRINT*, "  Branch: ", gitBranch 
-        PRINT*, "  SHA: ", gitSHA 
+        PRINT*, "  Branch: ", TRIM(ADJUSTL(gitBranch))
+        PRINT*, "  SHA: ", TRIM(ADJUSTL(gitSHA)) 
         PRINT*, " "
         PRINT*, "Compiler Information"
-        PRINT*, "  Version: ", compiler_version
-        PRINT*, "  Flags: ", compiler_flags
+        PRINT*, "  Version: ", TRIM(ADJUSTL(compiler_version))
+        PRINT*, "  Flags: ", TRIM(ADJUSTL(compiler_flags))
         PRINT*, " "
       
       ENDIF

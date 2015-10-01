@@ -344,13 +344,13 @@
               SELECT CASE (dginp(i)%vartype) 
                 CASE(1)
                   READ(test_val,*) dginp(i)%iptr
-                  IF (myrank == 0 ) PRINT("(A,A,I8)"), test_opt," = ",dginp(i)%iptr
+                  IF (myrank == 0) PRINT("(A,A,I8)"), test_opt," = ",dginp(i)%iptr
                 CASE(2)
                   READ(test_val,*) dginp(i)%rptr
-                  IF (myrank == 0 ) PRINT("(A,A,E21.8)"), test_opt," = ",dginp(i)%rptr                  
+                  IF (myrank == 0) PRINT("(A,A,E21.8)"), test_opt," = ",dginp(i)%rptr                  
                 CASE(3)
                   dginp(i)%cptr = TRIM(test_val)
-                  IF (myrank == 0 ) PRINT("(A,A,A)"), test_opt," = ",dginp(i)%cptr                  
+                  IF (myrank == 0) PRINT("(A,A,A)"), test_opt," = ",dginp(i)%cptr                  
               END SELECT
 
               found = .true.          ! flag match
@@ -364,20 +364,20 @@
                     
           IF (found == .false. .and. eqind > 0) THEN
             ! unmatched lines with an equal sign are either incorrect or no longer supported
-            PRINT("(3A)"),"*** WARNING: ",test_opt, " is an incorrect or depreciated value ***"            
+            IF (myrank == 0) PRINT("(3A)"),"*** WARNING: ",test_opt, " is an incorrect or depreciated value ***"            
           ELSE IF (found == .false.) THEN
             ! unmatched lines without an equal sign are ignored
-            PRINT("(A)"), "*** WARNING: non-comment line does not contain a keyword assignment***"           
+            IF (myrank == 0) PRINT("(A)"), "*** WARNING: non-comment line does not contain a keyword assignment***"           
           ENDIF
           
         ENDIF
       ENDDO 
       
-      IF (myrank == 0 ) PRINT*, ""
+      IF (myrank == 0) PRINT*, ""
      
       CALL check_errors(opt_read)
       
-      IF (myrank == 0 ) PRINT*, ""
+      IF (myrank == 0) PRINT*, ""
       CLOSE(25)
             
       END SUBROUTINE read_keyword_dginp
@@ -386,6 +386,8 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
      SUBROUTINE check_errors(opt_read)
+     
+     USE messenger2, ONLY: myrank     
      
      IMPLICIT NONE
      
@@ -406,24 +408,24 @@
         
        IF (quit == 1) THEN
         
-          PRINT("(A)"), "*** ERROR: There are missing required options in the fort.dg file ***"  
-          PRINT("(A)"), "           The following options must be specified: "      
+          IF (myrank == 0) PRINT("(A)"), "*** ERROR: There are missing required options in the fort.dg file ***"  
+          IF (myrank == 0) PRINT("(A)"), "           The following options must be specified: "      
           j = 0        
           DO opt = 1,nopt
             i = dginp_ind(opt)
             IF (dginp(i)%flag == 0 .and. dginp(i)%required == .true.) THEN
               j = j+1
-              PRINT "(A,I3,2A)", "              ",j,") ",dginp(i)%key
+              IF (myrank == 0) PRINT "(A,I3,2A)", "              ",j,") ",dginp(i)%key
             ENDIF
           ENDDO          
           
-          PRINT("(A)"), "!!!!!! EXECUTION WILL NOW BE TERMINATED !!!!!!"
+          IF (myrank == 0) PRINT("(A)"), "!!!!!! EXECUTION WILL NOW BE TERMINATED !!!!!!"
           STOP
           
        ELSE
         
-          PRINT("(A)"), "*** WARNING: There are missing optional options in the fort.dg file ***"
-          PRINT("(A)"), "             The following default values will be used: "    
+          IF (myrank == 0) PRINT("(A)"), "*** WARNING: There are missing optional options in the fort.dg file ***"
+          IF (myrank == 0) PRINT("(A)"), "             The following default values will be used: "    
           j = 0        
           DO opt = 1,nopt
             i = dginp_ind(opt)
@@ -432,17 +434,17 @@
               j = j+1
               SELECT CASE (dginp(i)%vartype) 
                 CASE(1)
-                  PRINT("(A,I3,A,A,A,I8)"),     "              ",j,") ",dginp(i)%key," = ",dginp(i)%iptr
+                  IF (myrank == 0) PRINT("(A,I3,A,A,A,I8)"),     "              ",j,") ",dginp(i)%key," = ",dginp(i)%iptr
                 CASE(2)
-                  PRINT("(A,I3,A,A,A,E21.8)"),  "              ",j,") ",dginp(i)%key," = ",dginp(i)%rptr                  
+                  IF (myrank == 0) PRINT("(A,I3,A,A,A,E21.8)"),  "              ",j,") ",dginp(i)%key," = ",dginp(i)%rptr                  
                 CASE(3)
-                  PRINT("(A,I3,A,A,A,A)"),      "              ",j,") ",dginp(i)%key," = ",dginp(i)%cptr                  
+                  IF (myrank == 0) PRINT("(A,I3,A,A,A,A)"),      "              ",j,") ",dginp(i)%key," = ",dginp(i)%cptr                  
               END SELECT
               
             ENDIF
           ENDDO 
           
-          PRINT("(A)"), '!!!!!! EXECUTION WILL CONTINUE !!!!!!!!'
+          IF (myrank == 0) PRINT("(A)"), '!!!!!! EXECUTION WILL CONTINUE !!!!!!!!'
           
        ENDIF       
                   
@@ -491,7 +493,7 @@
       !   - fort.dg files containing new feature options can still be used for previous  
       !     versions of the code because the new options will be ignored
       
-      
+      USE messenger2, ONLY: myrank      
       
       IMPLICIT NONE        
       
@@ -580,8 +582,8 @@
       
       ! ensure user has associated each keyword pointer
       IF (nopt /= ncheck) THEN
-        PRINT("(A)"), "*** ERROR: fort.dg option pointer association error ***"
-        PRINT("(A)"), "           check keyword configuration in dginp_setup subroutine"
+        IF (myrank == 0) PRINT("(A)"), "*** ERROR: fort.dg option pointer association error ***"
+        IF (myrank == 0) PRINT("(A)"), "           check keyword configuration in dginp_setup subroutine"
         STOP
       ENDIF
           
