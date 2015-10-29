@@ -14,7 +14,8 @@
        
 ed_points: DO pt = 1,tnqpte
 
-!!DIR$ VECTOR ALIGNED               
+!!DIR$ VECTOR ALIGNED     
+!DIR$ SIMD
               DO el = sel,eel
                 Zqpt(el,pt)  = Z(el,1)
                 Qxqpt(el,pt) = Qx(el,1)
@@ -23,6 +24,7 @@ ed_points: DO pt = 1,tnqpte
 
     ed_basis: DO dof = 2,ndof     
 !!DIR$ VECTOR ALIGNED
+!DIR$ SIMD
                 DO el = sel,eel   ! Compute solutions at edge quadrature points                
                   Zqpt(el,pt)  = Zqpt(el,pt)  + Z(el,dof)*phie(dof,pt,et)            
                   Qxqpt(el,pt) = Qxqpt(el,pt) + Qx(el,dof)*phie(dof,pt,et)            
@@ -32,6 +34,7 @@ ed_points: DO pt = 1,tnqpte
               ENDDO ed_basis
 
 !!DIR$ VECTOR ALIGNED
+!DIR$ SIMD
               DO el = sel,eel  ! Compute momentum terms   
                 Hqpt(el,pt) = Zqpt(el,pt) + hbqpte(el,pt)    
                 recipHa(el) = 1d0/Hqpt(el,pt)
@@ -65,6 +68,7 @@ ed_points: DO pt = 1,tnqpte
         
 ed_points: DO pt = 1,nqpte ! Compute numerical fluxes for all edges
               
+!DIR$ SIMD              
 !!DIR$ VECTOR ALIGNED
               DO ed = sed,eed
                 
@@ -72,22 +76,21 @@ ed_points: DO pt = 1,nqpte ! Compute numerical fluxes for all edges
                                 abs(Qxe(ed,pt)%ptr*inx(ed,pt) + Qye(ed,pt)%ptr*iny(ed,pt))/He(ed,pt)%ptr + sqrt(g*He(ed,pt)%ptr*icfac(ed,pt)))
               ENDDO
                                         
-              
-!DIR$ IVDEP
+!DIR$ SIMD              
 !!DIR$ VECTOR ALIGNED
               DO ed = sed,eed                  
                 Zhatv(ed) = .5d0*(inx(ed,pt)*(Qxi(ed,pt)%ptr + Qxe(ed,pt)%ptr) + iny(ed,pt)*(Qyi(ed,pt)%ptr + Qye(ed,pt)%ptr) &
                                         - const(ed)*(Ze(ed,pt)%ptr - Zi(ed,pt)%ptr))           
               ENDDO
               
-!DIR$ IVDEP
+!DIR$ SIMD
 !!DIR$ VECTOR ALIGNED
               DO ed = sed,eed     
                 Qxhatv(ed) = .5d0*(inx(ed,pt)*(xmi(ed,pt)%ptr + xme(ed,pt)%ptr) + iny(ed,pt)*(xymi(ed,pt)%ptr + xyme(ed,pt)%ptr)  &
                                         - const(ed)*(Qxe(ed,pt)%ptr - Qxi(ed,pt)%ptr))                                     
               ENDDO
               
-!DIR$ IVDEP
+!DIR$ SIMD
 !!DIR$ VECTOR ALIGNED
               DO ed = sed,eed
                 Qyhatv(ed) = .5d0*(inx(ed,pt)*(xymi(ed,pt)%ptr + xyme(ed,pt)%ptr) + iny(ed,pt)*(ymi(ed,pt)%ptr + yme(ed,pt)%ptr)  &
