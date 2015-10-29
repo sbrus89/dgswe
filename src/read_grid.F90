@@ -171,7 +171,7 @@
       
       INQUIRE(FILE=bathy_file, EXIST = file_exists)
       IF(file_exists == .FALSE.) THEN
-        PRINT*, "high order bathymetry file does not exist"    
+        IF (myrank == 0) PRINT*, "high order bathymetry file does not exist"    
       ELSE
       
         IF (myrank == 0 ) PRINT*, "reading in high order bathymetry file"  
