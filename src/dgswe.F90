@@ -114,14 +114,12 @@
 
       ENDDO
 
-#ifdef openmp      
-      t_end = omp_get_wtime()
-#else
-      CALL CPU_TIME(t_end)
-#endif
+      
+      CALL end_time(t_start)
+      
+      
 
-      PRINT*, ' '
-      PRINT("(A,F25.5,A)"), "CPU time = ",t_end-t_start," seconds"
+
       
 !       OPEN(UNIT=101, FILE='CPUtime.log', STATUS='OLD', POSITION='APPEND')
 !       WRITE(101,*) "grid = ", grid_file
