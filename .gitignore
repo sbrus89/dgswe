@@ -1,13 +1,15 @@
 *.o
 output/
+velplot/
 *.a
 dgswe
+dgswe_mpi
 dgswe_omp
-dgswe_debug
 dgprep
 dgpost
-pdgswe
-pdgswe_degub
+dgswem_structure
+dgswem_structure_mpi
+dgswem_structure_omp
 *~
 *.mod
 PE*
@@ -17,4 +19,6 @@ PE*
 *.kate-swp
 *.d
 *.xml
-
+*.save
+.descrip
+fort.*
