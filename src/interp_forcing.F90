@@ -87,7 +87,7 @@
             DO nd = 1,obseg(seg)-1
               obamp_qpt(bfr,pt,ed) = obamp(nd,seg,bfr)*l1 + obamp(nd+1,seg,bfr)*l2
               obph_qpt(bfr,pt,ed)  =  obph(nd,seg,bfr)*l1 +  obph(nd+1,seg,bfr)*l2
-              obdepth_qpt(ed,pt) = depth(obnds(k,seg))*l1 + depth(obnds(k+1,seg))*l2
+!               obdepth_qpt(ed,pt) = depth(obnds(k,seg))*l1 + depth(obnds(k+1,seg))*l2
               ed = ed + 1
             ENDDO
           ENDDO
