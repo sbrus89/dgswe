@@ -16,7 +16,9 @@
       CHARACTER(50) :: gitBranch
       CHARACTER(100) :: compiler_version
       CHARACTER(50) :: compiler_flags
-      CHARACTER(200) :: modified_files
+      CHARACTER(1000) :: modified_files
+      CHARACTER(50) :: compile_date
+      CHARACTER(50) :: host
       
       INTEGER, PARAMETER :: nel_type = 4 !(type #s: 1 -> triangles, 2 -> quads, 3 -> curved triangles, 4-> curved quads)
       INTEGER, PARAMETER :: norder = 6 ! # of different orders (straight sided elements for tri/quad = 1, curvilinear tri/quad = ctp, high-order bathymetry = hbp) 

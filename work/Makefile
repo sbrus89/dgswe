@@ -132,7 +132,7 @@ dgswe_objects = globals.o lapack_interfaces.o messenger2.o allocation.o  \
 dgswe_obj := $(patsubst %.o, $(ODIR)%.o,$(dgswe_objects))
 
 dgprep_objects = globals.o messenger2.o read_input.o allocation.o \
-                 read_grid.o read_forcing.o  \
+                 read_grid.o read_forcing.o  curvilinear.o\
                  connect.o edge_qpts.o metis2.o decomp2.o \
                  basis.o vandermonde.o shape_functions.o transformation.o \
                  normals.o bathymetry_interp.o modal2nodal.o \
@@ -169,6 +169,7 @@ dgpost :
 else
 
 FC_VERSION := $(shell $(FC) -v 2>&1)
+DATE := $(shell date)
 
 # GIT_SHA := $(shell git rev-parse --short HEAD)
 GIT_SHA := $(shell git rev-parse HEAD)
@@ -200,11 +201,13 @@ endif
 
 $(ODIR) :
 	mkdir -p $@
-	@sed -i '8 c \      gitBranch = "$(GIT_BRANCH)" ' $(VPATH)version.F90
-	@sed -i '9 c \      gitSHA = "$(GIT_SHA) $(GIT_MOD)" ' $(VPATH)version.F90
-	@sed -i '10 c \      compiler_version = "$(FC_VERSION)" ' $(VPATH)version.F90
-	@sed -i '11 c \      compiler_flags = "$(FFLAGS)" ' $(VPATH)version.F90
-	@sed -i '12 c \      modified_files = "$(GIT_MFILES)" ' $(VPATH)version.F90	
+	@sed -i '10 c \      gitBranch = "$(GIT_BRANCH)" ' $(VPATH)version.F90
+	@sed -i '11 c \      gitSHA = "$(GIT_SHA) $(GIT_MOD)" ' $(VPATH)version.F90
+	@sed -i '12 c \      compiler_version = "$(FC_VERSION)" ' $(VPATH)version.F90
+	@sed -i '13 c \      compiler_flags = "$(FFLAGS)" ' $(VPATH)version.F90
+	@sed -i '14 c \      modified_files = "$(GIT_MFILES)" ' $(VPATH)version.F90
+	@sed -i '15 c \      compile_date = "$(DATE)" ' $(VPATH)version.F90
+	@sed -i '16 c \      host = "$(NAME)" ' $(VPATH)version.F90	
 	
 	
 clean : 
