@@ -1,6 +1,6 @@
       SUBROUTINE decomp2()
       
-      USE globals, ONLY: nn,ne,ned,part,ect,nelnds,mnelnds,lect,lnelnds, &
+      USE globals, ONLY: nn,ne,ned,part,ect,vct,nelnds,nverts,mnelnds,lect,lnelnds, &
                          ged2el,ged2led,el_type, &
                          nsred,sredn, &
                          nresel,el_g2l,el_l2g, &
@@ -128,18 +128,21 @@
         led_sr(ned_sr(pe1),pe1) = led1 ! pe1 sends local edge led1 from el1 to pe2
         led_sr(ned_sr(pe2),pe2) = led2 ! pe2 sends local edge led2 from el2 to pe1
         
-        et1 = el_type(el1)
-        et2 = el_type(el2)
+!         et1 = el_type(el1)
+!         et2 = el_type(el2)
+!         
+!         et = max(et1,et2)
         
-        et = max(et1,et2)
+!         nqpte_sr(ned_sr(pe1),pe1) = nqpte(et)
+!         nqpte_sr(ned_sr(pe2),pe2) = nqpte(et)
+
+        nqpte_sr(ned_sr(pe1),pe1) = nqpte(1)  ! assume all internal edges are straight
+        nqpte_sr(ned_sr(pe2),pe2) = nqpte(1)
         
-        nqpte_sr(ned_sr(pe1),pe1) = nqpte(et)
-        nqpte_sr(ned_sr(pe2),pe2) = nqpte(et)
-        
-        DO pt = 1,nqpte(et) 
+        DO pt = 1,nqpte(1) 
         
           gp_in = pt
-          gp_ex = nqpte(et) + 1 - pt
+          gp_ex = nqpte(1) + 1 - pt
           
           nx_sr(pt,ned_sr(pe1),pe1) = nx_pt(ged,gp_in)
           nx_sr(pt,ned_sr(pe2),pe2) = -nx_pt(ged,gp_ex)  
@@ -190,11 +193,31 @@
         ndflag = 0
         nresnd(pe) = 0
         nd_g2l = 0 ! some nodes will be included in 2 subdomains so need to start a new global to local table each time
+!         DO el = 1,nresel(pe) 
+!           eln = el_l2g(el,pe)
+!           lnelnds(el,pe) = nelnds(eln)
+!           DO j = 1,nelnds(eln) ! loop through each node of all elements on subdomain pe
+!             nd = ect(j,eln) ! find global node number
+!             IF(ndflag(nd) == 0) THEN  ! decide if it's been counted already
+!               nresnd(pe) = nresnd(pe) + 1 ! count as a resident node
+!               nd_l2g(nresnd(pe),pe) = nd  ! local node nresnd(pe) on subdomain pe is global node nd
+!               nd_g2l(nd) = nresnd(pe) ! global node nd is local node nresnd(pe)
+!               ndflag(nd) = 1 ! flag the node so it's not counted again
+!               
+!               lect(j,el,pe) = nresnd(pe) ! fill in the local element connectivity table
+!             ELSE
+!               lect(j,el,pe) = nd_g2l(nd) ! if the node has already been assigned a local number, fill in the local connectivity table
+!             ENDIF
+!           ENDDO
+!         ENDDO
+        
+        
         DO el = 1,nresel(pe) 
           eln = el_l2g(el,pe)
-          lnelnds(el,pe) = nelnds(eln)
-          DO j = 1,nelnds(eln) ! loop through each node of all elements on subdomain pe
-            nd = ect(j,eln) ! find global node number
+          et = el_type(eln)
+          lnelnds(el,pe) = nverts(et)
+          DO j = 1,nverts(et) ! loop through each node of all elements on subdomain pe
+            nd = vct(j,eln) ! find global node number
             IF(ndflag(nd) == 0) THEN  ! decide if it's been counted already
               nresnd(pe) = nresnd(pe) + 1 ! count as a resident node
               nd_l2g(nresnd(pe),pe) = nd  ! local node nresnd(pe) on subdomain pe is global node nd
@@ -206,8 +229,7 @@
               lect(j,el,pe) = nd_g2l(nd) ! if the node has already been assigned a local number, fill in the local connectivity table
             ENDIF
           ENDDO
-        ENDDO
-        
+        ENDDO        
         
 !         DO el = 1,nresel(pe)
 !           eln = el_l2g(el,pe)

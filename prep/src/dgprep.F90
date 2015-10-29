@@ -5,7 +5,7 @@
       USE read_dginp
       USE messenger2, ONLY: message_init,nproc
       USE vandermonde, ONLY: area_vandermonde
-      USE shape_functions, ONLY: shape_functions_qpts
+      USE shape_functions, ONLY: shape_functions_qpts,shape_functions_vertex,shape_functions_curve
 
       IMPLICIT NONE
       
@@ -25,7 +25,7 @@
       
       CALL sizes()
       
-      CALL read_grid()
+      CALL read_grid()            
       
       CALL read_forcing()
       
@@ -41,6 +41,14 @@
       CALL area_vandermonde()
       
       CALL shape_functions_qpts()
+      
+      CALL shape_functions_vertex()
+
+      CALL shape_functions_curve()           
+      
+      IF (ctp > 1 .AND. curved_grid == 0) THEN  
+        CALL curvilinear()    
+      ENDIF          
       
       CALL normals()
       
