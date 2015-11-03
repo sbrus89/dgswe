@@ -34,11 +34,11 @@ mesh = 'on';
 xbox = [0 0];
 ybox = [0 0];
 
-% % beaufort deep
+% beaufort deep
 % xbox = [-75.5 -73];
 % ybox = [33 37];
 
-% % beaufort detail
+% beaufort detail
 % xbox = [-77 -75.3];
 % ybox = [35.7 36.5];
 
@@ -171,6 +171,8 @@ plot([xbox(1) xbox(2)],[ybox(1) ybox(1)],'r','LineWidth',5)
 plot([xbox(1) xbox(2)],[ybox(2) ybox(2) ],'r','LineWidth',5)
 plot([xbox(1) xbox(1)],[ybox(1) ybox(2) ],'r','LineWidth',5)
 plot([xbox(2) xbox(2)],[ybox(1) ybox(2) ],'r','LineWidth',5)
+xlabel('longitude')
+ylabel('latitude')
 axis image
 grid on
 
@@ -180,6 +182,8 @@ ect1 = delaunay(xvplot,yvplot);
 ect1c = clean_ect(ect1,bvnds_plot);
 nodes = [xvplot yvplot];
 pdeplot( nodes', [], ect1c','mesh','on') ;
+xlabel('longitude')
+ylabel('latitude')
 axis image
 hold on
 plot(xplot,yplot,'r.')
@@ -187,7 +191,9 @@ plot(xplot,yplot,'r.')
 % Plot of base grid bathymetry
 figure(3)
 pdeplot( nodes', [], ect1c', 'xydata',hvplot, 'zdata',hvplot,'colormap', 'jet', 'mesh','on') ;
-
+xlabel('longitude')
+ylabel('latitude')
+zlabel('bathymetry (m)')
 grid on
 
 % Plot of linearly interpolated nodes
@@ -197,6 +203,9 @@ ect2c = clean_ect(ect2,bnds_plot);
 nodes = [xplot yplot];
 pdeplot( nodes', [], ect2c', 'xydata',hplot,'zdata',hplot, 'colormap', 'jet', 'mesh',mesh) ;
 grid on
+xlabel('longitude')
+ylabel('latitude')
+zlabel('bathymetry (m)')
 
 % Plot of rimls surface nodes
 figure(5)
@@ -205,6 +214,9 @@ ect3c = clean_ect(ect3,rimls_bnds_plot);
 nodes = [rimls_xplot rimls_yplot];
 pdeplot( nodes', [], ect3c', 'xydata',rimls_hplot,'zdata',rimls_hplot, 'colormap', 'jet', 'mesh',mesh) ;
 grid on
+xlabel('longitude')
+ylabel('latitude')
+zlabel('bathymetry (m)')
 
 % % Plot of element normals
 % figure(6)
