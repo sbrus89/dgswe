@@ -17,6 +17,7 @@
       
       TYPE(grid) :: mesh
       
+      INTEGER, ALLOCATABLE, DIMENSION(:) :: nfbnd_temp      
       INTEGER, ALLOCATABLE, DIMENSION(:,:) :: ged2nn_temp, ged2el_temp, ged2led_temp ! temporary arrays for edge connectivity     
       INTEGER, ALLOCATABLE, DIMENSION(:,:) :: edflag
       INTEGER :: mnepn ! maximum number of elements per node
@@ -222,6 +223,53 @@
       
       
       
+      
+      ALLOCATE(nfbnd_temp(ned))
+      mesh%nnfbed = 0
+      
+      DO seg = 1,mesh%nbou
+      
+        segtype = mesh%fbseg(2,seg)
+              
+        DO nd = 1,mesh%fbseg(1,seg)-1
+          n1bed = mesh%fbnds(nd,seg)
+          n2bed = mesh%fbnds(nd+1,seg)
+          found = 0 
+  edges2: DO ged = 1,ned
+            n1ed2 = mesh%ged2nn(1,ged)
+            n2ed2 = mesh%ged2nn(2,ged)
+            IF(((n1ed2 == n1bed).AND.(n2ed2 == n2bed)).OR. &
+               ((n1ed2 == n2bed).AND.(n2ed2 == n1bed))) THEN
+
+              ! no normal flow edges
+              IF( segtype == 0 .OR. segtype == 10 .OR. segtype == 20  .OR. &   ! land boundaries
+                  segtype == 1 .OR. segtype == 11 .OR. segtype == 21 ) THEN    ! island boundaries'
+                mesh%nnfbed = mesh%nnfbed + 1
+                nfbnd_temp(mesh%nnfbed) = ged
+                mesh%bed_flag(ged) = 20                
+                found = 1
+                EXIT edges2               
+              ENDIF
+
+              ! specified normal flow edges
+              IF ( segtype == 2 .OR. segtype == 12 .OR. segtype == 22 ) THEN
+                found = 1
+                EXIT edges2
+              ENDIF
+
+            ENDIF
+          ENDDO edges2
+          IF (found == 0) THEN
+            PRINT "(A)", "  edge not found"
+          ELSE 
+!             PRINT "(A,I5)", "  edge found", nd
+          ENDIF
+        ENDDO
+      ENDDO      
+      
+      ALLOCATE(mesh%nfbedn(mesh%nnfbed))
+      
+      mesh%nfbedn(1:mesh%nnfbed) = nfbnd_temp(1:mesh%nnfbed)
       
       
       PRINT "(A)", "---------------------------------------------"

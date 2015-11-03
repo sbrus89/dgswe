@@ -673,7 +673,10 @@
         l3(i) = (3d0*x(i)-dsqrt(3d0)*y(i)+2d0)/6d0
         r(i) = -l2(i)+l3(i)-l1(i)
         s(i) = -l2(i)-l3(i)+l1(i)
+        
+!         print*, r(i),s(i)       
       enddo
+!       print*, ""
 
       return
       end subroutine

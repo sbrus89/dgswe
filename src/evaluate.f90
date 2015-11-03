@@ -173,13 +173,15 @@
 
       SUBROUTINE coordinates(mesh)
       
-      USE globals, ONLY: mnnds,nnds,np,nverts,l, &
+      USE globals, ONLY: pres,mnnds,nnds,np,nverts,l, &
                          grid
       
       IMPLICIT NONE
       
       INTEGER :: el,i,pt,led,j,ed
       INTEGER :: et,n,pn,nnd,nv,bed
+      
+      REAL(pres) :: xpt,ypt,ytest
       
       TYPE(grid) :: mesh
            
@@ -202,7 +204,8 @@
         led = mesh%ged2led(1,ed)
         et = mesh%el_type(el)
         nv = nverts(et)
-        n = nnds(et)        
+        n = nnds(et)
+        bed = mesh%bed_flag(ed)
         
         IF (mod(et,2) == 1) THEN   
           pn = np(3)
@@ -218,17 +221,25 @@
             mesh%xyhe(pt,ed,1) = mesh%xyhe(pt,ed,1) + l(i,j,et)*mesh%elxy(i,el,1)
             mesh%xyhe(pt,ed,2) = mesh%xyhe(pt,ed,2) + l(i,j,et)*mesh%elxy(i,el,2)
             mesh%xyhe(pt,ed,3) = mesh%xyhe(pt,ed,3) + l(i,j,et)*mesh%elhb(i,el)
-          ENDDO        
-        ENDDO
-        
-        bed = mesh%bed_flag(ed)
-        
-        IF (bed == 1) THEN
-          DO pt = 1,pn-1
+          ENDDO 
+          
+          IF (bed == 20) THEN
+            ytest = mesh%xyhe(pt,ed,2)
+            xpt = mesh%xyhe(pt,ed,1)
+            
+            IF (ytest < 250d0) THEN
+              ypt = 0d0 + 100d0*(1d0/(COSH(4d0*(xpt-2000d0)/500d0)))
+            ELSE IF (ytest > 250d0) THEN
+              ypt = 500d0 - 100d0*(1d0/(COSH(4d0*(xpt-2000d0)/500d0)))
+            ENDIF
+          
+            mesh%xyhe(pt,ed,2) = ypt
+          ENDIF
+          
+          IF (bed /= 0) THEN
             mesh%bnd_flag(pt,ed) = 1
-          ENDDO
-        ENDIF
-        
+          ENDIF
+        ENDDO                               
       
       ENDDO
       
