@@ -1,31 +1,32 @@
-grid_file = ../grids/inlet1.grd                                ! grid file
-forcing_file = ../grids/inlet1.bfr                              ! forcing file
-!bathy_file = /home/sbrus/data-drive/dgswe_inlet_bath/inlet1_hbp3.d  
-p = 2                                                         ! polynomial order
-ctp = 1                                                        ! parametric coordinate transformation order
-hbp = 1                                                        ! bathymetry order
-rk = 33                                                        ! rk order
-dt = .25d0                                                      ! timestep 
-tf = 1d0                                                       ! final time (days)
-dramp = .5d0                                                   ! ramping parameter (days)
-cf = .003d0                                                    ! friction coefficient 
-lines = 100d0                                                   ! lines in output files
-out_direc = ./                                                 ! output director
-npart = 1
-
-!grid_file = ../grids/converge.grd
-!forcing_file = ../grids/converge.bfr  
-!p = 1
-!ctp = 2
-!hbp = 1
-!rk = 22
-!dt = 0.5d0
-!tf = 1d0
-!dramp = 0.08d0 
-!cf = .0025d0
-!lines = 10d0
-!out_direc = ./
+!grid_file = ../grids/inlet1.grd                                ! grid file
+!forcing_file = ../grids/inlet1.bfr                              ! forcing file
+!!bathy_file = /home/sbrus/data-drive/dgswe_inlet_bath/inlet1_hbp3.d  
+!p = 1                                                         ! polynomial order
+!ctp = 1                                                        ! parametric coordinate transformation order
+!hbp = 1                                                        ! bathymetry order
+!rk = 22                                                        ! rk order
+!dt = .5d0                                                      ! timestep 
+!tf = 1d0                                                       ! final time (days)
+!dramp = .5d0                                                   ! ramping parameter (days)
+!cf = .003d0                                                    ! friction coefficient 
+!lines = 10d0                                                   ! lines in output files
+!out_direc = ./                                                 ! output director
 !npart = 1
+
+grid_file = ../grids/converge1_dble.grd
+forcing_file = ../grids/converge1_dble.bfr  
+bathy_file = ../grids/converge1_dble_hbp1.hb
+p = 1
+ctp = 2
+hbp = 1
+rk = 22
+dt = 0.5d0
+tf = 1d0
+dramp = 0.08d0 
+cf = .0025d0
+lines = 10d0
+out_direc = ../output/
+npart = 1
 
 !../grids/beaufort.grd                                     ! grid file
 !../grids/beaufort.bfr                                     ! forcing file

@@ -7,9 +7,9 @@ grd_direc = '~/Codes/dgswe/grids/';
 sol_direc = '~/Codes/dgswe/output/';
 % sol_direc = '~/data-drive/converge_quad/mesh1/P2/CTP2/';
 % sol_direc = '/home/sbrus/data-drive/dgswe_converge_curve_bath/converge3/p3/ctp3/hbp3/';
-grd_name = 'inlet1.grd';
+% grd_name = 'inlet1.grd';
 % grd_name = 'converge3.grd';
-% grd_name = 'converge.grd';
+grd_name = 'converge.grd';
 % grd_name = 'beaufort_hb+2.grd';
 plot_folder = 'velplot';
 
@@ -323,7 +323,7 @@ for tsnap = 1:snap
     
     drawnow
     
-%     print('-r350','-dpng',sprintf('%s/vel%04d',FramesFolder,tsnap)) ;
+    print('-r350','-dpng',sprintf('%s/vel%04d',FramesFolder,tsnap)) ;
 %     print('-depsc',sprintf('%s/vel%04d',FramesFolder,tsnap)) ;
 %     
 %     for zoom = 1:nzoom

@@ -2,7 +2,7 @@
 
       IMPLICIT NONE
       
-      INTEGER, PARAMETER :: prec = kind(1d0)
+      INTEGER, PARAMETER :: rp = kind(1d0)
       CHARACTER(100) :: grid_file_input,grid_file_output
       CHARACTER(100) :: forcing_file_input,forcing_file_output      
       CHARACTER(100) :: grid_name
@@ -13,14 +13,15 @@
       INTEGER :: nbou,nvel,btype,fbnd
       INTEGER :: nobfr    
       INTEGER :: nfbfr      
-      REAL(prec) :: obfreq,obnfact,obeq
-      REAL(prec) :: obamp,obph     
-      REAL(prec) :: fbfreq,fbnfact,fbeq
-      REAL(prec) :: fbamp,fbph       
+      REAL(rp), PARAMETER :: pi=3.141592653589793D0      
+      REAL(rp) :: obfreq,obnfact,obeq
+      REAL(rp) :: obamp,obph     
+      REAL(rp) :: fbfreq,fbnfact,fbeq
+      REAL(rp) :: fbamp,fbph       
       LOGICAL :: file_exists
       LOGICAL :: any_nfb
       
-      REAL(prec) :: x,y,h
+      REAL(rp) :: x,y,h
       INTEGER, DIMENSION(16) :: ect
       INTEGER, ALLOCATABLE, DIMENSION(:,:) :: fbseg
       
@@ -28,11 +29,11 @@
 
 
 
-      grid_file_input = "inlet1.grd"
-      forcing_file_input = "inlet1.bfr"
+      grid_file_input = "converge.grd"
+      forcing_file_input = "converge.bfr"
       
-      grid_file_output = "inlet1_dble.grd"
-      forcing_file_output = "inlet1_dble.bfr"
+      grid_file_output = "converge1_dble.grd"
+      forcing_file_output = "converge1_dble.bfr"
 
       
       
@@ -58,7 +59,8 @@
       ! node coordinates and depths
       DO i = 1,nn                                                      
         READ(14,*) j, x, y, h 
-        WRITE(141,"(I8,1x,3(D24.17,1x))") j, x, y, h 
+!         h = 10d0 - 5d0*cos(2d0*pi/500d0*y)   
+        WRITE(141,"(I8,1x,3(E24.17,1x))") j, x, y, h 
       ENDDO
 
       ! element connectivity
