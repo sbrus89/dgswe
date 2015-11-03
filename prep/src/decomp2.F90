@@ -1,6 +1,6 @@
       SUBROUTINE decomp2()
       
-      USE globals, ONLY: nn,ne,ned,part,ect,vct,nelnds,nverts,mnelnds,lect,lnelnds, &
+      USE globals, ONLY: rp,nn,ne,ned,part,ect,vct,nelnds,nverts,mnelnds,lect,lnelnds,mnnds, &
                          ged2el,ged2led,el_type, &
                          nsred,sredn, &
                          nresel,el_g2l,el_l2g, &
@@ -13,14 +13,16 @@
                          nobfr,obamp,obph,lobamp,lobph, &
                          nfbfr,fbamp,fbph,lfbamp,lfbph,lnbouf, &
                          nx_pt,ny_pt, &
-                         hbqpted,nqpte,mnqpte
+                         hbqpted,nqpte,mnqpte,elhb
+                         
+      USE read_dginp, ONLY: hbp                           
                          
       USE messenger2, ONLY: nproc,nqpte_sr,hb_sr,nx_sr,ny_sr, &
                             ned_sr,pe_sr,el_sr,led_sr                       
 
       IMPLICIT NONE
 
-      INTEGER :: el,pe,nd,ed,j,bnd,eln,bfr,pt
+      INTEGER :: el,pe,nd,ed,i,j,bnd,eln,bfr,pt
       INTEGER :: ged,lnd,nv
       INTEGER :: lled,gled,ln1,ln2,gn1,gn2,n1,n2
       INTEGER :: el1,el2
@@ -37,6 +39,10 @@
       
       INTEGER, ALLOCATABLE, DIMENSION(:) :: ndflag 
       INTEGER, ALLOCATABLE, DIMENSION(:,:) :: bou_l2g
+      
+      REAL(rp) :: elhb_old(mnnds,ne)
+      
+      elhb_old = elhb
       
       ALLOCATE(nresel(nproc))
       ALLOCATE(el_g2l(2,ne))
@@ -217,12 +223,12 @@
           et = el_type(eln)
           lnelnds(el,pe) = nverts(et)
           DO j = 1,nverts(et) ! loop through each node of all elements on subdomain pe
-            nd = vct(j,eln) ! find global node number
+            nd = vct(j,eln)   ! find global node number
             IF(ndflag(nd) == 0) THEN  ! decide if it's been counted already
               nresnd(pe) = nresnd(pe) + 1 ! count as a resident node
               nd_l2g(nresnd(pe),pe) = nd  ! local node nresnd(pe) on subdomain pe is global node nd
-              nd_g2l(nd) = nresnd(pe) ! global node nd is local node nresnd(pe)
-              ndflag(nd) = 1 ! flag the node so it's not counted again
+              nd_g2l(nd) = nresnd(pe)     ! global node nd is local node nresnd(pe)
+              ndflag(nd) = 1              ! flag the node so it's not counted again
               
               lect(j,el,pe) = nresnd(pe) ! fill in the local element connectivity table
             ELSE
@@ -231,33 +237,40 @@
           ENDDO
         ENDDO        
         
-!         DO el = 1,nresel(pe)
-!           eln = el_l2g(el,pe)
-!           nv = nelnds(eln)
-!           DO lled = 1,nv
-!             ln1 = lect(mod(lled+0,nv)+1,el,pe)
-!             ln2 = lect(mod(lled+1,nv)+1,el,pe)
-!             
-!             gn1 = nd_l2g(ln1,pe)
-!             gn2 = nd_l2g(ln2,pe)
-!             
-!             DO gled = 1,nv
-!               n1 = ect(mod(gled+0,nv)+1,eln)
-!               n2 = ect(mod(gled+1,nv)+1,eln)              
-!               
-!               IF (((n1 == gn1) .AND. (n2 == gn2)) .OR. &
-!                   ((n1 == gn2) .AND. (n2 == gn1))) THEN
-!                 IF (gled /= lled) THEN
-!                   PRINT*, "LOCAL EDGE CHANGED"
-!                 ELSE  
-! !                   PRINT*, "LOCAL EDGE SAME"
-!                 ENDIF
-!                 
-!               ENDIF
-!             ENDDO
-!             
-!           ENDDO          
-!         ENDDO
+        DO el = 1,nresel(pe)
+          eln = el_l2g(el,pe)
+          et = el_type(eln)
+          nv = nverts(et)
+          DO lled = 1,nv
+            ln1 = lect(mod(lled+0,nv)+1,el,pe)
+            ln2 = lect(mod(lled+1,nv)+1,el,pe)
+            
+            gn1 = nd_l2g(ln1,pe)
+            gn2 = nd_l2g(ln2,pe)
+            
+            DO gled = 1,nv
+              n1 = ect(mod(gled+0,nv)+1,eln)
+              n2 = ect(mod(gled+1,nv)+1,eln)              
+              
+              IF (((n1 == gn1) .AND. (n2 == gn2)) .OR. &
+                  ((n1 == gn2) .AND. (n2 == gn1))) THEN
+                IF (gled /= lled) THEN
+                  PRINT*, "LOCAL EDGE CHANGED", eln,gled,lled
+                  DO pt = 1,hbp
+                    i = mod(lled,nv)*hbp + pt 
+                    j = mod(gled,nv)*hbp + pt 
+                    elhb(i,eln) = elhb_old(j,eln)
+                  ENDDO
+                  
+                ELSE  
+!                   PRINT*, "LOCAL EDGE SAME"
+                ENDIF
+                
+              ENDIF
+            ENDDO
+            
+          ENDDO          
+        ENDDO
         
         
         

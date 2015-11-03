@@ -5,7 +5,7 @@
                          nobfr,obtag,obtag2,obfreq,obnfact,obeq,lobamp,lobph, &
                          nfbfr,fbtag,fbtag2,fbfreq,fbnfact,fbeq,lfbamp,lfbph,lnbouf, &
                          nsred,el_l2g,mndof,nlines, &
-                         el_type,elhb
+                         el_type,elhb,nnds,order
                          
       USE read_dginp, ONLY: write_local,hbp   
       USE messenger2, ONLY: nproc,nx_sr,ny_sr,nqpte_sr,hb_sr, &
@@ -261,23 +261,23 @@
       ENDDO        
       
       
-!      ! Write the high order bathymetry file
-!      DO pe = 1,nproc
-!        
-!        WRITE(dirname(3:lname),"(I4.4)") pe-1      
-!        OPEN(UNIT=14,FILE=dirname(1:lname)//'/'//'fort.hb')
-!        WRITE(14,"(2(I7))") nresel(pe),hbp
-!        DO el = 1,nresel(pe)
-!          gel = el_l2g(el,pe)
-!          et = el_type(gel)
-!          
-!          nnd = hbnds(et)
-!          
-!          WRITE(14,"(2(I7),1x,60(e24.17,1x))") el, nnd, (elhb(nd,gel), nd = 1,nnd)
-!        ENDDO
-!        
-!        CLOSE(14)
-!      ENDDO
+     ! Write the high order bathymetry file
+     DO pe = 1,nproc
+       
+       WRITE(dirname(3:lname),"(I4.4)") pe-1      
+       OPEN(UNIT=14,FILE=dirname(1:lname)//'/'//'fort.hb')
+       WRITE(14,"(2(I7))") nresel(pe),hbp
+       DO el = 1,nresel(pe)
+         gel = el_l2g(el,pe)
+         et = el_type(gel)
+         
+         nnd = nnds(order(et+4))
+         
+         WRITE(14,"(2(I7),1x,60(e24.17,1x))") el, nnd, (elhb(nd,gel), nd = 1,nnd)
+       ENDDO
+       
+       CLOSE(14)
+     ENDDO
             
       
       ! Write the local input file
