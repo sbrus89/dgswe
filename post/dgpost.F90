@@ -12,6 +12,7 @@
       INTEGER, ALLOCATABLE, DIMENSION(:) :: lel2gel
       REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: H_local, Qx_local, Qy_local
       REAL(pres), ALLOCATABLE, DIMENSION(:,:,:) :: H_global, Qx_global, Qy_global
+      REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: hb_local, hb_global
       REAL(pres), ALLOCATABLE, DIMENSION(:) :: t
 
       OPEN(UNIT=19,FILE='PE0000/fort.80')      
@@ -48,12 +49,12 @@
         
         
         IF(.not. ALLOCATED(H_local)) THEN
-          ALLOCATE(H_local(mne,ndof),Qx_local(mne,ndof),Qy_local(mne,ndof))
+          ALLOCATE(H_local(mne,ndof),Qx_local(mne,ndof),Qy_local(mne,ndof),hb_local(mne,ndof))
         ENDIF        
         
         IF(.not. ALLOCATED(H_global))THEN
           ALLOCATE(t(lines+2))
-          ALLOCATE(H_global(tne,ndof,lines+1),Qx_global(tne,ndof,lines+1),Qy_global(tne,ndof,lines+1))
+          ALLOCATE(H_global(tne,ndof,lines+1),Qx_global(tne,ndof,lines+1),Qy_global(tne,ndof,lines+1),hb_global(tne,ndof))
         ENDIF  
         
         
@@ -132,6 +133,21 @@
           
         ENDDO
         CLOSE(642)
+        
+        
+
+        OPEN(UNIT=65,FILE=dirname(1:lname)//'/'//'hb_modal.d')
+        DO dof = 1,4
+          READ(65,6364) (hb_local(el,dof), el = 1,ne)
+        ENDDO
+          
+        DO dof = 1,4
+          DO el = 1,ne
+            hb_global(lel2gel(el),dof) = hb_local(el,dof)
+          ENDDO
+        ENDDO
+          
+        CLOSE(642)        
 
         
       ENDDO
@@ -169,6 +185,13 @@
         ENDDO
       ENDDO
       CLOSE(642)
+      
+      OPEN(UNIT=65,FILE='hb_modal.d')
+      DO dof = 1,ndof
+        WRITE(65,6364) (hb_global(el,dof), el=1,tne)
+      ENDDO
+      CLOSE(65)
+      
       PRINT*, "  done"
       
       CALL system('cp PE0000/modal2nodal.d .')
