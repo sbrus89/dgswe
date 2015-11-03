@@ -67,7 +67,7 @@
       ELSE
         CALL write_rimls_nodes(base)
         CALL rewrite_fort14(base)  
-        CALL write_elem_nodes(eval)
+        CALL write_elem_nodes(base)
       ENDIF
 
       
