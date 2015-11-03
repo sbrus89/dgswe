@@ -153,11 +153,11 @@
       OPEN(UNIT = 14, FILE = "../output/fort.14_rimls")
       
       
-      WRITE(14,*) mesh%grid_name      
+      WRITE(14,"(A)") mesh%grid_name      
       WRITE(14,*) mesh%ne,mesh%nn         
       
       DO i = 1,mesh%nn
-        WRITE(14,*) i, (mesh%xyhv(1,i,j), j = 1,3)  ! write new rimls x,y, depth coordinates
+        WRITE(14,"(I7,1x,3(e24.17,1x))") i, (mesh%xyhv(1,i,j), j = 1,3)  ! write new rimls x,y, depth coordinates
       ENDDO
       
       DO i = 1,mesh%ne
@@ -203,8 +203,13 @@
       IMPLICIT NONE
       
       INTEGER :: el,ed,et,nv,pt,i,pn,led,n,nd,v,nnd
+      INTEGER :: sind,eind
+      CHARACTER(100) :: name
+      CHARACTER(1) :: hbp
       TYPE(grid) :: mesh
       REAL(pres) :: nodes(mnnds,mesh%ne)
+      REAL(pres) :: xnodes(mnnds,mesh%ne)
+      REAL(pres) :: ynodes(mnnds,mesh%ne)      
       
       nodes = 0d0
       
@@ -220,6 +225,8 @@
           i = (v-1)*ctp + 1
           nd = mesh%ect(v,el)
           nodes(i,el) = mesh%xyhv(1,nd,3)
+          xnodes(i,el) = mesh%xyhv(1,nd,1)
+          ynodes(i,el) = mesh%xyhv(1,nd,2)
         ENDDO
       ENDDO
       
@@ -234,6 +241,10 @@
         DO pt = 1,ctp-1          
           i = mod(led,nv)*ctp + pt + 1
           nodes(i,el) = mesh%xyhe(pt,ed,3)
+          xnodes(i,el) = mesh%xyhe(pt,ed,1)
+          ynodes(i,el) = mesh%xyhe(pt,ed,2)          
+          
+!           PRINT*, el,led,nodes(i,el)
         ENDDO          
           
         IF (mesh%bed_flag(ed) == 0) THEN
@@ -244,11 +255,17 @@
           nv = nverts(et)                 
           
           DO pt = 1,ctp-1          
-            i = mod(led,nv)*ctp + ctp - pt + 1            
+            i = mod(led,nv)*ctp + ctp - pt + 1     
+!             i = mod(led,nv)*ctp + pt + 1
             nodes(i,el) = mesh%xyhe(pt,ed,3)
+            xnodes(i,el) = mesh%xyhe(pt,ed,1)
+            ynodes(i,el) = mesh%xyhe(pt,ed,2)            
+!             PRINT*, el,led,nodes(i,el)            
           ENDDO            
 
-        ENDIF          
+        ENDIF   
+        
+!         PRINT*, " "
           
       ENDDO
       
@@ -268,11 +285,31 @@
         DO i = nv*(ctp-1)+nv+1,nnd 
           pt = pt + 1
           nodes(i,el) = mesh%xyhi(pt,el,3) 
+          xnodes(i,el) = mesh%xyhi(pt,el,1)
+          ynodes(i,el) = mesh%xyhi(pt,el,2)
         ENDDO
       ENDDO
       
+      sind = INDEX(ADJUSTL(TRIM(mesh%grid_file)),"/",.true.)
+      eind = INDEX(ADJUSTL(TRIM(mesh%grid_file)),".",.false.)
+      
+!       name = ADJUSTL(TRIM(mesh%grid_file(sind+1:eind-1)))     
+!       OPEN(UNIT = 13, FILE = "../output/" // ADJUSTL(TRIM(name)) // ".hb")    
+
+      WRITE(hbp,"(I1)") ctp
+      
+      name = ADJUSTL(TRIM(mesh%grid_file(1:eind-1)))     
+      OPEN(UNIT = 13, FILE = ADJUSTL(TRIM(name)) // "_hbp" // hbp // ".hb")            
+      WRITE(13,"(2(I7,1x))") mesh%ne,ctp
       
       OPEN(UNIT = 14, FILE = "../output/elem_nodes.d")      
+      WRITE(14,"(2(I7,1x))") mesh%ne,ctp
+      
+      OPEN(UNIT = 15, FILE = "../output/xelem_nodes.d")      
+      WRITE(15,"(2(I7,1x))") mesh%ne,ctp
+      
+      OPEN(UNIT = 16, FILE = "../output/yelem_nodes.d")      
+      WRITE(16,"(2(I7,1x))") mesh%ne,ctp      
       
       DO el = 1,mesh%ne
         et = mesh%el_type(el)
@@ -283,10 +320,15 @@
           nnd = nnds(4)          
         ENDIF    
 
-        WRITE(14,"(2(I7),6(e24.17,1x))") el,nnd,(nodes(i,el), i = 1,nnd)
+        WRITE(13,"(2(I7),1x,60(e24.17,1x))") el,nnd,(nodes(i,el), i = 1,nnd)        
+        WRITE(14,"(2(I7),1x,60(e24.17,1x))") el,nnd,(nodes(i,el), i = 1,nnd)
+        WRITE(15,"(2(I7),1x,60(e24.17,1x))") el,nnd,(xnodes(i,el), i = 1,nnd)
+        WRITE(16,"(2(I7),1x,60(e24.17,1x))") el,nnd,(ynodes(i,el), i = 1,nnd)
       ENDDO
       
       CLOSE(14)
+      CLOSE(15)
+      CLOSE(16)
 
 
       RETURN
