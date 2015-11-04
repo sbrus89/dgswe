@@ -26,7 +26,7 @@
         READ(12,*) t
         READ(13,*) t 
         
-        DO dof = 1,sol%ndof(1)
+        DO dof = 1,sol%mndof
           READ(11,*) (sol%H(el,dof), el = 1,sol%ne)
           READ(12,*) (sol%Qx(el,dof), el = 1,sol%ne)
           READ(13,*) (sol%Qy(el,dof), el = 1,sol%ne)
