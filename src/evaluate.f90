@@ -361,9 +361,9 @@
       
       srchdp = 10
       
-      maxit = 10
+      maxit = 100
       maxptit = 100
-      threshold = 1d-4
+      threshold = 1d-6
       percent_max = 100d0
       sigma_r = 0.5d0 
 !       sigma_n = 1.5d0   ! 0.5 - 1.5
