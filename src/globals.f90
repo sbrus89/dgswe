@@ -3,6 +3,14 @@
 
       INTEGER, PARAMETER :: pres = kind(1d0) ! precision   
       
+      CHARACTER(50) :: gitSHA
+      CHARACTER(50) :: gitBranch
+      CHARACTER(100) :: compiler_version
+      CHARACTER(50) :: compiler_flags
+      CHARACTER(1000) :: modified_files
+      CHARACTER(50) :: compile_date
+      CHARACTER(50) :: host       
+      
       INTEGER, PARAMETER :: nel_type = 4 !(type #s: 1 -> triangles, 2 -> quads, 3 -> curved triangles, 4-> curved quads)         
 
       INTEGER :: lines ! number of lines in output files  
