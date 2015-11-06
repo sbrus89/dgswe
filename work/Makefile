@@ -179,14 +179,14 @@ GIT_MOD := $(strip $(subst 1,+,$(GIT_MOD)))
 GIT_MOD := $(strip $(subst 0,,$(GIT_MOD)))
 GIT_MFILES := $(strip $(shell git ls-files ../* -m))
 
-dgswe : $(ODIR)  $(dgswe_obj)
+dgswe : version $(ODIR)  $(dgswe_obj)
 	@printf  " \n\033[35m$(MESSAGE) on $(FULLNAME) \033[0m \n"
 	@printf "Git SHA: $(GIT_SHA) \n"
 	@printf "Modified: $(GIT_MOD) \n\n"
 	$(FC) $(FFLAGS) -o $(EXE_NAME) $(dgswe_obj) $(METIS_LIB) $(LAPACK_LIB)
 	@printf "\n\n"
 	
-dgprep : $(ODIR)  $(dgprep_obj)
+dgprep : version $(ODIR)  $(dgprep_obj)
 	@printf " \n\033[35m$(MESSAGE) on $(FULLNAME) \033[0m \n"
 	@printf "Git SHA: $(GIT_SHA) \n"
 	@printf "Modified: $(GIT_MOD) \n\n"
@@ -196,11 +196,13 @@ endif
 
 
 ########################################################################
-#                            Clean Targets                             #
+#                      Preliminary Targets                             #
 ########################################################################
 
 $(ODIR) :
 	mkdir -p $@
+	
+version :
 	@sed -i '10 c \      gitBranch = "$(GIT_BRANCH)" ' $(VPATH)version.F90
 	@sed -i '11 c \      gitSHA = "$(GIT_SHA) $(GIT_MOD)" ' $(VPATH)version.F90
 	@sed -i '12 c \      compiler_version = "$(FC_VERSION)" ' $(VPATH)version.F90
@@ -208,6 +210,10 @@ $(ODIR) :
 	@sed -i '14 c \      modified_files = "$(GIT_MFILES)" ' $(VPATH)version.F90
 	@sed -i '15 c \      compile_date = "$(DATE)" ' $(VPATH)version.F90
 	@sed -i '16 c \      host = "$(NAME)" ' $(VPATH)version.F90	
+	
+########################################################################
+#                            Clean Targets                             #
+########################################################################	
 	
 	
 clean : 
