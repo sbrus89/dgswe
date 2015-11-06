@@ -197,5 +197,5 @@
       CALL system('cp PE0000/modal2nodal.d .')
       CALL system('cp PE0000/projection.d .')
       
- 6364  FORMAT(16000(e24.17,1x))
+ 6364  FORMAT(160000(e24.17,1x))
       END PROGRAM dgpost

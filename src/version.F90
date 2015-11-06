@@ -8,12 +8,12 @@
       INTEGER :: length,ind,sind,eind
       
       gitBranch = "quadtri_mixed_mpi" 
-      gitSHA = "b9148cceb570a4ef5327891f54f994508b6ba2f9 +" 
-      compiler_version = "mpifort for MPICH version 3.1.4 ifort version 14.0.0" 
-      compiler_flags = "-O3 -xHost -DCMPI -Iodir_dgswe_mpi/" 
-      modified_files = "../grids/dble_prec_grid.F90 ../plot/plot_sol_fill.m ../post/dgpost.F90 ../prep/src/decomp2.F90 ../prep/src/write_files.F90 ../src/curvilinear.F90 ../src/version.F90 Makefile dgswe.inp" 
-      compile_date = "Mon Nov  2 17:39:32 EST 2015" 
-      host = "chl-tilos" 
+      gitSHA = "e718172ce2f3006c1d8c4a4db48116ae2a023a78 +" 
+      compiler_version = "ifort version 15.0.4" 
+      compiler_flags = "-O3 -xHost -Iodir_dgprep/" 
+      modified_files = "" 
+      compile_date = "Tue Nov  3 14:53:21 EST 2015" 
+      host = "aegaeon crc nd edu" 
       
       length = LEN(TRIM(ADJUSTL(modified_files)))
       
