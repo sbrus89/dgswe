@@ -10,6 +10,8 @@
 
       INTEGER :: el,nd,pt,i,j,ed
       
+      CALL version()
+      
       CALL read_input()  
       
       CALL sizes()

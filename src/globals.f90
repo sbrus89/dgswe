@@ -103,5 +103,13 @@
       REAL(pres) :: phi0,lambda0
       REAL(pres), PARAMETER :: pi = 3.141592653589793D0
       REAL(pres), PARAMETER :: deg2rad = pi/180d0
+      
+      CHARACTER(50) :: gitSHA
+      CHARACTER(50) :: gitBranch
+      CHARACTER(100) :: compiler_version
+      CHARACTER(50) :: compiler_flags
+      CHARACTER(1000) :: modified_files
+      CHARACTER(50) :: compile_date
+      CHARACTER(50) :: host      
 
       END MODULE globals

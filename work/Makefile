@@ -1,63 +1,119 @@
-CC = ifort
-CFLAGS1 = -c -132 -heap-arrays -I$(ODIR) #-C -traceback -g 
-CFLAGS2 = -O3 -o -I$(ODIR) 
-LIB = -llapack
+FC = ifort
+FFLAGS = -132 -heap-arrays -I$(ODIR) #-C -traceback -g 
 
-VPATH := ../src
+VPATH := ../src/
 ODIR = odir/
 
-objects = kdtree2.o globals.o allocation.o basis.o find_element.o write_results.o connect.o evaluate.o read_input.o read_grid.o rimls.o
+FULLNAME := $(shell hostname)
+NAME := $(strip $(subst ., , $(FULLNAME)))
+FC_VERSION := $(shell $(FC) -v 2>&1)
+DATE := $(shell date)
+GIT_SHA := $(shell git rev-parse HEAD)
+GIT_BRANCH := $(shell git rev-parse --abbrev-ref HEAD )
+GIT_MOD := $(shell git diff-index --quiet HEAD; echo $$?)
+GIT_MOD := $(strip $(subst 1,+,$(GIT_MOD)))
+GIT_MOD := $(strip $(subst 0,,$(GIT_MOD)))
+GIT_MFILES := $(strip $(shell git ls-files ../* -m))
+
+########################################################################
+#                  Library Links (Platform Specific)                   #
+########################################################################
+
+NAME := $(strip $(subst ., , $(FULLNAME)))
+ifeq ($(NAME),chl-tilos)
+  LAPACK_LIB = -llapack
+endif
+
+ifeq ($(NAME),sbrus-laptop)
+  LAPACK_LIB = -llapack
+endif
+
+ifeq ($(filter crc nd edu,$(NAME)),crc nd edu)
+ LAPACK_LIB = -Wl,--start-group $(MKLROOT)/lib/intel64/libmkl_intel_lp64.a $(MKLROOT)/lib/intel64/libmkl_sequential.a  $(MKLROOT)/lib/intel64/libmkl_core.a -Wl,--end-group -lpthread -lm
+endif
+
+ifeq ($(filter tacc utexas edu,$(NAME)),tacc utexas edu)
+  LAPACK_LIB =  -Wl,--start-group $(MKLROOT)/lib/intel64/libmkl_intel_lp64.a $(MKLROOT)/lib/intel64/libmkl_core.a $(MKLROOT)/lib/intel64/libmkl_sequential.a -Wl,--end-group -lpthread -lm
+endif
+
+########################################################################
+#                               Objects                                #
+########################################################################
+
+objects = kdtree2.o globals.o allocation.o basis.o find_element.o write_results.o connect.o evaluate.o read_input.o read_grid.o version.o rimls.o
 obj := $(patsubst %.o, $(ODIR)%.o,$(objects))
 
-main: $(ODIR) $(obj)
-	$(CC) $(CFLAGS2) rimls $(obj) $(LIB)
+########################################################################
+#                          Executable Targets                          #
+########################################################################
+
+rimls: $(ODIR) $(obj)
+	$(FC) $(FFLAGS) -o rimls $(obj) $(LAPACK_LIB)
+	
+########################################################################
+#                            File Targets                              #
+########################################################################	
 
 $(ODIR)kdtree2.o: kdtree2.F
-	$(CC) $(CFLAGS1) $< -o $@
+	$(FC) $(FFLAGS) -c $< -o $@
 	mv kdtree2_precision_module.mod $(ODIR)
 	mv kdtree2_module.mod $(ODIR)
 	mv kdtree2_priority_queue_module.mod $(ODIR)
 
 $(ODIR)globals.o: globals.f90 kdtree2.F
-	$(CC) $(CFLAGS1) $< -o $@
+	$(FC) $(FFLAGS) -c $< -o $@
 	mv globals.mod $(ODIR)	
 
 $(ODIR)allocation.o: allocation.f90 globals.f90
-	$(CC) $(CFLAGS1) $< -o $@
+	$(FC) $(FFLAGS) -c $< -o $@
 	mv allocation.mod $(ODIR)
 
 $(ODIR)basis.o: basis.f90 globals.f90
-	$(CC) $(CFLAGS1) $< -o $@
+	$(FC) $(FFLAGS) -c $< -o $@
 	mv basis.mod $(ODIR)	
 	
 $(ODIR)find_element.o: find_element.f90 globals.f90 basis.f90 kdtree2.F
-	$(CC) $(CFLAGS1) $< -o $@
+	$(FC) $(FFLAGS) -c $< -o $@
 	mv find_element.mod $(ODIR) 
 
 $(ODIR)write_results.o: write_results.f90 globals.f90
-	$(CC) $(CFLAGS1) $< -o $@
+	$(FC) $(FFLAGS) -c $< -o $@
 	mv write_results.mod $(ODIR)
 
 $(ODIR)connect.o: connect.f90 globals.f90
-	$(CC) $(CFLAGS1) $< -o $@
+	$(FC) $(FFLAGS) -c $< -o $@
 
 $(ODIR)evaluate.o: evaluate.f90 basis.f90 globals.f90 kdtree2.F
-	$(CC) $(CFLAGS1) $< -o $@
+	$(FC) $(FFLAGS) -c $< -o $@
 	mv evaluate.mod $(ODIR)
 	
 $(ODIR)read_input.o: read_input.f90 globals.f90
-	$(CC) $(CFLAGS1) $< -o $@
+	$(FC) $(FFLAGS) -c $< -o $@
 
 $(ODIR)read_grid.o: read_grid.f90 globals.f90
-	$(CC) $(CFLAGS1) $< -o $@
+	$(FC) $(FFLAGS) -c $< -o $@
+	
+$(ODIR)version.o : version.f90 globals.f90
+	$(FC) $(FFLAGS) -c $< -o $@
 
 $(ODIR)rimls.o: rimls.f90 globals.f90 evaluate.f90 allocation.f90 write_results.f90 basis.f90 kdtree2.F
-	$(CC) $(CFLAGS1) $< -o $@
+	$(FC) $(FFLAGS) -c $< -o $@
+	
+########################################################################
+#                            Clean Targets                             #
+########################################################################
 
 .PHONY : clean
 clean : 
-	rm -r rimls odir	
+	rm -r rimls odir
 	
 .PHONY : $(ODIR)
 $(ODIR) :
 	mkdir -p $@	
+	@sed -i '10 c \      gitBranch = "$(GIT_BRANCH)" ' $(VPATH)version.f90
+	@sed -i '11 c \      gitSHA = "$(GIT_SHA) $(GIT_MOD)" ' $(VPATH)version.f90
+	@sed -i '12 c \      compiler_version = "$(FC_VERSION)" ' $(VPATH)version.f90
+	@sed -i '13 c \      compiler_flags = "$(FFLAGS)" ' $(VPATH)version.f90
+	@sed -i '14 c \      modified_files = "$(GIT_MFILES)" ' $(VPATH)version.f90
+	@sed -i '15 c \      compile_date = "$(DATE)" ' $(VPATH)version.f90
+	@sed -i '16 c \      host = "$(NAME)" ' $(VPATH)version.f90		
