@@ -15,8 +15,8 @@
 ! 1.5d0                                                                                                     ! sigma_n - smoothing parameter (0.5 - 1.5)
 
 /home/sbrus/Codes/dgswe/grids/converge1_bath_dble.grd                                                     ! base grid - used to determine the rimls surface
-/home/sbrus/Codes/dgswe/grids/converge1_dble.grd                                                          ! eval grid - used to determine rimls surface evaluation points
-2                                                                                                         ! ctp - parametric coordinate transformation order
+/home/sbrus/Codes/dgswe/grids/converge4_dble.grd                                                          ! eval grid - used to determine rimls surface evaluation points
+3                                                                                                        ! ctp - parametric coordinate transformation order
 1d0                                                                                                       ! Erad - radius of Earth
 0d0,0d0                                                                                                   ! lambda0,phi0 - center of CPP coordinate system
 3.5d0                                                                                                     ! r - muliplier for search radius (1.5 - 4.0)

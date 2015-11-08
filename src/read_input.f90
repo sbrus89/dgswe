@@ -9,7 +9,7 @@
       INTEGER :: inp_read,skipped
       CHARACTER(100) :: temp
       
-      OPEN(unit=15,file='dgswe.inp')
+      OPEN(unit=15,file='rimls.inp')
       
       PRINT "(A)", "---------------------------------------------"
       PRINT "(A)", "             Input Information               "
