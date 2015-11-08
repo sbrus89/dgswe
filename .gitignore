@@ -4,3 +4,4 @@
 *.d
 output
 rimls
+*.kate-swp
