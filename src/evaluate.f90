@@ -363,7 +363,7 @@
       
       maxit = 100
       maxptit = 100
-      threshold = 1d-6
+      threshold = 1d-12
       percent_max = 100d0
       sigma_r = 0.5d0 
 !       sigma_n = 1.5d0   ! 0.5 - 1.5
@@ -550,7 +550,7 @@
 
           ptit = 0
           fgradf = f*grad_f
-          DO WHILE (norm(fgradf) > threshold .and. ptit < maxptit)
+   wloop: DO WHILE (norm(fgradf) > threshold)
             it = 0
                         
             DO j = 1,nneigh
@@ -612,7 +612,11 @@
             x = x - fgradf
             ptit = ptit + 1
             
-          ENDDO
+            IF (ptit == maxptit) THEN
+              EXIT wloop
+            ENDIF
+            
+          ENDDO wloop
                 
           IF (ptit < maxptit) THEN
           
@@ -641,6 +645,7 @@
               
             ELSE
             
+!               print*, norm(fgradf)
               xyh(pt,i,1) = x(1)
               xyh(pt,i,2) = x(2)
               xyh(pt,i,3) = x(3)               
