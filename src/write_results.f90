@@ -1,6 +1,6 @@
       MODULE write_results
 
-      USE globals, ONLY: pres,grid,np,mninds,mnnds
+      USE globals, ONLY: pres,grid,np,mninds,mnnds,out_direc
 
       CONTAINS
 
@@ -23,7 +23,7 @@
       PRINT "(A)", "Writing linearly interpolated nodes..."   
       PRINT*, ""
       
-      OPEN(unit=9,file='../output/interior_nodes.d')
+      OPEN(unit=9,file=TRIM(out_direc) // 'interior_nodes.d')
       WRITE(9,*) mesh%ne,mninds
       DO el = 1,mesh%ne
         DO i = 1,mninds
@@ -36,7 +36,7 @@
       
 !       CALL invcpp(ned,np(3)-1,mnnds,xyhe,xyhw)
       
-      OPEN(unit=10,file='../output/edge_nodes.d')
+      OPEN(unit=10,file=TRIM(out_direc) // 'edge_nodes.d')
       WRITE(10,*) mesh%ned,np(3)-1
       DO ed = 1,mesh%ned      
         DO i = 1,np(3)-1
@@ -47,7 +47,7 @@
       
       CLOSE(10)
       
-      OPEN(unit=13,file='../output/boundary_nodes.d')
+      OPEN(unit=13,file=TRIM(out_direc) // 'boundary_nodes.d')
       WRITE(13,*) mesh%ned,np(3)-1
       DO ed = 1,mesh%ned      
         DO i = 1,np(3)-1
@@ -74,7 +74,7 @@
       PRINT*, "" 
       PRINT "(A)", "Writing element normals..."             
       
-      OPEN(unit=11,file='../output/centers.d')
+      OPEN(unit=11,file=TRIM(out_direc) // 'centers.d')
       WRITE(11,*) base%ne    
       DO el = 1,base%ne      
         WRITE(11,*) (base%xyhc(i,el), i = 1,3)
@@ -82,7 +82,7 @@
       
       CLOSE(11)
       
-      OPEN(unit=12,file='../output/normals.d')
+      OPEN(unit=12,file=TRIM(out_direc) // 'normals.d')
       WRITE(12,*) base%ne
       DO el = 1,base%ne
         WRITE(12,*) (base%nhb(i,el),i=1,3)
@@ -106,7 +106,7 @@
       PRINT*, ""
       PRINT "(A)", "Writing rimls surface nodes..."  
       
-      OPEN(unit=9,file='../output/rimls_interior_nodes.d')
+      OPEN(unit=9,file=TRIM(out_direc) // 'rimls_interior_nodes.d')
       WRITE(9,*) mesh%ne,mninds
       DO el = 1,mesh%ne
         DO i = 1,mninds
@@ -117,7 +117,7 @@
       CLOSE(9)      
       
       
-      OPEN(unit=10,file='../output/rimls_edge_nodes.d')
+      OPEN(unit=10,file=TRIM(out_direc) // 'rimls_edge_nodes.d')
       WRITE(10,*) mesh%ned,np(3)-1
       DO ed = 1,mesh%ned      
         DO i = 1,np(3)-1
@@ -127,7 +127,7 @@
       
       CLOSE(10)
       
-      OPEN(unit=11,file='../output/rimls_vertex_nodes.d')
+      OPEN(unit=11,file=TRIM(out_direc) // 'rimls_vertex_nodes.d')
       WRITE(11,*) mesh%nn,1
       DO nd = 1,mesh%nn
           WRITE(11,*) (mesh%xyhv(1,nd,j), j = 1,3)
@@ -150,7 +150,7 @@
       
       PRINT "(A)", "Writing fort.14 with rimls nodes..."       
       
-      OPEN(UNIT = 14, FILE = "../output/fort.14_rimls")
+      OPEN(UNIT = 14, FILE = TRIM(out_direc) // "fort.14_rimls")
       
       
       WRITE(14,"(A)") mesh%grid_name      
@@ -294,7 +294,7 @@
       eind = INDEX(ADJUSTL(TRIM(mesh%grid_file)),".",.false.)
       
 !       name = ADJUSTL(TRIM(mesh%grid_file(sind+1:eind-1)))     
-!       OPEN(UNIT = 13, FILE = "../output/" // ADJUSTL(TRIM(name)) // ".hb")    
+!       OPEN(UNIT = 13, FILE = TRIM(out_direc) // ADJUSTL(TRIM(name)) // ".hb")    
 
       WRITE(hbp,"(I1)") ctp
       
@@ -302,13 +302,13 @@
       OPEN(UNIT = 13, FILE = ADJUSTL(TRIM(name)) // "_hbp" // hbp // ".hb")            
       WRITE(13,"(2(I7,1x))") mesh%ne,ctp
       
-      OPEN(UNIT = 14, FILE = "../output/elem_nodes.d")      
+      OPEN(UNIT = 14, FILE = TRIM(out_direc) // "elem_nodes.d")      
       WRITE(14,"(2(I7,1x))") mesh%ne,ctp
       
-      OPEN(UNIT = 15, FILE = "../output/xelem_nodes.d")      
+      OPEN(UNIT = 15, FILE = TRIM(out_direc) // "xelem_nodes.d")      
       WRITE(15,"(2(I7,1x))") mesh%ne,ctp
       
-      OPEN(UNIT = 16, FILE = "../output/yelem_nodes.d")      
+      OPEN(UNIT = 16, FILE = TRIM(out_direc) // "yelem_nodes.d")      
       WRITE(16,"(2(I7,1x))") mesh%ne,ctp      
       
       DO el = 1,mesh%ne

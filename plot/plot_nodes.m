@@ -9,7 +9,7 @@ clc
 
 out_dir = '../output/';
 
-finp = fopen('../work/dgswe.inp');
+finp = fopen('../work/rimls.inp');
 
 n = 0;
 while n < 2 && ~feof(finp)

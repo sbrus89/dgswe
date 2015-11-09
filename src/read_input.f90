@@ -1,11 +1,11 @@
       SUBROUTINE read_input()
 
-      USE globals, ONLY: base,eval,p,ctp,Erad,lambda0,phi0,deg2rad,refinement,r,sigma_n
+      USE globals, ONLY: base,eval,p,ctp,Erad,lambda0,phi0,deg2rad,refinement,r,sigma_n,out_direc
                          
 
       IMPLICIT NONE
       
-      INTEGER, PARAMETER :: ninp = 7
+      INTEGER, PARAMETER :: ninp = 8
       INTEGER :: inp_read,skipped
       CHARACTER(100) :: temp
       
@@ -29,10 +29,10 @@
           inp_read = inp_read + 1
           SELECT CASE (inp_read)
             CASE (1)
-              base%grid_file = TRIM(temp)
+              base%grid_file = TRIM(ADJUSTL(temp))
               PRINT*, "base%grid_file = ", base%grid_file
             CASE (2)
-              eval%grid_file = TRIM(temp)
+              eval%grid_file = TRIM(ADJUSTL(temp))
               PRINT*, "eval%grid_file = ", eval%grid_file
             CASE (3)
               READ(temp,*) ctp
@@ -51,6 +51,10 @@
             CASE (7)
               READ(temp,*) sigma_n
               PRINT*, "sigma_n = ", sigma_n
+            CASE(8)
+              out_direc = TRIM(ADJUSTL(temp))
+              PRINT*, "out_direc = ", out_direc
+          
           END SELECT
             
         ENDIF

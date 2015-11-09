@@ -5,6 +5,7 @@
 ! 0d0,0d0                                                                                                 ! lambda0,phi0 - center of CPP coordinate system
 ! 3.5d0                                                                                                   ! r - muliplier for search radius (1.5 - 4.0)
 ! 1.5d0                                                                                                   ! sigma_n - smoothing parameter (0.5 - 1.5)
+! ../output/                                                                                              ! output directory
 
 ! /home/sbrus/data-drive/dgswe_inlet_bath/inlet1.grd                                                        ! base grid - used to determine the rimls surface
 ! /home/sbrus/data-drive/dgswe_inlet_bath/inlet1.grd                                                        ! eval grid - used to determine rimls surface evaluation points
@@ -13,14 +14,16 @@
 ! 0d0,0d0                                                                                                   ! lambda0,phi0 - center of CPP coordinate system
 ! 3.5d0                                                                                                     ! r - muliplier for search radius (1.5 - 4.0)
 ! 1.5d0                                                                                                     ! sigma_n - smoothing parameter (0.5 - 1.5)
+! ../output/                                                                                              ! output directory
 
 /home/sbrus/Codes/dgswe/grids/converge1_bath_dble.grd                                                     ! base grid - used to determine the rimls surface
-/home/sbrus/Codes/dgswe/grids/converge4_dble.grd                                                          ! eval grid - used to determine rimls surface evaluation points
-3                                                                                                        ! ctp - parametric coordinate transformation order
+/home/sbrus/Codes/dgswe/grids/converge2_dble.grd                                                          ! eval grid - used to determine rimls surface evaluation points
+3                                                                                                         ! ctp - parametric coordinate transformation order
 1d0                                                                                                       ! Erad - radius of Earth
 0d0,0d0                                                                                                   ! lambda0,phi0 - center of CPP coordinate system
-3.5d0                                                                                                     ! r - muliplier for search radius (1.5 - 4.0)
+7d0                                                                                                       ! r - muliplier for search radius (1.5 - 4.0)
 1.5d0                                                                                                     ! sigma_n - smoothing parameter (0.5 - 1.5)
+../output/                                                                                                ! output directory
 
 
 ! /home/sbrus/data-drive/galveston/adcirc/original/ESL0/fort.14                                           ! base grid - used to determine the rimls surface
@@ -30,6 +33,7 @@
 ! 0d0,0d0                                                                                                 ! lambda0,phi0 - center of CPP coordinate system       
 ! 2.5d0                                                                                                   ! r - muliplier for search radius (1.5 - 4.0)
 ! 1.5d0                                                                                                   ! sigma_n - smoothing parameter (0.5 - 1.5)
+! ../output/                                                                                              ! output directory
 
 !/home/sbrus/data-drive/galveston/adcirc/refinedx64/ESL0/fort.14                                            ! base grid - used to determine the rimls surface
 !!/home/sbrus/data-drive/galveston/adcirc/refinedx64/ESL0/fort.14
@@ -39,6 +43,7 @@
 !0d0,0d0                                                                                                    ! lambda0,phi0 - center of CPP coordinate system       
 !15d0                                                                                                       ! r - muliplier for search radius (1.5 - 4.0)
 !1.5d0                                                                                                      ! sigma_n - smoothing parameter (0.5 - 1.5)
+!../output/                                                                                                 ! output directory
 
 ! /home/sbrus/data-drive/beaufort/beaufort.grd                                                            ! base grid - used to determine the rimls surface
 ! /home/sbrus/data-drive/beaufort/beaufort.grd                                                            ! eval grid - used to determine rimls surface evaluation points
@@ -47,6 +52,7 @@
 ! -76d0,33d0                                                                                              ! lambda0,phi0 - center of CPP coordinate system
 ! 2.5d0                                                                                                   ! r - muliplier for search radius (1.5 - 4.0)
 ! 1.5d0                                                                                                   ! sigma_n - smoothing parameter (0.5 - 1.5)
+! ../output/                                                                                              ! output directory
 
 ! /home/sbrus/data-drive/beaufort/beaufort_hires.grd                                                      ! base grid - used to determine the rimls surface
 ! /home/sbrus/data-drive/beaufort/beaufort_hires.grd                                                      ! eval grid - used to determine rimls surface evaluation points
@@ -55,6 +61,7 @@
 ! -76d0,33d0                                                                                              ! lambda0,phi0 - center of CPP coordinate system
 ! 2.5d0                                                                                                   ! r - muliplier for search radius (1.5 - 4.0)
 ! 1.5d0                                                                                                   ! sigma_n - smoothing parameter (0.5 - 1.5)
+! ../output/                                                                                              ! output directory
 
 ! /home/sbrus/data-drive/shinnecock/fort.14                                                               ! base grid - used to determine the rimls surface
 ! /home/sbrus/data-drive/shinnecock/fort.14                                                               ! eval grid - used to determine rimls surface evaluation points
@@ -63,6 +70,7 @@
 ! -72.432511d0,40.666091d0                                                                                ! lambda0,phi0 - center of CPP coordinate system
 ! 2.5d0                                                                                                   ! r - muliplier for search radius (1.5 - 4.0)
 ! 1.5d0                                                                                                   ! sigma_n - smoothing parameter (0.5 - 1.5)
+! ../output/                                                                                              ! output directory
 
 
 ! /home/sbrus/data-drive/EC2001/fort.14                                                                   ! base grid - used to determine the rimls surface
@@ -72,6 +80,7 @@
 ! -79d0,35d0                                                                                              ! lambda0,phi0 - center of CPP coordinate system
 ! 2.5d0                                                                                                   ! r - muliplier for search radius (1.5 - 4.0)
 ! 1.5d0                                                                                                   ! sigma_n - smoothing parameter (0.5 - 1.5)
+! ../output/                                                                                              ! output directory
 
 
 ! /home/sbrus/data-drive/PRVI/fort.14                                                                     ! base grid - used to determine the rimls surface
@@ -81,3 +90,4 @@
 ! -79d0,35d0                                                                                              ! lambda0,phi0 - center of CPP coordinate system
 ! 2.5d0                                                                                                   ! r - muliplier for search radius (1.5 - 4.0)
 ! 1.5d0                                                                                                   ! sigma_n - smoothing parameter (0.5 - 1.5)
+! ../output/                                                                                              ! output directory
