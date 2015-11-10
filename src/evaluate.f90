@@ -530,7 +530,7 @@
           CALL in_element(i,x(1:2),el,found)                    
    
           hpt = (r*base%h(el))**2             
-          CALL kdtree2_r_nearest(tp=tree_xy,qv=x(1:2),r2=hpt,nfound=nneigh,nalloc=base%ne,results=kdresults)
+          CALL kdtree2_r_nearest(tp=tree_xy,qv=x(1:2),r2=25d0*hpt,nfound=nneigh,nalloc=base%ne,results=kdresults)
           
 !           IF (nneigh == 0) THEN
 !             PRINT*, x(1)/(Erad*cos(phi0))+lambda0,x(2)/Erad
@@ -585,7 +585,7 @@
                   alpha(cpt) = 1d0
                 ENDIF                           
                 
-                w = alpha(cpt)*(1d0-(norm(px)**2)/hpt**2)**4
+                w = alpha(cpt)*phi(px,hpt)
                 grad_w = alpha(cpt)*dphi(px,hpt)               
                 
                 sumW = sumW + w
@@ -988,6 +988,21 @@ search:DO
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+      FUNCTION phi(a,h) RESULT(p)
+      
+      IMPLICIT NONE
+      
+      REAL(pres) :: p
+      REAL(pres), INTENT(IN) :: a(3),h
+      
+!       p = (1d0-(norm(a)**2)/h**2)**4
+      p = exp(-(norm(a)**2)/h**2)
+      
+      END FUNCTION phi          
+      
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
       FUNCTION dphi(a,h) RESULT(gp)
       
       IMPLICIT NONE
@@ -995,7 +1010,8 @@ search:DO
       REAL(pres) :: gp(3)
       REAL(pres), INTENT(IN) :: a(3),h
       
-      gp = (-8d0*a*(1d0-norm(a)**2/h**2)**3)/h**2
+!       gp = (-8d0*a*(1d0-norm(a)**2/h**2)**3)/h**2
+      gp = ((-2d0*a)/h**2)*exp(-(norm(a)**2)/h**2)
       
       END FUNCTION dphi    
       
