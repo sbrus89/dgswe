@@ -223,18 +223,18 @@
             mesh%xyhe(pt,ed,3) = mesh%xyhe(pt,ed,3) + l(i,j,et)*mesh%elhb(i,el)
           ENDDO 
           
-          IF (bed == 20) THEN
-            ytest = mesh%xyhe(pt,ed,2)
-            xpt = mesh%xyhe(pt,ed,1)
-            
-            IF (ytest < 250d0) THEN
-              ypt = 0d0 + 100d0*(1d0/(COSH(4d0*(xpt-2000d0)/500d0)))
-            ELSE IF (ytest > 250d0) THEN
-              ypt = 500d0 - 100d0*(1d0/(COSH(4d0*(xpt-2000d0)/500d0)))
-            ENDIF
-          
-            mesh%xyhe(pt,ed,2) = ypt
-          ENDIF
+!           IF (bed == 20) THEN
+!             ytest = mesh%xyhe(pt,ed,2)
+!             xpt = mesh%xyhe(pt,ed,1)
+!             
+!             IF (ytest < 250d0) THEN
+!               ypt = 0d0 + 100d0*(1d0/(COSH(4d0*(xpt-2000d0)/500d0)))
+!             ELSE IF (ytest > 250d0) THEN
+!               ypt = 500d0 - 100d0*(1d0/(COSH(4d0*(xpt-2000d0)/500d0)))
+!             ENDIF
+!           
+!             mesh%xyhe(pt,ed,2) = ypt
+!           ENDIF
           
           IF (bed /= 0) THEN
             mesh%bnd_flag(pt,ed) = 1
@@ -387,18 +387,18 @@
       
       IF (refinement) THEN
         PRINT("(A)"), "Computing rimls surface: verticies"
-        CALL rimls_surface(eval%nn,1,1,eval%xyhv)      
+        CALL mls_surface(eval%nn,1,1,eval%xyhv)      
         PRINT("(A)"), "Computing rimls surface: edges"      
-        CALL rimls_surface(eval%ned,np(3)-1,mnnds,eval%xyhe)
+        CALL mls_surface(eval%ned,np(3)-1,mnnds,eval%xyhe)
         PRINT("(A)"), "Computing rimls surface: interior"
-        CALL rimls_surface(eval%ne,mninds,mnnds,eval%xyhi)      
+        CALL mls_surface(eval%ne,mninds,mnnds,eval%xyhi)      
       ELSE 
         PRINT("(A)"), "Computing rimls surface: verticies"
-        CALL rimls_surface(base%nn,1,1,base%xyhv)      
+        CALL mls_surface(base%nn,1,1,base%xyhv)      
         PRINT("(A)"), "Computing rimls surface: edges"      
-        CALL rimls_surface(base%ned,np(3)-1,mnnds,base%xyhe)
+        CALL mls_surface(base%ned,np(3)-1,mnnds,base%xyhe)
         PRINT("(A)"), "Computing rimls surface: interior"
-        CALL rimls_surface(base%ne,mninds,mnnds,base%xyhi)         
+        CALL mls_surface(base%ne,mninds,mnnds,base%xyhi)         
       ENDIF
       
       RETURN
@@ -665,6 +665,174 @@
       
       RETURN
       END SUBROUTINE rimls_surface  
+  
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
+      
+      SUBROUTINE mls_surface(n,npts,mnpts,xyh)
+      
+      USE globals, ONLY: tree_xy,tree_c,kdresults,base,hmin,hmax,phi0,lambda0,Erad
+      USE find_element, ONLY: in_element
+      USE kdtree2_module
+      
+      IMPLICIT NONE
+      
+      INTEGER :: i,pt,cpt,l,m,k      
+      INTEGER :: n,npts,mnpts  
+      INTEGER :: ne,el,elin
+      INTEGER :: lsp,ndf
+      INTEGER :: neighbors(base%ne),nneigh,found
+      INTEGER :: small_flag
+      INTEGER :: info,lwork
+      REAL(pres) :: xyh(mnpts,n,3)  
+      REAL(pres) :: x(3),p(3),px(3),np(3),xbar(3)      
+      REAL(pres) :: d,w,rhs,lhs
+      REAL(pres) :: s,t
+      REAL(pres) :: hpt,search_r,tol
+      REAL(pres) :: nwork(1)
+      REAL(pres), ALLOCATABLE :: A(:,:),b(:),work(:)
+      
+      ne = base%ne
+      tol = 1d-10
+      lsp = 1
+      ndf = (lsp+1)*(lsp+2)/2
+      
+      ALLOCATE(A(ne,ndf),b(ne))
+      CALL DGELS('N',nneigh,ndf,1,A,ne,b,ne,nwork,-1,info)      
+      
+      IF (info == 0) THEN
+        lwork = INT(nwork(1))
+        ALLOCATE(work(lwork))
+      ELSE 
+        STOP
+      ENDIF
+      
+      DO i = 1,n
+      
+        IF (mod(i,1000) == 0) THEN       
+          PRINT*,i,"/",n
+        ENDIF   
+        
+        DO pt = 1,npts  
+        
+          x(1) = xyh(pt,i,1)
+          x(2) = xyh(pt,i,2)
+          x(3) = xyh(pt,i,3)       
+          
+
+          CALL in_element(i,x(1:2),elin,found)                    
+   
+          hpt = r*base%h(elin)           
+          search_r = SQRT(-hpt**2*LOG(tol))
+          CALL kdtree2_r_nearest(tp=tree_xy,qv=x(1:2),r2=search_r**2,nfound=nneigh,nalloc=base%ne,results=kdresults)
+          
+          CALL boundary_check2(i,elin,nneigh,neighbors)
+          
+          
+!           rhs = 0d0
+!           lhs = 0d0
+!           small_flag = 0
+!           DO cpt = 1,nneigh
+!           
+!             el = neighbors(cpt)
+!             p  = base%xyhc(:,el)
+!             np = base%nhb(:,el)  
+!             
+!             w = theta(x,p,hpt)
+!             
+!             IF (w < 1d-10) THEN
+!               small_flag = 1
+!             ENDIF
+!             
+!             rhs = rhs + w**2*p(3)
+!             lhs = lhs + w**2
+!           
+!           ENDDO
+!           
+!           
+!           IF (small_flag /= 1) THEN
+!             PRINT*, "Increase search radius"
+!             STOP
+!           ENDIF
+!           
+!           xyh(pt,i,3) = rhs/lhs
+
+
+          xbar = base%xyhc(:,elin)
+
+          small_flag = 0
+          DO cpt = 1,nneigh
+          
+            el = neighbors(cpt)
+            p  = base%xyhc(:,el)
+            np = base%nhb(:,el)  
+            
+            w = theta(x,p,hpt)
+            
+            IF (w <= 1d-9) THEN
+              small_flag = 1
+            ENDIF
+            
+            s = p(1)-xbar(1)
+            t = p(2)-xbar(2)
+            
+            k = 0
+            DO l = 0,lsp
+              DO m = 0,lsp-l
+                k = k + 1            
+                A(cpt,k) = w*(s**l*t**m)
+              ENDDO
+            ENDDO
+            
+            b(cpt) = w*p(3)
+
+          ENDDO
+          
+          
+!           IF (small_flag /= 1) THEN
+!             PRINT*, "Increase search radius"
+!             STOP
+!           ENDIF
+          
+          CALL DGELS('N',nneigh,ndf,1,A,ne,b,ne,work,lwork,info)
+          
+          s = (x(1)-xbar(1))
+          t = (x(2)-xbar(2))
+          
+          k = 0
+          xyh(pt,i,3) = 0d0
+          DO l = 0,lsp
+            DO m = 0,lsp-l
+              k = k + 1
+              xyh(pt,i,3) = xyh(pt,i,3) + b(k)*(s**l*t**m)
+            ENDDO
+          ENDDO
+          
+          
+        ENDDO
+      
+      ENDDO
+      
+      CALL invcpp(n,npts,mnpts,xyh)      
+      
+      RETURN
+      END SUBROUTINE mls_surface
+      
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!      
+      
+      FUNCTION theta(x,p,h) RESULT(w)
+      
+      IMPLICIT NONE
+      
+      REAL(pres) :: w
+      REAL(pres), INTENT(IN) :: x(3),p(3),h
+      REAL(pres) :: d
+      
+      d = sqrt((x(1)-p(1))**2 + (x(2)-p(2))**2)
+      w = exp(-d**2/h**2)      
+      
+      END FUNCTION theta        
       
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
