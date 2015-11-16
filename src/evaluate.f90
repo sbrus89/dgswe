@@ -223,18 +223,18 @@
             mesh%xyhe(pt,ed,3) = mesh%xyhe(pt,ed,3) + l(i,j,et)*mesh%elhb(i,el)
           ENDDO 
           
-!           IF (bed == 20) THEN
-!             ytest = mesh%xyhe(pt,ed,2)
-!             xpt = mesh%xyhe(pt,ed,1)
-!             
-!             IF (ytest < 250d0) THEN
-!               ypt = 0d0 + 100d0*(1d0/(COSH(4d0*(xpt-2000d0)/500d0)))
-!             ELSE IF (ytest > 250d0) THEN
-!               ypt = 500d0 - 100d0*(1d0/(COSH(4d0*(xpt-2000d0)/500d0)))
-!             ENDIF
-!           
-!             mesh%xyhe(pt,ed,2) = ypt
-!           ENDIF
+          IF (bed == 20) THEN
+            ytest = mesh%xyhe(pt,ed,2)
+            xpt = mesh%xyhe(pt,ed,1)
+            
+            IF (ytest < 250d0) THEN
+              ypt = 0d0 + 100d0*(1d0/(COSH(4d0*(xpt-2000d0)/500d0)))
+            ELSE IF (ytest > 250d0) THEN
+              ypt = 500d0 - 100d0*(1d0/(COSH(4d0*(xpt-2000d0)/500d0)))
+            ENDIF
+          
+            mesh%xyhe(pt,ed,2) = ypt
+          ENDIF
           
           IF (bed /= 0) THEN
             mesh%bnd_flag(pt,ed) = 1
@@ -387,18 +387,18 @@
       
       IF (refinement) THEN
         PRINT("(A)"), "Computing rimls surface: verticies"
-        CALL mls_surface(eval%nn,1,1,eval%xyhv)      
+        CALL rimls_surface(eval%nn,1,1,eval%xyhv)      
         PRINT("(A)"), "Computing rimls surface: edges"      
-        CALL mls_surface(eval%ned,np(3)-1,mnnds,eval%xyhe)
+        CALL rimls_surface(eval%ned,np(3)-1,mnnds,eval%xyhe)
         PRINT("(A)"), "Computing rimls surface: interior"
-        CALL mls_surface(eval%ne,mninds,mnnds,eval%xyhi)      
+        CALL rimls_surface(eval%ne,mninds,mnnds,eval%xyhi)      
       ELSE 
         PRINT("(A)"), "Computing rimls surface: verticies"
-        CALL mls_surface(base%nn,1,1,base%xyhv)      
+        CALL rimls_surface(base%nn,1,1,base%xyhv)      
         PRINT("(A)"), "Computing rimls surface: edges"      
-        CALL mls_surface(base%ned,np(3)-1,mnnds,base%xyhe)
+        CALL rimls_surface(base%ned,np(3)-1,mnnds,base%xyhe)
         PRINT("(A)"), "Computing rimls surface: interior"
-        CALL mls_surface(base%ne,mninds,mnnds,base%xyhi)         
+        CALL rimls_surface(base%ne,mninds,mnnds,base%xyhi)         
       ENDIF
       
       RETURN
@@ -497,6 +497,7 @@
       INTEGER :: nneigh,nneigh_pre
       INTEGER :: nd,el
       INTEGER :: neighbors(base%ne),found
+      REAL(pres) :: search_r
       REAL(pres) :: xyh(mnpts,n,3)
       REAL(pres) :: x(3),p(3),px(3),np(3),hpt,f,grad_f(3),grad_w(3),fgradf(3),npmgradf(3)
       REAL(pres) :: alpha(base%ne),alpha_old(base%ne)
@@ -529,8 +530,9 @@
           
           CALL in_element(i,x(1:2),el,found)                    
    
-          hpt = (r*base%h(el))**2             
-          CALL kdtree2_r_nearest(tp=tree_xy,qv=x(1:2),r2=25d0*hpt,nfound=nneigh,nalloc=base%ne,results=kdresults)
+          hpt = r*base%h(el) 
+          search_r = SQRT(-hpt**2*LOG(threshold))          
+          CALL kdtree2_r_nearest(tp=tree_xy,qv=x(1:2),r2=search_r**2,nfound=nneigh,nalloc=base%ne,results=kdresults)
           
 !           IF (nneigh == 0) THEN
 !             PRINT*, x(1)/(Erad*cos(phi0))+lambda0,x(2)/Erad
@@ -542,8 +544,7 @@
           
 !           CALL boundary_check(i,x,nneigh,neighbors)
           CALL boundary_check2(i,el,nneigh,neighbors)
-          
-          hpt = sqrt(hpt)           
+                 
           
           grad_f(:) = 1d0
           f = 1d0          
