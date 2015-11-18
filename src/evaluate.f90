@@ -387,18 +387,18 @@
       
       IF (refinement) THEN
         PRINT("(A)"), "Computing rimls surface: verticies"
-        CALL rimls_surface(eval%nn,1,1,eval%xyhv)      
+        CALL mls_surface(eval%nn,1,1,eval%xyhv)      
         PRINT("(A)"), "Computing rimls surface: edges"      
-        CALL rimls_surface(eval%ned,np(3)-1,mnnds,eval%xyhe)
+        CALL mls_surface(eval%ned,np(3)-1,mnnds,eval%xyhe)
         PRINT("(A)"), "Computing rimls surface: interior"
-        CALL rimls_surface(eval%ne,mninds,mnnds,eval%xyhi)      
+        CALL mls_surface(eval%ne,mninds,mnnds,eval%xyhi)      
       ELSE 
         PRINT("(A)"), "Computing rimls surface: verticies"
-        CALL rimls_surface(base%nn,1,1,base%xyhv)      
+        CALL mls_surface(base%nn,1,1,base%xyhv)      
         PRINT("(A)"), "Computing rimls surface: edges"      
-        CALL rimls_surface(base%ned,np(3)-1,mnnds,base%xyhe)
+        CALL mls_surface(base%ned,np(3)-1,mnnds,base%xyhe)
         PRINT("(A)"), "Computing rimls surface: interior"
-        CALL rimls_surface(base%ne,mninds,mnnds,base%xyhi)         
+        CALL mls_surface(base%ne,mninds,mnnds,base%xyhi)         
       ENDIF
       
       RETURN
@@ -695,7 +695,7 @@
       
       ne = base%ne
       tol = 1d-10
-      lsp = 1
+      lsp = 3
       ndf = (lsp+1)*(lsp+2)/2
       
       ALLOCATE(A(ne,ndf),b(ne))
