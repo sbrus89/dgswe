@@ -14,6 +14,8 @@
       REAL(pres), ALLOCATABLE, DIMENSION(:,:,:) :: H_global, Qx_global, Qy_global
       REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: hb_local, hb_global
       REAL(pres), ALLOCATABLE, DIMENSION(:) :: t
+      
+      CALL version()
 
       OPEN(UNIT=19,FILE='PE0000/fort.80')      
       READ(19,*) npe

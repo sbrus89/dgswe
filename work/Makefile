@@ -83,6 +83,14 @@ ifeq ($(BUILDTYPE),dgprep)
   MESSAGE = Compling prep program with $(FLAG_TYPE) flags
 endif
 
+ifeq ($(BUILDTYPE),dgpost)
+  FC := ifort
+  ODIR = odir_dgpost/
+
+  EXE_NAME = dgpost
+  MESSAGE = Compling post program with $(FLAG_TYPE) flags
+endif
+
 
 ### Other compiler flags ###
 # -no-prec-div
@@ -138,13 +146,17 @@ dgprep_objects = globals.o messenger2.o read_input.o allocation.o \
                  normals.o bathymetry_interp.o modal2nodal.o \
                  write_files.o version.o dgprep.o
                  
-dgprep_obj := $(patsubst %.o, $(ODIR)%.o,$(dgprep_objects))                 
+dgprep_obj := $(patsubst %.o, $(ODIR)%.o,$(dgprep_objects))  
+
+dgpost_objects = globals.o messenger2.o version.o dgpost.o
+
+dgpost_obj := $(patsubst %.o, $(ODIR)%.o,$(dgpost_objects))  
 
 ########################################################################
 #                          Executable Targets                          #
 ########################################################################
 
-.PHONY : $(ODIR) dgswe 
+.PHONY : $(ODIR) version dgswe 
 .PHONY : metis dgprep dgpost 
 .PHONY : clean cleanmetis cleandgprep cleandgpost
 
@@ -164,7 +176,7 @@ dgprep :
 
 dgpost : 
 	@printf "\n\n"
-	$(MAKE) -C ../post dgpost
+	$(MAKE) BUILDTYPE=dgpost OPTS=$(OPTS) dgpost
 
 else
 
@@ -192,6 +204,15 @@ dgprep : version $(ODIR)  $(dgprep_obj)
 	@printf "Modified: $(GIT_MOD) \n\n"
 	$(FC) $(FFLAGS) -o $(EXE_NAME) $(dgprep_obj) $(METIS_LIB) $(LAPACK_LIB)
 	@printf "\n\n"
+	
+dgpost: version $(ODIR)  $(dgpost_obj)
+	@printf " \n\033[35m$(MESSAGE) on $(FULLNAME) \033[0m \n"
+	@printf "Git SHA: $(GIT_SHA) \n"
+	@printf "Modified: $(GIT_MOD) \n\n"
+	$(FC) $(FFLAGS) -o $(EXE_NAME) $(dgpost_obj)
+	@printf "\n\n"
+
+
 endif
 
 
@@ -412,6 +433,10 @@ $(ODIR)decomp2.o : ../prep/src/decomp2.F90                     $(ODIR)globals.o 
 $(ODIR)write_files.o : ../prep/src/write_files.F90             $(ODIR)globals.o $(ODIR)read_input.o $(ODIR)messenger2.o 
 	$(FC) $(FFLAGS) -c $< -o $@
 
-$(ODIR)dgprep.o :../prep/src/dgprep.F90                        $(ODIR)globals.o $(ODIR)allocation.o $(ODIR)read_input.o $(ODIR)messenger2.o $(ODIR)vandermonde.o $(ODIR)shape_functions.o
+$(ODIR)dgprep.o : ../prep/src/dgprep.F90                        $(ODIR)globals.o $(ODIR)allocation.o $(ODIR)read_input.o $(ODIR)messenger2.o $(ODIR)vandermonde.o $(ODIR)shape_functions.o
 	$(FC) $(FFLAGS) -c $< -o $@
 
+# post file targets
+
+$(ODIR)dgpost.o : ../post/dgpost.F90                        
+	$(FC) $(FFLAGS) -c $< -o $@
