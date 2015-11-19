@@ -180,7 +180,7 @@ dgpost :
 
 else
 
-FC_VERSION := $(shell $(FC) -v 2>&1)
+FC_VERSION := $(shell $(FC) -v 2>&1 | head -2)
 DATE := $(shell date)
 
 # GIT_SHA := $(shell git rev-parse --short HEAD)
