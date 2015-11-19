@@ -7,15 +7,23 @@ import pprint
 #     more strict formatting critiera than required by the 
 #     error code:
 #       1) The file should begin with all case information
-#          commented
+#          commented.
 #       2) Case information should be written on consecutive 
-#          lines with spaces between cases
+#          lines with spaces between cases.  No commented lines
+#          between case information is allowed
        
 
-f = open('error.inp','r+')
+
+nlines = 14         # number of lines per case
+file = 'error.inp'  # input file name
+exe = 'error'       # executable name
+
+
+
+f = open(file,'r+')
 content = f.read().splitlines()
 f.close()
-pprint.pprint(content)
+#pprint.pprint(content)
 lines = [x.lstrip().split() for x in content]
 
 # determine number of cases
@@ -50,44 +58,95 @@ for n,line in enumerate(lines):
       print "Possible directory exsitence error"
       raise SystemExit(0)
 
-    if i == 14:  # iterate through case lines until last line of case
+    if i == nlines:  # iterate through case lines until last line of case
       start_case = 0  # flag to search for new case
       print "\n"
 
    
-print ncases
-print case_ind  
+#print ncases
+#print case_ind  
 
 
+
+
+
+
+
+skip = False
 # Uncomment and run each case
 for n in range(0,ncases):
 
-  f = open('error.inp','r+')
-
   ind = case_ind[n]  # look up line where case begins
-  f.write('\n'.join(content[0:ind])+'\n') # write (commented) lines before case
-  print '\n'.join(content[0:ind])+'\n'
-  
-  for i in range(0,14):                   # uncomment current case
+
+
+  print "######################################################"
+  print "Case " + str(n+1) + ":"
+  for i in range(0,nlines):            # print current case
     print content[ind+i].lstrip()[1:]
-    f.write(content[ind+i].lstrip()[1:])
-    if i < 13:
-      f.write('\n')
+  print "######################################################"
 
-  f.close()
+  print " "
 
-  try:   # run the error code and display otput
-    cmd = ['./error']
-    output = subprocess.Popen(cmd, stdout=subprocess.PIPE).communicate()[0]
-    print output
-  except:
-   break
+  print "c) Continue"
+  print "s) Skip"
+  print "e) Exit"
+  option = raw_input("Choose option: ") # pause between each run
+  while option != "c" and option != "s" and option != "e":
+    option = raw_input("Choose option: ")
+  print " "
+
+  if option == "c":
+    pass
+  elif option == "s":
+    skip = True
+  elif option == "e":
+    break
+
+
+
+
+
+
+  if skip == False:
+
+    print "Running case " + str(n+1) + " starting on line " + str(ind)
+    print " "
+
+    f = open(file,'r+')
+
+    f.write('\n'.join(content[0:ind])+'\n') # write (commented) lines before case
+    #print '\n'.join(content[0:ind])+'\n'
   
-  raw_input("Press Enter to continue") #pause between each run
+    for i in range(0,nlines):                   # write uncommented lines for current case
+      f.write(content[ind+i].lstrip()[1:])
+      if i < nlines-1:
+        f.write('\n')
+
+    f.close()
+
+
+
+    try:   # run the error code and display otput
+      cmd = ['./'+exe]
+      output = subprocess.Popen(cmd, stdout=subprocess.PIPE).communicate()[0]
+      print output
+    except:
+      break
+
+  else:
+
+    print "Skipping case " + str(n+1) + " starting on line " + str(ind)
+    print " "
+
+    skip = False
+
+
+  
+  
 
 
 # Write back original file
-f = open('error.inp','r+')
+f = open(file,'r+')
 f.write('\n'.join(content))
 f.close()
 
