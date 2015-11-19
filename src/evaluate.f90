@@ -694,7 +694,7 @@
       REAL(pres), ALLOCATABLE :: A(:,:),b(:),work(:)
       
       ne = base%ne
-      tol = 1d-10
+      tol = 1d-16
       lsp = 3
       ndf = (lsp+1)*(lsp+2)/2
       
@@ -770,7 +770,7 @@
             
             w = theta(x,p,hpt)
             
-            IF (w <= 1d-9) THEN
+            IF (w <= tol*10d0) THEN
               small_flag = 1
             ENDIF
             
@@ -790,10 +790,10 @@
           ENDDO
           
           
-!           IF (small_flag /= 1) THEN
-!             PRINT*, "Increase search radius"
-!             STOP
-!           ENDIF
+          IF (small_flag /= 1) THEN
+            PRINT*, "Increase search radius"
+            STOP
+          ENDIF
           
           CALL DGELS('N',nneigh,ndf,1,A,ne,b,ne,work,lwork,info)
           
