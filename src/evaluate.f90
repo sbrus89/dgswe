@@ -790,10 +790,10 @@
           ENDDO
           
           
-          IF (small_flag /= 1) THEN
-            PRINT*, "Increase search radius"
-            STOP
-          ENDIF
+!           IF (small_flag /= 1) THEN
+!             PRINT*, "Increase search radius"
+!             STOP
+!           ENDIF
           
           CALL DGELS('N',nneigh,ndf,1,A,ne,b,ne,work,lwork,info)
           
