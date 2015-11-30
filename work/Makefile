@@ -81,33 +81,33 @@ $(ODIR)globals.o: globals.f90
 	$(FC) $(FFLAGS) -c $< -o $@
 	mv globals.mod $(ODIR)
 	
-$(ODIR)allocation.o: allocation.f90 globals.f90
+$(ODIR)allocation.o: allocation.f90                             $(ODIR)globals.o
 	$(FC) $(FFLAGS) -c $< -o $@
 	mv allocation.mod $(ODIR)
 	
-$(ODIR)basis.o: basis.f90 globals.f90
+$(ODIR)basis.o: basis.f90                                       $(ODIR)globals.o
 	$(FC) $(FFLAGS) -c $< -o $@
 	mv basis.mod $(ODIR)
 	
-$(ODIR)evaluate.o: evaluate.F90 basis.f90 globals.f90
+$(ODIR)evaluate.o: evaluate.F90                                 $(ODIR)globals.o  $(ODIR)basis.o
 	$(FC) $(FFLAGS) -c $< -o $@
 	mv evaluate.mod $(ODIR)
 
-$(ODIR)read_input.o: read_input.f90 globals.f90
+$(ODIR)read_input.o: read_input.f90                             $(ODIR)globals.o
 	$(FC) $(FFLAGS) -c $< -o $@
 
-$(ODIR)read_grid.o: read_grid.f90 globals.f90
+$(ODIR)read_grid.o: read_grid.f90                               $(ODIR)globals.o  $(ODIR)allocation.o
 	$(FC) $(FFLAGS) -c $< -o $@
 	mv read_grid.mod $(ODIR)
 
-$(ODIR)read_solution.o: read_solution.F90 globals.f90
+$(ODIR)read_solution.o: read_solution.F90                       $(ODIR)globals.o
 	$(FC) $(FFLAGS) -c $< -o $@
 
 $(ODIR)kdtree2.o: kdtree2.F
 	$(FC) $(FFLAGS) -c $< -o $@
 	mv kdtree2_*.mod  $(ODIR)
 
-$(ODIR)find_nesting.o: find_nesting.f90 globals.f90 kdtree2.F
+$(ODIR)find_nesting.o: find_nesting.f90                         $(ODIR)globals.o  $(ODIR)kdtree2.o  $(ODIR)evaluate.o  
 	$(FC) $(FFLAGS) -c $< -o $@
 
 $(ODIR)area_qpts.o: area_qpts.f90
@@ -116,7 +116,7 @@ $(ODIR)area_qpts.o: area_qpts.f90
 $(ODIR)version.o: version.F90
 	$(FC) $(FFLAGS) -c $< -o $@	
 
-$(ODIR)error.o: error.F90 globals.f90 allocation.f90 evaluate.F90 basis.f90 kdtree2.F version.F90
+$(ODIR)error.o: error.F90                                       $(ODIR)globals.o  $(ODIR)allocation.o  $(ODIR)basis.o  $(ODIR)read_grid.o  $(ODIR)evaluate.o  
 	$(FC) $(FFLAGS) -c $< -o $@
 	
 ########################################################################
