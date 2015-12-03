@@ -4,8 +4,8 @@ VPATH := ../src/
 ODIR = odir/
 
 FC = ifort
-FFLAGS = -O3 -132 -I$(ODIR) #-Dadcirc
-# FFLAGS = -132 -C -g -traceback -I$(ODIR) #-Dadcirc
+# FFLAGS = -O3 -132 -I$(ODIR) #-Dadcirc
+FFLAGS = -132 -C -g -traceback -I$(ODIR) #-Dadcirc
 
 FULLNAME := $(shell hostname)
 NAME := $(strip $(subst ., , $(FULLNAME)))
@@ -42,20 +42,23 @@ endif
 #                               Objects                                #
 ########################################################################
 
-objects = globals.o version.o allocation.o basis.o evaluate.o read_input.o read_grid.o read_solution.o kdtree2.o find_nesting.o area_qpts.o error.o
+objects = globals.o kdtree2.o allocation.o basis.o  \
+          connect.o curvilinear.o evaluate.o find_element.o\
+          read_input.o read_grid.o  read_bathy.o\
+          eval_pts.o bathy_interp.o lapack_interfaces.o version.o
 
 obj := $(patsubst %.o, $(ODIR)%.o,$(objects))
 
 ########################################################################
 #                          Executable Target                           #
 ########################################################################
-.PHONY :  version $(ODIR) error 
+.PHONY :  version $(ODIR) bathy 
 
-error:  version $(ODIR) $(obj)
+bathy:  version $(ODIR) $(obj)
 	@echo "\n\n"
 	@echo "Git SHA: $(GIT_SHA)"
 	@echo "Modified: $(GIT_MOD) \n"
-	$(FC) $(FFLAGS) -o error $(obj) $(LAPACK_LIB)
+	$(FC) $(FFLAGS) -o bathy $(obj) $(LAPACK_LIB)
 	
 ########################################################################
 #                        Premilinary Targets                           #
@@ -77,52 +80,63 @@ version:
 #                            File Targets                              #
 ########################################################################	
 
-$(ODIR)globals.o: globals.f90
+$(ODIR)kdtree2.o: kdtree2.F
+	$(FC) $(FFLAGS) -c $< -o $@
+	mv kdtree2_*.mod  $(ODIR)
+
+$(ODIR)lapack_interfaces.o : lapack_interfaces.f90
+	$(FC) $(FFLAGS) -c $< -o $@
+	mv lapack_interfaces.mod $(ODIR)
+
+$(ODIR)globals.o: globals.f90                                   $(ODIR)kdtree2.o
 	$(FC) $(FFLAGS) -c $< -o $@
 	mv globals.mod $(ODIR)
-	
+
 $(ODIR)allocation.o: allocation.f90                             $(ODIR)globals.o
 	$(FC) $(FFLAGS) -c $< -o $@
 	mv allocation.mod $(ODIR)
-	
+
 $(ODIR)basis.o: basis.f90                                       $(ODIR)globals.o
 	$(FC) $(FFLAGS) -c $< -o $@
 	mv basis.mod $(ODIR)
-	
-$(ODIR)evaluate.o: evaluate.F90                                 $(ODIR)globals.o  $(ODIR)basis.o
+
+$(ODIR)evaluate.o: evaluate.F90                                 $(ODIR)globals.o  $(ODIR)basis.o  $(ODIR)lapack_interfaces.o
 	$(FC) $(FFLAGS) -c $< -o $@
 	mv evaluate.mod $(ODIR)
-
-$(ODIR)read_input.o: read_input.f90                             $(ODIR)globals.o
-	$(FC) $(FFLAGS) -c $< -o $@
 
 $(ODIR)read_grid.o: read_grid.f90                               $(ODIR)globals.o  $(ODIR)allocation.o
 	$(FC) $(FFLAGS) -c $< -o $@
 	mv read_grid.mod $(ODIR)
 
-$(ODIR)read_solution.o: read_solution.F90                       $(ODIR)globals.o
+$(ODIR)find_element.o: find_element.f90                         $(ODIR)globals.o  $(ODIR)kdtree2.o  $(ODIR)basis.o  
+	$(FC) $(FFLAGS) -c $< -o $@
+	mv find_element.mod $(ODIR)
+
+$(ODIR)read_input.o: read_input.f90                             $(ODIR)globals.o
 	$(FC) $(FFLAGS) -c $< -o $@
 
-$(ODIR)kdtree2.o: kdtree2.F
-	$(FC) $(FFLAGS) -c $< -o $@
-	mv kdtree2_*.mod  $(ODIR)
-
-$(ODIR)find_nesting.o: find_nesting.f90                         $(ODIR)globals.o  $(ODIR)kdtree2.o  $(ODIR)evaluate.o  
+$(ODIR)read_bathy.o: read_bathy.f90                             $(ODIR)globals.o
 	$(FC) $(FFLAGS) -c $< -o $@
 
-$(ODIR)area_qpts.o: area_qpts.f90
+$(ODIR)eval_pts.o: eval_pts.f90                                 $(ODIR)globals.o  $(ODIR)basis.o
 	$(FC) $(FFLAGS) -c $< -o $@
 
-$(ODIR)version.o: version.F90
-	$(FC) $(FFLAGS) -c $< -o $@	
-
-$(ODIR)error.o: error.F90                                       $(ODIR)globals.o  $(ODIR)allocation.o  $(ODIR)basis.o  $(ODIR)read_grid.o  $(ODIR)evaluate.o  
+$(ODIR)connect.o: connect.f90                                   $(ODIR)globals.o 
 	$(FC) $(FFLAGS) -c $< -o $@
 	
+$(ODIR)curvilinear.o: curvilinear.f90                           $(ODIR)globals.o 
+	$(FC) $(FFLAGS) -c $< -o $@
+	
+$(ODIR)bathy_interp.o: bathy_interp.F90                         $(ODIR)globals.o  $(ODIR)allocation.o  $(ODIR)basis.o  $(ODIR)read_grid.o  $(ODIR)evaluate.o  $(ODIR)find_element.o 
+	$(FC) $(FFLAGS) -c $< -o $@
+	
+$(ODIR)version.o: version.F90
+	$(FC) $(FFLAGS) -c $< -o $@
+
 ########################################################################
 #                            Clean Targets                             #
 ########################################################################
 
 .PHONY : clean
 clean : 
-	rm -r error $(ODIR)
+	rm -r bathy $(ODIR)

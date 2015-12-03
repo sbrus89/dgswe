@@ -1,7 +1,10 @@
       MODULE globals
+      
+      USE kdtree2_module
+      
       IMPLICIT NONE
 
-      INTEGER, PARAMETER :: pres = kind(1d0) ! precision   
+      INTEGER, PARAMETER :: rp = kind(1d0) ! precision   
       
       CHARACTER(50) :: gitSHA
       CHARACTER(50) :: gitBranch
@@ -11,41 +14,43 @@
       CHARACTER(50) :: compile_date
       CHARACTER(50) :: host       
       
-      INTEGER, PARAMETER :: nel_type = 4 !(type #s: 1 -> triangles, 2 -> quads, 3 -> curved triangles, 4-> curved quads)         
+      INTEGER, PARAMETER :: srchdp = 10
+      TYPE(kdtree2), POINTER :: tree_xy
+      TYPE(kdtree2_result), ALLOCATABLE, DIMENSION(:) :: closest         
+      
+      INTEGER, PARAMETER :: nel_type = 4 
 
       INTEGER :: lines ! number of lines in output files  
-      REAL(pres) :: tf ! final time   
+      REAL(rp) :: tf ! final time   
       
       LOGICAL :: exclude_bndel
       
-      TYPE :: solution 
+      TYPE :: grid 
         CHARACTER(10) :: sol_name
         CHARACTER(100) :: grid_file ! name of fort.14 file
         CHARACTER(100) :: grid_name ! name of the grid
         CHARACTER(100) :: out_direc ! name of output directory
-        INTEGER :: p ! polynomial order
-        INTEGER :: ctp 
-        REAL(pres) :: dt ! time step        
+        CHARACTER(100) :: bathy_file         
+        INTEGER :: hbp
+        INTEGER :: ctp        
         INTEGER :: ne ! number of elements
         INTEGER :: nn ! number of nodes
         INTEGER :: curved_grid
         
         INTEGER, ALLOCATABLE, DIMENSION(:) :: el_type   
         INTEGER :: nverts(nel_type)
-        INTEGER :: np(nel_type)
-        INTEGER :: nnds(nel_type)
-        INTEGER :: mnnds      
-        INTEGER :: ndof(nel_type)
-        INTEGER :: mndof         
+        INTEGER :: np(nel_type+2)
+        INTEGER :: nnds(nel_type+2)
+        INTEGER :: mnnds             
       
         INTEGER, ALLOCATABLE, DIMENSION(:,:) :: ect,vct ! element connectivity table
         INTEGER, ALLOCATABLE, DIMENSION(:) :: nelnds
         INTEGER :: mnelnds      
-        REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: xy,vxy ! x,y coordinates of nodes
+        REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: xy,vxy ! x,y coordinates of nodes
         INTEGER, ALLOCATABLE, DIMENSION(:) :: vxyn
-        REAL(pres), ALLOCATABLE, DIMENSION(:,:,:) :: elxy    
-        REAL(pres), ALLOCATABLE, DIMENSION(:) :: depth ! depth at each node
-        REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: elhb   
+        REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: elxy    
+        REAL(rp), ALLOCATABLE, DIMENSION(:) :: depth ! depth at each node
+        REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: elhb   
         
         INTEGER :: nope ! number of open boundary segents
         INTEGER, ALLOCATABLE, DIMENSION(:) :: obseg ! number of nodes in each open boundary segment
@@ -59,42 +64,40 @@
         
         INTEGER, ALLOCATABLE, DIMENSION(:) :: bndel ! array to flag land boundary elements
         
+        INTEGER :: mnepn
         INTEGER, ALLOCATABLE, DIMENSION(:) :: nepn ! number of elements per node
         INTEGER, ALLOCATABLE, DIMENSION(:,:) :: epn ! elements associated with each node 
         
-        REAL(pres), ALLOCATABLE, DIMENSION(:,:,:) :: V ! vandermonde matrix
+        INTEGER, ALLOCATABLE, DIMENSION(:) :: nepe
+        INTEGER, ALLOCATABLE, DIMENSION(:,:) :: el2el
+      
+        INTEGER :: ned
+        INTEGER :: nied
+        INTEGER :: nnfbed
+        INTEGER, ALLOCATABLE, DIMENSION(:) :: bed_flag
+        INTEGER, ALLOCATABLE, DIMENSION(:,:) :: bel2bed
+        INTEGER, ALLOCATABLE, DIMENSION(:,:) :: ged2nn,ged2el,ged2led  
+        INTEGER, ALLOCATABLE, DIMENSION(:) :: nfbedn              
+        
+        REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: V ! vandermonde matrix
         INTEGER, ALLOCATABLE, DIMENSION(:,:) :: ipiv 
         
-        REAL(pres) :: rsre(2,4,nel_type) ! reference element verticies 
+        REAL(rp) :: rsre(2,4,nel_type) ! reference element verticies 
         
-        REAL(pres), ALLOCATABLE, DIMENSION(:,:,:) :: l,dldr,dlds
-        REAL(pres), ALLOCATABLE, DIMENSION(:,:,:) :: phi
-        REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: detJ      
-        
-        REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: H
-        REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: Qx
-        REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: Qy             
+        REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: l,dldr,dlds   
+                 
         
       END TYPE
       
-      TYPE(solution) :: coarse
-      TYPE(solution) :: fine    
-      TYPE(solution) :: base
+      TYPE(grid) :: eval    
+      TYPE(grid) :: base
+
+      INTEGER :: mnepn
       
-      INTEGER :: nqpta(nel_type)
-      INTEGER :: mnqpta
-      REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: wpta
-      REAL(pres), ALLOCATABLE, DIMENSION(:,:,:) :: qpta      
-      
-      INTEGER, ALLOCATABLE, DIMENSION(:) :: elf2elc
-      INTEGER, ALLOCATABLE, DIMENSION(:) :: elf2elb
-      REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: xysta ! x,y coordinates of stations
-      
-      REAL(pres), ALLOCATABLE, DIMENSION(:) :: r,s,hb      
-      REAL(pres), ALLOCATABLE, DIMENSION(:) :: xf,yf      
-      REAL(pres), ALLOCATABLE, DIMENSION(:) :: Hc,Qxc,Qyc
-      REAL(pres), ALLOCATABLE, DIMENSION(:) :: Hf,Qxf,Qyf            
-      REAL(pres), ALLOCATABLE, DIMENSION(:) :: phi      
+      INTEGER :: nept(nel_type)
+      INTEGER :: mnept
+      REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: ept       
+        
 
 
       

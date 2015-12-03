@@ -1,0 +1,8 @@
+/home/sbrus/Codes/dgswe/grids/converge2_dble.grd                                                         ! base grid file
+./converge2_dble_hbp3.hb                                                                                 ! base bathymetry file
+3                                                                                                        ! ctp - base parametric coordinate transformation order
+3                                                                                                        ! hbp - base bathymetry order
+/home/sbrus/Codes/dgswe/grids/converge1_dble.grd                                                         ! eval grid file
+./converge1_dble_hbp3.hb                                                                                 ! eval bathymetry file
+3                                                                                                        ! ctp - eval parametric coordinate transformation order
+3                                                                                                        ! hbp - eval bathymetry order

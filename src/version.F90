@@ -8,11 +8,11 @@
       INTEGER :: length,ind,sind,eind
       
       gitBranch = "master" 
-      gitSHA = "e6bf7f2a4dddc9362dd708c4db72414f21939053 +" 
+      gitSHA = "b967b75eb754c6cc4771b0ef11e8cc0823080926 +" 
       compiler_version = "ifort version 14.0.0" 
-      compiler_flags = "-O3 -132 -Iodir/ " 
-      modified_files = "Makefile error.inp" 
-      compile_date = "Mon Nov 30 12:28:13 EST 2015" 
+      compiler_flags = "-132 -C -g -traceback -Iodir/ " 
+      modified_files = "../src/allocation.f90 ../src/area_qpts.f90 ../src/basis.f90 ../src/bathy_interp.F90 ../src/evaluate.F90 ../src/find_nesting.f90 ../src/globals.f90 ../src/read_grid.f90 ../src/read_input.f90 ../src/read_solution.F90 ../src/version.F90 Makefile bathy.inp" 
+      compile_date = "Thu Dec  3 16:52:19 EST 2015" 
       host = "chl-tilos" 
       
       length = LEN(TRIM(ADJUSTL(modified_files)))  
