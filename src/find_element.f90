@@ -1,0 +1,219 @@
+      MODULE find_element
+
+      USE globals, ONLY: rp
+      USE kdtree2_module
+
+      CONTAINS
+      
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!      
+      
+
+      SUBROUTINE in_element(xt,eln)
+
+      USE globals, ONLY: base,tree_xy,srchdp,closest,mnepn
+
+      IMPLICIT NONE
+      
+      INTEGER, INTENT(OUT) :: eln
+      INTEGER :: srch,i,n
+      INTEGER :: k(1)
+      INTEGER :: ndc,elc
+      INTEGER :: et,nvert
+      INTEGER :: found,el_found      
+      INTEGER :: n1,n2
+      INTEGER :: local_el(srchdp*mnepn)
+      REAL(rp), INTENT(IN) :: xt(2)
+      REAL(rp) :: x(3),y(3),r(1),s(1)
+      REAL(rp) :: sarea(srchdp*mnepn),area
+      REAL(rp) :: tol
+      
+      tol = 1d-5 
+      CALL kdtree2_n_nearest(tp=tree_xy,qv=xt,nn=srchdp,results=closest) ! find what element xt is in               
+        
+        ! Test elements to see which element point is located in    
+        found = 0    
+        n = 0
+        sarea = 999d0
+search: DO srch = 1,srchdp
+          ndc = base%vxyn(closest(srch)%idx)
+          
+          DO elc = 1,base%nepn(ndc)          
+
+            eln = base%epn(elc,ndc)
+            et = base%el_type(eln)
+            nvert = base%nverts(et)    
+            
+            n = n+1
+            local_el(n) = eln ! keep track of elements (and sum of sub-triangle areas) 
+                              ! to find minimum if tolerance is not met
+          
+            ! Compute the local (r,s) coordinates of the (x,y) station location
+            CALL newton(xt(1),xt(2),eln,r,s)
+          
+            ! Find reference element area
+            IF (mod(et,2) == 1) THEN
+              area = 2d0
+            ELSE IF (mod(et,2) == 0) THEN
+              area = 4d0
+            ENDIF          
+          
+            ! Compute sum of sub-triangle areas
+            sarea(n) = 0d0
+            DO i = 1,nvert
+              n1 = mod(i+0,nvert)+1
+              n2 = mod(i+1,nvert)+1           
+
+              x(1) = base%rsre(1,n1,et)
+              y(1) = base%rsre(2,n1,et)
+            
+              x(2) = base%rsre(1,n2,et)
+              y(2) = base%rsre(2,n2,et)
+            
+              x(3) = r(1)
+              y(3) = s(1)
+            
+              sarea(n) = sarea(n) + .5d0*abs((x(2)-x(1))*(y(3)-y(1)) - (x(3)-x(1))*(y(2)-y(1)))
+            ENDDO
+          
+              PRINT("(A,I8,A,F20.15,A,F20.15)"), "   testing: ", eln, "   area = ",area, "   sarea = ", sarea(n)
+              PRINT*, " "
+          
+            ! The station is in the element if the reference element area and sum of sub triangle are the same
+            IF (abs(area - sarea(n)) < tol) THEN
+              PRINT("(A,I8)"), "   element found", eln
+                      
+              el_found = eln        
+              found = 1                        
+            
+              EXIT search                        
+            ENDIF    
+            
+          ENDDO
+        
+        ENDDO search    
+        
+
+        
+        IF (found == 0) THEN      
+          k = minloc(sarea)
+          eln = local_el(k(1))
+          PRINT*, "ELEMENT NOT FOUND"   
+          PRINT*, "USING ELEMENT ", eln, "(AREA = ",sarea(k(1)), ")" 
+          PAUSE
+        ELSE         
+         eln = el_found       
+        ENDIF     
+ 
+
+      RETURN
+      END SUBROUTINE in_element
+      
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!      
+      
+      SUBROUTINE newton(x,y,eln,r,s)
+
+      USE globals, ONLY: base
+      USE basis, ONLY: tri_basis,quad_basis
+
+      IMPLICIT NONE
+      INTEGER :: it,eln,et,p,n,i
+      INTEGER :: info
+      INTEGER :: maxit
+      REAL(rp) :: tol
+      REAL(rp) :: x,y
+      REAL(rp) :: r(1),s(1)
+      REAL(rp) :: f,g,error
+      REAL(rp) :: dfdr,dfds,dgdr,dgds,jac
+      REAL(rp) :: phi(base%mnnds,1),dpdr(base%mnnds,1),dpds(base%mnnds,1)
+      REAL(rp) :: l(base%mnnds,3)
+        
+      tol = 1d-9
+      maxit = 100
+      info = 0
+      
+      et = base%el_type(eln)
+      p = base%np(et)  
+      n = base%nnds(et)
+        
+      IF (mod(et,2) == 1) THEN
+        r(1) = -1d0/3d0
+        s(1) = -1d0/3d0
+      ELSE IF (mod(et,2) == 0) THEN
+        r(1) = 1d0
+        s(1) = 1d0
+      ENDIF
+
+      DO it = 1,maxit     
+           
+        IF (mod(et,2) == 1) THEN
+          CALL tri_basis(p,n,1,r,s,phi,dpdr,dpds)
+        ELSE IF (mod(et,2) == 0) THEN
+          CALL quad_basis(p,n,1,r,s,phi,dpdr,dpds)
+        ENDIF
+        
+        DO i = 1,n
+
+          l(i,1) = phi(i,1)
+          l(i,2) = dpdr(i,1)
+          l(i,3) = dpds(i,1)                
+       
+        ENDDO     
+          
+
+        CALL DGETRS("N",n,3,base%V(1,1,et),base%mnnds,base%ipiv(1,et),l,base%mnnds,info)
+!         IF (info /= 0 ) PRINT*, "LAPACK ERROR"      
+        
+        dfdr = 0d0
+        dfds = 0d0
+        dgdr = 0d0
+        dgds = 0d0
+        f = 0d0
+        g = 0d0        
+        
+        DO i = 1,n
+
+          dfdr = dfdr + l(i,2)*base%elxy(i,eln,1)
+          dfds = dfds + l(i,3)*base%elxy(i,eln,1)
+          dgdr = dgdr + l(i,2)*base%elxy(i,eln,2)
+          dgds = dgds + l(i,3)*base%elxy(i,eln,2)
+          
+          f = f + l(i,1)*base%elxy(i,eln,1)
+          g = g + l(i,1)*base%elxy(i,eln,2)
+        ENDDO
+        
+        jac = dfdr*dgds - dgdr*dfds
+        
+        f = f - x
+        g = g - y
+        
+        r(1) = r(1) - (1d0/jac)*( dgds*f - dfds*g)
+        s(1) = s(1) - (1d0/jac)*(-dgdr*f + dfdr*g)        
+        
+        IF (ABS(f) < tol .AND. ABS(g) < tol) THEN
+          EXIT
+        ENDIF        
+       
+        
+      ENDDO
+      
+      error = max(abs(f),abs(g))
+      
+!       IF (it >= maxit) THEN
+!         PRINT("(A,E22.15)"), "   MAX ITERATIONS EXCEEDED, error = ",error
+!         PRINT("(2(A,F20.15))"), "   r = ",r(1), "   s = ", s(1)
+!       ELSE       
+!         PRINT("(A,I7,A,E22.15)"), "   iterations: ",it, "  error = ",error
+!         PRINT("(2(A,F20.15))"), "   r = ",r(1), "   s = ", s(1)
+!       ENDIF
+
+
+      RETURN
+      END SUBROUTINE newton
+      
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!      
+
+
+      END MODULE find_element
