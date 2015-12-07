@@ -169,32 +169,6 @@
 !       PRINT*, " "
 
 
-      ! Find elements associated with each node            
-      ALLOCATE(mesh%nepn(mesh%nn))
-      
-      mesh%nepn(:) = 0
-      DO el = 1,mesh%ne
-        nvert = mesh%nverts(mesh%el_type(el))
-        DO nd = 1,nvert
-          n1 = mesh%vct(nd,el)
-          mesh%nepn(n1) = mesh%nepn(n1) + 1
-        ENDDO
-      ENDDO
-      
-      mnepn = maxval(mesh%nepn)
-      
-      ALLOCATE(mesh%epn(mnepn,mesh%nn))
-      
-      mesh%nepn(:) = 0
-      DO el = 1,mesh%ne
-        nvert = mesh%nverts(mesh%el_type(el))
-        DO nd = 1,nvert
-          n1 = mesh%vct(nd,el)
-          mesh%nepn(n1) = mesh%nepn(n1) + 1
-          mesh%epn(mesh%nepn(n1),n1) = el
-        ENDDO
-      ENDDO 
-
 
       ! Read in open boundaries
       READ(14,*) mesh%nope  ! number of open boundaries                                                 

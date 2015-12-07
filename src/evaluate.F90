@@ -157,124 +157,62 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
  
  
-      SUBROUTINE newton(mesh,x,y,npt,eln,r,s)
+      SUBROUTINE eval_hb(ele,pte,x,hb)
 
-      USE globals, ONLY: rp,grid
+      USE globals, ONLY: rp,base,eval
       USE basis, ONLY: tri_basis,quad_basis
+      USE find_element, ONLY: in_element
 
       IMPLICIT NONE
-      INTEGER :: eln,npt
-      INTEGER :: it,i,m,pt
-      INTEGER et,p,n,mnnds     
+
+      INTEGER, INTENT(IN) :: ele
+      INTEGER, INTENT(IN) :: pte
+      INTEGER :: elb,ete,etb,et
+      INTEGER :: npts,nd,n
       INTEGER :: info
-      INTEGER :: maxit
-      TYPE(grid), INTENT(IN) :: mesh
-      REAL(rp) :: tol,error
-      REAL(rp), DIMENSION(npt), INTENT(IN) :: x,y
-      REAL(rp), DIMENSION(npt), INTENT(OUT) :: r,s
-      REAL(rp), DIMENSION(npt) :: f,g
-      REAL(rp), DIMENSION(npt) :: dfdr,dfds,dgdr,dgds,jac
-      REAL(rp), DIMENSION(npt*mesh%mnnds,1) :: phi,dpdr,dpds
-      REAL(rp) :: l(mesh%mnnds,3*npt)
-        
-      tol = 1d-10
-      maxit = 1000
-      info = 0
-      
-      et = mesh%el_type(eln)
-      p = mesh%np(et)  
-      n = mesh%nnds(et)
-      mnnds = mesh%mnnds
-        
-      ! Initial guesses  
-      IF (mod(et,2) == 1) THEN
-        DO pt = 1,npt      
-          r(pt) = -1d0/3d0
-          s(pt) = -1d0/3d0
-        ENDDO
-      ELSE IF (mod(et,2) == 0) THEN
-        DO pt = 1,npt
-          r(pt) = 0d0
-          s(pt) = 0d0
-        ENDDO
-      ENDIF
+      REAL(rp), INTENT(OUT) :: x(2)
+      REAL(rp), INTENT(OUT) :: hb      
+      REAL(rp) :: r(2)
+      REAL(rp) :: xe(1),ye(1)
 
-      DO it = 1,maxit
+      ete = eval%el_type(ele)
       
-        ! Evaluate basis functions at r,s coordinates   
-        IF (mod(et,2) == 1) THEN
-          CALL tri_basis(p,n,npt,r,s,phi,dpdr,dpds)
-        ELSE IF (mod(et,2) == 0) THEN
-          CALL quad_basis(p,n,npt,r,s,phi,dpdr,dpds)
-        ENDIF
-        
-        DO pt = 1,npt
-          DO m = 1,n  
-            i = (m-1)*npt + pt
-            
-            l(m,pt) = phi(i,1)
-            l(m,npt+pt) = dpdr(i,1)
-            l(m,2*npt+pt) = dpds(i,1)          
-          ENDDO
-        ENDDO
-        
-        ! meshve linear systems to get nodal shape functions/derivatives (l,dldr,dlds) at r,s coordinates
-        ! V l(r,s) = phi(r,s), V dldr(r,s) = dpdr(r,s), V dlds(r,s) = dpds(r,s)
-        CALL DGETRS("N",n,3*npt,mesh%V(1,1,et),mnnds,mesh%ipiv(1,et),l,mnnds,info)
-!         IF (info /= 0 ) PRINT*, "LAPACK ERROR"      
-        
-        ! Evaluate transformation function/derivatives at r,s coordinates
-        dfdr = 0d0
-        dfds = 0d0
-        dgdr = 0d0
-        dgds = 0d0
-        f = 0d0
-        g = 0d0        
-        
-        DO pt = 1,npt
-          DO i = 1,n
-            
-            dfdr(pt) = dfdr(pt) + l(i,npt+pt)*mesh%elxy(i,eln,1)
-            dfds(pt) = dfds(pt) + l(i,2*npt+pt)*mesh%elxy(i,eln,1)
-            dgdr(pt) = dgdr(pt) + l(i,npt+pt)*mesh%elxy(i,eln,2)
-            dgds(pt) = dgds(pt) + l(i,2*npt+pt)*mesh%elxy(i,eln,2)
+      ! evaluate x,y coordinates of fine element quadrature points
+      x(1) = 0d0
+      x(2) = 0d0
+      
+      DO nd = 1,eval%nnds(ete)
+        x(1) = x(1) + eval%l(nd,pte,ete)*eval%elxy(nd,ele,1)  
+        x(2) = x(2) + eval%l(nd,pte,ete)*eval%elxy(nd,ele,2)
+      ENDDO   
           
-            f(pt) = f(pt) + l(i,pt)*mesh%elxy(i,eln,1)
-            g(pt) = g(pt) + l(i,pt)*mesh%elxy(i,eln,2)
-          ENDDO
-        ENDDO
+!       PRINT*,ele,pte
+!       PRINT*,x(1),x(2)
+      CALL in_element(x(1:2),elb,r(1:2))
+          
+      etb = base%el_type(elb)  ! element type for base element          
+        
+      IF (mod(etb,2) == 1) THEN
+        et = 5
+        CALL tri_basis(base%hbp,n,1,r(1),r(2),base%l(:,:,et))
+      ELSE IF (mod(etb,2) == 0) THEN
+        et = 6
+        CALL quad_basis(base%hbp,n,1,r(1),r(2),base%l(:,:,et))
+      ENDIF       
+        
+      CALL DGETRS("N",n,1,base%V(1,1,et),base%mnnds,base%ipiv(1,et),base%l(1,1,et),base%mnnds,info)                          
                
-        ! Newton iteration               
-        DO pt = 1,npt
-          jac(pt) = dfdr(pt)*dgds(pt) - dgdr(pt)*dfds(pt)
-        
-          f(pt) = f(pt) - x(pt) 
-          g(pt) = g(pt) - y(pt)
-        
-          r(pt) = r(pt) - ( dgds(pt)*f(pt) - dfds(pt)*g(pt))/jac(pt)
-          s(pt) = s(pt) - (-dgdr(pt)*f(pt) + dfdr(pt)*g(pt))/jac(pt)         
-        ENDDO
-        
-        error = MAX(ABS(MAXVAL(f)) , ABS(MAXVAL(g)))
-        IF ( error < tol) THEN
-          EXIT
-        ENDIF        
                
-      ENDDO
-      
+      ! Evaluate bathymetry at r,s coordinates
+      hb = 0d0
+      DO nd = 1,n
+        hb = hb + base%l(nd,1,et)*base%elhb(nd,elb)
+      ENDDO            
 
-      IF (it >= maxit) THEN
-        PRINT("(A,E22.15)"), "   MAX ITERATIONS EXCEEDED, error = ",error
-        PRINT("(2(A,F20.15))"), "   r = ",r(1), "   s = ", s(1)
-      ELSE       
-!         PRINT("(A,I7,A,E22.15)"), "   iterations: ",it, "  error = ",error
-!         PRINT("(2(A,F20.15))"), "   r = ",r(1), "   s = ", s(1)
-      ENDIF
-      
-
+  
 
       RETURN
-      END SUBROUTINE newton
+      END SUBROUTINE eval_hb
 
 
       

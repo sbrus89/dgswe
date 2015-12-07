@@ -51,13 +51,13 @@
       TYPE(grid) :: mesh
       INTEGER :: i      
       INTEGER :: n 
-      INTEGER :: alloc_status(10)
+      INTEGER :: alloc_status(11)
 
       alloc_status = 0
       
       IF (stage == 1) THEN
       
-        n = 10
+        n = 11
         
         ALLOCATE(mesh%ect(mesh%mnnds,mesh%ne),STAT = alloc_status(1))
         ALLOCATE(mesh%vct(4,mesh%ne),STAT = alloc_status(2))
@@ -67,8 +67,9 @@
         ALLOCATE(mesh%el_type(mesh%ne),STAT = alloc_status(6))
         ALLOCATE(mesh%elxy(mesh%mnnds,mesh%ne,2),STAT = alloc_status(7))
         ALLOCATE(mesh%elhb(mesh%mnnds,mesh%ne),STAT = alloc_status(8))
-        ALLOCATE(mesh%vxyn(mesh%nn),STAT = alloc_status(9))
-        ALLOCATE(mesh%vxy(2,mesh%nn),STAT = alloc_status(10))
+        ALLOCATE(mesh%hbxy(3,mesh%mnnds*mesh%ne),STAT = alloc_status(9))        
+        ALLOCATE(mesh%vxyn(mesh%nn),STAT = alloc_status(10))
+        ALLOCATE(mesh%vxy(2,mesh%nn),STAT = alloc_status(11))
       
       ELSE IF (stage == 2) THEN
       

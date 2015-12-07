@@ -43,8 +43,8 @@ endif
 ########################################################################
 
 objects = globals.o kdtree2.o allocation.o basis.o  \
-          connect.o curvilinear.o evaluate.o find_element.o\
-          read_input.o read_grid.o  read_bathy.o\
+          connect.o curvilinear.o evaluate.o find_element.o \
+          read_input.o read_grid.o read_bathy.o write_results.o \
           eval_pts.o bathy_interp.o lapack_interfaces.o version.o
 
 obj := $(patsubst %.o, $(ODIR)%.o,$(objects))
@@ -100,7 +100,7 @@ $(ODIR)basis.o: basis.f90                                       $(ODIR)globals.o
 	$(FC) $(FFLAGS) -c $< -o $@
 	mv basis.mod $(ODIR)
 
-$(ODIR)evaluate.o: evaluate.F90                                 $(ODIR)globals.o  $(ODIR)basis.o  $(ODIR)lapack_interfaces.o
+$(ODIR)evaluate.o: evaluate.F90                                 $(ODIR)globals.o  $(ODIR)basis.o  $(ODIR)find_element.o  $(ODIR)lapack_interfaces.o
 	$(FC) $(FFLAGS) -c $< -o $@
 	mv evaluate.mod $(ODIR)
 
@@ -116,6 +116,9 @@ $(ODIR)read_input.o: read_input.f90                             $(ODIR)globals.o
 	$(FC) $(FFLAGS) -c $< -o $@
 
 $(ODIR)read_bathy.o: read_bathy.f90                             $(ODIR)globals.o
+	$(FC) $(FFLAGS) -c $< -o $@
+	
+$(ODIR)write_results.o: write_results.f90                       $(ODIR)globals.o
 	$(FC) $(FFLAGS) -c $< -o $@
 
 $(ODIR)eval_pts.o: eval_pts.f90                                 $(ODIR)globals.o  $(ODIR)basis.o

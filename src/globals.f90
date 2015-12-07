@@ -51,6 +51,9 @@
         REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: elxy    
         REAL(rp), ALLOCATABLE, DIMENSION(:) :: depth ! depth at each node
         REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: elhb   
+        REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: hbxy 
+        INTEGER :: npts
+ 
         
         INTEGER :: nope ! number of open boundary segents
         INTEGER, ALLOCATABLE, DIMENSION(:) :: obseg ! number of nodes in each open boundary segment

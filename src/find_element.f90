@@ -9,7 +9,7 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!      
       
 
-      SUBROUTINE in_element(xt,eln)
+      SUBROUTINE in_element(xt,eln,rt)
 
       USE globals, ONLY: base,tree_xy,srchdp,closest,mnepn
 
@@ -24,7 +24,9 @@
       INTEGER :: n1,n2
       INTEGER :: local_el(srchdp*mnepn)
       REAL(rp), INTENT(IN) :: xt(2)
-      REAL(rp) :: x(3),y(3),r(1),s(1)
+      REAL(rp), INTENT(OUT) :: rt(2)
+      REAL(rp) :: x(3),y(3)
+      REAL(rp) :: r(srchdp*mnepn),s(srchdp*mnepn)
       REAL(rp) :: sarea(srchdp*mnepn),area
       REAL(rp) :: tol
       
@@ -49,7 +51,7 @@ search: DO srch = 1,srchdp
                               ! to find minimum if tolerance is not met
           
             ! Compute the local (r,s) coordinates of the (x,y) station location
-            CALL newton(xt(1),xt(2),eln,r,s)
+            CALL newton(xt(1),xt(2),eln,r(n),s(n))
           
             ! Find reference element area
             IF (mod(et,2) == 1) THEN
@@ -70,18 +72,18 @@ search: DO srch = 1,srchdp
               x(2) = base%rsre(1,n2,et)
               y(2) = base%rsre(2,n2,et)
             
-              x(3) = r(1)
-              y(3) = s(1)
+              x(3) = r(n)
+              y(3) = s(n)
             
               sarea(n) = sarea(n) + .5d0*abs((x(2)-x(1))*(y(3)-y(1)) - (x(3)-x(1))*(y(2)-y(1)))
             ENDDO
           
-              PRINT("(A,I8,A,F20.15,A,F20.15)"), "   testing: ", eln, "   area = ",area, "   sarea = ", sarea(n)
-              PRINT*, " "
+!               PRINT("(A,I8,A,F20.15,A,F20.15)"), "   testing: ", eln, "   area = ",area, "   sarea = ", sarea(n)
+!               PRINT*, " "
           
             ! The station is in the element if the reference element area and sum of sub triangle are the same
             IF (abs(area - sarea(n)) < tol) THEN
-              PRINT("(A,I8)"), "   element found", eln
+!               PRINT("(A,I8)"), "   element found", eln
                       
               el_found = eln        
               found = 1                        
@@ -98,11 +100,14 @@ search: DO srch = 1,srchdp
         IF (found == 0) THEN      
           k = minloc(sarea)
           eln = local_el(k(1))
+          rt(1) = r(k(1))
+          rt(2) = s(k(1))              
           PRINT*, "ELEMENT NOT FOUND"   
-          PRINT*, "USING ELEMENT ", eln, "(AREA = ",sarea(k(1)), ")" 
-          PAUSE
+          PRINT*, "USING ELEMENT ", eln, "(AREA = ",sarea(k(1)), ")"                 
         ELSE         
-         eln = el_found       
+          eln = el_found 
+          rt(1) = r(n)
+          rt(2) = s(n)
         ENDIF     
  
 
@@ -200,13 +205,13 @@ search: DO srch = 1,srchdp
       
       error = max(abs(f),abs(g))
       
-!       IF (it >= maxit) THEN
+      IF (it >= maxit) THEN
 !         PRINT("(A,E22.15)"), "   MAX ITERATIONS EXCEEDED, error = ",error
 !         PRINT("(2(A,F20.15))"), "   r = ",r(1), "   s = ", s(1)
-!       ELSE       
+      ELSE       
 !         PRINT("(A,I7,A,E22.15)"), "   iterations: ",it, "  error = ",error
 !         PRINT("(2(A,F20.15))"), "   r = ",r(1), "   s = ", s(1)
-!       ENDIF
+      ENDIF
 
 
       RETURN

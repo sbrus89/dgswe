@@ -9,14 +9,16 @@
 
       IMPLICIT NONE
 
-      INTEGER :: ele,elb
-      INTEGER :: ete,etb,et
-      INTEGER :: npts,pte,nd,n
-      INTEGER :: info
+      INTEGER :: el_in,el_ex
+      INTEGER :: pt_in,pt_ex
+      INTEGER :: led_in,led_ex
+      INTEGER :: et_in,et_ex
+      INTEGER :: nv_in,nv_ex
+      INTEGER :: ged,i
+      INTEGER :: p,nnds
       REAL(rp) :: x(2)
-      REAL(rp) :: xe(1),ye(1)
-      REAL(rp) :: r(1),s(1)
       REAL(rp) :: hb
+
  
 
       CALL version () ! print out current git branch/SHA
@@ -55,55 +57,114 @@
 
       
       ALLOCATE(base%l(base%mnnds,mnept,nel_type+2))
+      
+      
 
-      DO ele = 1,eval%ne  ! Calculate error integral in the fine grid elements
+      
+      p = eval%hbp
+      
+      eval%npts = 0
+      
+      PRINT*, "Computing edge and vertex points"
+      DO ged = 1,eval%ned 
 
-        ete = eval%el_type(ele) ! element type for evel element
-        npts = nept(ete)        ! number of evaluation points
-        
-        DO pte = 1,npts                       
-        
-          ! evaluate x,y coordinates of fine element quadrature points
-          x(1) = 0d0
-          x(2) = 0d0
+        IF (mod(ged,1000) == 0) THEN       
+          PRINT*,"Edge ", ged,"/",eval%ned
+        ENDIF      
 
-          DO nd = 1,eval%nnds(ete)
-            x(1) = x(1) + eval%l(nd,pte,ete)*eval%elxy(nd,ele,1)  
-            x(2) = x(2) + eval%l(nd,pte,ete)*eval%elxy(nd,ele,2)
-          ENDDO   
-          
-          PRINT*,ele,pte
-          PRINT*,x(1),x(2)
-          CALL in_element(x(1:2),elb)
-          
-          etb = base%el_type(elb)  ! element type for base element          
+        el_in = eval%ged2el(1,ged)
+        led_in = eval%ged2led(1,ged)
+        et_in = eval%el_type(el_in)
+        nv_in = eval%nverts(et_in)
         
-          ! calculate r,s coordinates of fine element quadrature points
-          CALL newton(base,x(1),x(2),1,elb,r,s)  
-               
-          IF (mod(etb,2) == 1) THEN
-            et = 5
-            CALL tri_basis(base%hbp,n,1,r,s,base%l(:,:,et))
-          ELSE IF (mod(etb,2) == 0) THEN
-            et = 6
-            CALL quad_basis(base%hbp,n,1,r,s,base%l(:,:,et))
-          ENDIF       
+        DO i = 1,p 
         
-          CALL DGETRS("N",n,1,base%V(1,1,et),base%mnnds,base%ipiv(1,et),base%l(1,1,et),base%mnnds,info)                          
-               
-               
-          ! Evaluate bathymetry at r,s coordinates
-          hb = 0d0
-          DO nd = 1,n
-            hb = hb + base%l(nd,1,et)*base%elhb(nd,elb)
-          ENDDO            
+          pt_in = mod(led_in,nv_in)*p + i
+        
+          CALL eval_hb(el_in,pt_in,x,hb)
+          
+          eval%elhb(pt_in,el_in) = hb
 
-          eval%elhb(pte,ele) = hb
+          eval%npts = eval%npts + 1          
+          eval%hbxy(1,eval%npts) = x(1)
+          eval%hbxy(2,eval%npts) = x(2)
+          eval%hbxy(3,eval%npts) = hb
           
-          
+
+            
         ENDDO 
         
       ENDDO 
+      
+      PRINT*, " "
+      PRINT*, "Computing interior points"      
+      DO el_in = 1,eval%ne
+      
+        IF (mod(el_in,1000) == 0) THEN       
+          PRINT*,"Element ", el_in,"/",eval%ne
+        ENDIF            
+      
+        et_in = eval%el_type(el_in)
+        nv_in = eval%nverts(et_in)        
+        
+        IF (mod(et_in,2) == 1) THEN
+          nnds = eval%nnds(5)
+        ELSE IF (mod(et_in,2) == 0) THEN
+          nnds = eval%nnds(6)
+        ENDIF
+                 
+        DO pt_in = nv_in*p+1,nnds
+        
+          CALL eval_hb(el_in,pt_in,x,hb)
+          
+          eval%elhb(pt_in,el_in) = hb
+          
+          eval%npts = eval%npts + 1          
+          eval%hbxy(1,eval%npts) = x(1)
+          eval%hbxy(2,eval%npts) = x(2)
+          eval%hbxy(3,eval%npts) = hb
+          
+        ENDDO
+        
+      ENDDO
+      
+      
+      DO ged = 1,eval%ned            
+      
+        IF (eval%bed_flag(ged) == 0) THEN
+        
+          el_in = eval%ged2el(1,ged)
+          led_in = eval%ged2led(1,ged)
+          et_in = eval%el_type(el_in)
+          nv_in = eval%nverts(et_in)        
+                      
+          el_ex = eval%ged2el(2,ged)
+          led_ex = eval%ged2led(2,ged)
+          et_ex = eval%el_type(el_ex)
+          nv_ex = eval%nverts(et_ex)
+          
+          DO i = 1,p+1
+          
+            pt_in = mod(led_in,nv_in)*p + i
+            pt_ex = mod(led_ex,nv_ex)*p + p - i + 2
+            
+            IF (pt_in == nv_in*p) THEN
+              pt_in = 1
+            ENDIF
+            
+            IF (pt_ex == nv_ex*p) THEN
+              pt_ex = 1
+            ENDIF
+            
+            eval%elhb(pt_ex,el_ex) = eval%elhb(pt_in,el_in)
+            
+          ENDDO
+          
+        ENDIF      
+        
+      ENDDO
+      
+      CALL write_results(eval)
       
           
       END PROGRAM bathy_interp
