@@ -8,6 +8,7 @@
       
       INTEGER :: sind
       INTEGER :: et,nnd,el,i,j
+      INTEGER :: flag
       CHARACTER(100) :: out_direc
 
 
@@ -45,6 +46,30 @@
         WRITE(9,*) (mesh%hbxy(j,i), j = 1,3)
       ENDDO      
       CLOSE(9)
+      
+      OPEN(unit=10, file=TRIM(out_direc) // "boundary_nodes.d")
+      WRITE(10,*) mesh%npts
+      
+      DO i = 1,mesh%nn
+        WRITE(10,*) mesh%bnd_flag(i)
+      ENDDO      
+      
+      DO i = 1,mesh%ned
+        IF (mesh%bed_flag(i) /= 0) THEN
+          flag = 1
+        ELSE 
+          flag = 0
+        ENDIF
+        
+        DO j = 1,mesh%hbp-1
+          WRITE(10,*) flag
+        ENDDO
+      ENDDO      
+      
+      DO i = 1,mesh%ne
+        WRITE(10,*) 0
+      ENDDO
+      CLOSE(10)      
       
       RETURN
       END SUBROUTINE write_results

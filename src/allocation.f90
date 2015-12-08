@@ -73,10 +73,11 @@
       
       ELSE IF (stage == 2) THEN
       
-        n = 2     
+        n = 3     
         
         ALLOCATE(mesh%obseg(mesh%nope),STAT = alloc_status(1))
         ALLOCATE(mesh%obnds(mesh%neta,mesh%nope),STAT = alloc_status(2))
+        ALLOCATE(mesh%bnd_flag(mesh%nn),STAT = alloc_status(3))        
       
       ELSE IF (stage == 3) THEN
       

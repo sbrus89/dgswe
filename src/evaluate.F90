@@ -157,7 +157,7 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
  
  
-      SUBROUTINE eval_hb(ele,pte,x,hb)
+      SUBROUTINE eval_hb(ele,pte,xe,x,hb)
 
       USE globals, ONLY: rp,base,eval
       USE basis, ONLY: tri_basis,quad_basis
@@ -167,24 +167,30 @@
 
       INTEGER, INTENT(IN) :: ele
       INTEGER, INTENT(IN) :: pte
+      REAL(rp), INTENT(IN), OPTIONAL :: xe(2)      
       INTEGER :: elb,ete,etb,et
       INTEGER :: npts,nd,n
       INTEGER :: info
       REAL(rp), INTENT(OUT) :: x(2)
       REAL(rp), INTENT(OUT) :: hb      
       REAL(rp) :: r(2)
-      REAL(rp) :: xe(1),ye(1)
 
       ete = eval%el_type(ele)
       
-      ! evaluate x,y coordinates of fine element quadrature points
-      x(1) = 0d0
-      x(2) = 0d0
+      IF (PRESENT(xe)) THEN
+        ! Take x,y coordinates as evaluation point (ele and pte are unused)
+        x(1) = xe(1)      
+        x(2) = xe(2)
+      ELSE
+        ! evaluate x,y coordinates of eval element evaluation point
+        x(1) = 0d0
+        x(2) = 0d0
       
-      DO nd = 1,eval%nnds(ete)
-        x(1) = x(1) + eval%l(nd,pte,ete)*eval%elxy(nd,ele,1)  
-        x(2) = x(2) + eval%l(nd,pte,ete)*eval%elxy(nd,ele,2)
-      ENDDO   
+        DO nd = 1,eval%nnds(ete)
+          x(1) = x(1) + eval%l(nd,pte,ete)*eval%elxy(nd,ele,1)  
+          x(2) = x(2) + eval%l(nd,pte,ete)*eval%elxy(nd,ele,2)
+        ENDDO   
+      ENDIF
           
 !       PRINT*,ele,pte
 !       PRINT*,x(1),x(2)

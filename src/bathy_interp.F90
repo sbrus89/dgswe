@@ -14,9 +14,9 @@
       INTEGER :: led_in,led_ex
       INTEGER :: et_in,et_ex
       INTEGER :: nv_in,nv_ex
-      INTEGER :: ged,i
+      INTEGER :: ged,i,nd
       INTEGER :: p,nnds
-      REAL(rp) :: x(2)
+      REAL(rp) :: x(2),xe(2)
       REAL(rp) :: hb
 
  
@@ -58,14 +58,39 @@
       
       ALLOCATE(base%l(base%mnnds,mnept,nel_type+2))
       
-      
 
       
       p = eval%hbp
       
       eval%npts = 0
       
-      PRINT*, "Computing edge and vertex points"
+      
+      PRINT*, " "      
+      PRINT*, "Computing vertex points"      
+      DO nd = 1,eval%nn
+      
+        IF (mod(nd,1000) == 0) THEN       
+          PRINT*,"Vertex ", nd,"/",eval%nn
+        ENDIF        
+      
+        el_in = eval%epn(1,nd)
+        pt_in = 1
+        
+        xe(1) = eval%xy(1,nd)
+        xe(2) = eval%xy(2,nd)
+        
+        CALL eval_hb(ele=el_in,pte=pt_in,xe=xe,x=x,hb=hb)
+        
+        eval%npts = eval%npts + 1          
+        eval%hbxy(1,eval%npts) = x(1)
+        eval%hbxy(2,eval%npts) = x(2)
+        eval%hbxy(3,eval%npts) = hb
+        
+      ENDDO 
+      
+      
+      PRINT*, " "      
+      PRINT*, "Computing edge points"
       DO ged = 1,eval%ned 
 
         IF (mod(ged,1000) == 0) THEN       
@@ -77,11 +102,11 @@
         et_in = eval%el_type(el_in)
         nv_in = eval%nverts(et_in)
         
-        DO i = 1,p 
+        DO i = 1,p-1 
         
-          pt_in = mod(led_in,nv_in)*p + i
+          pt_in = mod(led_in,nv_in)*p + i + 1
         
-          CALL eval_hb(el_in,pt_in,x,hb)
+          CALL eval_hb(ele=el_in,pte=pt_in,x=x,hb=hb)
           
           eval%elhb(pt_in,el_in) = hb
 
@@ -115,7 +140,7 @@
                  
         DO pt_in = nv_in*p+1,nnds
         
-          CALL eval_hb(el_in,pt_in,x,hb)
+          CALL eval_hb(ele=el_in,pte=pt_in,x=x,hb=hb)
           
           eval%elhb(pt_in,el_in) = hb
           
@@ -126,6 +151,19 @@
           
         ENDDO
         
+      ENDDO
+      
+      DO el_in = 1,eval%ne
+        et_in = eval%el_type(el_in)
+        nv_in = eval%nverts(et_in)
+        
+        DO i = 1,nv_in
+          nd = (i-1)*p + 1
+          pt_in = eval%ect(i,el_in)
+          
+          eval%elhb(nd,el_in) = eval%hbxy(3,pt_in)          
+          
+        ENDDO
       ENDDO
       
       
@@ -143,10 +181,10 @@
           et_ex = eval%el_type(el_ex)
           nv_ex = eval%nverts(et_ex)
           
-          DO i = 1,p+1
+          DO i = 1,p-1
           
-            pt_in = mod(led_in,nv_in)*p + i
-            pt_ex = mod(led_ex,nv_ex)*p + p - i + 2
+            pt_in = mod(led_in,nv_in)*p + i + 1
+            pt_ex = mod(led_ex,nv_ex)*p + p - i + 1
             
             IF (pt_in == nv_in*p) THEN
               pt_in = 1

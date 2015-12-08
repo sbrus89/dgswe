@@ -177,12 +177,14 @@
       nope = mesh%nope
       
       CALL grid_alloc(2,mesh)
+      mesh%bnd_flag(:) = 0
 
       DO i = 1,nope                                                     
         READ(14,*), nbseg  ! read in # of nodes in segment, boundary type
         mesh%obseg(i) = nbseg
         DO j = 1,nbseg
           READ(14,*) mesh%obnds(j,i) ! read in open boundary node numbers
+          mesh%bnd_flag(mesh%obnds(j,i)) = 1
         ENDDO
       ENDDO
 !       PRINT "(A)", "Open boundary segments:"
@@ -210,6 +212,7 @@
         mesh%fbseg(2,i) = btype
         DO j = 1,nbseg
           READ(14,*), mesh%fbnds(j,i)  ! read in normal flow boundary node numbers
+          mesh%bnd_flag(mesh%fbnds(j,i)) = 1
         ENDDO
         IF (btype == 1 .OR. btype == 11 .OR. btype == 21) THEN
           IF (mesh%fbnds(nbseg,i) /= mesh%fbnds(1,i)) THEN
