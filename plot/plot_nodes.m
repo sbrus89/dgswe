@@ -7,7 +7,7 @@ clc
 % path(path,'/home/sbrus/Codes/SomeDGMaterials/ModNodeADCIRCDG')
 % path(path,'/home/sbrus/Codes/SomeDGMaterials/NodalDG')
 
-out_dir = '../work/';
+out_dir = '../output/';
 
 finp = fopen('../work/bathy.inp');
 

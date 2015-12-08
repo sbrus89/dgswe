@@ -1,8 +1,8 @@
-/home/sbrus/Codes/dgswe/grids/converge3_dble.grd                                                         ! base grid file
-./converge3_dble_hbp3.hb                                                                                 ! base bathymetry file
+/home/sbrus/Codes/dgswe/grids/converge1_dble.grd                                                         ! base grid file
+./rimls_converge1_based/converge1_dble_hbp3.hb                                                           ! base bathymetry file
 3                                                                                                        ! ctp - base parametric coordinate transformation order
 3                                                                                                        ! hbp - base bathymetry order
-/home/sbrus/Codes/dgswe/grids/converge4_dble.grd                                                         ! eval grid file
-./converge1_dble_hbp3.hb                                                                                 ! eval bathymetry file
+/home/sbrus/Codes/dgswe/grids/converge3_dble.grd                                                         ! eval grid file
+../output/converge1_dble_hbp2.hb                                                                                 ! eval bathymetry file
 3                                                                                                        ! ctp - eval parametric coordinate transformation order
 3                                                                                                        ! hbp - eval bathymetry order
