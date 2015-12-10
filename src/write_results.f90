@@ -299,7 +299,7 @@
       WRITE(hbp,"(I1)") ctp
       
       name = ADJUSTL(TRIM(mesh%grid_file(1:eind-1)))     
-      OPEN(UNIT = 13, FILE = ADJUSTL(TRIM(name)) // "_hbp" // hbp // ".hb")            
+      OPEN(UNIT = 13, FILE = ADJUSTL(TRIM(name)) // "_hbp" // hbp // "_rimls.hb")            
       WRITE(13,"(2(I7,1x))") mesh%ne,ctp
       
       OPEN(UNIT = 14, FILE = TRIM(out_direc) // "elem_nodes.d")      
