@@ -44,8 +44,8 @@
               eval%grid_file = TRIM(temp)
               PRINT("(A,A)"), "eval grid_file = ", eval%grid_file
             CASE (6)
-              eval%bathy_file = TRIM(temp)
-              PRINT("(A,A)"), "eval bathymetry file= ", eval%bathy_file
+              eval%out_direc = TRIM(temp)
+              PRINT("(A,A)"), "output directory = ", eval%out_direc
             CASE (7)
               READ(temp,*) eval%ctp
               PRINT("(A,I3)"), "eval ctp = ", eval%ctp

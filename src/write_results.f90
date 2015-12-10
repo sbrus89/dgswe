@@ -6,20 +6,24 @@
       
       TYPE(grid) :: mesh
       
-      INTEGER :: sind
+      INTEGER :: sind,eind
       INTEGER :: et,nnd,el,i,j
       INTEGER :: flag
-      CHARACTER(100) :: out_direc
+      CHARACTER(100) :: name
+      CHARACTER(1) :: hbp
 
 
       sind = INDEX(ADJUSTL(TRIM(mesh%bathy_file)),"/",.true.)
+      eind = INDEX(ADJUSTL(TRIM(mesh%grid_file)),".",.false.)
       
-      out_direc = ADJUSTL(TRIM(mesh%bathy_file(1:sind)))     
       
-      OPEN(UNIT = 13, FILE = ADJUSTL(TRIM(mesh%bathy_file)))            
+      name = ADJUSTL(TRIM(mesh%grid_file(1:eind-1))) 
+      WRITE(hbp,"(I1)") mesh%hbp      
+      
+      OPEN(UNIT = 13, FILE = ADJUSTL(TRIM(name)) // "_hbp" // hbp // "_interp.hb")            
       WRITE(13,"(2(I7,1x))") mesh%ne,mesh%hbp
       
-      OPEN(UNIT = 14, FILE = TRIM(out_direc) // "elem_nodes.d")      
+      OPEN(UNIT = 14, FILE = TRIM(mesh%out_direc) // "elem_nodes.d")      
       WRITE(14,"(2(I7,1x))") mesh%ne,mesh%hbp      
       
       DO el = 1,mesh%ne
@@ -40,14 +44,14 @@
 
 
        
-      OPEN(unit=9, file=TRIM(out_direc) // "interp_nodes.d")
+      OPEN(unit=9, file=TRIM(mesh%out_direc) // "interp_nodes.d")
       WRITE(9,*) mesh%npts
       DO i = 1,mesh%npts
         WRITE(9,*) (mesh%hbxy(j,i), j = 1,3)
       ENDDO      
       CLOSE(9)
       
-      OPEN(unit=10, file=TRIM(out_direc) // "boundary_nodes.d")
+      OPEN(unit=10, file=TRIM(mesh%out_direc) // "boundary_nodes.d")
       WRITE(10,*) mesh%npts
       
       DO i = 1,mesh%nn
