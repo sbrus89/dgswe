@@ -64,6 +64,8 @@
       
       eval%npts = 0
       
+      eval%elhb = 0d0
+      
       
       PRINT*, " "      
       PRINT*, "Computing vertex points"      
@@ -109,7 +111,9 @@
           CALL eval_hb(ele=el_in,pte=pt_in,x=x,hb=hb)
           
           eval%elhb(pt_in,el_in) = hb
-
+          eval%elhbxy(pt_in,el_in,1) = x(1)
+          eval%elhbxy(pt_in,el_in,2) = x(2)          
+          
           eval%npts = eval%npts + 1          
           eval%hbxy(1,eval%npts) = x(1)
           eval%hbxy(2,eval%npts) = x(2)
@@ -143,6 +147,8 @@
           CALL eval_hb(ele=el_in,pte=pt_in,x=x,hb=hb)
           
           eval%elhb(pt_in,el_in) = hb
+          eval%elhbxy(pt_in,el_in,1) = x(1)
+          eval%elhbxy(pt_in,el_in,2) = x(2)          
           
           eval%npts = eval%npts + 1          
           eval%hbxy(1,eval%npts) = x(1)
@@ -153,6 +159,9 @@
         
       ENDDO
       
+      
+      
+      ! Populate all vertex values
       DO el_in = 1,eval%ne
         et_in = eval%el_type(el_in)
         nv_in = eval%nverts(et_in)
@@ -161,12 +170,17 @@
           nd = (i-1)*p + 1
           pt_in = eval%ect(i,el_in)
           
-          eval%elhb(nd,el_in) = eval%hbxy(3,pt_in)          
+          eval%elhb(nd,el_in) = eval%hbxy(3,pt_in)  
+          eval%elhbxy(nd,el_in,1) = eval%hbxy(1,pt_in) 
+          eval%elhbxy(nd,el_in,2) = eval%hbxy(2,pt_in)                
           
         ENDDO
       ENDDO
       
       
+      
+      
+      ! Populate all edge values      
       DO ged = 1,eval%ned            
       
         IF (eval%bed_flag(ged) == 0) THEN
@@ -184,17 +198,12 @@
           DO i = 1,p-1
           
             pt_in = mod(led_in,nv_in)*p + i + 1
-            pt_ex = mod(led_ex,nv_ex)*p + p - i + 1
-            
-            IF (pt_in == nv_in*p) THEN
-              pt_in = 1
-            ENDIF
-            
-            IF (pt_ex == nv_ex*p) THEN
-              pt_ex = 1
-            ENDIF
+            pt_ex = mod(led_ex,nv_ex)*p + p - i + 1                      
+
             
             eval%elhb(pt_ex,el_ex) = eval%elhb(pt_in,el_in)
+            eval%elhbxy(pt_ex,el_ex,1) = eval%elhbxy(pt_in,el_in,1) 
+            eval%elhbxy(pt_ex,el_ex,2) = eval%elhbxy(pt_in,el_in,2)              
             
           ENDDO
           

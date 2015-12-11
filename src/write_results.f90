@@ -73,7 +73,31 @@
       DO i = 1,mesh%ne
         WRITE(10,*) 0
       ENDDO
-      CLOSE(10)      
+      CLOSE(10) 
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      OPEN(unit=242,file=TRIM(mesh%out_direc) // 'bathy.d')
+      DO el = 1,mesh%ne
+      
+        et = mesh%el_type(el)     
+        IF (mod(et,2) == 1) THEN
+          nnd = mesh%nnds(5)
+        ELSE IF (mod(et,2) == 0) THEN
+          nnd = mesh%nnds(6)
+        ENDIF
+        
+        DO i = 1,nnd
+          WRITE(242,"(3(e24.17,1x))") mesh%elhbxy(i,el,1),mesh%elhbxy(i,el,2),mesh%elhb(i,el)
+        ENDDO
+      ENDDO
+      CLOSE(242)      
       
       RETURN
       END SUBROUTINE write_results

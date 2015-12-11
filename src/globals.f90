@@ -51,6 +51,7 @@
         REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: elxy    
         REAL(rp), ALLOCATABLE, DIMENSION(:) :: depth ! depth at each node
         REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: elhb   
+        REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: elhbxy        
         REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: hbxy 
         INTEGER :: npts
  
