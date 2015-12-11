@@ -2,10 +2,10 @@ import subprocess
 import os
 import pprint
 
-# This will run all error cases for a convergence study.  
-#   - Right now the format of the error.inp file must follow
+# This will run all bathymetry interpolation cases for a convergence study.  
+#   - Right now the format of the bathy.inp file must follow
 #     more strict formatting critiera than required by the 
-#     error code:
+#     bathy code:
 #       1) The file should begin with all case information
 #          commented.
 #       2) Case information should be written on consecutive 
@@ -14,9 +14,9 @@ import pprint
        
 
 
-nlines = 14         # number of lines per case
-file = 'error.inp'  # input file name
-exe = 'error'       # executable name
+nlines = 8          # number of lines per case
+file = 'bathy.inp'  # input file name
+exe = 'bathy'       # executable name
 
 
 
@@ -126,7 +126,7 @@ for n in range(0,ncases):
 
 
 
-    try:   # run the error code and display otput
+    try:   # run the bathy code and display otput
       cmd = ['./'+exe]
       output = subprocess.Popen(cmd, stdout=subprocess.PIPE).communicate()[0]
       print output
