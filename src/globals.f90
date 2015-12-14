@@ -4,14 +4,14 @@
       
       IMPLICIT NONE
 
-      INTEGER, PARAMETER :: pres = kind(1d0) ! precision 
+      INTEGER, PARAMETER :: rp = kind(1d0) ! precision 
       INTEGER :: p ! polynomial order      
       INTEGER :: npart ! number of element partitions      
-      REAL(pres) :: cf ! bottom friction parameter  
-      REAL(pres) :: dt ! time step 
-      REAL(pres) :: tf ! final time      
-      REAL(pres) :: dramp ! numer of ramp days      
-      REAL(pres) :: lines ! number of lines in output files      
+      REAL(rp) :: cf ! bottom friction parameter  
+      REAL(rp) :: dt ! time step 
+      REAL(rp) :: tf ! final time      
+      REAL(rp) :: dramp ! numer of ramp days      
+      REAL(rp) :: lines ! number of lines in output files      
 
       CHARACTER(100) :: forcing_file ! name of fort.15 file      
       CHARACTER(100) :: out_direc           
@@ -42,17 +42,17 @@
         INTEGER, ALLOCATABLE, DIMENSION(:,:) :: ect,vct ! element connectivity table
         INTEGER, ALLOCATABLE, DIMENSION(:) :: nelnds
         INTEGER :: mnelnds      
-        REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: xy,vxy ! x,y coordinates of nodes
+        REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: xy,vxy ! x,y coordinates of nodes
         INTEGER, ALLOCATABLE, DIMENSION(:) :: vxyn
-        REAL(pres), ALLOCATABLE, DIMENSION(:,:,:) :: elxy        
-        REAL(pres), ALLOCATABLE, DIMENSION(:) :: depth ! depth at each node
-        REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: elhb     
-        REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: nhb
-        REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: xyhc      
-        REAL(pres), ALLOCATABLE, DIMENSION(:,:,:) :: xyhe      
-        REAL(pres), ALLOCATABLE, DIMENSION(:,:,:) :: xyhi 
-        REAL(pres), ALLOCATABLE, DIMENSION(:,:,:) :: xyhv       
-        REAL(pres), ALLOCATABLE, DIMENSION(:) :: h
+        REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: elxy        
+        REAL(rp), ALLOCATABLE, DIMENSION(:) :: depth ! depth at each node
+        REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: elhb     
+        REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: nhb
+        REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: xyhc      
+        REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: xyhe      
+        REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: xyhi 
+        REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: xyhv       
+        REAL(rp), ALLOCATABLE, DIMENSION(:) :: h
         INTEGER, ALLOCATABLE, DIMENSION(:,:) :: bnd_flag 
 
         INTEGER :: nope ! number of open boundary segents
@@ -81,28 +81,30 @@
       
       END TYPE
       
-      REAL(pres), ALLOCATABLE, DIMENSION(:,:,:) :: xyhw          
+      REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: xyhw          
       
       TYPE(grid) :: base
       TYPE(grid) :: eval
       
-      REAL(pres), ALLOCATABLE, DIMENSION(:,:,:) :: V
-      REAL(pres), ALLOCATABLE, DIMENSION(:,:,:) :: l
+      REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: V
+      REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: l
+      REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: dldr
+      REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: dlds      
       INTEGER, ALLOCATABLE, DIMENSION(:,:) :: ipiv
       
-      REAL(pres) :: r,sigma_n
-      REAL(pres) :: hmin,hmax
+      REAL(rp) :: r,sigma_n
+      REAL(rp) :: hmin,hmax
       
       INTEGER :: srchdp
-      REAL(pres) :: rsre(2,4,4)      
+      REAL(rp) :: rsre(2,4,4)      
       TYPE(kdtree2), POINTER :: tree_xy,tree_c
       TYPE(kdtree2_result), ALLOCATABLE, DIMENSION(:) :: kdresults  
       TYPE(kdtree2_result), ALLOCATABLE, DIMENSION(:) :: closest       
       
-      REAL(pres) :: Erad 
-      REAL(pres) :: phi0,lambda0
-      REAL(pres), PARAMETER :: pi = 3.141592653589793D0
-      REAL(pres), PARAMETER :: deg2rad = pi/180d0
+      REAL(rp) :: Erad 
+      REAL(rp) :: phi0,lambda0
+      REAL(rp), PARAMETER :: pi = 3.141592653589793D0
+      REAL(rp), PARAMETER :: deg2rad = pi/180d0
       
       CHARACTER(50) :: gitSHA
       CHARACTER(50) :: gitBranch

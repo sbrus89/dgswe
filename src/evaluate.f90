@@ -1,11 +1,11 @@
       MODULE evaluate
       
-      USE globals, ONLY: pres,r,sigma_n
+      USE globals, ONLY: rp,r,sigma_n
       
       IMPLICIT NONE
       
       INTEGER :: maxit,maxptit
-      REAL(pres) :: sigma_r,threshold,percent_max      
+      REAL(rp) :: sigma_r,threshold,percent_max      
       
       CONTAINS
       
@@ -19,8 +19,7 @@
       
       IMPLICIT NONE
       INTEGER :: et,pt,dof,i,n
-      REAL(pres) :: r(mnnds),s(mnnds)
-      REAL(pres) :: phi(mnnds*mnnds)
+      REAL(rp) :: r(mnnds),s(mnnds)
       INTEGER :: info  
       
       PRINT "(A)", "Computing Vandermode matrix..."
@@ -29,21 +28,15 @@
       ALLOCATE(ipiv(mnnds,nel_type))
       
       DO et = 1,nel_type
-        n = nnds(et)
+
         IF (mod(et,2) == 1) THEN
           CALL tri_nodes(1,np(et),n,r,s)
-          CALL tri_basis(np(et),n,n,r,s,phi)       
+          CALL tri_basis(np(et),n,n,r,s,V(:,:,et))       
         ELSE IF (mod(et,2) == 0) THEN
           CALL quad_nodes(1,np(et),n,r,s)
-          CALL quad_basis(np(et),n,n,r,s,phi)
+          CALL quad_basis(np(et),n,n,r,s,V(:,:,et))
         ENDIF
         
-        DO pt = 1,n
-          DO dof = 1,n
-            i = (dof-1)*n + pt
-            V(dof,pt,et) = phi(i)
-          ENDDO
-        ENDDO
         
         CALL DGETRF(n,n,V(1,1,et),mnnds,ipiv(1,et),info)        
 !         DO pt = 1,n
@@ -52,10 +45,15 @@
 !         PRINT*, " "
 
         IF (mod(et,2) == 1) THEN
-          CALL tri_nodes(1,np(1),nnds(1),rsre(1,:,et),rsre(2,:,et))
+          CALL tri_nodes(1,np(1),n,r,s)
         ELSE IF (mod(et,2) == 0) THEN
-          CALL quad_nodes(1,np(2),nnds(2),rsre(1,:,et),rsre(2,:,et))
+          CALL quad_nodes(1,np(2),n,r,s)
         ENDIF
+        
+        DO pt = 1,n
+          rsre(1,pt,et) = r(pt)
+          rsre(2,pt,et) = s(pt)
+        ENDDO
         
       ENDDO
       
@@ -70,16 +68,16 @@
       
       SUBROUTINE normals(mesh)
       
-      USE globals, ONLY: np,nnds,mnnds,V,l,ipiv,grid     
+      USE globals, ONLY: np,nnds,mnnds,V,l,dlds,dldr,ipiv,grid     
 
       IMPLICIT NONE
       INTEGER :: it,el,et,p,n,i,np1,nnd
-      REAL(pres) :: x,y
-      REAL(pres) :: dxdr,dxds,dydr,dyds,jac
-      REAL(pres) :: drdx,drdy,dsdx,dsdy
-      REAL(pres) :: dhdx,dhdy
-      REAL(pres) :: nx,ny,nz,nrm
-      REAL(pres) :: x1,x2,y1,y2,z1,z2
+      REAL(rp) :: x,y
+      REAL(rp) :: dxdr,dxds,dydr,dyds,jac
+      REAL(rp) :: drdx,drdy,dsdx,dsdy
+      REAL(rp) :: dhdx,dhdy
+      REAL(rp) :: nx,ny,nz,nrm
+      REAL(rp) :: x1,x2,y1,y2,z1,z2
       
       TYPE(grid) :: mesh
       
@@ -108,10 +106,10 @@
         dyds = 0d0  
         
         DO i = 1,n         
-          dxdr = dxdr + l(i,2*np1,et)*mesh%elxy(i,el,1)
-          dxds = dxds + l(i,3*np1,et)*mesh%elxy(i,el,1)
-          dydr = dydr + l(i,2*np1,et)*mesh%elxy(i,el,2)
-          dyds = dyds + l(i,3*np1,et)*mesh%elxy(i,el,2)
+          dxdr = dxdr + dldr(i,np1,et)*mesh%elxy(i,el,1)
+          dxds = dxds + dlds(i,np1,et)*mesh%elxy(i,el,1)
+          dydr = dydr + dldr(i,np1,et)*mesh%elxy(i,el,2)
+          dyds = dyds + dlds(i,np1,et)*mesh%elxy(i,el,2)
           
           mesh%xyhc(1,el) = mesh%xyhc(1,el) + l(i,np1,et)*mesh%elxy(i,el,1)
           mesh%xyhc(2,el) = mesh%xyhc(2,el) + l(i,np1,et)*mesh%elxy(i,el,2)
@@ -129,8 +127,8 @@
         dhdy = 0d0      
 
         DO i = 1,n
-          dhdx = dhdx + (l(i,2*np1,et)*drdx + l(i,3*np1,et)*dsdx)*mesh%elhb(i,el)
-          dhdy = dhdy + (l(i,2*np1,et)*drdy + l(i,3*np1,et)*dsdy)*mesh%elhb(i,el)        
+          dhdx = dhdx + (dldr(i,np1,et)*drdx + dlds(i,np1,et)*dsdx)*mesh%elhb(i,el)
+          dhdy = dhdy + (dldr(i,np1,et)*drdy + dlds(i,np1,et)*dsdy)*mesh%elhb(i,el)        
         ENDDO
       
         nrm = sqrt(dhdx**2 + dhdy**2 + 1d0)
@@ -173,7 +171,7 @@
 
       SUBROUTINE coordinates(mesh)
       
-      USE globals, ONLY: pres,mnnds,nnds,np,nverts,l, &
+      USE globals, ONLY: rp,mnnds,nnds,np,nverts,l, &
                          grid
       
       IMPLICIT NONE
@@ -181,7 +179,7 @@
       INTEGER :: el,i,pt,led,j,ed
       INTEGER :: et,n,pn,nnd,nv,bed
       
-      REAL(pres) :: xpt,ypt,ytest
+      REAL(rp) :: xpt,ypt,ytest
       
       TYPE(grid) :: mesh
            
@@ -282,7 +280,7 @@
 
       SUBROUTINE transformation()
       
-      USE globals, ONLY: mnnds,nel_type,nnds,np,l,V,ipiv
+      USE globals, ONLY: mnnds,nel_type,nnds,np,l,dldr,dlds,V,ipiv
       USE basis, ONLY: tri_nodes,quad_nodes,tri_basis,quad_basis
       
       IMPLICIT NONE
@@ -290,59 +288,51 @@
       INTEGER :: et,pt,i,j
       INTEGER :: n,p,np1,pn,nnd
       INTEGER :: info
-      REAL(pres), DIMENSION(mnnds+1,nel_type) :: r,s
-      REAL(pres), DIMENSION(mnnds*(mnnds+1)) :: phi,dpdr,dpds
+      REAL(rp), DIMENSION(mnnds+1) :: r,s
       
       PRINT "(A)", "Computing interpolating polynomials..."        
       
-      ALLOCATE(l(mnnds,3*(mnnds+1),nel_type))
+      ALLOCATE(l(mnnds,mnnds+1,nel_type))
+      ALLOCATE(dldr(mnnds,mnnds+1,nel_type))
+      ALLOCATE(dlds(mnnds,mnnds+1,nel_type))
       
       DO et = 1,nel_type
         n = nnds(et)
         p = np(et)
       
-        IF (mod(et,2) == 1) THEN
-          nnd = nnds(3)      
+        IF (mod(et,2) == 1) THEN    
           pn = np(3)
-          CALL tri_nodes(1,pn,nnd,r(1,et),s(1,et))
+          CALL tri_nodes(1,pn,nnd,r,s)
         ELSE IF (mod(et,2) == 0) THEN
-          nnd = nnds(4) 
           pn = np(4)
-          CALL quad_nodes(1,pn,nnd,r(1,et),s(1,et))
+          CALL quad_nodes(1,pn,nnd,r,s)
         ENDIF     
         
         np1 = nnd+1
         
         IF (mod(et,2) == 1) THEN
-          r(np1,et) = -1d0/3d0
-          s(np1,et) = -1d0/3d0
+          r(np1) = -1d0/3d0
+          s(np1) = -1d0/3d0
         ELSE IF (mod(et,2) == 0) THEN
-          r(np1,et) = 1d0
-          s(np1,et) = 1d0
+          r(np1) = 0d0
+          s(np1) = 0d0
         ENDIF        
         
         IF (mod(et,2) == 1) THEN
-          CALL tri_basis(p,n,np1,r(1,et),s(1,et),phi,dpdr,dpds)
+          CALL tri_basis(p,n,np1,r,s,l(:,:,et),dldr(:,:,et),dlds(:,:,et))
         ELSE IF (mod(et,2) == 0) THEN
-          CALL quad_basis(p,n,np1,r(1,et),s(1,et),phi,dpdr,dpds)
+          CALL quad_basis(p,n,np1,r,s,l(:,:,et),dldr(:,:,et),dlds(:,:,et))
         ENDIF     
         
 !         DO i = 1,np1
 !           PRINT*, r(i,et),s(i,et)
 !         ENDDO
-!         PRINT*, "" 
-        
-        DO pt = 1,np1
-          DO i = 1,n
-            j = (i-1)*np1+pt
-          
-            l(i,pt,et) = phi(j)
-            l(i,np1+pt,et) = dpdr(j)
-            l(i,2*np1+pt,et) = dpds(j)          
-          ENDDO         
-        ENDDO
+!         PRINT*, ""        
 
-        CALL DGETRS("N",n,3*np1,V(1,1,et),mnnds,ipiv(1,et),l(1,1,et),mnnds,info)
+        CALL DGETRS("N",n,np1,V(1,1,et),mnnds,ipiv(1,et),l(1,1,et),mnnds,info)
+        CALL DGETRS("N",n,np1,V(1,1,et),mnnds,ipiv(1,et),dldr(1,1,et),mnnds,info)
+        CALL DGETRS("N",n,np1,V(1,1,et),mnnds,ipiv(1,et),dlds(1,1,et),mnnds,info)
+        
       ENDDO
       
       
@@ -417,9 +407,9 @@
       
       INTEGER :: j,i,it
       INTEGER :: nneigh,el
-      REAL(pres) :: xi(3),pj(3),ni(3),nj(3),top(3),bottom
-      REAL(pres) :: hpt,phiw,phi0
-      REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: nrm
+      REAL(rp) :: xi(3),pj(3),ni(3),nj(3),top(3),bottom
+      REAL(rp) :: hpt,phiw,phi0
+      REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: nrm
       
       ALLOCATE(nrm(3,base%ne))
       
@@ -497,13 +487,13 @@
       INTEGER :: nneigh,nneigh_pre
       INTEGER :: nd,el
       INTEGER :: neighbors(base%ne),found
-      REAL(pres) :: search_r
-      REAL(pres) :: xyh(mnpts,n,3)
-      REAL(pres) :: x(3),p(3),px(3),np(3),hpt,f,grad_f(3),grad_w(3),fgradf(3),npmgradf(3)
-      REAL(pres) :: alpha(base%ne),alpha_old(base%ne)
-      REAL(pres) :: sumW,sumF
-      REAL(pres) :: sumGw(3),sumGF(3),sumN(3)
-      REAL(pres) :: w,fx
+      REAL(rp) :: search_r
+      REAL(rp) :: xyh(mnpts,n,3)
+      REAL(rp) :: x(3),p(3),px(3),np(3),hpt,f,grad_f(3),grad_w(3),fgradf(3),npmgradf(3)
+      REAL(rp) :: alpha(base%ne),alpha_old(base%ne)
+      REAL(rp) :: sumW,sumF
+      REAL(rp) :: sumGw(3),sumGF(3),sumN(3)
+      REAL(rp) :: w,fx
      
       
 
@@ -685,13 +675,13 @@
       INTEGER :: neighbors(base%ne),nneigh,found
       INTEGER :: small_flag
       INTEGER :: info,lwork
-      REAL(pres) :: xyh(mnpts,n,3)  
-      REAL(pres) :: x(3),p(3),px(3),np(3),xbar(3)      
-      REAL(pres) :: d,w,rhs,lhs
-      REAL(pres) :: s,t
-      REAL(pres) :: hpt,search_r,tol
-      REAL(pres) :: nwork(1)
-      REAL(pres), ALLOCATABLE :: A(:,:),b(:),work(:)
+      REAL(rp) :: xyh(mnpts,n,3)  
+      REAL(rp) :: x(3),p(3),px(3),np(3),xbar(3)      
+      REAL(rp) :: d,w,rhs,lhs
+      REAL(rp) :: s,t
+      REAL(rp) :: hpt,search_r,tol
+      REAL(rp) :: nwork(1)
+      REAL(rp), ALLOCATABLE :: A(:,:),b(:),work(:)
       
       ne = base%ne
       tol = 1d-16
@@ -826,9 +816,9 @@
       
       IMPLICIT NONE
       
-      REAL(pres) :: w
-      REAL(pres), INTENT(IN) :: x(3),p(3),h
-      REAL(pres) :: d
+      REAL(rp) :: w
+      REAL(rp), INTENT(IN) :: x(3),p(3),h
+      REAL(rp) :: d
       
       d = sqrt((x(1)-p(1))**2 + (x(2)-p(2))**2)
       w = exp(-d**2/h**2)      
@@ -951,10 +941,10 @@ search:DO
       INTEGER :: nneigh,ntstp
       INTEGER :: nbel,flag,n,found
       INTEGER :: neighbors(base%ne),cross(base%ne),ncross,exclude(base%ne),nex,nin
-      REAL(pres) :: tol
-      REAL(pres) :: dt,t,u,xt(2)
-      REAL(pres) :: det,b(2)
-      REAL(pres) :: x(3),x1(2),y1(2),x2(2),y2(2)
+      REAL(rp) :: tol
+      REAL(rp) :: dt,t,u,xt(2)
+      REAL(rp) :: det,b(2)
+      REAL(rp) :: x(3),x1(2),y1(2),x2(2),y2(2)
       
       tol = 1d-12
       
@@ -996,7 +986,7 @@ search:DO
         
         ncross = 0
         DO tstp = 1,ntstp-1               ! increment across point-neighbor line
-          t = -1d0 + real(tstp*dt,pres)
+          t = -1d0 + real(tstp*dt,rp)
           xt(1) = .5d0*((1d0-t)*x1(1) + (1d0+t)*x1(2))
           xt(2) = .5d0*((1d0-t)*y1(1) + (1d0+t)*y1(2))     
           
@@ -1110,9 +1100,9 @@ search:DO
       IMPLICIT NONE
       
       INTEGER :: el
-      REAL(pres) :: x1,x2,x3
-      REAL(pres) :: y1,y2,y3
-      REAL(pres) :: a,b,c,s,r
+      REAL(rp) :: x1,x2,x3
+      REAL(rp) :: y1,y2,y3
+      REAL(rp) :: a,b,c,s,r
       
       TYPE(grid) :: mesh
       
@@ -1147,8 +1137,8 @@ search:DO
       
       IMPLICIT NONE
       
-      REAL(pres) :: n
-      REAL(pres), INTENT(IN) :: a(3)
+      REAL(rp) :: n
+      REAL(rp), INTENT(IN) :: a(3)
       
       n = sqrt(a(1)**2 + a(2)**2 + a(3)**2)
       
@@ -1161,8 +1151,8 @@ search:DO
       
       IMPLICIT NONE
       
-      REAL(pres) :: p
-      REAL(pres), INTENT(IN) :: a(3),h
+      REAL(rp) :: p
+      REAL(rp), INTENT(IN) :: a(3),h
       
 !       p = (1d0-(norm(a)**2)/h**2)**4
       p = exp(-(norm(a)**2)/h**2)
@@ -1176,8 +1166,8 @@ search:DO
       
       IMPLICIT NONE
       
-      REAL(pres) :: gp(3)
-      REAL(pres), INTENT(IN) :: a(3),h
+      REAL(rp) :: gp(3)
+      REAL(rp), INTENT(IN) :: a(3),h
       
 !       gp = (-8d0*a*(1d0-norm(a)**2/h**2)**3)/h**2
       gp = ((-2d0*a)/h**2)*exp(-(norm(a)**2)/h**2)
@@ -1195,8 +1185,8 @@ search:DO
       
       INTEGER :: i,pt
       INTEGER :: n,np,mnp
-      REAL(pres) :: xyh(mnp,n,3)
-      REAL(pres), OPTIONAL :: xyh2(mnp,n,3)      
+      REAL(rp) :: xyh(mnp,n,3)
+      REAL(rp), OPTIONAL :: xyh2(mnp,n,3)      
       
       IF(PRESENT(xyh2)) THEN
       

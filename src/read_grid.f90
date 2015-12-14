@@ -1,6 +1,6 @@
       SUBROUTINE read_grid(mesh)
       
-      USE globals, ONLY: pres,grid,ctp,nverts, &
+      USE globals, ONLY: rp,grid,ctp,nverts, &
                          Erad,lambda0,phi0
       USE allocation, ONLY: grid_alloc                         
 
@@ -11,7 +11,7 @@
       INTEGER :: nvert
       INTEGER :: alloc_status   
       INTEGER, ALLOCATABLE, DIMENSION(:) :: vflag     
-      REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: vxy_temp 
+      REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: vxy_temp 
       TYPE(grid) :: mesh
       
       PRINT "(A)", "---------------------------------------------"

@@ -1,6 +1,6 @@
       MODULE find_element
 
-      USE globals, ONLY: pres
+      USE globals, ONLY: rp
       USE kdtree2_module
 
       CONTAINS
@@ -19,9 +19,9 @@
       INTEGER :: eln,et,nvert
       INTEGER :: found,el_found      
       INTEGER :: n1,n2
-      REAL(pres) :: xt(2),x(3),y(3),r(1),s(1)
-      REAL(pres) :: sarea,area
-      REAL(pres) :: tol
+      REAL(rp) :: xt(2),x(3),y(3),r(1),s(1)
+      REAL(rp) :: sarea,area
+      REAL(rp) :: tol
       
       tol = 1d-5 
         CALL kdtree2_n_nearest(tp=tree_xy,qv=xt,nn=srchdp,results=closest) ! find what element xt is in               
@@ -98,20 +98,20 @@ search: DO srch = 1,srchdp
       
       SUBROUTINE newton(pt,x,y,eln,r,s)
 
-      USE globals, ONLY: pres,np,nnds,mnnds,V,base,ipiv
+      USE globals, ONLY: rp,np,nnds,mnnds,V,base,ipiv
       USE basis, ONLY: tri_basis,quad_basis
 
       IMPLICIT NONE
       INTEGER :: it,eln,et,p,n,i,pt
       INTEGER :: info
       INTEGER :: maxit
-      REAL(pres) :: tol
-      REAL(pres) :: x,y
-      REAL(pres) :: r(1),s(1)
-      REAL(pres) :: f,g,error
-      REAL(pres) :: dfdr,dfds,dgdr,dgds,jac
-      REAL(pres) :: phi(mnnds),dpdr(mnnds),dpds(mnnds)
-      REAL(pres) :: l(mnnds,3)
+      REAL(rp) :: tol
+      REAL(rp) :: x,y
+      REAL(rp) :: r(1),s(1)
+      REAL(rp) :: f,g,error
+      REAL(rp) :: dfdr,dfds,dgdr,dgds,jac
+      REAL(rp) :: phi(mnnds,1),dpdr(mnnds,1),dpds(mnnds,1)
+      REAL(rp) :: l(mnnds,3)
         
       tol = 1d-9
       maxit = 100
@@ -119,14 +119,13 @@ search: DO srch = 1,srchdp
       
       et = base%el_type(eln)
       p = np(et)  
-      n = nnds(et)
         
       IF (mod(et,2) == 1) THEN
         r(1) = -1d0/3d0
         s(1) = -1d0/3d0
       ELSE IF (mod(et,2) == 0) THEN
-        r(1) = 1d0
-        s(1) = 1d0
+        r(1) = 0d0
+        s(1) = 0d0
       ENDIF
 
       DO it = 1,maxit     
@@ -139,9 +138,9 @@ search: DO srch = 1,srchdp
         
         DO i = 1,n
 
-          l(i,1) = phi(i)
-          l(i,2) = dpdr(i)
-          l(i,3) = dpds(i)                
+          l(i,1) = phi(i,1)
+          l(i,2) = dpdr(i,1)
+          l(i,3) = dpds(i,1)                
        
         ENDDO     
           

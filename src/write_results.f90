@@ -1,6 +1,6 @@
       MODULE write_results
 
-      USE globals, ONLY: pres,grid,np,mninds,mnnds,out_direc
+      USE globals, ONLY: rp,grid,np,mninds,mnnds,out_direc
 
       CONTAINS
 
@@ -207,9 +207,9 @@
       CHARACTER(100) :: name
       CHARACTER(1) :: hbp
       TYPE(grid) :: mesh
-      REAL(pres) :: nodes(mnnds,mesh%ne)
-      REAL(pres) :: xnodes(mnnds,mesh%ne)
-      REAL(pres) :: ynodes(mnnds,mesh%ne)      
+      REAL(rp) :: nodes(mnnds,mesh%ne)
+      REAL(rp) :: xnodes(mnnds,mesh%ne)
+      REAL(rp) :: ynodes(mnnds,mesh%ne)      
       
       nodes = 0d0
       

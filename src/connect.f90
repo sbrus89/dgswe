@@ -1,6 +1,6 @@
       SUBROUTINE connect(mesh)
 
-      USE globals, ONLY: pres,nverts,grid
+      USE globals, ONLY: rp,nverts,grid
                          
 
       IMPLICIT NONE
@@ -13,7 +13,7 @@
       INTEGER :: found
       INTEGER :: nvert1,nvert2,nvert
       INTEGER :: el_in,el_ex
-      REAL(pres) :: x1,x2,x3,y1,y2,y3
+      REAL(rp) :: x1,x2,x3,y1,y2,y3
       
       TYPE(grid) :: mesh
       
