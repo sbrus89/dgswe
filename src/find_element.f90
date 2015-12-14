@@ -9,7 +9,7 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!      
       
 
-      SUBROUTINE in_element(xt,eln,rt)
+      SUBROUTINE in_element(xt,eln,rt,error,exceed)
 
       USE globals, ONLY: base,tree_xy,srchdp,closest,mnepn
 
@@ -23,12 +23,14 @@
       INTEGER :: found,el_found      
       INTEGER :: n1,n2
       INTEGER :: local_el(srchdp*mnepn)
+      INTEGER :: exceed
       REAL(rp), INTENT(IN) :: xt(2)
       REAL(rp), INTENT(OUT) :: rt(2)
       REAL(rp) :: x(3),y(3)
       REAL(rp) :: r(srchdp*mnepn),s(srchdp*mnepn)
       REAL(rp) :: sarea(srchdp*mnepn),area
       REAL(rp) :: tol
+      REAL(rp) :: error
       
       tol = 1d-5 
       CALL kdtree2_n_nearest(tp=tree_xy,qv=xt,nn=srchdp,results=closest) ! find what element xt is in               
@@ -51,7 +53,7 @@ search: DO srch = 1,srchdp
                               ! to find minimum if tolerance is not met
           
             ! Compute the local (r,s) coordinates of the (x,y) station location
-            CALL newton(xt(1),xt(2),eln,r(n),s(n))
+            CALL newton(xt(1),xt(2),eln,r(n),s(n),error,exceed)
           
             ! Find reference element area
             IF (mod(et,2) == 1) THEN
@@ -117,7 +119,7 @@ search: DO srch = 1,srchdp
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!      
       
-      SUBROUTINE newton(x,y,eln,r,s)
+      SUBROUTINE newton(x,y,eln,r,s,error,exceed)
 
       USE globals, ONLY: base
       USE basis, ONLY: tri_basis,quad_basis
@@ -125,7 +127,7 @@ search: DO srch = 1,srchdp
       IMPLICIT NONE
       INTEGER :: it,eln,et,p,n,i
       INTEGER :: info
-      INTEGER :: maxit
+      INTEGER :: maxit,exceed
       REAL(rp) :: tol
       REAL(rp) :: x,y
       REAL(rp) :: r(1),s(1)
@@ -134,8 +136,9 @@ search: DO srch = 1,srchdp
       REAL(rp) :: phi(base%mnnds,1),dpdr(base%mnnds,1),dpds(base%mnnds,1)
       REAL(rp) :: l(base%mnnds,3)
         
-      tol = 1d-9
+      tol = 1d-11
       maxit = 100
+      exceed = 0
       info = 0
       
       et = base%el_type(eln)
@@ -146,8 +149,8 @@ search: DO srch = 1,srchdp
         r(1) = -1d0/3d0
         s(1) = -1d0/3d0
       ELSE IF (mod(et,2) == 0) THEN
-        r(1) = 1d0
-        s(1) = 1d0
+        r(1) = 0d0
+        s(1) = 0d0
       ENDIF
 
       DO it = 1,maxit     
@@ -208,6 +211,7 @@ search: DO srch = 1,srchdp
       IF (it >= maxit) THEN
 !         PRINT("(A,E22.15)"), "   MAX ITERATIONS EXCEEDED, error = ",error
 !         PRINT("(2(A,F20.15))"), "   r = ",r(1), "   s = ", s(1)
+          exceed = 1
       ELSE       
 !         PRINT("(A,I7,A,E22.15)"), "   iterations: ",it, "  error = ",error
 !         PRINT("(2(A,F20.15))"), "   r = ",r(1), "   s = ", s(1)

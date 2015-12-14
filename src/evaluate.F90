@@ -171,9 +171,11 @@
       INTEGER :: elb,ete,etb,et
       INTEGER :: npts,nd,n
       INTEGER :: info
+      INTEGER :: exceed
       REAL(rp), INTENT(OUT) :: x(2)
       REAL(rp), INTENT(OUT) :: hb      
       REAL(rp) :: r(2)
+      REAL(rp) :: error
 
       ete = eval%el_type(ele)
       
@@ -194,9 +196,19 @@
           
 !       PRINT*,ele,pte
 !       PRINT*,x(1),x(2)
-      CALL in_element(x(1:2),elb,r(1:2))
+      CALL in_element(x(1:2),elb,r(1:2),error,exceed)     
           
       etb = base%el_type(elb)  ! element type for base element          
+      
+      IF (exceed == 1) THEN
+        PRINT*, "MAX ITERATIONS EXCEEDED IN FINDING R,S COORDINATES"
+        PRINT*, "ERROR: ",error
+        PRINT*, "ELEMENT TYPE: ", etb
+      ELSE 
+!         PRINT*, "error: ",error
+!         PRINT*, "element type: ", etb        
+      ENDIF
+      
         
       IF (mod(etb,2) == 1) THEN
         et = 5
