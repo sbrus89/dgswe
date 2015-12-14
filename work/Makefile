@@ -5,6 +5,7 @@ ODIR = odir/
 
 FC = ifort
 FFLAGS = -O3 -132 -I$(ODIR) #-Dadcirc
+# FFLAGS = -O0 -fp-model strict -132 -I$(ODIR) #-Dadcirc
 #FFLAGS = -132 -C -g -traceback -I$(ODIR) #-Dadcirc
 
 FULLNAME := $(shell hostname)
@@ -45,7 +46,8 @@ endif
 objects = globals.o kdtree2.o allocation.o basis.o  \
           connect.o curvilinear.o evaluate.o find_element.o \
           read_input.o read_grid.o read_bathy.o write_results.o \
-          eval_pts.o bathy_interp.o lapack_interfaces.o version.o
+          eval_pts.o bathy_interp.o lapack_interfaces.o interp_check.o \
+          version.o
 
 obj := $(patsubst %.o, $(ODIR)%.o,$(objects))
 
@@ -128,6 +130,9 @@ $(ODIR)connect.o: connect.f90                                   $(ODIR)globals.o
 	$(FC) $(FFLAGS) -c $< -o $@
 	
 $(ODIR)curvilinear.o: curvilinear.f90                           $(ODIR)globals.o 
+	$(FC) $(FFLAGS) -c $< -o $@
+	
+$(ODIR)interp_check.o: interp_check.f90                         $(ODIR)globals.o 
 	$(FC) $(FFLAGS) -c $< -o $@
 	
 $(ODIR)bathy_interp.o: bathy_interp.F90                         $(ODIR)globals.o  $(ODIR)allocation.o  $(ODIR)basis.o  $(ODIR)read_grid.o  $(ODIR)evaluate.o  $(ODIR)find_element.o 

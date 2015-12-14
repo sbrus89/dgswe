@@ -213,5 +213,6 @@
       
       CALL write_results(eval)
       
+      CALL interp_check()          
           
       END PROGRAM bathy_interp
