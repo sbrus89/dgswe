@@ -19,21 +19,28 @@
       INTEGER :: eln,et,nvert
       INTEGER :: found,el_found      
       INTEGER :: n1,n2
+      INTEGER :: n,local_el(srchdp)
+      INTEGER :: k(1)
       REAL(rp) :: xt(2),x(3),y(3),r(1),s(1)
-      REAL(rp) :: sarea,area
+      REAL(rp) :: sarea,area,diff(srchdp)
       REAL(rp) :: tol
       
       tol = 1d-5 
         CALL kdtree2_n_nearest(tp=tree_xy,qv=xt,nn=srchdp,results=closest) ! find what element xt is in               
         
         ! Test elements to see which element point is located in    
-        found = 0            
+        found = 0      
+        n = 0
+        diff = 999d0
 search: DO srch = 1,srchdp
           eln = closest(srch)%idx    
 
             et = base%el_type(eln)
-            nvert = nverts(et)      
-          
+            nvert = nverts(et)   
+            
+            n = n+1
+            local_el(n) = eln ! keep track of elements (and sum of sub-triangle areas) 
+                              ! to find minimum if tolerance is not met                      
           
             ! Compute the local (r,s) coordinates of the (x,y) station location
             CALL newton(pt,xt(1),xt(2),eln,r,s)
@@ -66,8 +73,10 @@ search: DO srch = 1,srchdp
 !               PRINT("(A,I5,A,F20.15,A,F20.15)"), "   testing: ", eln, "   area = ",area, "   sarea = ", sarea
 !               PRINT*, " "
           
+            diff(n) = abs(area-sarea)
+          
             ! The station is in the element if the reference element area and sum of sub triangle are the same
-            IF (abs(area - sarea) < tol) THEN
+            IF (diff(n) < tol) THEN
 !               PRINT("(A,I5)"), "   element found", eln
                       
               el_found = eln        
@@ -81,9 +90,11 @@ search: DO srch = 1,srchdp
 
         
         IF (found == 0) THEN
-          eln = closest(1)%idx        
-          PRINT*, "POINT: ",pt
-          PRINT*, "ERROR: element not found, using closest element, ", eln  
+          k = minloc(diff)
+          eln = local_el(k(1))        
+
+          PRINT*, "ELEMENT NOT FOUND FOR POINT: ",pt  
+          PRINT*, "USING ELEMENT ", eln, "(AREA DIFF = ",diff(k(1)), ")"       
           
         ELSE         
          eln = el_found       

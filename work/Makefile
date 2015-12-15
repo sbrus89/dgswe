@@ -1,5 +1,5 @@
 FC = ifort
-FFLAGS = -132 -heap-arrays -I$(ODIR) #-traceback -g -C
+FFLAGS = -132 -heap-arrays -I$(ODIR) -traceback -g -C
 
 VPATH := ../src/
 ODIR = odir/
@@ -40,7 +40,7 @@ endif
 #                               Objects                                #
 ########################################################################
 
-objects = kdtree2.o globals.o allocation.o basis.o find_element.o write_results.o connect.o evaluate.o read_input.o read_grid.o version.o rimls.o
+objects = kdtree2.o globals.o allocation.o basis.o find_element.o write_results.o connect.o evaluate.o read_input.o read_grid.o curvilinear.o version.o rimls.o
 obj := $(patsubst %.o, $(ODIR)%.o,$(objects))
 
 ########################################################################
@@ -118,6 +118,9 @@ $(ODIR)read_input.o: read_input.f90                             $(ODIR)globals.o
 
 $(ODIR)read_grid.o: read_grid.f90                               $(ODIR)globals.o  $(ODIR)allocation.o
 	$(FC) $(FFLAGS) -c $< -o $@
+	
+$(ODIR)curvilinear.o : curvilinear.f90                           $(ODIR)globals.o
+	$(FC) $(FFLAGS) -c $< -o $@	
 	
 $(ODIR)version.o : version.f90                                  $(ODIR)globals.o
 	$(FC) $(FFLAGS) -c $< -o $@
