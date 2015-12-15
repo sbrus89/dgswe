@@ -73,11 +73,9 @@
       
       DO et = 1,nel_type
         IF (mod(et,2) == 1) THEN
-          n = mesh%nnds(1)
           p = mesh%np(1)
           CALL tri_nodes(1,p,n,r,s)
         ELSE IF (mod(et,2) == 0) THEN
-          n = mesh%nnds(2)
           p = mesh%np(2)
           CALL quad_nodes(1,p,n,r,s)
         ENDIF

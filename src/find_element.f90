@@ -28,7 +28,7 @@
       REAL(rp), INTENT(OUT) :: rt(2)
       REAL(rp) :: x(3),y(3)
       REAL(rp) :: r(srchdp*mnepn),s(srchdp*mnepn)
-      REAL(rp) :: sarea(srchdp*mnepn),area
+      REAL(rp) :: sarea,area,diff(srchdp*mnepn)
       REAL(rp) :: tol
       REAL(rp) :: error
       
@@ -38,7 +38,7 @@
         ! Test elements to see which element point is located in    
         found = 0    
         n = 0
-        sarea = 999d0
+        diff = 999d0
 search: DO srch = 1,srchdp
           ndc = base%vxyn(closest(srch)%idx)
           
@@ -63,7 +63,7 @@ search: DO srch = 1,srchdp
             ENDIF          
           
             ! Compute sum of sub-triangle areas
-            sarea(n) = 0d0
+            sarea = 0d0
             DO i = 1,nvert
               n1 = mod(i+0,nvert)+1
               n2 = mod(i+1,nvert)+1           
@@ -77,14 +77,16 @@ search: DO srch = 1,srchdp
               x(3) = r(n)
               y(3) = s(n)
             
-              sarea(n) = sarea(n) + .5d0*abs((x(2)-x(1))*(y(3)-y(1)) - (x(3)-x(1))*(y(2)-y(1)))
+              sarea = sarea + .5d0*abs((x(2)-x(1))*(y(3)-y(1)) - (x(3)-x(1))*(y(2)-y(1)))
             ENDDO
           
-!               PRINT("(A,I8,A,F20.15,A,F20.15)"), "   testing: ", eln, "   area = ",area, "   sarea = ", sarea(n)
+!               PRINT("(A,I8,A,F20.15,A,F20.15)"), "   testing: ", eln, "   area = ",area, "   sarea = ", sarea
 !               PRINT*, " "
           
-            ! The station is in the element if the reference element area and sum of sub triangle are the same
-            IF (abs(area - sarea(n)) < tol) THEN
+            diff(n) = abs(area-sarea)
+          
+            ! The station is in the element if the reference element area and sum of sub triangle are the same            
+            IF (diff(n) < tol) THEN
 !               PRINT("(A,I8)"), "   element found", eln
                       
               el_found = eln        
@@ -100,12 +102,12 @@ search: DO srch = 1,srchdp
 
         
         IF (found == 0) THEN      
-          k = minloc(sarea)
+          k = minloc(diff)
           eln = local_el(k(1))
           rt(1) = r(k(1))
           rt(2) = s(k(1))              
           PRINT*, "ELEMENT NOT FOUND"   
-          PRINT*, "USING ELEMENT ", eln, "(AREA = ",sarea(k(1)), ")"                 
+          PRINT*, "USING ELEMENT ", eln, "(AREA DIFF = ",diff(k(1)), ")"                 
         ELSE         
           eln = el_found 
           rt(1) = r(n)
@@ -143,7 +145,6 @@ search: DO srch = 1,srchdp
       
       et = base%el_type(eln)
       p = base%np(et)  
-      n = base%nnds(et)
         
       IF (mod(et,2) == 1) THEN
         r(1) = -1d0/3d0
