@@ -35,11 +35,11 @@
       
       CALL transformation()      
       
-      CALL curvilinear(base)
-      
-      IF (refinement) THEN
-        CALL curvilinear(eval)       
-      ENDIF      
+!       CALL curvilinear(base)
+!       
+!       IF (refinement) THEN
+!         CALL curvilinear(eval)       
+!       ENDIF      
       
       
       CALL normals(base)

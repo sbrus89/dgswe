@@ -84,6 +84,7 @@
           
           mesh%elxy(pt,el,1) = xpt
           mesh%elxy(pt,el,2) = ypt
+                   
         ENDDO      
         
         
@@ -105,7 +106,11 @@
         
         
         
+      ! This needs to populate the hardwired bathymetry in order to work.
+      ! It would have to take into account mixed ctp/hbp orders like dgswe
       
+      ! I'm not sure if this subroutine is really needed for this code, since
+      ! the curved edge nodes are adjusted in the coordinates subroutine.
         
         
       ENDDO
