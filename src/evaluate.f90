@@ -375,21 +375,53 @@
 !       CALL filter_normals()
       
       
+!       IF (refinement) THEN
+!         PRINT("(A)"), "Computing rimls surface: verticies"
+!         CALL mls_surface(eval%nn,1,1,eval%xyhv)      
+!         PRINT("(A)"), "Computing rimls surface: edges"      
+!         CALL mls_surface(eval%ned,np(3)-1,mnnds,eval%xyhe)
+!         PRINT("(A)"), "Computing rimls surface: interior"
+!         CALL mls_surface(eval%ne,mninds,mnnds,eval%xyhi)      
+!       ELSE 
+!         PRINT("(A)"), "Computing rimls surface: verticies"
+!         CALL mls_surface(base%nn,1,1,base%xyhv)      
+!         PRINT("(A)"), "Computing rimls surface: edges"      
+!         CALL mls_surface(base%ned,np(3)-1,mnnds,base%xyhe)
+!         PRINT("(A)"), "Computing rimls surface: interior"
+!         CALL mls_surface(base%ne,mninds,mnnds,base%xyhi)         
+!       ENDIF
+!       
+!       IF (refinement) THEN
+!         PRINT("(A)"), "Computing rimls surface: verticies"
+!         CALL rimls_surface(eval%nn,1,1,eval%xyhv)      
+!         PRINT("(A)"), "Computing rimls surface: edges"      
+!         CALL rimls_surface(eval%ned,np(3)-1,mnnds,eval%xyhe)
+!         PRINT("(A)"), "Computing rimls surface: interior"
+!         CALL rimls_surface(eval%ne,mninds,mnnds,eval%xyhi)      
+!       ELSE 
+!         PRINT("(A)"), "Computing rimls surface: verticies"
+!         CALL rimls_surface(base%nn,1,1,base%xyhv)      
+!         PRINT("(A)"), "Computing rimls surface: edges"      
+!         CALL rimls_surface(base%ned,np(3)-1,mnnds,base%xyhe)
+!         PRINT("(A)"), "Computing rimls surface: interior"
+!         CALL rimls_surface(base%ne,mninds,mnnds,base%xyhi)         
+!       ENDIF
+      
       IF (refinement) THEN
         PRINT("(A)"), "Computing rimls surface: verticies"
-        CALL mls_surface(eval%nn,1,1,eval%xyhv)      
+        CALL function_surface(eval%nn,1,1,eval%xyhv)      
         PRINT("(A)"), "Computing rimls surface: edges"      
-        CALL mls_surface(eval%ned,np(3)-1,mnnds,eval%xyhe)
+        CALL function_surface(eval%ned,np(3)-1,mnnds,eval%xyhe)
         PRINT("(A)"), "Computing rimls surface: interior"
-        CALL mls_surface(eval%ne,mninds,mnnds,eval%xyhi)      
+        CALL function_surface(eval%ne,mninds,mnnds,eval%xyhi)      
       ELSE 
         PRINT("(A)"), "Computing rimls surface: verticies"
-        CALL mls_surface(base%nn,1,1,base%xyhv)      
+        CALL function_surface(base%nn,1,1,base%xyhv)      
         PRINT("(A)"), "Computing rimls surface: edges"      
-        CALL mls_surface(base%ned,np(3)-1,mnnds,base%xyhe)
+        CALL function_surface(base%ned,np(3)-1,mnnds,base%xyhe)
         PRINT("(A)"), "Computing rimls surface: interior"
-        CALL mls_surface(base%ne,mninds,mnnds,base%xyhi)         
-      ENDIF
+        CALL function_surface(base%ne,mninds,mnnds,base%xyhi)         
+      ENDIF      
       
       RETURN
       END SUBROUTINE
@@ -655,7 +687,7 @@
       
       
       RETURN
-      END SUBROUTINE rimls_surface  
+      END SUBROUTINE rimls_surface        
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
@@ -808,6 +840,42 @@
       
       RETURN
       END SUBROUTINE mls_surface
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
+      
+      SUBROUTINE function_surface(n,npts,mnpts,xyh)
+      
+      USE globals, ONLY: pi
+      
+      IMPLICIT NONE
+      
+      INTEGER :: i,pt
+      INTEGER :: n,npts,mnpts       
+      REAL(rp) :: xyh(mnpts,n,3) 
+      REAL(rp) :: x(3)
+      
+      DO i = 1,n
+      
+        IF (mod(i,1000) == 0) THEN       
+          PRINT*,i,"/",n
+        ENDIF   
+        
+        DO pt = 1,npts  
+        
+          x(1) = xyh(pt,i,1)
+          x(2) = xyh(pt,i,2)
+          x(3) = xyh(pt,i,3)   
+          
+          xyh(pt,i,3)  = 10d0 - 5d0*cos(2d0*pi/500d0*x(2))  
+          
+        ENDDO
+        
+      ENDDO
+      
+      
+      END SUBROUTINE      
+      
       
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!      
