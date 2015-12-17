@@ -65,7 +65,8 @@
       
        
       
-      CALL compute_surface()
+!       CALL compute_surface()
+      CALL compute_random()
 
       
       

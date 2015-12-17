@@ -97,9 +97,13 @@
       
       INTEGER :: srchdp
       REAL(rp) :: rsre(2,4,4)      
-      TYPE(kdtree2), POINTER :: tree_xy,tree_c
+      TYPE(kdtree2), POINTER :: tree_xy,tree_c,tree_xy_rand
       TYPE(kdtree2_result), ALLOCATABLE, DIMENSION(:) :: kdresults  
-      TYPE(kdtree2_result), ALLOCATABLE, DIMENSION(:) :: closest       
+      TYPE(kdtree2_result), ALLOCATABLE, DIMENSION(:) :: closest    
+      
+      INTEGER :: nrpt
+      REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: xy_rand     
+      REAL(rp), ALLOCATABLE, DIMENSION(:) :: h_rand
       
       REAL(rp) :: Erad 
       REAL(rp) :: phi0,lambda0

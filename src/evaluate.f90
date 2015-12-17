@@ -375,21 +375,21 @@
 !       CALL filter_normals()
       
       
-!       IF (refinement) THEN
-!         PRINT("(A)"), "Computing rimls surface: verticies"
-!         CALL mls_surface(eval%nn,1,1,eval%xyhv)      
-!         PRINT("(A)"), "Computing rimls surface: edges"      
-!         CALL mls_surface(eval%ned,np(3)-1,mnnds,eval%xyhe)
-!         PRINT("(A)"), "Computing rimls surface: interior"
-!         CALL mls_surface(eval%ne,mninds,mnnds,eval%xyhi)      
-!       ELSE 
-!         PRINT("(A)"), "Computing rimls surface: verticies"
-!         CALL mls_surface(base%nn,1,1,base%xyhv)      
-!         PRINT("(A)"), "Computing rimls surface: edges"      
-!         CALL mls_surface(base%ned,np(3)-1,mnnds,base%xyhe)
-!         PRINT("(A)"), "Computing rimls surface: interior"
-!         CALL mls_surface(base%ne,mninds,mnnds,base%xyhi)         
-!       ENDIF
+      IF (refinement) THEN
+        PRINT("(A)"), "Computing rimls surface: verticies"
+        CALL mls_surface(eval%nn,1,1,eval%xyhv)      
+        PRINT("(A)"), "Computing rimls surface: edges"      
+        CALL mls_surface(eval%ned,np(3)-1,mnnds,eval%xyhe)
+        PRINT("(A)"), "Computing rimls surface: interior"
+        CALL mls_surface(eval%ne,mninds,mnnds,eval%xyhi)      
+      ELSE 
+        PRINT("(A)"), "Computing rimls surface: verticies"
+        CALL mls_surface(base%nn,1,1,base%xyhv)      
+        PRINT("(A)"), "Computing rimls surface: edges"      
+        CALL mls_surface(base%ned,np(3)-1,mnnds,base%xyhe)
+        PRINT("(A)"), "Computing rimls surface: interior"
+        CALL mls_surface(base%ne,mninds,mnnds,base%xyhi)         
+      ENDIF
 !       
 !       IF (refinement) THEN
 !         PRINT("(A)"), "Computing rimls surface: verticies"
@@ -407,22 +407,22 @@
 !         CALL rimls_surface(base%ne,mninds,mnnds,base%xyhi)         
 !       ENDIF
       
-      IF (refinement) THEN
-        PRINT("(A)"), "Computing rimls surface: verticies"
-        CALL function_surface(eval%nn,1,1,eval%xyhv)      
-        PRINT("(A)"), "Computing rimls surface: edges"      
-        CALL function_surface(eval%ned,np(3)-1,mnnds,eval%xyhe)
-        PRINT("(A)"), "Computing rimls surface: interior"
-        CALL function_surface(eval%ne,mninds,mnnds,eval%xyhi)      
-      ELSE 
-        PRINT("(A)"), "Computing rimls surface: verticies"
-        CALL function_surface(base%nn,1,1,base%xyhv)      
-        PRINT("(A)"), "Computing rimls surface: edges"      
-        CALL function_surface(base%ned,np(3)-1,mnnds,base%xyhe)
-        PRINT("(A)"), "Computing rimls surface: interior"
-        CALL function_surface(base%ne,mninds,mnnds,base%xyhi)         
-      ENDIF      
-      
+!       IF (refinement) THEN
+!         PRINT("(A)"), "Computing rimls surface: verticies"
+!         CALL function_surface(eval%nn,1,1,eval%xyhv)      
+!         PRINT("(A)"), "Computing rimls surface: edges"      
+!         CALL function_surface(eval%ned,np(3)-1,mnnds,eval%xyhe)
+!         PRINT("(A)"), "Computing rimls surface: interior"
+!         CALL function_surface(eval%ne,mninds,mnnds,eval%xyhi)      
+!       ELSE 
+!         PRINT("(A)"), "Computing rimls surface: verticies"
+!         CALL function_surface(base%nn,1,1,base%xyhv)      
+!         PRINT("(A)"), "Computing rimls surface: edges"      
+!         CALL function_surface(base%ned,np(3)-1,mnnds,base%xyhe)
+!         PRINT("(A)"), "Computing rimls surface: interior"
+!         CALL function_surface(base%ne,mninds,mnnds,base%xyhi)         
+!       ENDIF      
+!       
       RETURN
       END SUBROUTINE
       

@@ -120,7 +120,13 @@ ninds = N(1)*N(2);
 rimls_vnds = fscanf(fid7,'%g %g %g \n', [3 ninds])' ;
 fclose(fid7);
 
+fid8 = fopen([out_dir,'random_pts.d']);
+ne = fscanf(fid8,'%g',1) ;
+random_pts = fscanf(fid8,'%g %g %g \n', [3 ne])' ;
+fclose(fid8);
 
+figure(99)
+plot(random_pts(:,1),random_pts(:,2),'b.')
 
 
 xpts = vertcat(eval_xy(:,1),ends(:,1),inds(:,1));
