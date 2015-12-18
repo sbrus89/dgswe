@@ -121,7 +121,8 @@
       ndf = (lsp+1)*(lsp+2)/2
       
       ALLOCATE(A(ne,ndf),b(ne))
-      CALL DGELS('N',nneigh,ndf,1,A,ne,b,ne,nwork,-1,info)      
+      CALL DGELS('N',ne,ndf,1,A,ne,b,ne,nwork,-1,info)  ! find the optimal work array size
+                                                        ! using ne is likely a huge overestimate       
       
       IF (info == 0) THEN
         lwork = INT(nwork(1))
