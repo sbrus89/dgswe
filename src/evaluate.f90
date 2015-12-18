@@ -1,6 +1,7 @@
       MODULE evaluate
       
       USE globals, ONLY: rp,r,sigma_n
+      USE lapack_interfaces
       
       IMPLICIT NONE
       

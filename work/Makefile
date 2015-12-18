@@ -42,7 +42,7 @@ endif
 
 objects = kdtree2.o globals.o allocation.o basis.o find_element.o \
           write_results.o connect.o evaluate.o read_input.o read_grid.o \
-          curvilinear.o compute_random.o version.o rimls.o
+          curvilinear.o compute_random.o lapack_interfaces.o version.o rimls.o
           
 obj := $(patsubst %.o, $(ODIR)%.o,$(objects))
 
@@ -95,6 +95,10 @@ $(ODIR)kdtree2.o: kdtree2.F
 $(ODIR)globals.o: globals.f90                                   $(ODIR)kdtree2.o
 	$(FC) $(FFLAGS) -c $< -o $@
 	mv globals.mod $(ODIR)	
+	
+$(ODIR)lapack_interfaces.o : lapack_interfaces.f90
+	$(FC) $(FFLAGS) -c $< -o $@
+	mv lapack_interfaces.mod $(ODIR)	
 
 $(ODIR)allocation.o: allocation.f90                             $(ODIR)globals.o
 	$(FC) $(FFLAGS) -c $< -o $@
@@ -115,7 +119,7 @@ $(ODIR)write_results.o: write_results.f90                       $(ODIR)globals.o
 $(ODIR)connect.o: connect.f90                                   $(ODIR)globals.o
 	$(FC) $(FFLAGS) -c $< -o $@
 
-$(ODIR)evaluate.o: evaluate.f90                                 $(ODIR)kdtree2.o  $(ODIR)globals.o  $(ODIR)basis.o  $(ODIR)find_element.o
+$(ODIR)evaluate.o: evaluate.f90                                 $(ODIR)kdtree2.o  $(ODIR)globals.o  $(ODIR)basis.o  $(ODIR)find_element.o  $(ODIR)lapack_interfaces.o
 	$(FC) $(FFLAGS) -c $< -o $@
 	mv evaluate.mod $(ODIR)
 	
@@ -128,7 +132,7 @@ $(ODIR)read_grid.o: read_grid.f90                               $(ODIR)globals.o
 $(ODIR)curvilinear.o : curvilinear.f90                          $(ODIR)globals.o
 	$(FC) $(FFLAGS) -c $< -o $@	
 	
-$(ODIR)compute_random.o : compute_random.f90                    $(ODIR)kdtree2.o  $(ODIR)globals.o  $(ODIR)find_element.o  $(ODIR)evaluate.o
+$(ODIR)compute_random.o : compute_random.f90                    $(ODIR)kdtree2.o  $(ODIR)globals.o  $(ODIR)find_element.o  $(ODIR)evaluate.o  $(ODIR)lapack_interfaces.o
 	$(FC) $(FFLAGS) -c $< -o $@	
 		
 $(ODIR)version.o : version.f90                                  $(ODIR)globals.o

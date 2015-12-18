@@ -95,6 +95,7 @@
       USE globals, ONLY: rp,nrpt,xy_rand,h_rand,tree_xy,tree_xy_rand,closest,kdresults,r,base
       USE kdtree2_module
       USE find_element, ONLY: in_element
+      USE lapack_interfaces
       
       IMPLICIT NONE
       
