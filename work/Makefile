@@ -1,5 +1,5 @@
 FC = ifort
-FFLAGS = -132 -heap-arrays -I$(ODIR) -traceback -g -C
+FFLAGS = -132 -heap-arrays -I$(ODIR) #-traceback -g -C
 
 VPATH := ../src/
 ODIR = odir/
