@@ -1,5 +1,5 @@
 FC = ifort
-FFLAGS = -132 -heap-arrays -I$(ODIR) #-traceback -g -C
+FFLAGS = -132 -heap-arrays -I$(ODIR) -traceback -g -C
 
 VPATH := ../src/
 ODIR = odir/
@@ -52,6 +52,9 @@ obj := $(patsubst %.o, $(ODIR)%.o,$(objects))
 .PHONY : rimls 
 
 rimls: version $(ODIR) $(obj)
+	@echo "\n\n"
+	@echo "Git SHA: $(GIT_SHA)"
+	@echo "Modified: $(GIT_MOD) \n"
 	$(FC) $(FFLAGS) -o rimls $(obj) $(LAPACK_LIB)
 	
 ########################################################################
