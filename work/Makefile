@@ -132,7 +132,7 @@ $(ODIR)read_grid.o: read_grid.f90                               $(ODIR)globals.o
 $(ODIR)curvilinear.o : curvilinear.f90                          $(ODIR)globals.o
 	$(FC) $(FFLAGS) -c $< -o $@	
 	
-$(ODIR)compute_random.o : compute_random.f90                    $(ODIR)kdtree2.o  $(ODIR)globals.o  $(ODIR)find_element.o  $(ODIR)evaluate.o  $(ODIR)lapack_interfaces.o
+$(ODIR)compute_random.o : compute_random.f90                    $(ODIR)kdtree2.o  $(ODIR)globals.o  $(ODIR)basis.o $(ODIR)find_element.o  $(ODIR)evaluate.o  $(ODIR)lapack_interfaces.o
 	$(FC) $(FFLAGS) -c $< -o $@	
 		
 $(ODIR)version.o : version.f90                                  $(ODIR)globals.o

@@ -696,14 +696,15 @@
       SUBROUTINE mls_surface(n,npts,mnpts,xyh)
       
       USE globals, ONLY: tree_xy,tree_c,kdresults,base,hmin,hmax,phi0,lambda0,Erad
-      USE find_element, ONLY: in_element
+      USE find_element, ONLY: in_element,newton
       USE kdtree2_module
+      USE basis, ONLY: tri_basis,quad_basis
       
       IMPLICIT NONE
       
       INTEGER :: i,pt,cpt,l,m,k      
       INTEGER :: n,npts,mnpts  
-      INTEGER :: ne,el,elin
+      INTEGER :: ne,el,elin,et
       INTEGER :: lsp,ndf
       INTEGER :: neighbors(base%ne),nneigh,found
       INTEGER :: small_flag
@@ -711,19 +712,22 @@
       REAL(rp) :: xyh(mnpts,n,3)  
       REAL(rp) :: x(3),p(3),px(3),np(3),xbar(3)      
       REAL(rp) :: d,w,rhs,lhs
-      REAL(rp) :: s,t
+      REAL(rp) :: s,t,sv(1),tv(1)
       REAL(rp) :: hpt,search_r,tol
       REAL(rp) :: nwork(1)
       REAL(rp), ALLOCATABLE :: A(:,:),b(:),work(:)
+      REAL(rp), ALLOCATABLE :: phi(:,:)
       
       ne = base%ne
       tol = 1d-16
       lsp = 3
-      ndf = (lsp+1)*(lsp+2)/2
+      ndf = (lsp+1)**2
       
       ALLOCATE(A(ne,ndf),b(ne))
       CALL DGELS('N',ne,ndf,1,A,ne,b,ne,nwork,-1,info)  ! find the optimal work array size
                                                         ! using ne is likely a huge overestimate     
+                                                        
+      ALLOCATE(phi(ndf,1))                                                        
       
       IF (info == 0) THEN
         lwork = INT(nwork(1))
@@ -745,7 +749,8 @@
           x(3) = xyh(pt,i,3)       
           
 
-          CALL in_element(i,x(1:2),elin,found)                    
+          CALL in_element(i,x(1:2),elin,found)  
+          et = base%el_type(elin)          
    
           hpt = r*base%h(elin)           
           search_r = SQRT(-hpt**2*LOG(tol))
@@ -753,7 +758,9 @@
           
           CALL boundary_check2(i,elin,nneigh,neighbors)
           
-          
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!   Constant Least Squares Fit !!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !           rhs = 0d0
 !           lhs = 0d0
 !           small_flag = 0
@@ -781,6 +788,7 @@
 !           ENDIF
 !           
 !           xyh(pt,i,3) = rhs/lhs
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 
           xbar = base%xyhc(:,elin)
@@ -798,18 +806,33 @@
               small_flag = 1
             ENDIF
             
-            s = p(1)-xbar(1)
-            t = p(2)-xbar(2)
+            CALL newton(cpt,p(1),p(2),elin,sv,tv)
             
-            k = 0
-            DO l = 0,lsp
-              DO m = 0,lsp-l
-                k = k + 1            
-                A(cpt,k) = w*(s**l*t**m)
-              ENDDO
+            IF (mod(et,2) == 1) THEN
+              CALL tri_basis(lsp,ndf,1,sv,tv,phi)
+            ELSE IF (mod(et,2) == 0) THEN
+              CALL quad_basis(lsp,ndf,1,sv,tv,phi)
+            ENDIF
+            
+            DO m = 1,ndf
+              A(cpt,m) = w*phi(m,1)
             ENDDO
             
-            b(cpt) = w*p(3)
+            b(cpt) = w*p(3)            
+            
+!!!!!!!  Standard (non-orthogonal) Basis !!!!!!!                 
+!             s = p(1)-xbar(1)
+!             t = p(2)-xbar(2)
+!             
+!             k = 0
+!             DO l = 0,lsp
+!               DO m = 0,lsp-l
+!                 k = k + 1            
+!                 A(cpt,k) = w*(s**l*t**m)
+!               ENDDO
+!             ENDDO
+            
+!             b(cpt) = w*p(3)
 
           ENDDO
           
@@ -819,20 +842,33 @@
 !             STOP
 !           ENDIF
           
-          CALL DGELS('N',nneigh,ndf,1,A,ne,b,ne,work,lwork,info)
+          CALL DGELS('N',nneigh,ndf,1,A,ne,b,ne,work,lwork,info)          
+
+          CALL newton(cpt,x(1),x(2),elin,sv,tv)
+
+          IF (mod(et,2) == 1) THEN
+            CALL tri_basis(lsp,ndf,1,sv,tv,phi)
+          ELSE IF (mod(et,2) == 0) THEN
+            CALL quad_basis(lsp,ndf,1,sv,tv,phi)
+          ENDIF   
           
-          s = (x(1)-xbar(1))
-          t = (x(2)-xbar(2))
-          
-          k = 0
           xyh(pt,i,3) = 0d0
-          DO l = 0,lsp
-            DO m = 0,lsp-l
-              k = k + 1
-              xyh(pt,i,3) = xyh(pt,i,3) + b(k)*(s**l*t**m)
-            ENDDO
-          ENDDO
+          DO m = 1,ndf
+              xyh(pt,i,3) = xyh(pt,i,3) + b(m)*phi(m,1)
+          ENDDO    
           
+!!!!!!!  Standard (non-orthogonal) Basis !!!!!!!          
+!           s = (x(1)-xbar(1))
+!           t = (x(2)-xbar(2))
+!           
+!           k = 0
+!           xyh(pt,i,3) = 0d0
+!           DO l = 0,lsp
+!             DO m = 0,lsp-l
+!               k = k + 1
+!               xyh(pt,i,3) = xyh(pt,i,3) + b(k)*(s**l*t**m)
+!             ENDDO
+!           ENDDO          
           
         ENDDO
       
