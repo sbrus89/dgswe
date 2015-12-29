@@ -720,7 +720,7 @@
       
       ne = base%ne
       tol = 1d-16
-      lsp = 3
+      lsp = 4
       ndf = (lsp+1)**2
       
       ALLOCATE(A(ne,ndf),b(ne))

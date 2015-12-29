@@ -14,7 +14,7 @@
       REAL(rp) :: f1,f2  
 
 
-      nrpt = 80000
+      nrpt = 40000
       
       ALLOCATE(xy_rand(3,nrpt))
       
@@ -119,8 +119,8 @@
       
       ne = nrpt
       tol = 1d-16
-      lsp = 3
-      ndf = (lsp+1)*(lsp+2)/2
+      lsp = 4
+      ndf = (lsp+1)**2
       
       ALLOCATE(A(ne,ndf),b(ne))
       CALL DGELS('N',ne,ndf,1,A,ne,b,ne,nwork,-1,info)  ! find the optimal work array size
