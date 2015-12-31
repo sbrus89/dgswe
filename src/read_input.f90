@@ -1,11 +1,11 @@
       SUBROUTINE read_input()
 
-      USE globals, ONLY: base,eval,p,ctp,Erad,lambda0,phi0,deg2rad,refinement,r,sigma_n,out_direc
+      USE globals, ONLY: base,eval,p,ctp,Erad,lambda0,phi0,deg2rad,refinement,r,sigma_n,out_direc,lsp
                          
 
       IMPLICIT NONE
       
-      INTEGER, PARAMETER :: ninp = 8
+      INTEGER, PARAMETER :: ninp = 9
       INTEGER :: inp_read,skipped
       CHARACTER(100) :: temp
       
@@ -37,21 +37,24 @@
             CASE (3)
               READ(temp,*) ctp
               PRINT*, "ctp = ", ctp
-            CASE (4) 
+            CASE (4)
+              READ(temp,*) lsp
+              PRINT*, "lsp = ", lsp              
+            CASE (5) 
               READ(temp,*) Erad
               PRINT*, "Erad = ", Erad
-            CASE (5)
+            CASE (6)
               READ(temp,*) lambda0,phi0
               PRINT*, "lambda0,phi0 = ", lambda0 , phi0
               lambda0 = lambda0*deg2rad
               phi0 = phi0*deg2rad
-            CASE (6)
+            CASE (7)
               READ(temp,*) r
               PRINT*, "r = ", r
-            CASE (7)
+            CASE (8)
               READ(temp,*) sigma_n
               PRINT*, "sigma_n = ", sigma_n
-            CASE(8)
+            CASE(9)
               out_direc = TRIM(ADJUSTL(temp))
               PRINT*, "out_direc = ", out_direc
           

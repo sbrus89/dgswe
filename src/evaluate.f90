@@ -695,7 +695,7 @@
       
       SUBROUTINE mls_surface(n,npts,mnpts,xyh)
       
-      USE globals, ONLY: tree_xy,tree_c,kdresults,base,hmin,hmax,phi0,lambda0,Erad
+      USE globals, ONLY: tree_xy,tree_c,kdresults,base,hmin,hmax,phi0,lambda0,Erad,lsp
       USE find_element, ONLY: in_element,newton
       USE kdtree2_module
       USE basis, ONLY: tri_basis,quad_basis
@@ -705,7 +705,7 @@
       INTEGER :: i,pt,cpt,l,m,k      
       INTEGER :: n,npts,mnpts  
       INTEGER :: ne,el,elin,et
-      INTEGER :: lsp,ndf
+      INTEGER :: ndf
       INTEGER :: neighbors(base%ne),nneigh,found
       INTEGER :: small_flag
       INTEGER :: info,lwork
@@ -720,7 +720,6 @@
       
       ne = base%ne
       tol = 1d-16
-      lsp = 4
       ndf = (lsp+1)**2
       
       ALLOCATE(A(ne,ndf),b(ne))

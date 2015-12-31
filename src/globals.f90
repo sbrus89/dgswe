@@ -18,6 +18,7 @@
       
       INTEGER, PARAMETER :: nel_type = 4 !(type #s: 1 -> triangles, 2 -> quads, 3 -> curved triangles, 4-> curved quads)   
       INTEGER :: ctp
+      INTEGER :: lsp
       INTEGER :: nverts(nel_type)
       INTEGER :: np(nel_type)
       INTEGER :: nnds(nel_type)

@@ -92,7 +92,7 @@
       
       SUBROUTINE mls_random(n,npts,mnpts,xyh)
       
-      USE globals, ONLY: rp,nrpt,xy_rand,h_rand,tree_xy,tree_xy_rand,closest,kdresults,r,base
+      USE globals, ONLY: rp,nrpt,xy_rand,h_rand,tree_xy,tree_xy_rand,closest,kdresults,r,base,lsp
       USE kdtree2_module
       USE find_element, ONLY: in_element,newton
       USE lapack_interfaces
@@ -103,7 +103,7 @@
       INTEGER :: i,pt,cpt,l,m,k,rpt      
       INTEGER :: n,npts,mnpts  
       INTEGER :: ne,el,elin,et
-      INTEGER :: lsp,ndf
+      INTEGER :: ndf
       INTEGER :: nneigh,found
       INTEGER :: small_flag
       INTEGER :: info,lwork
@@ -119,7 +119,6 @@
       
       ne = nrpt
       tol = 1d-16
-      lsp = 4
       ndf = (lsp+1)**2
       
       ALLOCATE(A(ne,ndf),b(ne))
