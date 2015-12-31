@@ -14,7 +14,7 @@
       REAL(rp) :: f1,f2  
 
 
-      nrpt = 20000
+      nrpt = 10000
       
       ALLOCATE(xy_rand(3,nrpt))
       
