@@ -125,8 +125,7 @@ ne = fscanf(fid8,'%g',1) ;
 random_pts = fscanf(fid8,'%g %g %g \n', [3 ne])' ;
 fclose(fid8);
 
-figure(99)
-plot(random_pts(:,1),random_pts(:,2),'b.')
+
 
 
 xpts = vertcat(eval_xy(:,1),ends(:,1),inds(:,1));
@@ -166,6 +165,15 @@ xvplot = base_xy(in,1);
 yvplot = base_xy(in,2);
 hvplot = base_hb(in);
 bvnds_plot = base_bvnds(in);
+
+figure(99)
+plot(random_pts(:,1),random_pts(:,2),'b.')
+
+figure(100);
+ect_rand = delaunay(random_pts(:,1),random_pts(:,2));
+nodes = [random_pts(:,1) random_pts(:,2)];
+pdeplot( nodes', [], ect_rand', 'xydata',-random_pts(:,3), 'zdata',-random_pts(:,3),'colormap', 'jet', 'mesh','on') ;
+
 
 
 

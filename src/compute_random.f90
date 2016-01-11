@@ -1,6 +1,6 @@
       SUBROUTINE compute_random()
 
-      USE globals, ONLY: rp,pi,nrpt,xy_rand,h_rand,eval,np,mnnds,mninds,out_direc,base, &
+      USE globals, ONLY: rp,pi,nrpt,eps,xy_rand,h_rand,eval,np,mnnds,mninds,out_direc,base, &
                          tree_xy,tree_xy_rand,srchdp,closest,kdresults
       USE evaluate, ONLY: grid_size                         
       USE kdtree2_module
@@ -9,12 +9,21 @@
       
       INTEGER :: i,j
       INTEGER :: pt
-      REAL(rp) :: random,x,y
+      REAL(rp) :: random,x,y,h
       REAL(rp) :: davg
       REAL(rp) :: f1,f2  
+      REAL(rp) :: pm
 
+     
 
-      nrpt = 10000
+!       nrpt = 40000
+!       eps = 0d0
+      
+      
+      PRINT("(A)"), "Computing random points"
+!       PRINT*, "  nrpt", nrpt
+!       PRINT*, "  eps", eps      
+!       PRINT*, " "
       
       ALLOCATE(xy_rand(3,nrpt))
       
@@ -28,9 +37,22 @@
         CALL RANDOM_NUMBER(random)        
         y = (f2(x)-f1(x))*random + f1(x)
         
+        CALL RANDOM_NUMBER(random)
+        IF (random >= .5d0) THEN
+          pm = 1d0
+        ELSE 
+          pm = -1d0
+        ENDIF
+        
+        CALL RANDOM_NUMBER(random)       
+        h = pm*eps*random
+        
         xy_rand(1,i) = x
         xy_rand(2,i) = y
-        xy_rand(3,i) = 10d0 - 5d0*cos(2d0*pi/500d0*y)  
+    
+        y = 500d0/(f2(x)-f1(x))*y - 500d0/(f2(x)-f1(x))*f1(x) ! modified coordinate to adjust bathymetry profile 
+                                                              ! to fit the constriction region
+        xy_rand(3,i) = 10d0 - 5d0*cos(2d0*pi/500d0*y) + h
       
       
       ENDDO

@@ -105,6 +105,7 @@
       INTEGER :: nrpt
       REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: xy_rand     
       REAL(rp), ALLOCATABLE, DIMENSION(:) :: h_rand
+      REAL(rp) :: eps
       
       REAL(rp) :: Erad 
       REAL(rp) :: phi0,lambda0

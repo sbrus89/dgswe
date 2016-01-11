@@ -7,6 +7,8 @@
 ! 3.5d0                                                                                                   ! r - muliplier for search radius (1.5 - 4.0)
 ! 1.5d0                                                                                                   ! sigma_n - smoothing parameter (0.5 - 1.5)
 ! ../output/                                                                                              ! output directory
+! 40000                                                                                                   ! nrpt - number of random points (for converging channel hardwire)
+! 0d0                                                                                                     ! eps - bathymetry perturbation (for converging channel hardwire)
 
 ! /home/sbrus/data-drive/dgswe_inlet_bath/inlet1.grd                                                        ! base grid - used to determine the rimls surface
 ! /home/sbrus/data-drive/dgswe_inlet_bath/inlet1.grd                                                        ! eval grid - used to determine rimls surface evaluation points
@@ -17,8 +19,11 @@
 ! 3.5d0                                                                                                     ! r - muliplier for search radius (1.5 - 4.0)
 ! 1.5d0                                                                                                     ! sigma_n - smoothing parameter (0.5 - 1.5)
 ! ../output/                                                                                                ! output directory
+! 40000                                                                                                   ! nrpt - number of random points (for converging channel hardwire)
+! 0d0                                                                                                     ! eps - bathymetry perturbation (for converging channel hardwire)
 
-/home/sbrus/Codes/dgswe/grids/converge2_bath_dble.grd                                                     ! base grid - used to determine the rimls surface
+
+/home/sbrus/Codes/dgswe/grids/converge4_bath_dble.grd                                                     ! base grid - used to determine the rimls surface
 /home/sbrus/Codes/dgswe/grids/converge1_dble.grd                                                          ! eval grid - used to determine rimls surface evaluation points
 3                                                                                                         ! ctp - parametric coordinate transformation order
 4                                                                                                         ! lsp - moving least squares fit order
@@ -27,6 +32,8 @@
 4d0                                                                                                       ! r - muliplier for search radius (1.5 - 4.0)
 1.5d0                                                                                                     ! sigma_n - smoothing parameter (0.5 - 1.5)
 ../output/                                                                                                ! output directory
+40000                                                                                                     ! nrpt - number of random points (for converging channel hardwire)
+0d0                                                                                                       ! eps - bathymetry perturbation (for converging channel hardwire)
 
 
 ! /home/sbrus/data-drive/galveston/adcirc/original/ESL0/fort.14                                           ! base grid - used to determine the rimls surface
@@ -38,6 +45,9 @@
 ! 2.5d0                                                                                                   ! r - muliplier for search radius (1.5 - 4.0)
 ! 1.5d0                                                                                                   ! sigma_n - smoothing parameter (0.5 - 1.5)
 ! ../output/                                                                                              ! output directory
+! 40000                                                                                                   ! nrpt - number of random points (for converging channel hardwire)
+! 0d0                                                                                                     ! eps - bathymetry perturbation (for converging channel hardwire)
+
 
 !/home/sbrus/data-drive/galveston/adcirc/refinedx64/ESL0/fort.14                                            ! base grid - used to determine the rimls surface
 !!/home/sbrus/data-drive/galveston/adcirc/refinedx64/ESL0/fort.14
@@ -49,6 +59,9 @@
 !15d0                                                                                                       ! r - muliplier for search radius (1.5 - 4.0)
 !1.5d0                                                                                                      ! sigma_n - smoothing parameter (0.5 - 1.5)
 !../output/                                                                                                 ! output directory
+! 40000                                                                                                   ! nrpt - number of random points (for converging channel hardwire)
+! 0d0                                                                                                     ! eps - bathymetry perturbation (for converging channel hardwire)
+
 
 ! /home/sbrus/data-drive/beaufort/beaufort.grd                                                            ! base grid - used to determine the rimls surface
 ! /home/sbrus/data-drive/beaufort/beaufort.grd                                                            ! eval grid - used to determine rimls surface evaluation points
@@ -59,6 +72,9 @@
 ! 2.5d0                                                                                                   ! r - muliplier for search radius (1.5 - 4.0)
 ! 1.5d0                                                                                                   ! sigma_n - smoothing parameter (0.5 - 1.5)
 ! ../output/                                                                                              ! output directory
+! 40000                                                                                                   ! nrpt - number of random points (for converging channel hardwire)
+! 0d0                                                                                                     ! eps - bathymetry perturbation (for converging channel hardwire)
+
 
 ! /home/sbrus/data-drive/beaufort/beaufort_hires.grd                                                      ! base grid - used to determine the rimls surface
 ! /home/sbrus/data-drive/beaufort/beaufort_hires.grd                                                      ! eval grid - used to determine rimls surface evaluation points
@@ -69,6 +85,9 @@
 ! 2.5d0                                                                                                   ! r - muliplier for search radius (1.5 - 4.0)
 ! 1.5d0                                                                                                   ! sigma_n - smoothing parameter (0.5 - 1.5)
 ! ../output/                                                                                              ! output directory
+! 40000                                                                                                   ! nrpt - number of random points (for converging channel hardwire)
+! 0d0                                                                                                     ! eps - bathymetry perturbation (for converging channel hardwire)
+
 
 ! /home/sbrus/data-drive/shinnecock/fort.14                                                               ! base grid - used to determine the rimls surface
 ! /home/sbrus/data-drive/shinnecock/fort.14                                                               ! eval grid - used to determine rimls surface evaluation points
@@ -79,6 +98,9 @@
 ! 2.5d0                                                                                                   ! r - muliplier for search radius (1.5 - 4.0)
 ! 1.5d0                                                                                                   ! sigma_n - smoothing parameter (0.5 - 1.5)
 ! ../output/                                                                                              ! output directory
+! 40000                                                                                                   ! nrpt - number of random points (for converging channel hardwire)
+! 0d0                                                                                                     ! eps - bathymetry perturbation (for converging channel hardwire)
+
 
 
 ! /home/sbrus/data-drive/EC2001/fort.14                                                                   ! base grid - used to determine the rimls surface
@@ -90,6 +112,9 @@
 ! 2.5d0                                                                                                   ! r - muliplier for search radius (1.5 - 4.0)
 ! 1.5d0                                                                                                   ! sigma_n - smoothing parameter (0.5 - 1.5)
 ! ../output/                                                                                              ! output directory
+! 40000                                                                                                   ! nrpt - number of random points (for converging channel hardwire)
+! 0d0                                                                                                     ! eps - bathymetry perturbation (for converging channel hardwire)
+
 
 
 ! /home/sbrus/data-drive/PRVI/fort.14                                                                     ! base grid - used to determine the rimls surface
@@ -101,3 +126,6 @@
 ! 2.5d0                                                                                                   ! r - muliplier for search radius (1.5 - 4.0)
 ! 1.5d0                                                                                                   ! sigma_n - smoothing parameter (0.5 - 1.5)
 ! ../output/                                                                                              ! output directory
+! 40000                                                                                                   ! nrpt - number of random points (for converging channel hardwire)
+! 0d0                                                                                                     ! eps - bathymetry perturbation (for converging channel hardwire)
+

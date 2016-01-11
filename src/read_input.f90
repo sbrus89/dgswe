@@ -1,11 +1,12 @@
       SUBROUTINE read_input()
 
-      USE globals, ONLY: base,eval,p,ctp,Erad,lambda0,phi0,deg2rad,refinement,r,sigma_n,out_direc,lsp
+      USE globals, ONLY: base,eval,p,ctp,Erad,lambda0,phi0,deg2rad, &
+                         refinement,r,sigma_n,out_direc,lsp,nrpt,eps
                          
 
       IMPLICIT NONE
       
-      INTEGER, PARAMETER :: ninp = 9
+      INTEGER, PARAMETER :: ninp = 11
       INTEGER :: inp_read,skipped
       CHARACTER(100) :: temp
       
@@ -57,6 +58,12 @@
             CASE(9)
               out_direc = TRIM(ADJUSTL(temp))
               PRINT*, "out_direc = ", out_direc
+            CASE (10)
+              READ(temp,*) nrpt
+              PRINT*, "nrpt = ", nrpt
+            CASE (11)
+              READ(temp,*) eps
+              PRINT*, "eps = ", eps              
           
           END SELECT
             
