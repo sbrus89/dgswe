@@ -109,7 +109,7 @@ MODULE lapack_interfaces
                                                                    ! The factors L and U from the factorization A = P*L*U
                                                                    ! as computed by DGETRF.
 
-          INTEGER, DIMENSION(*), INTENT(OUT) :: ipiv               ! dimension (N)
+          INTEGER, DIMENSION(*), INTENT(IN) :: ipiv               ! dimension (N)
                                                                    ! The pivot indices from DGETRF; for 1<=i<=N, row i of the
                                                                    ! matrix was interchanged with row IPIV(i).
 
