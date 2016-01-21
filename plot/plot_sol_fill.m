@@ -4,12 +4,12 @@ close all
 clc
 
 grd_direc = '~/Codes/dgswe/grids/';
-sol_direc = '~/Codes/dgswe/output/';
+sol_direc = '~/Codes/dgswe/work/';
 % sol_direc = '~/data-drive/converge_quad/mesh1/P2/CTP2/';
 % sol_direc = '/home/sbrus/data-drive/dgswe_converge_curve_bath/converge3/p3/ctp3/hbp3/';
 % grd_name = 'inlet1.grd';
 % grd_name = 'converge3.grd';
-grd_name = 'converge.grd';
+grd_name = 'converge1_dble.grd';
 % grd_name = 'beaufort_hb+2.grd';
 plot_folder = 'velplot';
 
@@ -61,7 +61,7 @@ plot_folder = 'velplot';
 % plot_folder = 'velplot_scale';
 
 
-ctp = 1;
+ctp = 2;
 
 nsnap = 49;
 
@@ -134,7 +134,7 @@ mndof = max(ndof);
 
 
 fid_hb = fopen([sol_direc,'hb_modal.d']);
-hbm = fscanf(fid_hb,' %g ', [ne mndof])'; 
+hbm = fscanf(fid_hb,'%g', [ne mndof])'; 
 hb = zeros(9,ne,1);
 for el = 1:ne
     

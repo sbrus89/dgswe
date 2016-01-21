@@ -8,7 +8,7 @@ direc = '/home/sbrus/Codes/dgswe/work/';
 
 lcolor = lines;
 
-elem = 'on';
+elem = 'off';
 elcolor = 'k';
 node = 'off';
 ndcolor = 'k';
