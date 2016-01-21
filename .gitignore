@@ -22,3 +22,7 @@ PE*
 *.save
 .descrip
 fort.*
+*.hb
+*.grd
+*.bfr
+
