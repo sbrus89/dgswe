@@ -104,6 +104,8 @@ endif
 NAME := $(strip $(subst ., , $(FULLNAME)))
 ifeq ($(NAME),chl-tilos)
   LAPACK_LIB = -llapack
+  NETCDF_LIB = -lnetcdf -lnetcdff 
+  NETCDF_INC = -I/usr/local/include
 endif
 
 ifeq ($(NAME),sbrus-laptop)
@@ -121,6 +123,11 @@ endif
 
 METIS_LIB = -L../metis-4.0.3 -lmetis
 
+#NETCDF_LIB = -L${TACC_NETCDF_LIB} -lnetcdf -lnetcdff
+#NETCDF_INC = -I${TACC_NETCDF_INC}
+# NETCDF_LIB = -L/afs/crc.nd.edu/x86_64_linux/netcdf/4.3.2/lib -lnetcdf -lnetcdff
+# NETCDF_INC = -I/afs/crc.nd.edu/x86_64_linux/netcdf/4.3.2/include
+
 ########################################################################
 #                               Objects                                #
 ########################################################################
@@ -135,7 +142,7 @@ dgswe_objects = globals.o lapack_interfaces.o messenger2.o allocation.o  \
                 rhs2.o rk.o \
                 area_integration.o edge_integration.o  numerical_flux.o linear_solve.o \
                 boundary_edge_land.o boundary_edge_flow.o boundary_edge_elev.o  \
-                write_output.o modal2nodal.o version.o dgswe.o
+                output.o modal2nodal.o version.o dgswe.o
 
 dgswe_obj := $(patsubst %.o, $(ODIR)%.o,$(dgswe_objects))
 
@@ -195,7 +202,7 @@ dgswe : version $(ODIR)  $(dgswe_obj)
 	@printf  " \n\033[35m$(MESSAGE) on $(FULLNAME) \033[0m \n"
 	@printf "Git SHA: $(GIT_SHA) \n"
 	@printf "Modified: $(GIT_MOD) \n\n"
-	$(FC) $(FFLAGS) -o $(EXE_NAME) $(dgswe_obj) $(METIS_LIB) $(LAPACK_LIB)
+	$(FC) $(FFLAGS) -o $(EXE_NAME) $(dgswe_obj) $(METIS_LIB) $(LAPACK_LIB) $(NETCDF_LIB)
 	@printf "\n\n"
 	
 dgprep : version $(ODIR)  $(dgprep_obj)
@@ -310,7 +317,7 @@ $(ODIR)lapack_interfaces.o : lapack_interfaces.F90
 	$(FC) $(FFLAGS) -c $< -o $@
 	mv lapack_interfaces.mod $(ODIR)
 
-$(ODIR)messenger2.o : messenger2.F90                           $(ODIR)globals.o
+$(ODIR)messenger2.o : messenger2.F90                           $(ODIR)globals.o 
 	$(FC) $(FFLAGS) -c $< -o $@
 	mv messenger2.mod $(ODIR)
 
@@ -337,6 +344,11 @@ $(ODIR)shape_functions.o : shape_functions.F90                 $(ODIR)globals.o 
 $(ODIR)transformation.o : transformation.F90                   $(ODIR)globals.o $(ODIR)read_input.o
 	$(FC) $(FFLAGS) -c $< -o $@
 	mv transformation.mod $(ODIR)
+	
+$(ODIR)output.o : output.F90                                   $(ODIR)globals.o $(ODIR)messenger2.o $(ODIR)read_input.o
+	$(FC) $(FFLAGS) -c $< -o $@
+	mv output.mod $(ODIR)
+	
 
 $(ODIR)area_qpts.o : area_qpts.F90                             $(ODIR)globals.o $(ODIR)messenger2.o $(ODIR)read_input.o $(ODIR)allocation.o
 	$(FC) $(FFLAGS) -c $< -o $@
@@ -414,15 +426,12 @@ $(ODIR)boundary_edge_elev.o : boundary_edge_elev.F90           $(ODIR)globals.o
 	$(FC) $(FFLAGS) -c $< -o $@
 
 $(ODIR)linear_solve.o : linear_solve.F90                       $(ODIR)globals.o
-	$(FC) $(FFLAGS) -c $< -o $@
-	
-$(ODIR)write_output.o : write_output.F90                       $(ODIR)globals.o $(ODIR)messenger2.o $(ODIR)read_input.o
-	$(FC) $(FFLAGS) -c $< -o $@
+	$(FC) $(FFLAGS) -c $< -o $@	
 	
 $(ODIR)version.o : version.F90                                 $(ODIR)globals.o $(ODIR)messenger2.o 
 	$(FC) $(FFLAGS) -c $< -o $@
 
-$(ODIR)dgswe.o : dgswe.F90                                     $(ODIR)globals.o $(ODIR)messenger2.o $(ODIR)read_input.o $(ODIR)allocation.o $(ODIR)basis.o
+$(ODIR)dgswe.o : dgswe.F90                                     $(ODIR)globals.o $(ODIR)messenger2.o $(ODIR)read_input.o $(ODIR)allocation.o $(ODIR)basis.o $(ODIR)output.o
 	$(FC) $(FFLAGS) -c $< -o $@
 
 # prep file targets

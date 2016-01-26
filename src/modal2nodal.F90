@@ -1,7 +1,7 @@
       SUBROUTINE modal2nodal()
 
       USE globals, ONLY: rp,nel_type,np,nnds,mnnds,ndof,mndof,order,m2n, &
-                         nqpta,mnqpta,wpta,phia,phil
+                         nqpta,mnqpta,wpta,phia,phil,ml2,mml
       USE basis, ONLY: element_basis,element_nodes,linear
       USE read_dginp, ONLY: out_direc,p,hbp
 
@@ -13,13 +13,13 @@
       INTEGER :: alloc_status
       REAL(rp) :: r(mnnds+mndof),s(mnnds+mndof)
       REAL(rp) :: phi(mnnds+mndof,mnnds+mndof)
-
       
-      REAL(rp) :: ml2(3,ndof(1)),mml(3,3)
       REAL(rp) :: qint      
 
       
-      ALLOCATE(m2n(mnnds+mndof,mnnds+mndof,nel_type))      
+      ALLOCATE(m2n(mnnds,mndof,nel_type))      
+      ALLOCATE(ml2(3,ndof(1)))
+      ALLOCATE(mml(3,3))
       
       OPEN(unit=111,file=trim(out_direc) // "modal2nodal.d")
       

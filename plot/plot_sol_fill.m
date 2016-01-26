@@ -147,6 +147,9 @@ for el = 1:ne
 end
 fclose(fid_hb);
 
+finfo = ncinfo([sol_direc,'solution.nc']);
+nsnap = finfo.Dimensions(1).Length;
+N = finfo.Dimensions(3).Length;
 
 
 fid_H = fopen([sol_direc,'solution_H.d']);
@@ -170,20 +173,28 @@ Zv = zeros(9,ne,nsnap);
 u = zeros(9,ne,nsnap);
 v = zeros(9,ne,nsnap);
 
+t = ncread([sol_direc,'solution.nc'],'t');
+
 snap = 0;
-while ~feof(fid_H) && snap < nsnap
+% while ~feof(fid_H) && snap < nsnap
+for snap = 1:nsnap
     
-    snap = snap + 1;
+%     snap = snap + 1;
+%     
+%     th = fscanf(fid_H,' %g ', 1); % read in time
+%     Z = fscanf(fid_H,' %g ', [ne mndof])'; % read in H solution at time t
+% %     H = fscanf(fid_H,' %g ', [ne mndof])'; % read in H solution at time t    
+%     
+%     tqx = fscanf(fid_Qx,' %g ', 1); % read in time
+%     Qx = fscanf(fid_Qx,' %g ', [ne mndof])'; % read in Qx solution at time t
+%     
+%     t(snap) = fscanf(fid_Qy,' %g ', 1); % read in time
+%     Qy = fscanf(fid_Qy,' %g ', [ne mndof])'; % read in Qy solution at time t    
     
-    th = fscanf(fid_H,' %g ', 1); % read in time
-    Z = fscanf(fid_H,' %g ', [ne mndof])'; % read in H solution at time t
-%     H = fscanf(fid_H,' %g ', [ne mndof])'; % read in H solution at time t    
     
-    tqx = fscanf(fid_Qx,' %g ', 1); % read in time
-    Qx = fscanf(fid_Qx,' %g ', [ne mndof])'; % read in Qx solution at time t
-    
-    t(snap) = fscanf(fid_Qy,' %g ', 1); % read in time
-    Qy = fscanf(fid_Qy,' %g ', [ne mndof])'; % read in Qy solution at time t    
+    Z = ncread([sol_direc,'solution.nc'],'Z',[1,1,snap],[ne,N,1])';
+    Qx = ncread([sol_direc,'solution.nc'],'Qx',[1,1,snap],[ne,N,1])';
+    Qy = ncread([sol_direc,'solution.nc'],'Qy',[1,1,snap],[ne,N,1])';
     
     
     for el = 1:ne

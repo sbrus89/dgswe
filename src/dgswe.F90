@@ -6,6 +6,7 @@
       USE allocation
       USE messenger2
       USE read_dginp
+      USE output
 
       IMPLICIT NONE
       INTEGER :: it,tskp,cnt
@@ -46,10 +47,7 @@
       CALL edge_basis()            
       
       ! Compute element area, edge length, edge normals, and bathymetry derivatives
-      CALL element_data()           
-      
-      ! Set up netcdf output files
-!       CALL file_setup()
+      CALL element_data()                 
 
       ! Compute initial condition
       CALL initial()

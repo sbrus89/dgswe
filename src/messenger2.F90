@@ -6,22 +6,19 @@
 
 !$    USE omp_lib 
 
-      USE globals, ONLY: rp,nrblk
+      USE globals, ONLY: rp,nrblk,myrank,dirname,lname
 
       IMPLICIT NONE
       
       INTEGER :: ierr
       INTEGER :: nproc
       INTEGER :: nthreads      
-      INTEGER :: myrank,myid
+      INTEGER :: myid
       INTEGER :: world_group
       INTEGER :: comp_group
       INTEGER :: comp_comm
       INTEGER :: comm_dist_graph
        
-      CHARACTER(6) :: dirname
-      INTEGER :: lname      
-      
       INTEGER nproc_sr
       INTEGER, ALLOCATABLE, DIMENSION(:) :: proc_sr
       INTEGER, ALLOCATABLE, DIMENSION(:) :: ned_sr
@@ -625,7 +622,9 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-       SUBROUTINE finish()
+       SUBROUTINE finish()   
+       
+       USE output, ONLY: close_output
 
        IMPLICIT NONE
        
@@ -637,6 +636,8 @@
          PRINT*, "MPI terminated, status = ", ierr
        ENDIF
 #endif
+       CALL close_output()
+       
        STOP
 
        RETURN

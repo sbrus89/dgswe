@@ -348,16 +348,16 @@
       SUBROUTINE alloc_sol_arrays()
 
       USE globals, ONLY: H,Hold,Hinit,rhsH, &
-                         Z,Zold,Zinit,rhsZ, &
-                         Qx,Qxold,Qxinit,rhsQx, &
-                         Qy,Qyold,Qyinit,rhsQy, &
+                         Z,Zold,Zinit,rhsZ,Znc, &
+                         Qx,Qxold,Qxinit,rhsQx,Qxnc, &
+                         Qy,Qyold,Qyinit,rhsQy,Qync, &
                          Hqpt,Zqpt,Qxqpt,Qyqpt,xmom,ymom,xymom, &
                          Hflux,Zflux,Qxflux,Qyflux,tau,src_x,src_y,recipHa, &
                          MirhsH,MirhsZ,MirhsQx,MirhsQy, &
                          Hwrite,Zwrite,Qxwrite,Qywrite
                          
       IMPLICIT NONE
-      INTEGER, PARAMETER :: n=10
+      INTEGER, PARAMETER :: n=11
       INTEGER :: alloc_status(n)
       INTEGER :: i
           
@@ -365,30 +365,32 @@
       
       mnelred = MAX(ne,nred)
       
+      
       ! Solution arrays      
       ALLOCATE(Hinit(ne,mndof),Zinit(ne,mndof),Qxinit(ne,mndof),Qyinit(ne,mndof),STAT = alloc_status(1))             
       ALLOCATE(H(ne,mndof),Z(ne,mndof),Qx(ne,mndof),Qy(ne,mndof),STAT = alloc_status(2))
+      ALLOCATE(Znc(ne,mndof),Qxnc(ne,mndof),Qync(ne,mndof), STAT = alloc_status(3))      
 
       ! Old solution arrays
-      ALLOCATE(Hold(ne,mndof),Zold(ne,mndof),Qxold(ne,mndof),Qyold(ne,mndof),STAT = alloc_status(3))
+      ALLOCATE(Hold(ne,mndof),Zold(ne,mndof),Qxold(ne,mndof),Qyold(ne,mndof),STAT = alloc_status(4))
 
       ! RHS arrays
-      ALLOCATE(rhsH(ne,mndof),rhsZ(ne,mndof),rhsQx(ne,mndof),rhsQy(ne,mndof),STAT = alloc_status(4))      
-      ALLOCATE(MirhsH(ne,mndof),MirhsZ(ne,mndof),MirhsQx(ne,mndof), MirhsQy(ne,mndof),STAT = alloc_status(5))
+      ALLOCATE(rhsH(ne,mndof),rhsZ(ne,mndof),rhsQx(ne,mndof),rhsQy(ne,mndof),STAT = alloc_status(5))      
+      ALLOCATE(MirhsH(ne,mndof),MirhsZ(ne,mndof),MirhsQx(ne,mndof), MirhsQy(ne,mndof),STAT = alloc_status(6))
       
       ! Evaluation Arrays
-      ALLOCATE(Hqpt(ne,4*mnqpte),Zqpt(ne,4*mnqpte),Qxqpt(ne,4*mnqpte),Qyqpt(ne,4*mnqpte),STAT = alloc_status(6))
-      ALLOCATE(xmom(ne,4*mnqpte),ymom(ne,4*mnqpte),xymom(ne,4*mnqpte),STAT = alloc_status(7))
+      ALLOCATE(Hqpt(ne,4*mnqpte),Zqpt(ne,4*mnqpte),Qxqpt(ne,4*mnqpte),Qyqpt(ne,4*mnqpte),STAT = alloc_status(7))
+      ALLOCATE(xmom(ne,4*mnqpte),ymom(ne,4*mnqpte),xymom(ne,4*mnqpte),STAT = alloc_status(8))
       ALLOCATE(recipHa(mnelred))      
 
       ! Source term arrays
-      ALLOCATE(tau(ne),src_x(ne),src_y(ne),STAT = alloc_status(8))
+      ALLOCATE(tau(ne),src_x(ne),src_y(ne),STAT = alloc_status(9))
 
       ! Flux arrays
-      ALLOCATE(Hflux(ne,4*mnqpte),Zflux(ne,4*mnqpte),Qxflux(ne,4*mnqpte),Qyflux(ne,4*mnqpte),STAT = alloc_status(9))
+      ALLOCATE(Hflux(ne,4*mnqpte),Zflux(ne,4*mnqpte),Qxflux(ne,4*mnqpte),Qyflux(ne,4*mnqpte),STAT = alloc_status(10))
       
       ! Write arrays
-      ALLOCATE(Hwrite(ne,mndof),Zwrite(ne,mndof),Qxwrite(ne,mndof),Qywrite(ne,mndof),STAT = alloc_status(10))
+      ALLOCATE(Hwrite(ne,mndof),Zwrite(ne,mndof),Qxwrite(ne,mndof),Qywrite(ne,mndof),STAT = alloc_status(11))
       
 
 
@@ -402,6 +404,7 @@
       Hflux = 0d0
       Qxflux = 0d0
       Qyflux = 0d0
+      
       
       RETURN
       END SUBROUTINE alloc_sol_arrays

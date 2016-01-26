@@ -121,7 +121,6 @@
       REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: psia,psie,psiv,psic
       REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: dpsidr,dpsids   
       REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: dpsidxi
-      REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: m2n
       REAL(rp), ALLOCATABLE, DIMENSION(:) :: area ! element areas
       REAL(rp), ALLOCATABLE, DIMENSION(:) :: edlen ! element edge lengths
       REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: edlen_area
@@ -131,6 +130,8 @@
       REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: dhbdx,dhbdy ! elemental x and y derivatives of linear bathymetry
       REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: dhbdx_init,dhbdy_init   
       REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: mmi,mmi_init      
+      REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: m2n     
+      REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: ml2,mml
 
       INTEGER :: ned ! total number of edges
       INTEGER, ALLOCATABLE, DIMENSION(:) :: nepn ! number of elements per node
@@ -159,7 +160,7 @@
       REAL(rp), ALLOCATABLE, TARGET, DIMENSION(:,:) :: Z      
       REAL(rp), ALLOCATABLE, TARGET, DIMENSION(:,:) :: Qx ! degrees of freedom for x momentum
       REAL(rp), ALLOCATABLE, TARGET, DIMENSION(:,:) :: Qy ! degrees of freedom for y momentum
-      REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: hbm      
+      REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: hbm                 
       
       REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: Hold,Hinit ! degrees of freedom for water column height
       REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: Zold,Zinit 
@@ -234,6 +235,10 @@
       TYPE(edge_ptr_array), ALLOCATABLE, DIMENSION(:,:) :: Zwrite      
       TYPE(edge_ptr_array), ALLOCATABLE, DIMENSION(:,:) :: Qxwrite
       TYPE(edge_ptr_array), ALLOCATABLE, DIMENSION(:,:) :: Qywrite
+      
+      REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: Znc 
+      REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: Qxnc 
+      REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: Qync       
       
       
       REAL(rp), ALLOCATABLE, DIMENSION(:) :: Qxin,Qyin,Hin,Zin
