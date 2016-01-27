@@ -27,7 +27,7 @@
       !
       !      1) READ_FIXED_FORT_DG
       !         
-      !         * reads old fixed format fort.dg used in dgswem v11.13/dg-adcirc v22
+      !         * reads old fixed format fort.dg used in commit 6ada0d60 and eariler
       !
       !      2) READ_KEYWORD_FORT_DG
       !
@@ -97,7 +97,8 @@
       
       SUBROUTINE read_input()
       
-      USE messenger2, ONLY: abort,dirname,lname,myrank,nthreads
+      USE messenger2, ONLY: dirname,lname,myrank,nthreads
+      USE quit, ONLY: abort
       
       IMPLICIT NONE
       
