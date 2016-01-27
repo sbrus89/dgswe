@@ -6,7 +6,8 @@
                          fbper,obper,pi,deg2rad
                          
       USE allocation, ONLY: alloc_forcing_arrays   
-      USE messenger2, ONLY: finish,myrank
+      USE messenger2, ONLY: myrank
+      USE quit, ONLY: abort
       USE read_dginp, ONLY: forcing_file
 
       IMPLICIT NONE

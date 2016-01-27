@@ -1,6 +1,11 @@
       MODULE output
       
+#ifdef NETCDF
       USE netcdf       
+#endif      
+
+      USE messenger2, ONLY: myrank,dirname,lname
+      USE read_dginp, ONLY: out_direc,grid_file      
        
       IMPLICIT NONE
       INTEGER :: ncid
@@ -25,11 +30,10 @@
       SUBROUTINE nc_setup()
 
       USE globals, ONLY: ne,ndof,mndof,mnnds,ml2,mml,nel_type
-      USE messenger2, ONLY: dirname,lname
 
       IMPLICIT NONE
 
-
+#ifdef NETCDF
       CALL check(NF90_CREATE(dirname(1:lname)//'/'//'solution.nc',NF90_CLOBBER,ncid))
 
       CALL check(NF90_DEF_DIM(ncid,'time',NF90_UNLIMITED,dimID_time))
@@ -63,9 +67,10 @@
           
           
       CALL check(NF90_PUT_VAR(ncid,ml2id,ml2))
-      CALL check(NF90_PUT_VAR(ncid,mmlid,mml))   
+      CALL check(NF90_PUT_VAR(ncid,mmlid,mml))       
           
       nsnap = 1
+#endif      
           
           
       END SUBROUTINE nc_setup
@@ -73,13 +78,11 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!      
         
-      SUBROUTINE write_output(init)
+      SUBROUTINE write_solution(init)
       
       USE globals, ONLY: rp,t,mndof,ne, &
                          Hwrite,Zwrite,Qxwrite,Qywrite, &
                          Znc,Qxnc,Qync
-      USE messenger2, ONLY: myrank
-      USE read_dginp, ONLY: out_direc,grid_file,dt,tf
 
       IMPLICIT NONE
 
@@ -94,17 +97,7 @@
       
         ! Initialize files and write initial condition      
       
-        IF (myrank == 0) THEN
-          PRINT "(A)", "---------------------------------------------"
-          PRINT "(A)", "               Time Stepping                 "
-          PRINT "(A)", "---------------------------------------------"
-          PRINT "(A)", " "
-
-          PRINT "(A,e12.4)", "Time step: ",dt
-          PRINT "(A,e12.4)", "Final time: ",tf
-
-          PRINT "(A)", " "
-        ENDIF      
+ 
 
         OPEN(unit=63,file=trim(out_direc) // 'solution_H.d')
         OPEN(unit=641,file=trim(out_direc) // 'solution_Qx.d')
@@ -146,7 +139,7 @@
       
       
       
-      
+#ifdef NETCDF      
       DO dof = 1,mndof
         DO el = 1,ne
           Znc(el,dof)  = Zwrite(el,dof)%ptr
@@ -167,24 +160,29 @@
       CALL check(NF90_PUT_VAR(ncid,qyid,Qync,var_start,var_end ))
 
       nsnap = nsnap + 1
+#endif      
       
 
       RETURN
       END SUBROUTINE
       
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!                    
-      
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!        
+
       SUBROUTINE close_output()     
       
-      IMPLICIT NONE
+      IMPLICIT NONE      
       
+      INTEGER :: i
       
+
       CLOSE(63)
       CLOSE(641)
       CLOSE(642)
-      
-      CALL check(NF90_CLOSE(ncid))           
+
+#ifdef NETCDF      
+      CALL check(NF90_CLOSE(ncid))
+#endif      
       
       RETURN
       END SUBROUTINE        
@@ -197,13 +195,23 @@
       IMPLICIT NONE
       INTEGER :: status
 
+#ifdef NETCDF      
       IF(status /= NF90_NOERR) THEN
         PRINT("(A,A)"), "fatal error from ", TRIM(NF90_STRERROR(status))  
       ENDIF
+#endif      
                
       END SUBROUTINE check
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!      
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
       
       END MODULE output
+
+      
+      
+      
+      
+
+ 

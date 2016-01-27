@@ -45,6 +45,7 @@
       !         * MODIFICATIONS FOR ADDITION/REMOVAL OF FORT.DG OPTIONS SHOULD BE DONE HERE
       
       USE globals, ONLY: rp
+      USE quit, ONLY: abort
       
       TYPE :: key_val
         CHARACTER(15) :: key            ! keyword
@@ -98,7 +99,6 @@
       SUBROUTINE read_input()
       
       USE messenger2, ONLY: dirname,lname,myrank,nthreads
-      USE quit, ONLY: abort
       
       IMPLICIT NONE
       

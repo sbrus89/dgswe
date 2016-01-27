@@ -186,18 +186,18 @@
           bedn(nbed) = ged
         ENDIF
         
-        IF ((el1 == 1057 .and. el2 == 1013) .or. &
-            (el1 == 1013 .and. el2 == 1057)) THEN
-          check_iedge = nied
-          check_gedge = ged
-#ifndef CMPI
-          PRINT("(6(ES24.17,1x))"), (xy(1,ect(i,1013)), i = 1,3)
-          PRINT("(6(ES24.17,1x))"), (xy(2,ect(i,1013)), i = 1,3)
-
-          PRINT("(6(ES24.17,1x))"), (xy(1,ect(i,1057)), i = 1,3)
-          PRINT("(6(ES24.17,1x))"), (xy(2,ect(i,1057)), i = 1,3)
-#endif
-        ENDIF
+!         IF ((el1 == 1057 .and. el2 == 1013) .or. &
+!             (el1 == 1013 .and. el2 == 1057)) THEN
+!           check_iedge = nied
+!           check_gedge = ged
+! #ifndef CMPI
+!           PRINT("(6(ES24.17,1x))"), (xy(1,ect(i,1013)), i = 1,3)
+!           PRINT("(6(ES24.17,1x))"), (xy(2,ect(i,1013)), i = 1,3)
+! 
+!           PRINT("(6(ES24.17,1x))"), (xy(1,ect(i,1057)), i = 1,3)
+!           PRINT("(6(ES24.17,1x))"), (xy(2,ect(i,1057)), i = 1,3)
+! #endif
+!         ENDIF
 
       ENDDO
 

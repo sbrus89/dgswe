@@ -47,6 +47,17 @@ endif
 #   FFLAGS += -mmic
 # endif
 
+ifeq ($(findstring netcdf,$(OPTS)),netcdf)
+  FFLAGS += -DNETCDF
+  NC_FLAG = true
+endif
+
+
+
+
+
+
+
 FFLAGS += -I$(ODIR)
 OPT_REPORT = -vec_report6 
 # OPT_REPORT = -qopt-report -qopt-report-phase=vec
@@ -104,8 +115,8 @@ endif
 NAME := $(strip $(subst ., , $(FULLNAME)))
 ifeq ($(NAME),chl-tilos)
   LAPACK_LIB = -llapack
-  NETCDF_LIB = -lnetcdf -lnetcdff 
-  NETCDF_INC = -I/usr/local/include
+  NC_LIB = -lnetcdf -lnetcdff 
+  NC_INC = -I/usr/local/include
 endif
 
 ifeq ($(NAME),sbrus-laptop)
@@ -113,20 +124,30 @@ ifeq ($(NAME),sbrus-laptop)
 endif
 
 ifeq ($(filter crc nd edu,$(NAME)),crc nd edu)
- LAPACK_LIB = -Wl,--start-group $(MKLROOT)/lib/intel64/libmkl_intel_lp64.a $(MKLROOT)/lib/intel64/libmkl_sequential.a  $(MKLROOT)/lib/intel64/libmkl_core.a -Wl,--end-group -lpthread -lm
+  LAPACK_LIB = -Wl,--start-group $(MKLROOT)/lib/intel64/libmkl_intel_lp64.a $(MKLROOT)/lib/intel64/libmkl_sequential.a  $(MKLROOT)/lib/intel64/libmkl_core.a -Wl,--end-group -lpthread -lm
 #   LAPACK_LIB = -L./ -llapack -lrefblas -ltmglib
+#   NC_LIB = -L/afs/crc.nd.edu/x86_64_linux/netcdf/4.3.2/lib -lnetcdf -lnetcdff
+#   NC_INC = -I/afs/crc.nd.edu/x86_64_linux/netcdf/4.3.2/include
 endif
 
 ifeq ($(filter tacc utexas edu,$(NAME)),tacc utexas edu)
   LAPACK_LIB =  -Wl,--start-group $(MKLROOT)/lib/intel64/libmkl_intel_lp64.a $(MKLROOT)/lib/intel64/libmkl_core.a $(MKLROOT)/lib/intel64/libmkl_sequential.a -Wl,--end-group -lpthread -lm
+#   NC_LIB = -L${TACC_NETCDF_LIB} -lnetcdf -lnetcdff
+#   NC_INC = -I${TACC_NETCDF_INC}
+endif
+
+ifeq ($(NC_FLAG),true)
+  NETCDF_LIB = $(NC_LIB)
+  NETCDF_INC = $(NC_INC)
+else 
+  NETCDF_LIB = 
+  NETCDF_INC = 
 endif
 
 METIS_LIB = -L../metis-4.0.3 -lmetis
 
-#NETCDF_LIB = -L${TACC_NETCDF_LIB} -lnetcdf -lnetcdff
-#NETCDF_INC = -I${TACC_NETCDF_INC}
-# NETCDF_LIB = -L/afs/crc.nd.edu/x86_64_linux/netcdf/4.3.2/lib -lnetcdf -lnetcdff
-# NETCDF_INC = -I/afs/crc.nd.edu/x86_64_linux/netcdf/4.3.2/include
+
+
 
 ########################################################################
 #                               Objects                                #
@@ -142,7 +163,7 @@ dgswe_objects = globals.o lapack_interfaces.o messenger2.o allocation.o  \
                 rhs2.o rk.o \
                 area_integration.o edge_integration.o  numerical_flux.o linear_solve.o \
                 boundary_edge_land.o boundary_edge_flow.o boundary_edge_elev.o  \
-                output.o modal2nodal.o version.o dgswe.o
+                output.o quit.o modal2nodal.o version.o dgswe.o
 
 dgswe_obj := $(patsubst %.o, $(ODIR)%.o,$(dgswe_objects))
 
@@ -317,7 +338,7 @@ $(ODIR)lapack_interfaces.o : lapack_interfaces.F90
 	$(FC) $(FFLAGS) -c $< -o $@
 	mv lapack_interfaces.mod $(ODIR)
 
-$(ODIR)messenger2.o : messenger2.F90                           $(ODIR)globals.o 
+$(ODIR)messenger2.o : messenger2.F90                           $(ODIR)globals.o $(ODIR)quit.o
 	$(FC) $(FFLAGS) -c $< -o $@
 	mv messenger2.mod $(ODIR)
 
@@ -329,7 +350,7 @@ $(ODIR)basis.o : basis.F90                                     $(ODIR)globals.o 
 	$(FC) $(FFLAGS) -c $< -o $@
 	mv basis.mod $(ODIR)
 	
-$(ODIR)read_input.o : read_input.F90                           $(ODIR)globals.o $(ODIR)messenger2.o
+$(ODIR)read_input.o : read_input.F90                           $(ODIR)globals.o $(ODIR)messenger2.o $(ODIR)quit.o
 	$(FC) $(FFLAGS) -c $< -o $@
 	mv read_dginp.mod $(ODIR)
 
@@ -346,8 +367,12 @@ $(ODIR)transformation.o : transformation.F90                   $(ODIR)globals.o 
 	mv transformation.mod $(ODIR)
 	
 $(ODIR)output.o : output.F90                                   $(ODIR)globals.o $(ODIR)messenger2.o $(ODIR)read_input.o
-	$(FC) $(FFLAGS) -c $< -o $@
+	$(FC) $(FFLAGS) $(NETCDF_INC) -c $< -o $@
 	mv output.mod $(ODIR)
+	
+$(ODIR)quit.o : quit.F90                                       $(ODIR)globals.o
+	$(FC) $(FFLAGS) -c $< -o $@
+	mv quit.mod $(ODIR)
 	
 
 $(ODIR)area_qpts.o : area_qpts.F90                             $(ODIR)globals.o $(ODIR)messenger2.o $(ODIR)read_input.o $(ODIR)allocation.o
@@ -356,10 +381,10 @@ $(ODIR)area_qpts.o : area_qpts.F90                             $(ODIR)globals.o 
 $(ODIR)edge_qpts.o : edge_qpts.F90                             $(ODIR)globals.o $(ODIR)messenger2.o $(ODIR)read_input.o $(ODIR)allocation.o
 	$(FC) $(FFLAGS) -c $< -o $@
 
-$(ODIR)read_grid.o : read_grid.F90                             $(ODIR)globals.o $(ODIR)messenger2.o $(ODIR)read_input.o $(ODIR)allocation.o
+$(ODIR)read_grid.o : read_grid.F90                             $(ODIR)globals.o $(ODIR)messenger2.o $(ODIR)read_input.o $(ODIR)allocation.o $(ODIR)quit.o
 	$(FC) $(FFLAGS) -c $< -o $@
 
-$(ODIR)read_forcing.o : read_forcing.F90                       $(ODIR)globals.o $(ODIR)messenger2.o $(ODIR)read_input.o $(ODIR)allocation.o
+$(ODIR)read_forcing.o : read_forcing.F90                       $(ODIR)globals.o $(ODIR)messenger2.o $(ODIR)read_input.o $(ODIR)allocation.o $(ODIR)quit.o
 	$(FC) $(FFLAGS) -c $< -o $@
 
 $(ODIR)modal2nodal.o : modal2nodal.F90                         $(ODIR)globals.o  $(ODIR)read_input.o $(ODIR)basis.o
@@ -404,7 +429,7 @@ $(ODIR)edge_integration.o : edge_integration.F90               $(ODIR)globals.o 
 $(ODIR)bathymetry_interp.o : bathymetry_interp.F90             $(ODIR)globals.o $(ODIR)lapack_interfaces.o $(ODIR)read_input.o $(ODIR)transformation.o
 	$(FC) $(FFLAGS) -c $< -o $@
 
-$(ODIR)rk.o : rk.F90                                           $(ODIR)globals.o $(ODIR)messenger2.o $(ODIR)read_input.o
+$(ODIR)rk.o : rk.F90                                           $(ODIR)globals.o $(ODIR)messenger2.o $(ODIR)read_input.o $(ODIR)output.o $(ODIR)quit.o
 	$(FC) $(FFLAGS) $(OPT_REPORT) -c $< -o $@
 
 $(ODIR)rhs2.o : rhs2.F90                                       $(ODIR)globals.o $(ODIR)messenger2.o $(ODIR)read_input.o
@@ -431,7 +456,7 @@ $(ODIR)linear_solve.o : linear_solve.F90                       $(ODIR)globals.o
 $(ODIR)version.o : version.F90                                 $(ODIR)globals.o $(ODIR)messenger2.o 
 	$(FC) $(FFLAGS) -c $< -o $@
 
-$(ODIR)dgswe.o : dgswe.F90                                     $(ODIR)globals.o $(ODIR)messenger2.o $(ODIR)read_input.o $(ODIR)allocation.o $(ODIR)basis.o $(ODIR)output.o
+$(ODIR)dgswe.o : dgswe.F90                                     $(ODIR)globals.o $(ODIR)messenger2.o $(ODIR)read_input.o $(ODIR)allocation.o $(ODIR)basis.o $(ODIR)output.o 
 	$(FC) $(FFLAGS) -c $< -o $@
 
 # prep file targets

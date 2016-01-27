@@ -5,6 +5,7 @@
                          Hold,H,MirhsH,Zold,Z,MirhsZ,Qxold,Qx,MirhsQx,Qyold,Qy,MirhsQy  
                          
       USE read_dginp, ONLY: npart,dt,dramp,rk_type
+      USE quit, ONLY: abort
 
       IMPLICIT NONE
       
@@ -178,6 +179,7 @@
         CASE DEFAULT
         
           PRINT*, "Time-stepping option not availiable: ", rk_type
+          CALL abort()
           
       END SELECT          
       
@@ -299,7 +301,8 @@
                          nel_type,elblk,npartet, &
                          t
                          
-      USE messenger2, ONLY: finish 
+      USE quit, ONLY: abort 
+      USE output, ONLY: write_solution,close_output
       USE read_dginp, ONLY: npart
       
       IMPLICIT NONE
@@ -316,8 +319,9 @@
 !                 IF (H(el,dof) /= H(el,dof)) THEN
                 IF (Z(el,dof) /= Z(el,dof)) THEN
                   PRINT*, "NaN detected in H solution"
-                  PRINT("(A,e15.8)"), 't = ', t
-                  CALL write_output()
+                  PRINT("(A,e15.8)"), 't = ', t                  
+                  CALL write_solution(.false.)
+                  CALL close_output()
                   CALL abort()
                 ENDIF
               ENDDO
@@ -326,7 +330,8 @@
                 IF (Qx(el,dof) /= Qx(el,dof)) THEN
                   PRINT*, "NaN detected in Qx solution"
                   PRINT("(A,e15.8)"), 't = ', t
-                  CALL write_output()
+                  CALL write_solution(.false.)
+                  CALL close_output()                  
                   CALL abort()
                 ENDIF
               ENDDO
@@ -335,7 +340,8 @@
                 IF (Qy(el,dof) /= Qy(el,dof)) THEN
                   PRINT*, "NaN detected in Qy solution"
                   PRINT("(A,e15.8)"), 't = ', t
-                  CALL write_output()
+                  CALL write_solution(.false.)
+                  CALL close_output()                  
                   CALL abort()
                 ENDIF
               ENDDO

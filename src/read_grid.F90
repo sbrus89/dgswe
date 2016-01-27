@@ -6,7 +6,8 @@
                          r_earth,deg2rad
                          
       USE allocation, ONLY: alloc_grid_arrays     
-      USE messenger2, ONLY: finish,myrank
+      USE messenger2, ONLY: myrank
+      USE quit, ONLY: abort
       USE read_dginp, ONLY: grid_file,ctp,hbp,bathy_file,h0,coord_sys,slam0,sphi0
 
       IMPLICIT NONE

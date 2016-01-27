@@ -7,6 +7,7 @@
       USE messenger2
       USE read_dginp
       USE output
+      USE quit
 
       IMPLICIT NONE
       INTEGER :: it,tskp,cnt
@@ -94,7 +95,23 @@
       t = 0d0
       cnt = 0
  
-      CALL write_output(.true.)
+      CALL write_solution(.true.)
+      
+      
+      
+      IF (myrank == 0) THEN
+        PRINT "(A)", "---------------------------------------------"
+        PRINT "(A)", "               Time Stepping                 "
+        PRINT "(A)", "---------------------------------------------"
+        PRINT "(A)", " "
+
+        PRINT "(A,e12.4)", "Time step: ",dt
+        PRINT "(A,e12.4)", "Final time: ",tf
+
+        PRINT "(A)", " "
+      ENDIF           
+      
+      
 
       DO it = 1,tstep
 
@@ -105,7 +122,7 @@
          cnt = cnt + 1
          IF(cnt == tskp) THEN
 
-           CALL write_output(.false.)             
+           CALL write_solution(.false.)             
            cnt = 0
 
          ENDIF
@@ -113,7 +130,7 @@
       ENDDO
 
       
-      CALL end_time(t_start)
+      CALL end_time(t_start,nproc)
       
       
 
@@ -135,6 +152,9 @@
 !       WRITE(101,*) " "
 !       CLOSE(101)      
       
+      
+      
+      CALL close_output()
       CALL finish()
       
       END PROGRAM swe_tri

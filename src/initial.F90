@@ -108,34 +108,7 @@
 
       Qxinit(:,:) = 0d0
       Qyinit(:,:) = 0d0
-      Zinit(:,:) = 0d0
-      
-
-! !       Write initial condition
-! 
-!       OPEN(unit=63,file=trim(out_direc) // 'solution_H.d')
-!       OPEN(unit=641,file=trim(out_direc) // 'solution_Qx.d')
-!       OPEN(unit=642,file=trim(out_direc) // 'solution_Qy.d')
-!       
-!       WRITE(63,"(A)") grid_file
-!       WRITE(63,"(e24.17)") 0d0
-!       DO dof = 1,mndof
-! !         WRITE(63,"(16000(e24.17,1x))") (Hinit(el,dof),el=1,ne)
-!         WRITE(63,"(16000(e24.17,1x))") (Zinit(el,dof),el=1,ne)
-!       ENDDO
-! 
-!       WRITE(641,"(A)") grid_file
-!       WRITE(641,"(e24.17)") 0d0
-!       DO dof = 1,mndof
-!         WRITE(641,"(16000(e24.17,1x))") (Qxinit(el,dof),el=1,ne)
-!       ENDDO
-! 
-!       WRITE(642,"(A)") grid_file
-!       WRITE(642,"(e24.17)") 0d0
-!       DO dof = 1,mndof
-!         WRITE(642,"(16000(e24.17,1x))") (Qyinit(el,dof),el=1,ne)
-!       ENDDO
-
+      Zinit(:,:) = 0d0      
 
 
 
