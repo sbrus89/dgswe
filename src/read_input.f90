@@ -8,7 +8,7 @@
       INTEGER :: inp_read,skipped
       CHARACTER(55) :: temp
       
-      OPEN(unit=15,file='dgswe.inp')
+      OPEN(unit=15,file='spline.inp')
       
       PRINT "(A)", "---------------------------------------------"
       PRINT "(A)", "             Input Information               "

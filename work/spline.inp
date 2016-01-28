@@ -1,0 +1,48 @@
+!../galveston_tri.grd                                            ! grid file
+!../galveston.bfr                                                ! forcing file
+!1                                                               ! p - polynomial order
+!1                                                               ! ctp - parametric coordinate transformation order
+!2d0                                                             ! dt - timestep
+!4d0                                                             ! tf - final time (days)
+!.5d0                                                            ! dramp - ramping parameter (days)
+!.003d0                                                          ! cf - friction coefficient
+!48d0                                                            ! lines - lines in output files
+!./                                                              ! output directory
+!1                                                               ! npart - edge blocking parameter
+
+!../converge1_dble.grd                                           ! grid file  
+!../galveston.bfr                                                ! forcing file
+!1                                                               ! p - polynomial order
+!2                                                               ! ctp - parametric coordinate transformation order
+!2d0                                                             ! dt - timestep 
+!4d0                                                             ! tf - final time (days)
+!.5d0                                                            ! dramp - ramping parameter (days)
+!.003d0                                                          ! cf - friction coefficient 
+!48d0                                                            ! lines - lines in output files
+!./                                                              ! output directory
+!1                                                               ! npart - edge blocking parameter
+
+../galveston_tri_curve.grd                                       ! grid file  
+../galveston.bfr                                                 ! forcing file
+1                                                                ! p - polynomial order
+2                                                                ! ctp - parametric coordinate transformation order
+2d0                                                              ! dt - timestep 
+4d0                                                              ! tf - final time (days)
+.5d0                                                             ! dramp - ramping parameter (days)
+.003d0                                                           ! cf - friction coefficient 
+48d0                                                             ! lines - lines in output files
+./                                                               ! output directory
+1                                                                ! npart - edge blocking parameter
+
+!../galveston_curve.grd                                          ! grid file
+!../galveston.bfr                                                ! forcing file
+!1                                                               ! p - polynomial order
+!2                                                               ! ctp - parametric coordinate transformation order
+!2d0                                                             ! dt - timestep
+!4d0                                                             ! tf - final time (days)
+!.5d0                                                            ! dramp - ramping parameter (days)
+!.003d0                                                          ! cf - friction coefficient
+!48d0                                                            ! lines - lines in output files
+!./                                                              ! output directory
+!1                                                               ! npart - edge blocking parameter
+

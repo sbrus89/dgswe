@@ -4,7 +4,7 @@ clc
 
 t = 0:.00001:1;
 
-file = fopen('spline.out');
+file = fopen('work/spline.out');
 
 figure
 
@@ -72,7 +72,7 @@ fclose(file);
 
 hold on
 
-fid = fopen('nodes.out') ;
+fid = fopen('work/nodes.out') ;
 
 agrid = fgetl(fid) ;
 disp(agrid) ;
