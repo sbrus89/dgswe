@@ -6,7 +6,7 @@
                          mnelnds,minedlen
 
       IMPLICIT NONE
-      INTEGER :: i,j,k,n,seg,sind,eind,num,qpts,btype
+      INTEGER :: i,j,k,n,seg,sind,eind,num,qpts,btype,nmax
       INTEGER :: el,eln,nd,ndn,led,n1ed1,n2ed1,n1bed,n2bed,n3bed,n4bed,nvert
       REAL(pres) :: htest,mult,dt,t,tpt,x,y,xs,ys,r,sig
       REAL(pres) :: d1,d2,d3,t1,t2,xm,ym
@@ -27,23 +27,30 @@
       sig = 1d0
       
       num = 0
+      nmax = 0 
       DO seg = 1,nbou
-        IF(fbseg(2,seg) == 10 .OR. fbseg(2,seg) == 11 .OR. fbseg(2,seg) == 101)THEN
-!         IF(fbseg(2,seg) == 10 .OR. fbseg(2,seg) == 11 )THEN
+        IF(fbseg(2,seg) == 10 .OR. fbseg(2,seg) == 11 .OR. fbseg(2,seg) == 101)THEN          
           num = num + 1
+          IF (fbseg(1,seg) > nmax) THEN
+            nmax = fbseg(1,seg)
+          ENDIF
         ENDIF
       ENDDO
 
       PRINT "(A)", " "
       PRINT "(A,I5)", "Total number of type 0 normal flow boundaries ",num
+      PRINT "(A,I5)", "Max number of nodes in a flow boundary segment ",nmax
       PRINT "(A)", " "
+      
+      ALLOCATE(ax(nmax),cx(nmax),bx(nmax-1),dx(nmax-1))
+      ALLOCATE(ay(nmax),cy(nmax),by(nmax-1),dy(nmax-1))
+      ALLOCATE(Ml(nmax),Md(nmax),Mu(nmax),v(nmax))      
 
       WRITE(30,*) num
 
       DO seg = 1,nbou
 
         IF(fbseg(2,seg) == 10 .OR. fbseg(2,seg) == 11 .OR. fbseg(2,seg) == 101)THEN
-!         IF(fbseg(2,seg) == 10 .OR. fbseg(2,seg) == 11)THEN        
           n = fbseg(1,seg)    ! n nodes, n-1 subintervals
 
           PRINT "(A)", " "
@@ -54,9 +61,9 @@
 !           PAUSE
   
 
-          ALLOCATE(ax(n),cx(n),bx(n-1),dx(n-1))
-          ALLOCATE(ay(n),cy(n),by(n-1),dy(n-1))
-          ALLOCATE(Ml(n),Md(n),Mu(n),v(n))
+!           ALLOCATE(ax(n),cx(n),bx(n-1),dx(n-1))
+!           ALLOCATE(ay(n),cy(n),by(n-1),dy(n-1))
+!           ALLOCATE(Ml(n),Md(n),Mu(n),v(n))
 
           dt = 1.0/(real(n,pres)-1.0)
 
@@ -323,9 +330,9 @@
           WRITE(30,"(4(E25.12))"), ay(n),0.0,0.0,0.0
 
 
-          DEALLOCATE(ax,bx,cx,dx)
-          DEALLOCATE(ay,by,cy,dy)
-          DEALLOCATE(Ml,Md,Mu,v)
+!           DEALLOCATE(ax,bx,cx,dx)
+!           DEALLOCATE(ay,by,cy,dy)
+!           DEALLOCATE(Ml,Md,Mu,v)
 
         ENDIF
 
