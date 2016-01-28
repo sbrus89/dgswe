@@ -4,6 +4,8 @@
                          nope,neta,obnds,nbou,nvel,fbseg,fbnds, &
                          nepn,epn,nverts,el_type, &
                          mnelnds,minedlen
+                         
+      USE calc_spline, ONLY: cubic_spline                         
 
       IMPLICIT NONE
       INTEGER :: i,j,k,n,seg,sind,eind,num,qpts,btype,nmax
@@ -59,15 +61,8 @@
           PRINT "(A)", " "
 
 !           PAUSE
-  
+ 
 
-!           ALLOCATE(ax(n),cx(n),bx(n-1),dx(n-1))
-!           ALLOCATE(ay(n),cy(n),by(n-1),dy(n-1))
-!           ALLOCATE(Ml(n),Md(n),Mu(n),v(n))
-
-          dt = 1.0/(real(n,rp)-1.0)
-
-          PRINT*, dt
 
           !!!!!!!!!!!!!!!!!!!
           ! x value spline 
@@ -80,66 +75,8 @@
             k = k+1
           ENDDO
 
-! No tension         
-!           ! Set up matrix 
-!           Ml(1) = 0d0
-!           Md(1) = 1d0
-!           Mu(1) = 0d0
-!           DO i = 2,n-1
-!             Ml(i) = dt
-!             Md(i) = 4d0*dt
-!             Mu(i) = dt
-!           ENDDO
-!           Ml(n) = 0d0
-!           Md(n) = 1d0
-!           Mu(n) = 0d0
-! 
-!           ! Set up RHS
-!           v(1) = 0d0
-!           DO i = 2,n-1
-!             v(i) = 3d0/dt*(ax(i+1)-2d0*ax(i)+ax(i-1))
-!           ENDDO
-!           v(n) = 0d0
+          CALL cubic_spline(sig,n,ax,bx,cx,dx,dt)
 
-! With tension
-          ! Set up matrix 
-          Ml(1) = 0d0
-          Md(1) = 1d0
-          Mu(1) = 0d0
-          DO i = 2,n-1
-            Ml(i) = (2d0/sig**2)*(1d0/dt-sig/sinh(sig*dt))
-            Md(i) = (4d0/sig**2)*((sig*cosh(sig*dt))/sinh(sig*dt)-1d0/dt)
-            Mu(i) = (2d0/sig**2)*(1d0/dt-sig/sinh(sig*dt))
-          ENDDO
-          Ml(n) = 0d0
-          Md(n) = 1d0
-          Mu(n) = 0d0
-
-          ! Set up RHS
-          v(1) = 0d0
-          DO i = 2,n-1
-            v(i) = 1d0/dt*(ax(i+1)-2d0*ax(i)+ax(i-1))
-          ENDDO
-          v(n) = 0d0
-
-          ! Solve system for c coefficients, forward sweep
-          DO i = 2,n
-            mult = Ml(i)/Md(i-1)
-            Md(i) = Md(i) - mult*Mu(i-1)
-            v(i) = v(i) - mult*v(i-1)
-          ENDDO
-
-          ! Solve system for c coefficients, backward sweep
-          cx(n) = v(n)/Md(n)
-          DO i = n-1,1,-1
-            cx(i) = (v(i) - Mu(i)*cx(i+1))/Md(i)
-          ENDDO
-
-          ! Solve for other coefficients d and b
-          DO i = 1,n-1
-            dx(i) = (cx(i+1)-cx(i))/(3.0*dt)
-            bx(i) = (ax(i+1)-ax(i))/dt - dt*(2.0*cx(i)+cx(i+1))/3.0
-          ENDDO
 
           !!!!!!!!!!!!!!!!!!!
           ! y value spline 
@@ -152,67 +89,10 @@
             k = k+1
           ENDDO
 
-! No tension          
-!           ! Set up matrix 
-!           Ml(1) = 0d0
-!           Md(1) = 1d0
-!           Mu(1) = 0d0
-!           DO i = 2,n-1
-!             Ml(i) = dt
-!             Md(i) = 4d0*dt
-!             Mu(i) = dt
-!           ENDDO
-!           Ml(n) = 0d0
-!           Md(n) = 1d0
-!           Mu(n) = 0d0
-! 
-!           ! Set up RHS
-!           v(1) = 0d0
-!           DO i = 2,n-1
-!             v(i) = 3d0/dt*(ay(i+1)-2d0*ay(i)+ay(i-1))
-!           ENDDO
-!           v(n) = 0d0
+          CALL cubic_spline(sig,n,ay,by,cy,dy,dt)
           
-! With tension          
-          ! Set up matrix 
-          Ml(1) = 0d0
-          Md(1) = 1d0
-          Mu(1) = 0d0
-          DO i = 2,n-1
-            Ml(i) = (2d0/sig**2)*(1d0/dt-sig/sinh(sig*dt))
-            Md(i) = (4d0/sig**2)*((sig*cosh(sig*dt))/sinh(sig*dt)-1d0/dt)
-            Mu(i) = (2d0/sig**2)*(1d0/dt-sig/sinh(sig*dt))
-          ENDDO
-          Ml(n) = 0d0
-          Md(n) = 1d0
-          Mu(n) = 0d0       
           
-          ! Set up RHS
-          v(1) = 0d0
-          DO i = 2,n-1
-            v(i) = 1d0/dt*(ay(i+1)-2d0*ay(i)+ay(i-1))
-          ENDDO
-          v(n) = 0d0          
-
-          ! Solve system for c coefficients, forward sweep
-          DO i = 2,n
-            mult = Ml(i)/Md(i-1)
-            Md(i) = Md(i) - mult*Mu(i-1)
-            v(i) = v(i) - mult*v(i-1)
-          ENDDO
-
-          ! Solve system for c coefficients, backward sweep
-          cy(n) = v(n)/Md(n)
-          DO i = n-1,1,-1
-            cy(i) = (v(i) - Mu(i)*cy(i+1))/Md(i)
-          ENDDO
-
-          ! Solve for other coefficients d and b
-          DO i = 1,n-1
-            dy(i) = (cy(i+1)-cy(i))/(3.0*dt)
-            by(i) = (ay(i+1)-ay(i))/dt - dt*(2.0*cy(i)+cy(i+1))/3.0
-          ENDDO
-          
+          PRINT*, dt          
           
           t = 0d0
           DO nd = 1,n-1
@@ -329,10 +209,6 @@
           ENDDO
           WRITE(30,"(4(E25.12))"), ay(n),0.0,0.0,0.0
 
-
-!           DEALLOCATE(ax,bx,cx,dx)
-!           DEALLOCATE(ay,by,cy,dy)
-!           DEALLOCATE(Ml,Md,Mu,v)
 
         ENDIF
 
