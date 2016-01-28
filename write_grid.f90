@@ -1,6 +1,6 @@
       SUBROUTINE write_grid()
 
-      USE globals, ONLY: pres,ne,nn,ctp,xy,ect,depth,nelnds, &
+      USE globals, ONLY: ne,nn,ctp,xy,ect,depth,nelnds, &
                          nope,neta,obnds,obseg,nbou,nvel,fbseg,fbnds, &
                          mnelnds
 

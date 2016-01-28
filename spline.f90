@@ -1,6 +1,6 @@
       PROGRAM spline
 
-      USE globals, ONLY: pres,ne,nn,ctp,xy,ect,vct,depth,nelnds, &
+      USE globals, ONLY: rp,ne,nn,ctp,xy,ect,vct,depth,nelnds, &
                          nope,neta,obnds,nbou,nvel,fbseg,fbnds, &
                          nepn,epn,nverts,el_type, &
                          mnelnds,minedlen
@@ -8,13 +8,13 @@
       IMPLICIT NONE
       INTEGER :: i,j,k,n,seg,sind,eind,num,qpts,btype,nmax
       INTEGER :: el,eln,nd,ndn,led,n1ed1,n2ed1,n1bed,n2bed,n3bed,n4bed,nvert
-      REAL(pres) :: htest,mult,dt,t,tpt,x,y,xs,ys,r,sig
-      REAL(pres) :: d1,d2,d3,t1,t2,xm,ym
-      REAL(pres) :: n1x,n1y,n2x,n2y,n3x,n3y,n4x,n4y,edlen
-      REAL(pres) :: newton,angle,theta1,theta2
-      REAL(pres), ALLOCATABLE, DIMENSION(:) :: ax,bx,cx,dx
-      REAL(pres), ALLOCATABLE, DIMENSION(:) :: ay,by,cy,dy
-      REAL(pres), ALLOCATABLE, DIMENSION(:) :: Ml,Md,Mu,v
+      REAL(rp) :: htest,mult,dt,t,tpt,x,y,xs,ys,r,sig
+      REAL(rp) :: d1,d2,d3,t1,t2,xm,ym
+      REAL(rp) :: n1x,n1y,n2x,n2y,n3x,n3y,n4x,n4y,edlen
+      REAL(rp) :: newton,angle,theta1,theta2
+      REAL(rp), ALLOCATABLE, DIMENSION(:) :: ax,bx,cx,dx
+      REAL(rp), ALLOCATABLE, DIMENSION(:) :: ay,by,cy,dy
+      REAL(rp), ALLOCATABLE, DIMENSION(:) :: Ml,Md,Mu,v
 
       OPEN(unit=30,file='spline.out')
       
@@ -65,7 +65,7 @@
 !           ALLOCATE(ay(n),cy(n),by(n-1),dy(n-1))
 !           ALLOCATE(Ml(n),Md(n),Mu(n),v(n))
 
-          dt = 1.0/(real(n,pres)-1.0)
+          dt = 1.0/(real(n,rp)-1.0)
 
           PRINT*, dt
 
@@ -268,7 +268,7 @@
                    print*, "  ", eln
                    
                    DO i = 1,ctp-1
-                     r = -1d0 + real(i,pres)*2d0/real(ctp,pres)
+                     r = -1d0 + real(i,rp)*2d0/real(ctp,rp)
                      tpt = .5d0*dt*(r + 1d0) + t               
                      
                      xm = .5d0*(1d0-r)*n1x + .5d0*(1d0+r)*n2x
@@ -351,13 +351,13 @@
       
       IMPLICIT NONE      
       
-      INTEGER, PARAMETER :: pres = kind(0d0)
+      INTEGER, PARAMETER :: rp = kind(0d0)
       INTEGER :: it,maxit
-      REAL(pres) :: told,tnew,t
-      REAL(pres) :: xm,ym
-      REAL(pres) :: ax,bx,cx,dx,ay,by,cy,dy
-      REAL(pres) :: f,fp,fpp,g,gp,gpp
-      REAL(pres) :: d,dp,tol
+      REAL(rp) :: told,tnew,t
+      REAL(rp) :: xm,ym
+      REAL(rp) :: ax,bx,cx,dx,ay,by,cy,dy
+      REAL(rp) :: f,fp,fpp,g,gp,gpp
+      REAL(rp) :: d,dp,tol
       
       tol = 1d-4
       maxit = 10000
@@ -403,11 +403,11 @@ iter: DO it = 1,maxit
       
       IMPLICIT NONE  
       
-      INTEGER, PARAMETER :: pres = kind(0d0)
-      REAL(pres), PARAMETER  ::  pi=3.141592653589793D0
-      REAL(pres) :: x1,x2,x3,xy,y1,y2,y3,y4
-      REAL(pres) :: xv1,xv2,yv1,yv2
-      REAL(pres) :: adotb,la,lb
+      INTEGER, PARAMETER :: rp = kind(0d0)
+      REAL(rp), PARAMETER  ::  pi=3.141592653589793D0
+      REAL(rp) :: x1,x2,x3,xy,y1,y2,y3,y4
+      REAL(rp) :: xv1,xv2,yv1,yv2
+      REAL(rp) :: adotb,la,lb
       
       
       xv1 = x1-x2

@@ -1,16 +1,16 @@
       MODULE globals
       IMPLICIT NONE
 
-      INTEGER, PARAMETER :: pres = kind(1d0) ! precision 
+      INTEGER, PARAMETER :: rp = kind(1d0) ! precision 
       INTEGER :: p ! polynomial order      
       INTEGER :: ne ! number of elements
       INTEGER :: nn ! number of nodes
       INTEGER :: npart ! number of element partitions      
-      REAL(pres) :: cf ! bottom friction parameter  
-      REAL(pres) :: dt ! time step 
-      REAL(pres) :: tf ! final time      
-      REAL(pres) :: dramp ! numer of ramp days      
-      REAL(pres) :: lines ! number of lines in output files      
+      REAL(rp) :: cf ! bottom friction parameter  
+      REAL(rp) :: dt ! time step 
+      REAL(rp) :: tf ! final time      
+      REAL(rp) :: dramp ! numer of ramp days      
+      REAL(rp) :: lines ! number of lines in output files      
       CHARACTER(50) :: grid_name ! name of the grid
       CHARACTER(50) :: grid_file ! name of fort.14 file
       CHARACTER(50) :: forcing_file ! name of fort.15 file      
@@ -26,10 +26,10 @@
       INTEGER, ALLOCATABLE, DIMENSION(:,:) :: ect,vct ! element connectivity table
       INTEGER, ALLOCATABLE, DIMENSION(:) :: nelnds
       INTEGER :: mnelnds      
-      REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: xy ! x,y coordinates of nodes
-      REAL(pres), ALLOCATABLE, DIMENSION(:,:,:) :: elxy    
-      REAL(pres), ALLOCATABLE, DIMENSION(:) :: depth ! depth at each node
-      REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: elhb        
+      REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: xy ! x,y coordinates of nodes
+      REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: elxy    
+      REAL(rp), ALLOCATABLE, DIMENSION(:) :: depth ! depth at each node
+      REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: elhb        
 
       INTEGER :: nope ! number of open boundary segents
       INTEGER, ALLOCATABLE, DIMENSION(:) :: obseg ! number of nodes in each open boundary segment
@@ -59,7 +59,7 @@
       INTEGER, ALLOCATABLE, DIMENSION(:) :: nfbedn ! array of no normal flow boundary edge numbers   
       
       
-      REAL(pres), ALLOCATABLE, DIMENSION(:) :: minedlen,edlen
+      REAL(rp), ALLOCATABLE, DIMENSION(:) :: minedlen,edlen
  
    
 
