@@ -8,7 +8,7 @@ FFLAGS = -O2 -C -g -traceback
 LIB = -llapack
 
 
-spline_objects = globals.o calc_spline.o read_grid.o read_input.o connect.o write_grid.o spline.o
+spline_objects = globals.o calc_spline.o check.o read_grid.o read_input.o connect.o write_grid.o spline.o
 spline_obj := $(patsubst %.o, $(ODIR)%.o,$(spline_objects)) 
 FFLAGS += -I$(ODIR)
 
@@ -35,9 +35,13 @@ $(ODIR)globals.o: globals.f90
 	$(FC) $(FFLAGS) -c $< -o $@
 	mv globals.mod $(ODIR)
 	
-$(ODIR)calc_spline.o: calc_spline.f90
+$(ODIR)calc_spline.o: calc_spline.f90                       $(ODIR)globals.o
 	$(FC) $(FFLAGS) -c $< -o $@
 	mv calc_spline.mod $(ODIR)
+	
+$(ODIR)check.o: check.f90                                    $(ODIR)globals.o
+	$(FC) $(FFLAGS) -c $< -o $@
+	mv check.mod $(ODIR)
 
 $(ODIR)spline.o: spline.f90                                  $(ODIR)globals.o  $(ODIR)calc_spline.o
 	$(FC) $(FFLAGS) -c $< -o $@

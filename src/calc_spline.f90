@@ -1,12 +1,16 @@
       MODULE calc_spline
       
+      USE globals, ONLY: rp      
+      
+      IMPLICIT NONE
+      
       
       
       CONTAINS
       
-      SUBROUTINE cubic_spline(sig,n,a,b,c,d,dt)
+      SUBROUTINE calc_cubic_spline(sig,n,a,b,c,d,dt)
 
-      USE globals, ONLY: rp
+
       
       IMPLICIT NONE
       
@@ -98,6 +102,87 @@
       
       
       RETURN
-      END SUBROUTINE cubic_spline
+      END SUBROUTINE calc_cubic_spline
+                  
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!   
+
+      SUBROUTINE eval_cubic_spline(t,ti,a,b,c,d,f,fp,fpp)
+      
+      IMPLICIT NONE
+      
+      REAL(rp), INTENT(IN) :: t,ti
+      REAL(rp), INTENT(IN) :: a,b,c,d
+      REAL(rp), INTENT(OUT) :: f
+      REAL(rp), INTENT(OUT), OPTIONAL :: fp,fpp
+      
+      f = a + b*(t-ti) + c*(t-ti)**2 + d*(t-ti)**3
+      
+      IF (PRESENT(fp)) THEN
+        fp = b + 2d0*c*(t-ti) + 3d0*d*(t-ti)**2
+      ENDIF 
+      
+      IF (PRESENT(fpp)) THEN
+        fpp = 2d0*c + 6d0*d*(t-ti)
+      ENDIF
+      
+      
+      
+      RETURN
+      END SUBROUTINE eval_cubic_spline
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      
+      SUBROUTINE newton(t,ti,xm,ym,ax,bx,cx,dx,ay,by,cy,dy,x,y)
+      
+      IMPLICIT NONE      
+      
+      INTEGER :: it,maxit
+      REAL(rp), INTENT(INOUT) :: t
+      REAL(rp), INTENT(IN) :: ti
+      REAL(rp), INTENT(IN) :: xm,ym
+      REAL(rp), INTENT(IN) :: ax,bx,cx,dx,ay,by,cy,dy
+      REAL(rp), INTENT(OUT) :: x,y
+      REAL(rp) :: f,fp,fpp,g,gp,gpp
+      REAL(rp) :: d,dp,tol
+      
+      tol = 1d-4
+      maxit = 10000
+      
+iter: DO it = 1,maxit
+
+        CALL eval_cubic_spline(t,ti,ax,bx,cx,dx,f,fp,fpp)               
+        CALL eval_cubic_spline(t,ti,ay,by,cy,dy,g,gp,gpp)
+        
+        d = 2d0*(f-xm)*fp + 2d0*(g-ym)*gp
+        dp = 2d0*fp**2 + 2d0*(f-xm)*fpp + 2d0*gp**2 + 2d0*(g-ym)*gpp
+        
+        t = t - d/dp
+        
+        IF (ABS(d) < tol) THEN
+!           PRINT*, "iterations", it
+!           PRINT*, d
+          EXIT iter
+        ENDIF
+        
+        
+      ENDDO iter
+      
+      CALL eval_cubic_spline(t,ti,ax,bx,cx,dx,x)
+      CALL eval_cubic_spline(t,ti,ay,by,cy,dy,y)
+      
+      IF (it >= maxit) THEN
+        PRINT*, "MAX ITERATIONS EXCEEDED"
+      ENDIF     
+
+      
+      RETURN 
+      END SUBROUTINE newton      
+      
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!      
+
       
       END MODULE calc_spline
