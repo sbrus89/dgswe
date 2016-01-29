@@ -1,3 +1,5 @@
+
+      
       SUBROUTINE write_grid(mesh)
 
       USE globals, ONLY: grid,ctp
@@ -39,3 +41,40 @@
 
       RETURN
       END SUBROUTINE write_grid
+      
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!      
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
+
+
+      SUBROUTINE write_spline(n,dt)
+      
+      USE globals, ONLY: rp,ax,bx,cx,dx,ay,by,cy,dy
+      
+      IMPLICIT NONE
+           
+      INTEGER :: n
+      REAL(rp) :: dt
+      
+      INTEGER :: i
+      
+      WRITE(30,*) n,dt
+
+      DO i = 1,n-1
+        WRITE(30,"(4(E25.12))"), ax(i),bx(i),cx(i),dx(i)
+      ENDDO
+      WRITE(30,"(4(E25.12))"), ax(n),0d0,0d0,0d0
+
+      DO i = 1,n-1
+        WRITE(30,"(4(E25.12))"), ay(i),by(i),cy(i),dy(i)
+      ENDDO
+      WRITE(30,"(4(E25.12))"), ay(n),0d0,0d0,0d0      
+      
+      
+      RETURN
+      END SUBROUTINE write_spline
+      
+      
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!      
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!       
+      

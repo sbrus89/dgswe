@@ -1,6 +1,7 @@
       PROGRAM spline
 
-      USE globals, ONLY: rp,base,eval,ctp,nverts
+      USE globals, ONLY: rp,base,eval,ctp,nverts, &
+                         ax,bx,cx,dx,ay,by,cy,dy
       USE allocation, ONLY: sizes
                          
       USE calc_spline, ONLY: calc_cubic_spline,eval_cubic_spline,newton
@@ -13,8 +14,7 @@
       REAL(rp) :: d1,d2,d3,t1,t2,xm,ym
       REAL(rp) :: n1x,n1y,n2x,n2y,n3x,n3y,n4x,n4y,edlen
       REAL(rp) :: theta1,theta2
-      REAL(rp), ALLOCATABLE, DIMENSION(:) :: ax,bx,cx,dx
-      REAL(rp), ALLOCATABLE, DIMENSION(:) :: ay,by,cy,dy
+
 
 
       OPEN(unit=30,file='spline.out')
@@ -166,17 +166,7 @@
           ENDDO          
 
   
-          WRITE(30,*) n,dt
-
-          DO i = 1,n-1
-            WRITE(30,"(4(E25.12))"), ax(i),bx(i),cx(i),dx(i)
-          ENDDO
-          WRITE(30,"(4(E25.12))"), ax(n),0.0,0.0,0.0
-
-          DO i = 1,n-1
-            WRITE(30,"(4(E25.12))"), ay(i),by(i),cy(i),dy(i)
-          ENDDO
-          WRITE(30,"(4(E25.12))"), ay(n),0.0,0.0,0.0
+          CALL write_spline(n,dt)
 
 
         ENDIF

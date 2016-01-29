@@ -1,4 +1,7 @@
       MODULE globals
+      
+      USE kdtree2_module      
+      
       IMPLICIT NONE
 
       INTEGER, PARAMETER :: rp = kind(1d0) ! precision 
@@ -74,10 +77,19 @@
         REAL(rp), ALLOCATABLE, DIMENSION(:) :: minedlen,edlen
       
       END TYPE      
+      
+      
+      REAL(rp), ALLOCATABLE, DIMENSION(:) :: ax,bx,cx,dx
+      REAL(rp), ALLOCATABLE, DIMENSION(:) :: ay,by,cy,dy      
  
    
       TYPE(grid) :: base
       TYPE(grid) :: eval   
+      
+      INTEGER :: srchdp
+      REAL(rp) :: rsre(2,4,4)        
+      TYPE(kdtree2), POINTER :: tree_xy      
+      TYPE(kdtree2_result), ALLOCATABLE, DIMENSION(:) :: closest       
 
 
       END MODULE globals
