@@ -8,7 +8,8 @@ FFLAGS = -O2 -C -g -traceback
 LIB = -llapack
 
 
-spline_objects = globals.o kdtree2.o allocation.o calc_spline.o check.o read_grid.o read_input.o connect.o write_grid.o spline.o
+spline_objects = globals.o kdtree2.o allocation.o calc_spline.o check.o \
+                 read_grid.o read_input.o connect.o write_output.o spline.o
 spline_obj := $(patsubst %.o, $(ODIR)%.o,$(spline_objects)) 
 FFLAGS += -I$(ODIR)
 
@@ -64,7 +65,7 @@ $(ODIR)read_input.o: read_input.f90                          $(ODIR)globals.o
 $(ODIR)connect.o: connect.f90                                $(ODIR)globals.o
 	$(FC) $(FFLAGS) -c $< -o $@
 
-$(ODIR)write_grid.o: write_grid.f90                          $(ODIR)globals.o
+$(ODIR)write_output.o: write_output.f90                      $(ODIR)globals.o
 	$(FC) $(FFLAGS) -c $< -o $@
 
 
