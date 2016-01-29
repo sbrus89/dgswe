@@ -1,10 +1,10 @@
       SUBROUTINE read_input()
 
-      USE globals, ONLY: grid_file,ctp,out_direc
+      USE globals, ONLY: base,eval,ctp,out_direc
 
       IMPLICIT NONE
       
-      INTEGER, PARAMETER :: ninp = 3
+      INTEGER, PARAMETER :: ninp = 4
       INTEGER :: inp_read,skipped
       CHARACTER(100) :: temp
       
@@ -28,12 +28,15 @@
           inp_read = inp_read + 1
           SELECT CASE (inp_read)
             CASE (1)
-              grid_file = TRIM(temp)
-              PRINT*, "grid_file = ", grid_file
+              base%grid_file = TRIM(ADJUSTL(temp))
+              PRINT*, "base%grid_file = ", base%grid_file
             CASE (2)
+              eval%grid_file = TRIM(ADJUSTL(temp))
+              PRINT*, "eval%grid_file = ", eval%grid_file
+            CASE (3)
               READ(temp,*) ctp
               PRINT*, "ctp = ", ctp
-            CASE (3)
+            CASE (4)
               out_direc = TRIM(temp)
               PRINT*, "out_direc = ", out_direc
           END SELECT

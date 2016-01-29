@@ -11,7 +11,7 @@
 
       SUBROUTINE check_angle(seg,n,nd,theta1,theta2,edlen)
       
-      USE globals, ONLY: fbnds,xy
+      USE globals, ONLY: base
       
       IMPLICIT NONE     
       
@@ -23,31 +23,31 @@
       REAL(rp), INTENT(OUT) :: theta1,theta2   
       REAL(rp), INTENT(OUT) :: edlen
 
-      n1bed = fbnds(nd,seg)
-      n2bed = fbnds(nd+1,seg) 
+      n1bed = base%fbnds(nd,seg)
+      n2bed = base%fbnds(nd+1,seg) 
       IF (nd == n-1) THEN
-        n3bed = fbnds(2,seg)
+        n3bed = base%fbnds(2,seg)
       ELSE
-        n3bed = fbnds(nd+2,seg)            
+        n3bed = base%fbnds(nd+2,seg)            
       ENDIF
             
       IF (nd == 1) THEN
-        n4bed = fbnds(n-1,seg)
+        n4bed = base%fbnds(n-1,seg)
       ELSE
-        n4bed = fbnds(nd-1,seg)            
+        n4bed = base%fbnds(nd-1,seg)            
       ENDIF           
             
-      n1x = xy(1,n1bed)
-      n1y = xy(2,n1bed)
+      n1x = base%xy(1,n1bed)
+      n1y = base%xy(2,n1bed)
           
-      n2x = xy(1,n2bed)
-      n2y = xy(2,n2bed)
+      n2x = base%xy(1,n2bed)
+      n2y = base%xy(2,n2bed)
          
-      n3x = xy(1,n3bed)
-      n3y = xy(2,n3bed)            
+      n3x = base%xy(1,n3bed)
+      n3y = base%xy(2,n3bed)            
            
-      n4x = xy(1,n4bed)
-      n4y = xy(2,n4bed)            
+      n4x = base%xy(1,n4bed)
+      n4y = base%xy(2,n4bed)            
           
       theta1 = angle(n1x,n1y,n2x,n2y,n3x,n3y)
       theta2 = angle(n4x,n4y,n1x,n1y,n2x,n2y) 

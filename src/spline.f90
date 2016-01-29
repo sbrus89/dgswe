@@ -1,9 +1,7 @@
       PROGRAM spline
 
-      USE globals, ONLY: rp,ne,nn,ctp,xy,ect,vct,depth,nelnds, &
-                         nope,neta,obnds,nbou,nvel,fbseg,fbnds, &
-                         nepn,epn,nverts,el_type, &
-                         mnelnds,minedlen
+      USE globals, ONLY: rp,base,eval,ctp,nverts
+      USE allocation, ONLY: sizes
                          
       USE calc_spline, ONLY: calc_cubic_spline,eval_cubic_spline,newton
       USE check, ONLY: check_angle,check_deformation
@@ -22,20 +20,26 @@
       OPEN(unit=30,file='spline.out')
       
       PRINT "(A)", " "
-
-      CALL read_grid()
       
-      CALL connect()
+      CALL read_input()
+      
+      CALL sizes()
+
+      CALL read_grid(base)
+      CALL read_grid(eval)
+      
+      CALL connect(base)
+      CALL connect(eval)
       
       sig = 1d0
       
       num = 0
       nmax = 0 
-      DO seg = 1,nbou
-        IF(fbseg(2,seg) == 10 .OR. fbseg(2,seg) == 11 .OR. fbseg(2,seg) == 101)THEN          
+      DO seg = 1,base%nbou
+        IF(base%fbseg(2,seg) == 10 .OR. base%fbseg(2,seg) == 11 .OR. base%fbseg(2,seg) == 101)THEN          
           num = num + 1
-          IF (fbseg(1,seg) > nmax) THEN
-            nmax = fbseg(1,seg)
+          IF (base%fbseg(1,seg) > nmax) THEN
+            nmax = base%fbseg(1,seg)
           ENDIF
         ENDIF
       ENDDO
@@ -51,11 +55,11 @@
 
       WRITE(30,*) num
 
-      DO seg = 1,nbou
+      DO seg = 1,base%nbou
 
-        IF(fbseg(2,seg) == 10 .OR. fbseg(2,seg) == 11 .OR. fbseg(2,seg) == 101)THEN
+        IF(base%fbseg(2,seg) == 10 .OR. base%fbseg(2,seg) == 11 .OR. base%fbseg(2,seg) == 101)THEN
         
-          n = fbseg(1,seg)    ! n nodes, n-1 subintervals
+          n = base%fbseg(1,seg)    ! n nodes, n-1 subintervals
 
           PRINT "(A)", " "
           PRINT "(A,I5)", "Normal flow boundary ",seg
@@ -73,7 +77,7 @@
           ! Load nodal boundary x coordinates
           k = 1   
           DO i = 1,n
-            ax(k) = xy(1,fbnds(i,seg))
+            ax(k) = base%xy(1,base%fbnds(i,seg))
             k = k+1
           ENDDO
 
@@ -87,7 +91,7 @@
           ! Load nodal boundary y coordinates
           k = 1
           DO i = 1,n
-            ay(k) = xy(2,fbnds(i,seg))
+            ay(k) = base%xy(2,base%fbnds(i,seg))
             k = k+1
           ENDDO
 
@@ -99,14 +103,14 @@
           t = 0d0
           DO nd = 1,n-1
 
-           n1bed = fbnds(nd,seg)
-           n2bed = fbnds(nd+1,seg)   
+           n1bed = base%fbnds(nd,seg)
+           n2bed = base%fbnds(nd+1,seg)   
            
-           n1x = xy(1,n1bed)
-           n1y = xy(2,n1bed)
+           n1x = base%xy(1,n1bed)
+           n1y = base%xy(2,n1bed)
           
-           n2x = xy(1,n2bed)
-           n2y = xy(2,n2bed)      
+           n2x = base%xy(1,n2bed)
+           n2y = base%xy(2,n2bed)      
            
           
            
@@ -116,15 +120,15 @@
             
             IF ( theta1 > 20d0 .AND. theta2 > 20d0) THEN         
 
-      elem: DO el = 1,nepn(n1bed)
-              eln = epn(el,n1bed)
+      elem: DO el = 1,base%nepn(n1bed)
+              eln = base%epn(el,n1bed)
               
-              nvert = nverts(el_type(eln))
+              nvert = nverts(base%el_type(eln))
               
               DO led = 1,nvert
  
-                n1ed1 = vct(mod(led+0,nvert)+1,eln)
-                n2ed1 = vct(mod(led+1,nvert)+1,eln) 
+                n1ed1 = base%vct(mod(led+0,nvert)+1,eln)
+                n2ed1 = base%vct(mod(led+1,nvert)+1,eln) 
 
                 IF(((n1ed1 == n1bed).AND.(n2ed1 == n2bed)).OR. &
                    ((n1ed1 == n2bed).AND.(n2ed1 == n1bed))) THEN
@@ -140,12 +144,12 @@
                      
                      CALL newton(tpt,t,xm,ym,ax(nd),bx(nd),cx(nd),dx(nd),ay(nd),by(nd),cy(nd),dy(nd),x,y)
 
-                     CALL check_deformation(minedlen(eln),xm,ym,x,y)
+                     CALL check_deformation(base%minedlen(eln),xm,ym,x,y)
                      
                      ndn = mod(led,nvert)*ctp+i+1                        
                      
-                     xy(1,ect(ndn,eln)) = x
-                     xy(2,ect(ndn,eln)) = y                                                         
+                     base%xy(1,base%ect(ndn,eln)) = x
+                     base%xy(2,base%ect(ndn,eln)) = y                                                         
                        
                    ENDDO
                    
@@ -183,7 +187,7 @@
       
       
       
-      CALL write_grid()
+      CALL write_grid(base)
 
       END PROGRAM spline
       
