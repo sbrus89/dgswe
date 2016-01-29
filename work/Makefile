@@ -8,7 +8,7 @@ FFLAGS = -O2 -C -g -traceback
 LIB = -llapack
 
 
-spline_objects = globals.o allocation.o calc_spline.o check.o read_grid.o read_input.o connect.o write_grid.o spline.o
+spline_objects = globals.o kdtree2.o allocation.o calc_spline.o check.o read_grid.o read_input.o connect.o write_grid.o spline.o
 spline_obj := $(patsubst %.o, $(ODIR)%.o,$(spline_objects)) 
 FFLAGS += -I$(ODIR)
 
@@ -30,8 +30,13 @@ $(ODIR) :
 # $< = first prerequisite/depenency
 # $@ = name of the target	
 
+$(ODIR)kdtree2.o: kdtree2.F
+	$(FC) $(FFLAGS) -132 -c $< -o $@
+	mv kdtree2_precision_module.mod $(ODIR)
+	mv kdtree2_module.mod $(ODIR)
+	mv kdtree2_priority_queue_module.mod $(ODIR)
 
-$(ODIR)globals.o: globals.f90
+$(ODIR)globals.o: globals.f90                                $(ODIR)kdtree2.o
 	$(FC) $(FFLAGS) -c $< -o $@
 	mv globals.mod $(ODIR)
 
