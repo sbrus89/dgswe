@@ -78,6 +78,10 @@
       
       END TYPE      
       
+      INTEGER :: nfbnds
+      REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: fbnds_xy
+      INTEGER , ALLOCATABLE, DIMENSION(:) :: fbnds
+      
       
       REAL(rp), ALLOCATABLE, DIMENSION(:) :: ax,bx,cx,dx
       REAL(rp), ALLOCATABLE, DIMENSION(:) :: ay,by,cy,dy      

@@ -45,7 +45,7 @@ $(ODIR)allocation.o : allocation.f90                         $(ODIR)globals.o
 	$(FC) $(FFLAGS) -c $< -o $@
 	mv allocation.mod $(ODIR)
 	
-$(ODIR)calc_spline.o: calc_spline.f90                        $(ODIR)globals.o
+$(ODIR)calc_spline.o: calc_spline.f90                        $(ODIR)globals.o  $(ODIR)kdtree2.o
 	$(FC) $(FFLAGS) -c $< -o $@
 	mv calc_spline.mod $(ODIR)
 	

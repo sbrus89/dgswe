@@ -4,11 +4,12 @@
                          ax,bx,cx,dx,ay,by,cy,dy
       USE allocation, ONLY: sizes
                          
-      USE calc_spline, ONLY: calc_cubic_spline,eval_cubic_spline,newton
+      USE calc_spline, ONLY: calc_cubic_spline,eval_cubic_spline, &
+                             newton,spline_init
       USE check, ONLY: check_angle,check_deformation
 
       IMPLICIT NONE
-      INTEGER :: i,j,k,n,seg,sind,eind,num,qpts,btype,nmax
+      INTEGER :: i,j,k,n,seg,sind,eind,num,qpts,btype
       INTEGER :: el,eln,nd,ndn,led,n1ed1,n2ed1,n1bed,n2bed,nvert
       REAL(rp) :: htest,dt,t,tpt,x,y,xs,ys,r,sig
       REAL(rp) :: d1,d2,d3,t1,t2,xm,ym
@@ -33,24 +34,8 @@
       
       sig = 1d0
       
-      num = 0
-      nmax = 0 
-      DO seg = 1,base%nbou
-        IF(base%fbseg(2,seg) == 10 .OR. base%fbseg(2,seg) == 11 .OR. base%fbseg(2,seg) == 101)THEN          
-          num = num + 1
-          IF (base%fbseg(1,seg) > nmax) THEN
-            nmax = base%fbseg(1,seg)
-          ENDIF
-        ENDIF
-      ENDDO
-
-      PRINT "(A)", " "
-      PRINT "(A,I5)", "Total number of type 0 normal flow boundaries ",num
-      PRINT "(A,I5)", "Max number of nodes in a flow boundary segment ",nmax
-      PRINT "(A)", " "
       
-      ALLOCATE(ax(nmax),cx(nmax),bx(nmax-1),dx(nmax-1))
-      ALLOCATE(ay(nmax),cy(nmax),by(nmax-1),dy(nmax-1))
+      CALL spline_init(num)
     
 
       WRITE(30,*) num

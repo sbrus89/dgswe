@@ -7,6 +7,77 @@
       
       
       CONTAINS
+                  
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
+
+      SUBROUTINE spline_init(num)
+      
+      USE globals, ONLY: rp,base,ax,bx,cx,dx,ay,by,cy,dy, &
+                         nfbnds,fbnds,fbnds_xy, &
+                         tree_xy
+      USE kdtree2_module                     
+      
+      IMPLICIT NONE
+      
+      INTEGER :: num
+      INTEGER :: nmax
+      INTEGER :: nd,seg,j
+      REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: xy_temp
+      INTEGER , ALLOCATABLE, DIMENSION(:) :: nds_temp
+      
+      ALLOCATE(nds_temp(base%nvel),xy_temp(2,base%nvel))
+      
+      num = 0
+      nmax = 0 
+      nfbnds = 0
+      DO seg = 1,base%nbou
+        IF(base%fbseg(2,seg) == 10 .OR. base%fbseg(2,seg) == 11 .OR. base%fbseg(2,seg) == 101)THEN 
+        
+          num = num + 1
+          
+          IF (base%fbseg(1,seg) > nmax) THEN
+            nmax = base%fbseg(1,seg)
+          ENDIF
+          
+          DO j = 1,base%fbseg(1,seg)
+            nfbnds = nfbnds + 1
+            
+            nd = base%fbnds(j,seg)
+            nds_temp(nfbnds) = nd
+            xy_temp(1:2,nfbnds) = base%xy(1:2,nd)
+          ENDDO
+          
+          
+        ENDIF
+      ENDDO
+      
+      ALLOCATE(fbnds(nfbnds),fbnds_xy(2,nfbnds))
+      
+      fbnds(1:nfbnds) = nds_temp(1:nfbnds)
+      fbnds_xy(1:2,1:nfbnds) = xy_temp(1:2,1:nfbnds)
+      
+      
+      
+      tree_xy => kdtree2_create(fbnds_xy(1:2,:)  , rearrange=.true., sort=.true.)
+      
+      
+
+      PRINT "(A)", " "
+      PRINT "(A,I5)", "Total number of type 0 normal flow boundaries ",num
+      PRINT "(A,I5)", "Max number of nodes in a flow boundary segment ",nmax
+      PRINT "(A)", " "
+      
+      ALLOCATE(ax(nmax),cx(nmax),bx(nmax-1),dx(nmax-1))
+      ALLOCATE(ay(nmax),cy(nmax),by(nmax-1),dy(nmax-1))      
+      
+      
+      RETURN
+      END SUBROUTINE spline_init
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
+
       
       SUBROUTINE calc_cubic_spline(sig,n,a,b,c,d,dt)
 
