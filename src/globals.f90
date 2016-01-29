@@ -4,19 +4,12 @@
       INTEGER, PARAMETER :: rp = kind(1d0) ! precision 
       REAL(rp), PARAMETER  ::  pi=3.141592653589793D0
       
-      INTEGER :: p ! polynomial order      
       INTEGER :: ne ! number of elements
       INTEGER :: nn ! number of nodes
-      INTEGER :: npart ! number of element partitions      
-      REAL(rp) :: cf ! bottom friction parameter  
-      REAL(rp) :: dt ! time step 
-      REAL(rp) :: tf ! final time      
-      REAL(rp) :: dramp ! numer of ramp days      
-      REAL(rp) :: lines ! number of lines in output files      
-      CHARACTER(50) :: grid_name ! name of the grid
-      CHARACTER(50) :: grid_file ! name of fort.14 file
-      CHARACTER(50) :: forcing_file ! name of fort.15 file      
-      CHARACTER(50) :: out_direc           
+   
+      CHARACTER(100) :: grid_name ! name of the grid
+      CHARACTER(100) :: grid_file ! name of fort.14 file 
+      CHARACTER(100) :: out_direc           
       
       INTEGER, PARAMETER :: nel_type = 4 !(type #s: 1 -> triangles, 2 -> quads, 3 -> curved triangles, 4-> curved quads)   
       INTEGER :: ctp
