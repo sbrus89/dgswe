@@ -1,21 +1,21 @@
-!../galveston_tri.grd                                                                                 ! base grid file
-!../galveston_tri.grd                                                                                 ! eval grid file
-!1                                                                                                    ! ctp - parametric coordinate transformation order
-!./                                                                                                   ! output directory
+!../galveston_tri.grd                                                                                  ! base grid file
+!../galveston_tri.grd                                                                                  ! eval grid file
+!1                                                                                                     ! ctp - parametric coordinate transformation order
+!./                                                                                                    ! output directory
 
-!../converge1_dble.grd                                                                                ! base grid file  
+!../converge1_dble.grd                                                                                 ! base grid file  
 !../converge1_dble.grd                                                                                 ! eval grid file 
 !1                                                                                                     ! ctp - parametric coordinate transformation order
 !./                                                                                                    ! output directory
 
 
-../galveston_tri_curve.grd                                                                           ! base grid file  
-../galveston_tri_curve.grd                                                                           ! eval grid file 
-2                                                                                                    ! ctp - parametric coordinate transformation order
-./                                                                                                   ! output directory
+../galveston_tri_curve.grd                                                                            ! base grid file  
+../galveston_tri_curve.grd                                                                            ! eval grid file 
+2                                                                                                     ! ctp - parametric coordinate transformation order
+./                                                                                                    ! output directory
 
 
-!../galveston_curve.grd                                                                               ! base grid file
-!../galveston_curve.grd                                                                               ! eval grid file
-!2                                                                                                    ! ctp - parametric coordinate transformation order
-!./                                                                                                   ! output directory
+!../galveston_curve.grd                                                                                ! base grid file
+!../galveston_curve.grd                                                                                ! eval grid file
+!2                                                                                                     ! ctp - parametric coordinate transformation order
+!./                                                                                                    ! output directory

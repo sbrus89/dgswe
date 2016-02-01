@@ -52,7 +52,7 @@
       DO el = 1,ne
         nvert = nverts(mesh%el_type(el))
         DO nd = 1,nvert
-          n1 = mesh%ect(nd,el)
+          n1 = mesh%vct(nd,el)
           mesh%nepn(n1) = mesh%nepn(n1) + 1
         ENDDO
         
@@ -85,7 +85,7 @@
       DO el = 1,ne
         nvert = nverts(mesh%el_type(el))
         DO nd = 1,nvert
-          n1 = mesh%ect(nd,el)
+          n1 = mesh%vct(nd,el)
           mesh%nepn(n1) = mesh%nepn(n1) + 1
           mesh%epn(mesh%nepn(n1),n1) = el
         ENDDO
@@ -119,8 +119,8 @@
 
               ned = ned + 1 ! increment edge number
 
-              n1ed1 = mesh%ect(mod(led1+0,nvert1)+1,el1) ! find nodes on trial edge
-              n2ed1 = mesh%ect(mod(led1+1,nvert1)+1,el1)
+              n1ed1 = mesh%vct(mod(led1+0,nvert1)+1,el1) ! find nodes on trial edge
+              n2ed1 = mesh%vct(mod(led1+1,nvert1)+1,el1)
               
               ged2nn_temp(1,ned) = n1ed1 ! set nodes on global edge # ned
               ged2nn_temp(2,ned) = n2ed1
@@ -142,8 +142,8 @@
 
      local_ed2: DO led2 = 1,nvert2 ! loop through local test edge numbers
                   
-                  n1ed2 = mesh%ect(MOD(led2+0,nvert2)+1,el2) ! find nodes on test edge
-                  n2ed2 = mesh%ect(MOD(led2+1,nvert2)+1,el2)
+                  n1ed2 = mesh%vct(MOD(led2+0,nvert2)+1,el2) ! find nodes on test edge
+                  n2ed2 = mesh%vct(MOD(led2+1,nvert2)+1,el2)
 
                   IF(((n1ed1 == n1ed2) .AND. (n2ed1 == n2ed2)) .OR. & ! check if nodes on trial edge matches test edge
                      ((n1ed1 == n2ed2) .AND. (n2ed1 == n1ed2))) THEN
