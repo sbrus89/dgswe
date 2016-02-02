@@ -21,7 +21,7 @@
         
         INTEGER :: m,i,j,pt
         INTEGER :: calc_deriv        
-        REAL(rp) :: dpda,dpdb,dadr,dads,ii       
+        REAL(rp) :: dpda,dpdb,dadr,dads,ii,tmp       
         REAL(rp) :: a(npts),b(npts)
         REAL(rp) :: Pi(npts),Pj(npts)
         REAL(rp) :: dPi(npts),dPj(npts)
@@ -58,7 +58,10 @@
 
             ! Calculate function values
             DO pt = 1,npts 
-!               phi(m,pt) = sqrt(2d0)*Pi(pt)*Pj(pt)*(1d0-b(pt))**i
+              ! orthonormal
+              ! phi(m,pt) = sqrt(2d0)*Pi(pt)*Pj(pt)*(1d0-b(pt))**i
+              
+              ! phi_1 = 1
               phi(m,pt) = 2d0*Pi(pt)*Pj(pt)*(1d0-b(pt))**i
             ENDDO
 
@@ -68,16 +71,41 @@
 
               ! Calculate derivative values
               DO pt = 1,npts
-                dadr = 2d0/(1d0-s(pt))
-                dads = 2d0*(1d0+r(pt))/(1d0-s(pt))**2d0
               
-!                 dpda = sqrt(2d0)*dPi(pt)*Pj(pt)*(1d0-b(pt))**ii
-!                 dpdb = sqrt(2d0)*Pi(pt)*(dPj(pt)*(1d0-b(pt))**ii - ii*(1d0-b(pt))**(ii-1d0)*Pj(pt))
-                dpda = 2d0*dPi(pt)*Pj(pt)*(1d0-b(pt))**ii
-                dpdb = 2d0*Pi(pt)*(dPj(pt)*(1d0-b(pt))**ii - ii*(1d0-b(pt))**(ii-1d0)*Pj(pt))
-              
-                dpdr(m,pt) = dpda*dadr
-                dpds(m,pt) = dpda*dads + dpdb
+!                 dadr = 2d0/(1d0-s(pt))
+!                 dads = 2d0*(1d0+r(pt))/(1d0-s(pt))**2d0
+!                
+!                 ! orthonormal
+!                 ! dpda = sqrt(2d0)*dPi(pt)*Pj(pt)*(1d0-b(pt))**ii
+!                 ! dpdb = sqrt(2d0)*Pi(pt)*(dPj(pt)*(1d0-b(pt))**ii - ii*(1d0-b(pt))**(ii-1d0)*Pj(pt))
+!                 
+!                 ! phi_1 = 1
+!                 dpda = 2d0*dPi(pt)*Pj(pt)*(1d0-b(pt))**ii
+!                 dpdb = 2d0*Pi(pt)*(dPj(pt)*(1d0-b(pt))**ii - ii*(1d0-b(pt))**(ii-1d0)*Pj(pt))
+!               
+!                 dpdr(m,pt) = dpda*dadr
+!                 dpds(m,pt) = dpda*dads + dpdb
+
+                ! correction for corner nodes 
+                dpdr(m,pt) = dPi(pt)*Pj(pt)
+                IF (i>0) THEN
+                  dpdr(m,pt) = dpdr(m,pt)*2d0*(1d0-b(pt))**(i-1)
+                ENDIF
+                
+                dpds(m,pt) = dPi(pt)*Pj(pt)*(1d0+a(pt))
+                IF (i>0) THEN
+                  dpds(m,pt) = dpds(m,pt)*(1d0-b(pt))**(i-1)
+                ENDIF
+                
+                tmp = dPj(pt)*(1d0-b(pt))**i
+                IF (i>0) THEN
+                  tmp = tmp - ii*Pj(pt)*(1d0-b(pt))**(i-1)
+                ENDIF
+                dpds(m,pt) = dpds(m,pt) + Pi(pt)*tmp              
+
+                dpdr(m,pt) = 2d0*dpdr(m,pt)
+                dpds(m,pt) = 2d0*dpds(m,pt) 
+                
               ENDDO
             ENDIF
 
