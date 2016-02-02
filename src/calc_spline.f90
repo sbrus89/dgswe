@@ -23,13 +23,16 @@
       INTEGER :: num
       INTEGER :: nmax
       INTEGER :: nd,seg,i,j,skip
+      INTEGER :: segtype
 
       
       num = 0
       nmax = 0 
       nfbnds = 0
       DO seg = 1,base%nbou
-        IF(base%fbseg(2,seg) == 10 .OR. base%fbseg(2,seg) == 11 .OR. base%fbseg(2,seg) == 101)THEN 
+        segtype = base%fbseg(2,seg)
+        IF( segtype == 0 .OR. segtype == 10 .OR. segtype == 20  .OR. &   ! land boundaries
+            segtype == 1 .OR. segtype == 11 .OR. segtype == 21 ) THEN    ! island boundaries
         
           num = num + 1
           
@@ -49,7 +52,9 @@
       
       nfbnds = 0
       DO seg = 1,base%nbou
-        IF(base%fbseg(2,seg) == 10 .OR. base%fbseg(2,seg) == 11 .OR. base%fbseg(2,seg) == 101)THEN 
+        segtype = base%fbseg(2,seg)
+        IF( segtype == 0 .OR. segtype == 10 .OR. segtype == 20  .OR. &   ! land boundaries
+            segtype == 1 .OR. segtype == 11 .OR. segtype == 21 ) THEN    ! island boundaries
                             
           DO j = 1,base%fbseg(1,seg)
             nd = base%fbnds(j,seg)

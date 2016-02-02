@@ -14,6 +14,7 @@
       INTEGER :: i,j,k,n,seg,sind,eind,num,qpts,btype
       INTEGER :: el,eln,nd,ndn,led,n1ed1,n2ed1,n1bed,n2bed,nvert
       INTEGER :: el_in,found
+      INTEGER :: segtype
       REAL(rp) :: htest,dt,t,tpt,x,y,xs,ys,r,sig
       REAL(rp) :: d1,d2,d3,t1,t2,xm,ym
       REAL(rp) :: n1x,n1y,n2x,n2y,n3x,n3y,n4x,n4y,edlen
@@ -48,8 +49,11 @@
       WRITE(30,*) num
 
       DO seg = 1,base%nbou
-
-        IF(base%fbseg(2,seg) == 10 .OR. base%fbseg(2,seg) == 11 .OR. base%fbseg(2,seg) == 101)THEN
+      
+        segtype = base%fbseg(2,seg)
+        
+        IF( segtype == 0 .OR. segtype == 10 .OR. segtype == 20  .OR. &   ! land boundaries
+            segtype == 1 .OR. segtype == 11 .OR. segtype == 21 ) THEN    ! island boundaries
         
           n = base%fbseg(1,seg)    ! n nodes, n-1 subintervals
 

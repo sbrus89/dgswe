@@ -247,7 +247,7 @@
 
               ! no normal flow edges
               IF( segtype == 0 .OR. segtype == 10 .OR. segtype == 20  .OR. &   ! land boundaries
-                  segtype == 1 .OR. segtype == 11 .OR. segtype == 21 ) THEN    ! island boundaries'
+                  segtype == 1 .OR. segtype == 11 .OR. segtype == 21 ) THEN    ! island boundaries
                 mesh%nnfbed = mesh%nnfbed + 1
                 nfbnd_temp(mesh%nnfbed) = ged
                 mesh%bed_flag(ged) = 20                
