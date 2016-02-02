@@ -47,7 +47,7 @@
 
       SUBROUTINE read_nodes(sol)
       
-      USE globals, ONLY: pres,solution,exclude_bndel
+      USE globals, ONLY: rp,solution,exclude_bndel
       USE allocation, ONLY: grid_alloc
 
       IMPLICIT NONE
@@ -56,7 +56,7 @@
       INTEGER :: mnepn,n1,n2,found            
       INTEGER :: curved_grid
       INTEGER, ALLOCATABLE, DIMENSION(:) :: vflag     
-      REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: vxy_temp
+      REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: vxy_temp
       TYPE(solution) :: sol
   
       ! open fort.14 grid file

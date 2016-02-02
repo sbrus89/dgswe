@@ -12,19 +12,19 @@
       INTEGER :: et,etf,etc,npts
       INTEGER :: ne,mndof
 
-      REAL(pres) :: HL2,QxL2,QyL2 
-      REAL(pres) :: tcoarse,tfine
-      REAL(pres) :: rfac,order
-      REAL(pres) :: Hdiff,Qxdiff,Qydiff
-      REAL(pres) :: Hmax,Qxmax,Qymax
-      REAL(pres), ALLOCATABLE, DIMENSION(:) :: Hel,Qxel,Qyel
+      REAL(rp) :: HL2,QxL2,QyL2 
+      REAL(rp) :: tcoarse,tfine
+      REAL(rp) :: rfac,order
+      REAL(rp) :: Hdiff,Qxdiff,Qydiff
+      REAL(rp) :: Hmax,Qxmax,Qymax
+      REAL(rp), ALLOCATABLE, DIMENSION(:) :: Hel,Qxel,Qyel
 
       CALL version () ! print out current git branch/SHA
       
       CALL read_input()  ! read error.inp file
       
       rfac = 2d0
-      order = real(coarse%p,pres) + 1d0
+      order = real(coarse%p,rp) + 1d0
       
       CALL read_grids()  ! read coarse, fine, and base grids
       

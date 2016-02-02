@@ -11,15 +11,15 @@
             
       SUBROUTINE vandermonde(sol)
       
-      USE globals, ONLY: pres,nel_type,solution
+      USE globals, ONLY: rp,nel_type,solution
       USE basis, ONLY: tri_nodes,tri_basis,quad_nodes,quad_basis
       
       IMPLICIT NONE
       TYPE(solution) :: sol
       
       INTEGER :: et,pt,dof,i,n
-      REAL(pres) :: r(sol%mnnds),s(sol%mnnds)
-      REAL(pres) :: phi(sol%mnnds*sol%mnnds)
+      REAL(rp) :: r(sol%mnnds),s(sol%mnnds)
+      REAL(rp) :: phi(sol%mnnds*sol%mnnds)
       INTEGER :: info    
       
 
@@ -65,14 +65,14 @@
       
       SUBROUTINE re_vert(sol)
       
-      USE globals, ONLY: pres,solution,nel_type
+      USE globals, ONLY: rp,solution,nel_type
       USE basis, ONLY: tri_nodes, quad_nodes
       
       IMPLICIT NONE
       
       INTEGER :: et,pt
       INTEGER :: n,p
-      REAL(pres) :: r(4),s(4)
+      REAL(rp) :: r(4),s(4)
       TYPE(solution) :: sol
       
       DO et = 1,nel_type
@@ -105,15 +105,15 @@
 
       SUBROUTINE function_eval()
       
-      USE globals, ONLY: pres,nel_type,nqpta,qpta,mnqpta,fine
+      USE globals, ONLY: rp,nel_type,nqpta,qpta,mnqpta,fine
       USE basis, ONLY: tri_basis,quad_basis,adcirc_basis
       
       IMPLICIT NONE
       
       INTEGER :: p,n,et,m,i,pt,mnnds,mndof,npt
       INTEGER :: info
-      REAL(pres) :: r(mnqpta),s(mnqpta)
-      REAL(pres), ALLOCATABLE, DIMENSION(:) :: phi,dpdr,dpds
+      REAL(rp) :: r(mnqpta),s(mnqpta)
+      REAL(rp), ALLOCATABLE, DIMENSION(:) :: phi,dpdr,dpds
       
       mnnds = fine%mnnds
       mndof = fine%mndof
@@ -205,14 +205,14 @@
 
       SUBROUTINE detJ_eval()
       
-      USE globals, ONLY: pres,fine,mnqpta,nqpta
+      USE globals, ONLY: rp,fine,mnqpta,nqpta
       
       IMPLICIT NONE
       
       INTEGER :: el,pt,nd
       INTEGER :: et
-      REAL(pres) :: x,y
-      REAL(pres) :: dxdr,dxds,dydr,dyds
+      REAL(rp) :: x,y
+      REAL(rp) :: dxdr,dxds,dydr,dyds
       
       ALLOCATE(fine%detJ(mnqpta,fine%ne))
       
@@ -252,7 +252,7 @@
  
       SUBROUTINE newton(sol,x,y,npt,eln,r,s,hb)
 
-      USE globals, ONLY: pres,solution
+      USE globals, ONLY: rp,solution
       USE basis, ONLY: tri_basis,quad_basis
 
       IMPLICIT NONE
@@ -262,13 +262,13 @@
       INTEGER :: info
       INTEGER :: maxit
       TYPE(solution), INTENT(IN) :: sol
-      REAL(pres) :: tol,error
-      REAL(pres), DIMENSION(npt), INTENT(IN) :: x,y
-      REAL(pres), DIMENSION(npt), INTENT(OUT) :: r,s,hb
-      REAL(pres), DIMENSION(npt) :: f,g
-      REAL(pres), DIMENSION(npt) :: dfdr,dfds,dgdr,dgds,jac
-      REAL(pres), DIMENSION(npt*sol%mnnds) :: phi,dpdr,dpds
-      REAL(pres) :: l(sol%mnnds,3*npt)
+      REAL(rp) :: tol,error
+      REAL(rp), DIMENSION(npt), INTENT(IN) :: x,y
+      REAL(rp), DIMENSION(npt), INTENT(OUT) :: r,s,hb
+      REAL(rp), DIMENSION(npt) :: f,g
+      REAL(rp), DIMENSION(npt) :: dfdr,dfds,dgdr,dgds,jac
+      REAL(rp), DIMENSION(npt*sol%mnnds) :: phi,dpdr,dpds
+      REAL(rp) :: l(sol%mnnds,3*npt)
         
       tol = 1d-10
       maxit = 1000

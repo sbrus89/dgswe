@@ -1,6 +1,6 @@
       MODULE basis
       
-      USE globals, ONLY: pres
+      USE globals, ONLY: rp
 
       CONTAINS
       
@@ -12,15 +12,15 @@
         IMPLICIT NONE
         INTEGER :: p,npts
         INTEGER :: ndof
-        REAL(pres) :: r(npts),s(npts)        
+        REAL(rp) :: r(npts),s(npts)        
         INTEGER :: m,i,j,pt
-        REAL(pres) :: dpda,dpdb,dadr,dads,ii       
-        REAL(pres) :: a(npts),b(npts)
-        REAL(pres) :: Pi(npts),Pj(npts)
-        REAL(pres) :: dPi(npts),dPj(npts)
+        REAL(rp) :: dpda,dpdb,dadr,dads,ii       
+        REAL(rp) :: a(npts),b(npts)
+        REAL(rp) :: Pi(npts),Pj(npts)
+        REAL(rp) :: dPi(npts),dPj(npts)
         
-        REAL(pres) :: phi(ndof*npts)
-        REAL(pres), OPTIONAL :: dpdr(ndof*npts),dpds(ndof*npts)  
+        REAL(rp) :: phi(ndof*npts)
+        REAL(rp), OPTIONAL :: dpdr(ndof*npts),dpds(ndof*npts)  
         INTEGER :: calc_deriv
         
         IF (PRESENT(dpdr) .AND. PRESENT(dpds)) THEN
@@ -42,7 +42,7 @@
         ! Calculate basis function values and derivative values at area quadrature points
         m = 0
         DO i = 0,p
-          ii = real(i,pres)
+          ii = real(i,rp)
           DO j = 0,p-i
 
             m = m+1
@@ -89,14 +89,14 @@
         
         INTEGER :: p,npts
         INTEGER :: ndof
-        REAL(pres) :: r(npts),s(npts)
+        REAL(rp) :: r(npts),s(npts)
         
         INTEGER :: m,i,j,pt    
-        REAL(pres) :: Pi(npts),Pj(npts)
-        REAL(pres) :: dPi(npts),dPj(npts)
+        REAL(rp) :: Pi(npts),Pj(npts)
+        REAL(rp) :: dPi(npts),dPj(npts)
         
-        REAL(pres) :: phi(ndof*npts)
-        REAL(pres), OPTIONAL :: dpdr(ndof*npts),dpds(ndof*npts)
+        REAL(rp) :: phi(ndof*npts)
+        REAL(rp), OPTIONAL :: dpdr(ndof*npts),dpds(ndof*npts)
         INTEGER :: calc_deriv
         
         IF (PRESENT(dpdr) .AND. PRESENT(dpds)) THEN
@@ -146,8 +146,8 @@
       
       INTEGER :: pt,dof,i
       INTEGER :: p,ndof,npts
-      REAL(pres) :: rv(npts),sv(npts),s,r
-      REAL(pres) :: phi(ndof*npts)
+      REAL(rp) :: rv(npts),sv(npts),s,r
+      REAL(rp) :: phi(ndof*npts)
       
       DO pt = 1,npts
         r = rv(pt)
@@ -200,19 +200,19 @@
 
         IMPLICIT NONE
         INTEGER, INTENT(IN) :: alpha_i,beta_i,deg,npts
-        REAL(pres), INTENT(IN) :: x(npts)
-        REAL(pres), INTENT(OUT) :: v(npts)
+        REAL(rp), INTENT(IN) :: x(npts)
+        REAL(rp), INTENT(OUT) :: v(npts)
         INTEGER :: i,j,np1
-        REAL(pres) :: pnm1(npts),pn(npts),pnp1(npts)
-        REAL(pres) :: alpha,beta,an,anp1,bn,n
+        REAL(rp) :: pnm1(npts),pn(npts),pnp1(npts)
+        REAL(rp) :: alpha,beta,an,anp1,bn,n
 
-        alpha = real(alpha_i,pres)
-        beta = real(beta_i,pres)
+        alpha = real(alpha_i,rp)
+        beta = real(beta_i,rp)
 
         ! Calculate constant P0
         DO i = 1,npts
-          pnm1(i) = sqrt(2d0**(-alpha-beta-1d0)*real(fact(alpha_i+beta_i+1),pres) &
-                         /(real(fact(alpha_i),pres)*real(fact(beta_i),pres))) 
+          pnm1(i) = sqrt(2d0**(-alpha-beta-1d0)*real(fact(alpha_i+beta_i+1),rp) &
+                         /(real(fact(alpha_i),rp)*real(fact(beta_i),rp))) 
           v(i) = pnm1(i)          
         ENDDO
 
@@ -237,7 +237,7 @@
 
         ! Loop for Pn+1
         DO np1 = 2,deg 
-          n = real(np1,pres)
+          n = real(np1,rp)
           anp1 = (2d0/(2d0*n+alpha+beta)) &
                   *sqrt((n*(n+alpha+beta)*(n+alpha)*(n+beta))/((2d0*n+alpha+beta-1d0)*(2d0*n+alpha+beta+1d0)))
           DO i = 1,npts
@@ -260,14 +260,14 @@
       
         IMPLICIT NONE
         INTEGER, INTENT(IN) :: alpha_i,beta_i,deg_i,npts
-        REAL(pres), INTENT(IN) :: x(npts)
-        REAL(pres), INTENT(OUT) :: dP(npts)
-        REAL(pres):: v(npts),deg,alpha,beta
+        REAL(rp), INTENT(IN) :: x(npts)
+        REAL(rp), INTENT(OUT) :: dP(npts)
+        REAL(rp):: v(npts),deg,alpha,beta
         INTEGER :: i,pt
 
-        deg = real(deg_i,pres)
-        alpha = real(alpha_i,pres)
-        beta = real(beta_i,pres)
+        deg = real(deg_i,rp)
+        alpha = real(alpha_i,rp)
+        beta = real(beta_i,rp)
         
         IF (deg == 0) THEN
 
@@ -317,14 +317,14 @@
 
       implicit none
       integer p,np,i,j,m,space 
-      real(pres) ii,jj,a,dx,tol
-      real(pres) r(np),s(np),x(np),y(np),l1(np),l2(np),l3(np)
-      real(pres) aopt(15),b1(np),b2(np),b3(np)
-      real(pres) wx(np),wy(np),w1(np),w2(np),w3(np)
-      real(pres) w1e(np),w2e(np),w3e(np)
-      real(pres) w1mat(np,p+1),w2mat(np,p+1),w3mat(np,p+1)
-      real(pres) var1(np),var2(np),var3(np)
-      real(pres) lgl(p+1),xeq(p+1)
+      real(rp) ii,jj,a,dx,tol
+      real(rp) r(np),s(np),x(np),y(np),l1(np),l2(np),l3(np)
+      real(rp) aopt(15),b1(np),b2(np),b3(np)
+      real(rp) wx(np),wy(np),w1(np),w2(np),w3(np)
+      real(rp) w1e(np),w2e(np),w3e(np)
+      real(rp) w1mat(np,p+1),w2mat(np,p+1),w3mat(np,p+1)
+      real(rp) var1(np),var2(np),var3(np)
+      real(rp) lgl(p+1),xeq(p+1)
       !c DW
       
 
@@ -507,8 +507,8 @@
       
       INTEGER :: space,np,nnds
       INTEGER :: i,k,j,n,nnp
-      REAL(pres) :: xi(np+1)
-      REAL(pres) :: r(nnds),s(nnds)
+      REAL(rp) :: xi(np+1)
+      REAL(rp) :: r(nnds),s(nnds)
       
       
       ! Get 1-D LGL points 
@@ -518,7 +518,7 @@
       ELSE
         xi(1) = -1d0
         DO i = 1,np-1
-          xi(i+1) = xi(i) + 2d0/real(np,pres)
+          xi(i+1) = xi(i) + 2d0/real(np,rp)
         ENDDO
         xi(np+1) = 1d0
       ENDIF
@@ -598,10 +598,10 @@
 
       implicit none
       integer n,nn,i
-      real(pres) ii,h
+      real(rp) ii,h
       integer info
-      real(pres) r(n+1),d(n+1),e(n)
-      real(pres) z(n+1,n+1),work(1,2*n-2)
+      real(rp) r(n+1),d(n+1),e(n)
+      real(rp) z(n+1,n+1),work(1,2*n-2)
 
       if(n.eq.1) then
         r(1) = -1d0
@@ -665,7 +665,7 @@
 
       implicit none
       integer nn,ne,n,i,j
-      real(pres) p,xn(nn),xe(ne),pmat(ne,nn)
+      real(rp) p,xn(nn),xe(ne),pmat(ne,nn)
 
       do n = 1,ne
         do i = 1,nn
@@ -688,9 +688,9 @@
       
       implicit none
       integer np,i
-      real(pres) x(np),y(np)
-      real(pres) r(np),s(np)
-      real(pres) l1(np),l2(np),l3(np)
+      real(rp) x(np),y(np)
+      real(rp) r(np),s(np)
+      real(rp) l1(np),l2(np),l3(np)
 
 !c     Convert from x,y to r,s
       do i = 1,np

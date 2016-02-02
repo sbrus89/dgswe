@@ -1,13 +1,13 @@
       SUBROUTINE read_solution(sol,t)
 
-      USE globals, ONLY:pres,solution,lines
+      USE globals, ONLY:rp,solution,lines
 
       IMPLICIT NONE
       
       TYPE(solution) :: sol
       
       INTEGER :: i,dof,el,line,et,n
-      REAL(pres) :: t,hb
+      REAL(rp) :: t,hb
       
       PRINT("(A)"), TRIM(sol%sol_name) // " solution"
       

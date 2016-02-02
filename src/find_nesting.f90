@@ -1,6 +1,6 @@
       SUBROUTINE find_nesting(coarse,fine,elf2elc)
 
-      USE globals, ONLY:pres,solution
+      USE globals, ONLY:rp,solution
       USE evaluate, ONLY: newton
       USE kdtree2_module
 
@@ -17,10 +17,10 @@
       INTEGER :: srchdp
       INTEGER :: elf2elc(fine%ne)
       
-      REAL(pres) :: area,sarea,tol
-      REAL(pres) :: x(4),y(4)
-      REAL(pres) :: xf(1),yf(1),hb(1)     
-      REAL(pres) :: r(1),s(1)
+      REAL(rp) :: area,sarea,tol
+      REAL(rp) :: x(4),y(4)
+      REAL(rp) :: xf(1),yf(1),hb(1)     
+      REAL(rp) :: r(1),s(1)
       
       srchdp = 4
       tol = 1d-7

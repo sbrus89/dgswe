@@ -1,12 +1,12 @@
       SUBROUTINE area_qpts( )
 
-      USE globals, ONLY: pres,nel_type,wpta,qpta,nqpta,mnqpta
+      USE globals, ONLY: rp,nel_type,wpta,qpta,nqpta,mnqpta
 
       IMPLICIT NONE 
       INTEGER :: i,pt,et
       INTEGER :: order(nel_type)
       INTEGER :: npt(nel_type)
-      REAL(pres) :: w(13**2,nel_type),r(13**2,2,nel_type)
+      REAL(rp) :: w(13**2,nel_type),r(13**2,2,nel_type)
       
       order(1) = 10
       order(2) = order(1)
@@ -62,15 +62,15 @@
       
       SUBROUTINE cubature(eltype,p,nqpta,wpta,qpta)
       
-      USE globals, ONLY: pres
+      USE globals, ONLY: rp
       
       IMPLICIT NONE
       
       INTEGER :: p,eltype
       INTEGER :: i,j,n
       INTEGER :: nqpta,npt
-      REAL(pres) :: wpta(13**2),qpta(13**2,2)
-      REAL(pres) :: w(13),r(13)
+      REAL(rp) :: wpta(13**2),qpta(13**2,2)
+      REAL(rp) :: w(13),r(13)
       
       
       wpta = 0d0
@@ -417,12 +417,12 @@
       
       SUBROUTINE guass_qpts(p,nqpte,wpte,qpte)
 
-      USE globals, ONLY: pres
+      USE globals, ONLY: rp
       
       IMPLICIT NONE
       INTEGER :: p
       INTEGER :: nqpte
-      REAL(pres) :: wpte(13),qpte(13)
+      REAL(rp) :: wpte(13),qpte(13)
 
       wpte = 0d0
       qpte = 0d0
