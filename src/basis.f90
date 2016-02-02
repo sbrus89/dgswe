@@ -7,21 +7,27 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-        SUBROUTINE tri_basis(p,ndof,npts,r,s,phi,dpdr,dpds)
-
+        
+        SUBROUTINE tri_basis(p,ndfs,npts,r,s,phi,dpdr,dpds)
+        
+        USE globals, ONLY: rp
+        
         IMPLICIT NONE
-        INTEGER :: p,npts
-        INTEGER :: ndof
-        REAL(rp) :: r(npts),s(npts)        
+        INTEGER, INTENT(IN) :: p,npts
+        INTEGER, INTENT(OUT) :: ndfs
+        REAL(rp), INTENT(IN) :: r(npts),s(npts) 
+        REAL(rp), DIMENSION(:,:), INTENT(OUT) :: phi
+        REAL(rp), DIMENSION(:,:), OPTIONAL, INTENT(OUT) :: dpdr,dpds         
+        
         INTEGER :: m,i,j,pt
-        REAL(rp) :: dpda,dpdb,dadr,dads,ii       
+        INTEGER :: calc_deriv        
+        REAL(rp) :: dpda,dpdb,dadr,dads,ii,tmp        
         REAL(rp) :: a(npts),b(npts)
         REAL(rp) :: Pi(npts),Pj(npts)
         REAL(rp) :: dPi(npts),dPj(npts)
+
         
-        REAL(rp) :: phi(ndof*npts)
-        REAL(rp), OPTIONAL :: dpdr(ndof*npts),dpds(ndof*npts)  
-        INTEGER :: calc_deriv
+        ndfs = (p+1)*(p+2)/2
         
         IF (PRESENT(dpdr) .AND. PRESENT(dpds)) THEN
           calc_deriv = 1
@@ -52,8 +58,11 @@
 
             ! Calculate function values
             DO pt = 1,npts 
-!               phi(m,pt) = sqrt(2d0)*Pi(pt)*Pj(pt)*(1d0-b(pt))**i
-              phi((m-1)*npts+pt) = 2d0*Pi(pt)*Pj(pt)*(1d0-b(pt))**i
+              ! orthonormal
+              ! phi(m,pt) = sqrt(2d0)*Pi(pt)*Pj(pt)*(1d0-b(pt))**i
+              
+              ! phi_1 = 1
+              phi(m,pt) = 2d0*Pi(pt)*Pj(pt)*(1d0-b(pt))**i
             ENDDO
 
             IF (calc_deriv == 1) THEN
@@ -62,42 +71,70 @@
 
               ! Calculate derivative values
               DO pt = 1,npts
-                dadr = 2d0/(1d0-s(pt))
-                dads = 2d0*(1d0+r(pt))/(1d0-s(pt))**2d0
               
-!                 dpda = sqrt(2d0)*dPi(pt)*Pj(pt)*(1d0-b(pt))**ii
-!                 dpdb = sqrt(2d0)*Pi(pt)*(dPj(pt)*(1d0-b(pt))**ii - ii*(1d0-b(pt))**(ii-1d0)*Pj(pt))
-                dpda = 2d0*dPi(pt)*Pj(pt)*(1d0-b(pt))**ii
-                dpdb = 2d0*Pi(pt)*(dPj(pt)*(1d0-b(pt))**ii - ii*(1d0-b(pt))**(ii-1d0)*Pj(pt))
-              
-                dpdr((m-1)*npts+pt) = dpda*dadr
-                dpds((m-1)*npts+pt) = dpda*dads + dpdb
+!                 dadr = 2d0/(1d0-s(pt))
+!                 dads = 2d0*(1d0+r(pt))/(1d0-s(pt))**2d0
+!                
+!                 ! orthonormal
+!                 ! dpda = sqrt(2d0)*dPi(pt)*Pj(pt)*(1d0-b(pt))**ii
+!                 ! dpdb = sqrt(2d0)*Pi(pt)*(dPj(pt)*(1d0-b(pt))**ii - ii*(1d0-b(pt))**(ii-1d0)*Pj(pt))
+!                 
+!                 ! phi_1 = 1
+!                 dpda = 2d0*dPi(pt)*Pj(pt)*(1d0-b(pt))**ii
+!                 dpdb = 2d0*Pi(pt)*(dPj(pt)*(1d0-b(pt))**ii - ii*(1d0-b(pt))**(ii-1d0)*Pj(pt))
+!               
+!                 dpdr(m,pt) = dpda*dadr
+!                 dpds(m,pt) = dpda*dads + dpdb
+
+                ! correction for corner nodes 
+                dpdr(m,pt) = dPi(pt)*Pj(pt)
+                IF (i>0) THEN
+                  dpdr(m,pt) = dpdr(m,pt)*2d0*(1d0-b(pt))**(i-1)
+                ENDIF
+                
+                dpds(m,pt) = dPi(pt)*Pj(pt)*(1d0+a(pt))
+                IF (i>0) THEN
+                  dpds(m,pt) = dpds(m,pt)*(1d0-b(pt))**(i-1)
+                ENDIF
+                
+                tmp = dPj(pt)*(1d0-b(pt))**i
+                IF (i>0) THEN
+                  tmp = tmp - ii*Pj(pt)*(1d0-b(pt))**(i-1)
+                ENDIF
+                dpds(m,pt) = dpds(m,pt) + Pi(pt)*tmp              
+
+                dpdr(m,pt) = 2d0*dpdr(m,pt)
+                dpds(m,pt) = 2d0*dpds(m,pt) 
+                
               ENDDO
             ENDIF
 
           ENDDO
         ENDDO  
         
-        END SUBROUTINE tri_basis
+        END SUBROUTINE tri_basis        
         
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-        SUBROUTINE quad_basis(p,ndof,npts,r,s,phi,dpdr,dpds)
+       SUBROUTINE quad_basis(p,ndfs,npts,r,s,phi,dpdr,dpds)
+        
+        USE globals, ONLY: rp
         
         IMPLICIT NONE
         
-        INTEGER :: p,npts
-        INTEGER :: ndof
-        REAL(rp) :: r(npts),s(npts)
+        INTEGER, INTENT(IN) :: p,npts
+        INTEGER, INTENT(OUT) :: ndfs
+        REAL(rp), INTENT(IN) :: r(npts),s(npts)
+        REAL(rp), DIMENSION(:,:), INTENT(OUT) :: phi
+        REAL(rp), DIMENSION(:,:), OPTIONAL, INTENT(OUT) :: dpdr,dpds
         
         INTEGER :: m,i,j,pt    
         REAL(rp) :: Pi(npts),Pj(npts)
-        REAL(rp) :: dPi(npts),dPj(npts)
-        
-        REAL(rp) :: phi(ndof*npts)
-        REAL(rp), OPTIONAL :: dpdr(ndof*npts),dpds(ndof*npts)
+        REAL(rp) :: dPi(npts),dPj(npts)  
         INTEGER :: calc_deriv
+        
+        ndfs = (p+1)**2
         
         IF (PRESENT(dpdr) .AND. PRESENT(dpds)) THEN
           calc_deriv = 1
@@ -117,7 +154,7 @@
 
             ! Calculate function values
             DO pt = 1,npts 
-              phi((m-1)*npts+pt) = 2d0*Pi(pt)*Pj(pt)
+              phi(m,pt) = 2d0*Pi(pt)*Pj(pt)
             ENDDO
 
             IF (calc_deriv == 1) THEN
@@ -126,8 +163,8 @@
             
               ! Calculate derivative values
               DO pt = 1,npts
-                dpdr((m-1)*npts+pt) = 2d0*dPi(pt)*Pj(pt)
-                dpds((m-1)*npts+pt) = 2d0*Pi(pt)*dPj(pt)
+                dpdr(m,pt) = 2d0*dPi(pt)*Pj(pt)
+                dpds(m,pt) = 2d0*Pi(pt)*dPj(pt)
               ENDDO
             ENDIF
 
@@ -135,8 +172,8 @@
         ENDDO
 
         
-        END SUBROUTINE quad_basis        
-      
+        END SUBROUTINE quad_basis            
+        
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -144,26 +181,35 @@
       
       IMPLICIT NONE
       
-      INTEGER :: pt,dof,i
-      INTEGER :: p,ndof,npts
-      REAL(rp) :: rv(npts),sv(npts),s,r
-      REAL(rp) :: phi(ndof*npts)
+
+      INTEGER, INTENT(IN) :: p
+      INTEGER, INTENT(IN) :: npts
+      INTEGER, INTENT(OUT) :: ndof
+      
+      REAL(rp), INTENT(IN) :: rv(npts),sv(npts)
+      REAL(rp), DIMENSION(:,:), INTENT(OUT) :: phi
+      
+      INTEGER :: pt,dof,i      
+      REAL(rp) :: r,s
+
+      
+      ndof = (p+1)*(p+2)/2
       
       DO pt = 1,npts
         r = rv(pt)
         s = sv(pt)
-        phi(pt) = 1d0
-        phi(npts + pt) = 0.5d0*(1d0+3d0*s)
-        phi(2*npts + pt) = .5d0*(1d0+2d0*r+s)       
+        phi(1,pt) = 1d0
+        phi(2,pt) = 0.5d0*(1d0+3d0*s)
+        phi(3,pt) = .5d0*(1d0+2d0*r+s)       
       ENDDO        
         
       IF (p > 1) THEN
         DO pt = 1,npts
           r = rv(pt)
           s = sv(pt)        
-          phi(3*npts + pt) = -.5d0 + s + .5d0*(5d0*s**2)
-          phi(4*npts + pt) = .25d0*(1d0 + 2d0*r + s)*(3d0 + 5d0*s)
-          phi(5*npts + pt) = .25d0*(1d0 + 6d0*r**2 + 4d0*s + s**2 + 6d0*r*(1d0 + s))
+          phi(4,pt) = -.5d0 + s + .5d0*(5d0*s**2)
+          phi(5,pt) = .25d0*(1d0 + 2d0*r + s)*(3d0 + 5d0*s)
+          phi(6,pt) = .25d0*(1d0 + 6d0*r**2 + 4d0*s + s**2 + 6d0*r*(1d0 + s))
         ENDDO
       ENDIF
         
@@ -171,10 +217,10 @@
         DO pt = 1,npts 
           r = rv(pt)
           s = sv(pt)          
-          phi(6*npts + pt) = .125*(-3d0 - 15d0*s + 15d0*s**2 + 35d0*s**3)
-          phi(7*npts + pt) = .125*(1d0 + 2d0*r + s)*(1d0 + 18d0*s + 21d0*s**2)
-          phi(8*npts + pt) = .125*(5d0 + 7d0*s)*(1d0 + 6d0*r**2 + 4d0*s + s**2 + 6d0*r*(1d0 + s))
-          phi(9*npts + pt) = .125*(1d0 + 20d0*r**3 + 9d0*s + 9d0*s**2 + s**3 + 30d0*r**2*(1d0 + s) + 12d0*r*(1d0 + 3d0*s + s**2))
+          phi(7,pt) = .125*(-3d0 - 15d0*s + 15d0*s**2 + 35d0*s**3)
+          phi(8,pt) = .125*(1d0 + 2d0*r + s)*(1d0 + 18d0*s + 21d0*s**2)
+          phi(9,pt) = .125*(5d0 + 7d0*s)*(1d0 + 6d0*r**2 + 4d0*s + s**2 + 6d0*r*(1d0 + s))
+          phi(10,pt) = .125*(1d0 + 20d0*r**3 + 9d0*s + 9d0*s**2 + s**3 + 30d0*r**2*(1d0 + s) + 12d0*r*(1d0 + 3d0*s + s**2))
         ENDDO
       ENDIF
 
@@ -182,11 +228,11 @@
         DO pt = 1,npts
           r = rv(pt)
           s = sv(pt)          
-          phi(10*npts + pt) = (1d0/8d0)*(3d0 - 12d0*s - 42d0*s**2 + 28d0*s**3 + 63d0*s**4)
-          phi(11*npts + pt) = (1d0/4d0)*(1d0 + 2d0*r + s)*(-2d0 + 21d0*s**2 + 21d0*s**3)
-          phi(12*npts + pt) = (1d0/4d0)*(2d0 + 10d0*s + 9d0*s**2)*(1d0 + 6d0*r**2 + 4d0*s + s**2 + 6d0*r*(1d0 + s))
-          phi(13*npts + pt) = (1d0/16d0)*(7d0 + 9d0*s)*(1d0 + 20d0*r**3 + 9d0*s + 9d0*s**2 + s**3 + 30d0*r**2*(1 + s) + 12d0*r*(1d0 + 3d0*s + s**2))
-          phi(14*npts + pt) = (1d0/16d0)*(1d0 + 70d0*r**4 + 16d0*s + 36d0*s**2 + 16d0*s**3 + s**4 + 140d0*r**3*(1d0 + s) + 30d0*r**2*(3d0 + 8d0*s + 3d0*s**2) + 20d0*r*(1d0 + 6d0*s + 6d0*s**2 + s**3))
+          phi(11,pt) = (1d0/8d0)*(3d0 - 12d0*s - 42d0*s**2 + 28d0*s**3 + 63d0*s**4)
+          phi(12,pt) = (1d0/4d0)*(1d0 + 2d0*r + s)*(-2d0 + 21d0*s**2 + 21d0*s**3)
+          phi(13,pt) = (1d0/4d0)*(2d0 + 10d0*s + 9d0*s**2)*(1d0 + 6d0*r**2 + 4d0*s + s**2 + 6d0*r*(1d0 + s))
+          phi(14,pt) = (1d0/16d0)*(7d0 + 9d0*s)*(1d0 + 20d0*r**3 + 9d0*s + 9d0*s**2 + s**3 + 30d0*r**2*(1 + s) + 12d0*r*(1d0 + 3d0*s + s**2))
+          phi(15,pt) = (1d0/16d0)*(1d0 + 70d0*r**4 + 16d0*s + 36d0*s**2 + 16d0*s**3 + s**4 + 140d0*r**3*(1d0 + s) + 30d0*r**2*(3d0 + 8d0*s + 3d0*s**2) + 20d0*r*(1d0 + 6d0*s + 6d0*s**2 + s**3))
         ENDDO
       ENDIF
       
@@ -308,36 +354,53 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!      
       
-      subroutine tri_nodes(space,p,np,r,s)
+      SUBROUTINE tri_nodes(space,p,n,r,s)
 !c     Calculates nodal set for well-behaved interpolation
 !c     p (input) : the order of the basis
-!c     np (input): the number of points in the triangle
+!c     n (input): the number of points in the triangle
 !c     r(np) (output) ; nodal r-coordinates for master element
 !c     s(np) (output) : nodal s-coordinates for master element 
 
-      implicit none
-      integer p,np,i,j,m,space 
-      real(rp) ii,jj,a,dx,tol
-      real(rp) r(np),s(np),x(np),y(np),l1(np),l2(np),l3(np)
-      real(rp) aopt(15),b1(np),b2(np),b3(np)
-      real(rp) wx(np),wy(np),w1(np),w2(np),w3(np)
-      real(rp) w1e(np),w2e(np),w3e(np)
-      real(rp) w1mat(np,p+1),w2mat(np,p+1),w3mat(np,p+1)
-      real(rp) var1(np),var2(np),var3(np)
-      real(rp) lgl(p+1),xeq(p+1)
-      !c DW
+
+      IMPLICIT NONE
+      INTEGER, INTENT(IN) :: p,space 
+      INTEGER, INTENT(OUT) :: n
+      REAL(rp), DIMENSION(:), INTENT(OUT) :: r,s      
       
+      INTEGER :: i,j,m
+      REAL(rp) :: ii,jj,a,dx,tol
+      REAL(rp) :: aopt(15)
+      REAL(rp) :: lgl(p+1),xeq(p+1)           
+      REAL(rp), ALLOCATABLE, DIMENSION(:) :: x,y
+      REAL(rp), ALLOCATABLE, DIMENSION(:) :: l1,l2,l3      
+      REAL(rp), ALLOCATABLE, DIMENSION(:) :: b1,b2,b3
+      REAL(rp), ALLOCATABLE, DIMENSION(:) :: wx,wy,w1,w2,w3
+      REAL(rp), ALLOCATABLE, DIMENSION(:) :: w1e,w2e,w3e
+      REAL(rp), ALLOCATABLE, DIMENSION(:) :: var1,var2,var3
+      REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: w1mat,w2mat,w3mat     
+     
+     
 
 !c     Define optimal alpha values
-      data aopt/0d0,0d0,1.4152d0,0.1001d0,0.2751d0,0.9800d0,1.0999d0 &
+      DATA aopt/0d0,0d0,1.4152d0,0.1001d0,0.2751d0,0.9800d0,1.0999d0 &
                ,1.2832d0,1.3648d0,1.4773d0,1.4959d0,1.5743d0,1.5770d0 &
                ,1.6223d0,1.6258d0/
 
-      if(p.lt.16) then
+      IF(p.lt.16) THEN
         a = aopt(p)
-      else
+      ELSE
         a = 5d0/3d0
-      endif
+      ENDIF
+      
+      n = (p+1)*(p+2)/2
+      
+      ALLOCATE(x(n),y(n))            
+      ALLOCATE(l1(n),l2(n),l3(n))
+      ALLOCATE(b1(n),b2(n),b3(n))
+      ALLOCATE(wx(n),wy(n),w1(n),w2(n),w3(n))
+      ALLOCATE(w1e(n),w2e(n),w3e(n))
+      ALLOCATE(var1(n),var2(n),var3(n))
+      ALLOCATE(w1mat(n,p+1),w2mat(n,p+1),w3mat(n,p+1))
 
 !c     Create equally distributed nodes on equalateral triangle
 
@@ -346,44 +409,44 @@
 ! Edge 3 points
       i = 1
       ii = dble(i)
-      do j = 1,p+1
+      DO j = 1,p+1
         jj = dble(j)
         m = m+1
         l1(m) = (ii-1d0)/dble(p)
         l3(m) = (jj-1d0)/dble(p)
-      enddo
+      ENDDO
 
 ! Edge 1 points
-      do i = 2,p+1
+      DO i = 2,p+1
         ii = dble(i)
         j = p+2-i 
         jj = dble(j)
         m = m+1
         l1(m) = (ii-1d0)/dble(p)
         l3(m) = (jj-1d0)/dble(p)
-      enddo
+      ENDDO
 
 
 ! Edge 2 points
-      do i = p,2,-1
+      DO i = p,2,-1
         ii = dble(i)
         j = 1
         jj = dble(j)
         m = m+1
         l1(m) = (ii-1d0)/dble(p)
         l3(m) = (jj-1d0)/dble(p)
-      enddo
+      ENDDO
 
 ! Internal points
-      do i = 2,p
+      DO i = 2,p
         ii = dble(i)
-        do j = 2,p+1-i 
+        DO j = 2,p+1-i 
           jj = dble(j)
           m = m+1
           l1(m) = (ii-1d0)/dble(p)
           l3(m) = (jj-1d0)/dble(p)
-        enddo
-      enddo
+        ENDDO
+      ENDDO
 
 !       do i = 1,p+1
 !         ii = dble(i)
@@ -395,195 +458,223 @@
 !         enddo
 !       enddo
 
-      do i = 1,m
+      DO i = 1,m
         l2(i) = 1d0-l1(i)-l3(i)
         x(i) = -l2(i)+l3(i)
         y(i) = (-l2(i)-l3(i)+2d0*l1(i))/dsqrt(3d0)
-      enddo
+      ENDDO
 
-      if(space.eq.0)then
-        call xytors(np,x,y,r,s) ;
-        return
-      endif
+      IF(space.eq.0)then
+        CALL xytors(n,x,y,r,s) ;
+        RETURN
+      ENDIF
 
 !c     Compute blending function
-      do i = 1,np
+      DO i = 1,n
         b1(i) = 4d0*l2(i)*l3(i)
         b2(i) = 4d0*l3(i)*l1(i)
         b3(i) = 4d0*l2(i)*l1(i)
-      enddo
+      ENDDO
 
 !c     Compute 1-D Legendre-Gauss-Lobotto points on (-1,1)
-      call lglpts(p,lgl)
+      CALL lglpts(p,lgl)
+
+!       do i = 1,p+1
+!         write(40,*) lgl(i)
+!       enddo
 
 !c     Compute equadistant points on (-1,1)
       dx = 2d0/dble(p)
       xeq(1)=-1d0
-      do i = 2,p+1
+      DO i = 2,p+1
         xeq(i) = xeq(i-1)+dx
-      enddo
+      ENDDO
       xeq(p+1) = 1d0
 
 !c     Compute warping function arugments
-      do i = 1,np
+      DO i = 1,n
         w1e(i) = l3(i)-l2(i)
         w2e(i) = l1(i)-l3(i)
         w3e(i) = l2(i)-l1(i)
-      enddo
+      ENDDO
 
 !c     Elvaluate Lagrange polynomials based on equa-spaced nodes
-      call lagrange(p+1,np,xeq,w1e,w1mat)
-      call lagrange(p+1,np,xeq,w2e,w2mat)
-      call lagrange(p+1,np,xeq,w3e,w3mat)
+      CALL lagrange(p+1,n,xeq,w1e,w1mat)
+      CALL lagrange(p+1,n,xeq,w2e,w2mat)
+      CALL lagrange(p+1,n,xeq,w3e,w3mat)
 
-!       do j = 1,np
+!       do j = 1,n
 !         write(50,41) (w1mat(j,i), i = 1,p+1)
 !       enddo
-
- 41   format(16000(e24.17,1x))
+!  41   format(16000(e24.17,1x))
 
 !c     Compute 1 dimensional mapping functions for edges
 
       tol = 1d0 - 1.0d-10
 
-      do i = 1,np
-        if(dabs(w1e(i)).lt.tol) then
+      DO i = 1,n
+        IF(dabs(w1e(i)).lt.tol) THEN
           var1(i) = 1d0
-        else
+        ELSE
           var1(i) = 0d0
-        endif
-        if(dabs(w2e(i)).lt.tol) then
+        ENDIF
+        IF(dabs(w2e(i)).lt.tol) THEN
           var2(i) = 1d0
-        else
+        ELSE
           var2(i) = 0d0
-        endif
-        if(dabs(w3e(i)).lt.tol) then
+        ENDIF
+        IF(dabs(w3e(i)).lt.tol) THEN
           var3(i) = 1d0
-        else
+        ELSE
           var3(i) = 0d0
-        endif
-      enddo
+        ENDIF
+      ENDDO
 
-      do j = 1,np
+      DO j = 1,n
         w1(j) = 0d0
         w2(j) = 0d0
         w3(j) = 0d0
-      enddo
+      ENDDO
 
-      do j = 1,np
-        do i = 1,p+1
+      DO j = 1,n
+        DO i = 1,p+1
          w1(j) = w1(j) + (lgl(i)-xeq(i))*w1mat(j,i)
          w2(j) = w2(j) + (lgl(i)-xeq(i))*w2mat(j,i)
          w3(j) = w3(j) + (lgl(i)-xeq(i))*w3mat(j,i)
-        enddo
+        ENDDO
         w1(j) = w1(j)/(1d0-(var1(j)*w1e(j))**2)+w1(j)*(var1(j)-1d0)
         w2(j) = w2(j)/(1d0-(var2(j)*w2e(j))**2)+w2(j)*(var2(j)-1d0)
         w3(j) = w3(j)/(1d0-(var3(j)*w3e(j))**2)+w3(j)*(var3(j)-1d0)
-      enddo
+      ENDDO
 
 !c     Apply gerneralized warping function to equally distributed nodes on equalateral triangle
-      do i = 1,np
+      DO i = 1,n
         x(i) = x(i)+(1d0+(a*l1(i))**2d0)*b1(i)*w1(i) &
                    -.5d0*(1d0+(a*l2(i))**2d0)*b2(i)*w2(i) &
                    -.5d0*(1d0+(a*l3(i))**2d0)*b3(i)*w3(i)
         y(i) = y(i)+dsqrt(3d0)/2d0*(1d0+(a*l2(i))**2d0)*b2(i)*w2(i) &
                    -dsqrt(3d0)/2d0*(1d0+(a*l3(i))**2d0)*b3(i)*w3(i)
-      enddo
+      ENDDO
 
-      call xytors(np,x,y,r,s)      
+      CALL xytors(n,x,y,r,s)
+      
+!       open(unit=60,file=DIRNAME//'/'//'tri.d')
+
+!       print*,' '
+!       print*, 'Triangle Points'
+!       do i = 1,n
+! !         write(60,61) r(i),s(i),x(i),y(i)
+!         print 21, r(i),s(i)
+!       enddo
+!       print*, ' '
 
  21   format(28(f10.4,1x))
  61   format(16000(e24.17,1x))      
 
-      return
-      end subroutine
+      RETURN
+      END SUBROUTINE
       
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!       
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!      
 
-      SUBROUTINE quad_nodes(space,np,nnds,r,s)
-
+      SUBROUTINE quad_nodes(space,p,n,r,s)
+      
+      
       IMPLICIT NONE
       
-      INTEGER :: space,np,nnds
-      INTEGER :: i,k,j,n,nnp
-      REAL(rp) :: xi(np+1)
-      REAL(rp) :: r(nnds),s(nnds)
+      INTEGER, INTENT(IN) :: space,p
+      INTEGER, INTENT(OUT) :: n      
+      REAL(rp), DIMENSION(:), INTENT(OUT) :: r,s
       
+
+      INTEGER :: i,k,j,nl,m
+      REAL(rp) :: xi(p+1)
+
+      
+      
+      n = (p+1)**2
       
       ! Get 1-D LGL points 
       
       IF (space == 1) THEN
-        CALL lglpts(np,xi)
+        CALL lglpts(p,xi)
       ELSE
         xi(1) = -1d0
-        DO i = 1,np-1
-          xi(i+1) = xi(i) + 2d0/real(np,rp)
+        DO i = 1,p-1
+          xi(i+1) = xi(i) + 2d0/real(p,rp)
         ENDDO
-        xi(np+1) = 1d0
+        xi(p+1) = 1d0
       ENDIF
         
       ! Do tensor product, ordering the nodes counter-clockwise
 
       ! Find number of loops around refence quad element, excluding middle points
-      IF (np <= 2)THEN
-        nnp = 1
+      IF (p <= 2)THEN
+        nl = 1
       ELSE
-        IF(mod(np,2) == 1) THEN
-          nnp = np-1
-        ELSE IF (mod(np,2) == 0) THEN
-          nnp = np-2
+        IF(mod(p,2) == 1) THEN
+          nl = p-1
+        ELSE IF (mod(p,2) == 0) THEN
+          nl = p-2
         ENDIF
       ENDIF
         
-      n = 1
-      DO k = 1,nnp ! loop over number of loops
+      m = 1
+      DO k = 1,nl ! loop over number of loops
          
         ! Edge 4
-        DO i = k,np+1 - (k-1)
+        DO i = k,p+1 - (k-1)
           j = k
-          r(n) = xi(i)
-          s(n) = xi(j)
+          r(m) = xi(i)
+          s(m) = xi(j)
           
-          n = n+1
+          m = m+1
         ENDDO
         
         ! Edge 1
-        DO j = 2 + (k-1),np+1 - (k-1)
-          i = np+1 - (k-1)
-          r(n) = xi(i)
-          s(n) = xi(j)
+        DO j = 2 + (k-1),p+1 - (k-1)
+          i = p+1 - (k-1)
+          r(m) = xi(i)
+          s(m) = xi(j)
           
-          n = n+1
+          m = m+1
         ENDDO
 
         ! Edge 2
-        DO i = np - (k-1),1 + (k-1),-1
-          j = np+1 - (k-1)
-          r(n) = xi(i)
-          s(n) = xi(j)
+        DO i = p - (k-1),1 + (k-1),-1
+          j = p+1 - (k-1)
+          r(m) = xi(i)
+          s(m) = xi(j)
           
-          n = n+1      
+          m = m+1      
         ENDDO
 
         ! Edge 3
-        DO j = np - (k-1),2 + (k-1),-1
+        DO j = p - (k-1),2 + (k-1),-1
           i = 1 + (k-1)
-          r(n) = xi(i)
-          s(n) = xi(j)
+          r(m) = xi(i)
+          s(m) = xi(j)
 
-          n = n+1
+          m = m+1
         ENDDO    
           
       ENDDO
         
       ! middle point
-      IF (mod(np+1,2) == 1) THEN
-        i = np/2 + 1
-        r(n) = xi(i)
-        s(n) = xi(i)
+      IF (mod(p+1,2) == 1) THEN
+        i = p/2 + 1
+        r(m) = xi(i)
+        s(m) = xi(i)
           
-      ENDIF        
+      ENDIF   
+      
+         
+!       PRINT*, ' '
+!       PRINT*, 'Quadrilateral Points'
+!       DO m = 1,n
+!         PRINT("(2(f10.4))"), r(m),s(m)
+!       ENDDO         
+
       
       RETURN
       END SUBROUTINE
@@ -683,7 +774,7 @@
       return
       end subroutine
 
-!ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc	
+!ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc        
       subroutine xytors(np,x,y,r,s) 
       
       implicit none

@@ -19,7 +19,6 @@
       
       INTEGER :: et,pt,dof,i,n
       REAL(rp) :: r(sol%mnnds),s(sol%mnnds)
-      REAL(rp) :: phi(sol%mnnds*sol%mnnds)
       INTEGER :: info    
       
 
@@ -32,18 +31,13 @@
         n = sol%nnds(et)
         IF (mod(et,2) == 1) THEN
           CALL tri_nodes(1,sol%np(et),n,r,s)
-          CALL tri_basis(sol%np(et),n,n,r,s,phi)       
+          CALL tri_basis(sol%np(et),n,n,r,s,sol%V(:,:,et))       
         ELSE IF (mod(et,2) == 0) THEN
           CALL quad_nodes(1,sol%np(et),n,r,s)
-          CALL quad_basis(sol%np(et),n,n,r,s,phi)
+          CALL quad_basis(sol%np(et),n,n,r,s,sol%V(:,:,et))
         ENDIF
         
-        DO pt = 1,n
-          DO dof = 1,n
-            i = (dof-1)*n + pt
-            sol%V(dof,pt,et) = phi(i)
-          ENDDO
-        ENDDO
+
         
         ! Do LU decomposition 
         CALL DGETRF(n,n,sol%V(1,1,et),sol%mnnds,sol%ipiv(1,et),info)
@@ -113,14 +107,9 @@
       INTEGER :: p,n,et,m,i,pt,mnnds,mndof,npt
       INTEGER :: info
       REAL(rp) :: r(mnqpta),s(mnqpta)
-      REAL(rp), ALLOCATABLE, DIMENSION(:) :: phi,dpdr,dpds
       
       mnnds = fine%mnnds
-      mndof = fine%mndof
-      
-      ALLOCATE(phi(max(mnnds,mndof)*mnqpta))
-      ALLOCATE(dpdr(max(mnnds,mndof)*mnqpta))
-      ALLOCATE(dpds(max(mnnds,mndof)*mnqpta))      
+      mndof = fine%mndof         
       
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       ! evaluate shape functions at quadrature points (to compute r,s -> x,y transformtion in error integration)
@@ -132,7 +121,6 @@
       
       DO et = 1,nel_type
         p = fine%np(et)     ! transformation order
-        n = fine%nnds(et)   ! transformation nodes
         npt = nqpta(et)
         
         DO pt = 1,npt
@@ -141,19 +129,11 @@
         ENDDO
         
         IF (mod(et,2) == 1) THEN
-          CALL tri_basis(p,n,npt,r,s,phi,dpdr,dpds)
+          CALL tri_basis(p,n,npt,r,s,fine%l(:,:,et),fine%dldr(:,:,et),fine%dlds(:,:,et))
         ELSE IF (mod(et,2) == 0) THEN
-          CALL quad_basis(p,n,npt,r,s,phi,dpdr,dpds)
+          CALL quad_basis(p,n,npt,r,s,fine%l(:,:,et),fine%dldr(:,:,et),fine%dlds(:,:,et))
         ENDIF
         
-        DO pt = 1,npt
-          DO m = 1,n
-            i = (m-1)*npt + pt
-            fine%l(m,pt,et) = phi(i) 
-            fine%dldr(m,pt,et) = dpdr(i)
-            fine%dlds(m,pt,et) = dpds(i)            
-          ENDDO
-        ENDDO
         
         CALL DGETRS("N",n,npt,fine%V(1,1,et),mnnds,fine%ipiv(1,et),fine%l(1,1,et),mnnds,info)  
         CALL DGETRS("N",n,npt,fine%V(1,1,et),mnnds,fine%ipiv(1,et),fine%dldr(1,1,et),mnnds,info)      
@@ -169,7 +149,6 @@
       
       DO et = 1,nel_type
         p = fine%p        ! solution order
-        n = fine%ndof(et) ! solution degrees of freedom
         npt = nqpta(et) 
         
         DO pt = 1,npt
@@ -179,20 +158,13 @@
         
         IF (mod(et,2) == 1) THEN
 #ifndef adcirc        
-          CALL tri_basis(p,n,npt,r,s,phi)
+          CALL tri_basis(p,n,npt,r,s,fine%phi(:,:,et))
 #else
-          CALL adcirc_basis(p,n,npt,r,s,phi)
+          CALL adcirc_basis(p,n,npt,r,s,fine%phi(:,:,et))
 #endif          
         ELSE IF (mod(et,2) == 0) THEN
-          CALL quad_basis(p,n,npt,r,s,phi)
-        ENDIF
-        
-        DO pt = 1,npt
-          DO m = 1,n
-            i = (m-1)*npt + pt
-            fine%phi(m,pt,et) = phi(i)      
-          ENDDO
-        ENDDO
+          CALL quad_basis(p,n,npt,r,s,fine%phi(:,:,et))
+        ENDIF        
       
       ENDDO      
       
@@ -256,7 +228,8 @@
       USE basis, ONLY: tri_basis,quad_basis
 
       IMPLICIT NONE
-      INTEGER :: eln,npt
+      INTEGER, INTENT(IN) :: eln
+      INTEGER, INTENT(IN) :: npt
       INTEGER :: it,i,m,pt
       INTEGER et,p,n,mnnds     
       INTEGER :: info
@@ -267,7 +240,7 @@
       REAL(rp), DIMENSION(npt), INTENT(OUT) :: r,s,hb
       REAL(rp), DIMENSION(npt) :: f,g
       REAL(rp), DIMENSION(npt) :: dfdr,dfds,dgdr,dgds,jac
-      REAL(rp), DIMENSION(npt*sol%mnnds) :: phi,dpdr,dpds
+      REAL(rp), DIMENSION(sol%mnnds,npt) :: phi,dpdr,dpds
       REAL(rp) :: l(sol%mnnds,3*npt)
         
       tol = 1d-10
@@ -276,7 +249,6 @@
       
       et = sol%el_type(eln)
       p = sol%np(et)  
-      n = sol%nnds(et)
       mnnds = sol%mnnds
         
       ! Initial guesses  
@@ -303,11 +275,10 @@
         
         DO pt = 1,npt
           DO m = 1,n  
-            i = (m-1)*npt + pt
             
-            l(m,pt) = phi(i)
-            l(m,npt+pt) = dpdr(i)
-            l(m,2*npt+pt) = dpds(i)          
+            l(m,pt) = phi(m,pt)
+            l(m,npt+pt) = dpdr(m,pt)
+            l(m,2*npt+pt) = dpds(m,pt)          
           ENDDO
         ENDDO
         
