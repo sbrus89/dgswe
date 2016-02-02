@@ -90,7 +90,13 @@
       TYPE(grid) :: base
       TYPE(grid) :: eval   
       
-      INTEGER :: srchdp
+      REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: V
+      REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: l
+      REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: dldr
+      REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: dlds      
+      INTEGER, ALLOCATABLE, DIMENSION(:,:) :: ipiv      
+      
+      INTEGER, PARAMETER :: srchdp = 20
       REAL(rp) :: rsre(2,4,4)        
       TYPE(kdtree2), POINTER :: tree_xy      
       TYPE(kdtree2_result), ALLOCATABLE, DIMENSION(:) :: closest       

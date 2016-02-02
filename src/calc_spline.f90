@@ -15,18 +15,15 @@
       
       USE globals, ONLY: rp,base,ax,bx,cx,dx,ay,by,cy,dy, &
                          nfbnds,fbnds,fbnds_xy, &
-                         tree_xy
+                         tree_xy,closest,srchdp
       USE kdtree2_module                     
       
       IMPLICIT NONE
       
       INTEGER :: num
       INTEGER :: nmax
-      INTEGER :: nd,seg,j
-      REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: xy_temp
-      INTEGER , ALLOCATABLE, DIMENSION(:) :: nds_temp
-      
-      ALLOCATE(nds_temp(base%nvel),xy_temp(2,base%nvel))
+      INTEGER :: nd,seg,i,j,skip
+
       
       num = 0
       nmax = 0 
@@ -41,11 +38,7 @@
           ENDIF
           
           DO j = 1,base%fbseg(1,seg)
-            nfbnds = nfbnds + 1
-            
-            nd = base%fbnds(j,seg)
-            nds_temp(nfbnds) = nd
-            xy_temp(1:2,nfbnds) = base%xy(1:2,nd)
+            nfbnds = nfbnds + 1            
           ENDDO
           
           
@@ -54,12 +47,36 @@
       
       ALLOCATE(fbnds(nfbnds),fbnds_xy(2,nfbnds))
       
-      fbnds(1:nfbnds) = nds_temp(1:nfbnds)
-      fbnds_xy(1:2,1:nfbnds) = xy_temp(1:2,1:nfbnds)
+      nfbnds = 0
+      DO seg = 1,base%nbou
+        IF(base%fbseg(2,seg) == 10 .OR. base%fbseg(2,seg) == 11 .OR. base%fbseg(2,seg) == 101)THEN 
+                            
+          DO j = 1,base%fbseg(1,seg)
+            nd = base%fbnds(j,seg)
+            
+            skip = 0
+            DO i = 1,nfbnds
+              IF (fbnds(i) == nd) THEN
+                skip = 1
+              ENDIF
+            ENDDO
+          
+            IF (skip == 0) THEN
+              nfbnds = nfbnds + 1            
+
+              fbnds(nfbnds) = nd
+              fbnds_xy(1:2,nfbnds) = base%xy(1:2,nd)
+            ENDIF
+          ENDDO
+          
+          
+        ENDIF
+      ENDDO
       
       
       
-      tree_xy => kdtree2_create(fbnds_xy(1:2,:)  , rearrange=.true., sort=.true.)
+      tree_xy => kdtree2_create(fbnds_xy(1:2,1:nfbnds), rearrange=.true., sort=.true.)
+      ALLOCATE(closest(srchdp))
       
       
 

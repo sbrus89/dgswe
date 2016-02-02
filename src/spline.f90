@@ -7,10 +7,13 @@
       USE calc_spline, ONLY: calc_cubic_spline,eval_cubic_spline, &
                              newton,spline_init
       USE check, ONLY: check_angle,check_deformation
+      USE find_element, ONLY: in_element
+      USE evaluate, ONLY: vandermonde,transformation
 
       IMPLICIT NONE
       INTEGER :: i,j,k,n,seg,sind,eind,num,qpts,btype
       INTEGER :: el,eln,nd,ndn,led,n1ed1,n2ed1,n1bed,n2bed,nvert
+      INTEGER :: el_in,found
       REAL(rp) :: htest,dt,t,tpt,x,y,xs,ys,r,sig
       REAL(rp) :: d1,d2,d3,t1,t2,xm,ym
       REAL(rp) :: n1x,n1y,n2x,n2y,n3x,n3y,n4x,n4y,edlen
@@ -36,6 +39,10 @@
       
       
       CALL spline_init(num)
+      
+      CALL vandermonde()  
+      
+      CALL transformation()        
     
 
       WRITE(30,*) num
@@ -85,73 +92,87 @@
           
           PRINT*, dt          
           
-          t = 0d0
-          DO nd = 1,n-1
+!           t = 0d0
+!           DO nd = 1,n-1
+! 
+!            n1bed = base%fbnds(nd,seg)
+!            n2bed = base%fbnds(nd+1,seg)   
+!            
+!            n1x = base%xy(1,n1bed)
+!            n1y = base%xy(2,n1bed)
+!           
+!            n2x = base%xy(1,n2bed)
+!            n2y = base%xy(2,n2bed)      
+!            
+!           
+!            
+!            CALL check_angle(seg,n,nd,theta1,theta2,edlen)
+!            
+!            
+!             
+!             IF ( theta1 > 20d0 .AND. theta2 > 20d0) THEN         
+! 
+!       elem: DO el = 1,base%nepn(n1bed)
+!               eln = base%epn(el,n1bed)
+!               
+!               nvert = nverts(base%el_type(eln))
+!               
+!               DO led = 1,nvert
+!  
+!                 n1ed1 = base%vct(mod(led+0,nvert)+1,eln)
+!                 n2ed1 = base%vct(mod(led+1,nvert)+1,eln) 
+! 
+!                 IF(((n1ed1 == n1bed).AND.(n2ed1 == n2bed)).OR. &
+!                    ((n1ed1 == n2bed).AND.(n2ed1 == n1bed))) THEN
+!                    
+!                    print*, "  ", eln
+!                    
+!                    DO i = 1,ctp-1
+!                      r = -1d0 + real(i,rp)*2d0/real(ctp,rp)
+!                      tpt = .5d0*dt*(r + 1d0) + t               
+!                      
+!                      xm = .5d0*(1d0-r)*n1x + .5d0*(1d0+r)*n2x
+!                      ym = .5d0*(1d0-r)*n1y + .5d0*(1d0+r)*n2y
+!                      
+!                      CALL newton(tpt,t,xm,ym,ax(nd),bx(nd),cx(nd),dx(nd),ay(nd),by(nd),cy(nd),dy(nd),x,y)
+! 
+!                      CALL check_deformation(base%minedlen(eln),xm,ym,x,y)
+!                      
+!                      ndn = mod(led,nvert)*ctp+i+1                        
+!                      
+!                      base%xy(1,base%ect(ndn,eln)) = x
+!                      base%xy(2,base%ect(ndn,eln)) = y                                                         
+!                        
+!                    ENDDO
+!                    
+!                    t = t + dt
+!                    EXIT elem
+! 
+!                 ENDIF
+!                 
+!               ENDDO
+!             ENDDO elem
+!             ENDIF                      
+!             
+!             
+!           ENDDO          
 
-           n1bed = base%fbnds(nd,seg)
-           n2bed = base%fbnds(nd+1,seg)   
-           
-           n1x = base%xy(1,n1bed)
-           n1y = base%xy(2,n1bed)
-          
-           n2x = base%xy(1,n2bed)
-           n2y = base%xy(2,n2bed)      
-           
-          
-           
-           CALL check_angle(seg,n,nd,theta1,theta2,edlen)
-           
-           
-            
-            IF ( theta1 > 20d0 .AND. theta2 > 20d0) THEN         
 
-      elem: DO el = 1,base%nepn(n1bed)
-              eln = base%epn(el,n1bed)
-              
-              nvert = nverts(base%el_type(eln))
-              
-              DO led = 1,nvert
- 
-                n1ed1 = base%vct(mod(led+0,nvert)+1,eln)
-                n2ed1 = base%vct(mod(led+1,nvert)+1,eln) 
-
-                IF(((n1ed1 == n1bed).AND.(n2ed1 == n2bed)).OR. &
-                   ((n1ed1 == n2bed).AND.(n2ed1 == n1bed))) THEN
-                   
-                   print*, "  ", eln
-                   
-                   DO i = 1,ctp-1
-                     r = -1d0 + real(i,rp)*2d0/real(ctp,rp)
-                     tpt = .5d0*dt*(r + 1d0) + t               
-                     
-                     xm = .5d0*(1d0-r)*n1x + .5d0*(1d0+r)*n2x
-                     ym = .5d0*(1d0-r)*n1y + .5d0*(1d0+r)*n2y
-                     
-                     CALL newton(tpt,t,xm,ym,ax(nd),bx(nd),cx(nd),dx(nd),ay(nd),by(nd),cy(nd),dy(nd),x,y)
-
-                     CALL check_deformation(base%minedlen(eln),xm,ym,x,y)
-                     
-                     ndn = mod(led,nvert)*ctp+i+1                        
-                     
-                     base%xy(1,base%ect(ndn,eln)) = x
-                     base%xy(2,base%ect(ndn,eln)) = y                                                         
-                       
-                   ENDDO
-                   
-                   t = t + dt
-                   EXIT elem
-
-                ENDIF
-                
-              ENDDO
-            ENDDO elem
-            ENDIF
-            
-            
-          ENDDO          
-
-  
           CALL write_spline(n,dt)
+          
+          
+
+          DO i = 1,eval%fbseg(1,seg)-1  
+            nd = eval%fbnds(i,seg)
+             
+            PRINT*, "FINDING ELEMENT FOR POINT: ",i, " NODE: ",nd
+            CALL in_element(nd,eval%xy(1:2,nd),el_in,found)          
+            PRINT*, "------------------------------------------------------------"            
+            PRINT*, " "
+            
+          ENDDO
+
+ 
 
 
         ENDIF
