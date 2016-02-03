@@ -15,6 +15,9 @@
       INTEGER :: el,eln,nd,ndn,led,n1ed1,n2ed1,n1bed,n2bed,nvert
       INTEGER :: el_in,found
       INTEGER :: segtype
+      INTEGER :: n1,n2
+      INTEGER :: base_bed
+      INTEGER :: neval,nbase
       REAL(rp) :: htest,dt,t,tpt,x,y,xs,ys,r,sig
       REAL(rp) :: d1,d2,d3,t1,t2,xm,ym
       REAL(rp) :: n1x,n1y,n2x,n2y,n3x,n3y,n4x,n4y,edlen
@@ -23,6 +26,7 @@
 
 
       OPEN(unit=30,file='spline.out')
+      OPEN(unit=60,file='eval_nodes.out')        
       
       PRINT "(A)", " "
       
@@ -36,7 +40,7 @@
       CALL connect(base)
       CALL connect(eval)
       
-      sig = 1d0
+      sig = 0d0
       
       
       CALL spline_init(num)
@@ -47,6 +51,7 @@
     
 
       WRITE(30,*) num
+      WRITE(60,*) num
 
       DO seg = 1,base%nbou
       
@@ -165,24 +170,91 @@
           CALL write_spline(n,dt)
           
           
+  
+          neval = eval%fbseg(1,seg)
+          nbase = base%fbseg(1,seg)
+  
+          WRITE(60,*) ctp*(neval-1) + 1
 
-          DO i = 1,eval%fbseg(1,seg)-1  
+          DO i = 1,neval-1  
             nd = eval%fbnds(i,seg)
              
             PRINT*, "FINDING ELEMENT FOR POINT: ",i, " NODE: ",nd
             CALL in_element(nd,eval%xy(1:2,nd),el_in,found)          
+
+            
+            nvert = nverts(base%el_type(el_in))            
+            
+            found = 0
+     ledge: DO led = 1,nvert
+ 
+              n1ed1 = base%vct(mod(led+0,nvert)+1,el_in)
+              n2ed1 = base%vct(mod(led+1,nvert)+1,el_in) 
+              
+              DO j = 1,nbase-1
+              
+                n1bed = base%fbnds(j,seg)
+                n2bed = base%fbnds(j+1,seg)   
+                                                        
+                IF(((n1ed1 == n1bed).AND.(n2ed1 == n2bed)).OR. &
+                   ((n1ed1 == n2bed).AND.(n2ed1 == n1bed))) THEN
+!                    PRINT*, "n1bed = ",n1bed, "n2bed = ",n2bed                   
+                   found = 1
+                   
+                   t = real(j-1,rp)*dt
+                   base_bed = j
+                   
+                   EXIT ledge
+                ENDIF        
+              
+              ENDDO
+              
+            ENDDO ledge
+            
+            IF (found == 0) THEN
+              PRINT*, "Boundary edge not found"
+            ENDIF           
+                   
+                   
+            n1 = eval%fbnds(i,seg)
+            n2 = eval%fbnds(i+1,seg)
+                   
+            n1x = eval%xy(1,n1)
+            n1y = eval%xy(2,n1)
+          
+            n2x = eval%xy(1,n2)
+            n2y = eval%xy(2,n2)     
+            
+            IF (i == neval-1) THEN
+              n = ctp
+            ELSE 
+              n = ctp-1
+            ENDIF
+                   
+            DO j = 0,n
+              r = -1d0 + real(j,rp)*2d0/real(ctp,rp)
+              tpt = .5d0*dt*(r + 1d0) + t               
+                     
+              xm = .5d0*(1d0-r)*n1x + .5d0*(1d0+r)*n2x
+              ym = .5d0*(1d0-r)*n1y + .5d0*(1d0+r)*n2y
+                     
+              nd = base_bed                     
+              CALL newton(tpt,t,xm,ym,ax(nd),bx(nd),cx(nd),dx(nd),ay(nd),by(nd),cy(nd),dy(nd),x,y)
+              
+              WRITE(60,*) x,y
+                       
+            ENDDO  
+
             PRINT*, "------------------------------------------------------------"            
             PRINT*, " "
             
           ENDDO
 
- 
-
-
-        ENDIF
-
+              
+        ENDIF      
       ENDDO
       CLOSE(30)
+      CLOSE(60)
       
       
       

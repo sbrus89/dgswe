@@ -84,7 +84,8 @@ search: DO srch = 1,srchdp
             ENDIF
           
             ! The station is in the element if the reference element area and sum of sub triangle are the same
-            IF (diff < tol) THEN
+            ! Make sure vertexes use elements with boundary edges
+            IF (diff < tol .AND. base%bel_flag(eln) == 1) THEN
               PRINT("(A,I5)"), "   element found", eln
                       
               el_found = eln        

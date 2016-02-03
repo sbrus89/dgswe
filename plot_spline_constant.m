@@ -58,9 +58,9 @@ for j = 1:n_seg
     y(end) = ay(i+1);    
     
     hold on
-    plot(x,y)
+    plot(x,y,'-')
     hold all
-    plot(ax,ay,'rx')
+    plot(ax,ay,'or')
     plot(xe,ye,'k')
     
     
@@ -70,21 +70,50 @@ end
 
 fclose(file);
 
+
+
+
 hold on
 
-fid = fopen('work/nodes.out') ;
+file = fopen('work/eval_nodes.out');
 
-agrid = fgetl(fid) ;
-disp(agrid) ;
-title = agrid ; 
+n = textscan(file,'%d',1);
+n_seg = n{1};
 
-N = fscanf(fid,'%g %g',2) ;
+for j = 1:n_seg
+    n = textscan(file, '%d',1); 
+    
+    xy = textscan(file, '%f%f',n{1});
+    
+    plot(xy{:,1},xy{:,2},'rx')
+end
+fclose(file);
 
-Val = zeros(N(2),4) ;
-Val = fscanf(fid,'%d %g %g %g \n', [4 N(2)])' ;
-VX = Val(:,2:3) ;
 
-plot(VX(:,1),VX(:,2),'mx')
+
+
+
+
+
+
+
+
+
+% hold on
+% 
+% fid = fopen('work/nodes.out') ;
+% 
+% agrid = fgetl(fid) ;
+% disp(agrid) ;
+% title = agrid ; 
+% 
+% N = fscanf(fid,'%g %g',2) ;
+% 
+% Val = zeros(N(2),4) ;
+% Val = fscanf(fid,'%d %g %g %g \n', [4 N(2)])' ;
+% VX = Val(:,2:3) ;
+% 
+% plot(VX(:,1),VX(:,2),'mx')
 
 axis equal
 %axis([23000 27000 10000 12500])

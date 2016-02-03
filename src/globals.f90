@@ -70,7 +70,7 @@
         INTEGER :: nied
         INTEGER :: nnfbed
         INTEGER, ALLOCATABLE, DIMENSION(:) :: bed_flag
-        INTEGER, ALLOCATABLE, DIMENSION(:,:) :: bel2bed
+        INTEGER, ALLOCATABLE, DIMENSION(:) :: bel_flag        
         INTEGER, ALLOCATABLE, DIMENSION(:,:) :: ged2nn,ged2el,ged2led  
         INTEGER, ALLOCATABLE, DIMENSION(:) :: nfbedn        
         
