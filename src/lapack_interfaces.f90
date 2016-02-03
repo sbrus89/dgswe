@@ -197,6 +197,117 @@ MODULE lapack_interfaces
         
         
         END SUBROUTINE DGELS
+        
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!        
+        
+        
+        SUBROUTINE DGTSV(n, nrhs, dl, d, du, b, ldb, info)
+        
+          !  DGTSV  solves the equation
+          !
+          !     A*X = B,
+          !
+          !  where A is an n by n tridiagonal matrix, by Gaussian elimination with
+          !  partial pivoting.
+          !
+          !  Note that the equation  A**T*X = B  may be solved by interchanging the
+          !  order of the arguments DU and DL.        
+        
+          INTEGER, INTENT(IN) :: n                                   ! The order of the matrix A.  N >= 0.
+        
+          INTEGER, INTENT(IN) :: nrhs                                ! The number of right hand sides, i.e., the number of columns
+                                                                     ! of the matrix B.  NRHS >= 0.
+                                                                   
+          DOUBLE PRECISION, DIMENSION(*), INTENT(INOUT) :: dl        ! dimension (N-1)
+                                                                     ! On entry, DL must contain the (n-1) sub-diagonal elements of A.
+                                                                     ! On exit, DL is overwritten by the (n-2) elements of the
+                                                                     ! second super-diagonal of the upper triangular matrix U from
+                                                                     ! the LU factorization of A, in DL(1), ..., DL(n-2).
+                                                                   
+          DOUBLE PRECISION, DIMENSION(*), INTENT(INOUT) :: d         ! dimension (N)
+                                                                     ! On entry, D must contain the diagonal elements of A.
+                                                                     ! On exit, D is overwritten by the n diagonal elements of U.
+                                                                   
+          DOUBLE PRECISION, DIMENSION(*), INTENT(INOUT) :: du        ! dimension (N-1)
+                                                                     ! On entry, DU must contain the (n-1) super-diagonal elements of A.
+                                                                     ! On exit, DU is overwritten by the (n-1) elements of the first
+                                                                     ! super-diagonal of U.
+                                                                   
+          DOUBLE PRECISION, DIMENSION(ldb,*), INTENT(INOUT) :: b     ! dimension (LDB,NRHS)
+                                                                     ! On entry, the N by NRHS matrix of right hand side matrix B.
+                                                                     ! On exit, if INFO = 0, the N by NRHS solution matrix X.
+                                                                   
+          INTEGER, INTENT(IN) :: ldb                                 ! The leading dimension of the array B.  LDB >= max(1,N).
+        
+          INTEGER, INTENT(OUT) :: info                               ! = 0: successful exit
+                                                                     ! < 0: if INFO = -i, the i-th argument had an illegal value
+                                                                     ! > 0: if INFO = i, U(i,i) is exactly zero, and the solution
+                                                                     !      has not been computed.  The factorization has not been
+                                                                     !      completed unless i = N.
+          
+        END SUBROUTINE DGTSV
+        
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!   
+
+        SUBROUTINE DSTEQR(compz, n, d, e, z, ldz, work, info)
+        
+          !  DSTEQR computes all eigenvalues and, optionally, eigenvectors of a
+          !  symmetric tridiagonal matrix using the implicit QL or QR method.
+          !  The eigenvectors of a full or band symmetric matrix can also be found
+          !  if DSYTRD or DSPTRD or DSBTRD has been used to reduce this matrix to
+          !  tridiagonal form.          
+          
+          CHARACTER, INTENT(IN) :: compz                           ! CHARACTER*1
+                                                                   ! = 'N':  Compute eigenvalues only.
+                                                                   ! = 'V':  Compute eigenvalues and eigenvectors of the original 
+                                                                   !         symmetric matrix.  On entry, Z must contain the
+                                                                   !         orthogonal matrix used to reduce the original matrix
+                                                                   !         to tridiagonal form.
+                                                                   ! = 'I':  Compute eigenvalues and eigenvectors of the
+                                                                   !         tridiagonal matrix.  Z is initialized to the identity
+                                                                   !         matrix.
+                                                                   
+          INTEGER, INTENT(IN) :: n                                 ! The order of the matrix.  N >= 0.
+          
+          DOUBLE PRECISION, DIMENSION(*), INTENT(INOUT) :: d       ! dimension (N)
+                                                                   ! On entry, the diagonal elements of the tridiagonal matrix.
+                                                                   ! On exit, if INFO = 0, the eigenvalues in ascending order.                                                                   
+                                                                   
+          DOUBLE PRECISION, DIMENSION(*), INTENT(INOUT) :: e       ! dimension (N-1)
+                                                                   ! On entry, the (n-1) subdiagonal elements of the tridiagonal matrix.
+                                                                   ! On exit, E has been destroyed.
+                                                                   
+          DOUBLE PRECISION, DIMENSION(ldz,*), INTENT(INOUT) :: z   ! dimension (LDZ, N)
+                                                                   ! On entry, if  COMPZ = 'V', then Z contains the orthogonal
+                                                                   ! matrix used in the reduction to tridiagonal form.
+                                                                   ! On exit, if INFO = 0, then if  COMPZ = 'V', Z contains the
+                                                                   ! orthonormal eigenvectors of the original symmetric matrix,
+                                                                   ! and if COMPZ = 'I', Z contains the orthonormal eigenvectors
+                                                                   ! of the symmetric tridiagonal matrix.
+                                                                   ! If COMPZ = 'N', then Z is not referenced.
+                                                                   
+          INTEGER, INTENT(IN) :: ldz                               ! The leading dimension of the array Z.  LDZ >= 1, and if
+                                                                   ! eigenvectors are desired, then  LDZ >= max(1,N).
+                                                                   
+          DOUBLE PRECISION, DIMENSION(*), INTENT(INOUT) :: work    ! dimension (max(1,2*N-2))
+                                                                   ! If COMPZ = 'N', then WORK is not referenced.
+                                                                   
+          INTEGER, INTENT(OUT) :: info                             ! = 0:  successful exit
+                                                                   ! < 0:  if INFO = -i, the i-th argument had an illegal value
+                                                                   ! > 0:  the algorithm has failed to find all the eigenvalues in
+                                                                   ! a total of 30*N iterations; if INFO = i, then i
+                                                                   ! elements of E have not converged to zero; on exit, D
+                                                                   ! and E contain the elements of a symmetric tridiagonal
+                                                                   ! matrix which is orthogonally similar to the original
+                                                                   ! matrix.
+                                                                   
+          
+          
+          
+        
+        END SUBROUTINE
 
       END INTERFACE
 

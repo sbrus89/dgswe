@@ -1,6 +1,7 @@
       MODULE basis
       
       USE globals, ONLY: rp
+      USE lapack_interfaces
 
       CONTAINS
       

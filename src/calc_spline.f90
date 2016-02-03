@@ -109,6 +109,7 @@
       
       INTEGER, INTENT(IN) :: n
       INTEGER :: i      
+      INTEGER :: info
       
       REAL(rp), INTENT(IN) :: sig
       REAL(rp), INTENT(IN) , DIMENSION(n) :: a
@@ -139,11 +140,11 @@
           Mu(n) = 0d0
 
           ! Set up RHS
-          v(1) = 0d0
+          c(1) = 0d0
           DO i = 2,n-1
-            v(i) = 3d0/dt*(a(i+1)-2d0*a(i)+a(i-1))
+            c(i) = 3d0/dt*(a(i+1)-2d0*a(i)+a(i-1))
           ENDDO
-          v(n) = 0d0
+          c(n) = 0d0
           
       ELSE   ! With tension
 
@@ -161,30 +162,32 @@
           Mu(n) = 0d0
 
           ! Set up RHS
-          v(1) = 0d0
+          c(1) = 0d0
           DO i = 2,n-1
-            v(i) = 1d0/dt*(a(i+1)-2d0*a(i)+a(i-1))
+            c(i) = 1d0/dt*(a(i+1)-2d0*a(i)+a(i-1))
           ENDDO
-          v(n) = 0d0
+          c(n) = 0d0
           
       ENDIF
       
+      ! Solve system for c coefficients
+      CALL DGTSV(n,1,Ml,Md,Mu,c,n,info)      
+
       
-      
-
-      ! Solve system for c coefficients, forward sweep
-      DO i = 2,n
-        mult = Ml(i)/Md(i-1)
-        Md(i) = Md(i) - mult*Mu(i-1)
-        v(i) = v(i) - mult*v(i-1)
-      ENDDO
-
-      ! Solve system for c coefficients, backward sweep
-      c(n) = v(n)/Md(n)
-      DO i = n-1,1,-1
-        c(i) = (v(i) - Mu(i)*c(i+1))/Md(i)
-      ENDDO
-
+!       ! Solve system for c coefficients, forward sweep
+!       ! RHS is v 
+!       DO i = 2,n
+!         mult = Ml(i)/Md(i-1)
+!         Md(i) = Md(i) - mult*Mu(i-1)
+!         v(i) = v(i) - mult*v(i-1)
+!       ENDDO
+! 
+!       ! Solve system for c coefficients, backward sweep
+!       c(n) = v(n)/Md(n)
+!       DO i = n-1,1,-1
+!         c(i) = (v(i) - Mu(i)*c(i+1))/Md(i)
+!       ENDDO
+ 
       ! Solve for other coefficients d and b
       DO i = 1,n-1
         d(i) = (c(i+1)-c(i))/(3d0*dt)
@@ -241,7 +244,7 @@
       REAL(rp) :: f,fp,fpp,g,gp,gpp
       REAL(rp) :: d,dp,tol
       
-      tol = 1d-4
+      tol = 1d-8
       maxit = 10000
       
 iter: DO it = 1,maxit
@@ -267,7 +270,7 @@ iter: DO it = 1,maxit
       CALL eval_cubic_spline(t,ti,ay,by,cy,dy,y)
       
       IF (it >= maxit) THEN
-        PRINT*, "MAX ITERATIONS EXCEEDED"
+        PRINT*, "MAX ITERATIONS EXCEEDED, ERROR: ", ABS(d)        
       ENDIF     
 
       
