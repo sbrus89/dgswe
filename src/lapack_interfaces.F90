@@ -122,6 +122,111 @@ MODULE lapack_interfaces
           INTEGER, INTENT(OUT) :: info                             ! The leading dimension of the array B.  LDB >= max(1,N).
 
         END SUBROUTINE DGETRS
+        
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!   
+        
+        SUBROUTINE DGETRI(n, a, lda, ipiv, work, lwork, info)
+        
+        !  DGETRI computes the inverse of a matrix using the LU factorization
+        !  computed by DGETRF.
+        !
+        !  This method inverts U and then computes inv(A) by solving the system
+        !  inv(A)*L = inv(U) for inv(A).   
+        
+        INTEGER, INTENT(IN) :: n                                   ! The order of the matrix A.  N >= 0.
+        
+        DOUBLE PRECISION, DIMENSION(lda,*), INTENT(INOUT) :: a     ! dimension (LDA,N)
+                                                                   ! On entry, the factors L and U from the factorization
+                                                                   ! A = P*L*U as computed by DGETRF.
+                                                                   ! On exit, if INFO = 0, the inverse of the original matrix A.
+                                                                   
+        INTEGER, INTENT(IN) :: lda                                 ! The leading dimension of the array A.  LDA >= max(1,N).
+        
+        INTEGER, DIMENSION(*), INTENT(IN) :: ipiv                  ! dimension (N)
+                                                                   ! The pivot indices from DGETRF; for 1<=i<=N, row i of the
+                                                                   ! matrix was interchanged with row IPIV(i).
+                                                                   
+        DOUBLE PRECISION, DIMENSION(*), INTENT(INOUT) :: work      ! dimension (MAX(1,LWORK))
+                                                                   ! On exit, if INFO=0, then WORK(1) returns the optimal LWORK.                                                                   
+                                                                   
+        INTEGER, INTENT(IN) :: lwork                                ! The dimension of the array WORK.  LWORK >= max(1,N).
+                                                                   ! For optimal performance LWORK >= N*NB, where NB is
+                                                                   ! the optimal blocksize returned by ILAENV.
+                                                                   !
+                                                                   ! If LWORK = -1, then a workspace query is assumed; the routine
+                                                                   ! only calculates the optimal size of the WORK array, returns
+                                                                   ! this value as the first entry of the WORK array, and no error
+                                                                   ! message related to LWORK is issued by XERBLA.
+                                                                   
+        INTEGER, INTENT(OUT) :: info                               ! = 0:  successful exit
+                                                                   ! < 0:  if INFO = -i, the i-th argument had an illegal value
+                                                                   ! > 0:  if INFO = i, U(i,i) is exactly zero; the matrix is
+                                                                   !       singular and its inverse could not be computed.
+                                                                   
+        
+        END SUBROUTINE DGETRI
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!   
+
+        SUBROUTINE DSTEQR(compz, n, d, e, z, ldz, work, info)
+        
+          !  DSTEQR computes all eigenvalues and, optionally, eigenvectors of a
+          !  symmetric tridiagonal matrix using the implicit QL or QR method.
+          !  The eigenvectors of a full or band symmetric matrix can also be found
+          !  if DSYTRD or DSPTRD or DSBTRD has been used to reduce this matrix to
+          !  tridiagonal form.          
+          
+          CHARACTER, INTENT(IN) :: compz                           ! CHARACTER*1
+                                                                   ! = 'N':  Compute eigenvalues only.
+                                                                   ! = 'V':  Compute eigenvalues and eigenvectors of the original 
+                                                                   !         symmetric matrix.  On entry, Z must contain the
+                                                                   !         orthogonal matrix used to reduce the original matrix
+                                                                   !         to tridiagonal form.
+                                                                   ! = 'I':  Compute eigenvalues and eigenvectors of the
+                                                                   !         tridiagonal matrix.  Z is initialized to the identity
+                                                                   !         matrix.
+                                                                   
+          INTEGER, INTENT(IN) :: n                                 ! The order of the matrix.  N >= 0.
+          
+          DOUBLE PRECISION, DIMENSION(*), INTENT(INOUT) :: d       ! dimension (N)
+                                                                   ! On entry, the diagonal elements of the tridiagonal matrix.
+                                                                   ! On exit, if INFO = 0, the eigenvalues in ascending order.                                                                   
+                                                                   
+          DOUBLE PRECISION, DIMENSION(*), INTENT(INOUT) :: e       ! dimension (N-1)
+                                                                   ! On entry, the (n-1) subdiagonal elements of the tridiagonal matrix.
+                                                                   ! On exit, E has been destroyed.
+                                                                   
+          DOUBLE PRECISION, DIMENSION(ldz,*), INTENT(INOUT) :: z   ! dimension (LDZ, N)
+                                                                   ! On entry, if  COMPZ = 'V', then Z contains the orthogonal
+                                                                   ! matrix used in the reduction to tridiagonal form.
+                                                                   ! On exit, if INFO = 0, then if  COMPZ = 'V', Z contains the
+                                                                   ! orthonormal eigenvectors of the original symmetric matrix,
+                                                                   ! and if COMPZ = 'I', Z contains the orthonormal eigenvectors
+                                                                   ! of the symmetric tridiagonal matrix.
+                                                                   ! If COMPZ = 'N', then Z is not referenced.
+                                                                   
+          INTEGER, INTENT(IN) :: ldz                               ! The leading dimension of the array Z.  LDZ >= 1, and if
+                                                                   ! eigenvectors are desired, then  LDZ >= max(1,N).
+                                                                   
+          DOUBLE PRECISION, DIMENSION(*), INTENT(INOUT) :: work    ! dimension (max(1,2*N-2))
+                                                                   ! If COMPZ = 'N', then WORK is not referenced.
+                                                                   
+          INTEGER, INTENT(OUT) :: info                             ! = 0:  successful exit
+                                                                   ! < 0:  if INFO = -i, the i-th argument had an illegal value
+                                                                   ! > 0:  the algorithm has failed to find all the eigenvalues in
+                                                                   ! a total of 30*N iterations; if INFO = i, then i
+                                                                   ! elements of E have not converged to zero; on exit, D
+                                                                   ! and E contain the elements of a symmetric tridiagonal
+                                                                   ! matrix which is orthogonally similar to the original
+                                                                   ! matrix.
+                                                                   
+          
+          
+          
+        
+        END SUBROUTINE        
 
       END INTERFACE
 

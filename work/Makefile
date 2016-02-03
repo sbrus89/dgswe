@@ -346,7 +346,7 @@ $(ODIR)allocation.o : allocation.F90                           $(ODIR)globals.o 
 	$(FC) $(FFLAGS) -c $< -o $@
 	mv allocation.mod $(ODIR)
 
-$(ODIR)basis.o : basis.F90                                     $(ODIR)globals.o $(ODIR)messenger2.o $(ODIR)read_input.o $(ODIR)allocation.o
+$(ODIR)basis.o : basis.F90                                     $(ODIR)globals.o $(ODIR)messenger2.o $(ODIR)read_input.o $(ODIR)allocation.o $(ODIR)lapack_interfaces.o
 	$(FC) $(FFLAGS) -c $< -o $@
 	mv basis.mod $(ODIR)
 	
@@ -411,7 +411,7 @@ $(ODIR)edge_partition2.o : edge_partition2.F90                 $(ODIR)globals.o 
 $(ODIR)metis2.o : metis2.F90                                   $(ODIR)globals.o $(ODIR)messenger2.o 
 	$(FC) $(FFLAGS) -c $< -o $@	
 	
-$(ODIR)area_transformation.o : area_transformation.F90         $(ODIR)globals.o $(ODIR)transformation.o
+$(ODIR)area_transformation.o : area_transformation.F90         $(ODIR)globals.o $(ODIR)transformation.o $(ODIR)lapack_interfaces.o
 	$(FC) $(FFLAGS) -c $< -o $@
 
 $(ODIR)edge_transformation.o : edge_transformation.F90         $(ODIR)globals.o $(ODIR)basis.o

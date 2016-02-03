@@ -6,13 +6,15 @@
                          detJa,dpdx_init,dpdy_init,phia,phia_int_init
                          
       USE transformation, ONLY: element_transformation,cpp_transformation
+      USE lapack_interfaces
 
       IMPLICIT NONE
       
       INTEGER :: i,j,nd,el,pt,m,dof
       INTEGER :: et,nnd,nqa,ndf
-      INTEGER :: ipiv(mndof),work(mndof*mndof)
+      INTEGER :: ipiv(mndof)
       INTEGER ::info
+      REAL(rp) :: work(mndof*mndof)      
       REAL(rp) :: mm(mndof,mndof)      
       REAL(rp) :: xpt,ypt
       REAL(rp) :: drdx,drdy,dsdx,dsdy

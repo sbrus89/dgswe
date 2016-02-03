@@ -1,4 +1,6 @@
       MODULE basis
+      
+      USE lapack_interfaces
 
       CONTAINS
 
