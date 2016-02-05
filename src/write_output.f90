@@ -47,28 +47,26 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
 
 
-      SUBROUTINE write_spline(n,dt)
+      SUBROUTINE write_spline(n)
       
-      USE globals, ONLY: rp,ax,bx,cx,dx,ay,by,cy,dy
+      USE globals, ONLY: rp,ax,bx,cx,dx,ay,by,cy,dy,dt
       
       IMPLICIT NONE
            
-      INTEGER :: n
-      REAL(rp) :: dt
-      
+      INTEGER :: n      
       INTEGER :: i
+      REAL(rp) :: t
       
-      WRITE(30,*) n,dt
+      
+      WRITE(30,*) n
 
-      DO i = 1,n-1
-        WRITE(30,"(4(E25.12))"), ax(i),bx(i),cx(i),dx(i)
+      t = 0d0
+      DO i = 1,n-1        
+        WRITE(30,"(9(E25.12,1x))"), ax(i),bx(i),cx(i),dx(i),ay(i),by(i),cy(i),dy(i),t
+        t = t + dt(i)
       ENDDO
-      WRITE(30,"(4(E25.12))"), ax(n),0d0,0d0,0d0
+      WRITE(30,"(9(E25.12,1x))"), ax(n),0d0,0d0,0d0,ay(n),0d0,0d0,0d0,t
 
-      DO i = 1,n-1
-        WRITE(30,"(4(E25.12))"), ay(i),by(i),cy(i),dy(i)
-      ENDDO
-      WRITE(30,"(4(E25.12))"), ay(n),0d0,0d0,0d0      
       
       
       RETURN

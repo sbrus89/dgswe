@@ -1,12 +1,12 @@
-/home/sbrus/data-drive/galveston/dgswe/tri/galveston_tri.grd                                           ! base grid file
-/home/sbrus/data-drive/galveston/dgswe/tri/galveston_tri.grd                                           ! eval grid file
-3                                                                                                      ! ctp - parametric coordinate transformation order
-./                                                                                                     ! output directory
+! /home/sbrus/data-drive/galveston/dgswe/tri/galveston_tri.grd                                           ! base grid file
+! /home/sbrus/data-drive/galveston/dgswe/tri/galveston_tri.grd                                           ! eval grid file
+! 3                                                                                                      ! ctp - parametric coordinate transformation order
+! ./                                                                                                     ! output directory
 
-! /home/sbrus/Codes/dgswe/grids/converge1_dble.grd                                                      ! base grid file  
-! /home/sbrus/Codes/dgswe/grids/converge1_dble.grd                                                      ! eval grid file 
-! 3                                                                                                     ! ctp - parametric coordinate transformation order
-! ./                                                                                                    ! output directory
+/home/sbrus/Codes/dgswe/grids/converge1_dble.grd                                                      ! base grid file  
+/home/sbrus/Codes/dgswe/grids/converge1_dble.grd                                                      ! eval grid file 
+3                                                                                                     ! ctp - parametric coordinate transformation order
+./                                                                                                    ! output directory
 
 
 !../galveston_tri_curve.grd                                                                            ! base grid file  

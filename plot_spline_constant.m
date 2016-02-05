@@ -2,50 +2,54 @@ close all
 clear all
 clc
 
-t = 0:.00001:1;
-
 file = fopen('work/spline.out');
 
 figure
 
-n = textscan(file,'%d',1);
-n_seg = n{1};
+%     th = fscanf(fid_H,' %g ', 1); % read in time
+%     Z = fscanf(fid_H,' %g ', [ne mndof])'; % read in H solution at time t
+
+n_seg = fscanf(file,'%d',1);
+
 
 for j = 1:n_seg
-   n_dt = textscan(file, '%d%f',1); 
-   n_seg_nodes(j) = n_dt{1,1};
-   dt(j) = n_dt{1,2};
+   n = fscanf(file, '%d',1)'; 
+ 
+
   
    
-   coef_x = textscan(file, '%f%f%f%f',n_seg_nodes(j));
-   ax = coef_x{:,1};
-   bx = coef_x{:,2};
-   cx = coef_x{:,3};
-   dx = coef_x{:,4};
+   coef_xy = fscanf(file, '%g',[9, n])';
+   ax = coef_xy(:,1);
+   bx = coef_xy(:,2);
+   cx = coef_xy(:,3);
+   dx = coef_xy(:,4);
    
-   coef_y = textscan(file, '%f%f%f%f',n_seg_nodes(j));
-   ay = coef_y{:,1};
-   by = coef_y{:,2};
-   cy = coef_y{:,3};
-   dy = coef_y{:,4};
+   ay = coef_xy(:,5);
+   by = coef_xy(:,6);
+   cy = coef_xy(:,7);
+   dy = coef_xy(:,8);   
    
-    
+   ti = coef_xy(:,9);
+  
+ 
+   t = linspace(ti(1),ti(n),100*n);
+   
+  
    %%%%%%%%%% Plot boundary polynomials %%%%%%%%%%
-    ti = 0;
+
     x = zeros(size(t));
     y = zeros(size(t));
     xe = zeros(size(t));
     ye = zeros(size(t));
-    for i = 1:n_seg_nodes(j)-1
+    for i = 1:n-1
         % Cubic Spline
-        x = (t > ti & t <= (ti + dt(j))).*(ax(i) + bx(i)*(t-ti) + cx(i)*(t-ti).^2 + dx(i)*(t-ti).^3)+x;
-        y = (t > ti & t <= (ti + dt(j))).*(ay(i) + by(i)*(t-ti) + cy(i)*(t-ti).^2 + dy(i)*(t-ti).^3)+y;
+        x = (t > ti(i) & t <= ti(i+1)).*(ax(i) + bx(i)*(t-ti(i)) + cx(i)*(t-ti(i)).^2 + dx(i)*(t-ti(i)).^3)+x;
+        y = (t > ti(i) & t <= ti(i+1)).*(ay(i) + by(i)*(t-ti(i)) + cy(i)*(t-ti(i)).^2 + dy(i)*(t-ti(i)).^3)+y;
         
         % Linear element edge
-        xe = (t > ti & t <= (ti + dt(j))).*((t-ti)*ax(i+1)/dt(j) - (t-ti-dt(j))*ax(i)/dt(j)) + xe;
-        ye = (t > ti & t <= (ti + dt(j))).*((t-ti)*ay(i+1)/dt(j) - (t-ti-dt(j))*ay(i)/dt(j)) + ye;
-        
-        ti = ti + dt(j);
+        dt = ti(i+1)-ti(i);
+        xe = (t > ti(i) & t <= ti(i+1)).*((t-ti(i))*ax(i+1)/dt - (t-ti(i)-dt)*ax(i)/dt) + xe;
+        ye = (t > ti(i) & t <= ti(i+1)).*((t-ti(i))*ay(i+1)/dt - (t-ti(i)-dt)*ay(i)/dt) + ye;
     end
     xe(1) = ax(1);
     ye(1) = ay(1);
@@ -59,12 +63,13 @@ for j = 1:n_seg
     
 %     figure(j)
     
+
     hold on
     plot(x,y,'-b')
     hold all
     plot(ax,ay,'o','MarkerSize',12,'Color',[0.4660    0.6740    0.1880])
     plot(xe,ye,'k')
-    
+
     
 
     hold off
@@ -84,13 +89,15 @@ n_seg = n{1};
 
 for j = 1:n_seg
 %     figure(j)
-%     hold on
+    hold on
     
     n = textscan(file, '%d',1); 
     
     xy = textscan(file, '%f%f',n{1});
     
-    plot(xy{:,1},xy{:,2},'x','MarkerSize',12,'Color',[0.4660    0.6740    0.1880])
+
+     plot(xy{:,1},xy{:,2},'x','MarkerSize',20,'Color',[0.4660    0.6740    0.1880])
+
 end
 fclose(file);
 

@@ -10,19 +10,17 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!      
       
 
-      SUBROUTINE in_element(seg,dt,pt,xt,t,bed)
+      SUBROUTINE in_element(seg,pt,xt,bed)
 
       USE globals, ONLY: base,tree_xy,srchdp,closest,fbnds
 
       IMPLICIT NONE
       
       INTEGER, INTENT(IN) :: seg  
-      INTEGER, INTENT(IN) :: pt
-      REAL(rp), INTENT(IN) :: dt          
+      INTEGER, INTENT(IN) :: pt        
       REAL(rp), INTENT(IN) :: xt(2)
       
       INTEGER, INTENT(OUT) :: bed
-      REAL(rp), INTENT(OUT) :: t
             
       INTEGER :: srch,i
       INTEGER :: el,eln,clnd
@@ -67,7 +65,7 @@ search: DO srch = 1,srchdp
               found = 1                        
               
               ! find base edge (to get correct spline coefficients)                 
-              CALL find_edge(seg,el_found,dt,ed_found,t,bed)
+              CALL find_edge(seg,el_found,ed_found,bed)
                           
               EXIT search            
             ENDIF    
@@ -86,7 +84,7 @@ search: DO srch = 1,srchdp
           PRINT*, "USING ELEMENT ", el_found, "(AREA DIFF = ",min_diff, ")"       
 
           CALL sub_element(pt,el_found,xt,diff,ed_found)            
-          CALL find_edge(seg,el_found,dt,ed_found,t,bed)
+          CALL find_edge(seg,el_found,ed_found,bed)
           
         ENDIF     
  
@@ -98,20 +96,18 @@ search: DO srch = 1,srchdp
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
 
-      SUBROUTINE find_edge(seg,el_in,dt,led,t,base_bed)
+      SUBROUTINE find_edge(seg,el_in,led,base_bed)
       
       USE globals, ONLY: base,nverts
       
       IMPLICIT NONE
       
      
-      INTEGER, INTENT(IN) :: seg 
-      REAL(rp), INTENT(IN) :: dt      
+      INTEGER, INTENT(IN) :: seg    
       INTEGER, INTENT(IN) :: el_in      
       INTEGER, INTENT(IN) :: led
       
-      INTEGER, INTENT(OUT) :: base_bed
-      REAL(rp), INTENT(OUT) :: t      
+      INTEGER, INTENT(OUT) :: base_bed     
       
       INTEGER :: nvert      
       INTEGER :: j
@@ -137,9 +133,7 @@ search: DO srch = 1,srchdp
             PRINT*, "n1bed = ",n1bed, "n2bed = ",n2bed    
 !           PRINT*, n1bed, base%xy(1,n1bed), base%xy(2,n1bed)
 
-            found = 1
-                   
-            t = real(j-1,rp)*dt
+            found = 1                   
             base_bed = j
               
             EXIT bseg

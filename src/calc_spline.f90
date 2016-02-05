@@ -13,7 +13,7 @@
 
       SUBROUTINE spline_init(num)
       
-      USE globals, ONLY: rp,base,ax,bx,cx,dx,ay,by,cy,dy, &
+      USE globals, ONLY: rp,base,ax,bx,cx,dx,ay,by,cy,dy,dt, &
                          nfbnds,fbnds,fbnds_xy, &
                          tree_xy,closest,srchdp
       USE kdtree2_module                     
@@ -96,7 +96,8 @@
       PRINT "(A)", " "
       
       ALLOCATE(ax(nmax),cx(nmax),bx(nmax-1),dx(nmax-1))
-      ALLOCATE(ay(nmax),cy(nmax),by(nmax-1),dy(nmax-1))      
+      ALLOCATE(ay(nmax),cy(nmax),by(nmax-1),dy(nmax-1)) 
+      ALLOCATE(dt(nmax))
       
       
       RETURN
@@ -106,26 +107,47 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
 
       
-      SUBROUTINE calc_cubic_spline(sig,n,a,b,c,d,dt)
+      SUBROUTINE calc_cubic_spline(coord,seg,n,sig,a,b,c,d,dt)
 
-
+      USE globals, ONLY: base
       
       IMPLICIT NONE
       
+      INTEGER, INTENT(IN) :: coord
+      INTEGER, INTENT(IN) :: seg
       INTEGER, INTENT(IN) :: n
       INTEGER :: i      
       INTEGER :: info
       
       REAL(rp), INTENT(IN) :: sig
-      REAL(rp), INTENT(IN) , DIMENSION(n) :: a
+      REAL(rp), INTENT(OUT) , DIMENSION(n) :: a
       REAL(rp), INTENT(OUT), DIMENSION(n) :: b,c,d
-      REAL(rp), INTENT(OUT) :: dt
+      REAL(rp), INTENT(OUT), DIMENSION(n) :: dt
       REAL(rp) :: mult
-      REAL(rp), DIMENSION(n) :: Ml,Md,Mu,v      
+      REAL(rp) :: x1,y1,x2,y2
+      REAL(rp), DIMENSION(n) :: Ml,Md,Mu,v                 
+     
+     
+      DO i = 1,n-1
       
+        dt(i) = 1d0/(real(n,rp)-1d0)
+        
+!         x1 = base%xy(1,base%fbnds(i,seg))
+!         y1 = base%xy(2,base%fbnds(i,seg))
+!         
+!         x2 = base%xy(1,base%fbnds(i+1,seg))
+!         y2 = base%xy(2,base%fbnds(i+1,seg))
+!         
+!         dt(i) = sqrt((x2-x1)**2 + (y2-y1)**2)
       
+      ENDDO
       
-      dt = 1d0/(real(n,rp)-1d0)
+
+      ! Load nodal boundary coordinates 
+      DO i = 1,n
+        a(i) = base%xy(coord,base%fbnds(i,seg))
+      ENDDO      
+     
 
 
 
@@ -135,10 +157,10 @@
           Ml(1) = 0d0
           Md(1) = 1d0
           Mu(1) = 0d0
-          DO i = 2,n-1
-            Ml(i) = dt
-            Md(i) = 4d0*dt
-            Mu(i) = dt
+          DO i = 2,n-1     
+            Ml(i) = dt(i-1)
+            Md(i) = 2d0*(dt(i-1)+dt(i))
+            Mu(i) = dt(i)
           ENDDO
           Ml(n) = 0d0
           Md(n) = 1d0
@@ -147,20 +169,21 @@
           ! Set up RHS
           c(1) = 0d0
           DO i = 2,n-1
-            c(i) = 3d0/dt*(a(i+1)-2d0*a(i)+a(i-1))
+            c(i) = 3d0/dt(i)*(a(i+1)-a(i)) - 3d0/dt(i-1)*(a(i)-a(i-1)) 
           ENDDO
           c(n) = 0d0
           
-      ELSE   ! With tension
+      ELSE   ! With tension (had to multiply the LHS of Palucci's notes by 2 )
 
           ! Set up matrix 
           Ml(1) = 0d0
           Md(1) = 1d0
           Mu(1) = 0d0
-          DO i = 2,n-1
-            Ml(i) = (2d0/sig**2)*(1d0/dt-sig/sinh(sig*dt))
-            Md(i) = (4d0/sig**2)*((sig*cosh(sig*dt))/sinh(sig*dt)-1d0/dt)
-            Mu(i) = (2d0/sig**2)*(1d0/dt-sig/sinh(sig*dt))
+          DO i = 2,n-1        
+            Ml(i) = 2d0*(1d0/dt(i-1) - sig/sinh(sig*dt(i-1)))/sig**2
+            Md(i) = 2d0*(sig*cosh(sig*dt(i-1))/sinh(sig*dt(i-1)) - 1d0/dt(i-1) + &
+                     sig*cosh(sig*dt(i))/sinh(sig*dt(i)) - 1d0/dt(i))/sig**2
+            Mu(i) = 2d0*(1d0/dt(i) - sig/sinh(sig*dt(i)))/sig**2            
           ENDDO
           Ml(n) = 0d0
           Md(n) = 1d0
@@ -169,7 +192,7 @@
           ! Set up RHS
           c(1) = 0d0
           DO i = 2,n-1
-            c(i) = 1d0/dt*(a(i+1)-2d0*a(i)+a(i-1))
+            c(i) = (a(i+1)-a(i))/dt(i) - (a(i)-a(i-1))/dt(i-1)
           ENDDO
           c(n) = 0d0
           
@@ -195,8 +218,11 @@
  
       ! Solve for other coefficients d and b
       DO i = 1,n-1
-        d(i) = (c(i+1)-c(i))/(3d0*dt)
-        b(i) = (a(i+1)-a(i))/dt - dt*(2d0*c(i)+c(i+1))/3d0
+!         d(i) = (c(i+1)-c(i))/(3d0*dt)
+!         b(i) = (a(i+1)-a(i))/dt - dt*(2d0*c(i)+c(i+1))/3d0      
+      
+        d(i) = (c(i+1)-c(i))/(3d0*dt(i))
+        b(i) = (a(i+1)-a(i))/dt(i) - dt(i)*(2d0*c(i)+c(i+1))/3d0
       ENDDO
       
       

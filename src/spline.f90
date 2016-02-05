@@ -1,7 +1,7 @@
       PROGRAM spline
 
       USE globals, ONLY: rp,base,eval,ctp,nverts, &
-                         ax,bx,cx,dx,ay,by,cy,dy
+                         ax,bx,cx,dx,ay,by,cy,dy,dt
       USE allocation, ONLY: sizes
                          
       USE calc_spline, ONLY: calc_cubic_spline,eval_cubic_spline, &
@@ -18,7 +18,7 @@
       INTEGER :: n1,n2
       INTEGER :: base_bed
       INTEGER :: neval,nbase
-      REAL(rp) :: htest,dt,t,tpt,x,y,xs,ys,r,sig
+      REAL(rp) :: htest,t,tpt,x,y,xs,ys,r,sig
       REAL(rp) :: d1,d2,d3,t1,t2,xr(2),xa(2)
       REAL(rp) :: n1x,n1y,n2x,n2y,n3x,n3y,n4x,n4y,edlen
       REAL(rp) :: theta1,theta2
@@ -76,32 +76,18 @@
           ! x value spline 
           !!!!!!!!!!!!!!!!!!!
 
-          ! Load nodal boundary x coordinates
-          k = 1   
-          DO i = 1,n
-            ax(k) = base%xy(1,base%fbnds(i,seg))
-            k = k+1
-          ENDDO
 
-          CALL calc_cubic_spline(sig,n,ax,bx,cx,dx,dt)
+          CALL calc_cubic_spline(1,seg,n,sig,ax,bx,cx,dx,dt)
 
 
           !!!!!!!!!!!!!!!!!!!
           ! y value spline 
           !!!!!!!!!!!!!!!!!!!
 
-          ! Load nodal boundary y coordinates
-          k = 1
-          DO i = 1,n
-            ay(k) = base%xy(2,base%fbnds(i,seg))
-            k = k+1
-          ENDDO
 
-          CALL calc_cubic_spline(sig,n,ay,by,cy,dy,dt)
+          CALL calc_cubic_spline(2,seg,n,sig,ay,by,cy,dy,dt)
           
-          
-          PRINT*, "dt = ", dt      
-          PRINT "(A)", " "          
+                  
           
 !           t = 0d0
 !           DO nd = 1,n-1
@@ -169,7 +155,7 @@
 !           ENDDO          
 
 
-          CALL write_spline(n,dt)
+          CALL write_spline(n)
           
           
   
@@ -192,8 +178,13 @@
             xa(2) = .5d0*(n1y + n2y)
             
             PRINT*, "FINDING ELEMENT FOR POINT: ", i, " NODE: ",n1
-            CALL in_element(seg,dt,n1,xa,t,base_bed)                        
-            nd = base_bed                              
+            CALL in_element(seg,n1,xa,base_bed)                        
+            nd = base_bed    
+            
+            t = 0d0        ! find starting parameter value for found edge
+            DO j = 1,nd-1
+              t = t + dt(j)
+            ENDDO
             
             IF (i == neval-1) THEN
               n = ctp
@@ -210,7 +201,7 @@
               xr(2) = .5d0*(1d0-r)*n1y + .5d0*(1d0+r)*n2y
               
      
-              tpt = .5d0*dt*(r + 1d0) + t          ! initial guess for iteration                            
+              tpt = .5d0*dt(nd)*(r + 1d0) + t          ! initial guess for iteration                            
                    
               CALL newton(tpt,t,xr,ax(nd),bx(nd),cx(nd),dx(nd),ay(nd),by(nd),cy(nd),dy(nd),x,y)
 !               PRINT*, 2d0/dt*(tpt-t)-1d0

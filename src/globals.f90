@@ -85,6 +85,7 @@
       
       REAL(rp), ALLOCATABLE, DIMENSION(:) :: ax,bx,cx,dx
       REAL(rp), ALLOCATABLE, DIMENSION(:) :: ay,by,cy,dy      
+      REAL(rp), ALLOCATABLE, DIMENSION(:) :: dt      
  
    
       TYPE(grid) :: base
