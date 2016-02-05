@@ -55,12 +55,14 @@ for j = 1:n_seg
     x(1) = ax(1);
     y(1) = ay(1);
     x(end) = ax(i+1);
-    y(end) = ay(i+1);    
+    y(end) = ay(i+1); 
+    
+%     figure(j)
     
     hold on
-    plot(x,y,'-')
+    plot(x,y,'-b')
     hold all
-    plot(ax,ay,'or')
+    plot(ax,ay,'o','MarkerSize',12,'Color',[0.4660    0.6740    0.1880])
     plot(xe,ye,'k')
     
     
@@ -81,11 +83,14 @@ n = textscan(file,'%d',1);
 n_seg = n{1};
 
 for j = 1:n_seg
+%     figure(j)
+%     hold on
+    
     n = textscan(file, '%d',1); 
     
     xy = textscan(file, '%f%f',n{1});
     
-    plot(xy{:,1},xy{:,2},'rx')
+    plot(xy{:,1},xy{:,2},'x','MarkerSize',12,'Color',[0.4660    0.6740    0.1880])
 end
 fclose(file);
 

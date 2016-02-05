@@ -9,20 +9,30 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!      
       
 
-      SUBROUTINE in_element(pt,xt,eln,found)
+      SUBROUTINE in_element(seg,dt,pt,xt,t,bed)
 
       USE globals, ONLY: base,tree_xy,srchdp,closest,nverts,rsre,fbnds
 
       IMPLICIT NONE
       
-      INTEGER :: srch,i,pt
+      INTEGER, INTENT(IN) :: seg  
+      INTEGER, INTENT(IN) :: pt
+      REAL(rp), INTENT(IN) :: dt          
+      REAL(rp), INTENT(IN) :: xt(2)
+      
+      INTEGER, INTENT(OUT) :: bed
+      REAL(rp), INTENT(OUT) :: t
+            
+      INTEGER :: srch,i
       INTEGER :: el,eln,et,nvert,clnd
-      INTEGER :: found,el_found      
+      INTEGER :: found,el_found,ed_found      
       INTEGER :: n1,n2
       INTEGER :: min_el
-      REAL(rp) :: xt(2),x(3),y(3),r(1),s(1)
+      REAL(rp) :: x(3),y(3),r(1),s(1)
       REAL(rp) :: sarea,area,diff,min_diff
       REAL(rp) :: tol
+      
+      PRINT*, "FINDING ELEMENT FOR POINT NODE: ",pt      
       
       tol = 1d-5 
         CALL kdtree2_n_nearest(tp=tree_xy,qv=xt,nn=srchdp,results=closest) ! find what element xt is in               
@@ -86,12 +96,18 @@ search: DO srch = 1,srchdp
             ! The station is in the element if the reference element area and sum of sub triangle are the same
             ! Make sure vertexes use elements with boundary edges
             IF (diff < tol .AND. base%bel_flag(eln) == 1) THEN
-              PRINT("(A,I5)"), "   element found", eln
+              PRINT("(A,I5)"), "   element found", eln                            
                       
               el_found = eln        
               found = 1                        
+              
+              ! find base edge (to get correct spline coefficients)              
+              ed_found = 0               
+              CALL find_edge(seg,eln,dt,ed_found,t,bed)
             
-              EXIT search                        
+              IF (ed_found == 1) THEN
+                EXIT search            
+              ENDIF
             ENDIF    
             
           ENDDO elem
@@ -106,13 +122,78 @@ search: DO srch = 1,srchdp
           PRINT*, "ELEMENT NOT FOUND FOR POINT: ",pt  
           PRINT*, "USING ELEMENT ", eln, "(AREA DIFF = ",min_diff, ")"       
           
-        ELSE         
-         eln = el_found       
+          CALL find_edge(seg,eln,dt,ed_found,t,bed)
+          
         ENDIF     
  
 
       RETURN
       END SUBROUTINE in_element
+      
+      
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!   
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
+
+      SUBROUTINE find_edge(seg,el_in,dt,found,t,base_bed)
+      
+      USE globals, ONLY: base,nverts
+      
+      IMPLICIT NONE
+      
+     
+      INTEGER, INTENT(IN) :: seg 
+      REAL(rp), INTENT(IN) :: dt      
+      INTEGER, INTENT(IN) :: el_in      
+
+      INTEGER, INTENT(OUT) :: found
+      INTEGER, INTENT(OUT) :: base_bed
+      REAL(rp), INTENT(OUT) :: t      
+      
+      INTEGER :: nvert      
+      INTEGER :: led,j
+      INTEGER :: n1bed,n2bed,n1ed1,n2ed1
+
+
+      
+       nvert = nverts(base%el_type(el_in))            
+            
+       found = 0
+              
+ bseg: DO j = 1,base%fbseg(1,seg)-1
+              
+         n1bed = base%fbnds(j,seg)
+         n2bed = base%fbnds(j+1,seg)   
+          
+         DO led = 1,nvert
+ 
+           n1ed1 = base%vct(mod(led+0,nvert)+1,el_in)
+           n2ed1 = base%vct(mod(led+1,nvert)+1,el_in)           
+                                                        
+           IF(((n1ed1 == n1bed).AND.(n2ed1 == n2bed)).OR. &
+              ((n1ed1 == n2bed).AND.(n2ed1 == n1bed))) THEN
+              PRINT*, "n1bed = ",n1bed, "n2bed = ",n2bed    
+!             PRINT*, n1bed, base%xy(1,n1bed), base%xy(2,n1bed)
+
+              found = 1
+                   
+              t = real(j-1,rp)*dt
+              base_bed = j
+
+              EXIT bseg
+           ENDIF        
+              
+        ENDDO
+              
+      ENDDO bseg
+            
+      IF (found == 0) THEN
+        PRINT*, "Boundary edge not found"
+!         PAUSE
+      ENDIF          
+      
+      RETURN
+      END SUBROUTINE find_edge
+
       
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!      

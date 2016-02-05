@@ -26,9 +26,11 @@
       INTEGER :: segtype
 
       
-      num = 0
-      nmax = 0 
-      nfbnds = 0
+      ! Count no normal flow boundaries and nodes
+      
+      num = 0       ! number of no normal flow segments
+      nmax = 0      ! max number of nodes in any no normal flow segment
+      nfbnds = 0    ! number of total no normal flow boundary nodes
       DO seg = 1,base%nbou
         segtype = base%fbseg(2,seg)
         IF( segtype == 0 .OR. segtype == 10 .OR. segtype == 20  .OR. &   ! land boundaries
@@ -48,6 +50,9 @@
         ENDIF
       ENDDO
       
+      ! Create a list of all no normal flow boundary nodes and their coordinates
+      ! used to create the k-d tree to find spline coefficients to evaluate eval grid points
+      
       ALLOCATE(fbnds(nfbnds),fbnds_xy(2,nfbnds))
       
       nfbnds = 0
@@ -59,7 +64,7 @@
           DO j = 1,base%fbseg(1,seg)
             nd = base%fbnds(j,seg)
             
-            skip = 0
+            skip = 0           ! skip duplicate nodes
             DO i = 1,nfbnds
               IF (fbnds(i) == nd) THEN
                 skip = 1
@@ -231,14 +236,14 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       
-      SUBROUTINE newton(t,ti,xm,ym,ax,bx,cx,dx,ay,by,cy,dy,x,y)
+      SUBROUTINE newton(t,ti,xr,ax,bx,cx,dx,ay,by,cy,dy,x,y)
       
       IMPLICIT NONE      
       
       INTEGER :: it,maxit
       REAL(rp), INTENT(INOUT) :: t
       REAL(rp), INTENT(IN) :: ti
-      REAL(rp), INTENT(IN) :: xm,ym
+      REAL(rp), INTENT(IN) :: xr(2)
       REAL(rp), INTENT(IN) :: ax,bx,cx,dx,ay,by,cy,dy
       REAL(rp), INTENT(OUT) :: x,y
       REAL(rp) :: f,fp,fpp,g,gp,gpp
@@ -252,8 +257,8 @@ iter: DO it = 1,maxit
         CALL eval_cubic_spline(t,ti,ax,bx,cx,dx,f,fp,fpp)               
         CALL eval_cubic_spline(t,ti,ay,by,cy,dy,g,gp,gpp)
         
-        d = 2d0*(f-xm)*fp + 2d0*(g-ym)*gp
-        dp = 2d0*fp**2 + 2d0*(f-xm)*fpp + 2d0*gp**2 + 2d0*(g-ym)*gpp
+        d = 2d0*(f-xr(1))*fp + 2d0*(g-xr(2))*gp
+        dp = 2d0*fp**2 + 2d0*(f-xr(1))*fpp + 2d0*gp**2 + 2d0*(g-xr(2))*gpp
         
         t = t - d/dp
         

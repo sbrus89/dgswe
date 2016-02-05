@@ -70,7 +70,7 @@ $(ODIR)find_element.o : find_element.f90                      $(ODIR)globals.o  
 	$(FC) $(FFLAGS) -c $< -o $@
 	mv find_element.mod $(ODIR)
 
-$(ODIR)spline.o : spline.f90                                  $(ODIR)globals.o  $(ODIR)allocation.o  $(ODIR)calc_spline.o  $(ODIR)check.o
+$(ODIR)spline.o : spline.f90                                  $(ODIR)globals.o  $(ODIR)allocation.o  $(ODIR)calc_spline.o  $(ODIR)check.o $(ODIR)find_element.o
 	$(FC) $(FFLAGS) -c $< -o $@
 
 $(ODIR)read_grid.o : read_grid.f90                            $(ODIR)globals.o  $(ODIR)allocation.o 

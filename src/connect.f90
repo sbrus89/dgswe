@@ -202,20 +202,7 @@
           mesh%nepe(el2) = mesh%nepe(el2) + 1          
           
           mesh%el2el(el1,mesh%nepe(el1)) = el2 
-          mesh%el2el(el2,mesh%nepe(el2)) = el1
-          
-        ELSE
-        
-          mesh%bed_flag(ged) = 1    
-          
-          IF (el1 /= 0) THEN
-            mesh%bel_flag(el1) = 1
-          ELSE
-            PRINT*, "First element in edge pair table (ged2el) = 0"
-            PRINT*, "You probably shouldn't see this"
-            mesh%bel_flag(el2) = 1
-          ENDIF
-          
+          mesh%el2el(el2,mesh%nepe(el2)) = el1                            
           
         ENDIF
       ENDDO  
@@ -249,7 +236,19 @@
                   segtype == 1 .OR. segtype == 11 .OR. segtype == 21 ) THEN    ! island boundaries
                 mesh%nnfbed = mesh%nnfbed + 1
                 nfbnd_temp(mesh%nnfbed) = ged
-                mesh%bed_flag(ged) = 20                
+                mesh%bed_flag(ged) = 20  
+                
+                
+                el1 = mesh%ged2el(1,ged)
+                el2 = mesh%ged2el(2,ged)                
+                IF (el1 /= 0) THEN
+                  mesh%bel_flag(el1) = 1
+                ELSE
+                  PRINT*, "First element in edge pair table (ged2el) = 0"
+                  PRINT*, "You probably shouldn't see this"
+                  mesh%bel_flag(el2) = 1
+                ENDIF                
+                
                 found = 1
                 EXIT edges2               
               ENDIF
