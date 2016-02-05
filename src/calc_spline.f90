@@ -250,7 +250,7 @@
       REAL(rp) :: d,dp,tol
       
       tol = 1d-8
-      maxit = 10000
+      maxit = 1000
       
 iter: DO it = 1,maxit
 
@@ -275,7 +275,7 @@ iter: DO it = 1,maxit
       CALL eval_cubic_spline(t,ti,ay,by,cy,dy,y)
       
       IF (it >= maxit) THEN
-        PRINT*, "MAX ITERATIONS EXCEEDED, ERROR: ", ABS(d)        
+        PRINT*, "MAX ITERATIONS EXCEEDED IN FINDING EVALUATION PARAMETER, ERROR: ", ABS(d)        
       ENDIF     
 
       

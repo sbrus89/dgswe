@@ -191,6 +191,7 @@
             xa(1) = .5d0*(n1x + n2x) ! average coordinates to avoid ambiguity with verticies
             xa(2) = .5d0*(n1y + n2y)
             
+            PRINT*, "FINDING ELEMENT FOR POINT: ", i, " NODE: ",n1
             CALL in_element(seg,dt,n1,xa,t,base_bed)                        
             nd = base_bed                              
             
@@ -200,7 +201,8 @@
               n = ctp-1
             ENDIF
                    
-            DO j = 0,n           
+!             PRINT*, "EVALUATING SPLINE COORDINATES"        
+            DO j = 0,n                                     
             
               r = -1d0 + real(j,rp)*2d0/real(ctp,rp)   
                      
@@ -211,6 +213,7 @@
               tpt = .5d0*dt*(r + 1d0) + t          ! initial guess for iteration                            
                    
               CALL newton(tpt,t,xr,ax(nd),bx(nd),cx(nd),dx(nd),ay(nd),by(nd),cy(nd),dy(nd),x,y)
+!               PRINT*, 2d0/dt*(tpt-t)-1d0
               
 !               CALL eval_cubic_spline(tpt,t,ax(nd),bx(nd),cx(nd),dx(nd),x)
 !               CALL eval_cubic_spline(tpt,t,ay(nd),by(nd),cy(nd),dy(nd),y)              
@@ -226,6 +229,7 @@
 
               
         ENDIF 
+        
 
       ENDDO
       CLOSE(30)
