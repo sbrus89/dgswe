@@ -15,8 +15,10 @@
       
       USE globals, ONLY: rp,base,ax,bx,cx,dx,ay,by,cy,dy,dt, &
                          nfbnds,fbnds,fbnds_xy, &
-                         tree_xy,closest,srchdp
-      USE kdtree2_module                     
+                         tree_xy,closest,srchdp, &
+                         ctp,rpts
+      USE kdtree2_module           
+      USE basis, ONLY: lglpts         
       
       IMPLICIT NONE
       
@@ -98,6 +100,14 @@
       ALLOCATE(ax(nmax),cx(nmax),bx(nmax-1),dx(nmax-1))
       ALLOCATE(ay(nmax),cy(nmax),by(nmax-1),dy(nmax-1)) 
       ALLOCATE(dt(nmax))
+      
+      ALLOCATE(rpts(ctp+1))
+      
+!       DO j = 0,ctp
+!         rpts(j) = -1d0 + real(j,rp)*2d0/real(ctp,rp)   
+!       ENDDO
+      
+      CALL lglpts(ctp,rpts)
       
       
       RETURN

@@ -20,6 +20,9 @@
       REAL(rp) :: Erad
       REAL(rp) :: lambda0
       REAL(rp) :: phi0
+      
+      REAL(rp) :: theta_tol
+      REAL(rp) :: sig
                           
                           
       
@@ -85,7 +88,9 @@
       
       REAL(rp), ALLOCATABLE, DIMENSION(:) :: ax,bx,cx,dx
       REAL(rp), ALLOCATABLE, DIMENSION(:) :: ay,by,cy,dy      
-      REAL(rp), ALLOCATABLE, DIMENSION(:) :: dt      
+      REAL(rp), ALLOCATABLE, DIMENSION(:) :: dt 
+      
+      REAL(rp), ALLOCATABLE, DIMENSION(:) :: rpts
  
    
       TYPE(grid) :: base

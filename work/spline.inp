@@ -1,21 +1,29 @@
-! /home/sbrus/data-drive/galveston/dgswe/tri/galveston_tri.grd                                           ! base grid file
-! /home/sbrus/data-drive/galveston/dgswe/tri/galveston_tri.grd                                           ! eval grid file
-! 3                                                                                                      ! ctp - parametric coordinate transformation order
-! ./                                                                                                     ! output directory
+/home/sbrus/data-drive/galveston/dgswe/tri/galveston_tri.grd                                           ! base grid file
+/home/sbrus/data-drive/galveston/dgswe/tri/galveston_tri.grd                                           ! eval grid file
+3                                                                                                      ! ctp - parametric coordinate transformation order
+0d0                                                                                                    ! sig - tension parameter
+30d0                                                                                                   ! theta_tol - corner angle tolerance
+./                                                                                                     ! output directory
 
-/home/sbrus/Codes/dgswe/grids/converge1_dble.grd                                                      ! base grid file  
-/home/sbrus/Codes/dgswe/grids/converge1_dble.grd                                                      ! eval grid file 
-3                                                                                                     ! ctp - parametric coordinate transformation order
-./                                                                                                    ! output directory
+! /home/sbrus/Codes/dgswe/grids/converge1_dble.grd                                                      ! base grid file  
+! /home/sbrus/Codes/dgswe/grids/converge1_dble.grd                                                      ! eval grid file 
+! 3                                                                                                     ! ctp - parametric coordinate transformation order
+! 0d0                                                                                                   ! sig - tension parameter
+! 30d0                                                                                                  ! theta_tol - corner angle tolerance
+! ./                                                                                                    ! output directory
 
 
 !../galveston_tri_curve.grd                                                                            ! base grid file  
 !../galveston_tri_curve.grd                                                                            ! eval grid file 
 !2                                                                                                     ! ctp - parametric coordinate transformation order
+!0d0                                                                                                   ! sig - tension parameter
+!30d0                                                                                                  ! theta_tol - corner angle tolerance
 !./                                                                                                    ! output directory
 
 
 !../galveston_curve.grd                                                                                ! base grid file
 !../galveston_curve.grd                                                                                ! eval grid file
 !2                                                                                                     ! ctp - parametric coordinate transformation order
+!0d0                                                                                                   ! sig - tension parameter
+!30d0                                                                                                  ! theta_tol - corner angle tolerance
 !./                                                                                                    ! output directory

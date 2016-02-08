@@ -1,10 +1,10 @@
       SUBROUTINE read_input()
 
-      USE globals, ONLY: base,eval,ctp,out_direc
+      USE globals, ONLY: base,eval,ctp,out_direc,theta_tol,sig
 
       IMPLICIT NONE
       
-      INTEGER, PARAMETER :: ninp = 4
+      INTEGER, PARAMETER :: ninp = 6
       INTEGER :: inp_read,skipped
       CHARACTER(100) :: temp
       
@@ -37,6 +37,12 @@
               READ(temp,*) ctp
               PRINT*, "ctp = ", ctp
             CASE (4)
+              READ(temp,*) sig
+              PRINT*, "sig = ", sig
+            CASE (5)
+              READ(temp,*) theta_tol
+              PRINT*, "theta_tol = ", theta_tol            
+            CASE (6)
               out_direc = TRIM(temp)
               PRINT*, "out_direc = ", out_direc
           END SELECT

@@ -1,14 +1,15 @@
       PROGRAM spline
 
       USE globals, ONLY: rp,base,eval,ctp,nverts, &
-                         ax,bx,cx,dx,ay,by,cy,dy,dt
+                         ax,bx,cx,dx,ay,by,cy,dy,dt, &
+                         rpts,theta_tol,sig
       USE allocation, ONLY: sizes
                          
       USE calc_spline, ONLY: calc_cubic_spline,eval_cubic_spline, &
                              newton,spline_init
       USE check, ONLY: check_angle,check_deformation,l2_project,quad_interp
       USE find_element, ONLY: in_element
-      USE evaluate, ONLY: vandermonde,transformation
+      USE evaluate, ONLY: vandermonde,transformation  
 
       IMPLICIT NONE
       INTEGER :: i,j,k,n,seg,sind,eind,num,qpts,btype
@@ -18,7 +19,7 @@
       INTEGER :: n1,n2
       INTEGER :: base_bed
       INTEGER :: neval,nbase
-      REAL(rp) :: htest,t,tpt,x,y,xs,ys,r,sig
+      REAL(rp) :: htest,t,tpt,x,y,r,xs,ys
       REAL(rp) :: d1,d2,d3,t1,t2,xr(2),xa(2)
       REAL(rp) :: n1x,n1y,n2x,n2y,n3x,n3y,n4x,n4y,edlen
       REAL(rp) :: theta1,theta2
@@ -49,7 +50,9 @@
       
       CALL vandermonde()  
       
-      CALL transformation()        
+      CALL transformation()     
+      
+
     
 
       WRITE(30,*) num
@@ -92,80 +95,19 @@
           CALL calc_cubic_spline(2,seg,n,sig,ay,by,cy,dy,dt)
           
                   
-          
-!           t = 0d0
-!           DO nd = 1,n-1
-! 
-!            n1bed = base%fbnds(nd,seg)
-!            n2bed = base%fbnds(nd+1,seg)   
-!            
-!            n1x = base%xy(1,n1bed)
-!            n1y = base%xy(2,n1bed)
-!           
-!            n2x = base%xy(1,n2bed)
-!            n2y = base%xy(2,n2bed)      
-!            
-!           
-!            
-!            CALL check_angle(seg,n,nd,theta1,theta2,edlen)
-!            
-!            
-!             
-!             IF ( theta1 > 20d0 .AND. theta2 > 20d0) THEN         
-! 
-!       elem: DO el = 1,base%nepn(n1bed)
-!               eln = base%epn(el,n1bed)
-!               
-!               nvert = nverts(base%el_type(eln))
-!               
-!               DO led = 1,nvert
-!  
-!                 n1ed1 = base%vct(mod(led+0,nvert)+1,eln)
-!                 n2ed1 = base%vct(mod(led+1,nvert)+1,eln) 
-! 
-!                 IF(((n1ed1 == n1bed).AND.(n2ed1 == n2bed)).OR. &
-!                    ((n1ed1 == n2bed).AND.(n2ed1 == n1bed))) THEN
-!                    
-!                    print*, "  ", eln
-!                    
-!                    DO i = 1,ctp-1
-!                      r = -1d0 + real(i,rp)*2d0/real(ctp,rp)
-!                      tpt = .5d0*dt*(r + 1d0) + t               
-!                      
-!                      xm = .5d0*(1d0-r)*n1x + .5d0*(1d0+r)*n2x
-!                      ym = .5d0*(1d0-r)*n1y + .5d0*(1d0+r)*n2y
-!                      
-!                      CALL newton(tpt,t,xm,ym,ax(nd),bx(nd),cx(nd),dx(nd),ay(nd),by(nd),cy(nd),dy(nd),x,y)
-! 
-!                      CALL check_deformation(base%minedlen(eln),xm,ym,x,y)
-!                      
-!                      ndn = mod(led,nvert)*ctp+i+1                        
-!                      
-!                      base%xy(1,base%ect(ndn,eln)) = x
-!                      base%xy(2,base%ect(ndn,eln)) = y                                                         
-!                        
-!                    ENDDO
-!                    
-!                    t = t + dt
-!                    EXIT elem
-! 
-!                 ENDIF
-!                 
-!               ENDDO
-!             ENDDO elem
-!             ENDIF                      
-!             
-!             
-!           ENDDO          
-
+           
+          !!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+          ! modify spline if necessary
+          !!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 
           t = 0d0
           DO nd = 1,n-1
                      
             CALL check_angle(seg,n,nd,theta1,theta2,edlen)
+!             CALL check_deformation(base%minedlen(eln),xm,ym,x,y)            
                                   
-            IF ( theta1 > 30d0 .AND. theta2 > 30d0) THEN   
+            IF ( theta1 > theta_tol .AND. theta2 > theta_tol) THEN   
             
             ELSE
 
@@ -178,9 +120,6 @@
 
               CALL quad_interp(nd,seg,t,dt(nd),ax(nd),bx(nd),cx(nd),dx(nd),ay(nd),by(nd),cy(nd),dy(nd))
               
-             
-             
-             
             ENDIF                      
                         
           ENDDO          
@@ -190,6 +129,10 @@
           CALL write_spline(n)
           
           
+          
+          !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+          ! evaluate spline at eval grid points
+          !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!         
   
           neval = eval%fbseg(1,seg)
   
@@ -227,7 +170,7 @@
 !             PRINT*, "EVALUATING SPLINE COORDINATES"        
             DO j = 0,n                                     
             
-              r = -1d0 + real(j,rp)*2d0/real(ctp,rp)   
+              r = rpts(j+1)   
                      
               xr(1) = .5d0*(1d0-r)*n1x + .5d0*(1d0+r)*n2x
               xr(2) = .5d0*(1d0-r)*n1y + .5d0*(1d0+r)*n2y
