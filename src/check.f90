@@ -127,6 +127,135 @@
       END FUNCTION
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!      
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
+
+      SUBROUTINE l2_project(dt,ax,bx,cx,dx,ay,by,cy,dy)
+      
+      IMPLICIT NONE
+      
+      REAL(rp), INTENT(IN) :: dt
+      REAL(rp), INTENT(INOUT) :: ax,bx,cx,dx
+      REAL(rp), INTENT(INOUT) :: ay,by,cy,dy
+      
+      REAL(rp) :: Al2(3,3),Bl2(3,2)
+      INTEGER :: ipiv(3),info      
+      
+      Al2(1,1) = dt
+      Al2(1,2) = dt**2/2d0
+      Al2(1,3) = dt**3/3d0
+              
+      Al2(2,1) = dt**2/2d0
+      Al2(2,2) = dt**3/3d0
+      Al2(2,3) = dt**4/4d0
+              
+      Al2(3,1) = dt**3/3d0              
+      Al2(3,2) = dt**4/4d0
+      Al2(3,3) = dt**5/5d0
+              
+      Bl2(1,1) = ax*dt        + bx*dt**2/2d0 + cx*dt**3/3d0 + dx*dt**4/4d0
+      Bl2(2,1) = ax*dt**2/2d0 + bx*dt**3/3d0 + cx*dt**4/4d0 + dx*dt**5/5d0
+      Bl2(3,1) = ax*dt**3/3d0 + bx*dt**4/4d0 + cx*dt**5/5d0 + dx*dt**6/6d0
+              
+      Bl2(1,2) = ay*dt        + by*dt**2/2d0 + cy*dt**3/3d0 + dy*dt**4/4d0
+      Bl2(2,2) = ay*dt**2/2d0 + by*dt**3/3d0 + cy*dt**4/4d0 + dy*dt**5/5d0
+      Bl2(3,2) = ay*dt**3/3d0 + by*dt**4/4d0 + cy*dt**5/5d0 + dy*dt**6/6d0              
+              
+              
+      CALL DGESV(3, 2, Al2, 3, ipiv, Bl2, 3, info)
+      
+              
+      ax = Bl2(1,1)
+      bx = Bl2(2,1)
+      cx = Bl2(3,1)
+      dx = 0d0
+              
+      ay = Bl2(1,2)
+      by = Bl2(2,2)
+      cy = Bl2(3,2)
+      dy = 0d0      
+      
+      RETURN
+      END SUBROUTINE l2_project
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
+
+      SUBROUTINE quad_interp(i,seg,t,dt,ax,bx,cx,dx,ay,by,cy,dy)
+      
+      USE globals, ONLY: base
+      USE calc_spline, ONLY: newton
+      
+      IMPLICIT NONE       
+      
+      INTEGER, INTENT(IN) :: i,seg       
+      REAL(rp), INTENT(IN) :: t,dt
+      REAL(rp), INTENT(INOUT) :: ax,bx,cx,dx
+      REAL(rp), INTENT(INOUT) :: ay,by,cy,dy      
+      
+
+      INTEGER :: n1,n2
+      REAL(rp) :: tpt
+      REAL(rp) :: x,y
+      REAL(rp) :: xr(2)
+      REAL(rp) :: n1x,n1y,n2x,n2y
+      
+      REAL(rp) :: Al2(3,3),Bl2(3,2)
+      INTEGER :: ipiv(3),info         
+      
+      
+      n1 = base%fbnds(i,seg)
+      n2 = base%fbnds(i+1,seg)
+                   
+      n1x = base%xy(1,n1)
+      n1y = base%xy(2,n1)
+          
+      n2x = base%xy(1,n2)
+      n2y = base%xy(2,n2)       
+      
+      xr(1) = .5d0*n1x + .5d0*n2x
+      xr(2) = .5d0*n1y + .5d0*n2y
+              
+      tpt = .5d0*dt + t          ! initial guess for iteration                                               
+      CALL newton(tpt,t,xr,ax,bx,cx,dx,ay,by,cy,dy,x,y) 
+      
+      Al2(1,1) = 1d0
+      Al2(1,2) = 0d0
+      Al2(1,3) = 0d0
+              
+      Al2(2,1) = 1d0
+      Al2(2,2) = .5d0*dt
+      Al2(2,3) = (.5d0*dt)**2
+              
+      Al2(3,1) = 1d0             
+      Al2(3,2) = dt
+      Al2(3,3) = dt**2
+              
+      Bl2(1,1) = n1x
+      Bl2(2,1) = x
+      Bl2(3,1) = n2x
+                         
+      Bl2(1,2) = n1y
+      Bl2(2,2) = y
+      Bl2(3,2) = n2y              
+              
+      CALL DGESV(3, 2, Al2, 3, ipiv, Bl2, 3, info)
+      
+      ax = Bl2(1,1)
+      bx = Bl2(2,1)
+      cx = Bl2(3,1)
+      dx = 0d0
+              
+      ay = Bl2(1,2)
+      by = Bl2(2,2)
+      cy = Bl2(3,2)
+      dy = 0d0        
+      
+      
+      RETURN
+      END SUBROUTINE quad_interp
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
       
       END MODULE

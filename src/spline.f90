@@ -6,7 +6,7 @@
                          
       USE calc_spline, ONLY: calc_cubic_spline,eval_cubic_spline, &
                              newton,spline_init
-      USE check, ONLY: check_angle,check_deformation
+      USE check, ONLY: check_angle,check_deformation,l2_project,quad_interp
       USE find_element, ONLY: in_element
       USE evaluate, ONLY: vandermonde,transformation
 
@@ -22,6 +22,7 @@
       REAL(rp) :: d1,d2,d3,t1,t2,xr(2),xa(2)
       REAL(rp) :: n1x,n1y,n2x,n2y,n3x,n3y,n4x,n4y,edlen
       REAL(rp) :: theta1,theta2
+
       
 
 
@@ -63,6 +64,9 @@
         
           n = base%fbseg(1,seg)    ! n nodes, n-1 subintervals
 
+          PRINT "(A)", " "          
+          PRINT "(A)", " "          
+          PRINT "(A)", " "          
           PRINT "(A)", " "
           PRINT "(A,I5)", "Normal flow boundary ",seg
           PRINT "(A,I5)", "Normal flow boundary nodes ",n
@@ -155,6 +159,34 @@
 !           ENDDO          
 
 
+
+          t = 0d0
+          DO nd = 1,n-1
+                     
+            CALL check_angle(seg,n,nd,theta1,theta2,edlen)
+                                  
+            IF ( theta1 > 30d0 .AND. theta2 > 30d0) THEN   
+            
+            ELSE
+
+!               CALL l2_project(dt(nd),ax(nd),bx(nd),cx(nd),dx(nd),ay(nd),by(nd),cy(nd),dy(nd))
+
+              t = 0d0        ! find starting parameter value for found edge
+              DO j = 1,nd-1
+                t = t + dt(j)
+              ENDDO  
+
+              CALL quad_interp(nd,seg,t,dt(nd),ax(nd),bx(nd),cx(nd),dx(nd),ay(nd),by(nd),cy(nd),dy(nd))
+              
+             
+             
+             
+            ENDIF                      
+                        
+          ENDDO          
+
+
+
           CALL write_spline(n)
           
           
@@ -204,7 +236,13 @@
               tpt = .5d0*dt(nd)*(r + 1d0) + t          ! initial guess for iteration                            
                    
               CALL newton(tpt,t,xr,ax(nd),bx(nd),cx(nd),dx(nd),ay(nd),by(nd),cy(nd),dy(nd),x,y)
-!               PRINT*, 2d0/dt*(tpt-t)-1d0
+              r =  2d0/dt(nd)*(tpt-t)-1d0
+              
+!               IF (r < -1d0) THEN
+!                 PRINT "(A,F24.17)", "R = ", r
+!                 tpt = t
+!                 CALL newton(tpt,t,xr,ax(nd),bx(nd),cx(nd),dx(nd),ay(nd),by(nd),cy(nd),dy(nd),x,y)
+!               ENDIF
               
 !               CALL eval_cubic_spline(tpt,t,ax(nd),bx(nd),cx(nd),dx(nd),x)
 !               CALL eval_cubic_spline(tpt,t,ay(nd),by(nd),cy(nd),dy(nd),y)              

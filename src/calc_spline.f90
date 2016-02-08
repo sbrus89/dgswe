@@ -301,7 +301,7 @@ iter: DO it = 1,maxit
       CALL eval_cubic_spline(t,ti,ay,by,cy,dy,y)
       
       IF (it >= maxit) THEN
-        PRINT*, "MAX ITERATIONS EXCEEDED IN FINDING EVALUATION PARAMETER, ERROR: ", ABS(d)        
+        PRINT "(A,E28.16)", "MAX ITERATIONS EXCEEDED IN FINDING EVALUATION PARAMETER, ERROR: ", ABS(d)        
       ENDIF     
 
       

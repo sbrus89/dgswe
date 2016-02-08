@@ -58,7 +58,7 @@ $(ODIR)calc_spline.o : calc_spline.f90                        $(ODIR)globals.o  
 	$(FC) $(FFLAGS) -c $< -o $@
 	mv calc_spline.mod $(ODIR)
 	
-$(ODIR)check.o : check.f90                                    $(ODIR)globals.o
+$(ODIR)check.o : check.f90                                    $(ODIR)globals.o $(ODIR)calc_spline.o
 	$(FC) $(FFLAGS) -c $< -o $@
 	mv check.mod $(ODIR)
 	
