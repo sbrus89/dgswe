@@ -10,7 +10,7 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!      
       
 
-      SUBROUTINE in_element(seg,pt,xt,bed)
+      SUBROUTINE in_element(seg,pt,xt,el_found,bed)
 
       USE globals, ONLY: base,tree_xy,srchdp,closest,fbnds
 
@@ -21,10 +21,11 @@
       REAL(rp), INTENT(IN) :: xt(2)
       
       INTEGER, INTENT(OUT) :: bed
+      INTEGER, INTENT(OUT) :: el_found
             
       INTEGER :: srch,i
       INTEGER :: el,eln,clnd
-      INTEGER :: found,el_found,ed_found      
+      INTEGER :: found,ed_found      
       INTEGER :: min_el
       REAL(rp) :: diff,min_diff
       REAL(rp) :: tol

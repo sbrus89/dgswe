@@ -29,7 +29,8 @@
 
 
       OPEN(unit=30,file='spline.out')
-      OPEN(unit=60,file='eval_nodes.out')        
+      OPEN(unit=60,file='eval_nodes.out') 
+      OPEN(unit=90,file='max_deform.out')
       
       PRINT "(A)", " "
       
@@ -57,6 +58,7 @@
 
       WRITE(30,*) num
       WRITE(60,*) num
+      WRITE(90,*) num
 
       DO seg = 1,base%nbou
       
@@ -100,27 +102,18 @@
           ! modify spline if necessary
           !!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-
-          t = 0d0
+          WRITE(90,*) n-1
+          
           DO nd = 1,n-1
-                     
-            CALL check_angle(seg,n,nd,theta1,theta2,edlen)
-!             CALL check_deformation(base%minedlen(eln),xm,ym,x,y)            
-                                  
-            IF ( theta1 > theta_tol .AND. theta2 > theta_tol) THEN   
-            
-            ELSE
-
-!               CALL l2_project(dt(nd),ax(nd),bx(nd),cx(nd),dx(nd),ay(nd),by(nd),cy(nd),dy(nd))
-
-              t = 0d0        ! find starting parameter value for found edge
-              DO j = 1,nd-1
-                t = t + dt(j)
-              ENDDO  
-
-              CALL quad_interp(nd,seg,t,dt(nd),ax(nd),bx(nd),cx(nd),dx(nd),ay(nd),by(nd),cy(nd),dy(nd))
-              
-            ENDIF                      
+          
+            t = 0d0        ! find starting parameter value for found edge
+            DO j = 1,nd-1
+              t = t + dt(j)
+            ENDDO            
+                                            
+            CALL check_angle(seg,nd,dt(nd),t,ax(nd),bx(nd),cx(nd),dx(nd),ay(nd),by(nd),cy(nd),dy(nd))            
+                                              
+            CALL check_deformation(seg,nd,dt(nd),t,ax(nd),bx(nd),cx(nd),dx(nd),ay(nd),by(nd),cy(nd),dy(nd))                           
                         
           ENDDO          
 
@@ -153,7 +146,7 @@
             xa(2) = .5d0*(n1y + n2y)
             
             PRINT*, "FINDING ELEMENT FOR POINT: ", i, " NODE: ",n1
-            CALL in_element(seg,n1,xa,base_bed)                        
+            CALL in_element(seg,n1,xa,el_in,base_bed)                        
             nd = base_bed    
             
             t = 0d0        ! find starting parameter value for found edge

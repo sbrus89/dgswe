@@ -104,7 +104,26 @@ fclose(file);
 
 
 
+hold on
 
+file = fopen('work/max_deform.out');
+
+n_seg = fscanf(file,'%d',1);
+
+for j = 1:n_seg
+%     figure(j)
+    hold on
+    
+    n = fscanf(file, '%d',1); 
+    
+    xy = fscanf(file, '%f',[7,n])';
+    
+     for i = 1:n
+       plot([xy(i,1),xy(i,3)],[xy(i,2),xy(i,4)],'r')
+     end
+
+end
+fclose(file);
 
 
 
@@ -129,4 +148,17 @@ plot(VX(:,1),VX(:,2),'mx')
 
 axis equal
 %axis([23000 27000 10000 12500])
+
+
+
+
+
+
+
+
+
+
+
+
+
 

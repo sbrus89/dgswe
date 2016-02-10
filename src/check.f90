@@ -9,20 +9,24 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-      SUBROUTINE check_angle(seg,n,nd,theta1,theta2,edlen)
+      SUBROUTINE check_angle(seg,nd,dt,t,ax,bx,cx,dx,ay,by,cy,dy)
       
-      USE globals, ONLY: base
+      USE globals, ONLY: base,theta_tol
       
       IMPLICIT NONE     
       
-      INTEGER, INTENT(IN) :: nd,n,seg
+      INTEGER, INTENT(IN) :: nd,seg
+      REAL(rp), INTENT(IN) :: dt,t
+      REAL(rp), INTENT(INOUT) :: ax,bx,cx,dx,ay,by,cy,dy      
       
+      INTEGER :: n
       INTEGER :: n1bed,n2bed,n3bed,n4bed      
       REAL(rp) :: n1x,n1y,n2x,n2y,n3x,n3y,n4x,n4y
-!       REAL(rp) :: angle
-      REAL(rp), INTENT(OUT) :: theta1,theta2   
-      REAL(rp), INTENT(OUT) :: edlen
+      REAL(rp) :: theta1,theta2   
+      REAL(rp) :: edlen
 
+      n = base%fbseg(1,seg)    ! n nodes, n-1 subintervals
+      
       n1bed = base%fbnds(nd,seg)
       n2bed = base%fbnds(nd+1,seg) 
       IF (nd == n-1) THEN
@@ -55,45 +59,58 @@
       PRINT*, theta1,theta2
             
 
-      edlen = sqrt((n1x-n2x)**2+(n1y-n2y)**2)   
+      edlen = sqrt((n1x-n2x)**2+(n1y-n2y)**2) 
+      
+      IF ( theta1 < theta_tol .OR. theta2 < theta_tol) THEN               
+
+!       CALL l2_project(dt,ax,bx,cx,dx,ay,by,cy,dy)              
+        CALL quad_interp(nd,seg,dt,t,ax,bx,cx,dx,ay,by,cy,dy)
+              
+      ENDIF                
             
       END SUBROUTINE check_angle
       
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-      SUBROUTINE check_deformation(minedlen,xm,ym,x,y)
+      SUBROUTINE check_deformation(seg,nd,dt,ti,ax,bx,cx,dx,ay,by,cy,dy)
+      
+      USE globals, ONLY: base
+      USE find_element, ONLY: in_element
       
       IMPLICIT NONE
       
-      REAL(rp), INTENT(IN) :: minedlen
-      REAL(rp), INTENT(IN) :: xm,ym
-      REAL(rp), INTENT(INOUT) :: x,y
+      INTEGER, INTENT(IN) :: seg,nd
+      REAL(rp), INTENT(IN) :: dt,ti
+      REAL(rp), INTENT(INOUT) :: ax,bx,cx,dx,ay,by,cy,dy
+      REAL(rp):: xd
+      INTEGER :: n1,n2
+      REAL(rp) :: xn1(2),xn2(2)
+      REAL(rp) :: xa(2)
       REAL(rp) :: xs,ys
       REAL(rp) :: r,d1
-      
-      xs = x
-      ys = y
-      
-      d1 = sqrt((xm-x)**2 + (ym-y)**2)
-         
-      r = -1d0
-      DO WHILE (d1 > .1d0*minedlen .AND. r < 1d0)
-        r = r + .1d0
-                       
-        x = .5d0*(1d0-r)*xs + .5d0*(1d0+r)*xm
-        y = .5d0*(1d0-r)*ys + .5d0*(1d0+r)*ym
-                       
-        d1 = sqrt((xm-x)**2 + (ym-y)**2)
-      ENDDO
+      INTEGER :: el_in,bed
+        
 
-      IF (d1 <= .1d0*minedlen) THEN
-        RETURN
-      ELSE
-        PRINT*, "DEFORMATION TOO LARGE"
-        x = xs
-        y = ys
-      ENDIF           
+        n1 = base%fbnds(nd,seg)
+        n2 = base%fbnds(nd+1,seg) 
+
+        xn1(1) = base%xy(1,n1)
+        xn1(2) = base%xy(2,n1)
+        
+        xn2(1) = base%xy(1,n2)
+        xn2(2) = base%xy(2,n2)
+        
+        xa(1) = .5d0*(xn1(1)+xn2(1))
+        xa(2) = .5d0*(xn1(2)+xn2(2))
+      
+        CALL in_element(seg,n1,xa,el_in,bed)  
+        CALL max_diff(dt,ti,xn1,xn2,ax,bx,cx,dx,ay,by,cy,dy,xd)
+        
+        IF (xd > .1d0*base%minedlen(el_in)) THEN         
+          PRINT*, "DEFORMATION TOO LARGE"
+          PAUSE
+        ENDIF
       
       RETURN
       END SUBROUTINE
@@ -181,7 +198,7 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
 
-      SUBROUTINE quad_interp(i,seg,t,dt,ax,bx,cx,dx,ay,by,cy,dy)
+      SUBROUTINE quad_interp(i,seg,dt,t,ax,bx,cx,dx,ay,by,cy,dy)
       
       USE globals, ONLY: base
       USE calc_spline, ONLY: newton
@@ -257,5 +274,143 @@
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
+
+      SUBROUTINE max_diff(dt,ti,xn1,xn2,ax,bx,cx,dx,ay,by,cy,dy,xd)
+      
+      USE calc_spline, ONLY: eval_cubic_spline
+      
+      IMPLICIT NONE      
+          
+      REAL(rp), INTENT(IN) :: dt,ti
+      REAL(rp), INTENT(IN) :: xn1(2),xn2(2)
+      REAL(rp), INTENT(IN) :: ax,bx,cx,dx,ay,by,cy,dy
+      REAL(rp), INTENT(OUT) :: xd
+      
+      INTEGER :: it,maxit
+      REAL(rp) :: tol,eps        
+      REAL(rp) :: t,r,lambda 
+      REAL(rp) :: xe,xep,xepp,ye,yep,yepp
+      REAL(rp) :: xs,xsp,xspp,ys,ysp,yspp   
+      REAL(rp) :: x1,x2,y1,y2
+      REAL(rp) :: F,dFdt,dFdr,dFdl
+      REAL(rp) :: G,dGdt,dGdr,dGdl
+      REAL(rp) :: E,dEdt,dEdr,dEdl
+      REAL(rp) :: dDdt,dDdtdt,dDdrdt,dDdr,dDdrdr
+      REAL(rp) :: w,dwdt,dwdtdt,dwdrdt,dwdr,dwdrdr
+      REAL(rp) :: J(3,3),H(3,1)        
+      INTEGER :: ipiv(3),info
+      
+      tol = 1d-8
+      maxit = 1000
+      
+      t = ti + .5d0*dt
+      r = 0d0
+      lambda = 0d0
+      
+      x1 = xn1(1)
+      x2 = xn2(1)
+      
+      y1 = xn1(2)
+      y2 = xn2(2)
+      
+iter: DO it = 1,maxit
+
+        xe = .5d0*(1d0-r)*x1 + .5d0*(1d0+r)*x2
+        ye = .5d0*(1d0-r)*y1 + .5d0*(1d0+r)*y2
+        
+        xep = -.5d0*x1 + .5d0*x2
+        yep = -.5d0*y1 + .5d0*y2
+        
+        xepp = 0d0
+        yepp = 0d0
+
+        CALL eval_cubic_spline(t,ti,ax,bx,cx,dx,xs,xsp,xspp)               
+        CALL eval_cubic_spline(t,ti,ay,by,cy,dy,ys,ysp,yspp)   
+        
+        dDdt = 2d0*((xs-xe)*xsp + (ys-ye)*ysp)
+        dDdtdt = 2d0*(xsp**2 + xspp*(xs-xe) + ysp**2 + yspp*(ys-ye))
+        dDdrdt = -2d0*(xsp*xep+ysp*yep)
+        dDdr = -2d0*((xs-xe)*xep + (ys-ye)*yep)
+        dDdrdr = -2d0*(xep**2 + yep**2)
+        
+        w = (x1-xe)*(xs-xe) + (y1-ye)*(ys-ye)
+        dwdt = (x1-xe)*xsp + (y1-ye)*ysp
+        dwdtdt = (x1-xe)*xspp + (y1-ye)*yspp
+        dwdrdt = -xep*xs-yep*ysp
+        dwdr = -xep*(x1-2d0*xe+xs) - yep*(y1-2d0*ye+ys)
+        dwdrdr = -xepp*(x1-2d0*xe+xs) + 2d0*xep**2 - yepp*(y1-2d0*ye+ys) + 2d0*yep**2
+        
+        
+        
+        dFdt = dDdtdt - lambda*dwdtdt
+        dFdr = dDdrdt - lambda*dwdrdt
+        dFdl = -dwdt
+        
+        dGdt = dDdrdt - lambda*dwdrdt
+        dGdr = dDdrdr - lambda*dwdrdr
+        dGdl = -dwdr
+        
+        dEdt = dwdt
+        dEdr = dwdr
+        dEdl = 0d0
+        
+        J(1,1) = dFdt
+        J(2,1) = dGdt
+        J(3,1) = dEdt
+        
+        J(1,2) = dFdr
+        J(2,2) = dGdr       
+        J(3,2) = dEdr
+        
+        J(1,3) = dFdl
+        J(2,3) = dGdl
+        J(3,3) = dEdl
+        
+        F = dDdt - lambda*dwdt
+        G = dDdr - lambda*dwdr
+        E = w        
+        
+        H(1,1) = -F
+        H(2,1) = -G
+        H(3,1) = -E
+        
+        CALL DGESV(3,1,J,3,ipiv,H,3,info)
+        
+        t = t + H(1,1)
+        r = r + H(2,1)
+        lambda = lambda + H(3,1)
+        
+        eps = max(H(1,1),H(2,1),H(3,1))
+        
+        IF (ABS(eps) < tol) THEN
+!           PRINT*, "iterations", it
+!           PRINT*, d
+          EXIT iter
+        ENDIF
+        
+        
+      ENDDO iter
+      
+      xe = .5d0*(1d0-r)*x1 + .5d0*(1d0+r)*x2
+      ye = .5d0*(1d0-r)*y1 + .5d0*(1d0+r)*y2
+
+      CALL eval_cubic_spline(t,ti,ax,bx,cx,dx,xs)               
+      CALL eval_cubic_spline(t,ti,ay,by,cy,dy,ys)         
+      
+      xd = sqrt((xs-xe)**2 + (ys-ye)**2)
+      
+      WRITE(90,"(7(E26.17))") xe,ye,xs,ys,t,r,lambda
+      
+      IF (it >= maxit) THEN
+        PRINT "(A,E28.16)", "MAX ITERATIONS EXCEEDED IN FINDING MAX DEFORMATION, ERROR: ", ABS(eps)        
+      ENDIF     
+
+      
+      RETURN
+      END SUBROUTINE max_diff
+      
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
+
       
       END MODULE
