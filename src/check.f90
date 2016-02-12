@@ -113,7 +113,7 @@
       REAL(rp) :: x,y
       REAL(rp) :: xs,ys
       REAL(rp) :: xsp,ysp
-      REAL(rp) :: r,t
+      REAL(rp) :: r,t,lam
       REAL(rp) :: xd,max_dist
       REAL(rp) :: ri(2),xi(4),yi(4)
       INTEGER :: el_in,bed 
@@ -134,7 +134,34 @@
         CALL in_element(seg,n1,xa,el_in,bed)  
         max_dist = .1d0*base%minedlen(el_in)
         
-        CALL max_diff(dt,ti,xn1,xn2,ax,bx,cx,dx,ay,by,cy,dy,xd,xs,ys,t,r)
+        r = 0d0 
+        t = .5d0*dt + ti
+        lam = 0d0
+        CALL max_diff(dt,ti,xn1,xn2,ax,bx,cx,dx,ay,by,cy,dy,xd,xs,ys,xe,ye,t,r,lam)
+        
+        
+        IF (r < -1d0 .or. r > 1d0) THEN
+          IF (r < -1d0) THEN      ! Try new intial guesses if the max deformation is found outside        
+            r = .75d0             ! the (-1, 1) r interval.  This seems to work for now, but something      
+          ELSE IF (r > 1d0) THEN  ! more sophisticated might be needed later on.    
+            r = -.75d0               
+          ENDIF
+        
+          t = .5d0*dt*(r+1d0) + ti
+          lam = 0d0
+          CALL max_diff(dt,ti,xn1,xn2,ax,bx,cx,dx,ay,by,cy,dy,xd,xs,ys,xe,ye,t,r,lam)  
+        ENDIF
+        
+        IF (r < -1d0 .or. r > 1d0) THEN
+          PRINT*, "R VALUE OUT OF RANGE: ", r 
+          PAUSE
+        ENDIF
+        
+        
+        
+        WRITE(90,"(7(E26.17))") xe,ye,xs,ys,t,r,lam
+        
+        
         
         IF (xd > max_dist) THEN         
           PRINT*, "DEFORMATION TOO LARGE"
@@ -145,7 +172,7 @@
           yi(1) = xn1(2)
           yi(4) = xn2(2)          
           
-          IF ( r > -1d0/3d0 .and. r < 1d0/3d0) THEN ! If max is in the middle of the interval, match limited 
+          IF ( r > -1d0/3d0 .and. r < 1d0/3d0) THEN ! If max is in the middle of the interval, match the limited 
             ri(1) = r - .1d0                        ! value a little to the left and right of the detected max
             ri(2) = r + .1d0
             
@@ -415,7 +442,7 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
 
-      SUBROUTINE max_diff(dt,ti,xn1,xn2,ax,bx,cx,dx,ay,by,cy,dy,xd,xs,ys,t,r)
+      SUBROUTINE max_diff(dt,ti,xn1,xn2,ax,bx,cx,dx,ay,by,cy,dy,xd,xs,ys,xe,ye,t,r,lambda)
       
       USE calc_spline, ONLY: eval_cubic_spline
       
@@ -424,12 +451,12 @@
       REAL(rp), INTENT(IN) :: dt,ti
       REAL(rp), INTENT(IN) :: xn1(2),xn2(2)
       REAL(rp), INTENT(IN) :: ax,bx,cx,dx,ay,by,cy,dy
-      REAL(rp), INTENT(OUT) :: xd,t,r,xs,ys
+      REAL(rp), INTENT(OUT) :: xd,xs,ys,xe,ye
+      REAL(rp), INTENT(INOUT) :: t,r,lambda
       
       INTEGER :: it,maxit
       REAL(rp) :: tol,eps        
-      REAL(rp) :: lambda 
-      REAL(rp) :: xe,xep,xepp,ye,yep,yepp
+      REAL(rp) :: xep,xepp,yep,yepp
       REAL(rp) :: xsp,xspp,ysp,yspp   
       REAL(rp) :: x1,x2,y1,y2
       REAL(rp) :: F,dFdt,dFdr,dFdl
@@ -443,9 +470,9 @@
       tol = 1d-8
       maxit = 1000
       
-      t = ti + .5d0*dt
-      r = 0d0
-      lambda = 0d0
+!       t = ti + .5d0*dt
+!       r = 0d0
+!       lambda = 0d0
       
       x1 = xn1(1)
       x2 = xn2(1)
@@ -537,9 +564,7 @@ iter: DO it = 1,maxit
       CALL eval_cubic_spline(t,ti,ax,bx,cx,dx,xs)               
       CALL eval_cubic_spline(t,ti,ay,by,cy,dy,ys)         
       
-      xd = sqrt((xs-xe)**2 + (ys-ye)**2)
-      
-      WRITE(90,"(7(E26.17))") xe,ye,xs,ys,t,r,lambda
+      xd = sqrt((xs-xe)**2 + (ys-ye)**2)     
       
       IF (it >= maxit) THEN
         PRINT "(A,E28.16)", "MAX ITERATIONS EXCEEDED IN FINDING MAX DEFORMATION, ERROR: ", ABS(eps)        
