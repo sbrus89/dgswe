@@ -272,21 +272,25 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       
-      SUBROUTINE newton(t,ti,xr,ax,bx,cx,dx,ay,by,cy,dy,x,y)
+      SUBROUTINE newton(r,dt,ti,xr,ax,bx,cx,dx,ay,by,cy,dy,x,y)
       
       IMPLICIT NONE      
       
       INTEGER :: it,maxit
-      REAL(rp), INTENT(INOUT) :: t
+      REAL(rp), INTENT(INOUT) :: r
+      REAL(rp), INTENT(IN) :: dt
       REAL(rp), INTENT(IN) :: ti
       REAL(rp), INTENT(IN) :: xr(2)
       REAL(rp), INTENT(IN) :: ax,bx,cx,dx,ay,by,cy,dy
       REAL(rp), INTENT(OUT) :: x,y
+      REAL(rp) :: t
       REAL(rp) :: f,fp,fpp,g,gp,gpp
       REAL(rp) :: d,dp,tol
       
       tol = 1d-8
       maxit = 1000
+      
+      t = .5d0*dt*(r + 1d0) + ti          ! initial guess for iteration 
       
 iter: DO it = 1,maxit
 
@@ -309,6 +313,8 @@ iter: DO it = 1,maxit
       
       CALL eval_cubic_spline(t,ti,ax,bx,cx,dx,x)
       CALL eval_cubic_spline(t,ti,ay,by,cy,dy,y)
+      
+      r =  2d0/dt*(t-ti)-1d0
       
       IF (it >= maxit) THEN
         PRINT "(A,E28.16)", "MAX ITERATIONS EXCEEDED IN FINDING EVALUATION PARAMETER, ERROR: ", ABS(d)        

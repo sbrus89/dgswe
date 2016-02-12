@@ -9,14 +9,15 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-      SUBROUTINE check_angle(seg,nd,dt,t,ax,bx,cx,dx,ay,by,cy,dy)
+      SUBROUTINE check_angle(seg,nd,dt,ti,ax,bx,cx,dx,ay,by,cy,dy)
       
       USE globals, ONLY: base,theta_tol
+      USE calc_spline, ONLY: newton      
       
       IMPLICIT NONE     
       
       INTEGER, INTENT(IN) :: nd,seg
-      REAL(rp), INTENT(IN) :: dt,t
+      REAL(rp), INTENT(IN) :: dt,ti
       REAL(rp), INTENT(INOUT) :: ax,bx,cx,dx,ay,by,cy,dy      
       
       INTEGER :: n
@@ -24,6 +25,10 @@
       REAL(rp) :: n1x,n1y,n2x,n2y,n3x,n3y,n4x,n4y
       REAL(rp) :: theta1,theta2   
       REAL(rp) :: edlen
+      REAL(rp) :: x,y
+      REAL(rp) :: xr(2)
+      REAL(rp) :: xi(3),yi(3)
+      REAL(rp) :: r
 
       n = base%fbseg(1,seg)    ! n nodes, n-1 subintervals
       
@@ -63,8 +68,24 @@
       
       IF ( theta1 < theta_tol .OR. theta2 < theta_tol) THEN               
 
-!       CALL l2_project(dt,ax,bx,cx,dx,ay,by,cy,dy)              
-        CALL quad_interp(nd,seg,dt,t,ax,bx,cx,dx,ay,by,cy,dy)
+!       CALL l2_project(dt,ax,bx,cx,dx,ay,by,cy,dy)           
+
+        xr(1) = .5d0*n1x + .5d0*n2x
+        xr(2) = .5d0*n1y + .5d0*n2y
+              
+        r = 0d0                                        
+        CALL newton(r,dt,ti,xr,ax,bx,cx,dx,ay,by,cy,dy,x,y) 
+        
+        xi(1) = n1x
+        xi(2) = x
+        xi(3) = n2x
+        
+        yi(1) = n1y
+        yi(2) = y
+        yi(3) = n2y
+        
+        r = 0d0
+        CALL quad_interp(r,dt,ti,xi,yi,ax,bx,cx,dx,ay,by,cy,dy)
               
       ENDIF                
             
@@ -77,19 +98,25 @@
       
       USE globals, ONLY: base
       USE find_element, ONLY: in_element
+      USE calc_spline, ONLY: eval_cubic_spline
       
       IMPLICIT NONE
       
       INTEGER, INTENT(IN) :: seg,nd
       REAL(rp), INTENT(IN) :: dt,ti
       REAL(rp), INTENT(INOUT) :: ax,bx,cx,dx,ay,by,cy,dy
-      REAL(rp):: xd
+      INTEGER :: i
       INTEGER :: n1,n2
       REAL(rp) :: xn1(2),xn2(2)
       REAL(rp) :: xa(2)
+      REAL(rp) :: xe,ye
+      REAL(rp) :: x,y
       REAL(rp) :: xs,ys
-      REAL(rp) :: r,d1
-      INTEGER :: el_in,bed
+      REAL(rp) :: xsp,ysp
+      REAL(rp) :: r,t
+      REAL(rp) :: xd,max_dist
+      REAL(rp) :: ri(2),xi(4),yi(4)
+      INTEGER :: el_in,bed 
         
 
         n1 = base%fbnds(nd,seg)
@@ -105,11 +132,71 @@
         xa(2) = .5d0*(xn1(2)+xn2(2))
       
         CALL in_element(seg,n1,xa,el_in,bed)  
-        CALL max_diff(dt,ti,xn1,xn2,ax,bx,cx,dx,ay,by,cy,dy,xd)
+        max_dist = .1d0*base%minedlen(el_in)
         
-        IF (xd > .1d0*base%minedlen(el_in)) THEN         
+        CALL max_diff(dt,ti,xn1,xn2,ax,bx,cx,dx,ay,by,cy,dy,xd,xs,ys,t,r)
+        
+        IF (xd > max_dist) THEN         
           PRINT*, "DEFORMATION TOO LARGE"
-          PAUSE
+          
+          xi(1) = xn1(1)
+          xi(4) = xn2(1)
+          
+          yi(1) = xn1(2)
+          yi(4) = xn2(2)          
+          
+          IF ( r > -1d0/3d0 .and. r < 1d0/3d0) THEN ! If max is in the middle of the interval, match limited 
+            ri(1) = r - .1d0                        ! value a little to the left and right of the detected max
+            ri(2) = r + .1d0
+            
+            DO i = 1,2
+          
+              xe = .5d0*(1d0-ri(i))*xn1(1) + .5d0*(1d0+ri(i))*xn2(1)
+              ye = .5d0*(1d0-ri(i))*xn1(2) + .5d0*(1d0+ri(i))*xn2(2)
+            
+              x = xs ! initial guess
+              y = ys
+              CALL set_dist(xn1(1),xn1(2),xe,ye,max_dist,x,y)
+            
+              xi(i+1) = x
+              yi(i+1) = y
+              
+            ENDDO         
+            
+            CALL cubic_interp(0,ri,dt,ti,xi,yi,ax,bx,cx,dx,ay,by,cy,dy)            
+          ELSE                                      ! If max is to the left or right of the middle of the interval,          
+                                                    ! match the limited value at the detected max and the dervative
+            ri(1) = r                               ! value at the opposite end
+                                           
+            xe = .5d0*(1d0-ri(1))*xn1(1) + .5d0*(1d0+ri(1))*xn2(1)
+            ye = .5d0*(1d0-ri(1))*xn1(2) + .5d0*(1d0+ri(1))*xn2(2)            
+            
+            x = xs ! initial guess
+            y = ys
+            CALL set_dist(xn1(1),xn1(2),xe,ye,max_dist,x,y)            
+            
+            xi(2) = x
+            yi(2) = y
+            
+            IF (r <= -1d0/3d0) THEN
+              ri(2) = 1d0
+            ENDIF 
+            
+            IF (r >= 1d0/3d0) THEN
+              ri(2) = -1d0
+            ENDIF                        
+            
+            t = .5d0*dt*(ri(2)+1d0) + ti
+            CALL eval_cubic_spline(t,ti,ax,bx,cx,dx,xs,xsp)               
+            CALL eval_cubic_spline(t,ti,ay,by,cy,dy,ys,ysp)
+            
+            xi(3) = xsp
+            yi(3) = ysp
+          
+            CALL cubic_interp(1,ri,dt,ti,xi,yi,ax,bx,cx,dx,ay,by,cy,dy)             
+          
+          ENDIF          
+          
         ENDIF
       
       RETURN
@@ -198,74 +285,54 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
 
-      SUBROUTINE quad_interp(i,seg,dt,t,ax,bx,cx,dx,ay,by,cy,dy)
-      
-      USE globals, ONLY: base
-      USE calc_spline, ONLY: newton
+      SUBROUTINE quad_interp(r,dt,ti,x,y,ax,bx,cx,dx,ay,by,cy,dy)      
       
       IMPLICIT NONE       
       
-      INTEGER, INTENT(IN) :: i,seg       
-      REAL(rp), INTENT(IN) :: t,dt
+      REAL(rp), INTENT(IN) :: r
+      REAL(rp), INTENT(IN) :: dt,ti
+      REAL(rp), INTENT(IN) :: x(3),y(3)      
       REAL(rp), INTENT(INOUT) :: ax,bx,cx,dx
-      REAL(rp), INTENT(INOUT) :: ay,by,cy,dy      
+      REAL(rp), INTENT(INOUT) :: ay,by,cy,dy           
       
-
-      INTEGER :: n1,n2
-      REAL(rp) :: tpt
-      REAL(rp) :: x,y
-      REAL(rp) :: xr(2)
-      REAL(rp) :: n1x,n1y,n2x,n2y
-      
-      REAL(rp) :: Al2(3,3),Bl2(3,2)
+      REAL(rp) :: t
+      REAL(rp) :: A(3,3),B(3,2)
       INTEGER :: ipiv(3),info         
       
       
-      n1 = base%fbnds(i,seg)
-      n2 = base%fbnds(i+1,seg)
-                   
-      n1x = base%xy(1,n1)
-      n1y = base%xy(2,n1)
-          
-      n2x = base%xy(1,n2)
-      n2y = base%xy(2,n2)       
+      t = .5d0*dt*(r+1d0) + ti
+
       
-      xr(1) = .5d0*n1x + .5d0*n2x
-      xr(2) = .5d0*n1y + .5d0*n2y
+      A(1,1) = 1d0
+      A(1,2) = 0d0
+      A(1,3) = 0d0
               
-      tpt = .5d0*dt + t          ! initial guess for iteration                                               
-      CALL newton(tpt,t,xr,ax,bx,cx,dx,ay,by,cy,dy,x,y) 
-      
-      Al2(1,1) = 1d0
-      Al2(1,2) = 0d0
-      Al2(1,3) = 0d0
+      A(2,1) = 1d0
+      A(2,2) = (t-ti)
+      A(2,3) = (t-ti)**2
               
-      Al2(2,1) = 1d0
-      Al2(2,2) = .5d0*dt
-      Al2(2,3) = (.5d0*dt)**2
+      A(3,1) = 1d0             
+      A(3,2) = dt
+      A(3,3) = dt**2
               
-      Al2(3,1) = 1d0             
-      Al2(3,2) = dt
-      Al2(3,3) = dt**2
-              
-      Bl2(1,1) = n1x
-      Bl2(2,1) = x
-      Bl2(3,1) = n2x
+      B(1,1) = x(1)
+      B(2,1) = x(2)
+      B(3,1) = x(3)
                          
-      Bl2(1,2) = n1y
-      Bl2(2,2) = y
-      Bl2(3,2) = n2y              
+      B(1,2) = y(1)
+      B(2,2) = y(2)
+      B(3,2) = y(3)             
               
-      CALL DGESV(3, 2, Al2, 3, ipiv, Bl2, 3, info)
+      CALL DGESV(3, 2, A, 3, ipiv, B, 3, info)
       
-      ax = Bl2(1,1)
-      bx = Bl2(2,1)
-      cx = Bl2(3,1)
+      ax = B(1,1)
+      bx = B(2,1)
+      cx = B(3,1)
       dx = 0d0
               
-      ay = Bl2(1,2)
-      by = Bl2(2,2)
-      cy = Bl2(3,2)
+      ay = B(1,2)
+      by = B(2,2)
+      cy = B(3,2)
       dy = 0d0        
       
       
@@ -275,7 +342,80 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
 
-      SUBROUTINE max_diff(dt,ti,xn1,xn2,ax,bx,cx,dx,ay,by,cy,dy,xd)
+      SUBROUTINE cubic_interp(deriv,r,dt,ti,x,y,ax,bx,cx,dx,ay,by,cy,dy)      
+      
+      IMPLICIT NONE       
+          
+      INTEGER, INTENT(IN) :: deriv    
+      REAL(rp), INTENT(IN) :: r(2),dt,ti
+      REAL(rp), INTENT(IN) :: x(4),y(4)      
+      REAL(rp), INTENT(INOUT) :: ax,bx,cx,dx
+      REAL(rp), INTENT(INOUT) :: ay,by,cy,dy      
+      
+      REAL(rp) :: t(2)      
+      REAL(rp) :: A(4,4),B(4,2)
+      INTEGER :: ipiv(4),info                    
+      
+      t(1) = .5d0*dt*(r(1)+1d0)+ti    ! intermediate boundary edge interpolation points
+      t(2) = .5d0*dt*(r(2)+1d0)+ti
+      
+      A(1,1) = 1d0      ! iterpolate at beginning boundary node (t = ti)
+      A(1,2) = 0d0
+      A(1,3) = 0d0
+      A(1,4) = 0d0      
+              
+      A(2,1) = 1d0
+      A(2,2) = (t(1)-ti)
+      A(2,3) = (t(1)-ti)**2
+      A(2,4) = (t(1)-ti)**3     
+      
+      IF (deriv == 0) THEN
+        A(3,1) = 1d0             
+        A(3,2) = (t(2)-ti)
+        A(3,3) = (t(2)-ti)**2
+        A(3,4) = (t(2)-ti)**3         
+      ELSE
+        A(3,1) = 0d0             
+        A(3,2) = 1d0
+        A(3,3) = 2d0*(t(2)-ti)
+        A(3,4) = 3d0*(t(2)-ti)**2          
+      ENDIF
+              
+      A(4,1) = 1d0      ! iterpolate at end boundary node (t = ti + dt)       
+      A(4,2) = dt
+      A(4,3) = dt**2
+      A(4,4) = dt**3    
+              
+      B(1,1) = x(1)
+      B(2,1) = x(2)
+      B(3,1) = x(3)
+      B(4,1) = x(4)      
+                         
+      B(1,2) = y(1)
+      B(2,2) = y(2)
+      B(3,2) = y(3)    
+      B(4,2) = y(4)        
+              
+      CALL DGESV(4, 2, A, 4, ipiv, B, 4, info)
+      
+      ax = B(1,1)
+      bx = B(2,1)
+      cx = B(3,1)
+      dx = B(4,1)
+              
+      ay = B(1,2)
+      by = B(2,2)
+      cy = B(3,2)
+      dy = B(4,2)        
+      
+      
+      RETURN
+      END SUBROUTINE cubic_interp      
+      
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
+
+      SUBROUTINE max_diff(dt,ti,xn1,xn2,ax,bx,cx,dx,ay,by,cy,dy,xd,xs,ys,t,r)
       
       USE calc_spline, ONLY: eval_cubic_spline
       
@@ -284,13 +424,13 @@
       REAL(rp), INTENT(IN) :: dt,ti
       REAL(rp), INTENT(IN) :: xn1(2),xn2(2)
       REAL(rp), INTENT(IN) :: ax,bx,cx,dx,ay,by,cy,dy
-      REAL(rp), INTENT(OUT) :: xd
+      REAL(rp), INTENT(OUT) :: xd,t,r,xs,ys
       
       INTEGER :: it,maxit
       REAL(rp) :: tol,eps        
-      REAL(rp) :: t,r,lambda 
+      REAL(rp) :: lambda 
       REAL(rp) :: xe,xep,xepp,ye,yep,yepp
-      REAL(rp) :: xs,xsp,xspp,ys,ysp,yspp   
+      REAL(rp) :: xsp,xspp,ysp,yspp   
       REAL(rp) :: x1,x2,y1,y2
       REAL(rp) :: F,dFdt,dFdr,dFdl
       REAL(rp) :: G,dGdt,dGdr,dGdl
@@ -410,7 +550,56 @@ iter: DO it = 1,maxit
       END SUBROUTINE max_diff
       
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
+
+      SUBROUTINE set_dist(x1,y1,xe,ye,dist,x,y)
+      
+      IMPLICIT NONE
+            
+      REAL(rp), INTENT(IN) :: x1,y1      
+      REAL(rp), INTENT(IN) :: xe,ye
+      REAL(rp), INTENT(IN) :: dist
+      REAL(rp), INTENT(INOUT) :: x,y
+      
+            
+      INTEGER :: it,maxit
+      REAL(rp) :: tol
+      
+      REAL(rp) :: D,dDdx,dDdy
+      REAL(rp) :: w,dwdx,dwdy
+      REAL(rp) :: J
+      
+      
+      tol = 1d-8
+      maxit = 1000      
+      
+iter: DO it = 1,maxit
+      
+        D = (x-xe)**2 + (y-ye)**2 - dist**2
+        w = (x1-xe)*(x-xe) + (y1-ye)*(y-ye)
+      
+        dDdx = 2d0*(x-xe)
+        dDdy = 2d0*(y-ye)
+        
+        dwdx = x1-xe
+        dwdy = y1-ye
+        
+        J = dDdx*dwdy - dDdy*dwdx
+      
+        x = x - ( dwdy*D - dDdy*w)/J
+        y = y - (-dwdx*D + dDdx*w)/J 
+        
+        IF (ABS(D) < tol .AND. ABS(w) < tol) THEN
+          EXIT iter
+        ENDIF           
+      
+      ENDDO iter
+      
+      RETURN
+      END SUBROUTINE set_dist
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
       
       END MODULE

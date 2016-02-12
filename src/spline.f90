@@ -19,7 +19,7 @@
       INTEGER :: n1,n2
       INTEGER :: base_bed
       INTEGER :: neval,nbase
-      REAL(rp) :: htest,t,tpt,x,y,r,xs,ys
+      REAL(rp) :: htest,ti,tpt,x,y,r,xs,ys
       REAL(rp) :: d1,d2,d3,t1,t2,xr(2),xa(2)
       REAL(rp) :: n1x,n1y,n2x,n2y,n3x,n3y,n4x,n4y,edlen
       REAL(rp) :: theta1,theta2
@@ -106,14 +106,14 @@
           
           DO nd = 1,n-1
           
-            t = 0d0        ! find starting parameter value for found edge
+            ti = 0d0        ! find starting parameter value for found edge
             DO j = 1,nd-1
-              t = t + dt(j)
+              ti = ti + dt(j)
             ENDDO            
                                             
-            CALL check_angle(seg,nd,dt(nd),t,ax(nd),bx(nd),cx(nd),dx(nd),ay(nd),by(nd),cy(nd),dy(nd))            
+            CALL check_angle(seg,nd,dt(nd),ti,ax(nd),bx(nd),cx(nd),dx(nd),ay(nd),by(nd),cy(nd),dy(nd))            
                                               
-            CALL check_deformation(seg,nd,dt(nd),t,ax(nd),bx(nd),cx(nd),dx(nd),ay(nd),by(nd),cy(nd),dy(nd))                           
+            CALL check_deformation(seg,nd,dt(nd),ti,ax(nd),bx(nd),cx(nd),dx(nd),ay(nd),by(nd),cy(nd),dy(nd))                           
                         
           ENDDO          
 
@@ -149,9 +149,9 @@
             CALL in_element(seg,n1,xa,el_in,base_bed)                        
             nd = base_bed    
             
-            t = 0d0        ! find starting parameter value for found edge
+            ti = 0d0        ! find starting parameter value for found edge
             DO j = 1,nd-1
-              t = t + dt(j)
+              ti = ti + dt(j)
             ENDDO
             
             IF (i == neval-1) THEN
@@ -166,22 +166,22 @@
               r = rpts(j+1)   
                      
               xr(1) = .5d0*(1d0-r)*n1x + .5d0*(1d0+r)*n2x
-              xr(2) = .5d0*(1d0-r)*n1y + .5d0*(1d0+r)*n2y
-              
-     
-              tpt = .5d0*dt(nd)*(r + 1d0) + t          ! initial guess for iteration                            
+              xr(2) = .5d0*(1d0-r)*n1y + .5d0*(1d0+r)*n2y                                                            
                    
-              CALL newton(tpt,t,xr,ax(nd),bx(nd),cx(nd),dx(nd),ay(nd),by(nd),cy(nd),dy(nd),x,y)
-              r =  2d0/dt(nd)*(tpt-t)-1d0
+              CALL newton(r,dt(nd),ti,xr,ax(nd),bx(nd),cx(nd),dx(nd),ay(nd),by(nd),cy(nd),dy(nd),x,y)
               
+
+!               ! Try new initial guess if minimum was not found in (-1,1) interval              
 !               IF (r < -1d0) THEN
 !                 PRINT "(A,F24.17)", "R = ", r
-!                 tpt = t
-!                 CALL newton(tpt,t,xr,ax(nd),bx(nd),cx(nd),dx(nd),ay(nd),by(nd),cy(nd),dy(nd),x,y)
+!                 r = -1d0
+!                 CALL newton(r,dt(nd),ti,xr,ax(nd),bx(nd),cx(nd),dx(nd),ay(nd),by(nd),cy(nd),dy(nd),x,y)
 !               ENDIF
               
-!               CALL eval_cubic_spline(tpt,t,ax(nd),bx(nd),cx(nd),dx(nd),x)
-!               CALL eval_cubic_spline(tpt,t,ay(nd),by(nd),cy(nd),dy(nd),y)              
+!               ! Evaluate spline at specified parameter value (no distance minimixation)              
+!               tpt = .5d0*dt(nd)*(r + 1d0) + ti               
+!               CALL eval_cubic_spline(tpt,ti,ax(nd),bx(nd),cx(nd),dx(nd),x)
+!               CALL eval_cubic_spline(tpt,ti,ay(nd),by(nd),cy(nd),dy(nd),y)              
               
               WRITE(60,*) x,y
                        
