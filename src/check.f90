@@ -547,11 +547,9 @@ iter: DO it = 1,maxit
         r = r + H(2,1)
         lambda = lambda + H(3,1)
         
-        eps = max(H(1,1),H(2,1),H(3,1))
+        eps = max(abs(H(1,1)),abs(H(2,1)),abs(H(3,1)))
         
-        IF (ABS(eps) < tol) THEN
-!           PRINT*, "iterations", it
-!           PRINT*, d
+        IF (eps < tol) THEN
           EXIT iter
         ENDIF
         
@@ -588,7 +586,7 @@ iter: DO it = 1,maxit
       
             
       INTEGER :: it,maxit
-      REAL(rp) :: tol
+      REAL(rp) :: tol,eps
       
       REAL(rp) :: D,dDdx,dDdy
       REAL(rp) :: w,dwdx,dwdy
@@ -614,11 +612,17 @@ iter: DO it = 1,maxit
         x = x - ( dwdy*D - dDdy*w)/J
         y = y - (-dwdx*D + dDdx*w)/J 
         
-        IF (ABS(D) < tol .AND. ABS(w) < tol) THEN
+        eps = max(abs(D),abs(w))
+        
+        IF (eps < tol) THEN
           EXIT iter
         ENDIF           
       
       ENDDO iter
+      
+      IF (it >= maxit) THEN
+        PRINT "(A,E28.16)", "MAX ITERATIONS EXCEEDED IN FINDING SET DEFORMATION, ERROR: ", ABS(eps)        
+      ENDIF          
       
       RETURN
       END SUBROUTINE set_dist
