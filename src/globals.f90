@@ -22,6 +22,7 @@
       REAL(rp) :: phi0
       
       REAL(rp) :: theta_tol
+      REAL(rp) :: deform_tol
       REAL(rp) :: sig
                           
                           

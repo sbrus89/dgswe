@@ -96,7 +96,7 @@
 
       SUBROUTINE check_deformation(seg,nd,dt,ti,ax,bx,cx,dx,ay,by,cy,dy)
       
-      USE globals, ONLY: base
+      USE globals, ONLY: base,deform_tol
       USE find_element, ONLY: in_element
       USE calc_spline, ONLY: eval_cubic_spline
       
@@ -132,7 +132,7 @@
         xa(2) = .5d0*(xn1(2)+xn2(2))
       
         CALL in_element(seg,n1,xa,el_in,bed)  
-        max_dist = .1d0*base%minedlen(el_in)
+        max_dist = deform_tol*base%minedlen(el_in)
         
         r = 0d0 
         t = .5d0*dt + ti
