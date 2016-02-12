@@ -19,7 +19,7 @@
       INTEGER :: n1,n2
       INTEGER :: base_bed
       INTEGER :: neval,nbase
-      REAL(rp) :: htest,ti,tpt,x,y,r,xs,ys
+      REAL(rp) :: htest,ti,tpt,x,y,r,ra,xs,ys
       REAL(rp) :: d1,d2,d3,t1,t2,xr(2),xa(2)
       REAL(rp) :: n1x,n1y,n2x,n2y,n3x,n3y,n4x,n4y,edlen
       REAL(rp) :: theta1,theta2
@@ -140,19 +140,7 @@
             n1y = eval%xy(2,n1)
           
             n2x = eval%xy(1,n2)
-            n2y = eval%xy(2,n2) 
-            
-            xa(1) = .5d0*(n1x + n2x) ! average coordinates to avoid ambiguity with verticies
-            xa(2) = .5d0*(n1y + n2y)
-            
-            PRINT*, "FINDING ELEMENT FOR POINT: ", i, " NODE: ",n1
-            CALL in_element(seg,n1,xa,el_in,base_bed)                        
-            nd = base_bed    
-            
-            ti = 0d0        ! find starting parameter value for found edge
-            DO j = 1,nd-1
-              ti = ti + dt(j)
-            ENDDO
+            n2y = eval%xy(2,n2)             
             
             IF (i == neval-1) THEN
               n = ctp
@@ -164,9 +152,29 @@
             DO j = 0,n                                     
             
               r = rpts(j+1)   
-                     
+              
+              IF (j == 0) THEN
+                ra = r + 1d-2          ! avoid ambiguity with verticies
+              ELSE IF (j == ctp) THEN
+                ra = r - 1d-2
+              ELSE 
+                ra = r
+              ENDIF
+                                                            
+              xa(1) = .5d0*(1d0-ra)*n1x + .5d0*(1d0+ra)*n2x 
+              xa(2) = .5d0*(1d0-ra)*n1y + .5d0*(1d0+ra)*n2y 
+              
+              PRINT*, "FINDING ELEMENT FOR POINT: ", i, " NODE: ",n1
+              CALL in_element(seg,n1,xa,el_in,base_bed)                        
+              nd = base_bed    
+            
+              ti = 0d0        ! find starting parameter value for found edge
+              DO k = 1,nd-1
+                ti = ti + dt(k)
+              ENDDO              
+              
               xr(1) = .5d0*(1d0-r)*n1x + .5d0*(1d0+r)*n2x
-              xr(2) = .5d0*(1d0-r)*n1y + .5d0*(1d0+r)*n2y                                                            
+              xr(2) = .5d0*(1d0-r)*n1y + .5d0*(1d0+r)*n2y               
                    
               CALL newton(r,dt(nd),ti,xr,ax(nd),bx(nd),cx(nd),dx(nd),ay(nd),by(nd),cy(nd),dy(nd),x,y)
               

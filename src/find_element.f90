@@ -144,8 +144,8 @@ search: DO srch = 1,srchdp
       ENDDO bseg
             
       IF (found == 0) THEN
-        PRINT*, "Boundary edge not found"
-!         PAUSE
+        PRINT*, "Boundary edge not found" 
+        STOP
       ENDIF          
       
       RETURN
