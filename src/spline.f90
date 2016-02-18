@@ -165,8 +165,8 @@
               xa(2) = .5d0*(1d0-ra)*n1y + .5d0*(1d0+ra)*n2y 
               
               PRINT*, "FINDING ELEMENT FOR POINT: ", i, " NODE: ",n1
-              CALL in_element(seg,n1,xa,el_in,base_bed)                        
-              nd = base_bed    
+              CALL in_element(seg,n1,n2,xa,el_in,base_bed)                        
+              nd = base_bed   
             
               ti = 0d0        ! find starting parameter value for found edge
               DO k = 1,nd-1
