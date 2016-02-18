@@ -8,7 +8,7 @@
       USE calc_spline, ONLY: calc_cubic_spline,eval_cubic_spline, &
                              newton,spline_init
       USE check, ONLY: check_angle,check_deformation,l2_project,quad_interp
-      USE find_element, ONLY: in_element
+      USE find_element, ONLY: in_element,check_elem
       USE evaluate, ONLY: vandermonde,transformation  
 
       IMPLICIT NONE
@@ -154,7 +154,7 @@
               r = rpts(j+1)   
               
               IF (j == 0) THEN
-                ra = r + 1d-2          ! avoid ambiguity with verticies
+                ra = r + 1d-2          ! add an offset avoid ambiguity with verticies
               ELSE IF (j == ctp) THEN
                 ra = r - 1d-2
               ELSE 
@@ -162,19 +162,26 @@
               ENDIF
                                                             
               xa(1) = .5d0*(1d0-ra)*n1x + .5d0*(1d0+ra)*n2x 
-              xa(2) = .5d0*(1d0-ra)*n1y + .5d0*(1d0+ra)*n2y 
+              xa(2) = .5d0*(1d0-ra)*n1y + .5d0*(1d0+ra)*n2y                                  
               
               PRINT*, "FINDING ELEMENT FOR POINT: ", i, " NODE: ",n1
               CALL in_element(seg,n1,n2,xa,el_in,base_bed)                        
               nd = base_bed   
+              
+              xr(1) = .5d0*(1d0-r)*n1x + .5d0*(1d0+r)*n2x
+              xr(2) = .5d0*(1d0-r)*n1y + .5d0*(1d0+r)*n2y                
+              
+              ! check to make sure vertex offset used to find element isn't 
+              ! too large that the found element isn't connected to the vertex point
+              IF (j == 0 .OR. j == ctp) THEN           
+                CALL check_elem(xr,el_in)         
+              ENDIF               
             
               ti = 0d0        ! find starting parameter value for found edge
               DO k = 1,nd-1
                 ti = ti + dt(k)
               ENDDO              
-              
-              xr(1) = .5d0*(1d0-r)*n1x + .5d0*(1d0+r)*n2x
-              xr(2) = .5d0*(1d0-r)*n1y + .5d0*(1d0+r)*n2y               
+                      
                    
               CALL newton(r,dt(nd),ti,xr,ax(nd),bx(nd),cx(nd),dx(nd),ay(nd),by(nd),cy(nd),dy(nd),x,y)
               

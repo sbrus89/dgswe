@@ -423,5 +423,52 @@ search: DO srch = 1,srchdp
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!      
 
+      SUBROUTINE check_elem(xt,el_found)      
+      
+      USE globals, ONLY: base,tree_xy,srchdp,closest,fbnds
+
+      IMPLICIT NONE
+      
+
+      REAL(rp), INTENT(IN) :: xt(2)
+      INTEGER, INTENT(IN) :: el_found
+            
+      INTEGER :: el,eln,clnd
+      INTEGER :: found      
+
+            
+      
+      CALL kdtree2_n_nearest(tp=tree_xy,qv=xt,nn=1,results=closest)              
+        
+  
+      found = 0      
+      clnd = fbnds(closest(1)%idx)          
+
+elem: DO el = 1,base%nepn(clnd) 
+ 
+        eln = base%epn(el,clnd)
+            
+        IF (eln == el_found) THEN
+          found = 1
+          EXIT elem
+        ENDIF
+            
+      ENDDO elem
+
+        
+
+        
+      IF (found == 0) THEN
+        PRINT*, "ERROR FINDING ELEMENT FOR VERTEX NODE"
+        STOP
+      ENDIF     
+ 
+      
+      
+      RETURN
+      END SUBROUTINE check_elem
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!     
 
       END MODULE find_element
