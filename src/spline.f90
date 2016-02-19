@@ -12,25 +12,28 @@
       USE evaluate, ONLY: vandermonde,transformation  
 
       IMPLICIT NONE
-      INTEGER :: i,j,k,n,seg,sind,eind,num,qpts,btype
+      INTEGER :: i,j,k,n,seg,sind,eind,num,nmax,qpts,btype
       INTEGER :: el,eln,nd,ndn,led,n1ed1,n2ed1,n1bed,n2bed,nvert
       INTEGER :: el_in,found
       INTEGER :: segtype
       INTEGER :: n1,n2
       INTEGER :: base_bed
       INTEGER :: neval,nbase
-      REAL(rp) :: htest,ti,tpt,x,y,r,ra,xs,ys
+      REAL(rp) :: htest,ti,tpt,r,ra,xs,ys
       REAL(rp) :: d1,d2,d3,t1,t2,xr(2),xa(2)
       REAL(rp) :: n1x,n1y,n2x,n2y,n3x,n3y,n4x,n4y,edlen
       REAL(rp) :: theta1,theta2
+      REAL(rp), ALLOCATABLE, DIMENSION(:) :: x,y
 
       
 
 
 
-      OPEN(unit=30,file='spline.out')
+      OPEN(unit=30,file='spline.out')   
       OPEN(unit=60,file='eval_nodes.out') 
       OPEN(unit=90,file='max_deform.out')
+      OPEN(unit=40,file='spline_nodes.cl')         
+
       
       PRINT "(A)", " "
       
@@ -47,28 +50,32 @@
       sig = 0d0
       
       
-      CALL spline_init(num)
+      CALL spline_init(num,nmax)
       
       CALL vandermonde()  
       
       CALL transformation()     
       
+      ALLOCATE(x(ctp+1),y(ctp+1))
 
     
 
       WRITE(30,*) num
       WRITE(60,*) num
       WRITE(90,*) num
+      
+      WRITE(40,"(I8,19x,A)") base%nbou, "! total number of normal flow boundary segments"
+      WRITE(40,"(2(I8),19x,A)") nmax,ctp, "! max number of normal flow nodes, ctp order"    
 
       DO seg = 1,base%nbou
       
-        segtype = base%fbseg(2,seg)
+        segtype = base%fbseg(2,seg)               
         
         IF( segtype == 0 .OR. segtype == 10 .OR. segtype == 20  .OR. &   ! land boundaries
             segtype == 1 .OR. segtype == 11 .OR. segtype == 21 ) THEN    ! island boundaries
         
           n = base%fbseg(1,seg)    ! n nodes, n-1 subintervals
-
+          
           PRINT "(A)", " "          
           PRINT "(A)", " "          
           PRINT "(A)", " "          
@@ -76,6 +83,7 @@
           PRINT "(A,I5)", "Normal flow boundary ",seg
           PRINT "(A,I5)", "Normal flow boundary nodes ",n
 
+          WRITE(40,"(2(I8),19x,A)") n,segtype, "! number of nodes in segment, boundary type"
 
 !           PAUSE
  
@@ -166,7 +174,7 @@
               
               PRINT*, "FINDING ELEMENT FOR POINT: ", i, " NODE: ",n1
               CALL in_element(seg,n1,n2,xa,el_in,base_bed)                        
-              nd = base_bed   
+              nd = base_bed       
               
               xr(1) = .5d0*(1d0-r)*n1x + .5d0*(1d0+r)*n2x
               xr(2) = .5d0*(1d0-r)*n1y + .5d0*(1d0+r)*n2y                
@@ -183,7 +191,7 @@
               ENDDO              
                       
                    
-              CALL newton(r,dt(nd),ti,xr,ax(nd),bx(nd),cx(nd),dx(nd),ay(nd),by(nd),cy(nd),dy(nd),x,y)
+              CALL newton(r,dt(nd),ti,xr,ax(nd),bx(nd),cx(nd),dx(nd),ay(nd),by(nd),cy(nd),dy(nd),x(j+1),y(j+1))
               
 
 !               ! Try new initial guess if minimum was not found in (-1,1) interval              
@@ -198,21 +206,34 @@
 !               CALL eval_cubic_spline(tpt,ti,ax(nd),bx(nd),cx(nd),dx(nd),x)
 !               CALL eval_cubic_spline(tpt,ti,ay(nd),by(nd),cy(nd),dy(nd),y)              
               
-              WRITE(60,*) x,y
+              WRITE(60,*) x(j+1),y(j+1)
                        
             ENDDO  
-
+            
+            WRITE(40,"(I8,10(E24.17,1X))") n1, (x(j), j=1,ctp)
+            WRITE(40,"(I8,10(E24.17,1X))") n1, (y(j), j=1,ctp)
+            
+            IF (i == neval-1) THEN
+              WRITE(40,"(I8,10(E24.17,1X))") n2, x(ctp+1)
+              WRITE(40,"(I8,10(E24.17,1X))") n2, y(ctp+1)            
+            ENDIF
+            
+            
             PRINT*, "------------------------------------------------------------"            
             PRINT*, " "
             
           ENDDO
 
+        ELSE
+        
+          WRITE(40,"(2(I8),19x,A)") 0,segtype, "! Flow-specified normal flow boundary"
               
         ENDIF 
         
 
       ENDDO
       CLOSE(30)
+      CLOSE(40)
       CLOSE(60)
       
       

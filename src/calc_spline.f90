@@ -11,7 +11,7 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
 
-      SUBROUTINE spline_init(num)
+      SUBROUTINE spline_init(num,nmax)
       
       USE globals, ONLY: rp,base,ax,bx,cx,dx,ay,by,cy,dy,dt, &
                          nfbnds,fbnds,fbnds_xy, &
