@@ -164,7 +164,7 @@
       SUBROUTINE alloc_connect_arrays(stage)
       
       USE globals, ONLY: epn,ged2nn,ged2el,ged2led,&
-                         iedn,obedn,fbedn,nfbedn,bedn, &
+                         iedn,obedn,fbedn,nfbedn,nfbednn,bedn, &
                          ed_type
       
       IMPLICIT NONE
@@ -189,7 +189,7 @@
         ! Edge look-up tables
         ALLOCATE(iedn(nied),STAT = alloc_status(1))
         ALLOCATE(obedn(nobed),STAT = alloc_status(2))
-        ALLOCATE(fbedn(nfbed),nfbedn(nnfbed),STAT=alloc_status(3))
+        ALLOCATE(fbedn(nfbed),nfbedn(nnfbed),nfbednn(nnfbed,2),STAT=alloc_status(3))
       ENDIF
       
       

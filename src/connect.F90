@@ -3,7 +3,7 @@
       USE globals, ONLY: rp,nn,ne,ned,xy,ect,vct,el_type,nverts,curved_grid, &
                          mnepn,epn,nepn, &
                          ged2nn,ged2el,ged2led, &
-                         nied,iedn,nobed,obedn,nfbed,fbedn,nnfbed,nfbedn,nbed,bedn, &
+                         nied,iedn,nobed,obedn,nfbed,fbedn,nnfbed,nfbedn,nfbednn,nbed,bedn, &
                          nope,neta,obseg,obnds,nbou,fbseg,nvel,fbnds, &
                          nelnds,ed_type,recv_edge,check_iedge,check_gedge                       
                          
@@ -25,14 +25,14 @@
       
       INTEGER, ALLOCATABLE, DIMENSION(:) :: ied_temp,bnd_temp,nfbnd_temp,fbnd_temp ! temporary arrary for boundary edges
       INTEGER, ALLOCATABLE, DIMENSION(:,:) :: ged2nn_temp, ged2el_temp, ged2led_temp ! temporary arrays for edge connectivity
-      INTEGER, ALLOCATABLE, DIMENSION(:,:) :: edflag
+      INTEGER, ALLOCATABLE, DIMENSION(:,:) :: edflag,nfbednn_temp
       
         
 
       
       OPEN(unit=17,file=trim(out_direc) // 'connect.d')      
 
-      ALLOCATE(ied_temp(3*ne),bnd_temp(3*ne),nfbnd_temp(3*ne),fbnd_temp(3*ne),STAT = alloc_status)
+      ALLOCATE(ied_temp(3*ne),bnd_temp(3*ne),nfbnd_temp(3*ne),fbnd_temp(3*ne),nfbednn_temp(3*ne,2),STAT = alloc_status)
       IF(alloc_status /= 0) PRINT*, 'Allocation error: bnd_temp,nfbnd_temp,fbnd_temp'
         
       ALLOCATE(ged2nn_temp(2,3*ne),ged2el_temp(2,3*ne),ged2led_temp(2,3*ne),STAT = alloc_status)
@@ -262,6 +262,8 @@
                   segtype == 1 .OR. segtype == 11 .OR. segtype == 21 ) THEN    ! island boundaries
                 nnfbed = nnfbed + 1
                 nfbnd_temp(nnfbed) = ged
+                nfbednn_temp(nnfbed,1) = seg
+                nfbednn_temp(nnfbed,2) = n1bed
                 recv_edge(ged) = 0
                 ed_type(ged) = 10
                 found = 1
@@ -295,6 +297,7 @@
       obedn(1:nobed) = bnd_temp(1:nobed)      
       nfbedn(1:nnfbed) = nfbnd_temp(1:nnfbed)
       fbedn(1:nfbed) = fbnd_temp(1:nfbed)
+      nfbednn(1:nnfbed,1:2) = nfbednn_temp(1:nnfbed,1:2)
 
 
       

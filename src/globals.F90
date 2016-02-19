@@ -81,6 +81,7 @@
       REAL(rp), ALLOCATABLE, DIMENSION(:) :: depth ! depth at each node
       REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: elhb
       REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: hbnodes 
+      REAL(rp), ALLOCATABLE, DIMENSION(:,:,:,:) :: bndxy
 
       INTEGER :: nope ! number of open boundary segents
       INTEGER, ALLOCATABLE, DIMENSION(:) :: obseg ! number of nodes in each open boundary segment
@@ -150,6 +151,7 @@
       INTEGER, ALLOCATABLE, DIMENSION(:) :: fbedn ! array of flow boundary edge numbers
       INTEGER :: nnfbed ! total number of no normal flow boundary edges
       INTEGER, ALLOCATABLE, DIMENSION(:) :: nfbedn ! array of no normal flow boundary edge numbers
+      INTEGER, ALLOCATABLE, DIMENSION(:,:) :: nfbednn       
       INTEGER :: nbed ! total numer of non-interior edges
       INTEGER, ALLOCATABLE, DIMENSION(:) :: bedn ! array of non-interior edge numbers
       INTEGER, ALLOCATABLE, DIMENSION(:) :: ed_type  ! open/flow boundary edge flags

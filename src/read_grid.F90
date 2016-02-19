@@ -1,6 +1,6 @@
       SUBROUTINE read_grid()
       
-      USE globals, ONLY: rp,ne,nn,ect,vct,xy,depth,nelnds,elxy,elhb,hbnodes, &
+      USE globals, ONLY: rp,ne,nn,ect,vct,xy,depth,nelnds,elxy,elhb,hbnodes,bndxy, &
                          nope,neta,obseg,obnds,nvel,nbou,fbseg,fbnds,grid_name, &
                          el_type,mnelnds,curved_grid,nverts,mnnds, &
                          r_earth,deg2rad
@@ -8,14 +8,15 @@
       USE allocation, ONLY: alloc_grid_arrays     
       USE messenger2, ONLY: myrank
       USE quit, ONLY: abort
-      USE read_dginp, ONLY: grid_file,ctp,hbp,bathy_file,h0,coord_sys,slam0,sphi0
+      USE read_dginp, ONLY: grid_file,bathy_file,curve_file,ctp,hbp,h0,coord_sys,slam0,sphi0
 
       IMPLICIT NONE
-      INTEGER :: i,j,k,el
+      INTEGER :: i,j,k,el,nd
       INTEGER :: nbseg
       INTEGER :: btype
       INTEGER :: nvert,nnds
       INTEGER :: ne_check,hbp_check
+      INTEGER :: nb,nmax,cto
       LOGICAL :: file_exists
 
 
@@ -193,7 +194,38 @@
       ENDIF      
       
       
+      INQUIRE(FILE=curve_file, EXIST = file_exists)  
+      IF (file_exists == .FALSE.) THEN
+        IF (myrank == 0) PRINT*, "curved boundary file does not exist"
+      ELSE
+        IF (myrank == 0) PRINT*, "reading in curved boundary file"
       
+        OPEN(UNIT=14, FILE=curve_file)
+        
+        READ(14,*) nb
+        READ(14,*) nmax,cto
+        
+        IF (nb /= nbou .or. cto /= ctp) THEN
+          PRINT*, "incorrect curved boundary file"
+          CALL abort()
+        ENDIF
+        
+        ALLOCATE(bndxy(2,ctp+1,nmax,nb))
+        
+        DO i = 1,nb
+          READ(14,*) nbseg,btype  
+          IF(nbseg > 0) THEN
+            DO j = 1,nbseg-1
+              READ(14,*) nd, xy(1,nd),(bndxy(1,k,j,i), k=1,ctp-1)
+              READ(14,*) nd, xy(2,nd),(bndxy(2,k,j,i), k=1,ctp-1)
+            ENDDO
+            READ(14,*) nd, xy(1,nd)
+            READ(14,*) nd, xy(2,nd)
+          ENDIF
+        ENDDO
+        
+        CLOSE(14)
+      ENDIF
 
       
 !       DO el = 1,ne

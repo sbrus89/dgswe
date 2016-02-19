@@ -74,6 +74,7 @@
       CHARACTER(100), TARGET :: forcing_file
       CHARACTER(100), TARGET :: out_direc 
       CHARACTER(100), TARGET :: bathy_file
+      CHARACTER(100), TARGET :: curve_file
       INTEGER, TARGET :: p
       INTEGER, TARGET :: ctp
       INTEGER, TARGET :: hbp
@@ -535,7 +536,7 @@
       dginp(16)%key = "slam0";          dginp(16)%rptr => slam0;          dginp(16)%required = .false.;    dginp(16)%rptr = -79.0d0 
       dginp(17)%key = "sphi0";          dginp(17)%rptr => sphi0;          dginp(17)%required = .false.;    dginp(17)%rptr = 35.0d0 
       dginp(18)%key = "h0";             dginp(18)%rptr => h0;             dginp(18)%required = .false.;    dginp(18)%rptr = 1d0   
-!       dginp(19)%key = "??";             dginp(19)%?ptr => ??;             dginp(19)%required = .false.;    dginp(19)%?ptr = ??   
+      dginp(19)%key = "curve_file";     dginp(19)%cptr => curve_file;     dginp(19)%required = .false.;    dginp(19)%cptr = "./cl_nodes.cb"
 !       dginp(20)%key = "??";             dginp(20)%?ptr => ??;             dginp(20)%required = .false.;    dginp(20)%?ptr = ??  
 !       dginp(21)%key = "??";             dginp(21)%?ptr => ??;             dginp(21)%required = .false.;    dginp(21)%?ptr = ??  
 !       dginp(22)%key = "??";             dginp(22)%?ptr => ??;             dginp(22)%required = .false.;    dginp(22)%?ptr = ??  
