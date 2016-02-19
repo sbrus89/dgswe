@@ -118,6 +118,7 @@ search: DO srch = 1,srchdp
       REAL(rp) :: x1(2),x2(2),x3(2),x4(2)
       REAL(rp) :: ax,ay,bx,by,cx,cy,dx,dy
       REAL(rp) :: r,t
+      REAL(rp) :: eps
 
 
       
@@ -153,6 +154,7 @@ search: DO srch = 1,srchdp
       ! Try to find the base boundary edge based on intersection between 
       ! line perpendicular to eval edge and base edge
             
+      eps = 1d-12      
       IF (found == 0) THEN
         
         
@@ -188,12 +190,12 @@ search: DO srch = 1,srchdp
           t = (-dy*(cx-ax) + dx*(cy-ay))/(-bx*dy+by*dx)
           r = (-by*(cx-ax) + bx*(cy-ay))/(-bx*dy+by*dx)
           
-          IF ((r>=-1d0 .and. r<=1d0) ) THEN
+          IF ((r>=-1d0-eps .and. r<=1d0+eps) ) THEN
           
             found = 1                   
             base_bed = j          
           
-            PRINT*, "n1bed = ",n1bed, "n2bed = ",n2bed 
+!             PRINT*, "n1bed = ",n1bed, "n2bed = ",n2bed 
 !             PRINT*, "R = ", r
 !             PRINT*, "T = ", t
 !             PRINT*, "X = ", xm(1) + bx*t
@@ -209,7 +211,12 @@ search: DO srch = 1,srchdp
             
               
               
-       ENDDO bseg2               
+       ENDDO bseg2     
+       
+       IF (found == 0) THEN
+         PRINT*, "BOUNDARY EDGE NOT FOUND"
+         STOP
+       ENDIF
         
         
       ENDIF          
