@@ -51,7 +51,7 @@
 
           CALL element_transformation(nnd,x,y,psiv(:,pt,et),xpt,ypt)
           
-          elhb(pt,el) = 10d0
+!           elhb(pt,el) = 10d0
 !            elhb(pt,el) = 10d0 - 5d0*cos(2d0*pi/500d0*ypt)        
           xyhb(pt,el,1) = xpt
           xyhb(pt,el,2) = ypt
@@ -179,7 +179,7 @@
 
           CALL element_transformation(nnd,elxy(:,el,1),elxy(:,el,2),psic(:,pt,et),xpt,ypt)
           
-          elhb(pt,el) = 10d0
+!           elhb(pt,el) = 10d0
 !            elhb(pt,el) = 10d0 - 5d0*cos(2d0*pi/500d0*ypt)     
           xyhb(pt,el,1) = xpt
           xyhb(pt,el,2) = ypt          
@@ -188,23 +188,31 @@
         
       ENDDO
       
-      OPEN(unit=242,file='bathy.d')
-      DO el = 1,ne
-      
-        et = el_type(el)     
-        IF (mod(et,2) == 1) THEN
-          npts = nnds(5)
-        ELSE IF (mod(et,2) == 0) THEN
-          npts = nnds(6)
-        ENDIF
-        
-        DO pt = 1,npts
-          WRITE(242,"(3(e24.17,1x))") xyhb(pt,el,1),xyhb(pt,el,2),elhb(pt,el)
-        ENDDO
-      ENDDO
-      CLOSE(242)
-
-      
+!       OPEN(unit=242,file='bathy.d')
+!       DO el = 1,ne
+!       
+!         et = el_type(el)     
+!         IF (mod(et,2) == 1) THEN
+!           npts = nnds(5)
+!         ELSE IF (mod(et,2) == 0) THEN
+!           npts = nnds(6)
+!         ENDIF
+!         
+!         DO pt = 1,npts
+!           WRITE(242,"(3(e24.17,1x))") xyhb(pt,el,1),xyhb(pt,el,2),elhb(pt,el)
+!         ENDDO
+!       ENDDO
+!       CLOSE(242)
+! 
+!       OPEN(unit=242,file='elxy.d')     
+!       WRITE(242,*) ne,mnnds
+!       DO el = 1,ne     
+!         WRITE(242,"(10(e24.17,1x))") (elxy(pt,el,1), pt = 1,mnnds)
+!       ENDDO
+!       DO el = 1,ne     
+!         WRITE(242,"(10(e24.17,1x))") (elxy(pt,el,2), pt = 1,mnnds)
+!       ENDDO      
+!       CLOSE(242)      
       
       RETURN
       END SUBROUTINE curvilinear
