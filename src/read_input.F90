@@ -616,6 +616,7 @@
       forcing_file = dirname(1:lname)//'/'//"fort.15"      
       out_direc = './' // dirname(1:lname) //'/'
       bathy_file = './' // dirname(1:lname) //'/'//"fort.hb"
+      curve_file = './' // dirname(1:lname) //'/'//"fort.cb"      
       
       ! write inputs
       DO i = 1,maxopt        

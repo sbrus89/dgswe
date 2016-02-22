@@ -270,9 +270,10 @@
       INTEGER, ALLOCATABLE, DIMENSION(:) :: lnope      
       
       INTEGER, ALLOCATABLE, DIMENSION(:,:,:) :: lfbseg
-      INTEGER, ALLOCATABLE, DIMENSION(:,:,:) :: lfbnds
+      INTEGER, ALLOCATABLE, DIMENSION(:,:,:) :: lfbnds      
       INTEGER, ALLOCATABLE, DIMENSION(:) :: lnvel
-      INTEGER, ALLOCATABLE, DIMENSION(:) :: lnbou           
+      INTEGER, ALLOCATABLE, DIMENSION(:) :: lnbou     
+      REAL(rp), ALLOCATABLE, DIMENSION(:,:,:,:,:) :: lbndxy
       
       REAL(rp), ALLOCATABLE, DIMENSION(:,:,:,:) :: lobamp      
       REAL(rp), ALLOCATABLE, DIMENSION(:,:,:,:) :: lobph

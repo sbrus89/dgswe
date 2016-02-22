@@ -1,22 +1,22 @@
       SUBROUTINE write_files()
       
       USE globals, ONLY: ne,nn,nresel,nresnd,nd_l2g,xy,depth,lect,lnelnds,nope,nbou,fbseg, &
-                         lnope,lneta,lobseg,lobnds,lnbou,lnvel,lfbseg,lfbnds, &
+                         lnope,lneta,lobseg,lobnds,lnbou,lnvel,lfbseg,lfbnds,lbndxy, &
                          nobfr,obtag,obtag2,obfreq,obnfact,obeq,lobamp,lobph, &
                          nfbfr,fbtag,fbtag2,fbfreq,fbnfact,fbeq,lfbamp,lfbph,lnbouf, &
                          nsred,el_l2g,mndof,nlines, &
                          el_type,elhb,nnds,order
                          
-      USE read_dginp, ONLY: write_local,hbp   
+      USE read_dginp, ONLY: write_local,hbp,ctp   
       USE messenger2, ONLY: nproc,nx_sr,ny_sr,nqpte_sr,hb_sr, &
                             ned_sr,pe_sr,el_sr,led_sr
 
       IMPLICIT NONE
 
       
-      INTEGER :: i,pe,pes,nd,el,bnd,bfr,seg,ed,pt
-      INTEGER :: segtype,et
-      INTEGER :: gnd,gel
+      INTEGER :: i,k,pe,pes,nd,el,bnd,bfr,seg,ed,pt
+      INTEGER :: n,segtype,et
+      INTEGER :: gnd,gel,lnd
       INTEGER :: nnd
       INTEGER :: npes,ned2pes
       INTEGER :: match
@@ -61,7 +61,7 @@
         
         DO nd = 1,nresnd(pe)
           gnd = nd_l2g(nd,pe)
-          WRITE(14,"(I8,1X,3(D24.17,1X))") nd, xy(1,gnd), xy(2,gnd), depth(gnd)
+          WRITE(14,"(I8,1X,3(E24.17,1X))") nd, xy(1,gnd), xy(2,gnd), depth(gnd)
         ENDDO
         
         DO el = 1,nresel(pe)
@@ -277,6 +277,49 @@
        ENDDO
        
        CLOSE(14)
+     ENDDO
+     
+     
+     ! Write the curved boundary edge file
+     DO pe = 1,nproc
+     
+       WRITE(dirname(3:lname),"(I4.4)") pe-1      
+       OPEN(UNIT=14,FILE=dirname(1:lname)//'/'//'fort.cb')     
+       
+        WRITE(14,"(I8,19x,A)") lnbou(pe), "! number of normal flow boundaries"
+        WRITE(14,"(I8,I8,19x,A)") lnvel(pe), ctp, "! total number of normal flow nodes"
+        
+        i = 0
+        DO bnd = 1,lnbou(pe)
+          IF(lfbseg(1,bnd,pe) > 0) THEN
+            i = i + 1
+            segtype = lfbseg(2,bnd,pe) 
+            n = lfbseg(1,bnd,pe)
+            IF (segtype == 0 .OR. segtype == 10 .OR. segtype == 20 .OR. &
+                segtype == 1 .OR. segtype == 11 .OR. segtype == 21) THEN
+              WRITE(14,"(I8,1x,I8,10x,A,1x,I8)") n,segtype, "! number of nodes in normal flow boundary", i
+              DO nd = 1,n-1
+                lnd = lfbnds(nd,bnd,pe)
+                gnd = nd_l2g(lnd,pe)
+                WRITE(14,"(I8,10(E24.17,1X))") lnd, xy(1,gnd), (lbndxy(1,k,nd,bnd,pe), k=1,ctp-1)
+                WRITE(14,"(I8,10(E24.17,1X))") lnd, xy(2,gnd), (lbndxy(2,k,nd,bnd,pe), k=1,ctp-1)
+              ENDDO
+              lnd = lfbnds(n,bnd,pe)
+              gnd = nd_l2g(lnd,pe)              
+              WRITE(14,"(I8,E24.17,1X)") lnd, xy(1,gnd)
+              WRITE(14,"(I8,E24.17,1X)") lnd, xy(2,gnd)            
+              
+            ELSE
+            
+              WRITE(14,"(I8,1x,I8,10x,A,1x,I8)") 0,segtype, "! number of nodes in normal flow boundary", i
+            
+            ENDIF
+          ENDIF
+        ENDDO
+        
+        CLOSE(14)
+       
+     
      ENDDO
             
       

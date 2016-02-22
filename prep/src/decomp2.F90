@@ -13,16 +13,18 @@
                          nobfr,obamp,obph,lobamp,lobph, &
                          nfbfr,fbamp,fbph,lfbamp,lfbph,lnbouf, &
                          nx_pt,ny_pt, &
-                         hbqpted,nqpte,mnqpte,elhb
+                         hbqpted,nqpte,mnqpte,elhb, &
+                         lbndxy,bndxy
                          
-      USE read_dginp, ONLY: hbp                           
+                         
+      USE read_dginp, ONLY: hbp,ctp                           
                          
       USE messenger2, ONLY: nproc,nqpte_sr,hb_sr,nx_sr,ny_sr, &
                             ned_sr,pe_sr,el_sr,led_sr                       
 
       IMPLICIT NONE
 
-      INTEGER :: el,pe,nd,ed,i,j,bnd,eln,bfr,pt
+      INTEGER :: el,pe,nd,ed,i,j,k,bnd,eln,bfr,pt
       INTEGER :: ged,lnd,nv
       INTEGER :: lled,gled,ln1,ln2,gn1,gn2,n1,n2
       INTEGER :: el1,el2
@@ -186,6 +188,7 @@
       mlbou = nproc*nbou
       ALLOCATE(lfbseg(2,mlbou,nproc))
       ALLOCATE(lfbnds(mnfbnds,mlbou,nproc))
+      ALLOCATE(lbndxy(2,ctp+1,mnfbnds,mlbou,nproc))      
       ALLOCATE(lnvel(nproc))
       ALLOCATE(lnbou(nproc))
       ALLOCATE(lfbamp(mnfbnds,mlbou,nfbfr,nproc))
@@ -352,6 +355,11 @@
               lfbseg(1,lbou,pe) = lfbseg(1,lbou,pe) + 1   ! inrement # of segment boundary nodes
               nlbnds = lfbseg(1,lbou,pe) 
               lfbnds(nlbnds,lbou,pe) = lnd                ! keep track of local boundary node numbers
+              
+              DO k = 1,ctp-1
+                lbndxy(1,k,nlbnds,lbou,pe) = bndxy(1,k,j,bnd)
+                lbndxy(2,k,nlbnds,lbou,pe) = bndxy(2,k,j,bnd)
+              ENDDO
               
               IF(segtype == 2 .OR. segtype == 12 .OR. segtype == 22) THEN
                 lnbouf(pe) = lnbouf(pe) + 1   ! count local forced flow boundaries
