@@ -8,7 +8,9 @@
       USE allocation, ONLY: alloc_grid_arrays     
       USE messenger2, ONLY: myrank
       USE quit, ONLY: abort
-      USE read_dginp, ONLY: grid_file,bathy_file,curve_file,ctp,hbp,h0,coord_sys,slam0,sphi0
+      USE read_dginp, ONLY: grid_file,bathy_file,curve_file, &
+                            cb_file_exists,hb_file_exists, &
+                            ctp,hbp,h0,coord_sys,slam0,sphi0
 
       IMPLICIT NONE
       INTEGER :: i,j,k,el,nd
@@ -171,9 +173,13 @@
 
       CLOSE(14)       
       
-      INQUIRE(FILE=bathy_file, EXIST = file_exists)
-      IF(file_exists == .FALSE.) THEN
-        IF (myrank == 0) PRINT*, "high order bathymetry file does not exist"    
+      INQUIRE(FILE=bathy_file, EXIST = hb_file_exists)
+      IF(hb_file_exists == .FALSE.) THEN
+        IF (myrank == 0) PRINT*, "high order bathymetry file does not exist"  
+        IF (hbp > 1) THEN
+          IF(myrank == 0) PRINT*, "high order bathymetry file is required for hbp > 1"
+          CALL abort()          
+        ENDIF
       ELSE
       
         IF (myrank == 0 ) PRINT*, "reading in high order bathymetry file"  
@@ -194,8 +200,8 @@
       ENDIF      
       
       
-      INQUIRE(FILE=curve_file, EXIST = file_exists)  
-      IF (file_exists == .FALSE.) THEN
+      INQUIRE(FILE=curve_file, EXIST = cb_file_exists)  
+      IF (cb_file_exists == .FALSE.) THEN
         IF (myrank == 0) PRINT*, "curved boundary file does not exist"
       ELSE
         IF (myrank == 0) PRINT*, "reading in curved boundary file"

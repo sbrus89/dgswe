@@ -87,7 +87,9 @@
       REAL(rp), TARGET  :: cf
       REAL(rp), TARGET  :: lines
       REAL(rp), TARGET :: slam0,sphi0
-      REAL(rp), TARGET :: h0      
+      REAL(rp), TARGET :: h0   
+      LOGICAL :: hb_file_exists
+      LOGICAL :: cb_file_exists
      
      
      

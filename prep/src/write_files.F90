@@ -7,7 +7,7 @@
                          nsred,el_l2g,mndof,nlines, &
                          el_type,elhb,nnds,order
                          
-      USE read_dginp, ONLY: write_local,hbp,ctp   
+      USE read_dginp, ONLY: write_local,hbp,ctp,cb_file_exists,hb_file_exists   
       USE messenger2, ONLY: nproc,nx_sr,ny_sr,nqpte_sr,hb_sr, &
                             ned_sr,pe_sr,el_sr,led_sr
 
@@ -61,7 +61,7 @@
         
         DO nd = 1,nresnd(pe)
           gnd = nd_l2g(nd,pe)
-          WRITE(14,"(I8,1X,3(E24.17,1X))") nd, xy(1,gnd), xy(2,gnd), depth(gnd)
+          WRITE(14,"(I8,1X,3(D24.17,1X))") nd, xy(1,gnd), xy(2,gnd), depth(gnd)
         ENDDO
         
         DO el = 1,nresel(pe)
@@ -262,6 +262,7 @@
       
       
      ! Write the high order bathymetry file
+     IF (hb_file_exists) THEN
      DO pe = 1,nproc
        
        WRITE(dirname(3:lname),"(I4.4)") pe-1      
@@ -273,14 +274,16 @@
          
          nnd = nnds(order(et+4))
          
-         WRITE(14,"(2(I7),1x,60(e24.17,1x))") el, nnd, (elhb(nd,gel), nd = 1,nnd)
+         WRITE(14,"(2(I7),1x,60(D24.17,1x))") el, nnd, (elhb(nd,gel), nd = 1,nnd)
        ENDDO
        
        CLOSE(14)
      ENDDO
+     ENDIF
      
      
      ! Write the curved boundary edge file
+     IF (cb_file_exists) THEN
      DO pe = 1,nproc
      
        WRITE(dirname(3:lname),"(I4.4)") pe-1      
@@ -301,13 +304,13 @@
               DO nd = 1,n-1
                 lnd = lfbnds(nd,bnd,pe)
                 gnd = nd_l2g(lnd,pe)
-                WRITE(14,"(I8,10(E24.17,1X))") lnd, xy(1,gnd), (lbndxy(1,k,nd,bnd,pe), k=1,ctp-1)
-                WRITE(14,"(I8,10(E24.17,1X))") lnd, xy(2,gnd), (lbndxy(2,k,nd,bnd,pe), k=1,ctp-1)
+                WRITE(14,"(I8,10(D24.17,1X))") lnd, xy(1,gnd), (lbndxy(1,k,nd,bnd,pe), k=1,ctp-1)
+                WRITE(14,"(I8,10(D24.17,1X))") lnd, xy(2,gnd), (lbndxy(2,k,nd,bnd,pe), k=1,ctp-1)
               ENDDO
               lnd = lfbnds(n,bnd,pe)
               gnd = nd_l2g(lnd,pe)              
-              WRITE(14,"(I8,E24.17,1X)") lnd, xy(1,gnd)
-              WRITE(14,"(I8,E24.17,1X)") lnd, xy(2,gnd)            
+              WRITE(14,"(I8,D24.17,1X)") lnd, xy(1,gnd)
+              WRITE(14,"(I8,D24.17,1X)") lnd, xy(2,gnd)            
               
             ELSE
             
@@ -319,8 +322,8 @@
         
         CLOSE(14)
        
-     
      ENDDO
+     ENDIF
             
       
       ! Write the local input file
