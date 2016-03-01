@@ -5,8 +5,6 @@ ODIR  = odir/
 
 FC = ifort
 FFLAGS = -O2 -C -g -traceback
-LIB = -llapack
-
 
 FULLNAME := $(shell hostname)
 NAME := $(strip $(subst ., , $(FULLNAME)))
@@ -63,7 +61,7 @@ spline: version $(ODIR) $(spline_obj)
 	@echo "\n\n"
 	@echo "Git SHA: $(GIT_SHA)"
 	@echo "Modified: $(GIT_MOD) \n"
-	$(FC) $(FFLAGS) -o spline $(spline_obj) $(LIB)
+	$(FC) $(FFLAGS) -o spline $(spline_obj) $(LAPACK_LIB)
 
 ########################################################################
 #                      Premilinary Targets                             #
