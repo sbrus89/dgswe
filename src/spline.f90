@@ -37,6 +37,8 @@
       
       PRINT "(A)", " "
       
+      CALL version()
+      
       CALL read_input()
       
       CALL sizes()

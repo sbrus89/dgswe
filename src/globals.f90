@@ -107,6 +107,14 @@
       REAL(rp) :: rsre(2,4,4)        
       TYPE(kdtree2), POINTER :: tree_xy      
       TYPE(kdtree2_result), ALLOCATABLE, DIMENSION(:) :: closest       
+      
+      CHARACTER(50) :: gitSHA
+      CHARACTER(50) :: gitBranch
+      CHARACTER(100) :: compiler_version
+      CHARACTER(50) :: compiler_flags
+      CHARACTER(1000) :: modified_files
+      CHARACTER(50) :: compile_date
+      CHARACTER(50) :: host           
 
 
       END MODULE globals
