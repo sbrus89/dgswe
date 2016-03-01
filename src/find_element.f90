@@ -25,7 +25,7 @@
             
       INTEGER :: srch,i
       INTEGER :: el,eln,clnd
-      INTEGER :: found,ed_found      
+      INTEGER :: found,ed_found(4)      
       INTEGER :: min_el
       REAL(rp) :: diff,min_diff
       REAL(rp) :: tol
@@ -107,12 +107,12 @@ search: DO srch = 1,srchdp
       REAL(rp), INTENT(IN) :: xm(2)
       INTEGER, INTENT(IN) :: seg    
       INTEGER, INTENT(IN) :: el_in      
-      INTEGER, INTENT(IN) :: led
+      INTEGER, INTENT(IN) :: led(4)
       
       INTEGER, INTENT(OUT) :: base_bed     
       
       INTEGER :: nvert      
-      INTEGER :: j
+      INTEGER :: i,j
       INTEGER :: found
       INTEGER :: n1bed,n2bed,n1ed1,n2ed1
       REAL(rp) :: x1(2),x2(2),x3(2),x4(2)
@@ -132,22 +132,25 @@ search: DO srch = 1,srchdp
  bseg: DO j = 1,base%fbseg(1,seg)-1
               
          n1bed = base%fbnds(j,seg)
-         n2bed = base%fbnds(j+1,seg)             
+         n2bed = base%fbnds(j+1,seg)   
+         
+         DO i = 1,nvert
  
-         n1ed1 = base%vct(mod(led+0,nvert)+1,el_in)
-         n2ed1 = base%vct(mod(led+1,nvert)+1,el_in)           
+           n1ed1 = base%vct(mod(led(i)+0,nvert)+1,el_in)
+           n2ed1 = base%vct(mod(led(i)+1,nvert)+1,el_in)           
                                                         
-         IF(((n1ed1 == n1bed).AND.(n2ed1 == n2bed)).OR. &
-            ((n1ed1 == n2bed).AND.(n2ed1 == n1bed))) THEN
-            PRINT*, "n1bed = ",n1bed, "n2bed = ",n2bed    
-!           PRINT*, n1bed, base%xy(1,n1bed), base%xy(2,n1bed)
+           IF(((n1ed1 == n1bed).AND.(n2ed1 == n2bed)).OR. &
+              ((n1ed1 == n2bed).AND.(n2ed1 == n1bed))) THEN
+              PRINT*, "n1bed = ",n1bed, "n2bed = ",n2bed    
+!             PRINT*, n1bed, base%xy(1,n1bed), base%xy(2,n1bed)
 
-            found = 1                   
-            base_bed = j
+              found = 1                   
+              base_bed = j
+                
+              EXIT bseg
+           ENDIF        
               
-            EXIT bseg
-         ENDIF        
-              
+         ENDDO     
               
       ENDDO bseg
       
@@ -188,7 +191,7 @@ search: DO srch = 1,srchdp
           dy = .5d0*(x4(2)-x3(2))
           
           t = (-dy*(cx-ax) + dx*(cy-ay))/(-bx*dy+by*dx)
-          r = (-by*(cx-ax) + bx*(cy-ay))/(-bx*dy+by*dx)
+          r = (-by*(cx-ax) + bx*(cy-ay))/(-bx*dy+by*dx)               
           
           IF ((r>=-1d0-eps .and. r<=1d0+eps) ) THEN
           
@@ -238,17 +241,19 @@ search: DO srch = 1,srchdp
       INTEGER, INTENT(IN) :: eln
       REAL(rp), INTENT(IN) :: xt(2)
       
-      INTEGER, INTENT(OUT) :: closest_ed
+      INTEGER, INTENT(OUT) :: closest_ed(4)
       REAL(rp), INTENT(OUT) :: diff
       
-      INTEGER :: i    
+      INTEGER :: i,j    
       INTEGER :: et,nvert
       INTEGER :: n1,n2
+      INTEGER :: etemp
       REAL(rp) :: area,area_sum
-      REAL(rp) :: stri_area,stri_min
+      REAL(rp) :: stri_area(4),stri_min
       REAL(rp) :: dist
       REAL(rp) :: r(2)
       REAL(rp) :: x(3),y(3)
+      REAL(rp) :: atemp
       
       et = base%el_type(eln)
       nvert = nverts(et)                                           
@@ -279,16 +284,11 @@ search: DO srch = 1,srchdp
         x(3) = r(1)
         y(3) = r(2)
               
-        stri_area = .5d0*abs((x(2)-x(1))*(y(3)-y(1)) - (x(3)-x(1))*(y(2)-y(1)))
+        stri_area(i) = .5d0*abs((x(2)-x(1))*(y(3)-y(1)) - (x(3)-x(1))*(y(2)-y(1)))
+        closest_ed(i) = i
         
-!         PRINT "(A,I7,A,F14.7,A,I7,A,I7)", "stri: ",i," area: ",stri_area, " n1: ", base%vct(n1,eln), " n2: ",base%vct(n2,eln)             
-              
-        IF (stri_area < stri_min) THEN ! keep track of minimum sub-triangle area to determine
-          stri_min = stri_area         ! which edge the point lies on, or is closest to
-          closest_ed = i
-        ENDIF
-            
-        area_sum = area_sum + stri_area
+!         PRINT "(A,I7,A,F14.7,A,I7,A,I7)", "stri: ",i," area: ",stri_area(i), " n1: ", base%vct(n1,eln), " n2: ",base%vct(n2,eln)                                      
+        area_sum = area_sum + stri_area(i)
       ENDDO
           
 !     PRINT("(A,F20.15,A,F20.15)"), "   area = ",area, "   area sum = ", area_sum
@@ -296,26 +296,40 @@ search: DO srch = 1,srchdp
           
       diff = abs(area-area_sum) 
       
+      DO i = 1,nvert           ! keep track of minimum sub-triangle area to determine
+        DO j = i+1,nvert       ! which edge the point lies on, or is closest to
+          IF (stri_area(j) < stri_area(i)) THEN
+            atemp = stri_area(i)
+            stri_area(i) = stri_area(j)
+            stri_area(j) = atemp
+            
+            etemp = closest_ed(i)
+            closest_ed(i) = closest_ed(j)
+            closest_ed(j) = etemp            
+          ENDIF
+        ENDDO
+      ENDDO
       
-      DO i = 1,nvert
-        
-        x(1) = rsre(1,i,et)
-        y(1) = rsre(2,i,et)
-            
-        x(3) = r(1)
-        y(3) = r(2)
-              
-!         dist = sqrt((x(1)-x(3))**2 + (y(1)-y(3))**2)        
-!         PRINT "(A,I7,A,F14.7,A,I7,A,I7)", "node: ",i," dist: ",dist, " n1: ", base%vct(i,eln)     
-              
-        IF (stri_area < stri_min) THEN ! keep track of minimum sub-triangle area to determine
-          stri_min = stri_area         ! which edge the point lies on, or is closest to
-          closest_ed = i
-        ENDIF
-            
-        area_sum = area_sum + stri_area
-      ENDDO      
-     
+      
+!       DO i = 1,nvert
+!         
+!         x(1) = rsre(1,i,et)
+!         y(1) = rsre(2,i,et)
+!             
+!         x(3) = r(1)
+!         y(3) = r(2)
+!               
+! !         dist = sqrt((x(1)-x(3))**2 + (y(1)-y(3))**2)        
+! !         PRINT "(A,I7,A,F14.7,A,I7,A,I7)", "node: ",i," dist: ",dist, " n1: ", base%vct(i,eln)     
+!               
+!         IF (stri_area < stri_min) THEN ! keep track of minimum sub-triangle area to determine
+!           stri_min = stri_area         ! which edge the point lies on, or is closest to
+!           closest_ed = i
+!         ENDIF
+!             
+!         area_sum = area_sum + stri_area
+!       ENDDO      
+!      
       
       RETURN
       END SUBROUTINE sub_element     

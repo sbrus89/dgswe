@@ -83,7 +83,6 @@
           PRINT "(A,I5)", "Normal flow boundary ",seg
           PRINT "(A,I5)", "Normal flow boundary nodes ",n
 
-          WRITE(40,"(2(I8),19x,A)") n,segtype, "! number of nodes in segment, boundary type"
 
 !           PAUSE
  
@@ -136,7 +135,9 @@
           !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!         
   
           neval = eval%fbseg(1,seg)
-  
+          segtype = eval%fbseg(2,seg)
+          
+          WRITE(40,"(2(I8),19x,A)") neval,segtype, "! number of nodes in segment, boundary type"            
           WRITE(60,*) ctp*(neval-1) + 1
 
           DO i = 1,neval-1  
