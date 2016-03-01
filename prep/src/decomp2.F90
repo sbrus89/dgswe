@@ -12,14 +12,14 @@
                          lnbou,lnvel,lfbseg,lfbnds, &
                          nobfr,obamp,obph,lobamp,lobph, &
                          nfbfr,fbamp,fbph,lfbamp,lfbph,lnbouf, &
-                         nx_pt,ny_pt, &
+                         nx_pt,ny_pt,detJe, &
                          hbqpted,nqpte,mnqpte,elhb, &
                          lbndxy,bndxy
                          
                          
       USE read_dginp, ONLY: hbp,ctp                           
                          
-      USE messenger2, ONLY: nproc,nqpte_sr,hb_sr,nx_sr,ny_sr, &
+      USE messenger2, ONLY: nproc,nqpte_sr,hb_sr,nx_sr,ny_sr,detJe_sr, &
                             ned_sr,pe_sr,el_sr,led_sr                       
 
       IMPLICIT NONE
@@ -104,6 +104,7 @@
       ALLOCATE(pe_sr(mned_sr,nproc),el_sr(mned_sr,nproc),led_sr(mned_sr,nproc))
       ALLOCATE(nx_sr(mnqpte,mned_sr,nproc),ny_sr(mnqpte,mned_sr,nproc))
       ALLOCATE(hb_sr(mnqpte,mned_sr,nproc))
+      ALLOCATE(detJe_sr(mnqpte,mned_sr,nproc))
       ALLOCATE(nqpte_sr(mned_sr,nproc))
       
       
@@ -160,6 +161,9 @@
           
           hb_sr(pt,ned_sr(pe1),pe1) = hbqpted(ged,gp_in)
           hb_sr(pt,ned_sr(pe2),pe2) = hbqpted(ged,gp_ex)
+          
+          detJe_sr(pt,ned_sr(pe1),pe1) = detJe(ged,gp_in)
+          detJe_sr(pt,ned_sr(pe2),pe2) = detJe(ged,gp_ex)
         ENDDO
         
       ENDDO
@@ -392,7 +396,7 @@
             IF(segtype == 1 .OR. segtype == 11 .OR. segtype == 21) THEN 
               IF(lfbseg(1,lbou,pe) /= fbseg(1,bnd)) THEN  ! if the entire island boundary is not contained in the subdomain
                 lfbseg(2,lbou,pe) = 10                    ! change it to a land boundary              
-                PRINT("(A,I7,A,I7,A,I7,A)"), "Island boundary: ", lbou," / ",lnbou(pe), " on PE: ", pe-1, " changed to land"
+                PRINT("(A,I7,A,I7,A,I7,A,I7,A)"), "Island boundary: ", lbou," / ",lnbou(pe), " on PE: ", pe-1, " changed to land (Global boundary ", bnd, ")"
               ENDIF         
             ENDIF
             

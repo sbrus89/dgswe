@@ -4,8 +4,9 @@
       USE allocation, ONLY: sizes, alloc_trans_arrays
       USE read_dginp
       USE messenger2, ONLY: message_init,nproc
-      USE vandermonde, ONLY: area_vandermonde
-      USE shape_functions, ONLY: shape_functions_qpts,shape_functions_vertex,shape_functions_curve
+      USE vandermonde, ONLY: area_vandermonde,edge_vandermonde
+      USE shape_functions, ONLY: shape_functions_qpts,shape_functions_vertex, &
+                                 shape_functions_curve,shape_functions_edge
 
       IMPLICIT NONE
       
@@ -44,13 +45,19 @@
       
       CALL shape_functions_vertex()
 
-      CALL shape_functions_curve()           
+      CALL shape_functions_curve()
+      
+      CALL edge_vandermonde()
+      
+      CALL shape_functions_edge()
       
       IF (ctp > 1 .AND. curved_grid == 0) THEN  
         CALL curvilinear()    
       ENDIF          
       
       CALL normals()
+      
+      CALL edge_transformation()      
       
       CALL bathymetry_interp()
       

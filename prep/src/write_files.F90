@@ -8,13 +8,13 @@
                          el_type,elhb,nnds,order
                          
       USE read_dginp, ONLY: write_local,hbp,ctp,cb_file_exists,hb_file_exists   
-      USE messenger2, ONLY: nproc,nx_sr,ny_sr,nqpte_sr,hb_sr, &
+      USE messenger2, ONLY: nproc,nx_sr,ny_sr,nqpte_sr,hb_sr,detJe_sr, &
                             ned_sr,pe_sr,el_sr,led_sr
 
       IMPLICIT NONE
 
       
-      INTEGER :: i,k,pe,pes,nd,el,bnd,bfr,seg,ed,pt
+      INTEGER :: i,k,pe,pes,nd,el,bnd,bfr,seg,ed,pt,sed
       INTEGER :: n,segtype,et
       INTEGER :: gnd,gel,lnd
       INTEGER :: nnd
@@ -208,9 +208,10 @@
               WRITE(18,180) (el_sr(sended(ed),pe), ed = 1,ned2pes)
               WRITE(18,180) (led_sr(sended(ed),pe), ed = 1,ned2pes)
               DO ed = 1,ned2pes
-                WRITE(18,182) nqpte_sr(sended(ed),pe)
-                DO pt = 1,nqpte_sr(sended(ed),pe)
-                  WRITE(18,183) nx_sr(pt,sended(ed),pe), ny_sr(pt,sended(ed),pe), hb_sr(pt,sended(ed),pe)
+                sed = sended(ed)
+                WRITE(18,182) nqpte_sr(sed,pe)
+                DO pt = 1,nqpte_sr(sed,pe)
+                  WRITE(18,183) nx_sr(pt,sed,pe), ny_sr(pt,sed,pe), hb_sr(pt,sed,pe), detJe_sr(pt,sed,pe)
                 ENDDO
               ENDDO  
             ENDIF
@@ -353,7 +354,7 @@
  180  FORMAT(8X,9I8)
  181  FORMAT(8X,2I8) 
  182  FORMAT(8X,I8)
- 183  FORMAT(8X,3(D24.17,1X))
+ 183  FORMAT(8X,4(D24.17,1X))
  
       RETURN
       END SUBROUTINE write_files

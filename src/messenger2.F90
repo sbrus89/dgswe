@@ -34,6 +34,7 @@
       REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: nx_sr
       REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: ny_sr
       REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: hb_sr
+      REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: detJe_sr
       
       INTEGER, ALLOCATABLE, DIMENSION(:) :: proc_group
       
@@ -217,6 +218,7 @@
       ALLOCATE(el_sr(ne,nproc_sr),led_sr(ne,nproc_sr))
       ALLOCATE(nx_sr(mnqpte,nred,nproc_sr),ny_sr(mnqpte,nred,nproc_sr))
       ALLOCATE(hb_sr(mnqpte,nred,nproc_sr))
+      ALLOCATE(detJe_sr(mnqpte,nred,nproc_sr))
       ALLOCATE(nqpte_sr(nred,nproc_sr))
       
       DO pe = 1,nproc_sr
@@ -232,7 +234,7 @@
         DO ed = 1,ned_sr(pe)
           READ(18,182) nqpte_sr(ed,pe)
           DO pt = 1,nqpte_sr(ed,pe)
-            READ(18,183) nx_sr(pt,ed,pe),ny_sr(pt,ed,pe),hb_sr(pt,ed,pe)
+            READ(18,183) nx_sr(pt,ed,pe),ny_sr(pt,ed,pe),hb_sr(pt,ed,pe),detJe_sr(pt,ed,pe)
           ENDDO
         ENDDO
       ENDDO
@@ -303,7 +305,7 @@
  180  FORMAT(8X,9I8)
  181  FORMAT(8X,2I8) 
  182  FORMAT(8X,I8) 
- 183  FORMAT(8X,3(D24.17,1X))
+ 183  FORMAT(8X,4(D24.17,1X))
 #endif   
       RETURN      
       END SUBROUTINE read_message_files
@@ -455,7 +457,7 @@
 !                 rcfac(edcnt,pt) = cfac(ed,pt)
                 rcfac(edcnt,pt) = ny_sr(pt,ed,pe)**2+(nx_sr(pt,ed,pe)*Spe(ged,pt))**2
               
-                detJe_recv(edcnt,pt) = detJe(ged,pt)
+                detJe_recv(edcnt,pt) = detJe_sr(pt,ed,pe)
               ENDDO
               
               match = 1
