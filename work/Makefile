@@ -124,8 +124,8 @@ ifeq ($(NAME),sbrus-laptop)
 endif
 
 ifeq ($(filter crc nd edu,$(NAME)),crc nd edu)
-#  LAPACK_LIB = -Wl,--start-group $(MKLROOT)/lib/intel64/libmkl_intel_lp64.a $(MKLROOT)/lib/intel64/libmkl_sequential.a  $(MKLROOT)/lib/intel64/libmkl_core.a -Wl,--end-group -lpthread -lm
-   LAPACK_LIB = -L./ -llapack -lrefblas -ltmglib
+    LAPACK_LIB = -Wl,--start-group $(MKLROOT)/lib/intel64/libmkl_intel_lp64.a $(MKLROOT)/lib/intel64/libmkl_sequential.a  $(MKLROOT)/lib/intel64/libmkl_core.a -Wl,--end-group -lpthread -lm
+#   LAPACK_LIB = -L./ -llapack -lrefblas -ltmglib
 #   NC_LIB = -L/afs/crc.nd.edu/x86_64_linux/netcdf/4.3.2/lib -lnetcdf -lnetcdff
 #   NC_INC = -I/afs/crc.nd.edu/x86_64_linux/netcdf/4.3.2/include
 endif
