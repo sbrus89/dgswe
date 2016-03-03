@@ -12,7 +12,7 @@
       USE evaluate, ONLY: vandermonde,transformation  
 
       IMPLICIT NONE
-      INTEGER :: i,j,k,n,seg,sind,eind,num,nmax,qpts,btype
+      INTEGER :: i,j,k,n,seg,num,nmax,qpts,btype
       INTEGER :: el,eln,nd,ndn,led,n1ed1,n2ed1,n1bed,n2bed,nvert
       INTEGER :: el_in,found
       INTEGER :: segtype
@@ -24,15 +24,15 @@
       REAL(rp) :: n1x,n1y,n2x,n2y,n3x,n3y,n4x,n4y,edlen
       REAL(rp) :: theta1,theta2
       REAL(rp), ALLOCATABLE, DIMENSION(:) :: x,y
+      INTEGER :: eind
+      CHARACTER(100) :: name
+      CHARACTER(1) :: ctp_char
 
       
 
 
 
-      OPEN(unit=30,file='spline.out')   
-      OPEN(unit=60,file='eval_nodes.out') 
-      OPEN(unit=90,file='max_deform.out')
-      OPEN(unit=40,file='spline_nodes.cl')         
+        
 
       
       PRINT "(A)", " "
@@ -40,6 +40,15 @@
       CALL version()
       
       CALL read_input()
+      
+      eind = INDEX(ADJUSTL(TRIM(eval%grid_file)),".",.false.)   
+      name = ADJUSTL(TRIM(eval%grid_file(1:eind-1)))
+      WRITE(ctp_char,"(I1)") ctp
+
+      OPEN(unit=30,file='spline.out')   
+      OPEN(unit=60,file='eval_nodes.out') 
+      OPEN(unit=90,file='max_deform.out')
+      OPEN(unit=40,file=ADJUSTL(TRIM(name)) // "_ctp" // ctp_char // ".cb") 
       
       CALL sizes()
 
