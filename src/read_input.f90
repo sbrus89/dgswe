@@ -9,6 +9,13 @@
       INTEGER, PARAMETER :: ninp = 11
       INTEGER :: inp_read,skipped
       CHARACTER(100) :: temp
+      LOGICAL :: file_exists
+      
+      INQUIRE(file='rimls.inp',exist=file_exists)
+      IF (file_exists == .FALSE.) THEN
+        PRINT*, "rimls.inp file does not exist"
+        STOP
+      ENDIF      
       
       OPEN(unit=15,file='rimls.inp')
       
