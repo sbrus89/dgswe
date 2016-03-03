@@ -7,6 +7,14 @@
       INTEGER, PARAMETER :: ninp = 7
       INTEGER :: inp_read,skipped
       CHARACTER(100) :: temp
+      LOGICAL :: file_exists   
+      
+      
+      INQUIRE(file='spline.inp',exist=file_exists)
+      IF (file_exists == .FALSE.) THEN
+        PRINT*, "spline.inp file does not exist"
+        STOP
+      ENDIF
       
       OPEN(unit=15,file='spline.inp')
       
