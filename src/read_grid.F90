@@ -203,6 +203,10 @@
       INQUIRE(FILE=curve_file, EXIST = cb_file_exists)  
       IF (cb_file_exists == .FALSE.) THEN
         IF (myrank == 0) PRINT*, "curved boundary file does not exist"
+        IF (ctp > 1) THEN
+          IF(myrank == 0) PRINT*, "curved boundary file is required for ctp > 1"
+          CALL abort()          
+        ENDIF        
       ELSE
         IF (myrank == 0) PRINT*, "reading in curved boundary file"
       
