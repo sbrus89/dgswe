@@ -7,6 +7,13 @@
       INTEGER, PARAMETER :: ninp = 8
       INTEGER :: inp_read,skipped
       CHARACTER(100) :: temp
+      LOGICAL :: file_exists
+      
+      INQUIRE(file='bathy.inp',exist=file_exists)
+      IF (file_exists == .FALSE.) THEN
+        PRINT*, "bathy.inp file does not exist"
+        STOP
+      ENDIF
       
       OPEN(unit=15,file='bathy.inp')
       
