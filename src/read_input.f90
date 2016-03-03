@@ -6,8 +6,14 @@
       
       INTEGER, PARAMETER :: ninp = 14
       INTEGER :: inp_read,skipped
-      CHARACTER(100) :: temp
+      CHARACTER(100) :: temp      
+      LOGICAL :: file_exists      
       
+      INQUIRE(file='error.inp',exist=file_exists)
+      IF (file_exists == .FALSE.) THEN
+        PRINT*, "error.inp file does not exist"
+        STOP
+      ENDIF      
       OPEN(unit=15,file='error.inp')
       
       PRINT "(A)", "---------------------------------------------"
