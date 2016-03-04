@@ -76,7 +76,7 @@
       WRITE(90,*) num
       
       WRITE(40,"(I8,19x,A)") base%nbou, "! total number of normal flow boundary segments"
-      WRITE(40,"(2(I8),19x,A)") nmax,ctp, "! max number of normal flow nodes, ctp order"    
+      WRITE(40,"(2(I8),19x,A)") eval%nvel,ctp, "! max number of normal flow nodes, ctp order"    
 
       DO seg = 1,base%nbou
       
