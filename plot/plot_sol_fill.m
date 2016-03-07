@@ -4,7 +4,8 @@ close all
 clc
 
 grd_direc = '~/Codes/dgswe/grids/';
-sol_direc = '~/Codes/dgswe/work/';
+% sol_direc = '~/Codes/dgswe/work/';
+sol_direc = '/home/sbrus/data-drive/converge_serial_mpi/4b31566d/np2/';
 % sol_direc = '~/data-drive/converge_quad/mesh1/P2/CTP2/';
 % sol_direc = '/home/sbrus/data-drive/dgswe_converge_curve_bath/converge3/p3/ctp3/hbp3/';
 % grd_name = 'inlet1.grd';
@@ -12,6 +13,7 @@ sol_direc = '~/Codes/dgswe/work/';
 grd_name = 'converge1_dble.grd';
 % grd_name = 'beaufort_hb+2.grd';
 plot_folder = 'velplot';
+format = 'ascii';
 
 % grd_direc = '~/Codes/dgswe/work/PE0000/';
 % sol_direc = '~/Codes/dgswe/work/PE0000/';
@@ -63,7 +65,7 @@ plot_folder = 'velplot';
 
 ctp = 2;
 
-nsnap = 49;
+nsnap = 10;
 
 grid_on = 0;
 
@@ -147,20 +149,26 @@ for el = 1:ne
 end
 fclose(fid_hb);
 
-finfo = ncinfo([sol_direc,'solution.nc']);
-nsnap = finfo.Dimensions(1).Length;
-N = finfo.Dimensions(3).Length;
 
 
-fid_H = fopen([sol_direc,'solution_H.d']);
-fid_Qx = fopen([sol_direc,'solution_Qx.d']);
-fid_Qy = fopen([sol_direc,'solution_Qy.d']);
+if strcmp(format,'nc')
+    finfo = ncinfo([sol_direc,'solution.nc']);
+    nsnap = finfo.Dimensions(1).Length;
+    N = finfo.Dimensions(3).Length;
+    
+    t = ncread([sol_direc,'solution.nc'],'t');
+elseif strcmp(format,'ascii')
+    fid_H = fopen([sol_direc,'solution_H.d']);
+    fid_Qx = fopen([sol_direc,'solution_Qx.d']);
+    fid_Qy = fopen([sol_direc,'solution_Qy.d']);
+    
+    line = fgetl(fid_H);
+    line = fgetl(fid_Qx);
+    line = fgetl(fid_Qy);
+end
 
 
 
-line = fgetl(fid_H);
-line = fgetl(fid_Qx);
-line = fgetl(fid_Qy);
 
 % Hv = zeros(4,ne,nsnap);
 % Qxv = zeros(4,ne,nsnap);
@@ -173,28 +181,30 @@ Zv = zeros(9,ne,nsnap);
 u = zeros(9,ne,nsnap);
 v = zeros(9,ne,nsnap);
 
-t = ncread([sol_direc,'solution.nc'],'t');
+
 
 snap = 0;
 % while ~feof(fid_H) && snap < nsnap
 for snap = 1:nsnap
     
 %     snap = snap + 1;
-%     
-%     th = fscanf(fid_H,' %g ', 1); % read in time
-%     Z = fscanf(fid_H,' %g ', [ne mndof])'; % read in H solution at time t
-% %     H = fscanf(fid_H,' %g ', [ne mndof])'; % read in H solution at time t    
-%     
-%     tqx = fscanf(fid_Qx,' %g ', 1); % read in time
-%     Qx = fscanf(fid_Qx,' %g ', [ne mndof])'; % read in Qx solution at time t
-%     
-%     t(snap) = fscanf(fid_Qy,' %g ', 1); % read in time
-%     Qy = fscanf(fid_Qy,' %g ', [ne mndof])'; % read in Qy solution at time t    
     
-    
-    Z = ncread([sol_direc,'solution.nc'],'Z',[1,1,snap],[ne,N,1])';
-    Qx = ncread([sol_direc,'solution.nc'],'Qx',[1,1,snap],[ne,N,1])';
-    Qy = ncread([sol_direc,'solution.nc'],'Qy',[1,1,snap],[ne,N,1])';
+    if strcmp(format,'ascii')
+        th = fscanf(fid_H,' %g ', 1); % read in time
+        Z = fscanf(fid_H,' %g ', [ne mndof])'; % read in H solution at time t
+        %     H = fscanf(fid_H,' %g ', [ne mndof])'; % read in H solution at time t
+        
+        tqx = fscanf(fid_Qx,' %g ', 1); % read in time
+        Qx = fscanf(fid_Qx,' %g ', [ne mndof])'; % read in Qx solution at time t
+        
+        t(snap) = fscanf(fid_Qy,' %g ', 1); % read in time
+        Qy = fscanf(fid_Qy,' %g ', [ne mndof])'; % read in Qy solution at time t
+    elseif strcmp(format,'nc')
+        
+        Z = ncread([sol_direc,'solution.nc'],'Z',[1,1,snap],[ne,N,1])';
+        Qx = ncread([sol_direc,'solution.nc'],'Qx',[1,1,snap],[ne,N,1])';
+        Qy = ncread([sol_direc,'solution.nc'],'Qy',[1,1,snap],[ne,N,1])';
+    end
     
     
     for el = 1:ne
