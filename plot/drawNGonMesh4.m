@@ -4,7 +4,12 @@ function h = drawNGonMesh4( VK, EToV, lcolor, OP1, VAL1, elcolor, OP2, VAL2, ndc
 %    VK- Coordinate
 %    EToV     - mesh connectivity column one is number of polygon sides
 %    xndoes   - DG Nodes
-%
+
+
+% elems = [21270 21274 8577 8582];
+% nodes = [270 13811 13813 974 280 8962 ];
+
+
 h = findobj ;
 if ( findobj == 0 )
     figure ;
@@ -46,6 +51,8 @@ end
 %lcolor = 'k' ;
 for i = 1: Nel
     
+%     if ismember(i,elems)
+    
     % Plot polygonal %
     ngon = EToV(i,1) ;
     if ngon == 9
@@ -58,7 +65,7 @@ for i = 1: Nel
         plot( [vx(ib,1) vx(ie,1)], ...
               [vx(ib,2) vx(ie,2)], 'Color',lcolor ) ;
     end
-    
+%     end
 end
 
 
@@ -72,8 +79,10 @@ if ( strcmpi(OPD{1,2},'on') )
         x = sum(xp)/ngon ;
         y = sum(yp)/ngon ;
         
-        txt = sprintf('%d',i) ;
-        text(x,y,txt,'Color',elcolor,'FontSize',6) ;
+%         if ismember(i,elems) 
+          txt = sprintf('%d',i) ;
+          text(x,y,txt,'Color',elcolor,'FontSize',6) ;
+%         end
     end
 end
 
@@ -81,8 +90,11 @@ if ( strcmpi(OPD{2,2},'on') )
     for i = 1: length(VK)
         x = VK(i,1) ;
         y = VK(i,2) ;
-        txt = sprintf('%d',i) ;
-        text(x,y,txt,'Color',ndcolor,'FontSize',6) ;
+        
+%         if ismember(i,nodes)
+          txt = sprintf('%d',i) ;
+          text(x,y,txt,'Color',ndcolor,'FontSize',6) ;
+%         end
     end
 end
     
