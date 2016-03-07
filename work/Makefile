@@ -159,7 +159,7 @@ dgswe_objects = globals.o lapack_interfaces.o messenger2.o allocation.o  \
                 edge_partition2.o metis2.o \
                 vandermonde.o shape_functions.o transformation.o \
                 element_data.o area_transformation.o normals.o edge_transformation.o \
-                basis.o area_qpts.o edge_qpts.o \
+                basis.o eval_basis.o area_qpts.o edge_qpts.o \
                 rhs2.o rk.o \
                 area_integration.o edge_integration.o  numerical_flux.o linear_solve.o \
                 boundary_edge_land.o boundary_edge_flow.o boundary_edge_elev.o  \
@@ -346,7 +346,7 @@ $(ODIR)allocation.o : allocation.F90                           $(ODIR)globals.o 
 	$(FC) $(FFLAGS) -c $< -o $@
 	mv allocation.mod $(ODIR)
 
-$(ODIR)basis.o : basis.F90                                     $(ODIR)globals.o $(ODIR)messenger2.o $(ODIR)read_input.o $(ODIR)allocation.o $(ODIR)lapack_interfaces.o
+$(ODIR)basis.o : basis.F90                                     $(ODIR)globals.o $(ODIR)lapack_interfaces.o
 	$(FC) $(FFLAGS) -c $< -o $@
 	mv basis.mod $(ODIR)
 	
@@ -379,6 +379,9 @@ $(ODIR)area_qpts.o : area_qpts.F90                             $(ODIR)globals.o 
 	$(FC) $(FFLAGS) -c $< -o $@
 
 $(ODIR)edge_qpts.o : edge_qpts.F90                             $(ODIR)globals.o $(ODIR)messenger2.o $(ODIR)read_input.o $(ODIR)allocation.o
+	$(FC) $(FFLAGS) -c $< -o $@
+	
+$(ODIR)eval_basis.o : eval_basis.F90                           $(ODIR)globals.o $(ODIR)messenger2.o $(ODIR)read_input.o $(ODIR)allocation.o $(ODIR)basis.o
 	$(FC) $(FFLAGS) -c $< -o $@
 
 $(ODIR)read_grid.o : read_grid.F90                             $(ODIR)globals.o $(ODIR)messenger2.o $(ODIR)read_input.o $(ODIR)allocation.o $(ODIR)quit.o

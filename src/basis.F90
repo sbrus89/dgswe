@@ -1,121 +1,14 @@
       MODULE basis
       
       USE lapack_interfaces
+      USE globals, ONLY: rp      
 
       CONTAINS
 
-      SUBROUTINE area_basis()
-
-        USE globals, ONLY: rp,nel_type,nqpta,mnqpta,wpta,qpta,ndof,mndof, &
-                           phia,dpdr,dpds                           
-        USE allocation, ONLY: alloc_basis_arrays             
-        USE messenger2, ONLY: myrank        
-        USE read_dginp, ONLY: p
-
-        IMPLICIT NONE
-        INTEGER :: i,j,pt,et,dof,ndf
-        REAL(rp) :: qint
-        REAL(rp) :: mm(mndof,mndof)
-  
-        CALL alloc_basis_arrays()
-      
-        DO et = 1,nel_type        
-          
-
-          CALL element_basis(et,p,ndf,nqpta(et),qpta(:,1,et),qpta(:,2,et),phia(:,:,et),dpdr(:,:,et),dpds(:,:,et))         
-          
-!           PRINT "(A)", 'Basis functions at quadrature points'
-!           DO i = 1,ndf
-!             PRINT "(100(F10.3))", (phia(i,j,et),j=1,nqpta(et))
-!           ENDDO
-!           PRINT "(A)", ' '            
-            
-          
-          ! Compute mass matrix (constant*indentity matrix)
-          DO i = 1,ndf
-            DO j = 1,ndf
-              mm(i,j) = 0d0
-              DO pt = 1,nqpta(et)
-                mm(i,j) = mm(i,j) + wpta(pt,et)*phia(i,pt,et)*phia(j,pt,et)
-              ENDDO
-            ENDDO
-          ENDDO
-        
-          
-          
-        ENDDO                
-        
-        CALL modal2nodal()
-        
-        IF (myrank == 0) THEN
-          DO et = 1,nel_type
-          
-            PRINT "(A)", "---------------------------------------------"
-            PRINT "(A)", "         Basis Function Information          "
-            PRINT "(A)", "---------------------------------------------"
-            PRINT "(A)", " "
-
-            PRINT "(A,I5)", "Polynomial order:",p           
-          
-            PRINT "(A,I5)", "Number of degrees of freedom:",ndf
-            PRINT "(A)", " "        
-
-            PRINT "(A)", 'Mass matrix'
-            DO i = 1,ndf
-              PRINT "(100(F10.3))", (mm(i,j),j=1,ndof(et))
-            ENDDO
-            PRINT "(A)", ' '
-
-!             PRINT "(A)", 'Basis functions at quadrature points'
-!             DO i = 1,ndf
-!               PRINT "(100(F10.3))", (phia(i,j,et),j=1,nqpta(et))
-!             ENDDO
-!             PRINT "(A)", ' '             
-            
-          ENDDO
-        ENDIF
-
-
-        RETURN
-      END SUBROUTINE area_basis
-      
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-      SUBROUTINE edge_basis()
-
-        USE globals, ONLY: rp,ndof,nverts,mndof,nqpte,mnqpte,qpte,wpte,phie,phie_int,nel_type
-        USE read_dginp, ONLY: p
-
-        IMPLICIT NONE
-
-        INTEGER :: dof,pt,et,i
-        INTEGER :: tpts,ndf
-        REAL(rp) :: phi(mndof*4*mnqpte)       
-
-        DO et = 1,nel_type
-          
-          tpts = nverts(et)*nqpte(et)
-          CALL element_basis(et,p,ndf,tpts,qpte(:,1,et),qpte(:,2,et),phie(:,:,et))
-          
-          DO pt = 1,tpts
-            DO dof = 1,ndf
-              phie_int(dof,pt,et) = phie(dof,pt,et)*wpte(pt,et)
-            ENDDO
-          ENDDO
-          
-        ENDDO        
-
-
-        RETURN
-      END SUBROUTINE edge_basis      
-      
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
       SUBROUTINE element_basis(et,p,ndfs,npts,r,s,phi,dpdr,dpds)
-      
-      USE globals, ONLY: rp
       
       IMPLICIT NONE
       
@@ -163,9 +56,7 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         
         SUBROUTINE tri_basis(p,ndfs,npts,r,s,phi,dpdr,dpds)
-        
-        USE globals, ONLY: rp
-        
+
         IMPLICIT NONE
         INTEGER, INTENT(IN) :: p,npts
         INTEGER, INTENT(OUT) :: ndfs
@@ -273,8 +164,6 @@
         
         SUBROUTINE quad_basis(p,ndfs,npts,r,s,phi,dpdr,dpds)
         
-        USE globals, ONLY: rp
-        
         IMPLICIT NONE
         
         INTEGER, INTENT(IN) :: p,npts
@@ -332,8 +221,6 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
       SUBROUTINE jacobi(alpha_i,beta_i,deg,x,npts,v)
-
-        USE globals, ONLY: rp
 
         IMPLICIT NONE
         INTEGER, INTENT(IN) :: alpha_i,beta_i,deg,npts
@@ -395,8 +282,6 @@
 
       SUBROUTINE djacobi(alpha_i,beta_i,deg_i,x,npts,dP)
 
-        USE globals, ONLY: rp
-
         IMPLICIT NONE
         INTEGER, INTENT(IN) :: alpha_i,beta_i,deg_i,npts
         REAL(rp), INTENT(IN) :: x(npts)
@@ -431,22 +316,21 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-      SUBROUTINE linear(phil)
-      
-        USE globals, ONLY: rp,nqpta,qpta
+      SUBROUTINE linear(n,r,s,phil)     
 
         IMPLICIT NONE
-        REAL(rp),INTENT(OUT) :: phil(3,nqpta(1))
-        INTEGER :: pt
-        REAL(rp) :: r,s
+        INTEGER :: n
+        REAL(rp), DIMENSION(:,:), INTENT(OUT) :: phil
+        REAL(rp), DIMENSION(:), INTENT(IN) :: r,s
         
-        DO pt = 1,nqpta(1)
-          r = qpta(pt,1,1)
-          s = qpta(pt,2,1)
+        INTEGER :: pt
 
-          phil(1,pt) = -.5d0*(r+s)
-          phil(2,pt) = .5d0*(r+1d0)
-          phil(3,pt) = .5d0*(s+1d0)  
+        
+        DO pt = 1,n
+
+          phil(1,pt) = -.5d0*(r(pt)+s(pt))
+          phil(2,pt) = .5d0*(r(pt)+1d0)
+          phil(3,pt) = .5d0*(s(pt)+1d0)  
           
         ENDDO
 
@@ -474,8 +358,6 @@
 
       SUBROUTINE element_nodes(et,space,p,n,r,s)
       
-      USE globals, ONLY: rp
-      
       IMPLICIT NONE
       
       INTEGER, INTENT(IN) :: et,space,p
@@ -499,9 +381,6 @@
 !c     n (input): the number of points in the triangle
 !c     r(np) (output) ; nodal r-coordinates for master element
 !c     s(np) (output) : nodal s-coordinates for master element 
-
-      USE globals, ONLY: rp
-      USE messenger2, ONLY: myrank
 
       IMPLICIT NONE
       INTEGER, INTENT(IN) :: p,space 
@@ -699,17 +578,12 @@
 
       CALL xytors(n,x,y,r,s)
       
-!       open(unit=60,file=DIRNAME//'/'//'tri.d')
-
-!       IF (myrank == 0) THEN
 !         print*,' '
 !         print*, 'Triangle Points'
 !         do i = 1,n
-! !           write(60,61) r(i),s(i),x(i),y(i)
 !           print 21, r(i),s(i)
 !         enddo
 !         print*, ' '
-!       ENDIF
 
  21   format(28(f10.4,1x))
  61   format(16000(e24.17,1x))      
@@ -721,9 +595,6 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!      
 
       SUBROUTINE quad_nodes(space,p,n,r,s)
-      
-      USE globals, ONLY: rp
-      USE messenger2, ONLY: myrank
       
       IMPLICIT NONE
       
@@ -812,14 +683,12 @@
         s(m) = xi(i)
           
       ENDIF   
-      
-!       IF (myrank == 0) THEN           
+                
 !         PRINT*, ' '
 !         PRINT*, 'Quadrilateral Points'
 !         DO m = 1,n
 !           PRINT("(2(f10.4))"), r(m),s(m)
 !         ENDDO         
-!       ENDIF
       
       RETURN
       END SUBROUTINE
@@ -831,8 +700,6 @@
 !c     Returns the n+1 nth order Legendre-Gauss-Lebotto points on an iterval of (-1,1) in r.
 !c     n (input) : order 
 !c     r(n+1) (output) : Legendre-Gauss-Lebotto points
-
-      use globals, only: rp
 
       implicit none
       integer n,nn,i
@@ -901,8 +768,6 @@
 !c     [L0(x2)  L1(x2)  L2(x2)]
 !c     [L0(x3)  L1(x3)  L3(x3)]
 
-      use globals, only: rp
-
       implicit none
       integer nn,ne,n,i,j
       real(rp) p,xn(nn),xe(ne),pmat(ne,nn)
@@ -924,9 +789,7 @@
       end subroutine
 
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc	
-      subroutine xytors(np,x,y,r,s)
-      
-      use globals, only: rp      
+      subroutine xytors(np,x,y,r,s)  
       
       implicit none
       integer np,i

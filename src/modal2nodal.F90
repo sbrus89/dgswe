@@ -1,7 +1,7 @@
       SUBROUTINE modal2nodal()
 
       USE globals, ONLY: rp,nel_type,np,nnds,mnnds,ndof,mndof,order,m2n, &
-                         nqpta,mnqpta,wpta,phia,phil,ml2,mml
+                         nqpta,mnqpta,qpta,wpta,phia,phil,ml2,mml
       USE basis, ONLY: element_basis,element_nodes,linear
       USE read_dginp, ONLY: out_direc,p,hbp
 
@@ -72,7 +72,7 @@
       
         
       ! Calculate linear nodal basis functions
-      CALL linear(phil)
+      CALL linear(nqpta(1),qpta(:,1,1),qpta(:,2,1),phil(:,:,1))
 
       ! Compute RHS L2 projection matrix
       DO i = 1,3
@@ -193,7 +193,7 @@
 !       
 !         
 !       Calculate linear nodal basis functions
-!       CALL linear(phil)
+!       CALL linear(nqpta(1),qpta(:,1,1),qpta(:,2,1),phil)
 ! 
 !       Compute RHS L2 projection matrix
 !       DO i = 1,3
