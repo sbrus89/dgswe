@@ -456,7 +456,7 @@ $(ODIR)boundary_edge_elev.o : boundary_edge_elev.F90           $(ODIR)globals.o
 $(ODIR)linear_solve.o : linear_solve.F90                       $(ODIR)globals.o
 	$(FC) $(FFLAGS) -c $< -o $@	
 	
-$(ODIR)version.o : version.F90                                 $(ODIR)globals.o $(ODIR)messenger2.o 
+$(ODIR)version.o : version.F90                                 $(ODIR)globals.o 
 	$(FC) $(FFLAGS) -c $< -o $@
 
 $(ODIR)dgswe.o : dgswe.F90                                     $(ODIR)globals.o $(ODIR)messenger2.o $(ODIR)read_input.o $(ODIR)allocation.o $(ODIR)basis.o $(ODIR)output.o 
