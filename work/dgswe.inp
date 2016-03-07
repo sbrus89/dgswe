@@ -1,0 +1,62 @@
+!grid_file = ../grids/inlet1.grd                                ! grid file
+!forcing_file = ../grids/inlet1.bfr                              ! forcing file
+!!bathy_file = /home/sbrus/data-drive/dgswe_inlet_bath/inlet1_hbp3.d  
+!p = 1                                                         ! polynomial order
+!ctp = 1                                                        ! parametric coordinate transformation order
+!hbp = 1                                                        ! bathymetry order
+!rk = 22                                                        ! rk order
+!dt = .5d0                                                      ! timestep 
+!tf = 1d0                                                       ! final time (days)
+!dramp = .5d0                                                   ! ramping parameter (days)
+!cf = .003d0                                                    ! friction coefficient 
+!lines = 10d0                                                   ! lines in output files
+!out_direc = ./                                                 ! output director
+!npart = 1
+
+grid_file = ../grids/converge1_dble.grd
+forcing_file = ../grids/converge1_dble.bfr  
+!bathy_file = ../grids/converge1_dble_hbp1_interp.hb
+curve_file = ../grids/converge1_dble_ctp3.cb
+p = 1
+ctp = 3
+hbp = 1
+rk = 22
+dt = 0.5d0
+tf = 1d0
+dramp = 0.08d0 
+cf = .0025d0
+lines = 10d0
+out_direc = ./
+npart = 1
+
+!grid_file = /home/sbrus/data-drive/galveston/dgswe/tri/galveston_tri.grd
+!forcing_file = /home/sbrus/data-drive/galveston/dgswe/tri/galveston.bfr
+!!bathy_file = ../grids/converge1_dble_hbp1_interp.hb
+!curve_file = /home/sbrus/data-drive/galveston/dgswe/tri/galveston_tri_ctp3.cb
+!p = 1
+!ctp = 3
+!hbp = 1
+!rk = 22
+!dt = 0.5d0
+!tf = 1d0
+!dramp = 0.08d0
+!cf = .0025d0
+!lines = 10d0
+!out_direc = ./
+!npart = 1
+
+
+!../grids/beaufort.grd                                     ! grid file
+!../grids/beaufort.bfr                                     ! forcing file
+!1                                                         ! p - polynomial order
+!1                                                         ! ctp - parametric coordinate transformation order
+!1                                                         ! hbp - bathymetry order
+!.5d0                                                      ! dt - timestep
+!1d0                                                       ! tf - final time (days)
+!2d0                                                       ! dramp - ramping parameter (days)
+!.0025d0                                                   ! cf - friction coefficient
+!10d0                                                      ! lines - lines in output files
+!../output/                                                ! output directory
+!1                                                         ! npart - edge blocking parameter
+
+

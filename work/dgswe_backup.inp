@@ -1,0 +1,24 @@
+!../grids/inlet2.grd                                      ! grid file
+!../grids/inlet2.bfr                                      ! forcing file
+!1                                                        ! p - polynomial order
+!1                                                        ! ctp - parametric coordinate transformation order
+!.5d0                                                      ! dt - timestep (1d0 for p=1,2, .5d0 for p=3)
+!1d0                                                      ! tf - final time (days)
+!.5d0                                                     ! dramp - ramping parameter (days)
+!.003d0                                                   ! cf - friction coefficient 
+!100d0                                                    ! lines - lines in output files
+!../output/                                               ! output directory
+!1                                                        ! npart - edge blocking parameter
+
+!../grids/converge.grd                                     ! grid file  
+!../grids/converge.bfr                                     ! forcing file
+!1                                                         ! p - polynomial order
+!1                                                         ! ctp - parametric coordinate transformation order
+!1d0                                                       ! dt - timestep 
+!1d0                                                       ! tf - final time (days)
+!.08d0                                                     ! dramp - ramping parameter (days)
+!.0025d0                                                   ! cf - friction coefficient 
+!10d0                                                      ! lines - lines in output files
+!../output/                                                ! output directory
+!1                                                        ! npart - edge blocking parameter
+

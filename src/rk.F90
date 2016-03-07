@@ -1,121 +1,356 @@
       SUBROUTINE rk()
 
-      USE globals, ONLY: dof,ndof,el,ne, &
-                         t,tstage,dt,pt3333,ramp,dramp, &
-                         Hold,H,rhsH,Qxold,Qx,rhsQx,Qyold,Qy,rhsQy
+      USE globals, ONLY: ndof,ne,nel_type,npartet,elblk, &
+                         t,tstage,pt3333,ramp,ark,brk,crk, &
+                         Hold,H,MirhsH,Zold,Z,MirhsZ,Qxold,Qx,MirhsQx,Qyold,Qy,MirhsQy  
+                         
+      USE read_dginp, ONLY: npart,dt,dramp,rk_type
+      USE quit, ONLY: abort
 
       IMPLICIT NONE
+      
+      INTEGER :: et,stg,dof,el,blk
+         
+      
+   
+!       CALL nan_check()
+!       PRINT*, "NaN checked initial condition"      
+
+      SELECT CASE (rk_type)
+      
+        CASE(11)
+        
+          CALL swap()
+          CALL forward_euler()
+          
+        CASE(22)
+        
+          CALL swap()
+          CALL forward_euler()
+
+          ! Evaluate RHS
+          tstage = t + dt
+          ramp = TANH((2d0*tstage)/(86400d0*dramp))
+          CALL rhs2()
+!           CALL rhs3()
+!           CALL rhs4()
+      
+          ! Second RK stage
+          DO blk = 1,npart
+            DO et  = 1,nel_type
+              IF (npartet(et,blk) > 0) THEN   
+          
+                DO dof = 1,ndof(et)
+!DIR$ IVDEP                
+!!DIR$ VECTOR ALIGNED
+                  DO el = elblk(1,blk,et),elblk(2,blk,et)
+!                     H(el,dof) = .5d0*(Hold(el,dof) + H(el,dof) + dt*MirhsH(el,dof))
+                    Z(el,dof) = .5d0*(Zold(el,dof) + Z(el,dof) + dt*MirhsZ(el,dof))
+                  ENDDO
+!DIR$ IVDEP                  
+!!DIR$ VECTOR ALIGNED
+                  DO el = elblk(1,blk,et),elblk(2,blk,et)
+                    Qx(el,dof) = .5d0*(Qxold(el,dof) + Qx(el,dof) + dt*MirhsQx(el,dof))
+                  ENDDO
+!DIR$ IVDEP                  
+!!DIR$ VECTOR ALIGNED
+                  DO el = elblk(1,blk,et),elblk(2,blk,et)
+                    Qy(el,dof) = .5d0*(Qyold(el,dof) + Qy(el,dof) + dt*MirhsQy(el,dof))
+                  ENDDO
+                ENDDO
+      
+              ENDIF
+            ENDDO
+          ENDDO      
+
+        CASE(33)
+        
+          CALL swap()
+          CALL forward_euler()
+
+          ! Evaluate RHS
+          tstage = t + dt
+          ramp = TANH((2d0*tstage)/(86400d0*dramp))
+          CALL rhs2()
+!          CALL rhs3()
+!          CALL rhs4()
+      
+          ! Second RK stage
+          DO blk = 1,npart
+            DO et  = 1,nel_type
+              IF (npartet(et,blk) > 0) THEN    
+          
+                DO dof = 1,ndof(et)
+!DIR$ IVDEP
+!!DIR$ VECTOR ALIGNED
+                  DO el = elblk(1,blk,et),elblk(2,blk,et)
+!                     H(el,dof) = .25d0*(3d0*Hold(el,dof) + H(el,dof) + dt*MirhsH(el,dof))
+                    Z(el,dof) = .25d0*(3d0*Zold(el,dof) + Z(el,dof) + dt*MirhsZ(el,dof))
+                  ENDDO
+!DIR$ IVDEP
+!!DIR$ VECTOR ALIGNED
+                  DO el = elblk(1,blk,et),elblk(2,blk,et)
+                    Qx(el,dof) = .25d0*(3d0*Qxold(el,dof) + Qx(el,dof) + dt*MirhsQx(el,dof))
+                  ENDDO
+!DIR$ IVDEP        
+!!DIR$ VECTOR ALIGNED
+                  DO el = elblk(1,blk,et),elblk(2,blk,et)
+                    Qy(el,dof) = .25d0*(3d0*Qyold(el,dof) + Qy(el,dof) + dt*MirhsQy(el,dof))
+                  ENDDO
+                ENDDO
+      
+              ENDIF
+            ENDDO
+          ENDDO   
+      
+!          CALL nan_check()      
+
+          ! Evaluate RHS
+          tstage = t + .5d0*dt
+          ramp = TANH((2d0*tstage)/(86400d0*dramp))
+          CALL rhs2()
+!           CALL rhs3()
+!           CALL rhs4()
+      
+          ! Third RK stage
+          DO blk = 1,npart
+            DO et  = 1,nel_type
+              IF (npartet(et,blk) > 0) THEN      
+          
+                DO dof = 1,ndof(et)
+!DIR$ IVDEP      
+!!DIR$ VECTOR ALIGNED
+                  DO el = elblk(1,blk,et),elblk(2,blk,et)
+!                     H(el,dof) = pt3333*(Hold(el,dof) + 2d0*(H(el,dof) + dt*MirhsH(el,dof)))
+                    Z(el,dof) = pt3333*(Zold(el,dof) + 2d0*(Z(el,dof) + dt*MirhsZ(el,dof)))
+                  ENDDO
+!DIR$ IVDEP        
+!!DIR$ VECTOR ALIGNED
+                  DO el = elblk(1,blk,et),elblk(2,blk,et)
+                    Qx(el,dof) = pt3333*(Qxold(el,dof) + 2d0*(Qx(el,dof) + dt*MirhsQx(el,dof)))
+                  ENDDO
+!DIR$ IVDEP        
+!!DIR$ VECTOR ALIGNED
+                  DO el = elblk(1,blk,et),elblk(2,blk,et)
+                    Qy(el,dof) = pt3333*(Qyold(el,dof) + 2d0*(Qy(el,dof) + dt*MirhsQy(el,dof)))
+                  ENDDO
+                ENDDO
+      
+              ENDIF
+            ENDDO
+          ENDDO      
+
+        CASE(45)
+                    
+          DO stg = 1,5
+
+          tstage = t + crk(stg)*dt 
+          ramp = TANH((2d0*tstage)/(86400d0*dramp))
+          CALL rhs2()
+      
+          DO blk = 1,npart
+            DO et  = 1,nel_type
+              IF (npartet(et,blk) > 0) THEN    
+          
+                DO dof = 1,ndof(et)
+!DIR$ IVDEP
+                  DO el = elblk(1,blk,et),elblk(2,blk,et)
+                    Zold(el,dof) = ark(stg)*Zold(el,dof) + dt*MirhsZ(el,dof)
+                    Z(el,dof) = Z(el,dof) + brk(stg)*Zold(el,dof)
+                  ENDDO
+!DIR$ IVDEP
+                  DO el = elblk(1,blk,et),elblk(2,blk,et)
+                    Qxold(el,dof) = ark(stg)*Qxold(el,dof) + dt*MirhsQx(el,dof)
+                    Qx(el,dof) = Qx(el,dof) + brk(stg)*Qxold(el,dof)
+                  ENDDO
+!DIR$ IVDEP        
+                  DO el = elblk(1,blk,et),elblk(2,blk,et)
+                    Qyold(el,dof) = ark(stg)*Qyold(el,dof) + dt*MirhsQy(el,dof)
+                    Qy(el,dof) = Qy(el,dof) + brk(stg)*Qyold(el,dof)
+                  ENDDO
+                ENDDO
+      
+              ENDIF
+            ENDDO
+          ENDDO   
+      
+          ENDDO
+          
+        CASE DEFAULT
+        
+          PRINT*, "Time-stepping option not availiable: ", rk_type
+          CALL abort()
+          
+      END SELECT          
+      
+      
+
+      CALL nan_check()
+         
+
+      RETURN
+      END SUBROUTINE RK
+      
+      
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
+
+      SUBROUTINE swap()
+      
+      USE globals, ONLY: ndof,nel_type,npartet,elblk, &
+                         Hold,H,Zold,Z,Qxold,Qx,Qyold,Qy   
+      USE read_dginp, ONLY: npart                         
+                       
+      IMPLICIT NONE                       
+                       
+      INTEGER :: et,dof,el,blk                         
+                         
+!       CALL nan_check()
+!       PRINT*, "NaN checked initial condition"      
 
       ! Save previous solution
-      DO dof = 1,ndof
-!DIR$ VECTOR ALIGNED
-        DO el = 1,ne
-          Hold(el,dof) = H(el,dof)
+      DO blk = 1,npart
+        DO et = 1,nel_type
+          IF (npartet(et,blk) > 0) THEN
+          
+            DO dof = 1,ndof(et)
+!DIR$ IVDEP            
+!!DIR$ VECTOR ALIGNED
+              DO el = elblk(1,blk,et),elblk(2,blk,et)
+!                 Hold(el,dof) = H(el,dof)
+                Zold(el,dof) = Z(el,dof)
+              ENDDO
+!DIR$ IVDEP              
+!!DIR$ VECTOR ALIGNED
+              DO el = elblk(1,blk,et),elblk(2,blk,et)
+                Qxold(el,dof) = Qx(el,dof)
+              ENDDO
+!DIR$ IVDEP              
+!!DIR$ VECTOR ALIGNED
+              DO el = elblk(1,blk,et),elblk(2,blk,et)
+                Qyold(el,dof) = Qy(el,dof)
+              ENDDO
+            ENDDO
+            
+          ENDIF
         ENDDO
-!DIR$ VECTOR ALIGNED
-        DO el = 1,ne
-          Qxold(el,dof) = Qx(el,dof)
-        ENDDO
-!DIR$ VECTOR ALIGNED
-        DO el = 1,ne 
-          Qyold(el,dof) = Qy(el,dof)
-        ENDDO
-      ENDDO
+      ENDDO                         
+      
+      END SUBROUTINE swap
+      
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
 
+      SUBROUTINE forward_euler()
+      
+      USE globals, ONLY: ndof,ne,nel_type,npartet,elblk, &
+                         t,tstage,ramp, &
+                         Hold,H,MirhsH,Zold,Z,MirhsZ,Qxold,Qx,MirhsQx,Qyold,Qy,MirhsQy    
+      USE read_dginp, ONLY: dt,npart,dramp
+      
+      IMPLICIT NONE
+      
+      INTEGER :: et,dof,el,blk
+      
       ! Evalutate right hand side  
       tstage = t
       ramp = TANH((2d0*tstage)/(86400d0*dramp))
       CALL rhs2()
+!       CALL rhs3()
+!        CALL rhs4()
+      
       ! First RK stage
-      DO dof = 1,ndof
-!DIR$ VECTOR ALIGNED
-        DO el = 1,ne
-          H(el,dof) = Hold(el,dof) + dt*rhsH(el,dof)
-        ENDDO
-!DIR$ VECTOR ALIGNED
-        DO el = 1,ne
-          Qx(el,dof) = Qxold(el,dof) + dt*rhsQx(el,dof)
-        ENDDO
-!DIR$ VECTOR ALIGNED
-        DO el = 1,ne
-          Qy(el,dof) = Qyold(el,dof) + dt*rhsQy(el,dof)
-        ENDDO
-      ENDDO
-
-#ifdef rk22
-      ! Evaluate RHS
-      tstage = t + dt
-      ramp = TANH((2d0*tstage)/(86400d0*dramp))
-      CALL rhs2()
-      ! Second RK stage
-      DO dof = 1,ndof
-!DIR$ VECTOR ALIGNED
-        DO el = 1,ne
-          H(el,dof) = .5d0*(Hold(el,dof) + H(el,dof) + dt*rhsH(el,dof))
-        ENDDO
-!DIR$ VECTOR ALIGNED
-        DO el = 1,ne
-          Qx(el,dof) = .5d0*(Qxold(el,dof) + Qx(el,dof) + dt*rhsQx(el,dof))
-        ENDDO
-!DIR$ VECTOR ALIGNED
-        DO el = 1,ne
-          Qy(el,dof) = .5d0*(Qyold(el,dof) + Qy(el,dof) + dt*rhsQy(el,dof))
-        ENDDO
-      ENDDO
-#endif
-
-
-
-#ifdef rk33
-! 3rd order TVD-RK (1st stage is the same as 2nd order)
-
-      ! Evaluate RHS
-      tstage = t + dt
-      ramp = TANH((2d0*tstage)/(86400d0*dramp))
-      CALL rhs2()
-      ! Second RK stage
-      DO dof = 1,ndof
+      DO blk = 1,npart
+        DO et  = 1,nel_type
+          IF (npartet(et,blk) > 0) THEN
+          
+            DO dof = 1,ndof(et)
+!DIR$ IVDEP            
+!!DIR$ VECTOR ALIGNED
+              DO el = elblk(1,blk,et),elblk(2,blk,et)
+!                 H(el,dof) = Hold(el,dof) + dt*MirhsH(el,dof)
+                Z(el,dof) = Zold(el,dof) + dt*MirhsZ(el,dof)
+              ENDDO
 !DIR$ IVDEP
-!DIR$ VECTOR ALIGNED
-        DO el = 1,ne
-          H(el,dof) = .25d0*(3d0*Hold(el,dof) + H(el,dof) + dt*rhsH(el,dof))
-        ENDDO
-!DIR$ IVDEP
-!DIR$ VECTOR ALIGNED
-        DO el = 1,ne
-          Qx(el,dof) = .25d0*(3d0*Qxold(el,dof) + Qx(el,dof) + dt*rhsQx(el,dof))
-        ENDDO
-!DIR$ IVDEP        
-!DIR$ VECTOR ALIGNED
-        DO el = 1,ne
-          Qy(el,dof) = .25d0*(3d0*Qyold(el,dof) + Qy(el,dof) + dt*rhsQy(el,dof))
-        ENDDO
-      ENDDO
-
-      ! Evaluate RHS
-      tstage = t + .5d0*dt
-      ramp = TANH((2d0*tstage)/(86400d0*dramp))
-      CALL rhs2()
-      ! Third RK stage
-      DO dof = 1,ndof
-!DIR$ IVDEP      
-!DIR$ VECTOR ALIGNED
-        DO el = 1,ne
-          H(el,dof) = pt3333*(Hold(el,dof) + 2d0*(H(el,dof) + dt*rhsH(el,dof)))
-        ENDDO
-!DIR$ IVDEP        
-!DIR$ VECTOR ALIGNED
-        DO el = 1,ne
-          Qx(el,dof) = pt3333*(Qxold(el,dof) + 2d0*(Qx(el,dof) + dt*rhsQx(el,dof)))
-        ENDDO
-!DIR$ IVDEP        
-!DIR$ VECTOR ALIGNED
-        DO el = 1,ne
-          Qy(el,dof) = pt3333*(Qyold(el,dof) + 2d0*(Qy(el,dof) + dt*rhsQy(el,dof)))
+!!DIR$ VECTOR ALIGNED
+              DO el = elblk(1,blk,et),elblk(2,blk,et)
+                Qx(el,dof) = Qxold(el,dof) + dt*MirhsQx(el,dof)
+              ENDDO
+!DIR$ IVDEP              
+!!DIR$ VECTOR ALIGNED
+              DO el = elblk(1,blk,et),elblk(2,blk,et)
+                Qy(el,dof) = Qyold(el,dof) + dt*MirhsQy(el,dof)
+              ENDDO
+            ENDDO
+            
+          ENDIF
         ENDDO
       ENDDO
-#endif
+           
+      
+      END SUBROUTINE forward_euler
 
-
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
+      
+      
+      SUBROUTINE nan_check()
+      
+      USE globals, ONLY: ndof,ne, &
+                         H,Z,Qx,Qy, &
+                         nel_type,elblk,npartet, &
+                         t
+                         
+      USE quit, ONLY: abort 
+      USE output, ONLY: write_solution,close_output
+      USE read_dginp, ONLY: npart
+      
+      IMPLICIT NONE
+      
+      INTEGER :: et,dof,el,blk
+      
+      DO blk = 1,npart
+        DO et = 1,nel_type
+          IF (npartet(et,blk) > 0) THEN
+      
+            DO dof = 1,ndof(et)
+      
+              DO el = elblk(1,blk,et),elblk(2,blk,et)
+!                 IF (H(el,dof) /= H(el,dof)) THEN
+                IF (Z(el,dof) /= Z(el,dof)) THEN
+                  PRINT*, "NaN detected in H solution"
+                  PRINT("(A,e15.8)"), 't = ', t                  
+                  CALL write_solution(.false.)
+                  CALL close_output()
+                  CALL abort()
+                ENDIF
+              ENDDO
+        
+              DO el = elblk(1,blk,et),elblk(2,blk,et)
+                IF (Qx(el,dof) /= Qx(el,dof)) THEN
+                  PRINT*, "NaN detected in Qx solution"
+                  PRINT("(A,e15.8)"), 't = ', t
+                  CALL write_solution(.false.)
+                  CALL close_output()                  
+                  CALL abort()
+                ENDIF
+              ENDDO
+        
+              DO el = elblk(1,blk,et),elblk(2,blk,et)
+                IF (Qy(el,dof) /= Qy(el,dof)) THEN
+                  PRINT*, "NaN detected in Qy solution"
+                  PRINT("(A,e15.8)"), 't = ', t
+                  CALL write_solution(.false.)
+                  CALL close_output()                  
+                  CALL abort()
+                ENDIF
+              ENDDO
+        
+            ENDDO
+      
+          ENDIF
+        ENDDO
+      ENDDO
+      
       RETURN
-      END SUBROUTINE RK
+      END SUBROUTINE nan_check
