@@ -1,0 +1,7 @@
+*~
+*.o
+*.mod
+*.d
+output
+rimls
+*.kate-swp
