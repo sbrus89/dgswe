@@ -12,6 +12,7 @@
       REAL(rp), PARAMETER :: deg2rad = pi/180d0      
       REAL(rp), PARAMETER :: r_earth = 6378206.4d0      
       CHARACTER(100) :: grid_name ! name of the grid
+      
       CHARACTER(50) :: gitSHA
       CHARACTER(50) :: gitBranch
       CHARACTER(100) :: compiler_version

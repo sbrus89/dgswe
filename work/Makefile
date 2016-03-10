@@ -155,7 +155,7 @@ METIS_LIB = -L../metis-4.0.3 -lmetis
 
 dgswe_objects = globals.o lapack_interfaces.o messenger2.o allocation.o grid_file_mod.o \
                 read_input.o read_grid.o read_forcing.o bathymetry_interp.o \
-                connect.o initial.o interp_forcing.o curvilinear.o \
+                edge_connectivity_mod.o connect.o initial.o interp_forcing.o curvilinear.o \
                 edge_partition2.o metis2.o \
                 vandermonde.o shape_functions.o transformation.o \
                 element_data.o area_transformation.o normals.o edge_transformation.o \
@@ -169,7 +169,7 @@ dgswe_obj := $(patsubst %.o, $(ODIR)%.o,$(dgswe_objects))
 
 dgprep_objects = globals.o messenger2.o read_input.o allocation.o grid_file_mod.o \
                  read_grid.o read_forcing.o  curvilinear.o\
-                 connect.o edge_qpts.o metis2.o decomp2.o \
+                 edge_connectivity_mod.o connect.o edge_qpts.o metis2.o decomp2.o \
                  basis.o vandermonde.o shape_functions.o transformation.o \
                  normals.o bathymetry_interp.o edge_transformation.o \
                  modal2nodal.o write_files.o version.o quit.o dgprep.o
@@ -377,6 +377,11 @@ $(ODIR)quit.o : quit.F90                                       $(ODIR)globals.o
 $(ODIR)grid_file_mod.o : grid_file_mod.F90                     $(ODIR)globals.o $(ODIR)quit.o
 	$(FC) $(FFLAGS) -c $< -o $@
 	mv grid_file_mod.mod $(ODIR)	
+	
+$(ODIR)edge_connectivity_mod.o : edge_connectivity_mod.F90     $(ODIR)quit.o
+	$(FC) $(FFLAGS) -c $< -o $@
+	mv edge_connectivity_mod.mod $(ODIR)
+
 
 $(ODIR)area_qpts.o : area_qpts.F90                             $(ODIR)globals.o $(ODIR)messenger2.o $(ODIR)read_input.o $(ODIR)allocation.o
 	$(FC) $(FFLAGS) -c $< -o $@
@@ -402,7 +407,7 @@ $(ODIR)interp_forcing.o : interp_forcing.F90                   $(ODIR)globals.o 
 $(ODIR)initial.o : initial.F90                                 $(ODIR)globals.o $(ODIR)read_input.o $(ODIR)allocation.o $(ODIR)basis.o
 	$(FC) $(FFLAGS) -c $< -o $@
 
-$(ODIR)connect.o : connect.F90                                 $(ODIR)globals.o $(ODIR)messenger2.o $(ODIR)read_input.o $(ODIR)allocation.o
+$(ODIR)connect.o : connect.F90                                 $(ODIR)globals.o $(ODIR)messenger2.o $(ODIR)read_input.o $(ODIR)edge_connectivity_mod.o
 	$(FC) $(FFLAGS) -c $< -o $@
 
 $(ODIR)curvilinear.o : curvilinear.F90                         $(ODIR)globals.o $(ODIR)read_input.o $(ODIR)basis.o $(ODIR)transformation.o
