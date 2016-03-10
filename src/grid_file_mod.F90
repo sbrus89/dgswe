@@ -1,0 +1,425 @@
+      MODULE grid_file_mod
+
+      USE globals, ONLY: rp,deg2rad
+      USE quit, ONLY: abort    
+
+      INTEGER :: i,j,k
+      INTEGER :: el,nd      
+      INTEGER :: alloc_status
+      LOGICAL :: file_exists
+      
+
+      CONTAINS
+      
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+      SUBROUTINE read_header(grid_file,grid_name,ne,nn)
+
+      IMPLICIT NONE
+      
+      CHARACTER(100), INTENT(IN)  :: grid_file
+      CHARACTER(100), INTENT(OUT) :: grid_name      
+      INTEGER, INTENT(OUT) :: ne
+      INTEGER, INTENT(OUT) :: nn     
+
+      ! open fort.14 grid file
+      INQUIRE(FILE=grid_file, EXIST=file_exists)
+      IF(file_exists == .FALSE.) THEN
+        PRINT*, "grid file does not exist"
+        CALL abort()        
+      ENDIF
+      
+      OPEN(UNIT=14, FILE=grid_file)                 
+                       
+      ! read in name of grid
+      READ(14,"(A)"), grid_name                                         
+
+      ! read in number of elements and number of nodes
+      READ(14,*), ne, nn       
+
+      RETURN
+      END SUBROUTINE read_header
+      
+      
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
+
+
+      SUBROUTINE read_coords(nn,xy,depth,h0,coord_sys,r_earth,slam0,sphi0)
+      
+      IMPLICIT NONE
+      
+      INTEGER, INTENT(IN) :: nn
+      REAL(rp), DIMENSION(:,:), ALLOCATABLE, INTENT(OUT) :: xy
+      REAL(rp), DIMENSION(:)  , ALLOCATABLE, INTENT(OUT) :: depth
+      REAL(rp), INTENT(IN) :: h0
+      INTEGER, INTENT(IN) :: coord_sys
+      REAL(rp), INTENT(IN) :: r_earth
+      REAL(rp), INTENT(IN) :: slam0
+      REAL(rp), INTENT(IN) :: sphi0      
+      
+
+      ALLOCATE(xy(2,nn),depth(nn), STAT=alloc_status)
+      IF (alloc_status /= 0) THEN
+        PRINT*, "Allocation error"
+        CALL abort()
+      ENDIF
+      
+      ! read in node coordinates and depths
+      DO i = 1,nn                                                      
+        READ(14,*), j, xy(1,j), xy(2,j), depth(j)
+        
+        IF (depth(j) < h0) THEN
+          depth(j) = h0
+        ENDIF
+      ENDDO
+      
+!       PRINT "(A)", "Node coordinates and depth: "
+!       DO i = 1,nn
+!         PRINT "(I5,3(F11.3,3x))", i,xy(1,i), xy(2,i), depth(i)
+!       ENDDO
+!       PRINT*, " "
+
+      ! Transform from polar coordinates if necessary
+      IF (coord_sys /= 1) THEN
+        DO i = 1,nn
+          xy(1,i) = xy(1,i)*deg2rad
+          xy(2,i) = xy(2,i)*deg2rad
+        
+          xy(1,i) = r_earth*(xy(1,i)-slam0)*cos(sphi0)
+          xy(2,i) = r_earth*xy(2,i)
+        ENDDO
+      ENDIF      
+      
+      RETURN
+      END SUBROUTINE read_coords
+      
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
+
+
+      SUBROUTINE read_connectivity(ne,ect,el_type,nelnds,mnelnds)
+      
+      IMPLICIT NONE
+      
+      INTEGER, INTENT(IN) :: ne
+      INTEGER, DIMENSION(:,:), ALLOCATABLE, INTENT(OUT) :: ect
+      INTEGER, DIMENSION(:)  , ALLOCATABLE, INTENT(OUT) :: el_type
+      INTEGER, DIMENSION(:)  , ALLOCATABLE, INTENT(OUT) :: nelnds
+      INTEGER, INTENT(OUT) :: mnelnds
+
+      
+      ALLOCATE(ect(4,ne),el_type(ne),nelnds(ne), STAT=alloc_status)
+      IF (alloc_status /= 0) THEN
+        PRINT*, "Allocation error"
+        CALL abort()
+      ENDIF      
+      
+      ! read in element connectivity
+      DO i = 1,ne
+        READ(14,*) el,nelnds(el),(ect(j,el),j = 1,nelnds(el))
+        
+        IF (nelnds(el) == 3) THEN
+          el_type(el) = 1
+        ELSE IF (nelnds(el) == 4) THEN
+          el_type(el) = 2
+        ELSE
+          PRINT*, "Element type not supported"
+          CALL abort()
+        ENDIF 
+
+      ENDDO           
+      
+      mnelnds = maxval(nelnds)      
+      
+!       PRINT "(A)", "Element connectivity table: "
+!       DO i = 1,ne
+!         PRINT "(2(I5,3x),8x,4(I5,3x))", i,nelnds(i),(ect(j,i),j=1,nelnds(i))
+!       ENDDO
+!       PRINT*, " "      
+      
+      RETURN
+      END SUBROUTINE read_connectivity 
+      
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
+
+
+      SUBROUTINE read_open_boundaries(nope,neta,obseg,obnds)
+      
+      IMPLICIT NONE     
+      
+      INTEGER, INTENT(OUT) :: nope
+      INTEGER, INTENT(OUT) :: neta
+      INTEGER, DIMENSION(:)  , ALLOCATABLE, INTENT(OUT) :: obseg      
+      INTEGER, DIMENSION(:,:), ALLOCATABLE, INTENT(OUT) :: obnds
+      
+      INTEGER :: nbseg
+      
+      
+      
+      READ(14,*) nope  ! number of open boundaries                                                 
+      READ(14,*) neta  ! number of total elevation specified boundary nodes
+      
+      ALLOCATE(obseg(nope),obnds(neta,nope) ,STAT=alloc_status)
+      IF (alloc_status /= 0) THEN
+        PRINT*, "Allocation error"
+        CALL abort()
+      ENDIF          
+
+      DO i = 1,nope                                                     
+        READ(14,*), nbseg  ! read in # of nodes in segment, boundary type
+        obseg(i) = nbseg
+        DO j = 1,nbseg
+          READ(14,*) obnds(j,i) ! read in open boundary node numbers
+        ENDDO
+      ENDDO
+      
+!       PRINT "(A)", "Open boundary segments:"
+!       DO i = 1,nope
+!         nbseg = obseg(i)
+!         PRINT "(A,I5,A,I5,A)", "Open boundary segment ",i," contains ",nbseg," nodes"
+!         DO j = 1,nbseg
+!           PRINT "(I5)",obnds(j,i)
+!         ENDDO
+!       ENDDO
+!       PRINT*, " "      
+      
+      RETURN
+      END SUBROUTINE read_open_boundaries
+
+      
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+      SUBROUTINE read_flow_boundaries(nbou,nvel,fbseg,fbnds)
+      
+      IMPLICIT NONE
+      
+      INTEGER, INTENT(OUT) :: nbou
+      INTEGER, INTENT(OUT) :: nvel
+      INTEGER, DIMENSION(:,:), ALLOCATABLE, INTENT(OUT) :: fbseg
+      INTEGER, DIMENSION(:,:), ALLOCATABLE, INTENT(OUT) :: fbnds
+            
+      INTEGER :: nbseg,btype
+      
+      
+      
+      READ(14,*) nbou  ! number of normal flow boundaries
+      READ(14,*) nvel  ! total number of normal flow nodes
+
+      ALLOCATE(fbseg(2,nbou),fbnds(nvel,nbou), STAT=alloc_status)
+      IF (alloc_status /= 0) THEN
+        PRINT*, "Allocation error"
+        CALL abort()
+      ENDIF        
+
+      DO i = 1,nbou
+        READ(14,*), nbseg, btype ! read in # of nodes in segment, boundary type
+        fbseg(1,i) = nbseg
+        fbseg(2,i) = btype
+        DO j = 1,nbseg
+          READ(14,*), fbnds(j,i)  ! read in normal flow boundary node numbers
+        ENDDO
+        IF (btype == 1 .OR. btype == 11 .OR. btype == 21) THEN
+          IF (fbnds(nbseg,i) /= fbnds(1,i)) THEN
+            fbnds(nbseg+1,i) = fbnds(1,i)  ! close island boundaries
+            fbseg(1,i) = fbseg(1,i) + 1
+          ENDIF
+        ENDIF
+      ENDDO
+      
+      CLOSE(14)        
+      
+!       PRINT "(A)", "Normal flow boundary segments: "
+!       DO i = 1,nbou
+!         nbseg = fbseg(1,i)
+!         btype = fbseg(2,i)
+!         PRINT "(A,I3,A,I3,A,I5,A)", "Normal flow boundary segment ",i," type ",btype, " contains ",nbseg," nodes"
+!         DO j = 1,nbseg
+!           PRINT "(I5)", fbnds(j,i)
+!         ENDDO
+!       ENDDO
+!       PRINT*, " "      
+      
+      RETURN
+      END SUBROUTINE read_flow_boundaries
+
+      
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+      SUBROUTINE read_bathy_file(myrank,bathy_file,hbp,ne,elhb,depth,ect,nelnds)
+      
+      IMPLICIT NONE
+      
+      INTEGER, INTENT(IN) :: myrank
+      CHARACTER(100), INTENT(IN) :: bathy_file
+      INTEGER, INTENT(IN) :: hbp
+      INTEGER, INTENT(IN) :: ne
+      REAL(rp), DIMENSION(:,:), ALLOCATABLE, INTENT(OUT) :: elhb
+      REAL(rp), DIMENSION(:), INTENT(IN) :: depth
+      INTEGER, DIMENSION(:,:), INTENT(IN) :: ect
+      INTEGER, DIMENSION(:), INTENT(IN) :: nelnds
+      
+      INTEGER :: nnds
+      INTEGER :: ne_check
+      INTEGER :: hbp_check
+      
+      
+      ALLOCATE(elhb((hbp+1)**2,ne), STAT=alloc_status)
+      IF (alloc_status /= 0) THEN
+        PRINT*, "Allocation error"
+        CALL abort()
+      ENDIF         
+     
+      
+      INQUIRE(FILE=bathy_file, EXIST = file_exists)
+      IF(file_exists == .FALSE.) THEN
+        IF (myrank == 0) PRINT*, "high order bathymetry file does not exist"  
+        
+        IF (hbp > 1) THEN
+          IF(myrank == 0) PRINT*, "high order bathymetry file is required for hbp > 1"
+          CALL abort()   
+        ELSE  
+        
+          DO i = 1,ne        
+            DO j = 1,nelnds(el)
+              elhb(j,el) = depth(ect(j,el))
+            ENDDO              
+          ENDDO  
+          
+        ENDIF
+      ELSE
+      
+        IF (myrank == 0 ) PRINT*, "reading in high order bathymetry file"  
+        
+        OPEN(UNIT = 14, FILE = bathy_file)
+      
+        READ(14,*) ne_check, hbp_check
+        IF (ne_check /= ne .or. hbp_check /= hbp) THEN
+          IF (myrank == 0) PRINT*, "incorrect high order bathymetry file"
+          CALL abort()
+        ENDIF
+        
+        DO i = 1,ne
+          READ(14,*) el,nnds,(elhb(j,el), j = 1,nnds)
+        ENDDO
+      
+        CLOSE(14)
+      ENDIF            
+      
+      
+      RETURN 
+      END SUBROUTINE read_bathy_file
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+      SUBROUTINE read_curve_file(myrank,curve_file,ctp,nbou,xy,bndxy)
+      
+      IMPLICIT NONE
+      
+      INTEGER, INTENT(IN) :: myrank
+      CHARACTER(100), INTENT(IN) :: curve_file
+      INTEGER, INTENT(IN) :: ctp
+      INTEGER, INTENT(IN) :: nbou
+      REAL(rp), DIMENSION(:,:), INTENT(OUT) :: xy
+      REAL(rp), DIMENSION(:,:,:,:), ALLOCATABLE, INTENT(OUT) :: bndxy
+
+      INTEGER :: nbou_check
+      INTEGER :: ctp_check
+      INTEGER :: nmax
+      INTEGER :: nbseg,btype
+      
+      
+      INQUIRE(FILE=curve_file, EXIST = file_exists)  
+      IF (file_exists == .FALSE.) THEN
+        IF (myrank == 0) PRINT*, "curved boundary file does not exist"
+        
+        IF (ctp > 1) THEN
+          IF(myrank == 0) PRINT*, "curved boundary file is required for ctp > 1"
+          CALL abort()          
+        ENDIF        
+        
+      ELSE
+        IF (myrank == 0) PRINT*, "reading in curved boundary file"
+      
+        OPEN(UNIT=14, FILE=curve_file)
+        
+        READ(14,*) nbou_check
+        READ(14,*) nmax,ctp_check
+        
+        IF (nbou_check /= nbou .or. ctp_check /= ctp) THEN
+          PRINT*, "incorrect curved boundary file"
+          CALL abort()
+        ENDIF
+        
+        ALLOCATE(bndxy(2,ctp+1,nmax,nbou))
+        IF (alloc_status /= 0) THEN
+          PRINT*, "Allocation error"
+          CALL abort()
+        ENDIF          
+        
+        DO i = 1,nbou
+          READ(14,*) nbseg,btype  
+          IF(nbseg > 0) THEN
+            DO j = 1,nbseg-1
+              READ(14,*) nd, xy(1,nd),(bndxy(1,k,j,i), k=1,ctp-1)
+              READ(14,*) nd, xy(2,nd),(bndxy(2,k,j,i), k=1,ctp-1)
+            ENDDO
+            READ(14,*) nd, xy(1,nd)
+            READ(14,*) nd, xy(2,nd)
+          ENDIF
+        ENDDO
+        
+        CLOSE(14)
+      ENDIF      
+      
+      
+      
+  
+      
+      RETURN 
+      END SUBROUTINE read_curve_file
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  
+      SUBROUTINE print_grid_info(grid_file,grid_name,ne,nn)
+      
+      IMPLICIT NONE
+
+      CHARACTER(100), INTENT(IN) :: grid_file
+      CHARACTER(100), INTENT(IN) :: grid_name
+      INTEGER, INTENT(IN) :: ne
+      INTEGER, INTENT(IN) :: nn
+      
+      PRINT "(A)", "---------------------------------------------"
+      PRINT "(A)", "             Grid Information                "
+      PRINT "(A)", "---------------------------------------------"
+      PRINT "(A)", " "
+      PRINT "(A,A)", "Grid file: ", grid_file                     
+      PRINT "(A,A)", "Grid name: ", grid_name      
+      PRINT "(A,I15)", "Number of elements: ", ne
+      PRINT "(A,I15)", "Number of nodes: ", nn
+      PRINT*, " "          
+      
+      
+      RETURN
+      END SUBROUTINE print_grid_info
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+      END MODULE grid_file_mod

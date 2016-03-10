@@ -1,263 +1,48 @@
       SUBROUTINE read_grid()
       
-      USE globals, ONLY: rp,ne,nn,ect,vct,xy,depth,nelnds,elxy,elhb,hbnodes,bndxy, &
+      USE globals, ONLY: rp,ne,nn,ect,vct,xy,depth,nelnds,elxy,elhb,bndxy, &
                          nope,neta,obseg,obnds,nvel,nbou,fbseg,fbnds,grid_name, &
-                         el_type,mnelnds,curved_grid,nverts,mnnds, &
+                         el_type,mnelnds,mnnds, &
                          r_earth,deg2rad
-                         
-      USE allocation, ONLY: alloc_grid_arrays     
+                             
       USE messenger2, ONLY: myrank
-      USE quit, ONLY: abort
       USE read_dginp, ONLY: grid_file,bathy_file,curve_file, &
                             cb_file_exists,hb_file_exists, &
                             ctp,hbp,h0,coord_sys,slam0,sphi0
+                            
+      USE grid_file_mod                            
 
       IMPLICIT NONE
-      INTEGER :: i,j,k,el,nd
-      INTEGER :: nbseg
-      INTEGER :: btype
-      INTEGER :: nvert,nnds
-      INTEGER :: ne_check,hbp_check
-      INTEGER :: nb,nmax,cto
-      LOGICAL :: file_exists
 
 
 
-      ! open fort.14 grid file
-      INQUIRE(FILE=grid_file, EXIST = file_exists)
-      IF(file_exists == .FALSE.) THEN
-        PRINT*, "grid file does not exist"
-        CALL abort()        
+
+      CALL read_header(grid_file,grid_name,ne,nn)  
+      
+      CALL read_coords(nn,xy,depth,h0,coord_sys,r_earth,slam0,sphi0)
+
+      CALL read_connectivity(ne,ect,el_type,nelnds,mnelnds)
+      
+      CALL read_open_boundaries(nope,neta,obseg,obnds)      
+      
+      CALL read_flow_boundaries(nbou,nvel,fbseg,fbnds)
+      
+      CALL read_bathy_file(myrank,bathy_file,hbp,ne,elhb,depth,ect,nelnds)
+                  
+      CALL read_curve_file(myrank,curve_file,ctp,nbou,xy,bndxy)      
+      
+      IF (myrank == 0) THEN
+        CALL print_grid_info(grid_file,grid_name,ne,nn)
       ENDIF
       
-      OPEN(UNIT=14, FILE=grid_file)                 
-                       
-      ! read in name of grid
-      READ(14,"(A)"), grid_name                                         
-
-      ! read in number of elements and number of nodes
-      READ(14,*), ne, nn     
       
-
-
-      CALL alloc_grid_arrays(1)
-
-      curved_grid = 0
-      
-      ! read in node coordinates and depths
-      DO i = 1,nn                                                      
-        READ(14,*), j, xy(1,j), xy(2,j), depth(j)
-        
-        IF (depth(j) < h0) THEN
-          depth(j) = h0
-        ENDIF
-      ENDDO
-!       PRINT "(A)", "Node coordinates and depth: "
-!       DO i = 1,nn
-!         PRINT "(I5,3(F11.3,3x))", i,xy(1,i), xy(2,i), depth(i)
-!       ENDDO
-!       PRINT*, " "
-
-      IF (coord_sys /= 1) THEN
-        DO i = 1,nn
-          xy(1,i) = xy(1,i)*deg2rad
-          xy(2,i) = xy(2,i)*deg2rad
-        
-          xy(1,i) = r_earth*(xy(1,i)-slam0)*cos(sphi0)
-          xy(2,i) = r_earth*xy(2,i)
-        ENDDO
-      ENDIF
-
-      ! read in element connectivity
-      DO i = 1,ne
-        READ(14,*) el,nelnds(el),(ect(j,el),j = 1,nelnds(el))
-        IF (nelnds(el) == 3) THEN
-          el_type(el) = 1
-        ELSE IF (nelnds(el) == 4) THEN
-          el_type(el) = 2
-        ELSE IF (nelnds(el) == (ctp+1)*(ctp+2)/2) THEN
-          el_type(el) = 3
-          curved_grid = 1
-        ELSE IF (nelnds(el) == (ctp+1)*(ctp+1)) THEN
-          el_type(el) = 4
-          curved_grid = 1
-        ELSE
-          PRINT*, "Element type not supported or ctp not compatible with grid"
-          CALL abort()
-        ENDIF 
-        
+      DO i = 1,ne        
         DO j = 1,nelnds(el)
           elxy(j,el,1) = xy(1,ect(j,el))
           elxy(j,el,2) = xy(2,ect(j,el))
-          elhb(j,el)   = depth(ect(j,el))
-        ENDDO      
-        
-      ENDDO     
+        ENDDO              
+      ENDDO       
       
-      IF (curved_grid == 1) THEN
-        DO i = 1,ne
-          nvert = nverts(el_type(i))
-          DO j = 1,nvert
-            vct(j,i) = ect(ctp*(j-1)+1,i)
-          ENDDO
-        ENDDO        
-      ELSE 
-        DO i = 1,ne
-          nvert = nverts(el_type(i))
-          DO j = 1,nvert
-            vct(j,i) = ect(j,i)
-          ENDDO
-        ENDDO
-      ENDIF
-      
-      mnelnds = maxval(nelnds)
-      
-!       PRINT "(A)", "Element connectivity table: "
-!       DO i = 1,ne
-!         PRINT "(2(I5,3x),8x,4(I5,3x))", i,nelnds(i),(ect(j,i),j=1,nelnds(i))
-!       ENDDO
-!       PRINT*, " "
-
-
-      READ(14,*) nope  ! number of open boundaries                                                 
-      READ(14,*) neta  ! number of total elevation specified boundary nodes
-
-      CALL alloc_grid_arrays(2)
-
-      DO i = 1,nope                                                     
-        READ(14,*), nbseg  ! read in # of nodes in segment, boundary type
-        obseg(i) = nbseg
-        DO j = 1,nbseg
-          READ(14,*) obnds(j,i) ! read in open boundary node numbers
-        ENDDO
-      ENDDO
-!       PRINT "(A)", "Open boundary segments:"
-!       DO i = 1,nope
-!         nbseg = obseg(i)
-!         PRINT "(A,I5,A,I5,A)", "Open boundary segment ",i," contains ",nbseg," nodes"
-!         DO j = 1,nbseg
-!           PRINT "(I5)",obnds(j,i)
-!         ENDDO
-!       ENDDO
-!       PRINT*, " "
-
-      READ(14,*) nbou  ! number of normal flow boundaries
-      READ(14,*) nvel  ! total number of normal flow nodes
-
-      CALL alloc_grid_arrays(3)
-
-      DO i = 1,nbou
-        READ(14,*), nbseg, btype ! read in # of nodes in segment, boundary type
-        fbseg(1,i) = nbseg
-        fbseg(2,i) = btype
-        DO j = 1,nbseg
-          READ(14,*), fbnds(j,i)  ! read in normal flow boundary node numbers
-        ENDDO
-        IF (btype == 1 .OR. btype == 11 .OR. btype == 21) THEN
-          IF (fbnds(nbseg,i) /= fbnds(1,i)) THEN
-            fbnds(nbseg+1,i) = fbnds(1,i)  ! close island boundaries
-            fbseg(1,i) = fbseg(1,i) + 1
-          ENDIF
-        ENDIF
-      ENDDO
-!       PRINT "(A)", "Normal flow boundary segments: "
-!       DO i = 1,nbou
-!         nbseg = fbseg(1,i)
-!         btype = fbseg(2,i)
-!         PRINT "(A,I3,A,I3,A,I5,A)", "Normal flow boundary segment ",i," type ",btype, " contains ",nbseg," nodes"
-!         DO j = 1,nbseg
-!           PRINT "(I5)", fbnds(j,i)
-!         ENDDO
-!       ENDDO
-!       PRINT*, " "
-
-      CLOSE(14)       
-      
-      INQUIRE(FILE=bathy_file, EXIST = hb_file_exists)
-      IF(hb_file_exists == .FALSE.) THEN
-        IF (myrank == 0) PRINT*, "high order bathymetry file does not exist"  
-        IF (hbp > 1) THEN
-          IF(myrank == 0) PRINT*, "high order bathymetry file is required for hbp > 1"
-          CALL abort()          
-        ENDIF
-      ELSE
-      
-        IF (myrank == 0 ) PRINT*, "reading in high order bathymetry file"  
-        
-        OPEN(UNIT = 14, FILE = bathy_file)
-      
-        READ(14,*) ne_check, hbp_check
-        IF (ne_check /= ne .or. hbp_check /= hbp) THEN
-          PRINT*, "incorrect high order bathymetry file"
-          CALL abort()
-        ENDIF
-        
-        DO i = 1,ne
-          READ(14,*) el,nnds,(elhb(j,el), j = 1,nnds)
-        ENDDO
-      
-        CLOSE(14)
-      ENDIF      
-      
-      
-      INQUIRE(FILE=curve_file, EXIST = cb_file_exists)  
-      IF (cb_file_exists == .FALSE.) THEN
-        IF (myrank == 0) PRINT*, "curved boundary file does not exist"
-        IF (ctp > 1) THEN
-          IF(myrank == 0) PRINT*, "curved boundary file is required for ctp > 1"
-          CALL abort()          
-        ENDIF        
-      ELSE
-        IF (myrank == 0) PRINT*, "reading in curved boundary file"
-      
-        OPEN(UNIT=14, FILE=curve_file)
-        
-        READ(14,*) nb
-        READ(14,*) nmax,cto
-        
-        IF (nb /= nbou .or. cto /= ctp) THEN
-          PRINT*, "incorrect curved boundary file"
-          CALL abort()
-        ENDIF
-        
-        ALLOCATE(bndxy(2,ctp+1,nmax,nb))
-        
-        DO i = 1,nb
-          READ(14,*) nbseg,btype  
-          IF(nbseg > 0) THEN
-            DO j = 1,nbseg-1
-              READ(14,*) nd, xy(1,nd),(bndxy(1,k,j,i), k=1,ctp-1)
-              READ(14,*) nd, xy(2,nd),(bndxy(2,k,j,i), k=1,ctp-1)
-            ENDDO
-            READ(14,*) nd, xy(1,nd)
-            READ(14,*) nd, xy(2,nd)
-          ENDIF
-        ENDDO
-        
-        CLOSE(14)
-      ENDIF
-
-      
-!       DO el = 1,ne
-!         DO j = 1,3
-!           i = (j-1)*ctp + 1
-!           elhb(i,el) = hbnodes(i,el)
-!         ENDDO
-!       ENDDO
-      
-      IF (myrank == 0) THEN
-        PRINT "(A)", "---------------------------------------------"
-        PRINT "(A)", "             Grid Information                "
-        PRINT "(A)", "---------------------------------------------"
-        PRINT "(A)", " "
-        PRINT "(A,A)", "Grid file: ", grid_file                     
-        PRINT "(A,A)", "Grid name: ", grid_name      
-        PRINT "(A,I15)", "Number of elements: ", ne
-        PRINT "(A,I15)", "Number of nodes: ", nn
-        PRINT*, " "      
-        PRINT "(A,I5)", "Curved grid = ",curved_grid
-        PRINT*, " "      
-      ENDIF
 
       RETURN
       END SUBROUTINE read_grid

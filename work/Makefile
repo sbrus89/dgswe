@@ -153,7 +153,7 @@ METIS_LIB = -L../metis-4.0.3 -lmetis
 #                               Objects                                #
 ########################################################################
 
-dgswe_objects = globals.o lapack_interfaces.o messenger2.o allocation.o  \
+dgswe_objects = globals.o lapack_interfaces.o messenger2.o allocation.o grid_file_mod.o \
                 read_input.o read_grid.o read_forcing.o bathymetry_interp.o \
                 connect.o initial.o interp_forcing.o curvilinear.o \
                 edge_partition2.o metis2.o \
@@ -167,7 +167,7 @@ dgswe_objects = globals.o lapack_interfaces.o messenger2.o allocation.o  \
 
 dgswe_obj := $(patsubst %.o, $(ODIR)%.o,$(dgswe_objects))
 
-dgprep_objects = globals.o messenger2.o read_input.o allocation.o \
+dgprep_objects = globals.o messenger2.o read_input.o allocation.o grid_file_mod.o \
                  read_grid.o read_forcing.o  curvilinear.o\
                  connect.o edge_qpts.o metis2.o decomp2.o \
                  basis.o vandermonde.o shape_functions.o transformation.o \
@@ -374,6 +374,9 @@ $(ODIR)quit.o : quit.F90                                       $(ODIR)globals.o
 	$(FC) $(FFLAGS) -c $< -o $@
 	mv quit.mod $(ODIR)
 	
+$(ODIR)grid_file_mod.o : grid_file_mod.F90                     $(ODIR)globals.o $(ODIR)quit.o
+	$(FC) $(FFLAGS) -c $< -o $@
+	mv grid_file_mod.mod $(ODIR)	
 
 $(ODIR)area_qpts.o : area_qpts.F90                             $(ODIR)globals.o $(ODIR)messenger2.o $(ODIR)read_input.o $(ODIR)allocation.o
 	$(FC) $(FFLAGS) -c $< -o $@
@@ -384,7 +387,7 @@ $(ODIR)edge_qpts.o : edge_qpts.F90                             $(ODIR)globals.o 
 $(ODIR)eval_basis.o : eval_basis.F90                           $(ODIR)globals.o $(ODIR)messenger2.o $(ODIR)read_input.o $(ODIR)allocation.o $(ODIR)basis.o
 	$(FC) $(FFLAGS) -c $< -o $@
 
-$(ODIR)read_grid.o : read_grid.F90                             $(ODIR)globals.o $(ODIR)messenger2.o $(ODIR)read_input.o $(ODIR)allocation.o $(ODIR)quit.o
+$(ODIR)read_grid.o : read_grid.F90                             $(ODIR)globals.o $(ODIR)messenger2.o $(ODIR)read_input.o $(ODIR)grid_file_mod.o
 	$(FC) $(FFLAGS) -c $< -o $@
 
 $(ODIR)read_forcing.o : read_forcing.F90                       $(ODIR)globals.o $(ODIR)messenger2.o $(ODIR)read_input.o $(ODIR)allocation.o $(ODIR)quit.o
