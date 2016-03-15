@@ -27,7 +27,6 @@
       INTEGER :: np(norder), nnds(norder)
       INTEGER :: order(2*nel_type)
       
-      INTEGER :: curved_grid
       INTEGER, ALLOCATABLE, DIMENSION(:) :: el_type
       
       INTEGER, DIMENSION(nel_type) :: ndof ! number of degrees of freedom
@@ -74,9 +73,7 @@
       
       REAL(rp) :: nlines
       
-      INTEGER, ALLOCATABLE, DIMENSION(:,:) :: ect,vct ! element connectivity table
-      INTEGER, ALLOCATABLE, DIMENSION(:) :: nelnds
-      INTEGER :: mnelnds
+      INTEGER, ALLOCATABLE, DIMENSION(:,:) :: ect ! element connectivity table
       REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: xy ! x,y coordinates of nodes
       REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: elxy            
       REAL(rp), ALLOCATABLE, DIMENSION(:) :: depth ! depth at each node
@@ -119,7 +116,7 @@
       REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: fbph_qpt ! flow boundary phase interpolated to edge quadrature points
 
       REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: Va,Ve
-      INTEGER, ALLOCATABLE, DIMENSION(:,:) :: ipiva,ipive
+      INTEGER, ALLOCATABLE, DIMENSION(:,:) :: ipive
       REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: psia,psie,psiv,psic
       REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: dpsidr,dpsids   
       REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: dpsidxi

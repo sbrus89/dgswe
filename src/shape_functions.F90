@@ -63,7 +63,7 @@
       USE globals, ONLY: rp,nel_type,order,nverts,nnds,mnnds, &
                          mnqpta,nqpta,mnqpte,nqpte,np, &
                          qpta,qpte,psia,dpsidr,dpsids, &
-                         Va,ipiva
+                         Va
       USE basis, ONLY: element_basis
       USE messenger2, ONLY: myrank
       
@@ -140,7 +140,7 @@
       SUBROUTINE shape_functions_vertex()
 
       USE globals, ONLY: rp,norder,nnds,mnnds,np, &
-                         psiv,Va,ipiva
+                         psiv,Va
       USE basis, ONLY: element_nodes
       USE messenger2, ONLY: myrank
       
@@ -192,7 +192,7 @@
       SUBROUTINE shape_functions_curve()
 
       USE globals, ONLY: rp,norder,nnds,mnnds,np, &
-                         psic,Va,ipiva
+                         psic,Va
       USE basis, ONLY: element_nodes
       USE messenger2, ONLY: myrank
       

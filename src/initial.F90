@@ -1,12 +1,12 @@
       SUBROUTINE initial()
 
-      USE globals, ONLY: rp,ne,nn,mndof,ndof,nel_type,mnnds,nnds,np, &
+      USE globals, ONLY: rp,ne,nn,mndof,ndof,nel_type,mnnds,nnds,np,nverts, &
                          ect,xy,depth,elxy,elhb,hbnodes, &
                          nqpta,qpta,wpta,nqpte,qpte, &
                          H,Qx,Qy, &
                          Zinit,Hinit,Qxinit,Qyinit, &
                          phia,phil, &
-                         el_type,mnelnds,nelnds,psia, &
+                         el_type,psia, &
                          detJa,mmi_init
                          
       USE allocation, ONLY: alloc_sol_arrays   
@@ -15,7 +15,7 @@
 
       IMPLICIT NONE
       INTEGER :: i,j,el,l,pt,dof,ed,nd,k,m,n,p
-      INTEGER :: et
+      INTEGER :: et,nv
       INTEGER :: mnqpte
       INTEGER :: ipiv(mnnds,nel_type),info
       REAL(rp) :: x1,x2,x3,y1,y2,y3,x,y
@@ -43,6 +43,7 @@
       
 !       DO el = 1,ne
 !         et = el_type(el)
+!         nv = nverts(et)
 !         DO l = 1,ndof(et)
 !           qint = 0d0
 !           qint2 = 0d0
@@ -53,7 +54,7 @@
 !             
 !             x = 0d0
 !             y = 0d0
-!             DO nd = 1,nelnds(el)
+!             DO nd = 1,nv
 ! 
 !               xn = elxy(nd,el,1)
 !               yn = elxy(nd,el,2)            
@@ -74,7 +75,7 @@
 ! !             y = -.5d0*((r+s)*y1 - (1d0+r)*y2 - (1d0+s)*y3)
 ! 
 !             h0 = 0d0
-!             DO nd = 1,nelnds(el)   ! This assumes there is an equal order representation between the bathymetry and the coordinate transformation
+!             DO nd = 1,nv   ! This assumes there is an equal order representation between the bathymetry and the coordinate transformation
 !               h0 = h0 + psia(nd,pt,et)*elhb(nd,el)
 !             ENDDO
 ! 

@@ -101,18 +101,17 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
 
 
-      SUBROUTINE read_connectivity(ne,ect,el_type,nelnds,mnelnds)
+      SUBROUTINE read_connectivity(ne,ect,el_type)
       
       IMPLICIT NONE
       
       INTEGER, INTENT(IN) :: ne
       INTEGER, DIMENSION(:,:), ALLOCATABLE, INTENT(OUT) :: ect
       INTEGER, DIMENSION(:)  , ALLOCATABLE, INTENT(OUT) :: el_type
-      INTEGER, DIMENSION(:)  , ALLOCATABLE, INTENT(OUT) :: nelnds
-      INTEGER, INTENT(OUT) :: mnelnds
 
+      INTEGER :: nv
       
-      ALLOCATE(ect(4,ne),el_type(ne),nelnds(ne), STAT=alloc_status)
+      ALLOCATE(ect(4,ne),el_type(ne), STAT=alloc_status)
       IF (alloc_status /= 0) THEN
         PRINT*, "Allocation error"
         CALL abort()
@@ -120,11 +119,11 @@
       
       ! read in element connectivity
       DO i = 1,ne
-        READ(14,*) el,nelnds(el),(ect(j,el),j = 1,nelnds(el))
+        READ(14,*) el,nv,(ect(j,el),j = 1,nv)
         
-        IF (nelnds(el) == 3) THEN
+        IF (nv == 3) THEN
           el_type(el) = 1
-        ELSE IF (nelnds(el) == 4) THEN
+        ELSE IF (nv == 4) THEN
           el_type(el) = 2
         ELSE
           PRINT*, "Element type not supported"
@@ -132,8 +131,6 @@
         ENDIF 
 
       ENDDO           
-      
-      mnelnds = maxval(nelnds)      
       
 !       PRINT "(A)", "Element connectivity table: "
 !       DO i = 1,ne
@@ -255,7 +252,7 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 
-      SUBROUTINE read_bathy_file(myrank,bathy_file,hbp,ne,elhb,depth,ect,nelnds)
+      SUBROUTINE read_bathy_file(myrank,bathy_file,hbp,ne,el_type,nverts,depth,ect,elhb)
       
       IMPLICIT NONE
       
@@ -263,11 +260,13 @@
       CHARACTER(100), INTENT(IN) :: bathy_file
       INTEGER, INTENT(IN) :: hbp
       INTEGER, INTENT(IN) :: ne
-      REAL(rp), DIMENSION(:,:), ALLOCATABLE, INTENT(OUT) :: elhb
+      INTEGER, DIMENSION(:), INTENT(IN) :: el_type
+      INTEGER, DIMENSION(:), INTENT(IN) :: nverts      
       REAL(rp), DIMENSION(:), INTENT(IN) :: depth
       INTEGER, DIMENSION(:,:), INTENT(IN) :: ect
-      INTEGER, DIMENSION(:), INTENT(IN) :: nelnds
+      REAL(rp), DIMENSION(:,:), ALLOCATABLE, INTENT(OUT) :: elhb      
       
+      INTEGER :: et,nv
       INTEGER :: nnds
       INTEGER :: ne_check
       INTEGER :: hbp_check
@@ -289,9 +288,11 @@
           CALL abort()   
         ELSE  
         
-          DO i = 1,ne        
-            DO j = 1,nelnds(el)
-              elhb(j,el) = depth(ect(j,el))
+          DO el = 1,ne        
+            et = el_type(el)
+            nv = nverts(et)
+            DO nd = 1,nv
+              elhb(nd,el) = depth(ect(nd,el))
             ENDDO              
           ENDDO  
           
@@ -309,7 +310,7 @@
         ENDIF
         
         DO i = 1,ne
-          READ(14,*) el,nnds,(elhb(j,el), j = 1,nnds)
+          READ(14,*) el,nnds,(elhb(nd,el), nd = 1,nnds)
         ENDDO
       
         CLOSE(14)

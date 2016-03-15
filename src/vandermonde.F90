@@ -31,7 +31,7 @@
      
      SUBROUTINE area_vandermonde()
       
-      USE globals, ONLY: rp,np,mnp,nnds,mnnds,norder,Va,ipiva
+      USE globals, ONLY: rp,np,mnp,nnds,mnnds,norder,Va
       USE basis, ONLY: tri_nodes,tri_basis,quad_nodes,quad_basis
       
       IMPLICIT NONE
@@ -41,12 +41,8 @@
       
       
       ALLOCATE(Va(mnnds,mnnds,norder))
-      ALLOCATE(ipiva(mnnds,norder))
-      
 
       Va = 0d0
-      ipiva = 0
-
       
       DO et = 1,norder
         p = np(et)

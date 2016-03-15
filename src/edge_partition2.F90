@@ -1,6 +1,6 @@
       SUBROUTINE edge_partition2()
       
-      USE globals, ONLY: nn,ne,ndof,mndof,nqpta,mnqpta,mnqpte,part,nel_type,el_type,nelnds, &
+      USE globals, ONLY: nn,ne,ndof,mndof,nqpta,mnqpta,mnqpte,part,nel_type,el_type, &
                          ged2el,&
                          npartel,nparted,npartet, &
                          gel2part,gel2lel,lel2gel, &
@@ -80,7 +80,7 @@
           ael2gel(elcnt) = lel2gel(el,pe)
           gel2ael(lel2gel(el,pe)) = elcnt
           
-!           PRINT*, elcnt,ael2gel(elcnt),nelnds(ael2gel(elcnt))
+!           PRINT*, elcnt,ael2gel(elcnt))
         ENDDO
       ENDDO
       

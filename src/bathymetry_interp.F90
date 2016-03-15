@@ -1,9 +1,9 @@
       SUBROUTINE bathymetry_interp()
 
-      USE globals, ONLY: rp,el_type,ed_type,nelnds,mndof,ndof,mnnds,nnds,nqpta,nqpte,nverts,norder,order, &
+      USE globals, ONLY: rp,el_type,ed_type,mndof,ndof,mnnds,nnds,nqpta,nqpte,nverts,norder,order, &
                          ne,ned,elxy,elhb,ged2el,ged2led, &
                          hbqpta_init,dhbdx_init,dhbdy_init,hbqpte_init,hbm,hbqpted, &
-                         Va,ipiva,psia,dpsidr,dpsids, &
+                         Va,psia,dpsidr,dpsids, &
                          recv_edge
       USE transformation, ONLY: element_transformation,cpp_transformation                         
       USE read_dginp, ONLY: out_direc   
@@ -22,6 +22,7 @@
       REAL(rp) :: drdx,drdy,dsdx,dsdy
       REAL(rp) :: hbn(mnnds)
       REAL(rp) :: V(mnnds,mnnds,norder)
+      INTEGER :: ipiv(mnnds,norder)
 
 
       OPEN(unit=45, file='dhb.d')
@@ -216,7 +217,7 @@
       V = Va
       DO et = 1,norder
         n = nnds(et)
-        CALL DGETRF(n,n,V(1,1,et),mnnds,ipiva(1,et),info)  
+        CALL DGETRF(n,n,V(1,1,et),mnnds,ipiv(1,et),info)  
       ENDDO
      
       ALLOCATE(hbm(mnnds,ne))     
@@ -232,7 +233,7 @@
           hbm(nd,el) = elhb(nd,el)
         ENDDO
         
-        CALL DGETRS("T",n,1,V(1,1,eo),mnnds,ipiva(1,eo),hbm(1,el),mnnds,info)                         
+        CALL DGETRS("T",n,1,V(1,1,eo),mnnds,ipiv(1,eo),hbm(1,el),mnnds,info)                         
         
       ENDDO
       

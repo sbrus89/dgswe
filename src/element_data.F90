@@ -1,20 +1,19 @@
       SUBROUTINE element_data()
 
-      USE globals, ONLY: rp,ect,xy,depth,ne,nn,ned,ndof, &
+      USE globals, ONLY: rp,ect,xy,depth,elxy,ne,nn,ned,ndof,mnnds, &
                          nqpta,mnqpta,qpta,nqpte, &
-                         el_type,nel_type,np,nnds, &
+                         el_type,nel_type,np,nnds,nverts, &
                          area,edlen,edlen_area,normal,ged2nn,ged2el,ged2led, &
                          dhbdx_init,dhbdy_init, &
                          detJa,detJe, &
-                         nx_pt,ny_pt, &
-                         curved_grid
+                         nx_pt,ny_pt
                          
       USE basis, ONLY:       
       USE allocation, ONLY: alloc_trans_arrays
       USE read_dginp, ONLY: p,ctp
       USE vandermonde, ONLY: area_vandermonde,edge_vandermonde
-      USE shape_functions, ONLY: shape_functions_qpts,shape_functions_vertex, &
-                                 shape_functions_curve,shape_functions_edge
+      USE shape_functions, ONLY: shape_functions_qpts,shape_functions_edge
+      USE transformation, ONLY: init_element_coordinates
 
       IMPLICIT NONE
       INTEGER :: el,ed,led,dof,pt,i,nd
@@ -28,22 +27,19 @@
     
       CALL alloc_trans_arrays()             
       
+      CALL init_element_coordinates(ne,mnnds,el_type,nverts,xy,ect,elxy)
+      
       CALL area_vandermonde() 
       
-      CALL edge_vandermonde()
+      CALL edge_vandermonde()      
+      
+      IF (ctp > 1) THEN  
+        CALL curvilinear()    
+      ENDIF           
       
       CALL shape_functions_qpts()        
-      
-      CALL shape_functions_vertex()
-
-      CALL shape_functions_curve()
-      
-      CALL shape_functions_edge()
-      
-      IF (ctp > 1 .AND. curved_grid == 0) THEN  
-!       IF (ctp > 1) THEN
-        CALL curvilinear()    
-      ENDIF     
+            
+      CALL shape_functions_edge()      
 
       CALL area_transformation() 
       

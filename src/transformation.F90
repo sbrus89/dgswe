@@ -1,10 +1,46 @@
       MODULE transformation
+      
+      USE globals, ONLY: rp
+      
+      IMPLICIT NONE
+      
 
       CONTAINS
+      
+      SUBROUTINE init_element_coordinates(ne,mnnds,el_type,nverts,xy,ect,elxy)
+      
+      IMPLICIT NONE
+      
+      INTEGER, INTENT(IN) :: ne
+      INTEGER, INTENT(IN) :: mnnds
+      INTEGER, DIMENSION(:), INTENT(IN) :: el_type
+      INTEGER, DIMENSION(:), INTENT(IN) :: nverts
+      REAL(rp), DIMENSION(:,:), INTENT(IN) :: xy
+      INTEGER, DIMENSION(:,:), INTENT(IN) :: ect
+      REAL(rp), DIMENSION(:,:,:), ALLOCATABLE, INTENT(OUT) :: elxy
+            
+      INTEGER :: el,nd
+      INTEGER :: et,nv
+      INTEGER :: alloc_status
+      
+      ALLOCATE(elxy(mnnds,ne,2), STAT=alloc_status)
+      
+      
+      DO el = 1,ne        
+        et = el_type(el)
+        nv = nverts(et)
+        DO nd = 1,nv
+          elxy(nd,el,1) = xy(1,ect(nd,el))
+          elxy(nd,el,2) = xy(2,ect(nd,el))
+        ENDDO              
+      ENDDO          
+      
+      RETURN
+      END SUBROUTINE init_element_coordinates
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!      
 
       SUBROUTINE element_transformation(nnd,x,y,l,xpt,ypt,dldr,dlds,drdx,drdy,dsdx,dsdy,detJ)
-
-      USE globals, ONLY: rp
 
       IMPLICIT NONE
 
@@ -75,7 +111,7 @@
 
       SUBROUTINE cpp_transformation(ypt,Sp)
 
-      USE globals, ONLY: rp,r_earth
+      USE globals, ONLY: r_earth
       USE read_dginp, ONLY: coord_sys,sphi0
 
       IMPLICIT NONE

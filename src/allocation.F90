@@ -70,7 +70,7 @@
 
       SUBROUTINE alloc_grid_arrays(stage)
       
-      USE globals, ONLY: ect,vct,xy,depth,nelnds,el_type,elxy,elhb,nepn, &
+      USE globals, ONLY: ect,xy,depth,el_type,elxy,elhb,nepn, &
                          obseg,obnds,fbseg,fbnds
       
       IMPLICIT NONE
@@ -83,7 +83,7 @@
       IF (stage == 1) THEN
         n = 3      
         ! Node information
-        ALLOCATE(ect(mnnds,ne),vct(4,ne),xy(2,nn),depth(nn),nelnds(ne),el_type(ne),STAT = alloc_status(1))  
+        ALLOCATE(ect(mnnds,ne),xy(2,nn),depth(nn),el_type(ne),STAT = alloc_status(1))  
         ALLOCATE(elxy(mnnds,ne,2),elhb(mnnds,ne), STAT = alloc_status(2))
         ALLOCATE(nepn(nn),STAT = alloc_status(3))
       ELSE IF (stage == 2) THEN

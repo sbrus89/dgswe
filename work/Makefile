@@ -155,8 +155,9 @@ METIS_LIB = -L../metis-4.0.3 -lmetis
 
 dgswe_objects = globals.o lapack_interfaces.o messenger2.o allocation.o grid_file_mod.o \
                 read_input.o read_grid.o read_forcing.o bathymetry_interp.o \
-                edge_connectivity_mod.o connect.o initial.o interp_forcing.o curvilinear.o \
+                edge_connectivity_mod.o connect.o initial.o interp_forcing.o \
                 edge_partition2.o metis2.o \
+                curvilinear_nodes_mod.o curvilinear.o \
                 vandermonde.o shape_functions.o transformation.o \
                 element_data.o area_transformation.o normals.o edge_transformation.o \
                 basis.o eval_basis.o area_qpts.o edge_qpts.o \
@@ -381,7 +382,10 @@ $(ODIR)grid_file_mod.o : grid_file_mod.F90                     $(ODIR)globals.o 
 $(ODIR)edge_connectivity_mod.o : edge_connectivity_mod.F90     $(ODIR)quit.o
 	$(FC) $(FFLAGS) -c $< -o $@
 	mv edge_connectivity_mod.mod $(ODIR)
-
+	
+$(ODIR)curvilinear_nodes_mod.o : curvilinear_nodes_mod.F90     $(ODIR)globals.o $(ODIR)transformation.o
+	$(FC) $(FFLAGS) -c $< -o $@
+	mv curvilinear_nodes_mod.mod $(ODIR)
 
 $(ODIR)area_qpts.o : area_qpts.F90                             $(ODIR)globals.o $(ODIR)messenger2.o $(ODIR)read_input.o $(ODIR)allocation.o
 	$(FC) $(FFLAGS) -c $< -o $@
@@ -410,10 +414,10 @@ $(ODIR)initial.o : initial.F90                                 $(ODIR)globals.o 
 $(ODIR)connect.o : connect.F90                                 $(ODIR)globals.o $(ODIR)messenger2.o $(ODIR)read_input.o $(ODIR)edge_connectivity_mod.o
 	$(FC) $(FFLAGS) -c $< -o $@
 
-$(ODIR)curvilinear.o : curvilinear.F90                         $(ODIR)globals.o $(ODIR)read_input.o $(ODIR)basis.o $(ODIR)transformation.o
+$(ODIR)curvilinear.o : curvilinear.F90                         $(ODIR)globals.o $(ODIR)read_input.o $(ODIR)shape_functions.o $(ODIR)curvilinear_nodes_mod.o
 	$(FC) $(FFLAGS) -c $< -o $@
 
-$(ODIR)element_data.o : element_data.F90                       $(ODIR)globals.o $(ODIR)read_input.o $(ODIR)allocation.o $(ODIR)basis.o $(ODIR)vandermonde.o $(ODIR)shape_functions.o
+$(ODIR)element_data.o : element_data.F90                       $(ODIR)globals.o $(ODIR)read_input.o $(ODIR)allocation.o $(ODIR)basis.o $(ODIR)vandermonde.o $(ODIR)shape_functions.o $(ODIR)transformation.o
 	$(FC) $(FFLAGS) -c $< -o $@
 
 $(ODIR)edge_partition2.o : edge_partition2.F90                 $(ODIR)globals.o $(ODIR)messenger2.o $(ODIR)read_input.o $(ODIR)allocation.o
