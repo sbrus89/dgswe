@@ -3,7 +3,7 @@
      CONTAINS
           
      
-     SUBROUTINE vandermonde_matrix(et,p,ndf,V)
+     SUBROUTINE vandermonde_area(et,p,ndf,V)
      
      USE globals, ONLY: rp
      USE basis, ONLY: element_nodes,element_basis
@@ -24,90 +24,48 @@
      CALL element_basis(et,p,ndf,npt,r,s,V)
      
      
-     END SUBROUTINE vandermonde_matrix
-     
-     
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!        
-     
-     
-     SUBROUTINE area_vandermonde()
-      
-      USE globals, ONLY: rp,np,mnp,nnds,mnnds,norder,Va
-      USE basis, ONLY: tri_nodes,tri_basis,quad_nodes,quad_basis
-      
-      IMPLICIT NONE
-      INTEGER :: et,pt,dof,i,n,p
-      REAL(rp) :: r(mnnds),s(mnnds)
-      INTEGER :: info        
-      
-      
-      ALLOCATE(Va(mnnds,mnnds,norder))
-
-      Va = 0d0
-      
-      DO et = 1,norder
-        p = np(et)
-
-        CALL vandermonde_matrix(et,p,n,Va(:,:,et))
-                
-!         CALL DGETRF(n,n,Va(1,1,et),mnnds,ipiva(1,et),info)  
-        
-!         DO dof = 1,n
-!             PRINT("(100(e15.5))"), (Va(dof,pt,et), pt = 1,n)
-!         ENDDO        
-!         PRINT*, " "    
-
-      ENDDO
-      
-      END SUBROUTINE area_vandermonde      
+     END SUBROUTINE vandermonde_area       
       
       
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!               
       
       
-      SUBROUTINE edge_vandermonde()
+      SUBROUTINE vandermonde_edge(p,n,V)
       
-      USE globals, ONLY: rp,np,mnp,norder,nel_type,Ve,ipive
+      USE globals, ONLY: rp
       USE basis, ONLY: lglpts,jacobi
       
       IMPLICIT NONE
-      INTEGER :: et,pt,i,n,p
-      REAL(rp) :: xi(mnp)
-      REAL(rp) :: phi(mnp*mnp)
-      INTEGER :: info          
       
-      ALLOCATE(Ve(mnp,mnp,norder))
-      ALLOCATE(ipive(mnp,norder)) 
+      INTEGER, INTENT(IN) :: p
+      INTEGER, INTENT(OUT) :: n
+      REAL(rp), DIMENSION(:,:), INTENT(OUT) :: V
       
-      Ve = 0d0
-      ipive = 0      
+      INTEGER :: pt,i
+      REAL(rp) :: xi(p+1)
+      REAL(rp) :: phi(p+1)            
       
-      DO et = 1,nel_type
+    
+      n = p+1
       
-        p = np(et)        
-        n = p+1
+      CALL lglpts(p,xi)       
       
-        CALL lglpts(p,xi)       
+      DO i = 0,p      
       
-        DO i = 0,p      
-      
-          CALL jacobi(0,0,i,xi,n,phi)
+        CALL jacobi(0,0,i,xi,n,phi)
         
-          DO pt = 1,n
-            Ve(i+1,pt,et) = phi(pt)
-          ENDDO       
+        DO pt = 1,n
+          V(i+1,pt) = phi(pt)
+        ENDDO       
         
-        ENDDO     
-      
-        CALL DGETRF(n,n,Ve(1,1,et),mnp,ipive(1,et),info)       
-        
-      ENDDO
+      ENDDO              
+
                   
       RETURN      
-      END SUBROUTINE edge_vandermonde
+      END SUBROUTINE vandermonde_edge
       
-      
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!       
       
       END MODULE vandermonde

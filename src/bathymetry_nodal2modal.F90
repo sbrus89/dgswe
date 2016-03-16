@@ -3,7 +3,7 @@
       USE globals, ONLY: rp,ne,np,norder,order,mnnds,nnds,el_type, &
                          hbm,elhb
       USE read_dginp, ONLY: out_direc
-      USE vandermonde, ONLY: vandermonde_matrix
+      USE vandermonde, ONLY: vandermonde_area
       USE lapack_interfaces
       
       IMPLICIT NONE
@@ -17,7 +17,7 @@
      
       DO et = 1,norder
         p = np(et)
-        CALL vandermonde_matrix(et,p,n,V(:,:,et))
+        CALL vandermonde_area(et,p,n,V(:,:,et))
         CALL DGETRF(n,n,V(1,1,et),mnnds,ipiv(1,et),info)  
       ENDDO
      

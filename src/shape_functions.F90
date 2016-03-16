@@ -3,12 +3,12 @@
       CONTAINS
       
       
-      SUBROUTINE shape_functions_eval(nv,p,nnd,npts,r,s,psi,dpdr,dpds)
+      SUBROUTINE shape_functions_area_eval(nv,p,nnd,npts,r,s,psi,dpdr,dpds)
       
       USE globals, ONLY: rp
       USE basis, ONLY: element_basis
       USE lapack_interfaces
-      USE vandermonde, ONLY: vandermonde_matrix
+      USE vandermonde, ONLY: vandermonde_area
       
       IMPLICIT NONE
       
@@ -37,7 +37,7 @@
 
       ldp = SIZE(psi,1)
 
-      CALL vandermonde_matrix(nv,p,nnd,V)
+      CALL vandermonde_area(nv,p,nnd,V)
       
       IF (calc_derv == 0) THEN
       
@@ -53,13 +53,13 @@
       
       ENDIF
       
-      END SUBROUTINE shape_functions_eval
+      END SUBROUTINE shape_functions_area_eval
       
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!      
       
       
-      SUBROUTINE shape_functions_qpts()
+      SUBROUTINE shape_functions_area_qpts()
 
       USE globals, ONLY: rp,nel_type,order,nverts,nnds,mnnds, &
                          mnqpta,nqpta,mnqpte,nqpte,np, &
@@ -111,7 +111,7 @@
         ENDDO
 
 
-        CALL shape_functions_eval(nv,p,nnd,tpts,r,s,psia(:,:,typ),dpsidr(:,:,typ),dpsids(:,:,typ))                 
+        CALL shape_functions_area_eval(nv,p,nnd,tpts,r,s,psia(:,:,typ),dpsidr(:,:,typ),dpsids(:,:,typ))                 
 !       
 !       PRINT*, "psi : "      
 !       DO i = 1,nnd
@@ -130,7 +130,7 @@
 
        ENDDO
        
-      END SUBROUTINE shape_functions_qpts
+      END SUBROUTINE shape_functions_area_qpts
       
       
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -170,7 +170,7 @@
         ENDIF  
 
         CALL element_nodes(eo,1,p,npts,r,s)
-        CALL shape_functions_eval(eo,np(et),nnd,npts,r,s,psiv(:,:,eo))   
+        CALL shape_functions_area_eval(eo,np(et),nnd,npts,r,s,psiv(:,:,eo))   
               
 !         IF (myrank == 0) THEN
 !           PRINT*, "psiv"
@@ -221,7 +221,7 @@
         ENDIF     
 
         CALL element_nodes(eo,1,p,npts,r,s)
-        CALL shape_functions_eval(eo,np(et),nnd,npts,r,s,psic(:,:,eo))             
+        CALL shape_functions_area_eval(eo,np(et),nnd,npts,r,s,psic(:,:,eo))             
                 
 !         IF (myrank == 0) THEN
 !           PRINT*, "psic"        
@@ -235,19 +235,67 @@
       
       END SUBROUTINE shape_functions_curve
       
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!       
+       
+       
+      SUBROUTINE shape_functions_edge_eval(p,n,npts,xi,psi,dpdxi)
+
+      USE globals, ONLY: rp
+      USE basis, ONLY: jacobi,djacobi
+      USE vandermonde, ONLY: vandermonde_edge
+      
+      IMPLICIT NONE    
+      
+      INTEGER, INTENT(IN) :: p
+      INTEGER, INTENT(OUT) :: n
+      INTEGER, INTENT(IN) :: npts
+      REAL(rp), DIMENSION(:), INTENT(IN) :: xi
+      REAL(rp), DIMENSION(:,:), INTENT(OUT) :: psi
+      REAL(rp), DIMENSION(:,:), INTENT(OUT) :: dpdxi
+      
+      
+      
+      INTEGER :: pt,i
+      INTEGER :: ldp
+      INTEGER :: info      
+      REAL(rp) :: phi(npts),dphi(npts)  
+      INTEGER :: ipiv(p+1)
+      REAL(rp) :: V(p+1,p+1)
+       
+      ldp = SIZE(psi,1)
+      
+      CALL vandermonde_edge(p,n,V)
+      
+      DO i = 0,p
+      
+        CALL jacobi(0,0,i,xi,npts,phi)
+        CALL djacobi(0,0,i,xi,npts,dphi)
+        
+        DO pt = 1,npts          
+          psi(i+1,pt) = phi(pt)
+          dpdxi(i+1,pt) = dphi(pt)
+        ENDDO
+      
+      ENDDO
+
+      CALL DGESV(n,npts,V,n,ipiv,psi,ldp,info)     
+      CALL DGETRS("N",n,npts,V,n,ipiv,dpdxi,ldp,info)
+ 
+
+      RETURN
+      END SUBROUTINE shape_functions_edge_eval      
+      
       
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!       
        
        
-      SUBROUTINE shape_functions_edge()
+      SUBROUTINE shape_functions_edge_qpts()
 
       USE globals, ONLY: rp,nel_type, &
                          mnqpte,nqpte,np,mnp, &
-                         qpte,psie,dpsidxi, &
-                         Ve,ipive
-      USE basis, ONLY: jacobi,djacobi
-      USE messenger2, ONLY: myrank
+                         qpte,psie,dpsidxi
       
       IMPLICIT NONE      
       
@@ -273,24 +321,11 @@
           xi(pt) = qpte(pt,2,et) ! These are the 1-D guass points
         ENDDO
       
-        DO i = 0,p
-      
-          CALL jacobi(0,0,i,xi,nqe,phi)
-          CALL djacobi(0,0,i,xi,nqe,dphi)
-        
-          DO pt = 1,nqe          
-            psie(i+1,pt,et) = phi(pt)
-            dpsidxi(i+1,pt,et) = dphi(pt)
-          ENDDO
-      
-        ENDDO
-
-        CALL DGETRS("N",n,nqe,Ve(1,1,et),mnp,ipive(1,et),psie(1,1,et),mnp,info)
-        CALL DGETRS("N",n,nqe,Ve(1,1,et),mnp,ipive(1,et),dpsidxi(1,1,et),mnp,info)
+        CALL shape_functions_edge_eval(p,n,nqe,xi,psie(:,:,et),dpsidxi(:,:,et))
  
       ENDDO
 
       RETURN
-      END SUBROUTINE shape_functions_edge
+      END SUBROUTINE shape_functions_edge_qpts
       
       END MODULE shape_functions

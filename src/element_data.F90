@@ -11,8 +11,7 @@
       USE basis, ONLY:       
       USE allocation, ONLY: alloc_trans_arrays
       USE read_dginp, ONLY: p,ctp
-      USE vandermonde, ONLY: area_vandermonde,edge_vandermonde
-      USE shape_functions, ONLY: shape_functions_qpts,shape_functions_edge
+      USE shape_functions, ONLY: shape_functions_area_qpts,shape_functions_edge_qpts
       USE transformation, ONLY: init_element_coordinates
 
       IMPLICIT NONE
@@ -27,23 +26,19 @@
     
       CALL alloc_trans_arrays()             
       
-      CALL init_element_coordinates(ne,mnnds,el_type,nverts,xy,ect,elxy)
-      
-      CALL area_vandermonde() 
-      
-      CALL edge_vandermonde()      
+      CALL init_element_coordinates(ne,mnnds,el_type,nverts,xy,ect,elxy)          
       
       IF (ctp > 1) THEN  
         CALL curvilinear()    
       ENDIF           
       
-      CALL shape_functions_qpts()        
-            
-      CALL shape_functions_edge()      
+      CALL shape_functions_area_qpts()                         
 
       CALL area_transformation() 
       
       CALL normals()
+      
+      CALL shape_functions_edge_qpts()      
 
       CALL edge_transformation()
       
