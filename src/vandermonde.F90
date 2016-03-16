@@ -10,10 +10,12 @@
      
      IMPLICIT NONE
        
-     INTEGER :: et,p
-     REAL(rp), DIMENSION(:,:) :: V
+     INTEGER, INTENT(IN) :: et
+     INTEGER, INTENT(IN) :: p
+     INTEGER, INTENT(OUT) :: ndf
+     REAL(rp), DIMENSION(:,:), INTENT(OUT) :: V
      
-     INTEGER :: npt,ndf
+     INTEGER :: npt
      INTEGER :: info
      REAL(rp), DIMENSION((p+1)**2) :: r,s
    

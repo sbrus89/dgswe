@@ -359,7 +359,7 @@ $(ODIR)vandermonde.o : vandermonde.F90                         $(ODIR)globals.o 
 	$(FC) $(FFLAGS) -c $< -o $@
 	mv vandermonde.mod $(ODIR)
 	
-$(ODIR)shape_functions.o : shape_functions.F90                 $(ODIR)globals.o $(ODIR)messenger2.o $(ODIR)basis.o $(ODIR)lapack_interfaces.o
+$(ODIR)shape_functions.o : shape_functions.F90                 $(ODIR)globals.o $(ODIR)messenger2.o $(ODIR)basis.o $(ODIR)lapack_interfaces.o $(ODIR)vandermonde.o
 	$(FC) $(FFLAGS) -c $< -o $@
 	mv shape_functions.mod $(ODIR)
 

@@ -3,26 +3,26 @@
       CONTAINS
       
       
-      SUBROUTINE shape_functions_eval(nv,p,nnd,npts,r,s,V,psi,dpdr,dpds)
+      SUBROUTINE shape_functions_eval(nv,p,nnd,npts,r,s,psi,dpdr,dpds)
       
       USE globals, ONLY: rp
       USE basis, ONLY: element_basis
       USE lapack_interfaces
+      USE vandermonde, ONLY: vandermonde_matrix
       
       IMPLICIT NONE
       
       INTEGER, INTENT(IN) :: nv,p,npts
       INTEGER, INTENT(OUT) :: nnd
       REAL(rp), DIMENSION(:), INTENT(IN) :: r,s
-      REAL(rp), DIMENSION(:,:), INTENT(IN) :: V
       REAL(rp), DIMENSION(:,:), INTENT(OUT) :: psi
       REAL(rp), DIMENSION(:,:), OPTIONAL, INTENT(OUT) :: dpdr,dpds      
             
       INTEGER :: info
-      INTEGER :: Vd1,Vd2,pd1
+      INTEGER :: ldv,ldp
       INTEGER :: calc_derv
       INTEGER, DIMENSION(:), ALLOCATABLE :: ipiv
-      REAL(rp), DIMENSION(:,:), ALLOCATABLE :: Vf
+      REAL(rp), DIMENSION(:,:), ALLOCATABLE :: V
       
       IF (PRESENT(dpdr) .AND. PRESENT(dpds)) THEN
         calc_derv = 1
@@ -30,25 +30,26 @@
         calc_derv = 0
       ENDIF
             
-      Vd1 = SIZE(V,1)
-      Vd2 = SIZE(V,2)
-      ALLOCATE(ipiv(Vd1))
-      ALLOCATE(Vf(Vd1,Vd2))
-      Vf = V
+      ldv = (p+1)**2
 
-      pd1 = SIZE(psi,1)
+      ALLOCATE(V(ldv,ldv))
+      ALLOCATE(ipiv(ldv))
+
+      ldp = SIZE(psi,1)
+
+      CALL vandermonde_matrix(nv,p,nnd,V)
       
       IF (calc_derv == 0) THEN
       
         CALL element_basis(nv,p,nnd,npts,r,s,psi) 
-        CALL DGESV(nnd,npts,Vf,Vd1,ipiv,psi,pd1,info)      
+        CALL DGESV(nnd,npts,V,ldv,ipiv,psi,ldp,info)      
         
       ELSE 
       
         CALL element_basis(nv,p,nnd,npts,r,s,psi,dpdr,dpds) 
-        CALL DGESV(nnd,npts,Vf,Vd1,ipiv,psi,pd1,info)    
-        CALL DGETRS("N",nnd,npts,Vf,Vd1,ipiv,dpdr,pd1,info) 
-        CALL DGETRS("N",nnd,npts,Vf,Vd1,ipiv,dpds,pd1,info)         
+        CALL DGESV(nnd,npts,V,ldv,ipiv,psi,ldp,info)    
+        CALL DGETRS("N",nnd,npts,V,ldv,ipiv,dpdr,ldp,info) 
+        CALL DGETRS("N",nnd,npts,V,ldv,ipiv,dpds,ldp,info)         
       
       ENDIF
       
@@ -111,7 +112,7 @@
         ENDDO
 
 
-        CALL shape_functions_eval(nv,p,nnd,tpts,r,s,Va(:,:,eo),psia(:,:,typ),dpsidr(:,:,typ),dpsids(:,:,typ))                 
+        CALL shape_functions_eval(nv,p,nnd,tpts,r,s,psia(:,:,typ),dpsidr(:,:,typ),dpsids(:,:,typ))                 
 !       
 !       PRINT*, "psi : "      
 !       DO i = 1,nnd
@@ -170,7 +171,7 @@
         ENDIF  
 
         CALL element_nodes(eo,1,p,npts,r,s)
-        CALL shape_functions_eval(eo,np(et),nnd,npts,r,s,Va(:,:,et),psiv(:,:,eo))   
+        CALL shape_functions_eval(eo,np(et),nnd,npts,r,s,psiv(:,:,eo))   
               
 !         IF (myrank == 0) THEN
 !           PRINT*, "psiv"
@@ -221,7 +222,7 @@
         ENDIF     
 
         CALL element_nodes(eo,1,p,npts,r,s)
-        CALL shape_functions_eval(eo,np(et),nnd,npts,r,s,Va(:,:,et),psic(:,:,eo))             
+        CALL shape_functions_eval(eo,np(et),nnd,npts,r,s,psic(:,:,eo))             
                 
 !         IF (myrank == 0) THEN
 !           PRINT*, "psic"        
