@@ -49,6 +49,7 @@
       
       CALL bathymetry_interp()
       
+      CALL bathymetry_nodal2modal()
       
       !!!!!!!!!!!!!!!!!!!!!!!!!!
       ! Calculate element area 

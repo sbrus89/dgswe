@@ -1,13 +1,11 @@
       SUBROUTINE bathymetry_interp()
 
-      USE globals, ONLY: rp,el_type,ed_type,mndof,ndof,mnnds,nnds,nqpta,nqpte,nverts,norder,order, &
+      USE globals, ONLY: rp,el_type,ed_type,nnds,nqpta,nqpte,order, &
                          ne,ned,elxy,elhb,ged2el,ged2led, &
-                         hbqpta_init,dhbdx_init,dhbdy_init,hbqpte_init,hbm,hbqpted, &
-                         Va,psia,dpsidr,dpsids, &
+                         hbqpta_init,dhbdx_init,dhbdy_init,hbqpte_init,hbqpted, &
+                         psia,dpsidr,dpsids, &
                          recv_edge
-      USE transformation, ONLY: element_transformation,cpp_transformation                         
-      USE read_dginp, ONLY: out_direc   
-      USE lapack_interfaces                      
+      USE transformation, ONLY: element_transformation,cpp_transformation                                            
                          
 
       IMPLICIT NONE
@@ -20,9 +18,7 @@
       REAL(rp) :: hb
       REAL(rp) :: xpt,ypt,detJ,Sp
       REAL(rp) :: drdx,drdy,dsdx,dsdy
-      REAL(rp) :: hbn(mnnds)
-      REAL(rp) :: V(mnnds,mnnds,norder)
-      INTEGER :: ipiv(mnnds,norder)
+
 
 
       OPEN(unit=45, file='dhb.d')
@@ -211,38 +207,6 @@
 !       PRINT*, "# of unmatched points", edpt
       
 !       CLOSE(47)
-
-
-
-      V = Va
-      DO et = 1,norder
-        n = nnds(et)
-        CALL DGETRF(n,n,V(1,1,et),mnnds,ipiv(1,et),info)  
-      ENDDO
-     
-      ALLOCATE(hbm(mnnds,ne))     
-      hbm = 0d0 
-      DO el = 1,ne
-      
-        et = el_type(el)
-        typ = et + 4
-        eo = order(typ) 
-        n = nnds(eo)    
-                
-        DO nd = 1,n
-          hbm(nd,el) = elhb(nd,el)
-        ENDDO
-        
-        CALL DGETRS("T",n,1,V(1,1,eo),mnnds,ipiv(1,eo),hbm(1,el),mnnds,info)                         
-        
-      ENDDO
-      
-      OPEN(unit=65,FILE=trim(out_direc) //'hb_modal.d')
-      DO dof = 1,mnnds
-        WRITE(65,"(16000(e24.17,1x))") (hbm(dof,el), el = 1,ne)
-      ENDDO
-      CLOSE(65)
-      
 
 
       RETURN

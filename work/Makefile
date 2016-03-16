@@ -154,7 +154,8 @@ METIS_LIB = -L../metis-4.0.3 -lmetis
 ########################################################################
 
 dgswe_objects = globals.o lapack_interfaces.o messenger2.o allocation.o grid_file_mod.o \
-                read_input.o read_grid.o read_forcing.o bathymetry_interp.o \
+                read_input.o read_grid.o read_forcing.o \
+                bathymetry_interp.o bathymetry_nodal2modal.o \
                 edge_connectivity_mod.o connect.o initial.o interp_forcing.o \
                 edge_partition2.o metis2.o \
                 curvilinear_nodes_mod.o curvilinear.o \
@@ -441,8 +442,11 @@ $(ODIR)normals.o : normals.F90                                 $(ODIR)globals.o 
 $(ODIR)edge_integration.o : edge_integration.F90               $(ODIR)globals.o $(ODIR)messenger2.o
 	$(FC) $(FFLAGS) $(OPT_REPORT) -c $< -o $@
 	
-$(ODIR)bathymetry_interp.o : bathymetry_interp.F90             $(ODIR)globals.o $(ODIR)lapack_interfaces.o $(ODIR)read_input.o $(ODIR)transformation.o
+$(ODIR)bathymetry_interp.o : bathymetry_interp.F90             $(ODIR)globals.o $(ODIR)transformation.o
 	$(FC) $(FFLAGS) -c $< -o $@
+	
+$(ODIR)bathymetry_nodal2modal.o : bathymetry_nodal2modal.F90   $(ODIR)globals.o $(ODIR)lapack_interfaces.o $(ODIR)read_input.o $(ODIR)vandermonde.o
+	$(FC) $(FFLAGS) -c $< -o $@	
 
 $(ODIR)rk.o : rk.F90                                           $(ODIR)globals.o $(ODIR)messenger2.o $(ODIR)read_input.o $(ODIR)output.o $(ODIR)quit.o
 	$(FC) $(FFLAGS) $(OPT_REPORT) -c $< -o $@
