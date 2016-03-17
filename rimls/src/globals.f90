@@ -37,7 +37,6 @@
         INTEGER :: ne ! number of elements
         INTEGER :: nn ! number of nodes        
       
-        INTEGER :: curved_grid
         INTEGER, ALLOCATABLE, DIMENSION(:) :: el_type      
       
         INTEGER, ALLOCATABLE, DIMENSION(:,:) :: ect,vct ! element connectivity table

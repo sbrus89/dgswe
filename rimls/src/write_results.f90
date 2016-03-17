@@ -1,6 +1,6 @@
       MODULE write_results
 
-      USE globals, ONLY: rp,grid,np,mninds,mnnds,out_direc
+      USE globals, ONLY: rp,grid,np,mninds,mnnds,out_direc,nverts
 
       CONTAINS
 
@@ -146,6 +146,7 @@
       IMPLICIT NONE
       
       INTEGER :: i,j
+      INTEGER :: et,nv
       TYPE(grid) :: mesh
       
       PRINT "(A)", "Writing fort.14 with rimls nodes..."       
@@ -161,7 +162,9 @@
       ENDDO
       
       DO i = 1,mesh%ne
-        WRITE(14,*) i, mesh%nelnds(i), (mesh%ect(j,i), j = 1,mesh%nelnds(i))               
+        et = mesh%el_type(i)
+        nv = nverts(et)
+        WRITE(14,*) i, nv, (mesh%ect(j,i), j = 1,nv)               
       ENDDO
       
       WRITE(14,*) mesh%nope

@@ -1,5 +1,5 @@
 FC = ifort
-FFLAGS = -132 -heap-arrays -I$(ODIR) #-traceback -g -C
+FFLAGS = -132 -heap-arrays -I$(ODIR) -traceback -g -C
 
 VPATH := ../src/
 ODIR = odir/
@@ -40,8 +40,8 @@ endif
 #                               Objects                                #
 ########################################################################
 
-objects = kdtree2.o globals.o allocation.o basis.o find_element.o \
-          write_results.o connect.o evaluate.o read_input.o read_grid.o \
+objects = kdtree2.o globals.o allocation.o basis.o find_element.o quit.o\
+          write_results.o connect.o evaluate.o read_input.o read_grid.o grid_file_mod.o\
           curvilinear.o compute_random.o lapack_interfaces.o version.o rimls.o
           
 obj := $(patsubst %.o, $(ODIR)%.o,$(objects))
@@ -66,13 +66,13 @@ $(ODIR) :
 	mkdir -p $@	
 	
 version :
-	@sed -i '10 c \      gitBranch = "$(GIT_BRANCH)" ' $(VPATH)version.f90
-	@sed -i '11 c \      gitSHA = "$(GIT_SHA) $(GIT_MOD)" ' $(VPATH)version.f90
-	@sed -i '12 c \      compiler_version = "$(FC_VERSION)" ' $(VPATH)version.f90
-	@sed -i '13 c \      compiler_flags = "$(FFLAGS)" ' $(VPATH)version.f90
-	@sed -i '14 c \      modified_files = "$(GIT_MFILES)" ' $(VPATH)version.f90
-	@sed -i '15 c \      compile_date = "$(DATE)" ' $(VPATH)version.f90
-	@sed -i '16 c \      host = "$(NAME)" ' $(VPATH)version.f90			
+	@sed -i '10 c \      gitBranch = "$(GIT_BRANCH)" ' ../../src/version.F90
+	@sed -i '11 c \      gitSHA = "$(GIT_SHA) $(GIT_MOD)" ' ../../src/version.F90
+	@sed -i '12 c \      compiler_version = "$(FC_VERSION)" ' ../../src/version.F90
+	@sed -i '13 c \      compiler_flags = "$(FFLAGS)" ' ../../src/version.F90
+	@sed -i '14 c \      modified_files = "$(GIT_MFILES)" ' ../../src/version.F90
+	@sed -i '15 c \      compile_date = "$(DATE)" ' ../../src/version.F90
+	@sed -i '16 c \      host = "$(NAME)" ' ../../src/version.F90
 	
 ########################################################################
 #                            Clean Targets                             #
@@ -96,15 +96,23 @@ $(ODIR)globals.o: globals.f90                                   $(ODIR)kdtree2.o
 	$(FC) $(FFLAGS) -c $< -o $@
 	mv globals.mod $(ODIR)	
 	
-$(ODIR)lapack_interfaces.o : lapack_interfaces.f90
+$(ODIR)lapack_interfaces.o : ../../src/lapack_interfaces.F90    
 	$(FC) $(FFLAGS) -c $< -o $@
-	mv lapack_interfaces.mod $(ODIR)	
+	mv lapack_interfaces.mod $(ODIR)
 
+$(ODIR)grid_file_mod.o : ../../src/grid_file_mod.F90            $(ODIR)globals.o $(ODIR)quit.o
+	$(FC) $(FFLAGS) -c $< -o $@
+	mv grid_file_mod.mod $(ODIR)
+	
+$(ODIR)quit.o : ../../src/quit.F90                              $(ODIR)globals.o
+	$(FC) $(FFLAGS) -c $< -o $@
+	mv quit.mod $(ODIR)	
+	
 $(ODIR)allocation.o: allocation.f90                             $(ODIR)globals.o
 	$(FC) $(FFLAGS) -c $< -o $@
 	mv allocation.mod $(ODIR)
 
-$(ODIR)basis.o: basis.f90                                       $(ODIR)globals.o
+$(ODIR)basis.o: ../../src/basis.F90                             $(ODIR)globals.o  $(ODIR)lapack_interfaces.o
 	$(FC) $(FFLAGS) -c $< -o $@
 	mv basis.mod $(ODIR)	
 	
@@ -126,7 +134,7 @@ $(ODIR)evaluate.o: evaluate.f90                                 $(ODIR)kdtree2.o
 $(ODIR)read_input.o: read_input.f90                             $(ODIR)globals.o
 	$(FC) $(FFLAGS) -c $< -o $@
 
-$(ODIR)read_grid.o: read_grid.f90                               $(ODIR)globals.o  $(ODIR)allocation.o
+$(ODIR)read_grid.o: read_grid.f90                               $(ODIR)globals.o  $(ODIR)grid_file_mod.o $(ODIR)allocation.o
 	$(FC) $(FFLAGS) -c $< -o $@
 	
 $(ODIR)curvilinear.o : curvilinear.f90                          $(ODIR)globals.o
@@ -135,7 +143,7 @@ $(ODIR)curvilinear.o : curvilinear.f90                          $(ODIR)globals.o
 $(ODIR)compute_random.o : compute_random.f90                    $(ODIR)kdtree2.o  $(ODIR)globals.o  $(ODIR)basis.o $(ODIR)find_element.o  $(ODIR)evaluate.o  $(ODIR)lapack_interfaces.o
 	$(FC) $(FFLAGS) -c $< -o $@	
 		
-$(ODIR)version.o : version.f90                                  $(ODIR)globals.o
+$(ODIR)version.o : ../../src/version.F90                        $(ODIR)globals.o
 	$(FC) $(FFLAGS) -c $< -o $@
 
 $(ODIR)rimls.o: rimls.f90                                       $(ODIR)globals.o  $(ODIR)allocation.o  $(ODIR)basis.o  $(ODIR)write_results.o
