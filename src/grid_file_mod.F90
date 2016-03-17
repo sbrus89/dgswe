@@ -2,11 +2,9 @@
 
       USE globals, ONLY: rp,deg2rad
       USE quit, ONLY: abort    
+   
+      
 
-      INTEGER :: i,j,k
-      INTEGER :: el,nd      
-      INTEGER :: alloc_status
-      LOGICAL :: file_exists
       
 
       CONTAINS
@@ -22,7 +20,9 @@
       CHARACTER(100), INTENT(IN)  :: grid_file
       CHARACTER(100), INTENT(OUT) :: grid_name      
       INTEGER, INTENT(OUT) :: ne
-      INTEGER, INTENT(OUT) :: nn     
+      INTEGER, INTENT(OUT) :: nn   
+      
+      LOGICAL :: file_exists      
 
       ! open fort.14 grid file
       INQUIRE(FILE=grid_file, EXIST=file_exists)
@@ -58,8 +58,11 @@
       INTEGER, INTENT(IN) :: coord_sys
       REAL(rp), INTENT(IN) :: r_earth
       REAL(rp), INTENT(IN) :: slam0
-      REAL(rp), INTENT(IN) :: sphi0      
+      REAL(rp), INTENT(IN) :: sphi0  
       
+      INTEGER :: i,j
+      INTEGER :: alloc_status      
+      alloc_status = 0
 
       ALLOCATE(xy(2,nn),depth(nn), STAT=alloc_status)
       IF (alloc_status /= 0) THEN
@@ -109,7 +112,11 @@
       INTEGER, DIMENSION(:,:), ALLOCATABLE, INTENT(OUT) :: ect
       INTEGER, DIMENSION(:)  , ALLOCATABLE, INTENT(OUT) :: el_type
 
+      INTEGER :: i,j
+      INTEGER :: el
       INTEGER :: nv
+      INTEGER :: alloc_status       
+      
       
       ALLOCATE(ect(4,ne),el_type(ne), STAT=alloc_status)
       IF (alloc_status /= 0) THEN
@@ -155,7 +162,9 @@
       INTEGER, DIMENSION(:)  , ALLOCATABLE, INTENT(OUT) :: obseg      
       INTEGER, DIMENSION(:,:), ALLOCATABLE, INTENT(OUT) :: obnds
       
+      INTEGER :: i,j
       INTEGER :: nbseg
+      INTEGER :: alloc_status       
       
       
       
@@ -203,8 +212,9 @@
       INTEGER, DIMENSION(:,:), ALLOCATABLE, INTENT(OUT) :: fbseg
       INTEGER, DIMENSION(:,:), ALLOCATABLE, INTENT(OUT) :: fbnds
             
+      INTEGER :: i,j      
       INTEGER :: nbseg,btype
-      
+      INTEGER :: alloc_status       
       
       
       READ(14,*) nbou  ! number of normal flow boundaries
@@ -266,11 +276,14 @@
       INTEGER, DIMENSION(:,:), INTENT(IN) :: ect
       REAL(rp), DIMENSION(:,:), ALLOCATABLE, INTENT(OUT) :: elhb      
       
+      INTEGER :: i
+      INTEGER :: el,nd
       INTEGER :: et,nv
       INTEGER :: nnds
       INTEGER :: ne_check
       INTEGER :: hbp_check
-      
+      LOGICAL :: file_exists  
+      INTEGER :: alloc_status       
       
       ALLOCATE(elhb((hbp+1)**2,ne), STAT=alloc_status)
       IF (alloc_status /= 0) THEN
@@ -336,10 +349,14 @@
       REAL(rp), DIMENSION(:,:), INTENT(OUT) :: xy
       REAL(rp), DIMENSION(:,:,:,:), ALLOCATABLE, INTENT(OUT) :: bndxy
 
+      INTEGER :: i,j,k
+      INTEGER :: nd
       INTEGER :: nbou_check
       INTEGER :: ctp_check
       INTEGER :: nmax
       INTEGER :: nbseg,btype
+      LOGICAL :: file_exists
+      INTEGER :: alloc_status       
       
       
       INQUIRE(FILE=curve_file, EXIST = file_exists)  
