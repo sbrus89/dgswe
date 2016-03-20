@@ -65,19 +65,32 @@
         INTEGER :: nvel  ! total number of normal flow boundary nodes
         INTEGER, ALLOCATABLE, DIMENSION(:,:) :: fbnds ! normal flow boundary nodes
       
+        INTEGER :: mnepn
         INTEGER, ALLOCATABLE, DIMENSION(:) :: nepn ! number of elements per node
-        INTEGER, ALLOCATABLE, DIMENSION(:,:) :: epn ! elements per node 
-        
-        INTEGER, ALLOCATABLE, DIMENSION(:) :: nepe
-        INTEGER, ALLOCATABLE, DIMENSION(:,:) :: el2el
+        INTEGER, ALLOCATABLE, DIMENSION(:,:) :: epn ! elements per node            
       
         INTEGER :: ned
         INTEGER :: nied
+        INTEGER, ALLOCATABLE, DIMENSION(:) :: iedn  
+        INTEGER :: nobed    
+        INTEGER, ALLOCATABLE, DIMENSION(:) :: obedn
+        INTEGER :: nfbed
+        INTEGER, ALLOCATABLE, DIMENSION(:) :: fbedn        
         INTEGER :: nnfbed
-        INTEGER, ALLOCATABLE, DIMENSION(:) :: bed_flag
-        INTEGER, ALLOCATABLE, DIMENSION(:,:) :: bel2bed
+        INTEGER, ALLOCATABLE, DIMENSION(:) :: nfbedn 
+        INTEGER, ALLOCATABLE, DIMENSION(:,:) :: nfbednn         
+        INTEGER :: nbed
+        INTEGER, ALLOCATABLE, DIMENSION(:) :: bedn   
+        INTEGER :: nred
+        INTEGER, ALLOCATABLE, DIMENSION(:) :: recv_edge
+        INTEGER, ALLOCATABLE, DIMENSION(:) :: ed_type
+        
         INTEGER, ALLOCATABLE, DIMENSION(:,:) :: ged2nn,ged2el,ged2led  
-        INTEGER, ALLOCATABLE, DIMENSION(:) :: nfbedn        
+        
+        INTEGER, ALLOCATABLE, DIMENSION(:,:) :: el2el
+        INTEGER, ALLOCATABLE, DIMENSION(:,:) :: el2ged            
+
+               
       
       END TYPE
       

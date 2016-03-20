@@ -1,5 +1,5 @@
 FC = ifort
-FFLAGS = -132 -heap-arrays -I$(ODIR) -traceback -g -C
+FFLAGS = -132 -heap-arrays -I$(ODIR) #-traceback -g -C
 
 VPATH := ../src/
 ODIR = odir/
@@ -41,7 +41,8 @@ endif
 ########################################################################
 
 objects = kdtree2.o globals.o allocation.o basis.o find_element.o quit.o\
-          write_results.o connect.o evaluate.o read_input.o read_grid.o grid_file_mod.o\
+          write_results.o connect.o edge_connectivity_mod.o evaluate.o read_input.o \
+          read_grid.o grid_file_mod.o\
           curvilinear.o compute_random.o lapack_interfaces.o version.o rimls.o
           
 obj := $(patsubst %.o, $(ODIR)%.o,$(objects))
@@ -104,6 +105,10 @@ $(ODIR)grid_file_mod.o : ../../src/grid_file_mod.F90            $(ODIR)globals.o
 	$(FC) $(FFLAGS) -c $< -o $@
 	mv grid_file_mod.mod $(ODIR)
 	
+$(ODIR)edge_connectivity_mod.o : ../../src/edge_connectivity_mod.F90 $(ODIR)quit.o
+	$(FC) $(FFLAGS) -c $< -o $@
+	mv edge_connectivity_mod.mod $(ODIR)
+	
 $(ODIR)quit.o : ../../src/quit.F90                              $(ODIR)globals.o
 	$(FC) $(FFLAGS) -c $< -o $@
 	mv quit.mod $(ODIR)	
@@ -124,7 +129,7 @@ $(ODIR)write_results.o: write_results.f90                       $(ODIR)globals.o
 	$(FC) $(FFLAGS) -c $< -o $@
 	mv write_results.mod $(ODIR)
 
-$(ODIR)connect.o: connect.f90                                   $(ODIR)globals.o
+$(ODIR)connect.o: connect.f90                                   $(ODIR)globals.o $(ODIR)edge_connectivity_mod.o
 	$(FC) $(FFLAGS) -c $< -o $@
 
 $(ODIR)evaluate.o: evaluate.f90                                 $(ODIR)kdtree2.o  $(ODIR)globals.o  $(ODIR)basis.o  $(ODIR)find_element.o  $(ODIR)lapack_interfaces.o

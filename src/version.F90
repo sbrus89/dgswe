@@ -8,11 +8,11 @@
       
       
       gitBranch = "master" 
-      gitSHA = "7a581de70b24588143cc802e618021312cf97e2a +" 
+      gitSHA = "7a76f32a1143cc07247e1bf34b5b0e2273ce7a58 +" 
       compiler_version = "ifort version 14.0.0" 
-      compiler_flags = "-C -g -traceback -Iodir_dgswe/" 
-      modified_files = "../rimls/src/version.f90 ../src/basis.F90 ../src/modal2nodal.F90 ../src/version.F90 Makefile" 
-      compile_date = "Mon Mar  7 16:47:36 EST 2016" 
+      compiler_flags = "-132 -heap-arrays -Iodir/ " 
+      modified_files = "../src/connect.f90 ../src/evaluate.f90 ../src/globals.f90 ../src/version.f90 ../src/write_results.f90 Makefile rimls.inp" 
+      compile_date = "Sun Mar 20 19:27:29 EDT 2016" 
       host = "chl-tilos" 
       
       length = LEN(TRIM(ADJUSTL(modified_files)))

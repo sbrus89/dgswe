@@ -32,7 +32,7 @@
 4d0                                                                                                       ! r - muliplier for search radius (1.5 - 4.0)
 1.5d0                                                                                                     ! sigma_n - smoothing parameter (0.5 - 1.5)
 ../output/                                                                                                ! output directory
-40000                                                                                                     ! nrpt - number of random points (for converging channel hardwire)
+10000                                                                                                     ! nrpt - number of random points (for converging channel hardwire)
 0d0                                                                                                       ! eps - bathymetry perturbation (for converging channel hardwire)
 
 
@@ -49,18 +49,18 @@
 ! 0d0                                                                                                     ! eps - bathymetry perturbation (for converging channel hardwire)
 
 
-!/home/sbrus/data-drive/galveston/adcirc/refinedx64/ESL0/fort.14                                            ! base grid - used to determine the rimls surface
-!!/home/sbrus/data-drive/galveston/adcirc/refinedx64/ESL0/fort.14
+!/home/sbrus/data-drive/galveston/adcirc/original/ESL0/fort.14                                              ! base grid - used to determine the rimls surface
+!/home/sbrus/data-drive/galveston/adcirc/refinedx64/ESL0/fort.14
 !/home/sbrus/data-drive/galveston/adcirc/original/ESL0/fort.14                                              ! eval grid - used to determine rimls surface evaluation points
-!3                                                                                                          ! ctp - parametric coordinate transformation order
-! 4                                                                                                         ! lsp - moving least squares fit order
-!1d0                                                                                                        ! Erad - radius of Earth
+!2                                                                                                          ! ctp - parametric coordinate transformation order
+!1                                                                                                          ! lsp - moving least squares fit order
+!15d0                                                                                                        ! Erad - radius of Earth
 !0d0,0d0                                                                                                    ! lambda0,phi0 - center of CPP coordinate system       
-!15d0                                                                                                       ! r - muliplier for search radius (1.5 - 4.0)
+!1.5d0                                                                                                        ! r - muliplier for search radius (1.5 - 4.0)
 !1.5d0                                                                                                      ! sigma_n - smoothing parameter (0.5 - 1.5)
 !../output/                                                                                                 ! output directory
-! 40000                                                                                                   ! nrpt - number of random points (for converging channel hardwire)
-! 0d0                                                                                                     ! eps - bathymetry perturbation (for converging channel hardwire)
+! 40000                                                                                                     ! nrpt - number of random points (for converging channel hardwire)
+! 0d0                                                                                                       ! eps - bathymetry perturbation (for converging channel hardwire)
 
 
 ! /home/sbrus/data-drive/beaufort/beaufort.grd                                                            ! base grid - used to determine the rimls surface

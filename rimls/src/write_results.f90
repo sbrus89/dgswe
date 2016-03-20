@@ -250,7 +250,7 @@
 !           PRINT*, el,led,nodes(i,el)
         ENDDO          
           
-        IF (mesh%bed_flag(ed) == 0) THEN
+        IF (mesh%ed_type(ed) == 0) THEN
         
           el = mesh%ged2el(2,ed)
           led = mesh%ged2led(2,ed)

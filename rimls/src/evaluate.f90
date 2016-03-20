@@ -204,7 +204,7 @@
         et = mesh%el_type(el)
         nv = nverts(et)
         n = nnds(et)
-        bed = mesh%bed_flag(ed)
+        bed = mesh%ed_type(ed)
         
         IF (mod(et,2) == 1) THEN   
           pn = np(3)
@@ -222,7 +222,7 @@
             mesh%xyhe(pt,ed,3) = mesh%xyhe(pt,ed,3) + l(i,j,et)*mesh%elhb(i,el)
           ENDDO 
           
-          IF (bed == 20) THEN
+          IF (bed == 10) THEN
             ytest = mesh%xyhe(pt,ed,2)
             xpt = mesh%xyhe(pt,ed,1)
             
@@ -235,9 +235,6 @@
             mesh%xyhe(pt,ed,2) = ypt
           ENDIF
           
-          IF (bed /= 0) THEN
-            mesh%bnd_flag(pt,ed) = 1
-          ENDIF
         ENDDO                               
       
       ENDDO
@@ -391,7 +388,7 @@
         PRINT("(A)"), "Computing rimls surface: interior"
         CALL mls_surface(base%ne,mninds,mnnds,base%xyhi)         
       ENDIF
-!       
+      
 !       IF (refinement) THEN
 !         PRINT("(A)"), "Computing rimls surface: verticies"
 !         CALL rimls_surface(eval%nn,1,1,eval%xyhv)      
@@ -935,15 +932,15 @@
 
       SUBROUTINE boundary_check2(pt,el_closest,nneigh,neighbors)
       
-      USE globals, ONLY: base,hmin,closest,tree_xy,kdresults
-      USE find_element, ONLY: in_element
+      USE globals, ONLY: base,hmin,closest,tree_xy,kdresults,nverts
       
       IMPLICIT NONE
       
       INTEGER :: i,j,q,n,el,eln,pt
+      INTEGER :: et,nv,ged,etype
       INTEGER :: nneigh,el_closest
       INTEGER :: nbel,qflag,nflag,nq,qpos
-      INTEGER :: neighbors(base%ne),connected(base%ne),quene(base%ne),nex,nin
+      INTEGER :: neighbors(base%ne),connected(base%ne),queue(base%ne),nex,nin
 
       nbel = 0
       
@@ -953,9 +950,16 @@
       
       DO i = 1,nneigh                   ! check if any neighboring elements are on boundaries
         el = neighbors(i)
-        IF (base%bel2bed(el,1) > 0) THEN
-         nbel = nbel + 1
-        ENDIF        
+        et = base%el_type(el)
+        nv = nverts(et)
+ edges: DO j = 1,nv
+          ged = base%el2ged(el,j)
+          etype = base%ed_type(ged)
+          IF (etype /= 0) THEN
+            nbel = nbel + 1
+            EXIT edges
+          ENDIF
+        ENDDO edges     
       ENDDO
       
       IF (nbel == 0) THEN               ! if there are no boundary elements, then use all neighbors     
@@ -965,21 +969,29 @@
       el = el_closest      
       nq = 1
       qpos = 1
-      quene(nq) = el
+      queue(nq) = el
 
-search:DO
-        DO j = 1,base%nepe(el)
-          eln = base%el2el(el,j)
+search:DO    
+        
+        et = base%el_type(el)
+        nv = nverts(et)
+        
+ elems: DO j = 1,nv                     
+ 
+          eln = base%el2el(el,j)        ! find elements connected to el
+          IF (eln == 0) THEN
+            CYCLE elems
+          ENDIF
           
-          qflag = 0
+          qflag = 0                     ! check if the element has been added to the queue        
    quen: DO q = 1,nq
-            IF (quene(q) == eln) THEN
+            IF (queue(q) == eln) THEN
               qflag = 1
               EXIT quen
             ENDIF
           ENDDO quen
           
-          IF (qflag == 0) THEN
+          IF (qflag == 0) THEN          ! check if the element is in the k-d radius
             nflag = 0
      neigh: DO n = 1,nneigh
               IF (neighbors(n) == eln) THEN
@@ -989,16 +1001,20 @@ search:DO
             ENDDO neigh
           ENDIF
           
-          IF (qflag == 0 .and. nflag == 1) THEN
-            nq = nq + 1
-            quene(nq) = eln
+          IF (qflag == 0 .and. nflag == 1) THEN  ! add element to the queue if it hasn't been already
+            nq = nq + 1                          ! and it's in the kd-radius
+            queue(nq) = eln
           ENDIF
-        ENDDO
-        IF (qpos == nq) THEN
+          
+        ENDDO elems
+        
+        IF (qpos == nq) THEN            ! exit when all elements have been added
           EXIT search
         ENDIF
-        qpos = qpos + 1        
-        el = quene(qpos)
+        
+        qpos = qpos + 1                 ! get ready to check the next element
+        el = queue(qpos)
+        
       ENDDO search
       
       
@@ -1006,7 +1022,7 @@ search:DO
       
       
       DO i = 1,nq
-        neighbors(i) = quene(i)       
+        neighbors(i) = queue(i)       
       ENDDO
       
       IF (nq == 0) THEN
@@ -1021,7 +1037,7 @@ search:DO
       
 !       IF (pt == 8595) THEN
 !         DO i = 1,nq
-!           PRINT*,quene(i)      
+!           PRINT*,queue(i)      
 !         ENDDO      
 !       ENDIF
 
@@ -1037,12 +1053,13 @@ search:DO
 
       SUBROUTINE boundary_check(pt,x,nneigh,neighbors)
       
-      USE globals, ONLY: base,hmin,closest,tree_xy,kdresults
+      USE globals, ONLY: base,hmin,closest,tree_xy,kdresults,nverts
       USE find_element, ONLY: in_element
       
       IMPLICIT NONE
       
       INTEGER :: i,j,el,ed,tstp,elt,bed,ged,nd1,nd2,pt
+      INTEGER :: et,nv,etype
       INTEGER :: nneigh,ntstp
       INTEGER :: nbel,flag,n,found
       INTEGER :: neighbors(base%ne),cross(base%ne),ncross,exclude(base%ne),nex,nin
@@ -1059,11 +1076,17 @@ search:DO
       ntstp = 2d0/dt
       
       DO i = 1,nneigh                   ! check if any neighboring elements are on boundaries
-        el = kdresults(i)%idx
-        IF (base%bel2bed(el,1) > 0) THEN
-         nbel = nbel + 1
-        ENDIF
-        
+        el = neighbors(i)
+        et = base%el_type(el)
+        nv = nverts(et)
+ edges: DO j = 1,nv
+          ged = base%el2ged(el,j)
+          etype = base%ed_type(ged)
+          IF (etype /= 0) THEN
+            nbel = nbel + 1
+            EXIT edges
+          ENDIF
+        ENDDO edges     
       ENDDO
       
       IF (nbel == 0) THEN               ! if there are no boundary elements, then use all neighbors

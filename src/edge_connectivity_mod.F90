@@ -4,9 +4,7 @@
       
       IMPLICIT NONE
       
-      INTEGER :: el
-      INTEGER :: nd
-      INTEGER :: alloc_status
+
 
       CONTAINS
       
@@ -28,7 +26,9 @@
       INTEGER, INTENT(OUT) :: mnepn
       INTEGER, DIMENSION(:,:), ALLOCATABLE, INTENT(OUT) :: epn
       
-      
+      INTEGER :: el
+      INTEGER :: nd
+      INTEGER :: alloc_status      
       INTEGER :: nvert  
       INTEGER :: n           
       
@@ -104,7 +104,9 @@
       INTEGER, DIMENSION(:,:), ALLOCATABLE, INTENT(OUT) :: ged2nn
       INTEGER, DIMENSION(:,:), ALLOCATABLE, INTENT(OUT) :: ged2led
       
-      
+      INTEGER :: el
+      INTEGER :: nd
+      INTEGER :: alloc_status      
       INTEGER :: el1,el2
       INTEGER :: led1,led2
       INTEGER :: nvert1,nvert2
@@ -220,12 +222,15 @@
       INTEGER, DIMENSION(:), ALLOCATABLE, INTENT(OUT) :: iedn
       INTEGER, DIMENSION(:), ALLOCATABLE, INTENT(OUT) :: ed_type
       INTEGER, DIMENSION(:), ALLOCATABLE, INTENT(OUT) :: recv_edge
-                  
+
+      INTEGER :: el
+      INTEGER :: nd
+      INTEGER :: alloc_status      
       INTEGER :: ged
       INTEGER :: el1,el2
-      INTEGER, DIMENSION(:), ALLOCATABLE :: ied_temp
+      INTEGER, DIMENSION(:), ALLOCATABLE :: iedn_temp
       
-      ALLOCATE(ied_temp(ned), STAT = alloc_status)
+      ALLOCATE(iedn_temp(ned), STAT = alloc_status)
       IF (alloc_status /= 0) THEN
         PRINT*, "Allocation error"
         CALL abort()
@@ -242,13 +247,13 @@
 
       nied = 0
       nbed = 0
-      ied_temp(:) = 0
+      iedn_temp(:) = 0
       DO ged = 1,ned
         el1 = ged2el(1,ged)
         el2 = ged2el(2,ged)
         IF ((el1 /= 0) .AND. (el2 /= 0)) THEN
           nied = nied + 1
-          ied_temp(nied) = ged
+          iedn_temp(nied) = ged
           recv_edge(ged) = 0   
           ed_type(ged) = 0
         ELSE 
@@ -263,7 +268,7 @@
         CALL abort()
       ENDIF        
       
-      iedn(1:nied) = ied_temp(1:nied)         
+      iedn(1:nied) = iedn_temp(1:nied)         
       
       RETURN
       END SUBROUTINE find_interior_edges
@@ -287,6 +292,8 @@
       INTEGER, DIMENSION(:), INTENT(INOUT) :: recv_edge
       
       
+      INTEGER :: el
+      INTEGER :: alloc_status      
       INTEGER :: seg,nd,ed,ged
       INTEGER :: n1bed,n2bed
       INTEGER :: n1ed2,n2ed2
@@ -360,7 +367,10 @@
       INTEGER, DIMENSION(:), INTENT(INOUT) :: recv_edge
       INTEGER, DIMENSION(:), INTENT(INOUT) :: ed_type      
       
-      INTEGER :: seg,nd,ed
+      INTEGER :: el
+      INTEGER :: nd
+      INTEGER :: alloc_status      
+      INTEGER :: seg,ed
       INTEGER :: ged,segtype
       INTEGER :: n1bed,n2bed
       INTEGER :: n1ed2,n2ed2
@@ -466,6 +476,9 @@
       INTEGER, DIMENSION(:), ALLOCATABLE, INTENT(OUT) :: redn
       INTEGER, DIMENSION(:), INTENT(INOUT) :: el_type
       
+      INTEGER :: el
+      INTEGER :: nd
+      INTEGER :: alloc_status      
       INTEGER :: ged                  
 
       nred = 0
@@ -477,7 +490,11 @@
         ENDIF
       ENDDO
       
-      ALLOCATE(redn(nred))
+      ALLOCATE(redn(nred), STAT = alloc_status)
+      IF (alloc_status /= 0) THEN
+        PRINT*, "Allocation error"
+        CALL abort()
+      ENDIF          
       
       nred = 0
       DO ged = 1,ned
@@ -494,6 +511,100 @@
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
+
+
+      SUBROUTINE find_element_edges(ne,ned,ged2el,ged2led,el2ged)
+      
+      IMPLICIT NONE
+      
+      INTEGER, INTENT(IN) :: ne
+      INTEGER, INTENT(IN) :: ned
+      INTEGER, DIMENSION(:,:), INTENT(IN) :: ged2el
+      INTEGER, DIMENSION(:,:), INTENT(IN) :: ged2led
+      INTEGER, DIMENSION(:,:), ALLOCATABLE, INTENT(OUT) :: el2ged
+      
+      INTEGER :: ged
+      INTEGER :: el1,el2
+      INTEGER :: led
+      INTEGER :: alloc_status
+      
+      ALLOCATE(el2ged(ne,4), STAT = alloc_status)
+      IF (alloc_status /= 0) THEN
+        PRINT*, "Allocation error"
+        CALL abort()
+      ENDIF          
+      
+      el2ged = 0
+      
+      DO ged = 1,ned
+        
+        el1 = ged2el(1,ged)
+        el2 = ged2el(2,ged)
+        
+        IF (el1 /= 0) THEN
+          led = ged2led(1,ged)
+          el2ged(el1,led) = ged
+        ENDIF
+        
+        IF (el2 /= 0) THEN
+          led = ged2led(2,ged)
+          el2ged(el2,led) = ged        
+        ENDIF       
+      
+      ENDDO
+      
+      RETURN 
+      END SUBROUTINE find_element_edges
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
+
+      SUBROUTINE find_neighbor_elements(ne,ned,ged2el,ged2led,el2el)
+      
+      IMPLICIT NONE
+      
+      INTEGER, INTENT(IN) :: ne
+      INTEGER, INTENT(IN) :: ned
+      INTEGER, DIMENSION(:,:), INTENT(IN) :: ged2el
+      INTEGER, DIMENSION(:,:), INTENT(IN) :: ged2led
+      INTEGER, DIMENSION(:,:), ALLOCATABLE, INTENT(OUT) :: el2el
+      
+      INTEGER :: ged
+      INTEGER :: el1,el2
+      INTEGER :: led1,led2
+      INTEGER :: alloc_status      
+      
+      ALLOCATE(el2el(ne,4), STAT=alloc_status)
+      IF (alloc_status /= 0) THEN
+        PRINT*, "Allocation error"
+        CALL abort()
+      ENDIF          
+      
+      el2el = 0
+      
+      DO ged = 1,ned
+      
+        el1 = ged2el(1,ged)
+        el2 = ged2el(2,ged)
+        
+        IF (el1 /= 0 .and. el2 /= 0 ) THEN
+          led1 = ged2led(1,ged)
+          led2 = ged2led(2,ged)
+          
+          el2el(el1,led1) = el2
+          el2el(el2,led2) = el1
+        ENDIF
+      
+      ENDDO
+      
+      
+      END SUBROUTINE
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
+
 
       SUBROUTINE print_connect_info(mnepn,ned,nied,nobed,nfbed,nnfbed,nred)
       

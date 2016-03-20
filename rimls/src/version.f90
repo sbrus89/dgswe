@@ -8,11 +8,11 @@
       INTEGER :: length,ind,sind,eind
       
       gitBranch = "master" 
-      gitSHA = "127b8a4af9a8ca6fa427b07c2db3762ef1cd7e65 +" 
+      gitSHA = "5deff8fb01d1f6c3b47c8be99ba7209c67dfe898 +" 
       compiler_version = "ifort version 14.0.0" 
       compiler_flags = "-132 -heap-arrays -Iodir/ " 
-      modified_files = "../src/basis.f90 ../src/connect.f90 ../src/evaluate.f90 ../src/find_element.f90 ../src/globals.f90 ../src/read_grid.f90 ../src/version.f90 ../src/write_results.f90 rimls.inp" 
-      compile_date = "Mon Dec 14 15:15:49 EST 2015" 
+      modified_files = "../src/version.f90 Makefile" 
+      compile_date = "Mon Mar  7 17:13:46 EST 2016" 
       host = "chl-tilos" 
 
       length = LEN(TRIM(ADJUSTL(modified_files)))
