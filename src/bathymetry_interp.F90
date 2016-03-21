@@ -1,10 +1,10 @@
-      SUBROUTINE bathymetry_interp()
+      SUBROUTINE bathymetry_interp_area_qpts()
 
-      USE globals, ONLY: rp,el_type,ed_type,nnds,nqpta,nqpte,order, &
-                         ne,ned,elxy,elhb,ged2el,ged2led, &
-                         hbqpta_init,dhbdx_init,dhbdy_init,hbqpte_init,hbqpted, &
+      USE globals, ONLY: rp,el_type,nnds,nqpta,order, &
+                         ne,elxy,elhb, &
+                         hbqpta_init,dhbdx_init,dhbdy_init, &
                          psia,dpsidr,dpsids, &
-                         recv_edge,r_earth
+                         r_earth
       USE transformation, ONLY: element_transformation
       USE spherical_mod, ONLY: cpp_factor
       USE read_dginp, ONLY: coord_sys,slam0,sphi0      
@@ -12,11 +12,8 @@
 
       IMPLICIT NONE
       
-      INTEGER :: i,j,el,pt,nd,ed,dof,led
-      INTEGER :: typ,et,eo,edpt
-      INTEGER :: el_in,el_ex,led_in,led_ex,gp_in,gp_ex
-      INTEGER :: ndf,nnd,nqa,nqe,nv,n
-      INTEGER :: info
+      INTEGER :: el,pt,nd
+      INTEGER :: typ,et,eo
       REAL(rp) :: hb
       REAL(rp) :: xpt,ypt,detJ,Sp
       REAL(rp) :: drdx,drdy,dsdx,dsdy
@@ -74,10 +71,29 @@
       CLOSE(45)
       CLOSE(46)      
       
-
+      RETURN
+      END SUBROUTINE bathymetry_interp_area_qpts
+      
+           
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!              
       
       
+      SUBROUTINE bathymetry_interp_edge_qpts()
+      
+      USE globals, ONLY: rp,el_type,ed_type,nnds,nqpta,nqpte,order, &
+                         ned,elhb,ged2el,ged2led, &
+                         hbqpte_init,hbqpted, &
+                         psia, &
+                         recv_edge    
 
+      IMPLICIT NONE
+      
+      INTEGER :: i,j,pt,nd,ed
+      INTEGER :: typ,et,eo,edpt
+      INTEGER :: el_in,el_ex,led_in,led_ex,gp_in,gp_ex
+      INTEGER :: nqa,nqe
+      REAL(rp) :: hb
       
 !       OPEN(unit=47, file='hbe.d')     
       
@@ -212,4 +228,4 @@
 
 
       RETURN
-      END SUBROUTINE bathymetry_interp
+      END SUBROUTINE bathymetry_interp_edge_qpts
