@@ -41,7 +41,9 @@
 
       CALL edge_transformation()
       
-      CALL bathymetry_interp()
+      CALL bathymetry_area_qpts()
+      
+      CALL bathymetry_edge_qpts()
       
       CALL bathymetry_nodal2modal()
       
