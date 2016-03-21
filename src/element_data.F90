@@ -11,7 +11,6 @@
       USE basis, ONLY:       
       USE allocation, ONLY: alloc_trans_arrays
       USE read_dginp, ONLY: p,ctp
-      USE shape_functions, ONLY: shape_functions_area_qpts,shape_functions_edge_qpts
       USE transformation, ONLY: init_element_coordinates
 
       IMPLICIT NONE

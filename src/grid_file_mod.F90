@@ -381,7 +381,7 @@
           CALL abort()
         ENDIF
         
-        ALLOCATE(bndxy(2,ctp+1,nmax,nbou))
+        ALLOCATE(bndxy(2,ctp+1,nmax,nbou), STAT = alloc_status)
         IF (alloc_status /= 0) THEN
           PRINT*, "Allocation error"
           CALL abort()

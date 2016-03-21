@@ -159,9 +159,9 @@ dgswe_objects = globals.o lapack_interfaces.o messenger2.o allocation.o grid_fil
                 edge_connectivity_mod.o connect.o initial.o interp_forcing.o \
                 edge_partition2.o metis2.o \
                 curvilinear_nodes_mod.o curvilinear.o \
-                vandermonde.o shape_functions.o transformation.o \
+                vandermonde.o shape_functions_mod.o shape_functions_eval.o transformation.o \
                 element_data.o area_transformation.o normals.o edge_transformation.o \
-                basis.o eval_basis.o area_qpts.o edge_qpts.o \
+                basis.o basis_eval.o area_qpts.o edge_qpts.o \
                 rhs2.o rk.o \
                 area_integration.o edge_integration.o  numerical_flux.o linear_solve.o \
                 boundary_edge_land.o boundary_edge_flow.o boundary_edge_elev.o  \
@@ -172,7 +172,7 @@ dgswe_obj := $(patsubst %.o, $(ODIR)%.o,$(dgswe_objects))
 dgprep_objects = globals.o messenger2.o read_input.o allocation.o grid_file_mod.o \
                  read_grid.o read_forcing.o  curvilinear.o\
                  edge_connectivity_mod.o connect.o edge_qpts.o metis2.o decomp2.o \
-                 basis.o vandermonde.o shape_functions.o transformation.o \
+                 basis.o basis_eval.o vandermonde.o shape_functions_mod.o shape_functions_eval.o transformation.o \
                  normals.o bathymetry_interp.o edge_transformation.o \
                  modal2nodal.o write_files.o version.o quit.o dgprep.o
                  
@@ -360,9 +360,9 @@ $(ODIR)vandermonde.o : vandermonde.F90                         $(ODIR)globals.o 
 	$(FC) $(FFLAGS) -c $< -o $@
 	mv vandermonde.mod $(ODIR)
 	
-$(ODIR)shape_functions.o : shape_functions.F90                 $(ODIR)globals.o $(ODIR)messenger2.o $(ODIR)basis.o $(ODIR)lapack_interfaces.o $(ODIR)vandermonde.o
+$(ODIR)shape_functions_mod.o : shape_functions_mod.F90         $(ODIR)globals.o $(ODIR)messenger2.o $(ODIR)basis.o $(ODIR)lapack_interfaces.o $(ODIR)vandermonde.o
 	$(FC) $(FFLAGS) -c $< -o $@
-	mv shape_functions.mod $(ODIR)
+	mv shape_functions_mod.mod $(ODIR)
 
 $(ODIR)transformation.o : transformation.F90                   $(ODIR)globals.o $(ODIR)read_input.o
 	$(FC) $(FFLAGS) -c $< -o $@
@@ -394,7 +394,7 @@ $(ODIR)area_qpts.o : area_qpts.F90                             $(ODIR)globals.o 
 $(ODIR)edge_qpts.o : edge_qpts.F90                             $(ODIR)globals.o $(ODIR)messenger2.o $(ODIR)read_input.o $(ODIR)allocation.o
 	$(FC) $(FFLAGS) -c $< -o $@
 	
-$(ODIR)eval_basis.o : eval_basis.F90                           $(ODIR)globals.o $(ODIR)messenger2.o $(ODIR)read_input.o $(ODIR)allocation.o $(ODIR)basis.o
+$(ODIR)basis_eval.o : basis_eval.F90                           $(ODIR)globals.o $(ODIR)messenger2.o $(ODIR)read_input.o $(ODIR)allocation.o $(ODIR)basis.o
 	$(FC) $(FFLAGS) -c $< -o $@
 
 $(ODIR)read_grid.o : read_grid.F90                             $(ODIR)globals.o $(ODIR)messenger2.o $(ODIR)read_input.o $(ODIR)grid_file_mod.o
@@ -415,10 +415,13 @@ $(ODIR)initial.o : initial.F90                                 $(ODIR)globals.o 
 $(ODIR)connect.o : connect.F90                                 $(ODIR)globals.o $(ODIR)messenger2.o $(ODIR)read_input.o $(ODIR)edge_connectivity_mod.o
 	$(FC) $(FFLAGS) -c $< -o $@
 
-$(ODIR)curvilinear.o : curvilinear.F90                         $(ODIR)globals.o $(ODIR)read_input.o $(ODIR)shape_functions.o $(ODIR)curvilinear_nodes_mod.o
+$(ODIR)curvilinear.o : curvilinear.F90                         $(ODIR)globals.o $(ODIR)read_input.o $(ODIR)shape_functions_mod.o $(ODIR)curvilinear_nodes_mod.o
 	$(FC) $(FFLAGS) -c $< -o $@
 
-$(ODIR)element_data.o : element_data.F90                       $(ODIR)globals.o $(ODIR)read_input.o $(ODIR)allocation.o $(ODIR)basis.o $(ODIR)vandermonde.o $(ODIR)shape_functions.o $(ODIR)transformation.o
+$(ODIR)element_data.o : element_data.F90                       $(ODIR)globals.o $(ODIR)read_input.o $(ODIR)allocation.o $(ODIR)basis.o $(ODIR)vandermonde.o $(ODIR)shape_functions_mod.o $(ODIR)transformation.o
+	$(FC) $(FFLAGS) -c $< -o $@
+	
+$(ODIR)shape_functions_eval.o : shape_functions_eval.F90       $(ODIR)globals.o  $(ODIR)basis.o $(ODIR)messenger2.o $(ODIR)shape_functions_mod.o
 	$(FC) $(FFLAGS) -c $< -o $@
 
 $(ODIR)edge_partition2.o : edge_partition2.F90                 $(ODIR)globals.o $(ODIR)messenger2.o $(ODIR)read_input.o $(ODIR)allocation.o
@@ -486,7 +489,7 @@ $(ODIR)decomp2.o : ../prep/src/decomp2.F90                     $(ODIR)globals.o 
 $(ODIR)write_files.o : ../prep/src/write_files.F90             $(ODIR)globals.o $(ODIR)read_input.o $(ODIR)messenger2.o 
 	$(FC) $(FFLAGS) -c $< -o $@
 
-$(ODIR)dgprep.o : ../prep/src/dgprep.F90                        $(ODIR)globals.o $(ODIR)allocation.o $(ODIR)read_input.o $(ODIR)messenger2.o $(ODIR)vandermonde.o $(ODIR)shape_functions.o
+$(ODIR)dgprep.o : ../prep/src/dgprep.F90                        $(ODIR)globals.o $(ODIR)allocation.o $(ODIR)read_input.o $(ODIR)messenger2.o $(ODIR)vandermonde.o $(ODIR)shape_functions_mod.o
 	$(FC) $(FFLAGS) -c $< -o $@
 
 # post file targets

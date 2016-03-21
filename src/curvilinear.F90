@@ -5,7 +5,6 @@
                          nverts,el_type,order,elxy,xy,bndxy,ect,elhb,ne,mnnds,nnds, &
                          psiv,psic
       USE read_dginp, ONLY: ctp
-      USE shape_functions, ONLY: shape_functions_vertex,shape_functions_curve
       USE curvilinear_nodes_mod
 
       IMPLICIT NONE
