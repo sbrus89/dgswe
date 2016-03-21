@@ -109,20 +109,21 @@ search: DO srch = 1,srchdp
       
       SUBROUTINE newton(pt,x,y,eln,r,s)
 
-      USE globals, ONLY: rp,np,nnds,mnnds,V,base,ipiv
+      USE globals, ONLY: rp,np,nverts,nnds,mnnds,V,base,ipiv
       USE basis, ONLY: tri_basis,quad_basis
+      USE shape_functions_mod, ONLY: shape_functions_area_eval
+      USE transformation, ONLY: element_transformation
 
       IMPLICIT NONE
-      INTEGER :: it,eln,et,p,n,i,pt
+      INTEGER :: it,eln,et,p,n,i,pt,nv
       INTEGER :: info
       INTEGER :: maxit
       REAL(rp) :: tol
       REAL(rp) :: x,y
       REAL(rp) :: r(1),s(1)
       REAL(rp) :: f,g,error
-      REAL(rp) :: dfdr,dfds,dgdr,dgds,jac
-      REAL(rp) :: phi(mnnds,1),dpdr(mnnds,1),dpds(mnnds,1)
-      REAL(rp) :: l(mnnds,3)
+      REAL(rp) :: drdf,drdg,dsdf,dsdg,jac
+      REAL(rp) :: l(mnnds,1),dldr(mnnds,1),dlds(mnnds,1)
         
       tol = 1d-9
       maxit = 100
@@ -130,6 +131,7 @@ search: DO srch = 1,srchdp
       
       et = base%el_type(eln)
       p = np(et)  
+      nv = nverts(et)
         
       IF (mod(et,2) == 1) THEN
         r(1) = -1d0/3d0
@@ -141,49 +143,16 @@ search: DO srch = 1,srchdp
 
       DO it = 1,maxit     
            
-        IF (mod(et,2) == 1) THEN
-          CALL tri_basis(p,n,1,r,s,phi,dpdr,dpds)
-        ELSE IF (mod(et,2) == 0) THEN
-          CALL quad_basis(p,n,1,r,s,phi,dpdr,dpds)
-        ENDIF
+        CALL shape_functions_area_eval(nv,p,n,1,r,s,l,dldr,dlds)     
         
-        DO i = 1,n
-
-          l(i,1) = phi(i,1)
-          l(i,2) = dpdr(i,1)
-          l(i,3) = dpds(i,1)                
-       
-        ENDDO     
-          
-
-        CALL DGETRS("N",n,3,V(1,1,et),mnnds,ipiv(1,et),l,mnnds,info)
-!         IF (info /= 0 ) PRINT*, "LAPACK ERROR"      
-        
-        dfdr = 0d0
-        dfds = 0d0
-        dgdr = 0d0
-        dgds = 0d0
-        f = 0d0
-        g = 0d0        
-        
-        DO i = 1,n
-
-          dfdr = dfdr + l(i,2)*base%elxy(i,eln,1)
-          dfds = dfds + l(i,3)*base%elxy(i,eln,1)
-          dgdr = dgdr + l(i,2)*base%elxy(i,eln,2)
-          dgds = dgds + l(i,3)*base%elxy(i,eln,2)
-          
-          f = f + l(i,1)*base%elxy(i,eln,1)
-          g = g + l(i,1)*base%elxy(i,eln,2)
-        ENDDO
-        
-        jac = dfdr*dgds - dgdr*dfds
+        CALL element_transformation(n,base%elxy(:,eln,1),base%elxy(:,eln,2),l(:,1),f,g, &
+                                    dldr(:,1),dlds(:,1),drdf,drdg,dsdf,dsdg,jac)               
         
         f = f - x
         g = g - y
         
-        r(1) = r(1) - (1d0/jac)*( dgds*f - dfds*g)
-        s(1) = s(1) - (1d0/jac)*(-dgdr*f + dfdr*g)        
+        r(1) = r(1) - (drdf*f + drdg*g)
+        s(1) = s(1) - (dsdf*f + dsdg*g)        
         
         IF (ABS(f) < tol .AND. ABS(g) < tol) THEN
           EXIT

@@ -1,5 +1,5 @@
 FC = ifort
-FFLAGS = -132 -heap-arrays -I$(ODIR) #-traceback -g -C
+FFLAGS = -132 -heap-arrays -I$(ODIR) -traceback -g -C
 
 VPATH := ../src/
 ODIR = odir/
@@ -41,8 +41,9 @@ endif
 ########################################################################
 
 objects = kdtree2.o globals.o allocation.o basis.o find_element.o quit.o\
-          write_results.o connect.o edge_connectivity_mod.o evaluate.o read_input.o \
-          read_grid.o grid_file_mod.o\
+          vandermonde.o shape_functions_mod.o transformation.o spherical_mod.o \
+          write_results.o connect.o edge_connectivity_mod.o evaluate.o boundary_check.o \
+          read_input.o read_grid.o grid_file_mod.o\
           curvilinear.o compute_random.o lapack_interfaces.o version.o rimls.o
           
 obj := $(patsubst %.o, $(ODIR)%.o,$(objects))
@@ -113,6 +114,22 @@ $(ODIR)quit.o : ../../src/quit.F90                              $(ODIR)globals.o
 	$(FC) $(FFLAGS) -c $< -o $@
 	mv quit.mod $(ODIR)	
 	
+$(ODIR)vandermonde.o : ../../src/vandermonde.F90                $(ODIR)globals.o $(ODIR)basis.o
+	$(FC) $(FFLAGS) -c $< -o $@
+	mv vandermonde.mod $(ODIR)	
+	
+$(ODIR)shape_functions_mod.o : ../../src/shape_functions_mod.F90 $(ODIR)globals.o $(ODIR)basis.o $(ODIR)lapack_interfaces.o $(ODIR)vandermonde.o
+	$(FC) $(FFLAGS) -c $< -o $@
+	mv shape_functions_mod.mod $(ODIR)	
+
+$(ODIR)transformation.o : ../../src/transformation.F90          $(ODIR)globals.o
+	$(FC) $(FFLAGS) -c $< -o $@
+	mv transformation.mod $(ODIR)	
+	
+$(ODIR)spherical_mod.o : ../../src/spherical_mod.F90            $(ODIR)globals.o 
+	$(FC) $(FFLAGS) -c $< -o $@
+	mv spherical_mod.mod $(ODIR)	
+	
 $(ODIR)allocation.o: allocation.f90                             $(ODIR)globals.o
 	$(FC) $(FFLAGS) -c $< -o $@
 	mv allocation.mod $(ODIR)
@@ -121,7 +138,7 @@ $(ODIR)basis.o: ../../src/basis.F90                             $(ODIR)globals.o
 	$(FC) $(FFLAGS) -c $< -o $@
 	mv basis.mod $(ODIR)	
 	
-$(ODIR)find_element.o: find_element.f90                         $(ODIR)kdtree2.o  $(ODIR)globals.o  $(ODIR)basis.o
+$(ODIR)find_element.o: find_element.f90                         $(ODIR)kdtree2.o  $(ODIR)globals.o $(ODIR)shape_functions_mod.o $(ODIR)transformation.o
 	$(FC) $(FFLAGS) -c $< -o $@
 	mv find_element.mod $(ODIR) 
 
@@ -132,9 +149,12 @@ $(ODIR)write_results.o: write_results.f90                       $(ODIR)globals.o
 $(ODIR)connect.o: connect.f90                                   $(ODIR)globals.o $(ODIR)edge_connectivity_mod.o
 	$(FC) $(FFLAGS) -c $< -o $@
 
-$(ODIR)evaluate.o: evaluate.f90                                 $(ODIR)kdtree2.o  $(ODIR)globals.o  $(ODIR)basis.o  $(ODIR)find_element.o  $(ODIR)lapack_interfaces.o
+$(ODIR)evaluate.o: evaluate.f90                                 $(ODIR)kdtree2.o  $(ODIR)globals.o  $(ODIR)basis.o  $(ODIR)find_element.o  $(ODIR)lapack_interfaces.o $(ODIR)shape_functions_mod.o
 	$(FC) $(FFLAGS) -c $< -o $@
 	mv evaluate.mod $(ODIR)
+	
+$(ODIR)boundary_check.o : boundary_check.F90                    $(ODIR)globals.o  $(ODIR)find_element.o
+	$(FC) $(FFLAGS) -c $< -o $@
 	
 $(ODIR)read_input.o: read_input.f90                             $(ODIR)globals.o
 	$(FC) $(FFLAGS) -c $< -o $@

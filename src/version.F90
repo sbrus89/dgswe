@@ -8,11 +8,11 @@
       
       
       gitBranch = "master" 
-      gitSHA = "3ac8d418c4e072e6befcb797a9f4a1a2e6e41f45 +" 
+      gitSHA = "9c70d5f9ac2be2f926eb5632c28a7eb503ba5c08 +" 
       compiler_version = "ifort version 14.0.0" 
-      compiler_flags = "-C -g -traceback -Iodir_dgswe/" 
-      modified_files = "../src/curvilinear.F90 ../src/element_data.F90 ../src/grid_file_mod.F90 ../src/version.F90 Makefile" 
-      compile_date = "Sun Mar 20 20:04:19 EDT 2016" 
+      compiler_flags = "-132 -heap-arrays -Iodir/ -traceback -g -C" 
+      modified_files = "../src/evaluate.f90 ../src/find_element.f90 ../src/read_grid.f90 ../src/rimls.f90 Makefile" 
+      compile_date = "Mon Mar 21 15:49:35 EDT 2016" 
       host = "chl-tilos" 
       
       length = LEN(TRIM(ADJUSTL(modified_files)))

@@ -4,6 +4,7 @@
                          Erad,lambda0,phi0
       USE allocation, ONLY: grid_alloc    
       USE grid_file_mod
+      USE spherical_mod, ONLY: cpp_transformation
 
       IMPLICIT NONE
       INTEGER :: i,j,k,el,n,nd
@@ -24,7 +25,9 @@
       
       CALL read_header(mesh%grid_file,mesh%grid_name,mesh%ne,mesh%nn)
       
-      CALL read_coords(mesh%nn,mesh%xy,mesh%depth,h0,coord_sys,Erad,lambda0,phi0)      
+      CALL read_coords(mesh%nn,mesh%xy,mesh%depth,h0)  
+      
+      CALL cpp_transformation(coord_sys,Erad,lambda0,phi0,mesh%nn,mesh%xy)      
       
       CALL read_connectivity(mesh%ne,mesh%ect,mesh%el_type)
       
