@@ -1,6 +1,6 @@
       MODULE grid_file_mod
 
-      USE globals, ONLY: rp,deg2rad
+      USE globals, ONLY: rp
       USE quit, ONLY: abort    
    
       
@@ -47,7 +47,7 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
 
 
-      SUBROUTINE read_coords(nn,xy,depth,h0,coord_sys,r_earth,slam0,sphi0)
+      SUBROUTINE read_coords(nn,xy,depth,h0)
       
       IMPLICIT NONE
       
@@ -55,10 +55,7 @@
       REAL(rp), DIMENSION(:,:), ALLOCATABLE, INTENT(OUT) :: xy
       REAL(rp), DIMENSION(:)  , ALLOCATABLE, INTENT(OUT) :: depth
       REAL(rp), INTENT(IN) :: h0
-      INTEGER, INTENT(IN) :: coord_sys
-      REAL(rp), INTENT(IN) :: r_earth
-      REAL(rp), INTENT(IN) :: slam0
-      REAL(rp), INTENT(IN) :: sphi0  
+
       
       INTEGER :: i,j
       INTEGER :: alloc_status      
@@ -85,16 +82,7 @@
 !       ENDDO
 !       PRINT*, " "
 
-      ! Transform from polar coordinates if necessary
-      IF (coord_sys /= 1) THEN
-        DO i = 1,nn
-          xy(1,i) = xy(1,i)*deg2rad
-          xy(2,i) = xy(2,i)*deg2rad
-        
-          xy(1,i) = r_earth*(xy(1,i)-slam0)*cos(sphi0)
-          xy(2,i) = r_earth*xy(2,i)
-        ENDDO
-      ENDIF      
+ 
       
       RETURN
       END SUBROUTINE read_coords

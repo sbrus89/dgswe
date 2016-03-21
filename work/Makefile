@@ -159,7 +159,7 @@ dgswe_objects = globals.o lapack_interfaces.o messenger2.o allocation.o grid_fil
                 edge_connectivity_mod.o connect.o initial.o interp_forcing.o \
                 edge_partition2.o metis2.o \
                 curvilinear_nodes_mod.o curvilinear.o \
-                vandermonde.o shape_functions_mod.o shape_functions_eval.o transformation.o \
+                vandermonde.o shape_functions_mod.o shape_functions_eval.o transformation.o spherical_mod.o\
                 element_data.o area_transformation.o normals.o edge_transformation.o \
                 basis.o basis_eval.o area_qpts.o edge_qpts.o \
                 rhs2.o rk.o \
@@ -173,7 +173,7 @@ dgprep_objects = globals.o messenger2.o read_input.o allocation.o grid_file_mod.
                  read_grid.o read_forcing.o  curvilinear.o\
                  edge_connectivity_mod.o connect.o edge_qpts.o metis2.o decomp2.o \
                  basis.o basis_eval.o vandermonde.o shape_functions_mod.o shape_functions_eval.o transformation.o \
-                 normals.o bathymetry_interp.o edge_transformation.o \
+                 normals.o bathymetry_interp.o edge_transformation.o spherical_mod.o\
                  modal2nodal.o write_files.o version.o quit.o dgprep.o
                  
 dgprep_obj := $(patsubst %.o, $(ODIR)%.o,$(dgprep_objects))  
@@ -360,13 +360,17 @@ $(ODIR)vandermonde.o : vandermonde.F90                         $(ODIR)globals.o 
 	$(FC) $(FFLAGS) -c $< -o $@
 	mv vandermonde.mod $(ODIR)
 	
-$(ODIR)shape_functions_mod.o : shape_functions_mod.F90         $(ODIR)globals.o $(ODIR)messenger2.o $(ODIR)basis.o $(ODIR)lapack_interfaces.o $(ODIR)vandermonde.o
+$(ODIR)shape_functions_mod.o : shape_functions_mod.F90         $(ODIR)globals.o $(ODIR)basis.o $(ODIR)lapack_interfaces.o $(ODIR)vandermonde.o
 	$(FC) $(FFLAGS) -c $< -o $@
 	mv shape_functions_mod.mod $(ODIR)
 
-$(ODIR)transformation.o : transformation.F90                   $(ODIR)globals.o $(ODIR)read_input.o
+$(ODIR)transformation.o : transformation.F90                   $(ODIR)globals.o
 	$(FC) $(FFLAGS) -c $< -o $@
 	mv transformation.mod $(ODIR)
+	
+$(ODIR)spherical_mod.o : spherical_mod.F90                     $(ODIR)globals.o $(ODIR)read_input.o
+	$(FC) $(FFLAGS) -c $< -o $@
+	mv spherical_mod.mod $(ODIR)
 	
 $(ODIR)output.o : output.F90                                   $(ODIR)globals.o $(ODIR)messenger2.o $(ODIR)read_input.o
 	$(FC) $(FFLAGS) $(NETCDF_INC) -c $< -o $@
@@ -397,7 +401,7 @@ $(ODIR)edge_qpts.o : edge_qpts.F90                             $(ODIR)globals.o 
 $(ODIR)basis_eval.o : basis_eval.F90                           $(ODIR)globals.o $(ODIR)messenger2.o $(ODIR)read_input.o $(ODIR)allocation.o $(ODIR)basis.o
 	$(FC) $(FFLAGS) -c $< -o $@
 
-$(ODIR)read_grid.o : read_grid.F90                             $(ODIR)globals.o $(ODIR)messenger2.o $(ODIR)read_input.o $(ODIR)grid_file_mod.o
+$(ODIR)read_grid.o : read_grid.F90                             $(ODIR)globals.o $(ODIR)messenger2.o $(ODIR)read_input.o $(ODIR)grid_file_mod.o $(ODIR)spherical_mod.o
 	$(FC) $(FFLAGS) -c $< -o $@
 
 $(ODIR)read_forcing.o : read_forcing.F90                       $(ODIR)globals.o $(ODIR)messenger2.o $(ODIR)read_input.o $(ODIR)allocation.o $(ODIR)quit.o
@@ -430,7 +434,7 @@ $(ODIR)edge_partition2.o : edge_partition2.F90                 $(ODIR)globals.o 
 $(ODIR)metis2.o : metis2.F90                                   $(ODIR)globals.o $(ODIR)messenger2.o 
 	$(FC) $(FFLAGS) -c $< -o $@	
 	
-$(ODIR)area_transformation.o : area_transformation.F90         $(ODIR)globals.o $(ODIR)transformation.o $(ODIR)lapack_interfaces.o
+$(ODIR)area_transformation.o : area_transformation.F90         $(ODIR)globals.o $(ODIR)transformation.o $(ODIR)lapack_interfaces.o $(ODIR)spherical_mod.o $(ODIR)read_input.o
 	$(FC) $(FFLAGS) -c $< -o $@
 
 $(ODIR)edge_transformation.o : edge_transformation.F90         $(ODIR)globals.o $(ODIR)basis.o
@@ -439,13 +443,13 @@ $(ODIR)edge_transformation.o : edge_transformation.F90         $(ODIR)globals.o 
 $(ODIR)area_integration.o : area_integration.F90               $(ODIR)globals.o $(ODIR)read_input.o
 	$(FC) $(FFLAGS) $(OPT_REPORT) -c $< -o $@
 	
-$(ODIR)normals.o : normals.F90                                 $(ODIR)globals.o $(ODIR)transformation.o
+$(ODIR)normals.o : normals.F90                                 $(ODIR)globals.o $(ODIR)transformation.o $(ODIR)spherical_mod.o $(ODIR)read_input.o
 	$(FC) $(FFLAGS) -c $< -o $@
 
 $(ODIR)edge_integration.o : edge_integration.F90               $(ODIR)globals.o $(ODIR)messenger2.o
 	$(FC) $(FFLAGS) $(OPT_REPORT) -c $< -o $@
 	
-$(ODIR)bathymetry_interp.o : bathymetry_interp.F90             $(ODIR)globals.o $(ODIR)transformation.o
+$(ODIR)bathymetry_interp.o : bathymetry_interp.F90             $(ODIR)globals.o $(ODIR)transformation.o $(ODIR)spherical_mod.o $(ODIR)read_input.o
 	$(FC) $(FFLAGS) -c $< -o $@
 	
 $(ODIR)bathymetry_nodal2modal.o : bathymetry_nodal2modal.F90   $(ODIR)globals.o $(ODIR)lapack_interfaces.o $(ODIR)read_input.o $(ODIR)vandermonde.o

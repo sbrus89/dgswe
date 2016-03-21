@@ -9,7 +9,7 @@
       USE read_dginp, ONLY: grid_file,bathy_file,curve_file, &
                             cb_file_exists,hb_file_exists, &
                             ctp,hbp,h0,coord_sys,slam0,sphi0
-                            
+      USE spherical_mod, ONLY: cpp_transformation                                                        
       USE grid_file_mod                            
 
       IMPLICIT NONE
@@ -19,7 +19,9 @@
 
       CALL read_header(grid_file,grid_name,ne,nn)  
       
-      CALL read_coords(nn,xy,depth,h0,coord_sys,r_earth,slam0,sphi0)
+      CALL read_coords(nn,xy,depth,h0)
+      
+      CALL cpp_transformation(coord_sys,r_earth,slam0,sphi0,nn,xy)
 
       CALL read_connectivity(ne,ect,el_type)
       

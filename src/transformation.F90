@@ -37,8 +37,11 @@
       
       RETURN
       END SUBROUTINE init_element_coordinates
+      
+      
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!      
+
 
       SUBROUTINE element_transformation(nnd,x,y,l,xpt,ypt,dldr,dlds,drdx,drdy,dsdx,dsdy,detJ)
 
@@ -106,26 +109,9 @@
 
       END SUBROUTINE element_transformation
 
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!     
 
-      SUBROUTINE cpp_transformation(ypt,Sp)
-
-      USE globals, ONLY: r_earth
-      USE read_dginp, ONLY: coord_sys,sphi0
-
-      IMPLICIT NONE
-
-      REAL(rp), INTENT(IN) :: ypt
-      REAL(rp), INTENT(OUT) :: Sp
-
-      IF (coord_sys == 1) THEN
-        Sp = 1d0
-      ELSE
-        Sp = cos(sphi0)/cos(ypt/r_earth)        
-      ENDIF      
-
-
-      END SUBROUTINE cpp_transformation
 
       END MODULE transformation

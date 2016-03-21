@@ -4,8 +4,10 @@
                          ne,ned,elxy,elhb,ged2el,ged2led, &
                          hbqpta_init,dhbdx_init,dhbdy_init,hbqpte_init,hbqpted, &
                          psia,dpsidr,dpsids, &
-                         recv_edge
-      USE transformation, ONLY: element_transformation,cpp_transformation                                            
+                         recv_edge,r_earth
+      USE transformation, ONLY: element_transformation
+      USE spherical_mod, ONLY: cpp_factor
+      USE read_dginp, ONLY: coord_sys,slam0,sphi0      
                          
 
       IMPLICIT NONE
@@ -42,7 +44,7 @@
             CALL element_transformation(nnds(et),elxy(:,el,1),elxy(:,el,2),psia(:,pt,et),xpt,ypt, &
                                         dpsidr(:,pt,et),dpsids(:,pt,et),drdx,drdy,dsdx,dsdy,detJ)
             
-            CALL cpp_transformation(ypt,Sp)
+            CALL cpp_factor(coord_sys,r_earth,slam0,sphi0,ypt,Sp)
                      
                                                                              
                                              

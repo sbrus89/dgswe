@@ -3,9 +3,11 @@
       USE globals, ONLY: rp,ned,el_type,ged2el,ged2led,elxy, &
                          nverts,nnds,nqpta,nqpte, &
                          psia,dpsidr,dpsids, &
-                         nx_pt,ny_pt,Spe,cfac
+                         nx_pt,ny_pt,Spe,cfac,r_earth
 
-      USE transformation, ONLY: element_transformation,cpp_transformation
+      USE transformation, ONLY: element_transformation
+      USE spherical_mod, ONLY: cpp_factor
+      USE read_dginp, ONLY: coord_sys,slam0,sphi0      
 
 
       IMPLICIT NONE
@@ -42,7 +44,7 @@
           CALL element_transformation(nnd,elxy(:,el,1),elxy(:,el,2),psia(:,pt,et),xpt,ypt, &
                                       dpsidr(:,pt,et),dpsids(:,pt,et),drdx,drdy,dsdx,dsdy,detJ)
             
-          CALL cpp_transformation(ypt,Sp)
+          CALL cpp_factor(coord_sys,r_earth,slam0,sphi0,ypt,Sp)
                      
           
           IF (nv == 3) THEN

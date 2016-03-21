@@ -3,9 +3,12 @@
       USE globals, ONLY: rp,ne,el_type,mndof,elxy, &
                          ndof,nnds,nqpta,wpta,dpdr,dpds,phia,mmi_init, &
                          psia,dpsidr,dpsids, &
-                         detJa,dpdx_init,dpdy_init,phia,phia_int_init
+                         detJa,dpdx_init,dpdy_init,phia,phia_int_init, &
+                         r_earth
                          
-      USE transformation, ONLY: element_transformation,cpp_transformation
+      USE transformation, ONLY: element_transformation
+      USE spherical_mod, ONLY: cpp_factor
+      USE read_dginp, ONLY: coord_sys,slam0,sphi0
       USE lapack_interfaces
 
       IMPLICIT NONE
@@ -38,7 +41,7 @@
           CALL element_transformation(nnd,elxy(:,el,1),elxy(:,el,2),psia(:,pt,et),xpt,ypt, &
                                       dpsidr(:,pt,et),dpsids(:,pt,et),drdx,drdy,dsdx,dsdy,detJa(el,pt))
             
-          CALL cpp_transformation(ypt,Sp)
+          CALL cpp_factor(coord_sys,r_earth,slam0,sphi0,ypt,Sp)
                      
             
           DO dof = 1,ndf
