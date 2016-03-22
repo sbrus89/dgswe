@@ -9,7 +9,7 @@
       
       SUBROUTINE sizes()
       
-      USE globals, ONLY: p,ctp,ndof,mndof,np,nnds,mnnds,nverts,mninds
+      USE globals, ONLY: p,ctp,hbp,ndof,mndof,np,nnds,mnnds,nverts,mninds,order
       
       IMPLICIT NONE   
       
@@ -19,23 +19,36 @@
       ndof(4) = ndof(2)
       mndof = maxval(ndof)
       
+      nverts(1) = 3
+      nverts(2) = 4
+      nverts(3) = 3
+      nverts(4) = 4      
+      
       np(1) = 1
       np(2) = 1
       np(3) = ctp
-      np(4) = ctp        
+      np(4) = ctp     
+      np(5) = hbp
+      np(6) = hbp
       
       nnds(1) = 3
       nnds(2) = 4
       nnds(3) = (ctp+1)*(ctp+2)/2
       nnds(4) = (ctp+1)*(ctp+1) 
-      mnnds = maxval(nnds)    
+      nnds(5) = (hbp+1)*(hbp+2)/2
+      nnds(6) = (hbp+1)*(hbp+1)
+      mnnds = maxval(nnds)       
       
-      nverts(1) = 3
-      nverts(2) = 4
-      nverts(3) = 3
-      nverts(4) = 4
+      order(1) = 1
+      order(2) = 2
+      order(3) = 3
+      order(4) = 4
+      order(5) = 5
+      order(6) = 6
+      order(7) = 5
+      order(8) = 6           
       
-      mninds = nnds(3)-3*(np(3)-1)-3    
+      mninds = (hbp-1)*(hbp-1)
 
       RETURN
       END SUBROUTINE sizes      

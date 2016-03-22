@@ -1,6 +1,6 @@
       SUBROUTINE read_input()
 
-      USE globals, ONLY: base,eval,p,ctp,Erad,lambda0,phi0,deg2rad, &
+      USE globals, ONLY: base,eval,p,ctp,hbp,Erad,lambda0,phi0,deg2rad, &
                          refinement,r,sigma_n,out_direc,lsp,nrpt,eps
                          
 
@@ -42,33 +42,36 @@
             CASE (2)
               eval%grid_file = TRIM(ADJUSTL(temp))
               PRINT*, "eval%grid_file = ", eval%grid_file
-            CASE (3)
+            CASE (3) 
+              READ(temp,*) hbp
+              PRINT*, "hbp = ", hbp
+            CASE (4)
               READ(temp,*) ctp
               PRINT*, "ctp = ", ctp
-            CASE (4)
+            CASE (5)
               READ(temp,*) lsp
               PRINT*, "lsp = ", lsp              
-            CASE (5) 
+            CASE (6) 
               READ(temp,*) Erad
               PRINT*, "Erad = ", Erad
-            CASE (6)
+            CASE (7)
               READ(temp,*) lambda0,phi0
               PRINT*, "lambda0,phi0 = ", lambda0 , phi0
               lambda0 = lambda0*deg2rad
               phi0 = phi0*deg2rad
-            CASE (7)
+            CASE (8)
               READ(temp,*) r
               PRINT*, "r = ", r
-            CASE (8)
+            CASE (9)
               READ(temp,*) sigma_n
               PRINT*, "sigma_n = ", sigma_n
-            CASE(9)
+            CASE (10)
               out_direc = TRIM(ADJUSTL(temp))
               PRINT*, "out_direc = ", out_direc
-            CASE (10)
+            CASE (11)
               READ(temp,*) nrpt
               PRINT*, "nrpt = ", nrpt
-            CASE (11)
+            CASE (12)
               READ(temp,*) eps
               PRINT*, "eps = ", eps              
           

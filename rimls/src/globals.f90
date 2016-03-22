@@ -17,14 +17,17 @@
       CHARACTER(100) :: out_direc           
       
       INTEGER, PARAMETER :: nel_type = 4 !(type #s: 1 -> triangles, 2 -> quads, 3 -> curved triangles, 4-> curved quads)   
+      INTEGER, PARAMETER :: norder = 6 ! # of different orders (straight sided elements for tri/quad = 1, curvilinear tri/quad = ctp, high-order bathymetry = hbp)       
+      INTEGER :: order(2*nel_type)      
       INTEGER :: ctp
+      INTEGER :: hbp
       INTEGER :: lsp
       INTEGER :: nverts(nel_type)
-      INTEGER :: np(nel_type)
-      INTEGER :: nnds(nel_type)
+      INTEGER :: np(norder)
+      INTEGER :: nnds(norder)
       INTEGER :: mnnds      
-      INTEGER :: ndof(nel_type)
-      INTEGER :: mndof    
+      INTEGER :: ndof(nel_type)      
+      INTEGER :: mndof          
       INTEGER :: mninds
       
       LOGICAL :: refinement     
