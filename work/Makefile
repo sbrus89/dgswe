@@ -155,7 +155,7 @@ METIS_LIB = -L../metis-4.0.3 -lmetis
 
 dgswe_objects = globals.o lapack_interfaces.o messenger2.o allocation.o grid_file_mod.o \
                 read_input.o read_grid.o read_forcing.o \
-                bathymetry_interp.o bathymetry_nodal2modal.o \
+                bathymetry_interp_mod.o bathymetry_interp.o bathymetry_nodal2modal.o \
                 edge_connectivity_mod.o connect.o initial.o interp_forcing.o \
                 edge_partition2.o metis2.o \
                 curvilinear_nodes_mod.o curvilinear.o \
@@ -173,7 +173,7 @@ dgprep_objects = globals.o messenger2.o read_input.o allocation.o grid_file_mod.
                  read_grid.o read_forcing.o  curvilinear.o\
                  edge_connectivity_mod.o connect.o edge_qpts.o metis2.o decomp2.o \
                  basis.o basis_eval.o vandermonde.o shape_functions_mod.o shape_functions_eval.o transformation.o \
-                 normals.o bathymetry_interp.o edge_transformation.o spherical_mod.o\
+                 normals.o bathymetry_interp_mod.o bathymetry_interp.o edge_transformation.o spherical_mod.o\
                  modal2nodal.o write_files.o version.o quit.o dgprep.o
                  
 dgprep_obj := $(patsubst %.o, $(ODIR)%.o,$(dgprep_objects))  
@@ -368,7 +368,11 @@ $(ODIR)transformation.o : transformation.F90                   $(ODIR)globals.o
 	$(FC) $(FFLAGS) -c $< -o $@
 	mv transformation.mod $(ODIR)
 	
-$(ODIR)spherical_mod.o : spherical_mod.F90                     $(ODIR)globals.o $(ODIR)read_input.o
+$(ODIR)bathymetry_interp_mod.o : bathymetry_interp_mod.F90     $(ODIR)globals.o
+	$(FC) $(FFLAGS) -c $< -o $@
+	mv bathymetry_interp_mod.mod $(ODIR)	
+	
+$(ODIR)spherical_mod.o : spherical_mod.F90                     $(ODIR)globals.o 
 	$(FC) $(FFLAGS) -c $< -o $@
 	mv spherical_mod.mod $(ODIR)
 	
@@ -449,7 +453,7 @@ $(ODIR)normals.o : normals.F90                                 $(ODIR)globals.o 
 $(ODIR)edge_integration.o : edge_integration.F90               $(ODIR)globals.o $(ODIR)messenger2.o
 	$(FC) $(FFLAGS) $(OPT_REPORT) -c $< -o $@
 	
-$(ODIR)bathymetry_interp.o : bathymetry_interp.F90             $(ODIR)globals.o $(ODIR)transformation.o $(ODIR)spherical_mod.o $(ODIR)read_input.o
+$(ODIR)bathymetry_interp.o : bathymetry_interp.F90             $(ODIR)globals.o $(ODIR)transformation.o $(ODIR)spherical_mod.o $(ODIR)read_input.o $(ODIR)bathymetry_interp_mod.o
 	$(FC) $(FFLAGS) -c $< -o $@
 	
 $(ODIR)bathymetry_nodal2modal.o : bathymetry_nodal2modal.F90   $(ODIR)globals.o $(ODIR)lapack_interfaces.o $(ODIR)read_input.o $(ODIR)vandermonde.o

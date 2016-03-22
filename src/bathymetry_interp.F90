@@ -7,7 +7,8 @@
                          r_earth
       USE transformation, ONLY: element_transformation
       USE spherical_mod, ONLY: cpp_factor
-      USE read_dginp, ONLY: coord_sys,slam0,sphi0      
+      USE read_dginp, ONLY: coord_sys,slam0,sphi0
+      USE bathymetry_interp_mod, ONLY: bathymetry_interp_eval
                          
 
       IMPLICIT NONE
@@ -41,21 +42,11 @@
             CALL element_transformation(nnds(et),elxy(:,el,1),elxy(:,el,2),psia(:,pt,et),xpt,ypt, &
                                         dpsidr(:,pt,et),dpsids(:,pt,et),drdx,drdy,dsdx,dsdy,detJ)
             
-            CALL cpp_factor(coord_sys,r_earth,slam0,sphi0,ypt,Sp)
-                     
-                                                                             
-                                             
-            dhbdx_init(el,pt) = 0d0
-            dhbdy_init(el,pt) = 0d0
-            hbqpta_init(el,pt) = 0d0
-            DO nd = 1,nnds(eo)  
-              hb = elhb(nd,el)
-              
-              hbqpta_init(el,pt) =  hbqpta_init(el,pt) + psia(nd,pt,typ)*hb
-              
-              dhbdx_init(el,pt) = dhbdx_init(el,pt) + (dpsidr(nd,pt,typ)*drdx + dpsids(nd,pt,typ)*dsdx)*hb*Sp
-              dhbdy_init(el,pt) = dhbdy_init(el,pt) + (dpsidr(nd,pt,typ)*drdy + dpsids(nd,pt,typ)*dsdy)*hb              
-            ENDDO
+            CALL cpp_factor(coord_sys,r_earth,slam0,sphi0,ypt,Sp)                                                                                                                                              
+            
+            CALL bathymetry_interp_eval(nnds(eo),elhb(:,el),psia(:,pt,typ),hbqpta_init(el,pt), &
+                                        dpsidr(:,pt,typ),dpsids(:,pt,typ),drdx,drdy,dsdx,dsdy,Sp, &
+                                        dhbdx_init(el,pt),dhbdy_init(el,pt))
                      
 !              IF (et == 1) THEN        
                WRITE(45,"(I7,4(e24.17,1x))") el,xpt,ypt,dhbdx_init(el,pt),dhbdy_init(el,pt)      
@@ -85,7 +76,8 @@
                          ned,elhb,ged2el,ged2led, &
                          hbqpte_init,hbqpted, &
                          psia, &
-                         recv_edge    
+                         recv_edge  
+      USE bathymetry_interp_mod, ONLY: bathymetry_interp_eval                         
 
       IMPLICIT NONE
       
@@ -126,10 +118,7 @@
             gp_in = (led_in-1)*nqe + j  
             gp_ex = (led_ex-1)*nqe + nqe - j + 1
             
-            hb = 0d0          
-            DO nd = 1,nnds(eo)                                 
-              hb = hb + psia(nd,pt,typ)*elhb(nd,el_in)     
-            ENDDO   
+            CALL bathymetry_interp_eval(nnds(eo),elhb(:,el_in),psia(:,pt,typ),hb)
               
             hbqpte_init(el_in,gp_in) = hb
             
@@ -157,12 +146,9 @@
           eo = order(typ)      
         
           DO i = 1,nqe        
-            pt = nqa + (led_in-1)*nqe+i         
-          
-            hbqpted(ed,i) = 0d0          
-            DO nd = 1,nnds(eo)                                 
-              hbqpted(ed,i) = hbqpted(ed,i) + psia(nd,pt,typ)*elhb(nd,el_in)     
-            ENDDO           
+            pt = nqa + (led_in-1)*nqe+i                  
+            
+            CALL bathymetry_interp_eval(nnds(eo),elhb(:,el_in),psia(:,pt,typ),hbqpted(ed,i))
           ENDDO                            
 
 !             PRINT("(4(F24.17))"), (hbqpted(ed,i), i = 1,nqe)   
@@ -187,10 +173,7 @@
           DO i = 1,nqe        
             pt = nqa + (led_in-1)*nqe+i            
           
-            hbqpted(ed,i) = 0d0          
-            DO nd = 1,nnds(eo)                                 
-              hbqpted(ed,i) = hbqpted(ed,i) + psia(nd,pt,typ)*elhb(nd,el_in)     
-            ENDDO           
+            CALL bathymetry_interp_eval(nnds(eo),elhb(:,el_in),psia(:,pt,typ),hbqpted(ed,i))
           ENDDO                            
         
           
