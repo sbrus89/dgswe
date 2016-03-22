@@ -41,8 +41,9 @@ endif
 ########################################################################
 
 objects = kdtree2.o globals.o allocation.o basis.o find_element.o quit.o\
-          vandermonde.o shape_functions_mod.o transformation.o spherical_mod.o \
-          write_results.o connect.o edge_connectivity_mod.o evaluate.o boundary_check.o \
+          vandermonde.o shape_functions_mod.o transformation.o spherical_mod.o bathymetry_interp_mod.o\
+          write_results.o connect.o edge_connectivity_mod.o  \
+          evaluate.o filter_normals.o boundary_check.o \
           read_input.o read_grid.o grid_file_mod.o\
           curvilinear.o compute_random.o lapack_interfaces.o version.o rimls.o
           
@@ -126,6 +127,10 @@ $(ODIR)transformation.o : ../../src/transformation.F90          $(ODIR)globals.o
 	$(FC) $(FFLAGS) -c $< -o $@
 	mv transformation.mod $(ODIR)	
 	
+$(ODIR)bathymetry_interp_mod.o : ../../src/bathymetry_interp_mod.F90 $(ODIR)globals.o
+	$(FC) $(FFLAGS) -c $< -o $@
+	mv bathymetry_interp_mod.mod $(ODIR)		
+	
 $(ODIR)spherical_mod.o : ../../src/spherical_mod.F90            $(ODIR)globals.o 
 	$(FC) $(FFLAGS) -c $< -o $@
 	mv spherical_mod.mod $(ODIR)	
@@ -155,6 +160,9 @@ $(ODIR)evaluate.o: evaluate.f90                                 $(ODIR)kdtree2.o
 	
 $(ODIR)boundary_check.o : boundary_check.F90                    $(ODIR)globals.o  $(ODIR)find_element.o
 	$(FC) $(FFLAGS) -c $< -o $@
+	
+$(ODIR)filter_normals.o : filter_normals.f90                    $(ODIR)globals.o  $(ODIR)kdtree2.o $(ODIR)evaluate.o
+	$(FC) $(FFLAGS) -c $< -o $@	
 	
 $(ODIR)read_input.o: read_input.f90                             $(ODIR)globals.o
 	$(FC) $(FFLAGS) -c $< -o $@

@@ -49,16 +49,19 @@
       
       SUBROUTINE normals(mesh)
       
-      USE globals, ONLY: np,nnds,mnnds,V,l,dlds,dldr,ipiv,grid     
+      USE globals, ONLY: np,nnds,mnnds,V,l,dlds,dldr,ipiv,grid  
+      USE transformation, ONLY: element_transformation
+      USE bathymetry_interp_mod, ONLY: bathymetry_interp_eval
 
       IMPLICIT NONE
       INTEGER :: it,el,et,p,n,i,np1,nnd
-      REAL(rp) :: x,y
+      REAL(rp) :: xpt,ypt
       REAL(rp) :: dxdr,dxds,dydr,dyds,jac
       REAL(rp) :: drdx,drdy,dsdx,dsdy
-      REAL(rp) :: dhdx,dhdy
+      REAL(rp) :: hb,dhdx,dhdy
       REAL(rp) :: nx,ny,nz,nrm
       REAL(rp) :: x1,x2,y1,y2,z1,z2
+      REAL(rp) :: Sp
       
       TYPE(grid) :: mesh
       
@@ -81,36 +84,16 @@
           ENDIF             
         np1 = nnd+1             
         
-        dxdr = 0d0
-        dxds = 0d0
-        dydr = 0d0
-        dyds = 0d0  
-        
-        DO i = 1,n         
-          dxdr = dxdr + dldr(i,np1,et)*mesh%elxy(i,el,1)
-          dxds = dxds + dlds(i,np1,et)*mesh%elxy(i,el,1)
-          dydr = dydr + dldr(i,np1,et)*mesh%elxy(i,el,2)
-          dyds = dyds + dlds(i,np1,et)*mesh%elxy(i,el,2)
-          
-          mesh%xyhc(1,el) = mesh%xyhc(1,el) + l(i,np1,et)*mesh%elxy(i,el,1)
-          mesh%xyhc(2,el) = mesh%xyhc(2,el) + l(i,np1,et)*mesh%elxy(i,el,2)
-          mesh%xyhc(3,el) = mesh%xyhc(3,el) + l(i,np1,et)*mesh%elhb(i,el)        
-        ENDDO
-        
-        jac = dxdr*dyds - dydr*dxds
-
-        drdx =  dyds/jac
-        drdy = -dxds/jac
-        dsdx = -dydr/jac
-        dsdy =  dxdr/jac
-      
-        dhdx = 0d0
-        dhdy = 0d0      
-
-        DO i = 1,n
-          dhdx = dhdx + (dldr(i,np1,et)*drdx + dlds(i,np1,et)*dsdx)*mesh%elhb(i,el)
-          dhdy = dhdy + (dldr(i,np1,et)*drdy + dlds(i,np1,et)*dsdy)*mesh%elhb(i,el)        
-        ENDDO
+        CALL element_transformation(n,mesh%elxy(:,el,1),mesh%elxy(:,el,2),l(:,np1,et),xpt,ypt, &
+                                    dldr(:,np1,et),dlds(:,np1,et),drdx,drdy,dsdx,dsdy,jac)         
+        Sp = 1d0
+             
+        CALL bathymetry_interp_eval(n,mesh%elhb(:,el),l(:,np1,et),hb, &
+                                    dldr(:,np1,et),dlds(:,np1,et),drdx,drdy,dsdx,dsdy,Sp,dhdx,dhdy)
+                                    
+        mesh%xyhc(1,el) = xpt
+        mesh%xyhc(2,el) = ypt
+        mesh%xyhc(3,el) = hb
       
         nrm = sqrt(dhdx**2 + dhdy**2 + 1d0)
       
@@ -153,7 +136,9 @@
       SUBROUTINE coordinates(mesh)
       
       USE globals, ONLY: rp,mnnds,nnds,np,nverts,l, &
-                         grid
+                         grid                         
+      USE transformation, ONLY: element_transformation                         
+      USE bathymetry_interp_mod, ONLY: bathymetry_interp_eval                         
       
       IMPLICIT NONE
       
@@ -194,13 +179,11 @@
         
         DO pt = 1,pn-1
           
-          j = mod(led,nv)*pn + pt + 1
+          j = mod(led,nv)*pn + pt + 1          
           
-          DO i = 1,n                   
-            mesh%xyhe(pt,ed,1) = mesh%xyhe(pt,ed,1) + l(i,j,et)*mesh%elxy(i,el,1)
-            mesh%xyhe(pt,ed,2) = mesh%xyhe(pt,ed,2) + l(i,j,et)*mesh%elxy(i,el,2)
-            mesh%xyhe(pt,ed,3) = mesh%xyhe(pt,ed,3) + l(i,j,et)*mesh%elhb(i,el)
-          ENDDO 
+          CALL element_transformation(n,mesh%elxy(:,el,1),mesh%elxy(:,el,2),l(:,j,et), &
+                                      mesh%xyhe(pt,ed,1),mesh%xyhe(pt,ed,2))
+          CALL bathymetry_interp_eval(n,mesh%elhb(:,el),l(:,j,et),mesh%xyhe(pt,ed,3))
           
           IF (bed == 10) THEN
             ytest = mesh%xyhe(pt,ed,2)
@@ -240,12 +223,10 @@
         DO j = nv*(pn-1)+nv+1,nnd
         
           pt = pt + 1        
-          
-          DO i = 1,n                   
-            mesh%xyhi(pt,el,1) = mesh%xyhi(pt,el,1) + l(i,j,et)*mesh%elxy(i,el,1)
-            mesh%xyhi(pt,el,2) = mesh%xyhi(pt,el,2) + l(i,j,et)*mesh%elxy(i,el,2)
-            mesh%xyhi(pt,el,3) = mesh%xyhi(pt,el,3) + l(i,j,et)*mesh%elhb(i,el)
-          ENDDO        
+
+          CALL element_transformation(n,mesh%elxy(:,el,1),mesh%elxy(:,el,2),l(:,j,et), &
+                                      mesh%xyhi(pt,el,1),mesh%xyhi(pt,el,2))
+          CALL bathymetry_interp_eval(n,mesh%elhb(:,el),l(:,j,et),mesh%xyhi(pt,el,3))          
         ENDDO
                 
       ENDDO
@@ -256,7 +237,7 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-      SUBROUTINE transformation()
+      SUBROUTINE shape_functions_eval()
       
       USE globals, ONLY: mnnds,nel_type,nnds,np,nverts,l,dldr,dlds
       USE basis, ONLY: tri_nodes,quad_nodes
@@ -304,7 +285,7 @@
       
       
       RETURN
-      END SUBROUTINE transformation
+      END SUBROUTINE shape_functions_eval
       
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -397,82 +378,7 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-      SUBROUTINE filter_normals()
-      
-      USE globals, ONLY: base,tree_c,kdresults
-      USE kdtree2_module          
-      
-      IMPLICIT NONE
-      
-      INTEGER :: j,i,it
-      INTEGER :: nneigh,el
-      REAL(rp) :: xi(3),pj(3),ni(3),nj(3),top(3),bottom
-      REAL(rp) :: hpt,phiw,phi0
-      REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: nrm
-      
-      ALLOCATE(nrm(3,base%ne))
-      
-      DO j = 1,base%ne
-      
-        pj = base%xyhc(:,j)       
-      
-        CALL kdtree2_n_nearest(tp=tree_c,qv=pj,nn=1,results=kdresults)
-          
-        el = kdresults(1)%idx           
-        hpt = (r*base%h(el))**2   
-          
-        CALL kdtree2_r_nearest(tp=tree_c,qv=pj,r2=hpt,nfound=nneigh,nalloc=base%ne,results=kdresults)
-          
-        hpt = sqrt(hpt)  
-        
-        top = 0d0
-        bottom = 0d0
-        DO i = 1,nneigh
-          xi  = base%xyhc(:,kdresults(i)%idx)
-          ni = base%nhb(:,kdresults(i)%idx)  
-          
-          phi0 = (1d0-norm(pj-xi)**2/hpt**2)**4
-          
-          top = top + phi0*ni
-          bottom = bottom + phi0
-          
-        ENDDO       
-        
-        nrm(:,j) = top/bottom
-        
-  iter: DO it = 1,maxptit
-          top = 0d0
-          bottom = 0d0
-          nj = nrm(:,j)
-          DO i = 1,nneigh
-          
-            xi  = base%xyhc(:,kdresults(i)%idx)
-            ni = base%nhb(:,kdresults(i)%idx)   
-                        
-            phiw = (1d0-norm(pj-xi)**2/hpt**2)**4*exp(-(norm(nj-ni)/sigma_n)**2)
-            
-            top = top + phiw*ni
-            bottom = bottom + phiw
-          ENDDO
-          nrm(:,j) = top/bottom
-          IF (norm(nrm(:,j)-nj) < threshold) THEN
-            PRINT*, "iter = ", it
-            EXIT iter
-          ENDIF
-        ENDDO iter
-!         IF (it == maxptit+1) THEN
-!           PRINT*, "max iterations reached"
-!         ENDIF
-      ENDDO
 
-      base%nhb = nrm
-      
-      RETURN
-      END SUBROUTINE filter_normals
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!   
-      
       SUBROUTINE rimls_surface(n,npts,mnpts,xyh)
       
       USE globals, ONLY: tree_xy,tree_c,kdresults,base,hmin,hmax,phi0,lambda0,Erad
