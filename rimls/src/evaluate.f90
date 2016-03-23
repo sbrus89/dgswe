@@ -38,10 +38,63 @@
         
       ENDDO
       
+            
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!       
       
       
       RETURN      
       END SUBROUTINE ref_elem_coords
+      
+      SUBROUTINE shape_functions_eval()
+      
+      USE globals, ONLY: mnnds,nel_type,nnds,np,nverts,l,dldr,dlds
+      USE basis, ONLY: tri_nodes,quad_nodes
+      USE shape_functions_mod
+      
+      IMPLICIT NONE
+      
+      INTEGER :: et,pt,i,j
+      INTEGER :: n,p,np1,pn,nnd,nv
+      INTEGER :: info
+      REAL(rp), DIMENSION(mnnds+1) :: r,s
+      
+      PRINT "(A)", "Computing interpolating polynomials..."        
+      
+      ALLOCATE(l(mnnds,mnnds+1,nel_type))
+      ALLOCATE(dldr(mnnds,mnnds+1,nel_type))
+      ALLOCATE(dlds(mnnds,mnnds+1,nel_type))
+      
+      DO et = 1,nel_type
+        n = nnds(et)
+        p = np(et)
+        nv = nverts(et)
+      
+        IF (mod(et,2) == 1) THEN    
+          pn = np(3)
+          CALL tri_nodes(1,pn,nnd,r,s)
+        ELSE IF (mod(et,2) == 0) THEN
+          pn = np(4)
+          CALL quad_nodes(1,pn,nnd,r,s)
+        ENDIF     
+        
+        np1 = nnd+1
+        
+        IF (mod(et,2) == 1) THEN
+          r(np1) = -1d0/3d0
+          s(np1) = -1d0/3d0
+        ELSE IF (mod(et,2) == 0) THEN
+          r(np1) = 0d0
+          s(np1) = 0d0
+        ENDIF        
+        
+        CALL shape_functions_area_eval(nv,p,n,np1,r,s,l(:,:,et),dldr(:,:,et),dlds(:,:,et))
+        
+      ENDDO
+      
+      
+      RETURN
+      END SUBROUTINE shape_functions_eval     
  
       
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -74,14 +127,13 @@
       
       DO el = 1,mesh%ne
       
-        et = mesh%el_type(el)
-        p = np(et)  
+        et = mesh%el_type(el) 
         n = nnds(et)
-          IF (mod(et,2) == 1) THEN
-            nnd = nnds(3)
-          ELSE IF (mod(et,2) == 0) THEN
-            nnd = nnds(4)
-          ENDIF             
+        IF (mod(et,2) == 1) THEN
+          nnd = nnds(3)
+        ELSE IF (mod(et,2) == 0) THEN
+          nnd = nnds(4)
+        ENDIF             
         np1 = nnd+1             
         
         CALL element_transformation(n,mesh%elxy(:,el,1),mesh%elxy(:,el,2),l(:,np1,et),xpt,ypt, &
@@ -233,59 +285,6 @@
       
       RETURN
       END SUBROUTINE coordinates
-      
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-      SUBROUTINE shape_functions_eval()
-      
-      USE globals, ONLY: mnnds,nel_type,nnds,np,nverts,l,dldr,dlds
-      USE basis, ONLY: tri_nodes,quad_nodes
-      USE shape_functions_mod
-      
-      IMPLICIT NONE
-      
-      INTEGER :: et,pt,i,j
-      INTEGER :: n,p,np1,pn,nnd,nv
-      INTEGER :: info
-      REAL(rp), DIMENSION(mnnds+1) :: r,s
-      
-      PRINT "(A)", "Computing interpolating polynomials..."        
-      
-      ALLOCATE(l(mnnds,mnnds+1,nel_type))
-      ALLOCATE(dldr(mnnds,mnnds+1,nel_type))
-      ALLOCATE(dlds(mnnds,mnnds+1,nel_type))
-      
-      DO et = 1,nel_type
-        n = nnds(et)
-        p = np(et)
-        nv = nverts(et)
-      
-        IF (mod(et,2) == 1) THEN    
-          pn = np(3)
-          CALL tri_nodes(1,pn,nnd,r,s)
-        ELSE IF (mod(et,2) == 0) THEN
-          pn = np(4)
-          CALL quad_nodes(1,pn,nnd,r,s)
-        ENDIF     
-        
-        np1 = nnd+1
-        
-        IF (mod(et,2) == 1) THEN
-          r(np1) = -1d0/3d0
-          s(np1) = -1d0/3d0
-        ELSE IF (mod(et,2) == 0) THEN
-          r(np1) = 0d0
-          s(np1) = 0d0
-        ENDIF        
-        
-        CALL shape_functions_area_eval(nv,p,n,np1,r,s,l(:,:,et),dldr(:,:,et),dlds(:,:,et))
-        
-      ENDDO
-      
-      
-      RETURN
-      END SUBROUTINE shape_functions_eval
       
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
