@@ -1,6 +1,7 @@
 ! /home/sbrus/Codes/dgswe/grids/inlet1.grd                                                                ! base grid - used to determine the rimls surface
 ! /home/sbrus/Codes/dgswe/grids/inlet2.grd                                                                ! eval grid - used to determine rimls surface evaluation points
 ! 3                                                                                                       ! hbp - bathymetry order
+! ./curve_file.cb                                                                                         ! curved boundary file
 ! 1                                                                                                       ! ctp - parametric coordinate transformation order
 ! 4                                                                                                       ! lsp - moving least squares fit order
 ! 1d0                                                                                                     ! Erad - radius of Earth
@@ -14,6 +15,7 @@
 ! /home/sbrus/data-drive/dgswe_inlet_bath/inlet1.grd                                                        ! base grid - used to determine the rimls surface
 ! /home/sbrus/data-drive/dgswe_inlet_bath/inlet1.grd                                                        ! eval grid - used to determine rimls surface evaluation points
 ! 3                                                                                                         ! hbp - bathymetry order
+! ./curve_file.cb                                                                                           ! curved boundary file
 ! 1                                                                                                         ! ctp - parametric coordinate transformation order
 ! 4                                                                                                         ! lsp - moving least squares fit order
 ! 1d0                                                                                                       ! Erad - radius of Earth
@@ -28,6 +30,7 @@
 /home/sbrus/Codes/dgswe/grids/converge4_bath_dble.grd                                                     ! base grid - used to determine the rimls surface
 /home/sbrus/Codes/dgswe/grids/converge1_dble.grd                                                          ! eval grid - used to determine rimls surface evaluation points
 3                                                                                                         ! hbp - bathymetry order
+/home/sbrus/Codes/dgswe/grids/converge1_dble_ctp3.cb                                                      ! curved boundary file
 3                                                                                                         ! ctp - parametric coordinate transformation order
 4                                                                                                         ! lsp - moving least squares fit order
 1d0                                                                                                       ! Erad - radius of Earth
@@ -42,6 +45,7 @@
 ! /home/sbrus/data-drive/galveston/adcirc/original/ESL0/fort.14                                           ! base grid - used to determine the rimls surface
 ! /home/sbrus/data-drive/galveston/adcirc/original/ESL0/fort.14                                           ! eval grid - used to determine rimls surface evaluation points
 ! 3                                                                                                       ! hbp - bathymetry order
+! ./curve_file.cb                                                                                         ! curved boundary file
 ! 1                                                                                                       ! ctp - parametric coordinate transformation order
 ! 4                                                                                                       ! lsp - moving least squares fit order
 ! 1d0                                                                                                     ! Erad - radius of Earth
@@ -57,6 +61,7 @@
 !/home/sbrus/data-drive/galveston/adcirc/refinedx64/ESL0/fort.14
 !/home/sbrus/data-drive/galveston/adcirc/original/ESL0/fort.14                                              ! eval grid - used to determine rimls surface evaluation points
 !3                                                                                                          ! hbp - bathymetry order
+!./curve_file.cb                                                                                            ! curved boundary file
 !1                                                                                                          ! ctp - parametric coordinate transformation order
 !1                                                                                                          ! lsp - moving least squares fit order
 !15d0                                                                                                        ! Erad - radius of Earth
@@ -71,6 +76,7 @@
 ! /home/sbrus/data-drive/beaufort/beaufort.grd                                                            ! base grid - used to determine the rimls surface
 ! /home/sbrus/data-drive/beaufort/beaufort.grd                                                            ! eval grid - used to determine rimls surface evaluation points
 ! 3                                                                                                       ! hbp - bathymetry order
+! ./curve_file.cb                                                                                         ! curved boundary file
 ! 1                                                                                                       ! ctp - parametric coordinate transformation order
 ! 4                                                                                                       ! lsp - moving least squares fit order
 ! 6378206.4d0                                                                                             ! Erad - radius of Earth
@@ -85,6 +91,7 @@
 ! /home/sbrus/data-drive/beaufort/beaufort_hires.grd                                                      ! base grid - used to determine the rimls surface
 ! /home/sbrus/data-drive/beaufort/beaufort_hires.grd                                                      ! eval grid - used to determine rimls surface evaluation points
 ! 4                                                                                                       ! hbp - bathymetry order
+! ./curve_file.cb                                                                                         ! curved boundary file
 ! 1                                                                                                       ! ctp - parametric coordinate transformation order
 ! 4                                                                                                       ! lsp - moving least squares fit order
 ! 6378206.4d0                                                                                             ! Erad - radius of Earth
@@ -99,6 +106,7 @@
 ! /home/sbrus/data-drive/shinnecock/fort.14                                                               ! base grid - used to determine the rimls surface
 ! /home/sbrus/data-drive/shinnecock/fort.14                                                               ! eval grid - used to determine rimls surface evaluation points
 ! 3                                                                                                       ! hbp - bathymetry order
+! ./curve_file.cb                                                                                         ! curved boundary file
 ! 1                                                                                                       ! ctp - parametric coordinate transformation order
 ! 4                                                                                                       ! lsp - moving least squares fit order
 ! 6378206.4d0                                                                                             ! Erad - radius of Earth
@@ -114,6 +122,7 @@
 ! /home/sbrus/data-drive/EC2001/fort.14                                                                   ! base grid - used to determine the rimls surface
 ! /home/sbrus/data-drive/EC2001/fort.14                                                                   ! eval grid - used to determine rimls surface evaluation points
 ! 3                                                                                                       ! hbp - bathymetry order
+! ./curve_file.cb                                                                                         ! curved boundary file
 ! 1                                                                                                       ! ctp - parametric coordinate transformation order
 ! 4                                                                                                       ! lsp - moving least squares fit order
 ! 6378206.4d0                                                                                             ! Erad - radius of Earth
@@ -129,6 +138,7 @@
 ! /home/sbrus/data-drive/PRVI/fort.14                                                                     ! base grid - used to determine the rimls surface
 ! /home/sbrus/data-drive/PRVI/fort.14                                                                     ! eval grid - used to determine rimls surface evaluation points
 ! 3                                                                                                       ! hbp - bathymetry order
+! ./curve_file.cb                                                                                         ! curved boundary file
 ! 1                                                                                                       ! ctp - parametric coordinate transformation order
 ! 4                                                                                                       ! lsp - moving least squares fit order
 ! 6378206.4d0                                                                                             ! Erad - radius of Earth

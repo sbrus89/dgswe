@@ -98,8 +98,7 @@
 
       CALL read_open_boundaries(mesh%nope,mesh%neta,mesh%obseg,mesh%obnds) 
 
-      CALL read_flow_boundaries(mesh%nbou,mesh%nvel,mesh%fbseg,mesh%fbnds)
-
+      CALL read_flow_boundaries(mesh%nbou,mesh%nvel,mesh%fbseg,mesh%fbnds) 
       
       CALL print_grid_info(mesh%grid_file,mesh%grid_name,mesh%ne,mesh%nn)      
       

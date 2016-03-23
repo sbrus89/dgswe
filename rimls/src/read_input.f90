@@ -1,12 +1,12 @@
       SUBROUTINE read_input()
 
       USE globals, ONLY: base,eval,p,ctp,hbp,Erad,lambda0,phi0,deg2rad, &
-                         refinement,r,sigma_n,out_direc,lsp,nrpt,eps
+                         refinement,r,sigma_n,out_direc,lsp,nrpt,eps,curve_file
                          
 
       IMPLICIT NONE
       
-      INTEGER, PARAMETER :: ninp = 11
+      INTEGER, PARAMETER :: ninp = 13
       INTEGER :: inp_read,skipped
       CHARACTER(100) :: temp
       LOGICAL :: file_exists
@@ -46,32 +46,35 @@
               READ(temp,*) hbp
               PRINT*, "hbp = ", hbp
             CASE (4)
+              curve_file = TRIM(ADJUSTL(temp))
+              PRINT*, "curve_file = ", curve_file
+            CASE (5)
               READ(temp,*) ctp
               PRINT*, "ctp = ", ctp
-            CASE (5)
+            CASE (6)
               READ(temp,*) lsp
               PRINT*, "lsp = ", lsp              
-            CASE (6) 
+            CASE (7) 
               READ(temp,*) Erad
               PRINT*, "Erad = ", Erad
-            CASE (7)
+            CASE (8)
               READ(temp,*) lambda0,phi0
               PRINT*, "lambda0,phi0 = ", lambda0 , phi0
               lambda0 = lambda0*deg2rad
               phi0 = phi0*deg2rad
-            CASE (8)
+            CASE (9)
               READ(temp,*) r
               PRINT*, "r = ", r
-            CASE (9)
+            CASE (10)
               READ(temp,*) sigma_n
               PRINT*, "sigma_n = ", sigma_n
-            CASE (10)
+            CASE (11)
               out_direc = TRIM(ADJUSTL(temp))
               PRINT*, "out_direc = ", out_direc
-            CASE (11)
+            CASE (12)
               READ(temp,*) nrpt
               PRINT*, "nrpt = ", nrpt
-            CASE (12)
+            CASE (13)
               READ(temp,*) eps
               PRINT*, "eps = ", eps              
           

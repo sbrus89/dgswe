@@ -13,7 +13,7 @@
       REAL(rp) :: dramp ! numer of ramp days      
       REAL(rp) :: lines ! number of lines in output files      
 
-      CHARACTER(100) :: forcing_file ! name of fort.15 file      
+      CHARACTER(100) :: curve_file      
       CHARACTER(100) :: out_direc           
       
       INTEGER, PARAMETER :: nel_type = 4 !(type #s: 1 -> triangles, 2 -> quads, 3 -> curved triangles, 4-> curved quads)   
@@ -47,9 +47,10 @@
         INTEGER :: mnelnds      
         REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: xy,vxy ! x,y coordinates of nodes
         INTEGER, ALLOCATABLE, DIMENSION(:) :: vxyn
-        REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: elxy        
+        REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: elxy
+        REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: elxyh        
         REAL(rp), ALLOCATABLE, DIMENSION(:) :: depth ! depth at each node
-        REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: elhb     
+        REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: elhb  
         REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: nhb
         REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: xyhc      
         REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: xyhe      
@@ -57,6 +58,7 @@
         REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: xyhv       
         REAL(rp), ALLOCATABLE, DIMENSION(:) :: h
         INTEGER, ALLOCATABLE, DIMENSION(:,:) :: bnd_flag 
+        REAL(rp), ALLOCATABLE, DIMENSION(:,:,:,:) :: bndxy          
 
         INTEGER :: nope ! number of open boundary segents
         INTEGER, ALLOCATABLE, DIMENSION(:) :: obseg ! number of nodes in each open boundary segment
@@ -86,7 +88,7 @@
         INTEGER, ALLOCATABLE, DIMENSION(:) :: bedn   
         INTEGER :: nred
         INTEGER, ALLOCATABLE, DIMENSION(:) :: recv_edge
-        INTEGER, ALLOCATABLE, DIMENSION(:) :: ed_type
+        INTEGER, ALLOCATABLE, DIMENSION(:) :: ed_type      
         
         INTEGER, ALLOCATABLE, DIMENSION(:,:) :: ged2nn,ged2el,ged2led  
         

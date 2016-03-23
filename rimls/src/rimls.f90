@@ -5,10 +5,14 @@
       USE evaluate
       USE basis
       USE write_results
+      USE grid_file_mod
 
       IMPLICIT NONE
 
       INTEGER :: el,nd,pt,i,j,ed
+      INTEGER :: myrank
+      
+      myrank = 0      
       
       CALL version()
       
@@ -20,7 +24,8 @@
       
       IF (refinement) THEN
         CALL read_grid(eval)
-      ENDIF         
+      ENDIF                             
+      
       
       CALL connect(base) 
       
@@ -33,7 +38,13 @@
       
       CALL ref_elem_coords()  
       
-      CALL shape_functions_eval()      
+      CALL shape_functions_eval()     
+      
+      IF (refinement) THEN
+        CALL read_curve_file(myrank,curve_file,ctp,eval%nbou,eval%xy,eval%bndxy)       
+      ELSE
+        CALL read_curve_file(myrank,curve_file,ctp,base%nbou,base%xy,base%bndxy)     
+      ENDIF
       
 !       CALL curvilinear(base)
 !       

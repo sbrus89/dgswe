@@ -41,7 +41,8 @@ endif
 ########################################################################
 
 objects = kdtree2.o globals.o allocation.o basis.o find_element.o quit.o\
-          vandermonde.o shape_functions_mod.o transformation.o spherical_mod.o bathymetry_interp_mod.o\
+          vandermonde.o shape_functions_mod.o transformation.o spherical_mod.o  \
+          curvilinear_nodes_mod.o bathymetry_interp_mod.o\
           write_results.o connect.o edge_connectivity_mod.o  \
           evaluate.o filter_normals.o boundary_check.o \
           read_input.o read_grid.o grid_file_mod.o\
@@ -135,6 +136,10 @@ $(ODIR)spherical_mod.o : ../../src/spherical_mod.F90            $(ODIR)globals.o
 	$(FC) $(FFLAGS) -c $< -o $@
 	mv spherical_mod.mod $(ODIR)	
 	
+$(ODIR)curvilinear_nodes_mod.o : ../../src/curvilinear_nodes_mod.F90  $(ODIR)globals.o $(ODIR)shape_functions_mod.o
+	$(FC) $(FFLAGS) -c $< -o $@
+	mv curvilinear_nodes_mod.mod $(ODIR)		
+	
 $(ODIR)allocation.o: allocation.f90                             $(ODIR)globals.o
 	$(FC) $(FFLAGS) -c $< -o $@
 	mv allocation.mod $(ODIR)
@@ -170,7 +175,7 @@ $(ODIR)read_input.o: read_input.f90                             $(ODIR)globals.o
 $(ODIR)read_grid.o: read_grid.f90                               $(ODIR)globals.o  $(ODIR)grid_file_mod.o $(ODIR)allocation.o
 	$(FC) $(FFLAGS) -c $< -o $@
 	
-$(ODIR)curvilinear.o : curvilinear.f90                          $(ODIR)globals.o
+$(ODIR)curvilinear.o : curvilinear.f90                          $(ODIR)globals.o $(ODIR)curvilinear_nodes_mod.o
 	$(FC) $(FFLAGS) -c $< -o $@	
 	
 $(ODIR)compute_random.o : compute_random.f90                    $(ODIR)kdtree2.o  $(ODIR)globals.o  $(ODIR)basis.o $(ODIR)find_element.o  $(ODIR)evaluate.o  $(ODIR)lapack_interfaces.o
@@ -179,7 +184,7 @@ $(ODIR)compute_random.o : compute_random.f90                    $(ODIR)kdtree2.o
 $(ODIR)version.o : ../../src/version.F90                        $(ODIR)globals.o
 	$(FC) $(FFLAGS) -c $< -o $@
 
-$(ODIR)rimls.o: rimls.f90                                       $(ODIR)globals.o  $(ODIR)allocation.o  $(ODIR)basis.o  $(ODIR)write_results.o
+$(ODIR)rimls.o: rimls.f90                                       $(ODIR)globals.o  $(ODIR)allocation.o  $(ODIR)basis.o  $(ODIR)write_results.o $(ODIR)evaluate.o $(ODIR)grid_file_mod.o
 	$(FC) $(FFLAGS) -c $< -o $@
 	
 
