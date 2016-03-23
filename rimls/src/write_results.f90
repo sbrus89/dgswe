@@ -208,7 +208,7 @@
       INTEGER :: el,ed,et,nv,pt,i,pn,led,n,nd,v,nnd
       INTEGER :: sind,eind
       CHARACTER(100) :: name
-      CHARACTER(1) :: hbp
+      CHARACTER(1) :: hbp_char
       TYPE(grid) :: mesh
       REAL(rp) :: nodes(mnnds,mesh%ne)
       REAL(rp) :: xnodes(mnnds,mesh%ne)
@@ -299,10 +299,10 @@
 !       name = ADJUSTL(TRIM(mesh%grid_file(sind+1:eind-1)))     
 !       OPEN(UNIT = 13, FILE = TRIM(out_direc) // ADJUSTL(TRIM(name)) // ".hb")    
 
-      WRITE(hbp,"(I1)") hbp
+      WRITE(hbp_char,"(I1)") hbp
       
       name = ADJUSTL(TRIM(mesh%grid_file(1:eind-1)))     
-      OPEN(UNIT = 13, FILE = ADJUSTL(TRIM(name)) // "_hbp" // hbp // "_rimls.hb")            
+      OPEN(UNIT = 13, FILE = ADJUSTL(TRIM(name)) // "_hbp" // hbp_char // "_rimls.hb")            
       WRITE(13,"(2(I7,1x))") mesh%ne,hbp
       
       OPEN(UNIT = 14, FILE = TRIM(out_direc) // "elem_nodes.d")      
