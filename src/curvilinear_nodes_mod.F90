@@ -144,7 +144,7 @@
       INTEGER, DIMENSION(:), INTENT(IN) :: el_type
       REAL(rp), DIMENSION(:,:,:), INTENT(IN) :: elxy
       REAL(rp), DIMENSION(:,:,:), INTENT(IN) :: psiv
-      REAL(rp), DIMENSION(:,:,:), INTENT(OUT) :: xyhb
+      REAL(rp), DIMENSION(:,:,:), ALLOCATABLE, INTENT(OUT) :: xyhb
       
       
       INTEGER :: el,pt
@@ -154,6 +154,8 @@
       
       mnnds = MAXVAL(nnds)      
       ALLOCATE(x(mnnds),y(mnnds))
+      
+      ALLOCATE(xyhb(mnnds,ne,2))
       
 
       DO el = 1,ne

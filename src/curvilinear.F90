@@ -2,7 +2,7 @@
 
       USE globals, ONLY: rp,fbseg,fbnds,nnfbed,nfbedn,nfbednn, &
                          ged2el,ged2led,ged2nn, &
-                         nverts,el_type,order,elxy,xy,bndxy,ect,elhb,ne,mnnds,nnds, &
+                         nverts,el_type,elxy,xy,bndxy,ect,elhb,ne,mnnds,nnds, &
                          nel_type,np,psiv,psic
       USE read_dginp, ONLY: ctp
       USE curvilinear_nodes_mod
@@ -18,7 +18,7 @@
       REAL(rp) :: x(mnnds),y(mnnds)      
       REAL(rp) :: rq(mnnds),sq(mnnds)
       REAL(rp) :: rt(mnnds),st(mnnds)  
-      REAL(rp) :: xyhb(mnnds,ne,2)
+      REAL(rp), DIMENSION(:,:,:), ALLOCATABLE :: xyhb
       
       
       
