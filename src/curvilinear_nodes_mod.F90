@@ -9,6 +9,125 @@
 
       CONTAINS
       
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
+
+
+      SUBROUTINE shape_functions_linear_at_ctp(nel_type,np,psi)
+
+      USE basis, ONLY: element_nodes
+      USE shape_functions_mod, ONLY: shape_functions_area_eval      
+      
+      IMPLICIT NONE      
+      
+      INTEGER, INTENT(IN) :: nel_type
+      INTEGER, DIMENSION(:), INTENT(IN) :: np
+      REAL(rp), DIMENSION(:,:,:), ALLOCATABLE, INTENT(OUT) :: psi
+      
+      INTEGER :: pt,i,j
+      INTEGER :: et,str_typ,crv_typ
+      INTEGER :: npts,nnd 
+      INTEGER :: mnp,mnnds
+      REAL(rp), DIMENSION(:), ALLOCATABLE :: r,s
+       
+
+      ! Evaluates linear shape functions at curved element nodal sets
+      !
+      ! Used to create additional nodes which can then be adjusted to make 
+      ! straight elements curved. See edge_coordinates_curved()
+      
+      mnp = maxval(np)
+      mnnds = (mnp+1)**2
+      ALLOCATE(r(mnnds),s(mnnds))
+      
+      ALLOCATE(psi(mnnds,mnnds,2))             
+      psi = 0d0 
+      
+      DO et = 1,2
+
+        IF (mod(et,2) == 1) THEN
+          str_typ = 1
+          crv_typ = 3
+        ELSE IF (mod(et,2) == 0) THEN
+          str_typ = 2
+          crv_typ = 4
+        ENDIF  
+
+        CALL element_nodes(et,1,np(crv_typ),npts,r,s)
+        CALL shape_functions_area_eval(et,np(str_typ),nnd,npts,r,s,psi(:,:,et))   
+              
+!         
+!         PRINT*, "psiv"
+!         DO i = 1,nnd
+!           PRINT "(300(f27.17))", (psi(i,j,et), j = 1,npts)
+!         ENDDO
+!         PRINT*," "
+!         
+
+      ENDDO
+      
+      END SUBROUTINE shape_functions_linear_at_ctp
+!       
+!       
+! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!      
+!       
+!       
+      SUBROUTINE shape_functions_eltypes_at_hbp(nel_type,np,psi)
+
+      USE basis, ONLY: element_nodes
+      USE shape_functions_mod, ONLY: shape_functions_area_eval      
+      
+      IMPLICIT NONE    
+      
+      INTEGER, INTENT(IN) :: nel_type
+      INTEGER, DIMENSION(:), INTENT(IN) :: np
+      REAL(rp), DIMENSION(:,:,:), ALLOCATABLE, INTENT(OUT) :: psi
+      
+      
+      INTEGER :: pt,i,j
+      INTEGER :: et,hbp_type
+      INTEGER :: npts,nnd
+      INTEGER :: mnp,mnnds
+      REAL(rp), DIMENSION(:), ALLOCATABLE :: r,s
+      
+      ! Evaluates linear/curvilinear shape functions at high-order batymetry nodal sets
+      !
+      ! Used to compute function-specified bathymetry at high-order batymetry nodes
+      ! for curved elements. See bathy_coordinates()    
+       
+      mnp = maxval(np)
+      mnnds = (mnp+1)**2
+      ALLOCATE(r(mnnds),s(mnnds))
+      
+      ALLOCATE(psi(mnnds,mnnds,nel_type))             
+      psi = 0d0 
+      
+      
+       
+      DO et = 1,nel_type     
+
+        IF (mod(et,2) == 1) THEN
+          hbp_type = 5    
+        ELSE IF (mod(et,2) == 0) THEN
+          hbp_type = 6
+        ENDIF   
+                 
+
+        CALL element_nodes(et,1,np(hbp_type),npts,r,s)
+        CALL shape_functions_area_eval(et,np(et),nnd,npts,r,s,psi(:,:,et))             
+                
+!         PRINT*, "psic"        
+!         DO i = 1,nnd
+!           PRINT "(20(f27.17))", (psi(i,j,et), j = 1,npts)
+!         ENDDO
+!         PRINT*," "
+
+
+      ENDDO     
+      
+      END SUBROUTINE shape_functions_eltypes_at_hbp      
+      
       
       
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -16,22 +135,20 @@
 
 
 
-      SUBROUTINE bathy_coordinates_straight(ne,nnds,nverts,el_type,xy,ect,psiv,xyhb)
+      SUBROUTINE bathy_coordinates(ne,nnds,el_type,elxy,psiv,xyhb)
       
       IMPLICIT NONE
       
       INTEGER, INTENT(IN) :: ne   
       INTEGER, DIMENSION(:), INTENT(IN) :: nnds
-      INTEGER, DIMENSION(:), INTENT(IN) :: nverts
       INTEGER, DIMENSION(:), INTENT(IN) :: el_type
-      REAL(rp), DIMENSION(:,:), INTENT(IN) :: xy
-      INTEGER, DIMENSION(:,:), INTENT(IN) :: ect
+      REAL(rp), DIMENSION(:,:,:), INTENT(IN) :: elxy
       REAL(rp), DIMENSION(:,:,:), INTENT(IN) :: psiv
       REAL(rp), DIMENSION(:,:,:), INTENT(OUT) :: xyhb
       
       
-      INTEGER :: el,pt,nd
-      INTEGER :: et,nv,npts,mnnds
+      INTEGER :: el,pt
+      INTEGER :: et,nnd,npts,mnnds
       REAL(rp) :: xpt,ypt      
       REAL(rp), DIMENSION(:), ALLOCATABLE :: x,y
       
@@ -42,23 +159,19 @@
       DO el = 1,ne
       
         et = el_type(el)        
-        nv = nverts(et)
+
         IF (mod(et,2) == 1) THEN
-          et = 5
+          npts = nnds(5) 
         ELSE IF (mod(et,2) == 0) THEN
-          et = 6
-        ENDIF             
+          npts = nnds(6) 
+        ENDIF                   
       
-        DO nd = 1,nv
-          x(nd) = xy(1,ect(nd,el))
-          y(nd) = xy(2,ect(nd,el))
-        ENDDO        
-      
-        npts = nnds(et)         
+        nnd = nnds(et)
+            
       
         DO pt = 1,npts              
 
-          CALL element_transformation(nv,x,y,psiv(:,pt,et),xpt,ypt)
+          CALL element_transformation(nnd,elxy(:,el,1),elxy(:,el,2),psiv(:,pt,et),xpt,ypt)
           
 !           elhb(pt,el) = 10d0
 !           elhb(pt,el) = 10d0 - 5d0*cos(2d0*pi/500d0*ypt)        
@@ -68,7 +181,7 @@
       
       ENDDO
       
-      END SUBROUTINE bathy_coordinates_straight
+      END SUBROUTINE bathy_coordinates
       
       
       
@@ -78,7 +191,7 @@
 
       SUBROUTINE eval_coordinates_curved(ctp,nnds,nverts,el_type,xy,ect,fbseg,fbnds, &
                                          nnfbed,nfbedn,nfbednn,ged2el,ged2led, &
-                                         psiv,psic,bndxy,elxy,xyhb)
+                                         psiv,bndxy,elxy)
      
       IMPLICIT NONE
       
@@ -96,10 +209,8 @@
       INTEGER, DIMENSION(:,:), INTENT(IN) :: ged2el
       INTEGER, DIMENSION(:,:), INTENT(IN) :: ged2led
       REAL(rp), DIMENSION(:,:,:), INTENT(IN) :: psiv
-      REAL(rp), DIMENSION(:,:,:), INTENT(IN) :: psic
       REAL(rp), DIMENSION(:,:,:,:), INTENT(IN) :: bndxy
       REAL(rp), DIMENSION(:,:,:), INTENT(INOUT) :: elxy
-      REAL(rp), DIMENSION(:,:,:), INTENT(INOUT) :: xyhb
      
       INTEGER :: i,ed,nd
       INTEGER :: ged,seg,n1,el,led
@@ -135,8 +246,6 @@
         ENDDO
         
         CALL edge_coordinates_curved(el,ctp,led,nnds,nverts,el_type,xy,ect,segxy,psiv,elxy)
-        
-        CALL bathy_coordinates_curved(el,nnds,el_type,elxy,psic,xyhb)
                 
         
       ENDDO     
@@ -173,6 +282,7 @@
        
        
       et = el_type(el) 
+      nv = nverts(et)      
       IF (mod(et,2) == 1) THEN
         el_type(el) = 3 
         nnd = nnds(3)      
@@ -180,9 +290,7 @@
         el_type(el) = 4
         nnd = nnds(4)                  
       ENDIF
-        
-      et = el_type(el)  
-      nv = nverts(et)
+         
         
       DO nd = 1,nv
         x(nd) = xy(1,ect(nd,el))
@@ -223,45 +331,6 @@
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
-
-      SUBROUTINE bathy_coordinates_curved(el,nnds,el_type,elxy,psic,xyhb)
       
-      IMPLICIT NONE
-      
-      INTEGER, INTENT(IN) :: el
-      INTEGER, DIMENSION(:), INTENT(IN) :: nnds
-      INTEGER, DIMENSION(:), INTENT(IN) :: el_type
-      REAL(rp), DIMENSION(:,:,:), INTENT(IN) :: elxy
-      REAL(rp), DIMENSION(:,:,:), INTENT(IN) :: psic
-      REAL(rp), DIMENSION(:,:,:), INTENT(INOUT) :: xyhb
-
-      INTEGER :: pt
-      INTEGER :: et,nnd,npts
-      REAL(rp) :: xpt,ypt
-      
-      et = el_type(el)
-      nnd = nnds(et)        
-      IF (mod(et,2) == 1) THEN
-        npts = nnds(5)
-        et = 5
-      ELSE IF (mod(et,2) == 0) THEN
-        npts = nnds(6)
-        et = 6
-      ENDIF
-        
-      DO pt = 1,npts              
-      
-        CALL element_transformation(nnd,elxy(:,el,1),elxy(:,el,2),psic(:,pt,et),xpt,ypt)
-          
-!         elhb(pt,el) = 10d0
-!         elhb(pt,el) = 10d0 - 5d0*cos(2d0*pi/500d0*ypt)     
-        xyhb(pt,el,1) = xpt
-        xyhb(pt,el,2) = ypt          
-      ENDDO        
-      
-      END SUBROUTINE bathy_coordinates_curved
-      
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!        
       
       END MODULE curvilinear_nodes_mod

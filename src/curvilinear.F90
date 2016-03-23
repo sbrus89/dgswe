@@ -3,7 +3,7 @@
       USE globals, ONLY: rp,fbseg,fbnds,nnfbed,nfbedn,nfbednn, &
                          ged2el,ged2led,ged2nn, &
                          nverts,el_type,order,elxy,xy,bndxy,ect,elhb,ne,mnnds,nnds, &
-                         psiv,psic
+                         nel_type,np,psiv,psic
       USE read_dginp, ONLY: ctp
       USE curvilinear_nodes_mod
 
@@ -22,17 +22,16 @@
       
       
       
-      CALL shape_functions_vertex()
-
-      CALL shape_functions_curve()     
-      
-      
-      CALL bathy_coordinates_straight(ne,nnds,nverts,el_type,xy,ect,psiv,xyhb)
+      CALL shape_functions_linear_at_ctp(nel_type,np,psiv)             
       
       CALL eval_coordinates_curved(ctp,nnds,nverts,el_type,xy,ect,fbseg,fbnds, &
                                    nnfbed,nfbedn,nfbednn,ged2el,ged2led, &
-                                   psiv,psic,bndxy,elxy,xyhb)      
+                                   psiv,bndxy,elxy)     
+                                   
+                                   
+      CALL shape_functions_eltypes_at_hbp(nel_type,np,psic)                                      
       
+      CALL bathy_coordinates(ne,nnds,el_type,elxy,psic,xyhb)      
       
       
 

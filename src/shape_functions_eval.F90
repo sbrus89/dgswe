@@ -3,8 +3,6 @@
       USE globals, ONLY: rp,nel_type,order,nverts,nnds,mnnds, &
                          mnqpta,nqpta,mnqpte,nqpte,np, &
                          qpta,qpte,psia,dpsidr,dpsids
-      USE basis, ONLY: element_basis
-      USE messenger2, ONLY: myrank
       USE shape_functions_mod, ONLY: shape_functions_area_eval
       
       IMPLICIT NONE      
@@ -71,111 +69,7 @@
        ENDDO
        
       END SUBROUTINE shape_functions_area_qpts
-      
-      
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
-
-
-      SUBROUTINE shape_functions_vertex()
-
-      USE globals, ONLY: rp,norder,nnds,mnnds,np, &
-                         psiv
-      USE basis, ONLY: element_nodes
-      USE messenger2, ONLY: myrank
-      USE shape_functions_mod, ONLY: shape_functions_area_eval      
-      
-      IMPLICIT NONE      
-      
-      INTEGER :: pt,i,j,dof
-      INTEGER :: et,eo,npts,p,nnd
-      INTEGER :: info      
-      REAL(rp) :: r(mnnds),s(mnnds)
-       
-
-      ! Evaluates linear shape functions at straight/curved element nodal sets
-      !
-      ! Used to create additional nodes which can then be adjusted to make 
-      ! straight elements curved.  See curvilinear.F90
-      
-      psiv = 0d0
-      
-      DO eo = 1,norder
-
-        p = np(eo)           
-        
-        IF (mod(eo,2) == 1) THEN
-          et = 1    
-        ELSE IF (mod(eo,2) == 0) THEN
-          et = 2
-        ENDIF  
-
-        CALL element_nodes(eo,1,p,npts,r,s)
-        CALL shape_functions_area_eval(eo,np(et),nnd,npts,r,s,psiv(:,:,eo))   
-              
-!         IF (myrank == 0) THEN
-!           PRINT*, "psiv"
-!           DO i = 1,nnd
-!             PRINT "(300(f27.17))", (psiv(i,j,eo), j = 1,npts)
-!           ENDDO
-!           PRINT*," "
-!         ENDIF
-
-      ENDDO
-      
-      END SUBROUTINE shape_functions_vertex
-!       
-!       
-! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!      
-!       
-!       
-      SUBROUTINE shape_functions_curve()
-
-      USE globals, ONLY: rp,norder,nnds,mnnds,np, &
-                         psic
-      USE basis, ONLY: element_nodes
-      USE messenger2, ONLY: myrank
-      USE shape_functions_mod, ONLY: shape_functions_area_eval      
-      
-      IMPLICIT NONE      
-      
-      INTEGER :: pt,i,j,dof
-      INTEGER :: et,eo,npts,p,nnd
-      INTEGER :: info      
-      REAL(rp) :: r(mnnds),s(mnnds)
-      
-      ! Evaluates curvilinear shape functions at high-order batymetry nodal sets
-      !
-      ! Used to compute function-specified bathymetry at high-order batymetry nodes
-      ! for curved elements. See curvilinear.F90      
-       
-      psic = 0d0 
-       
-      DO eo = 1,norder
-
-        p = np(eo)       
-
-        IF (mod(eo,2) == 1) THEN
-          et = 3    
-        ELSE IF (mod(eo,2) == 0) THEN
-          et = 4
-        ENDIF     
-
-        CALL element_nodes(eo,1,p,npts,r,s)
-        CALL shape_functions_area_eval(eo,np(et),nnd,npts,r,s,psic(:,:,eo))             
-                
-!         IF (myrank == 0) THEN
-!           PRINT*, "psic"        
-!           DO i = 1,nnd
-!             PRINT "(20(f27.17))", (psic(i,j,eo), j = 1,npts)
-!           ENDDO
-!           PRINT*," "
-!         ENDIF
-
-      ENDDO     
-      
-      END SUBROUTINE shape_functions_curve
+           
      
      
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

@@ -392,7 +392,7 @@ $(ODIR)edge_connectivity_mod.o : edge_connectivity_mod.F90     $(ODIR)quit.o
 	$(FC) $(FFLAGS) -c $< -o $@
 	mv edge_connectivity_mod.mod $(ODIR)
 	
-$(ODIR)curvilinear_nodes_mod.o : curvilinear_nodes_mod.F90     $(ODIR)globals.o $(ODIR)transformation.o
+$(ODIR)curvilinear_nodes_mod.o : curvilinear_nodes_mod.F90     $(ODIR)globals.o $(ODIR)transformation.o $(ODIR)shape_functions_mod.o
 	$(FC) $(FFLAGS) -c $< -o $@
 	mv curvilinear_nodes_mod.mod $(ODIR)
 
@@ -429,7 +429,7 @@ $(ODIR)curvilinear.o : curvilinear.F90                         $(ODIR)globals.o 
 $(ODIR)element_data.o : element_data.F90                       $(ODIR)globals.o $(ODIR)read_input.o $(ODIR)allocation.o $(ODIR)basis.o $(ODIR)vandermonde.o $(ODIR)shape_functions_mod.o $(ODIR)transformation.o
 	$(FC) $(FFLAGS) -c $< -o $@
 	
-$(ODIR)shape_functions_eval.o : shape_functions_eval.F90       $(ODIR)globals.o  $(ODIR)basis.o $(ODIR)messenger2.o $(ODIR)shape_functions_mod.o
+$(ODIR)shape_functions_eval.o : shape_functions_eval.F90       $(ODIR)globals.o $(ODIR)shape_functions_mod.o
 	$(FC) $(FFLAGS) -c $< -o $@
 
 $(ODIR)edge_partition2.o : edge_partition2.F90                 $(ODIR)globals.o $(ODIR)messenger2.o $(ODIR)read_input.o $(ODIR)allocation.o
