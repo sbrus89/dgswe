@@ -201,7 +201,7 @@
 
       SUBROUTINE write_elem_nodes(mesh)
       
-      USE globals, ONLY: nverts,ctp,nnds
+      USE globals, ONLY: nverts,hbp,nnds
 
       IMPLICIT NONE
       
@@ -225,7 +225,7 @@
         nv = nverts(et)
         
         DO v = 1,nv
-          i = (v-1)*ctp + 1
+          i = (v-1)*hbp + 1
           nd = mesh%ect(v,el)
           nodes(i,el) = mesh%xyhv(1,nd,3)
           xnodes(i,el) = mesh%xyhv(1,nd,1)
@@ -241,8 +241,8 @@
         et = mesh%el_type(el)
         nv = nverts(et)       
           
-        DO pt = 1,ctp-1          
-          i = mod(led,nv)*ctp + pt + 1
+        DO pt = 1,hbp-1          
+          i = mod(led,nv)*hbp + pt + 1
           nodes(i,el) = mesh%xyhe(pt,ed,3)
           xnodes(i,el) = mesh%xyhe(pt,ed,1)
           ynodes(i,el) = mesh%xyhe(pt,ed,2)          
@@ -257,9 +257,9 @@
           et = mesh%el_type(el)
           nv = nverts(et)                 
           
-          DO pt = 1,ctp-1          
-            i = mod(led,nv)*ctp + ctp - pt + 1     
-!             i = mod(led,nv)*ctp + pt + 1
+          DO pt = 1,hbp-1          
+            i = mod(led,nv)*hbp + hbp - pt + 1     
+!             i = mod(led,nv)*hbp + pt + 1
             nodes(i,el) = mesh%xyhe(pt,ed,3)
             xnodes(i,el) = mesh%xyhe(pt,ed,1)
             ynodes(i,el) = mesh%xyhe(pt,ed,2)            
@@ -285,7 +285,7 @@
         ENDIF    
 
         pt = 0
-        DO i = nv*(ctp-1)+nv+1,nnd 
+        DO i = nv*(hbp-1)+nv+1,nnd 
           pt = pt + 1
           nodes(i,el) = mesh%xyhi(pt,el,3) 
           xnodes(i,el) = mesh%xyhi(pt,el,1)
@@ -299,20 +299,20 @@
 !       name = ADJUSTL(TRIM(mesh%grid_file(sind+1:eind-1)))     
 !       OPEN(UNIT = 13, FILE = TRIM(out_direc) // ADJUSTL(TRIM(name)) // ".hb")    
 
-      WRITE(hbp,"(I1)") ctp
+      WRITE(hbp,"(I1)") hbp
       
       name = ADJUSTL(TRIM(mesh%grid_file(1:eind-1)))     
       OPEN(UNIT = 13, FILE = ADJUSTL(TRIM(name)) // "_hbp" // hbp // "_rimls.hb")            
-      WRITE(13,"(2(I7,1x))") mesh%ne,ctp
+      WRITE(13,"(2(I7,1x))") mesh%ne,hbp
       
       OPEN(UNIT = 14, FILE = TRIM(out_direc) // "elem_nodes.d")      
-      WRITE(14,"(2(I7,1x))") mesh%ne,ctp
+      WRITE(14,"(2(I7,1x))") mesh%ne,hbp
       
       OPEN(UNIT = 15, FILE = TRIM(out_direc) // "xelem_nodes.d")      
-      WRITE(15,"(2(I7,1x))") mesh%ne,ctp
+      WRITE(15,"(2(I7,1x))") mesh%ne,hbp
       
       OPEN(UNIT = 16, FILE = TRIM(out_direc) // "yelem_nodes.d")      
-      WRITE(16,"(2(I7,1x))") mesh%ne,ctp      
+      WRITE(16,"(2(I7,1x))") mesh%ne,hbp      
       
       DO el = 1,mesh%ne
         et = mesh%el_type(el)
