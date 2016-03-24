@@ -96,7 +96,7 @@ clean :
 # $< = first prerequisite/depenency
 # $@ = name of the target	
 
-$(ODIR)kdtree2.o : kdtree2.F
+$(ODIR)kdtree2.o : ../../src/kdtree2.F
 	$(FC) $(FFLAGS) -132 -c $< -o $@
 	mv kdtree2_precision_module.mod $(ODIR)
 	mv kdtree2_module.mod $(ODIR)

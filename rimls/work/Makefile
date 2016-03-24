@@ -90,7 +90,7 @@ clean :
 #                            File Targets                              #
 ########################################################################	
 
-$(ODIR)kdtree2.o: kdtree2.F
+$(ODIR)kdtree2.o: ../../src/kdtree2.F
 	$(FC) $(FFLAGS) -c $< -o $@
 	mv kdtree2_precision_module.mod $(ODIR)
 	mv kdtree2_module.mod $(ODIR)
