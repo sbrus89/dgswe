@@ -62,14 +62,14 @@ ybox = [0 0];
 % ybox = [35.14 37.70];
 
 
-[base_ect,base_xy,base_hb,nelnds,opedat,boudat,title,base_bvnds] = readfort14(base_name);
+[base_ect,base_xy,base_hb,nelnds,opedat,boudat,header,base_bvnds] = readfort14(base_name);
 if strcmp(base_name,eval_name)
     eval_ect = base_ect;
     eval_xy = base_xy;
     eval_hb = base_hb;
     eval_bvnds = base_bvnds;
 else
-    [eval_ect,eval_xy,eval_hb,nelnds,opedat,boudat,title,eval_bvnds] = readfort14(eval_name);
+    [eval_ect,eval_xy,eval_hb,nelnds,opedat,boudat,header,eval_bvnds] = readfort14(eval_name);
 end
 
 
@@ -198,6 +198,7 @@ nodes = [xvplot yvplot];
 pdeplot( nodes', [], ect1c','mesh','on') ;
 xlabel('longitude')
 ylabel('latitude')
+title('grid and evaluation points')
 axis image
 hold on
 plot(xplot,yplot,'r.')
@@ -208,6 +209,7 @@ pdeplot( nodes', [], ect1c', 'xydata',hvplot, 'zdata',hvplot,'colormap', 'jet', 
 xlabel('longitude')
 ylabel('latitude')
 zlabel('bathymetry (m)')
+title('base grid bathymetry')
 grid on
 
 % Plot of linearly interpolated nodes
@@ -220,6 +222,7 @@ grid on
 xlabel('longitude')
 ylabel('latitude')
 zlabel('bathymetry (m)')
+title('linearly interpolated nodes')
 
 % Plot of rimls surface nodes
 figure(5)
@@ -231,6 +234,7 @@ grid on
 xlabel('longitude')
 ylabel('latitude')
 zlabel('bathymetry (m)')
+title('rimls surface nodes')
 
 % % Plot of element normals
 % figure(6)
