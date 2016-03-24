@@ -72,13 +72,13 @@ $(ODIR) :
 	mkdir -p $@	
 	
 version :
-	@sed -i '10 c \      gitBranch = "$(GIT_BRANCH)" ' $(VPATH)version.f90
-	@sed -i '11 c \      gitSHA = "$(GIT_SHA) $(GIT_MOD)" ' $(VPATH)version.f90
-	@sed -i '12 c \      compiler_version = "$(FC_VERSION)" ' $(VPATH)version.f90
-	@sed -i '13 c \      compiler_flags = "$(FFLAGS)" ' $(VPATH)version.f90
-	@sed -i '14 c \      modified_files = "$(GIT_MFILES)" ' $(VPATH)version.f90
-	@sed -i '15 c \      compile_date = "$(DATE)" ' $(VPATH)version.f90
-	@sed -i '16 c \      host = "$(NAME)" ' $(VPATH)version.f90
+	@sed -i '10 c \      gitBranch = "$(GIT_BRANCH)" ' ../../src/version.F90
+	@sed -i '11 c \      gitSHA = "$(GIT_SHA) $(GIT_MOD)" ' ../../src/version.F90
+	@sed -i '12 c \      compiler_version = "$(FC_VERSION)" ' ../../src/version.F90
+	@sed -i '13 c \      compiler_flags = "$(FFLAGS)" ' ../../src/version.F90
+	@sed -i '14 c \      modified_files = "$(GIT_MFILES)" ' ../../src/version.F90
+	@sed -i '15 c \      compile_date = "$(DATE)" ' ../../src/version.F90
+	@sed -i '16 c \      host = "$(NAME)" ' ../../src/version.F90
 
 
 ########################################################################
@@ -102,7 +102,7 @@ $(ODIR)kdtree2.o : ../../src/kdtree2.F
 	mv kdtree2_module.mod $(ODIR)
 	mv kdtree2_priority_queue_module.mod $(ODIR)
 	
-$(ODIR)lapack_interfaces.o : lapack_interfaces.f90
+$(ODIR)lapack_interfaces.o : ../../src/lapack_interfaces.F90
 	$(FC) $(FFLAGS) -c $< -o $@
 	mv lapack_interfaces.mod $(ODIR)		
 
@@ -149,5 +149,5 @@ $(ODIR)connect.o : connect.f90                                $(ODIR)globals.o
 $(ODIR)write_output.o : write_output.f90                      $(ODIR)globals.o
 	$(FC) $(FFLAGS) -c $< -o $@
 	
-$(ODIR)version.o : version.f90                                $(ODIR)globals.o
+$(ODIR)version.o : ../../src/version.F90                      $(ODIR)globals.o
 	$(FC) $(FFLAGS) -c $< -o $@
