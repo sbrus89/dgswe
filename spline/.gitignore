@@ -1,0 +1,11 @@
+*.o
+*.mod
+*~
+*.out
+spline
+*.grd
+*.2dm
+*.kate-swp
+.descrip
+*.fig
+
