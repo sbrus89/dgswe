@@ -201,7 +201,8 @@
       
       TYPE(grid) :: mesh
            
-      
+           
+      ALLOCATE(mesh%xyhv(1,mesh%nn,3)) 
       ALLOCATE(mesh%xyhi(mnnds,mesh%ne,3))      
       ALLOCATE(mesh%xyhe(mnnds,mesh%ned,3))
       ALLOCATE(mesh%bnd_flag(mnnds,mesh%ned))
@@ -212,7 +213,17 @@
       mesh%xyhe = 0d0
       mesh%xyhi = 0d0
       
-      PRINT "(A)", "Computing extra edge nodes..."        
+      PRINT "(A)", "Grouping vertex nodes..."
+      
+      DO i = 1,mesh%nn  
+        mesh%xyhv(1,i,1) = mesh%xy(1,i)
+        mesh%xyhv(1,i,2) = mesh%xy(2,i)
+        mesh%xyhv(1,i,3) = mesh%depth(i)
+      ENDDO
+      
+      
+      
+      PRINT "(A)", "Grouping extra edge nodes..."        
       
       DO ed = 1,mesh%ned
       
@@ -239,9 +250,10 @@
       
       ENDDO
       
-      PRINT "(A)", "Computing extra interior element nodes..."          
       
       
+      PRINT "(A)", "Grouping extra interior element nodes..."          
+          
       DO el = 1,mesh%ne
       
         et = mesh%el_type(el)

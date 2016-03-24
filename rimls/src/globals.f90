@@ -42,11 +42,8 @@
       
         INTEGER, ALLOCATABLE, DIMENSION(:) :: el_type      
       
-        INTEGER, ALLOCATABLE, DIMENSION(:,:) :: ect,vct ! element connectivity table
-        INTEGER, ALLOCATABLE, DIMENSION(:) :: nelnds
-        INTEGER :: mnelnds      
-        REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: xy,vxy ! x,y coordinates of nodes
-        INTEGER, ALLOCATABLE, DIMENSION(:) :: vxyn
+        INTEGER, ALLOCATABLE, DIMENSION(:,:) :: ect ! element connectivity table
+        REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: xy ! x,y coordinates of nodes
         REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: elxy
         REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: elxyh        
         REAL(rp), ALLOCATABLE, DIMENSION(:) :: depth ! depth at each node
