@@ -316,6 +316,62 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+      SUBROUTINE adcirc_basis(p,ndof,npts,rv,sv,phi)
+      
+      IMPLICIT NONE
+      
+      INTEGER :: pt,dof,i
+      INTEGER :: p,ndof,npts
+      REAL(rp) :: rv(npts),sv(npts),s,r
+      REAL(rp) :: phi(ndof*npts)
+      
+      DO pt = 1,npts
+        r = rv(pt)
+        s = sv(pt)
+        phi(pt) = 1d0
+        phi(npts + pt) = 0.5d0*(1d0+3d0*s)
+        phi(2*npts + pt) = .5d0*(1d0+2d0*r+s)       
+      ENDDO        
+        
+      IF (p > 1) THEN
+        DO pt = 1,npts
+          r = rv(pt)
+          s = sv(pt)        
+          phi(3*npts + pt) = -.5d0 + s + .5d0*(5d0*s**2)
+          phi(4*npts + pt) = .25d0*(1d0 + 2d0*r + s)*(3d0 + 5d0*s)
+          phi(5*npts + pt) = .25d0*(1d0 + 6d0*r**2 + 4d0*s + s**2 + 6d0*r*(1d0 + s))
+        ENDDO
+      ENDIF
+        
+      IF (p > 2) THEN
+        DO pt = 1,npts 
+          r = rv(pt)
+          s = sv(pt)          
+          phi(6*npts + pt) = .125*(-3d0 - 15d0*s + 15d0*s**2 + 35d0*s**3)
+          phi(7*npts + pt) = .125*(1d0 + 2d0*r + s)*(1d0 + 18d0*s + 21d0*s**2)
+          phi(8*npts + pt) = .125*(5d0 + 7d0*s)*(1d0 + 6d0*r**2 + 4d0*s + s**2 + 6d0*r*(1d0 + s))
+          phi(9*npts + pt) = .125*(1d0 + 20d0*r**3 + 9d0*s + 9d0*s**2 + s**3 + 30d0*r**2*(1d0 + s) + 12d0*r*(1d0 + 3d0*s + s**2))
+        ENDDO
+      ENDIF
+
+      IF (p > 3) THEN
+        DO pt = 1,npts
+          r = rv(pt)
+          s = sv(pt)          
+          phi(10*npts + pt) = (1d0/8d0)*(3d0 - 12d0*s - 42d0*s**2 + 28d0*s**3 + 63d0*s**4)
+          phi(11*npts + pt) = (1d0/4d0)*(1d0 + 2d0*r + s)*(-2d0 + 21d0*s**2 + 21d0*s**3)
+          phi(12*npts + pt) = (1d0/4d0)*(2d0 + 10d0*s + 9d0*s**2)*(1d0 + 6d0*r**2 + 4d0*s + s**2 + 6d0*r*(1d0 + s))
+          phi(13*npts + pt) = (1d0/16d0)*(7d0 + 9d0*s)*(1d0 + 20d0*r**3 + 9d0*s + 9d0*s**2 + s**3 + 30d0*r**2*(1 + s) + 12d0*r*(1d0 + 3d0*s + s**2))
+          phi(14*npts + pt) = (1d0/16d0)*(1d0 + 70d0*r**4 + 16d0*s + 36d0*s**2 + 16d0*s**3 + s**4 + 140d0*r**3*(1d0 + s) + 30d0*r**2*(3d0 + 8d0*s + 3d0*s**2) + 20d0*r*(1d0 + 6d0*s + 6d0*s**2 + s**3))
+        ENDDO
+      ENDIF
+      
+      RETURN
+      END SUBROUTINE      
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
       SUBROUTINE linear(n,r,s,phil)     
 
         IMPLICIT NONE
