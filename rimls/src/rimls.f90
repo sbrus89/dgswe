@@ -46,11 +46,20 @@
         CALL read_curve_file(myrank,curve_file,ctp,base%nbou,base%xy,base%bndxy)     
       ENDIF
       
-!       CALL curvilinear(base)
-!       
-!       IF (refinement) THEN
-!         CALL curvilinear(eval)       
-!       ENDIF      
+      
+      
+      IF (refinement) THEN
+        CALL curvilinear(eval)
+      ELSE 
+        CALL curvilinear(base)       
+      ENDIF      
+      
+      
+      IF (refinement) THEN
+        CALL bathymetry_eval_nodes(eval)
+      ELSE
+        CALL bathymetry_eval_nodes(base)
+      ENDIF
       
       
       CALL normals(base)

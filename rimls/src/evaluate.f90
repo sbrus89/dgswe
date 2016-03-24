@@ -220,35 +220,20 @@
         led = mesh%ged2led(1,ed)
         et = mesh%el_type(el)
         nv = nverts(et)
-        n = nnds(et)
-        bed = mesh%ed_type(ed)
         
         IF (mod(et,2) == 1) THEN   
-          pn = np(3)
+          pn = np(5)
         ELSE IF (mod(et,2) == 0) THEN
-          pn = np(4)
+          pn = np(6)
         ENDIF    
         
         DO pt = 1,pn-1
           
           j = mod(led,nv)*pn + pt + 1          
           
-          CALL element_transformation(n,mesh%elxy(:,el,1),mesh%elxy(:,el,2),l(:,j,et), &
-                                      mesh%xyhe(pt,ed,1),mesh%xyhe(pt,ed,2))
-          CALL bathymetry_interp_eval(n,mesh%elhb(:,el),l(:,j,et),mesh%xyhe(pt,ed,3))
-          
-          IF (bed == 10) THEN
-            ytest = mesh%xyhe(pt,ed,2)
-            xpt = mesh%xyhe(pt,ed,1)
-            
-            IF (ytest < 250d0) THEN
-              ypt = 0d0 + 100d0*(1d0/(COSH(4d0*(xpt-2000d0)/500d0)))
-            ELSE IF (ytest > 250d0) THEN
-              ypt = 500d0 - 100d0*(1d0/(COSH(4d0*(xpt-2000d0)/500d0)))
-            ENDIF
-          
-            mesh%xyhe(pt,ed,2) = ypt
-          ENDIF
+          mesh%xyhe(pt,ed,1) = mesh%elxyh(j,el,1)
+          mesh%xyhe(pt,ed,2) = mesh%elxyh(j,el,2)
+          mesh%xyhe(pt,ed,3) = mesh%elhb(j,el)
           
         ENDDO                               
       
@@ -260,25 +245,25 @@
       DO el = 1,mesh%ne
       
         et = mesh%el_type(el)
-        n = nnds(et)
         nv = nverts(et)
         
         IF (mod(et,2) == 1) THEN   
-          pn = np(3)
-          nnd = nnds(3)
+          pn = np(5)
+          nnd = nnds(5)
         ELSE IF (mod(et,2) == 0) THEN
-          pn = np(4)
-          nnd = nnds(4)          
+          pn = np(6)
+          nnd = nnds(6)          
         ENDIF    
 
         pt = 0
         DO j = nv*(pn-1)+nv+1,nnd
         
-          pt = pt + 1        
-
-          CALL element_transformation(n,mesh%elxy(:,el,1),mesh%elxy(:,el,2),l(:,j,et), &
-                                      mesh%xyhi(pt,el,1),mesh%xyhi(pt,el,2))
-          CALL bathymetry_interp_eval(n,mesh%elhb(:,el),l(:,j,et),mesh%xyhi(pt,el,3))          
+          pt = pt + 1           
+          
+          mesh%xyhi(pt,el,1) = mesh%elxyh(j,el,1)
+          mesh%xyhi(pt,el,2) = mesh%elxyh(j,el,2)
+          mesh%xyhi(pt,el,3) = mesh%elhb(j,el)          
+          
         ENDDO
                 
       ENDDO
