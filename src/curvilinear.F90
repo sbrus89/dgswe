@@ -3,9 +3,10 @@
       USE globals, ONLY: rp,fbseg,fbnds,nnfbed,nfbedn,nfbednn, &
                          ged2el,ged2led,ged2nn, &
                          nverts,el_type,elxy,xy,bndxy,ect,elhb,ne,mnnds,nnds, &
-                         nel_type,np,psiv,psic
+                         nel_type,np,nverts,psiv,psic
       USE read_dginp, ONLY: ctp
       USE curvilinear_nodes_mod
+      USE bathymetry_interp_mod
 
       IMPLICIT NONE
       
@@ -31,7 +32,7 @@
                                    
       CALL shape_functions_eltypes_at_hbp(nel_type,np,psic)                                      
       
-      CALL bathy_coordinates(ne,nnds,el_type,elxy,psic,xyhb)      
+      CALL bathy_coordinates(ne,nnds,nverts,el_type,elxy,psic,xyhb)      
       
       
 

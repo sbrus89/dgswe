@@ -368,7 +368,7 @@ $(ODIR)transformation.o : transformation.F90                   $(ODIR)globals.o
 	$(FC) $(FFLAGS) -c $< -o $@
 	mv transformation.mod $(ODIR)
 	
-$(ODIR)bathymetry_interp_mod.o : bathymetry_interp_mod.F90     $(ODIR)globals.o
+$(ODIR)bathymetry_interp_mod.o : bathymetry_interp_mod.F90     $(ODIR)globals.o $(ODIR)basis.o $(ODIR)transformation.o $(ODIR)shape_functions_mod.o
 	$(FC) $(FFLAGS) -c $< -o $@
 	mv bathymetry_interp_mod.mod $(ODIR)	
 	

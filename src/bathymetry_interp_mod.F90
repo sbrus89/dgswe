@@ -111,7 +111,10 @@
       ALLOCATE(x(mnnds),y(mnnds))
       
       ALLOCATE(xyhb(mnnds,ne,2))
-      ALLOCATE(elhb(mnnds,ne))
+      
+      IF (interp) THEN
+        ALLOCATE(elhb(mnnds,ne))
+      ENDIF
 
       DO el = 1,ne
       
