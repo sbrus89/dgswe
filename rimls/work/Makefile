@@ -104,7 +104,7 @@ $(ODIR)lapack_interfaces.o : ../../src/lapack_interfaces.F90
 	$(FC) $(FFLAGS) -c $< -o $@
 	mv lapack_interfaces.mod $(ODIR)
 
-$(ODIR)grid_file_mod.o : ../../src/grid_file_mod.F90            $(ODIR)globals.o $(ODIR)quit.o
+$(ODIR)grid_file_mod.o : ../../src/grid_file_mod.F90            $(ODIR)globals.o $(ODIR)quit.o $(ODIR)spherical_mod.o
 	$(FC) $(FFLAGS) -c $< -o $@
 	mv grid_file_mod.mod $(ODIR)
 	
