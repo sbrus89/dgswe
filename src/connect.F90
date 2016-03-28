@@ -3,7 +3,7 @@
       USE globals, ONLY: rp,nn,ne,ned,ect,el_type,nverts, &
                          mnepn,epn,nepn, &
                          ged2nn,ged2el,ged2led, &
-                         nied,iedn,nobed,obedn,nfbed,fbedn,nnfbed,nfbedn,nfbednn,nbed,bedn, &
+                         nied,iedn,nobed,obedn,nfbed,fbedn,nnfbed,nfbedn,nfbednn, &
                          nope,obseg,obnds,nbou,fbseg,fbnds, &
                          ed_type,recv_edge                      
                          
@@ -20,11 +20,11 @@
       
       CALL find_edge_pairs(ne,nverts,el_type,ect,nepn,epn,ned,ged2el,ged2nn,ged2led)
       
-      CALL find_interior_edges(ned,ged2el,nbed,bedn,nied,iedn,ed_type,recv_edge)
+      CALL find_interior_edges(ned,ged2el,nied,iedn,ed_type,recv_edge)
       
-      CALL find_open_edges(nope,obseg,obnds,ged2nn,nbed,bedn,nobed,obedn,ed_type,recv_edge)      
+      CALL find_open_edges(nope,obseg,obnds,ged2nn,nobed,obedn,ed_type,recv_edge)      
       
-      CALL find_flow_edges(nbou,fbseg,fbnds,ged2nn,nbed,bedn,nnfbed,nfbedn,nfbednn,nfbed,fbedn,recv_edge,ed_type)
+      CALL find_flow_edges(nbou,fbseg,fbnds,ged2nn,nnfbed,nfbedn,nfbednn,nfbed,fbedn,recv_edge,ed_type)
       
       CALL find_recieve_edges(ned,recv_edge,nred,redn,el_type)
       

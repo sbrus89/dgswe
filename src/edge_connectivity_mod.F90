@@ -4,7 +4,8 @@
       
       IMPLICIT NONE
       
-
+      INTEGER, SAVE :: nbed
+      INTEGER, SAVE, DIMENSION(:), ALLOCATABLE :: bedn
 
       CONTAINS
       
@@ -210,14 +211,12 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
 
 
-      SUBROUTINE find_interior_edges(ned,ged2el,nbed,bedn,nied,iedn,ed_type,recv_edge)
+      SUBROUTINE find_interior_edges(ned,ged2el,nied,iedn,ed_type,recv_edge)
       
       IMPLICIT NONE
       
       INTEGER, INTENT(IN) :: ned
       INTEGER, DIMENSION(:,:), INTENT(IN) :: ged2el
-      INTEGER, INTENT(OUT) :: nbed
-      INTEGER, DIMENSION(:), ALLOCATABLE, INTENT(OUT) :: bedn
       INTEGER, INTENT(OUT) :: nied
       INTEGER, DIMENSION(:), ALLOCATABLE, INTENT(OUT) :: iedn
       INTEGER, DIMENSION(:), ALLOCATABLE, INTENT(OUT) :: ed_type
@@ -276,7 +275,7 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
 
-      SUBROUTINE find_open_edges(nope,obseg,obnds,ged2nn,nbed,bedn,nobed,obedn,ed_type,recv_edge)
+      SUBROUTINE find_open_edges(nope,obseg,obnds,ged2nn,nobed,obedn,ed_type,recv_edge)
       
       IMPLICIT NONE
       
@@ -284,8 +283,6 @@
       INTEGER, DIMENSION(:), INTENT(IN) :: obseg
       INTEGER, DIMENSION(:,:), INTENT(IN) :: obnds
       INTEGER, DIMENSION(:,:), INTENT(IN) :: ged2nn
-      INTEGER, INTENT(IN) :: nbed
-      INTEGER, DIMENSION(:), INTENT(IN) :: bedn
       INTEGER, INTENT(OUT) :: nobed
       INTEGER, DIMENSION(:), ALLOCATABLE, INTENT(OUT) :: obedn
       INTEGER, DIMENSION(:), INTENT(INOUT) :: ed_type
@@ -349,7 +346,7 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
 
-      SUBROUTINE find_flow_edges(nbou,fbseg,fbnds,ged2nn,nbed,bedn,nnfbed,nfbedn,nfbednn,nfbed,fbedn,recv_edge,ed_type)
+      SUBROUTINE find_flow_edges(nbou,fbseg,fbnds,ged2nn,nnfbed,nfbedn,nfbednn,nfbed,fbedn,recv_edge,ed_type)
       
       IMPLICIT NONE
       
@@ -357,8 +354,6 @@
       INTEGER, DIMENSION(:,:), INTENT(IN) :: fbseg
       INTEGER, DIMENSION(:,:), INTENT(IN) :: fbnds
       INTEGER, DIMENSION(:,:), INTENT(IN) :: ged2nn
-      INTEGER, INTENT(IN) :: nbed
-      INTEGER, DIMENSION(:), INTENT(IN) :: bedn
       INTEGER, INTENT(OUT) :: nnfbed
       INTEGER, DIMENSION(:), ALLOCATABLE, INTENT(OUT) :: nfbedn
       INTEGER, DIMENSION(:,:), ALLOCATABLE, INTENT(OUT) :: nfbednn
@@ -454,6 +449,7 @@
       ENDDO
       
       ALLOCATE(nfbedn(nnfbed),nfbednn(nnfbed,2),fbedn(nfbed), STAT=alloc_status)
+      DEALLOCATE(bedn, STAT=alloc_status)
       
       
       nfbedn(1:nnfbed) = nfbedn_temp(1:nnfbed)

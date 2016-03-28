@@ -19,15 +19,15 @@
                            mesh%ged2el,mesh%ged2nn,mesh%ged2led)      
 
       CALL find_interior_edges(mesh%ned,mesh%ged2el, &
-                               mesh%nbed,mesh%bedn,mesh%nied,mesh%iedn, &
+                               mesh%nied,mesh%iedn, &
                                mesh%ed_type,mesh%recv_edge)      
       
       CALL find_open_edges(mesh%nope,mesh%obseg,mesh%obnds,mesh%ged2nn, &
-                           mesh%nbed,mesh%bedn,mesh%nobed,mesh%obedn, &
+                           mesh%nobed,mesh%obedn, &
                            mesh%ed_type,mesh%recv_edge)
                            
       CALL find_flow_edges(mesh%nbou,mesh%fbseg,mesh%fbnds,mesh%ged2nn, &
-                           mesh%nbed,mesh%bedn,mesh%nnfbed,mesh%nfbedn,mesh%nfbednn,mesh%nfbed,mesh%fbedn, &
+                           mesh%nnfbed,mesh%nfbedn,mesh%nfbednn,mesh%nfbed,mesh%fbedn, &
                            mesh%recv_edge,mesh%ed_type)
                            
       CALL find_element_edges(mesh%ne,mesh%ned, &

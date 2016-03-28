@@ -80,9 +80,7 @@
         INTEGER, ALLOCATABLE, DIMENSION(:) :: fbedn        
         INTEGER :: nnfbed
         INTEGER, ALLOCATABLE, DIMENSION(:) :: nfbedn 
-        INTEGER, ALLOCATABLE, DIMENSION(:,:) :: nfbednn         
-        INTEGER :: nbed
-        INTEGER, ALLOCATABLE, DIMENSION(:) :: bedn   
+        INTEGER, ALLOCATABLE, DIMENSION(:,:) :: nfbednn          
         INTEGER :: nred
         INTEGER, ALLOCATABLE, DIMENSION(:) :: recv_edge
         INTEGER, ALLOCATABLE, DIMENSION(:) :: ed_type      

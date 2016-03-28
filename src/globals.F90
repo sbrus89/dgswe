@@ -150,8 +150,6 @@
       INTEGER :: nnfbed ! total number of no normal flow boundary edges
       INTEGER, ALLOCATABLE, DIMENSION(:) :: nfbedn ! array of no normal flow boundary edge numbers
       INTEGER, ALLOCATABLE, DIMENSION(:,:) :: nfbednn       
-      INTEGER :: nbed ! total numer of non-interior edges
-      INTEGER, ALLOCATABLE, DIMENSION(:) :: bedn ! array of non-interior edge numbers
       INTEGER, ALLOCATABLE, DIMENSION(:) :: ed_type  ! open/flow boundary edge flags
       
       INTEGER :: check_iedge,check_gedge
