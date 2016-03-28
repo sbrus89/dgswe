@@ -54,12 +54,13 @@
       INTEGER, INTENT(IN) :: nn
       REAL(rp), DIMENSION(:,:), ALLOCATABLE, INTENT(OUT) :: xy
       REAL(rp), DIMENSION(:)  , ALLOCATABLE, INTENT(OUT) :: depth
-      REAL(rp), INTENT(IN) :: h0
+      REAL(rp), INTENT(IN), OPTIONAL :: h0
 
       
       INTEGER :: i,j
-      INTEGER :: alloc_status      
-      alloc_status = 0
+      INTEGER :: limit_depth
+      INTEGER :: alloc_status           
+      alloc_status = 0    
 
       ALLOCATE(xy(2,nn),depth(nn), STAT=alloc_status)
       IF (alloc_status /= 0) THEN
@@ -69,12 +70,22 @@
       
       ! read in node coordinates and depths
       DO i = 1,nn                                                      
-        READ(14,*), j, xy(1,j), xy(2,j), depth(j)
-        
-        IF (depth(j) < h0) THEN
-          depth(j) = h0
-        ENDIF
+        READ(14,*), j, xy(1,j), xy(2,j), depth(j)        
       ENDDO
+      
+      
+      limit_depth = 0
+      IF (PRESENT(h0)) THEN
+        limit_depth = 1
+      ENDIF      
+      
+      IF (limit_depth) THEN
+        DO i = 1,nn      
+          IF (depth(i) < h0) THEN
+            depth(i) = h0
+          ENDIF      
+        ENDDO
+      ENDIF
       
 !       PRINT "(A)", "Node coordinates and depth: "
 !       DO i = 1,nn
