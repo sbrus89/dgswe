@@ -5,7 +5,7 @@
       IMPLICIT NONE
       
       INTEGER, SAVE :: nbed
-      INTEGER, SAVE, DIMENSION(:), ALLOCATABLE :: bedn
+      INTEGER, SAVE, DIMENSION(:), ALLOCATABLE :: bedn ! allocated in find_interior_edges, deallocated in find_flow_edges
 
       CONTAINS
       
@@ -267,7 +267,13 @@
         CALL abort()
       ENDIF        
       
-      iedn(1:nied) = iedn_temp(1:nied)         
+      iedn(1:nied) = iedn_temp(1:nied)   
+      
+      ! ed_type : interior edges       = 0
+      !           open edges           = 1
+      !           no normal flow edges = 10
+      !           specified flow edges = 12
+      !           recieve edges        = -1
       
       RETURN
       END SUBROUTINE find_interior_edges
