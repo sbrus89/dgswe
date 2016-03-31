@@ -113,5 +113,90 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!     
 
+      SUBROUTINE xy2rs(nv,p,elx,ely,npt,x,y,r,s)
+
+      USE shape_functions_mod, ONLY: shape_functions_area_eval
+
+      IMPLICIT NONE
+      INTEGER, INTENT(IN) :: nv
+      INTEGER, INTENT(IN) :: p
+      REAL(rp), DIMENSION(:), INTENT(IN) :: elx
+      REAL(rp), DIMENSION(:), INTENT(IN) :: ely
+      INTEGER, INTENT(IN) :: npt
+      REAL(rp), DIMENSION(:), INTENT(IN) :: x   
+      REAL(rp), DIMENSION(:), INTENT(IN) :: y       
+      REAL(rp), DIMENSION(:), INTENT(OUT) :: r   
+      REAL(rp), DIMENSION(:), INTENT(OUT) :: s      
+      
+      INTEGER :: it,n,pt
+      INTEGER :: maxit
+      INTEGER :: mnnds
+      REAL(rp) :: tol    
+      REAL(rp) :: f,g
+      REAL(rp) :: error(npt),err
+      REAL(rp) :: drdf,drdg,dsdf,dsdg,jac
+      REAL(rp), DIMENSION(:,:), ALLOCATABLE :: l,dldr,dlds
+        
+      tol = 1d-9
+      maxit = 100
+          
+      mnnds = (p+1)**2      
+      ALLOCATE(l(mnnds,npt),dldr(mnnds,npt),dlds(mnnds,npt))
+        
+        
+      IF (mod(nv,2) == 1) THEN
+        DO pt = 1,npt
+          r(pt) = -1d0/3d0
+          s(pt) = -1d0/3d0
+        ENDDO
+      ELSE IF (mod(nv,2) == 0) THEN
+        DO pt = 1,npt
+          r(pt) = 0d0
+          s(pt) = 0d0
+        ENDDO
+      ENDIF
+      
+
+      DO it = 1,maxit     
+           
+
+        CALL shape_functions_area_eval(nv,p,n,npt,r,s,l,dldr,dlds)     
+        
+        DO pt = 1,npt
+          CALL element_transformation(n,elx,ely,l(:,pt),f,g, &
+                                    dldr(:,pt),dlds(:,pt),drdf,drdg,dsdf,dsdg,jac)               
+        
+          f = f - x(pt)
+          g = g - y(pt)
+        
+          r(pt) = r(pt) - (drdf*f + drdg*g)
+          s(pt) = s(pt) - (dsdf*f + dsdg*g)
+          
+          error(pt) = MAX(ABS(f),ABS(g))
+        ENDDO
+              
+        err = MAXVAL(error)
+        IF ( err < tol) THEN
+          EXIT
+        ENDIF        
+       
+        
+      ENDDO
+      
+!       IF (it >= maxit) THEN
+!         PRINT("(A,E22.15)"), "   MAX ITERATIONS EXCEEDED, error = ",err
+!         PRINT("(2(A,F20.15))"), "   r = ",r(1), "   s = ", s(1)
+!       ELSE       
+!         PRINT("(A,I7,A,E22.15)"), "   iterations: ",it, "  error = ",err
+!         PRINT("(2(A,F20.15))"), "   r = ",r(1), "   s = ", s(1)
+!       ENDIF
+
+
+      RETURN
+      END SUBROUTINE xy2rs
+      
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
 
       END MODULE transformation
