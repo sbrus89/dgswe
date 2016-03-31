@@ -44,9 +44,10 @@ endif
 #                               Objects                                #
 ########################################################################
 
-spline_objects = globals.o kdtree2.o lapack_interfaces.o basis.o allocation.o  \
-                 evaluate.o calc_spline.o check.o find_element.o \
-                 read_grid.o read_input.o connect.o write_output.o version.o spline.o
+spline_objects = globals.o kdtree2.o lapack_interfaces.o basis.o allocation.o edge_connectivity_mod.o\
+                 evaluate.o calc_spline.o check.o find_element.o find_edge.o grid_file_mod.o\
+                 read_grid.o read_input.o connect.o write_output.o version.o spline.o \
+                 quit.o spherical_mod.o shape_functions_mod.o transformation.o vandermonde.o
                  
 spline_obj := $(patsubst %.o, $(ODIR)%.o,$(spline_objects)) 
 
@@ -109,6 +110,22 @@ $(ODIR)lapack_interfaces.o : ../../src/lapack_interfaces.F90
 $(ODIR)globals.o : globals.f90                                $(ODIR)kdtree2.o
 	$(FC) $(FFLAGS) -c $< -o $@
 	mv globals.mod $(ODIR)
+	
+$(ODIR)grid_file_mod.o : ../../src/grid_file_mod.F90          $(ODIR)globals.o $(ODIR)quit.o 
+	$(FC) $(FFLAGS) -c $< -o $@
+	mv grid_file_mod.mod $(ODIR)	
+	
+$(ODIR)vandermonde.o : ../../src/vandermonde.F90              $(ODIR)globals.o $(ODIR)basis.o
+	$(FC) $(FFLAGS) -c $< -o $@
+	mv vandermonde.mod $(ODIR)		
+	
+$(ODIR)shape_functions_mod.o : ../../src/shape_functions_mod.F90 $(ODIR)globals.o $(ODIR)basis.o $(ODIR)lapack_interfaces.o $(ODIR)vandermonde.o
+	$(FC) $(FFLAGS) -c $< -o $@
+	mv shape_functions_mod.mod $(ODIR)	
+
+$(ODIR)transformation.o : ../../src/transformation.F90        $(ODIR)globals.o
+	$(FC) $(FFLAGS) -c $< -o $@
+	mv transformation.mod $(ODIR)		
 
 $(ODIR)allocation.o : allocation.f90                          $(ODIR)globals.o
 	$(FC) $(FFLAGS) -c $< -o $@
@@ -130,21 +147,36 @@ $(ODIR)evaluate.o : evaluate.f90                              $(ODIR)globals.o $
 	$(FC) $(FFLAGS) -c $< -o $@
 	mv evaluate.mod $(ODIR)
 	
-$(ODIR)find_element.o : find_element.f90                      $(ODIR)globals.o  $(ODIR)kdtree2.o  $(ODIR)basis.o $(ODIR)lapack_interfaces.o
+$(ODIR)find_element.o : find_element.f90                      $(ODIR)globals.o  $(ODIR)kdtree2.o  $(ODIR)shape_functions_mod.o $(ODIR)transformation.o 
 	$(FC) $(FFLAGS) -c $< -o $@
 	mv find_element.mod $(ODIR)
+	
+$(ODIR)spherical_mod.o : ../../src/spherical_mod.F90          $(ODIR)globals.o 
+	$(FC) $(FFLAGS) -c $< -o $@
+	mv spherical_mod.mod $(ODIR)
+	
+$(ODIR)quit.o : ../../src/quit.F90                            $(ODIR)globals.o
+	$(FC) $(FFLAGS) -c $< -o $@
+	mv quit.mod $(ODIR)	
+
+$(ODIR)edge_connectivity_mod.o : ../../src/edge_connectivity_mod.F90 $(ODIR)quit.o
+	$(FC) $(FFLAGS) -c $< -o $@
+	mv edge_connectivity_mod.mod $(ODIR)	
 
 $(ODIR)spline.o : spline.f90                                  $(ODIR)globals.o  $(ODIR)allocation.o  $(ODIR)calc_spline.o  $(ODIR)check.o $(ODIR)find_element.o
 	$(FC) $(FFLAGS) -c $< -o $@
 
-$(ODIR)read_grid.o : read_grid.f90                            $(ODIR)globals.o  $(ODIR)allocation.o 
+$(ODIR)read_grid.o : read_grid.f90                            $(ODIR)globals.o  $(ODIR)grid_file_mod.o $(ODIR)spherical_mod.o 
 	$(FC) $(FFLAGS) -c $< -o $@
 
 $(ODIR)read_input.o : read_input.f90                          $(ODIR)globals.o
 	$(FC) $(FFLAGS) -c $< -o $@
 
-$(ODIR)connect.o : connect.f90                                $(ODIR)globals.o
+$(ODIR)connect.o : connect.f90                                $(ODIR)globals.o $(ODIR)edge_connectivity_mod.o
 	$(FC) $(FFLAGS) -c $< -o $@
+	
+$(ODIR)find_edge.o : find_edge.f90                            $(ODIR)globals.o
+	$(FC) $(FFLAGS) -c $< -o $@	
 
 $(ODIR)write_output.o : write_output.f90                      $(ODIR)globals.o
 	$(FC) $(FFLAGS) -c $< -o $@

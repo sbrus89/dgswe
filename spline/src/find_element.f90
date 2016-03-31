@@ -3,29 +3,73 @@
       USE globals, ONLY: rp
       USE kdtree2_module
       USE lapack_interfaces
+      
+      IMPLICIT NONE
+      
+      SAVE
+      
+      INTEGER, PARAMETER :: srchdp = 20
+      REAL(rp), DIMENSION(:,:,:), ALLOCATABLE :: rsre          
+      TYPE(kdtree2), POINTER :: tree_xy      
+      TYPE(kdtree2_result), ALLOCATABLE, DIMENSION(:) :: closest   
+      INTEGER, DIMENSION(:), ALLOCATABLE :: nnd2el
+      INTEGER, DIMENSION(:,:), ALLOCATABLE :: nd2el
+      
 
       CONTAINS
+      
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!   
+
+      SUBROUTINE find_element_init(nel_type,nn,xy,nepn,epn)
+      
+      IMPLICIT NONE
+      
+      INTEGER, INTENT(IN) :: nel_type
+      INTEGER, INTENT(IN) :: nn
+      REAL(rp), DIMENSION(:,:), INTENT(IN) :: xy      
+      INTEGER, DIMENSION(:), INTENT(IN) :: nepn
+      INTEGER, DIMENSION(:,:), INTENT(IN) :: epn
+            
+      INTEGER :: nd,el
+      INTEGER :: mnepn
+      
+      tree_xy => kdtree2_create(xy(1:2,1:nn), rearrange=.true., sort=.true.)
+      ALLOCATE(closest(srchdp))      
+            
+      CALL ref_elem_coords(nel_type,rsre)
+      
+      
+      ! initialize module variable for elements that share each node
+      mnepn = MAXVAL(nepn)
+      ALLOCATE(nnd2el(nn),nd2el(mnepn,nn))
+      
+      DO nd = 1,nn
+        nnd2el(nd) = nepn(nd)
+        DO el = 1,nnd2el(nd)
+          nd2el(el,nd) = epn(el,nd)
+        ENDDO      
+      ENDDO
+  
+      
+      RETURN
+      END SUBROUTINE find_element_init
       
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!      
       
 
-      SUBROUTINE in_element(seg,pt1,pt2,xt,el_found,bed)
-
-      USE globals, ONLY: base,tree_xy,srchdp,closest,fbnds
+      SUBROUTINE in_element(xt,el_found,leds)
 
       IMPLICIT NONE
-      
-      INTEGER, INTENT(IN) :: seg  
-      INTEGER, INTENT(IN) :: pt1,pt2        
+              
       REAL(rp), INTENT(IN) :: xt(2)
-      
-      INTEGER, INTENT(OUT) :: bed
-      INTEGER, INTENT(OUT) :: el_found
+      INTEGER, INTENT(OUT) :: el_found          
+      INTEGER, INTENT(OUT), OPTIONAL :: leds(4)
             
       INTEGER :: srch,i
       INTEGER :: el,eln,clnd
-      INTEGER :: found,ed_found(4)      
+      INTEGER :: found     
       INTEGER :: min_el
       REAL(rp) :: diff,min_diff
       REAL(rp) :: tol
@@ -39,18 +83,18 @@
         min_diff = 999d0
 search: DO srch = 1,srchdp
 
-          clnd = fbnds(closest(srch)%idx)
+          clnd = closest(srch)%idx
           
-!           PRINT("(A,I5)"), "   closest node: ", clnd
+          PRINT("(A,I5)"), "   closest node: ", clnd
 
-   elem:  DO el = 1,base%nepn(clnd) 
+   elem:  DO el = 1,nnd2el(clnd) 
  
-            eln = base%epn(el,clnd)
+            eln = nd2el(el,clnd)
             
-!             PRINT("(A,I5)"), "   testing: ", eln                               
+            PRINT("(A,I5)"), "   testing: ", eln                               
 
             ! Compute sum of sub-triangle areas
-            CALL sub_element(pt1,eln,xt,diff,ed_found)            
+            CALL sub_element(eln,xt,diff,leds)            
             
             IF (diff < min_diff) THEN  ! keep track of element with minimum difference in sum of sub-triangle areas                                  
               min_diff = diff          ! to return if tolerance is not met
@@ -58,16 +102,12 @@ search: DO srch = 1,srchdp
             ENDIF
           
             ! The station is in the element if the reference element area and sum of sub triangle are the same
-            ! Make sure vertexes use elements with boundary edges
-            IF (diff < tol .AND. base%bel_flag(eln) == 1) THEN
+            IF (diff < tol) THEN
               PRINT("(A,I5)"), "   element found", eln                            
                       
               el_found = eln        
               found = 1                        
-              
-              ! find base edge (to get correct spline coefficients)                 
-              CALL find_edge(pt1,pt2,xt,seg,el_found,ed_found,bed)
-                          
+
               EXIT search            
             ENDIF    
             
@@ -81,11 +121,10 @@ search: DO srch = 1,srchdp
         IF (found == 0) THEN
           el_found = min_el        
 
-          PRINT*, "ELEMENT NOT FOUND FOR POINT: ",pt1  
+          PRINT*, "ELEMENT NOT FOUND"  
           PRINT*, "USING ELEMENT ", el_found, "(AREA DIFF = ",min_diff, ")"       
 
-          CALL sub_element(pt1,el_found,xt,diff,ed_found)            
-          CALL find_edge(pt1,pt2,xt,seg,el_found,ed_found,bed)
+          CALL sub_element(el_found,xt,diff,leds)            
           
         ENDIF     
  
@@ -96,148 +135,14 @@ search: DO srch = 1,srchdp
       
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
-
-      SUBROUTINE find_edge(pt1,pt2,xm,seg,el_in,led,base_bed)
-      
-      USE globals, ONLY: base,eval,nverts
-      
-      IMPLICIT NONE
-      
-      INTEGER, INTENT(IN) :: pt1,pt2
-      REAL(rp), INTENT(IN) :: xm(2)
-      INTEGER, INTENT(IN) :: seg    
-      INTEGER, INTENT(IN) :: el_in      
-      INTEGER, INTENT(IN) :: led(4)
-      
-      INTEGER, INTENT(OUT) :: base_bed     
-      
-      INTEGER :: nvert      
-      INTEGER :: i,j
-      INTEGER :: found
-      INTEGER :: n1bed,n2bed,n1ed1,n2ed1
-      REAL(rp) :: x1(2),x2(2),x3(2),x4(2)
-      REAL(rp) :: ax,ay,bx,by,cx,cy,dx,dy
-      REAL(rp) :: r,t
-      REAL(rp) :: eps
-
-
-      
-       nvert = nverts(base%el_type(el_in))            
-            
-       found = 0
-              
-      ! Try to find boundary edge based on lowest difference between 
-      ! reference element area and sub-element area sum and
-      ! the edge with lowest sub-element area              
- bseg: DO j = 1,base%fbseg(1,seg)-1
-              
-         n1bed = base%fbnds(j,seg)
-         n2bed = base%fbnds(j+1,seg)   
-         
-         DO i = 1,nvert
  
-           n1ed1 = base%vct(mod(led(i)+0,nvert)+1,el_in)
-           n2ed1 = base%vct(mod(led(i)+1,nvert)+1,el_in)           
-                                                        
-           IF(((n1ed1 == n1bed).AND.(n2ed1 == n2bed)).OR. &
-              ((n1ed1 == n2bed).AND.(n2ed1 == n1bed))) THEN
-              PRINT*, "n1bed = ",n1bed, "n2bed = ",n2bed    
-!             PRINT*, n1bed, base%xy(1,n1bed), base%xy(2,n1bed)
 
-              found = 1                   
-              base_bed = j
-                
-              EXIT bseg
-           ENDIF        
-              
-         ENDDO     
-              
-      ENDDO bseg
+      SUBROUTINE sub_element(eln,xt,diff,closest_ed)
       
-      ! Try to find the base boundary edge based on intersection between 
-      ! line perpendicular to eval edge and base edge
-            
-      eps = 1d-12      
-      IF (found == 0) THEN
-        
-        
-        x1(1) = eval%xy(1,pt1)
-        x1(2) = eval%xy(2,pt1)
-        
-        x2(1) = eval%xy(1,pt2)
-        x2(2) = eval%xy(2,pt2)        
-        
- bseg2: DO j = 1,base%fbseg(1,seg)-1
-              
-          n1bed = base%fbnds(j,seg)
-          n2bed = base%fbnds(j+1,seg)             
-          
-          x3(1) = base%xy(1,n1bed)
-          x3(2) = base%xy(2,n1bed)
-          
-          x4(1) = base%xy(1,n2bed)
-          x4(2) = base%xy(2,n2bed)
-          
-          ax = xm(1)
-          ay = xm(2)
-          
-          bx = -(xm(2)-x1(2))/(xm(1)-x1(1))
-          by = 1d0
-          
-          cx = .5d0*(x3(1)+x4(1))
-          cy = .5d0*(x3(2)+x4(2))
-          
-          dx = .5d0*(x4(1)-x3(1))
-          dy = .5d0*(x4(2)-x3(2))
-          
-          t = (-dy*(cx-ax) + dx*(cy-ay))/(-bx*dy+by*dx)
-          r = (-by*(cx-ax) + bx*(cy-ay))/(-bx*dy+by*dx)               
-          
-          IF ((r>=-1d0-eps .and. r<=1d0+eps) ) THEN
-          
-            found = 1                   
-            base_bed = j          
-          
-!             PRINT*, "n1bed = ",n1bed, "n2bed = ",n2bed 
-!             PRINT*, "R = ", r
-!             PRINT*, "T = ", t
-!             PRINT*, "X = ", xm(1) + bx*t
-!             PRINT*, "Y = ", xm(2) + t
-!             
-!             PRINT*, "X1 = ", x1(1), "Y1 = ", x1(2)            
-!             PRINT*, "XM = ", xm(1), "YM = ", xm(2)
-!             PRINT*, "X2 = ", x2(1), "Y2 = ", x2(2)   
-
-            EXIT bseg2
-            
-          ENDIF          
-            
-              
-              
-       ENDDO bseg2     
-       
-       IF (found == 0) THEN
-         PRINT*, "BOUNDARY EDGE NOT FOUND"
-         STOP
-       ENDIF
-        
-        
-      ENDIF          
-      
-      RETURN
-      END SUBROUTINE find_edge
-
-      
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
-
-      SUBROUTINE sub_element(pt,eln,xt,diff,closest_ed)
-      
-      USE globals, ONLY: base,nverts,rsre           
+      USE globals, ONLY: base,nverts           
       
       IMPLICIT NONE
       
-      INTEGER, INTENT(IN) :: pt
       INTEGER, INTENT(IN) :: eln
       REAL(rp), INTENT(IN) :: xt(2)
       
@@ -259,7 +164,7 @@ search: DO srch = 1,srchdp
       nvert = nverts(et)                                           
           
       ! Compute the local (r,s) coordinates of the (x,y) station location
-      CALL newton(pt,xt,eln,r)
+      CALL newton(xt,eln,r)
           
       ! Find reference element area
       IF (mod(et,2) == 1) THEN
@@ -337,13 +242,12 @@ search: DO srch = 1,srchdp
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!   
       
-      SUBROUTINE newton(pt,x,eln,r)
+      SUBROUTINE newton(x,eln,r)
 
       USE globals, ONLY: rp,np,nnds,mnnds,V,base,ipiv
       USE basis, ONLY: tri_basis,quad_basis
 
       IMPLICIT NONE
-      INTEGER, INTENT(IN) :: pt
       INTEGER, INTENT(IN) :: eln
       REAL(rp), INTENT(IN) :: x(2)      
       REAL(rp), INTENT(OUT) :: r(2)      
@@ -446,7 +350,7 @@ search: DO srch = 1,srchdp
 
       SUBROUTINE check_elem(xt,el_found)      
       
-      USE globals, ONLY: base,tree_xy,srchdp,closest,fbnds
+      USE globals, ONLY: base,fbnds
 
       IMPLICIT NONE
       
@@ -490,6 +394,38 @@ elem: DO el = 1,base%nepn(clnd)
       END SUBROUTINE check_elem
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!     
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!   
+
+      SUBROUTINE ref_elem_coords(nel_type,rsre)
+      
+      USE basis, ONLY: element_nodes
+      
+      IMPLICIT NONE
+      INTEGER, INTENT(IN) :: nel_type
+      REAL(rp), DIMENSION(:,:,:), ALLOCATABLE :: rsre
+      
+      INTEGER :: et,pt,n
+      INTEGER :: np,space
+      REAL(rp) :: r(4),s(4)
+      
+      ALLOCATE(rsre(2,4,nel_type))
+      
+      space = 1
+      np = 1
+      
+      DO et = 1,nel_type      
+        
+        CALL element_nodes(et,space,np,n,r,s)
+        
+        DO pt = 1,n
+          rsre(1,pt,et) = r(pt)
+          rsre(2,pt,et) = s(pt)
+        ENDDO
+        
+      ENDDO
+      
+      END SUBROUTINE ref_elem_coords
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!         
 
       END MODULE find_element

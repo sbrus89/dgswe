@@ -13,7 +13,7 @@
       
       SUBROUTINE vandermonde()
       
-      USE globals, ONLY: ctp,np,nnds,mnnds,nel_type,V,ipiv,rsre
+      USE globals, ONLY: ctp,np,nnds,mnnds,nel_type,V,ipiv
       USE basis, ONLY: tri_nodes,tri_basis,quad_nodes,quad_basis
       
       IMPLICIT NONE
@@ -43,16 +43,6 @@
 !         ENDDO        
 !         PRINT*, " "
 
-        IF (mod(et,2) == 1) THEN
-          CALL tri_nodes(1,np(1),n,r,s)
-        ELSE IF (mod(et,2) == 0) THEN
-          CALL quad_nodes(1,np(2),n,r,s)
-        ENDIF
-        
-        DO pt = 1,n
-          rsre(1,pt,et) = r(pt)
-          rsre(2,pt,et) = s(pt)
-        ENDDO
         
       ENDDO
       

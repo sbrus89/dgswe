@@ -14,10 +14,8 @@
       SUBROUTINE spline_init(num,nmax)
       
       USE globals, ONLY: rp,base,ax,bx,cx,dx,ay,by,cy,dy,dt, &
-                         nfbnds,fbnds,fbnds_xy, &
-                         tree_xy,closest,srchdp, &
-                         ctp,rpts
-      USE kdtree2_module           
+                         nfbnds,fbnds,fbnds_xy,nfbnd2el,fbnd2el, &
+                         nverts,ctp,rpts     
       USE basis, ONLY: lglpts         
       
       IMPLICIT NONE
@@ -25,6 +23,7 @@
       INTEGER :: num
       INTEGER :: nmax
       INTEGER :: nd,seg,i,j,skip
+      INTEGER :: el,et,nv,ged,led,edt
       INTEGER :: segtype
 
       
@@ -80,15 +79,35 @@
               fbnds_xy(1:2,nfbnds) = base%xy(1:2,nd)
             ENDIF
           ENDDO
-          
-          
+                    
         ENDIF
       ENDDO
       
       
+      ALLOCATE(nfbnd2el(nfbnds),fbnd2el(base%mnepn,nfbnds))
       
-      tree_xy => kdtree2_create(fbnds_xy(1:2,1:nfbnds), rearrange=.true., sort=.true.)
-      ALLOCATE(closest(srchdp))
+      nfbnd2el = 0
+      
+      DO i = 1,nfbnds
+        nd = fbnds(i)
+        
+        DO j = 1,base%nepn(nd)
+          el = base%epn(j,nd)
+          et = base%el_type(el)
+          nv = nverts(et)
+          
+          DO led = 1,nv
+            ged = base%el2ged(el,led)
+            edt = base%ed_type(ged)
+            
+            IF (edt == 10) THEN
+              nfbnd2el(i) = nfbnd2el(i) + 1
+              fbnd2el(nfbnd2el(i),i) = el
+            ENDIF
+          ENDDO
+          
+        ENDDO
+      ENDDO      
       
       
 

@@ -2,11 +2,11 @@
       
       SUBROUTINE write_grid(mesh)
 
-      USE globals, ONLY: grid,ctp
+      USE globals, ONLY: grid,ctp,nverts
 
       IMPLICIT NONE
           
-      INTEGER :: nd,el,bnd
+      INTEGER :: nd,el,bnd,et,nv
       TYPE(grid) :: mesh
       
       OPEN(UNIT=14,FILE='nodes.out')
@@ -16,7 +16,9 @@
         WRITE(14,"(I7,3(e24.16))") nd,mesh%xy(1,nd),mesh%xy(2,nd),mesh%depth(nd)
       ENDDO
       DO el = 1,mesh%ne
-        WRITE(14,"(20(I9))") el,mesh%nelnds(el), (mesh%ect(nd,el),nd=1,mesh%mnelnds)
+        et = mesh%el_type(el)
+        nv = nverts(et)
+        WRITE(14,"(20(I9))") el,nv, (mesh%ect(nd,el),nd=1,nv)
       ENDDO
       
       WRITE(14,"(I9,A)") mesh%nope, "   = Number of open boundaries"

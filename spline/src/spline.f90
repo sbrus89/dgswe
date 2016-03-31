@@ -1,14 +1,15 @@
       PROGRAM spline
 
-      USE globals, ONLY: rp,base,eval,ctp,nverts, &
+      USE globals, ONLY: rp,base,eval,ctp,nverts,nel_type, &
                          ax,bx,cx,dx,ay,by,cy,dy,dt, &
-                         rpts,theta_tol,sig
+                         rpts,theta_tol,sig, &
+                         nfbnds,fbnds_xy,nfbnd2el,fbnd2el
       USE allocation, ONLY: sizes
                          
       USE calc_spline, ONLY: calc_cubic_spline,eval_cubic_spline, &
                              newton,spline_init
       USE check, ONLY: check_angle,check_deformation,l2_project,quad_interp
-      USE find_element, ONLY: in_element,check_elem
+      USE find_element, ONLY: in_element,check_elem,find_element_init
       USE evaluate, ONLY: vandermonde,transformation  
 
       IMPLICIT NONE
@@ -25,6 +26,7 @@
       REAL(rp) :: theta1,theta2
       REAL(rp), ALLOCATABLE, DIMENSION(:) :: x,y
       INTEGER :: eind
+      INTEGER :: eds(4)
       CHARACTER(100) :: name
       CHARACTER(1) :: ctp_char
 
@@ -62,6 +64,8 @@
       
       
       CALL spline_init(num,nmax)
+      
+      CALL find_element_init(nel_type,nfbnds,fbnds_xy,nfbnd2el,fbnd2el)
       
       CALL vandermonde()  
       
@@ -185,7 +189,9 @@
               xa(2) = .5d0*(1d0-ra)*n1y + .5d0*(1d0+ra)*n2y                                  
               
               PRINT*, "FINDING ELEMENT FOR POINT: ", i, " NODE: ",n1
-              CALL in_element(seg,n1,n2,xa,el_in,base_bed)                        
+              CALL in_element(xa,el_in,eds)   
+              CALL find_edge(seg,n1,n2,xa,el_in,eds,base_bed)  ! find base edge (to get correct spline coefficients) 
+              
               nd = base_bed       
               
               xr(1) = .5d0*(1d0-r)*n1x + .5d0*(1d0+r)*n2x

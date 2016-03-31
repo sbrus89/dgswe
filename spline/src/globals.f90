@@ -1,11 +1,10 @@
-      MODULE globals
-      
-      USE kdtree2_module      
+      MODULE globals    
       
       IMPLICIT NONE
 
       INTEGER, PARAMETER :: rp = kind(1d0) ! precision 
       REAL(rp), PARAMETER  ::  pi=3.141592653589793D0     
+      REAL(rp), PARAMETER :: deg2rad = pi/180d0      
    
       CHARACTER(100) :: out_direc           
       
@@ -35,22 +34,12 @@
         INTEGER :: ne ! number of elements
         INTEGER :: nn ! number of nodes        
       
-        INTEGER :: curved_grid
         INTEGER, ALLOCATABLE, DIMENSION(:) :: el_type      
       
-        INTEGER, ALLOCATABLE, DIMENSION(:,:) :: ect,vct ! element connectivity table
-        INTEGER, ALLOCATABLE, DIMENSION(:) :: nelnds
-        INTEGER :: mnelnds      
-        REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: xy,vxy ! x,y coordinates of nodes
-        INTEGER, ALLOCATABLE, DIMENSION(:) :: vxyn
+        INTEGER, ALLOCATABLE, DIMENSION(:,:) :: ect ! element connectivity table     
+        REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: xy ! x,y coordinates of nodes
         REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: elxy        
-        REAL(rp), ALLOCATABLE, DIMENSION(:) :: depth ! depth at each node
-        REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: elhb     
-        REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: nhb
-        REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: xyhc      
-        REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: xyhe      
-        REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: xyhi 
-        REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: xyhv       
+        REAL(rp), ALLOCATABLE, DIMENSION(:) :: depth ! depth at each node      
         REAL(rp), ALLOCATABLE, DIMENSION(:) :: h
         INTEGER, ALLOCATABLE, DIMENSION(:,:) :: bnd_flag 
 
@@ -64,27 +53,38 @@
         INTEGER :: nvel  ! total number of normal flow boundary nodes
         INTEGER, ALLOCATABLE, DIMENSION(:,:) :: fbnds ! normal flow boundary nodes
       
+        INTEGER :: mnepn
         INTEGER, ALLOCATABLE, DIMENSION(:) :: nepn ! number of elements per node
-        INTEGER, ALLOCATABLE, DIMENSION(:,:) :: epn ! elements per node 
-        
-        INTEGER, ALLOCATABLE, DIMENSION(:) :: nepe
-        INTEGER, ALLOCATABLE, DIMENSION(:,:) :: el2el
+        INTEGER, ALLOCATABLE, DIMENSION(:,:) :: epn ! elements per node        
       
         INTEGER :: ned
         INTEGER :: nied
+        INTEGER, ALLOCATABLE, DIMENSION(:) :: iedn     
+        INTEGER :: nobed    
+        INTEGER, ALLOCATABLE, DIMENSION(:) :: obedn
+        INTEGER :: nfbed
+        INTEGER, ALLOCATABLE, DIMENSION(:) :: fbedn        
         INTEGER :: nnfbed
-        INTEGER, ALLOCATABLE, DIMENSION(:) :: bed_flag
-        INTEGER, ALLOCATABLE, DIMENSION(:) :: bel_flag        
-        INTEGER, ALLOCATABLE, DIMENSION(:,:) :: ged2nn,ged2el,ged2led  
-        INTEGER, ALLOCATABLE, DIMENSION(:) :: nfbedn        
+        INTEGER, ALLOCATABLE, DIMENSION(:) :: nfbedn 
+        INTEGER, ALLOCATABLE, DIMENSION(:,:) :: nfbednn           
+        INTEGER :: nred
+        INTEGER, ALLOCATABLE, DIMENSION(:) :: recv_edge
+        INTEGER, ALLOCATABLE, DIMENSION(:) :: ed_type            
         
+        INTEGER, ALLOCATABLE, DIMENSION(:,:) :: ged2nn,ged2el,ged2led          
         REAL(rp), ALLOCATABLE, DIMENSION(:) :: minedlen,edlen
+        
+        INTEGER, ALLOCATABLE, DIMENSION(:,:) :: el2el
+        INTEGER, ALLOCATABLE, DIMENSION(:,:) :: el2ged          
       
       END TYPE      
       
       INTEGER :: nfbnds
       REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: fbnds_xy
       INTEGER , ALLOCATABLE, DIMENSION(:) :: fbnds
+      INTEGER, ALLOCATABLE, DIMENSION(:) :: nfbnd2el
+      INTEGER, ALLOCATABLE, DIMENSION(:,:) :: fbnd2el
+      
       
       
       REAL(rp), ALLOCATABLE, DIMENSION(:) :: ax,bx,cx,dx
@@ -101,12 +101,7 @@
       REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: l
       REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: dldr
       REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: dlds      
-      INTEGER, ALLOCATABLE, DIMENSION(:,:) :: ipiv      
-      
-      INTEGER, PARAMETER :: srchdp = 20
-      REAL(rp) :: rsre(2,4,4)        
-      TYPE(kdtree2), POINTER :: tree_xy      
-      TYPE(kdtree2_result), ALLOCATABLE, DIMENSION(:) :: closest       
+      INTEGER, ALLOCATABLE, DIMENSION(:,:) :: ipiv                
       
       CHARACTER(50) :: gitSHA
       CHARACTER(50) :: gitBranch
