@@ -7,18 +7,14 @@
       USE spherical_mod, ONLY: cpp_transformation
 
       IMPLICIT NONE
-      INTEGER :: i,j,k,el,n,nd
-      INTEGER :: ne,nn,nbseg
-      INTEGER :: btype
-      INTEGER :: nvert
-      INTEGER :: alloc_status   
-      INTEGER, ALLOCATABLE, DIMENSION(:) :: vflag     
-      REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: vxy_temp 
-      TYPE(grid) :: mesh
-                        
+
+                 
+      INTEGER :: el,j           
       INTEGER :: et,nv                        
       INTEGER :: coord_sys
       REAL(rp) :: h0
+      INTEGER :: alloc_status   
+      TYPE(grid) :: mesh      
       
       coord_sys = 1
       h0 = 0d0
@@ -31,13 +27,15 @@
       
       CALL read_connectivity(mesh%ne,mesh%ect,mesh%el_type)
       
+      
+      
+      
+      
+      
       ALLOCATE(mesh%elxy(mnnds,mesh%ne,2))
       ALLOCATE(mesh%elhb(mnnds,mesh%ne))
-      
-      ne = mesh%ne
-      nn = mesh%nn        
 
-      DO el = 1,ne       
+      DO el = 1,mesh%ne       
         et = mesh%el_type(el)
         nv = nverts(et)
         DO j = 1,nv
@@ -48,9 +46,6 @@
         
       ENDDO
       
-      
-      
-
       
 
       

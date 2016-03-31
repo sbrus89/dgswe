@@ -109,8 +109,7 @@ search: DO srch = 1,srchdp
       
       SUBROUTINE newton(pt,x,y,eln,r,s)
 
-      USE globals, ONLY: rp,np,nverts,nnds,mnnds,V,base,ipiv
-      USE basis, ONLY: tri_basis,quad_basis
+      USE globals, ONLY: rp,np,nverts,mnnds,base
       USE shape_functions_mod, ONLY: shape_functions_area_eval
       USE transformation, ONLY: element_transformation
 

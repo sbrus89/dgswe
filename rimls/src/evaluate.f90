@@ -185,7 +185,7 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-      SUBROUTINE coordinates(mesh)
+      SUBROUTINE group_eval_coordinates(mesh)
       
       USE globals, ONLY: rp,mnnds,nnds,np,nverts,l, &
                          grid                         
@@ -281,7 +281,7 @@
       ENDDO
       
       RETURN
-      END SUBROUTINE coordinates
+      END SUBROUTINE group_eval_coordinates
       
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -323,14 +323,14 @@
         PRINT("(A)"), "Computing rimls surface: verticies"
         CALL mls_surface(eval%nn,1,1,eval%xyhv)      
         PRINT("(A)"), "Computing rimls surface: edges"      
-        CALL mls_surface(eval%ned,np(3)-1,mnnds,eval%xyhe)
+        CALL mls_surface(eval%ned,np(6)-1,mnnds,eval%xyhe)
         PRINT("(A)"), "Computing rimls surface: interior"
         CALL mls_surface(eval%ne,mninds,mnnds,eval%xyhi)      
       ELSE 
         PRINT("(A)"), "Computing rimls surface: verticies"
         CALL mls_surface(base%nn,1,1,base%xyhv)      
         PRINT("(A)"), "Computing rimls surface: edges"      
-        CALL mls_surface(base%ned,np(3)-1,mnnds,base%xyhe)
+        CALL mls_surface(base%ned,np(6)-1,mnnds,base%xyhe)
         PRINT("(A)"), "Computing rimls surface: interior"
         CALL mls_surface(base%ne,mninds,mnnds,base%xyhi)         
       ENDIF
@@ -339,14 +339,14 @@
 !         PRINT("(A)"), "Computing rimls surface: verticies"
 !         CALL rimls_surface(eval%nn,1,1,eval%xyhv)      
 !         PRINT("(A)"), "Computing rimls surface: edges"      
-!         CALL rimls_surface(eval%ned,np(3)-1,mnnds,eval%xyhe)
+!         CALL rimls_surface(eval%ned,np(6)-1,mnnds,eval%xyhe)
 !         PRINT("(A)"), "Computing rimls surface: interior"
 !         CALL rimls_surface(eval%ne,mninds,mnnds,eval%xyhi)      
 !       ELSE 
 !         PRINT("(A)"), "Computing rimls surface: verticies"
 !         CALL rimls_surface(base%nn,1,1,base%xyhv)      
 !         PRINT("(A)"), "Computing rimls surface: edges"      
-!         CALL rimls_surface(base%ned,np(3)-1,mnnds,base%xyhe)
+!         CALL rimls_surface(base%ned,np(6)-1,mnnds,base%xyhe)
 !         PRINT("(A)"), "Computing rimls surface: interior"
 !         CALL rimls_surface(base%ne,mninds,mnnds,base%xyhi)         
 !       ENDIF
@@ -355,14 +355,14 @@
 !         PRINT("(A)"), "Computing rimls surface: verticies"
 !         CALL function_surface(eval%nn,1,1,eval%xyhv)      
 !         PRINT("(A)"), "Computing rimls surface: edges"      
-!         CALL function_surface(eval%ned,np(3)-1,mnnds,eval%xyhe)
+!         CALL function_surface(eval%ned,np(6)-1,mnnds,eval%xyhe)
 !         PRINT("(A)"), "Computing rimls surface: interior"
 !         CALL function_surface(eval%ne,mninds,mnnds,eval%xyhi)      
 !       ELSE 
 !         PRINT("(A)"), "Computing rimls surface: verticies"
 !         CALL function_surface(base%nn,1,1,base%xyhv)      
 !         PRINT("(A)"), "Computing rimls surface: edges"      
-!         CALL function_surface(base%ned,np(3)-1,mnnds,base%xyhe)
+!         CALL function_surface(base%ned,np(6)-1,mnnds,base%xyhe)
 !         PRINT("(A)"), "Computing rimls surface: interior"
 !         CALL function_surface(base%ne,mninds,mnnds,base%xyhi)         
 !       ENDIF      

@@ -65,9 +65,9 @@
       CALL normals(base)
       
       IF (refinement) THEN
-        CALL coordinates(eval)
+        CALL group_eval_coordinates(eval)
       ELSE
-        CALL coordinates(base)
+        CALL group_eval_coordinates(base)
       ENDIF
       
 
@@ -84,10 +84,13 @@
       ENDIF
       
        
-      
-!       CALL compute_surface()
-      CALL compute_random()
+            
 
+      IF (nrpt > 0) THEN      
+        CALL compute_random()
+      ELSE 
+        CALL compute_surface()
+      ENDIF
       
       
       IF (refinement) THEN
