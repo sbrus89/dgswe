@@ -2,7 +2,7 @@ close all
 clear all
 clc
 
-file = fopen('work/spline.out');
+file = fopen('../work/spline.out');
 
 figure
 
@@ -82,7 +82,7 @@ fclose(file);
 
 hold on
 
-file = fopen('work/eval_nodes.out');
+file = fopen('../work/eval_nodes.out');
 
 n = textscan(file,'%d',1);
 n_seg = n{1};
@@ -106,7 +106,7 @@ fclose(file);
 
 hold on
 
-file = fopen('work/max_deform.out');
+file = fopen('../work/max_deform.out');
 
 n_seg = fscanf(file,'%d',1);
 
@@ -132,7 +132,7 @@ fclose(file);
 
 hold on
 
-fid = fopen('work/nodes.out') ;
+fid = fopen('../work/nodes.out') ;
 
 agrid = fgetl(fid) ;
 disp(agrid) ;
