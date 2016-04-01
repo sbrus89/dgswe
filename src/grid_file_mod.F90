@@ -1,6 +1,6 @@
       MODULE grid_file_mod
 
-      USE globals, ONLY: rp
+      USE globals, ONLY: rp,pi
       USE quit, ONLY: abort    
    
       
@@ -484,5 +484,120 @@
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!      
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
+
+
+      SUBROUTINE grid_size(ne,el_type,ect,xy,h)
+      
+      
+      IMPLICIT NONE
+      
+      INTEGER, INTENT(IN) :: ne
+      INTEGER, DIMENSION(:), INTENT(IN) :: el_type
+      INTEGER, DIMENSION(:,:), INTENT(IN) :: ect
+      REAL(rp), DIMENSION(:,:), INTENT(IN) :: xy
+      REAL(rp), DIMENSION(:), ALLOCATABLE, INTENT(OUT) :: h
+      
+      INTEGER :: el,i,et
+      INTEGER :: n1,n2,nv
+      REAL(rp) :: x(4),y(4)
+      REAL(rp) :: psml,pl
+      REAL(rp) :: alpha,gamma
+      REAL(rp) :: area,s,r,l(4)
+
+      
+      ALLOCATE(h(ne))
+                 
+      DO el = 1,ne
+       
+        et = el_type(el) 
+        
+        IF (mod(et,2) == 1) THEN
+          nv = 3
+        ELSE IF (mod(et,2) == 0) THEN  
+          nv = 4
+        ENDIF
+        
+        ! calculate edge lengths
+        DO i = 1,nv
+          n1 = mod(i+0,nv) + 1
+          n2 = mod(i+1,nv) + 1
+            
+          x(n1) = xy(1,ect(n1,el))
+          x(n2) = xy(1,ect(n2,el))
+            
+          y(n1) = xy(2,ect(n1,el))
+          y(n2) = xy(2,ect(n2,el))
+            
+          l(i) = sqrt((x(n2)-x(n1))**2 + (y(n2)-y(n1))**2)
+        ENDDO
+        
+        ! calculate semiperimeter
+        s = 0
+        DO i = 1,nv
+          s = s + l(i)
+        ENDDO
+        s = 0.5*s
+        
+        
+        psml = 1d0  ! product of semiperimeter - edge lengths
+        pl = 1d0    ! product of edge lengths
+        DO i = 1,nv
+         psml = psml*(s-l(i))
+         pl = pl*l(i)
+        ENDDO
+        
+        IF (mod(et,2) == 1) THEN
+          
+          ! calculate radius of smallest inscribed circle for triangles
+          r = sqrt(psml/s)       
+                               
+        ELSE IF (mod(et,2) == 0) THEN  
+          
+          !calculate radius of circle with equal area for quadrilaterals
+          alpha = angle(x(4),y(4),x(1),y(1),x(2),y(2))
+          gamma = angle(x(2),y(2),x(3),y(3),x(4),y(4))
+          area = sqrt(psml-.5d0*pl*(1d0+cos(alpha+gamma))) ! Bretschneider's formula          
+          
+          r = sqrt(area/pi)
+          
+        ENDIF
+        
+        h(el) = 2d0*r
+      ENDDO
+
+      RETURN
+      END SUBROUTINE grid_size
+      
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!      
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+      REAL(rp) FUNCTION angle(x1,y1,x2,y2,x3,y3)
+      
+      IMPLICIT NONE  
+      
+      REAL(rp) :: x1,x2,x3,xy,y1,y2,y3,y4
+      REAL(rp) :: xv1,xv2,yv1,yv2
+      REAL(rp) :: adotb,la,lb
+      
+      
+      xv1 = x1-x2
+      yv1 = y1-y2
+      
+      xv2 = x3-x2
+      yv2 = y3-y2      
+      
+      adotb = xv1*xv2 + yv1*yv2
+      
+      la = sqrt(xv1**2 + yv1**2)
+      lb = sqrt(xv2**2 + yv2**2)
+      
+      angle = acos(adotb/(la*lb))*(180d0/pi)
+      
+      RETURN
+      END FUNCTION
+      
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!      
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!      
 
       END MODULE grid_file_mod
