@@ -159,7 +159,7 @@ $(ODIR)quit.o : ../../src/quit.F90                            $(ODIR)globals.o
 	$(FC) $(FFLAGS) -c $< -o $@
 	mv quit.mod $(ODIR)	
 
-$(ODIR)edge_connectivity_mod.o : ../../src/edge_connectivity_mod.F90 $(ODIR)quit.o
+$(ODIR)edge_connectivity_mod.o : ../../src/edge_connectivity_mod.F90 $(ODIR)globals.o $(ODIR)quit.o
 	$(FC) $(FFLAGS) -c $< -o $@
 	mv edge_connectivity_mod.mod $(ODIR)	
 

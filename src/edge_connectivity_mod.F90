@@ -1,5 +1,6 @@
       MODULE edge_connectivity_mod
       
+      USE globals, ONLY: rp
       USE quit, ONLY: abort
       
       IMPLICIT NONE
@@ -603,6 +604,69 @@
       
       
       END SUBROUTINE
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+      SUBROUTINE min_edge_length(ned,ne,xy,ged2el,ged2nn,edlen,edlen_min)
+      
+      IMPLICIT NONE
+      
+      INTEGER, INTENT(IN) :: ned
+      INTEGER, INTENT(IN) :: ne
+      REAL(rp), DIMENSION(:,:), INTENT(IN) :: xy
+      INTEGER, DIMENSION(:,:), INTENT(IN) :: ged2el
+      INTEGER, DIMENSION(:,:), INTENT(IN) :: ged2nn
+      REAL(rp), DIMENSION(:), ALLOCATABLE, INTENT(OUT) :: edlen
+      REAL(rp), DIMENSION(:), ALLOCATABLE, INTENT(OUT) :: edlen_min
+      
+      INTEGER :: ed
+      INTEGER :: el_in,el_ex
+      INTEGER :: n1,n2
+      REAL(rp) :: x1,x2,y1,y2
+      INTEGER :: alloc_status 
+      
+
+      ALLOCATE(edlen(ned),edlen_min(ne), STAT=alloc_status)
+      IF (alloc_status /= 0) THEN
+        PRINT*, "Allocation error"
+        CALL abort()
+      ENDIF     
+      
+      
+      
+      edlen_min = 1d10
+      DO ed = 1,ned
+        n1 = ged2nn(1,ed)
+        n2 = ged2nn(2,ed)                
+        
+        x1 = xy(1,n1)
+        x2 = xy(1,n2)
+        
+        y1 = xy(2,n1)
+        y2 = xy(2,n2)
+        
+        edlen(ed) = sqrt((x2-x1)**2 + (y2-y1)**2)        
+        
+        el_in = ged2el(1,ed)
+        el_ex = ged2el(2,ed)
+        
+        IF (edlen(ed) < edlen_min(el_in)) THEN
+          edlen_min(el_in) = edlen(ed)
+        ENDIF
+        
+        IF (el_ex > 0 ) THEN
+          IF (edlen(ed) < edlen_min(el_ex)) THEN
+            edlen_min(el_ex) = edlen(ed)
+          ENDIF          
+        ENDIF
+        
+        
+      ENDDO
+      
+      END SUBROUTINE min_edge_length
+         
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
