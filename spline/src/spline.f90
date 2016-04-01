@@ -9,8 +9,7 @@
       USE calc_spline, ONLY: calc_cubic_spline,eval_cubic_spline, &
                              newton,spline_init
       USE check, ONLY: check_angle,check_deformation,l2_project,quad_interp
-      USE find_element, ONLY: in_element,check_elem,find_element_init
-      USE evaluate, ONLY: vandermonde,transformation  
+      USE find_element, ONLY: in_element,check_elem,find_element_init 
 
       IMPLICIT NONE
       INTEGER :: i,j,k,n,seg,num,nmax,qpts,btype
@@ -67,9 +66,6 @@
       
       CALL find_element_init(nel_type,nverts,np,nnds,nfbnds,fbnds_xy,nfbnd2el,fbnd2el)
       
-      CALL vandermonde()  
-      
-      CALL transformation()     
       
       ALLOCATE(x(ctp+1),y(ctp+1))
 

@@ -45,7 +45,7 @@ endif
 ########################################################################
 
 spline_objects = globals.o kdtree2.o lapack_interfaces.o basis.o allocation.o edge_connectivity_mod.o\
-                 evaluate.o calc_spline.o check.o find_element.o find_edge.o grid_file_mod.o\
+                 calc_spline.o check.o find_element.o find_edge.o grid_file_mod.o\
                  read_grid.o read_input.o connect.o write_output.o version.o spline.o \
                  quit.o spherical_mod.o shape_functions_mod.o transformation.o vandermonde.o
                  
@@ -142,10 +142,6 @@ $(ODIR)calc_spline.o : calc_spline.f90                        $(ODIR)globals.o  
 $(ODIR)check.o : check.f90                                    $(ODIR)globals.o $(ODIR)calc_spline.o  $(ODIR)find_element.o
 	$(FC) $(FFLAGS) -c $< -o $@
 	mv check.mod $(ODIR)
-	
-$(ODIR)evaluate.o : evaluate.f90                              $(ODIR)globals.o $(ODIR)basis.o  $(ODIR)lapack_interfaces.o 
-	$(FC) $(FFLAGS) -c $< -o $@
-	mv evaluate.mod $(ODIR)
 	
 $(ODIR)find_element.o : find_element.f90                      $(ODIR)globals.o  $(ODIR)kdtree2.o  $(ODIR)shape_functions_mod.o $(ODIR)transformation.o $(ODIR)vandermonde.o
 	$(FC) $(FFLAGS) -c $< -o $@
