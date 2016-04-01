@@ -147,7 +147,7 @@ $(ODIR)evaluate.o : evaluate.f90                              $(ODIR)globals.o $
 	$(FC) $(FFLAGS) -c $< -o $@
 	mv evaluate.mod $(ODIR)
 	
-$(ODIR)find_element.o : find_element.f90                      $(ODIR)globals.o  $(ODIR)kdtree2.o  $(ODIR)shape_functions_mod.o $(ODIR)transformation.o 
+$(ODIR)find_element.o : find_element.f90                      $(ODIR)globals.o  $(ODIR)kdtree2.o  $(ODIR)shape_functions_mod.o $(ODIR)transformation.o $(ODIR)vandermonde.o
 	$(FC) $(FFLAGS) -c $< -o $@
 	mv find_element.mod $(ODIR)
 	

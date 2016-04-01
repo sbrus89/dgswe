@@ -14,6 +14,13 @@
       TYPE(kdtree2_result), ALLOCATABLE, DIMENSION(:) :: closest   
       INTEGER, DIMENSION(:), ALLOCATABLE :: nnd2el
       INTEGER, DIMENSION(:,:), ALLOCATABLE :: nd2el
+      INTEGER, DIMENSION(:), ALLOCATABLE :: nverts
+      INTEGER, DIMENSION(:), ALLOCATABLE :: np
+      INTEGER, DIMENSION(:), ALLOCATABLE :: nnds      
+      REAL(rp), DIMENSION(:), ALLOCATABLE :: elnx,elny
+      REAL(rp), DIMENSION(:,:,:), ALLOCATABLE :: V
+      INTEGER, DIMENSION(:,:), ALLOCATABLE :: ipiv
+      INTEGER :: mnnds
       
 
       CONTAINS
@@ -21,29 +28,37 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!   
 
-      SUBROUTINE find_element_init(nel_type,nn,xy,nepn,epn)
+      SUBROUTINE find_element_init(nel_type,nvertex,nporder,nnodes,nn,xy,nepn,epn)
+      
+      USE vandermonde, ONLY: vandermonde_area
       
       IMPLICIT NONE
       
       INTEGER, INTENT(IN) :: nel_type
+      INTEGER, DIMENSION(:), INTENT(IN) :: nvertex
+      INTEGER, DIMENSION(:), INTENT(IN) :: nporder
+      INTEGER, DIMENSION(:), INTENT(IN) :: nnodes      
       INTEGER, INTENT(IN) :: nn
       REAL(rp), DIMENSION(:,:), INTENT(IN) :: xy      
       INTEGER, DIMENSION(:), INTENT(IN) :: nepn
       INTEGER, DIMENSION(:,:), INTENT(IN) :: epn
             
-      INTEGER :: nd,el
-      INTEGER :: mnepn
+      INTEGER :: nd,el,et,n,p
+      INTEGER :: mnepn,mnp
+      INTEGER :: info
+      
+      ! initialize module varibles to increase flexibility and decrease number
+      ! of subroutine calling arguments
       
       tree_xy => kdtree2_create(xy(1:2,1:nn), rearrange=.true., sort=.true.)
       ALLOCATE(closest(srchdp))      
             
+            
       CALL ref_elem_coords(nel_type,rsre)
-      
-      
-      ! initialize module variable for elements that share each node
+            
+            
       mnepn = MAXVAL(nepn)
-      ALLOCATE(nnd2el(nn),nd2el(mnepn,nn))
-      
+      ALLOCATE(nnd2el(nn),nd2el(mnepn,nn))      
       DO nd = 1,nn
         nnd2el(nd) = nepn(nd)
         DO el = 1,nnd2el(nd)
@@ -51,6 +66,27 @@
         ENDDO      
       ENDDO
   
+  
+      ALLOCATE(nverts(nel_type),np(nel_type),nnds(nel_type))      
+      DO et = 1,nel_type
+        nverts(et) = nvertex(et)
+        np(et) = nporder(et)
+        nnds(et) = nnodes(et)
+      ENDDO
+      
+      
+      mnp = maxval(np)            
+      mnnds = (mnp+1)**2
+      ALLOCATE(elnx(mnnds),elny(mnnds))
+      
+      
+      ALLOCATE(V(mnnds,mnnds,nel_type),ipiv(mnnds,nel_type))
+      DO et = 1,nel_type
+        p = np(et)
+        CALL vandermonde_area(et,p,n,V(:,:,et))
+        CALL DGETRF(n,n,V(1,1,et),mnnds,ipiv(1,et),info)           
+      ENDDO
+          
       
       RETURN
       END SUBROUTINE find_element_init
@@ -59,16 +95,18 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!      
       
 
-      SUBROUTINE in_element(xt,el_found,leds)
+      SUBROUTINE in_element(xt,el_type,elxy,el_found,leds)
 
       IMPLICIT NONE
               
       REAL(rp), INTENT(IN) :: xt(2)
+      INTEGER, DIMENSION(:), INTENT(IN) :: el_type
+      REAL(rp), DIMENSION(:,:,:), INTENT(IN) :: elxy
       INTEGER, INTENT(OUT) :: el_found          
       INTEGER, INTENT(OUT), OPTIONAL :: leds(4)
             
-      INTEGER :: srch,i
-      INTEGER :: el,eln,clnd
+      INTEGER :: srch,nd
+      INTEGER :: el,eln,clnd,et,n
       INTEGER :: found     
       INTEGER :: min_el
       REAL(rp) :: diff,min_diff
@@ -94,7 +132,7 @@ search: DO srch = 1,srchdp
             PRINT("(A,I5)"), "   testing: ", eln                               
 
             ! Compute sum of sub-triangle areas
-            CALL sub_element(eln,xt,diff,leds)            
+            CALL sub_element(xt,eln,el_type,elxy,diff,leds)            
             
             IF (diff < min_diff) THEN  ! keep track of element with minimum difference in sum of sub-triangle areas                                  
               min_diff = diff          ! to return if tolerance is not met
@@ -124,7 +162,7 @@ search: DO srch = 1,srchdp
           PRINT*, "ELEMENT NOT FOUND"  
           PRINT*, "USING ELEMENT ", el_found, "(AREA DIFF = ",min_diff, ")"       
 
-          CALL sub_element(el_found,xt,diff,leds)            
+          CALL sub_element(xt,el_found,el_type,elxy,diff,leds)           
           
         ENDIF     
  
@@ -137,34 +175,50 @@ search: DO srch = 1,srchdp
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
  
 
-      SUBROUTINE sub_element(eln,xt,diff,closest_ed)
+      SUBROUTINE sub_element(xt,eln,el_type,elxy,diff,closest_ed)   
       
-      USE globals, ONLY: base,nverts           
+      USE transformation, ONLY: xy2rs
       
       IMPLICIT NONE
       
+      REAL(rp), INTENT(IN) :: xt(2)        
       INTEGER, INTENT(IN) :: eln
-      REAL(rp), INTENT(IN) :: xt(2)
-      
+      INTEGER, DIMENSION(:), INTENT(IN) :: el_type
+      REAL(rp), DIMENSION(:,:,:), INTENT(IN) :: elxy          
+      REAL(rp), INTENT(OUT) :: diff      
       INTEGER, INTENT(OUT) :: closest_ed(4)
-      REAL(rp), INTENT(OUT) :: diff
       
       INTEGER :: i,j    
-      INTEGER :: et,nvert
+      INTEGER :: nv,et,n,npt,nd,p
       INTEGER :: n1,n2
       INTEGER :: etemp
       REAL(rp) :: area,area_sum
       REAL(rp) :: stri_area(4),stri_min
       REAL(rp) :: dist
-      REAL(rp) :: r(2)
-      REAL(rp) :: x(3),y(3)
+      REAL(rp) :: x(1),y(1)
+      REAL(rp) :: r(1),s(1)
+      REAL(rp) :: x1,x2,x3,y1,y2,y3
       REAL(rp) :: atemp
       
-      et = base%el_type(eln)
-      nvert = nverts(et)                                           
-          
-      ! Compute the local (r,s) coordinates of the (x,y) station location
-      CALL newton(xt,eln,r)
+      
+      et = el_type(eln)
+      nv = nverts(et)
+      p = np(et)
+      n = nnds(et)
+      npt = 1
+
+      
+      DO nd = 1,n
+        elnx(nd) = elxy(nd,eln,1)
+        elny(nd) = elxy(nd,eln,2)
+      ENDDO
+      
+      x(1) = xt(1)
+      y(1) = xt(2)
+                                                        
+      ! Compute the local (r,s) coordinates of the (x,y) point
+!       CALL xy2rs(et,p,elnx,elny,npt,x,y,r,s)
+      CALL rs_coords(et,p,elnx,elny,x,y,r,s)
           
       ! Find reference element area
       IF (mod(et,2) == 1) THEN
@@ -176,23 +230,22 @@ search: DO srch = 1,srchdp
       ! Compute sum of sub-triangle areas
       area_sum = 0d0
       stri_min = 999d0
-      DO i = 1,nvert
-        n1 = mod(i+0,nvert)+1
-        n2 = mod(i+1,nvert)+1           
+      DO i = 1,nv
+        n1 = mod(i+0,nv)+1
+        n2 = mod(i+1,nv)+1           
 
-        x(1) = rsre(1,n1,et)
-        y(1) = rsre(2,n1,et)
+        x1 = rsre(1,n1,et)
+        y1 = rsre(2,n1,et)
             
-        x(2) = rsre(1,n2,et)
-        y(2) = rsre(2,n2,et)
+        x2 = rsre(1,n2,et)
+        y2 = rsre(2,n2,et)
             
-        x(3) = r(1)
-        y(3) = r(2)
-              
-        stri_area(i) = .5d0*abs((x(2)-x(1))*(y(3)-y(1)) - (x(3)-x(1))*(y(2)-y(1)))
+        x3 = r(1)
+        y3 = s(1)
+                        
+        stri_area(i) = .5d0*abs((x2-x1)*(y3-y1) - (x3-x1)*(y2-y1))
         closest_ed(i) = i
-        
-!         PRINT "(A,I7,A,F14.7,A,I7,A,I7)", "stri: ",i," area: ",stri_area(i), " n1: ", base%vct(n1,eln), " n2: ",base%vct(n2,eln)                                      
+                                            
         area_sum = area_sum + stri_area(i)
       ENDDO
           
@@ -201,8 +254,8 @@ search: DO srch = 1,srchdp
           
       diff = abs(area-area_sum) 
       
-      DO i = 1,nvert           ! keep track of minimum sub-triangle area to determine
-        DO j = i+1,nvert       ! which edge the point lies on, or is closest to
+      DO i = 1,nv           ! keep track of minimum sub-triangle area to determine
+        DO j = i+1,nv       ! which edge the point lies on, or is closest to
           IF (stri_area(j) < stri_area(i)) THEN
             atemp = stri_area(i)
             stri_area(i) = stri_area(j)
@@ -214,87 +267,68 @@ search: DO srch = 1,srchdp
           ENDIF
         ENDDO
       ENDDO
-      
-      
-!       DO i = 1,nvert
-!         
-!         x(1) = rsre(1,i,et)
-!         y(1) = rsre(2,i,et)
-!             
-!         x(3) = r(1)
-!         y(3) = r(2)
-!               
-! !         dist = sqrt((x(1)-x(3))**2 + (y(1)-y(3))**2)        
-! !         PRINT "(A,I7,A,F14.7,A,I7,A,I7)", "node: ",i," dist: ",dist, " n1: ", base%vct(i,eln)     
-!               
-!         IF (stri_area < stri_min) THEN ! keep track of minimum sub-triangle area to determine
-!           stri_min = stri_area         ! which edge the point lies on, or is closest to
-!           closest_ed = i
-!         ENDIF
-!             
-!         area_sum = area_sum + stri_area
-!       ENDDO      
-!      
+            
       
       RETURN
-      END SUBROUTINE sub_element     
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!   
+      END SUBROUTINE sub_element    
       
-      SUBROUTINE newton(x,eln,r)
+      
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!     
+      
+      
+      SUBROUTINE rs_coords(et,p,elx,ely,x,y,r,s)
 
-      USE globals, ONLY: rp,np,nnds,mnnds,V,base,ipiv
-      USE basis, ONLY: tri_basis,quad_basis
+      USE basis, ONLY: element_basis,tri_basis,quad_basis
 
       IMPLICIT NONE
-      INTEGER, INTENT(IN) :: eln
-      REAL(rp), INTENT(IN) :: x(2)      
-      REAL(rp), INTENT(OUT) :: r(2)      
       
-      INTEGER :: it,et,p,n,i
+      INTEGER, INTENT(IN) :: et
+      INTEGER, INTENT(IN) :: p
+      REAL(rp), DIMENSION(:), INTENT(IN) :: elx
+      REAL(rp), DIMENSION(:), INTENT(IN) :: ely
+      REAL(rp), INTENT(IN) :: x(1)  
+      REAL(rp), INTENT(IN) :: y(1)        
+      REAL(rp), INTENT(OUT) :: r(1)    
+      REAL(rp), INTENT(OUT) :: s(1)      
+      
+      INTEGER :: it,n,i,j
       INTEGER :: info
       INTEGER :: maxit
       REAL(rp) :: tol
       REAL(rp) :: f,g,error
-      REAL(rp) :: dfdr,dfds,dgdr,dgds,jac
+      REAL(rp) :: dfdr,dfds,dgdr,dgds,jac_recip
       REAL(rp) :: phi(mnnds,1),dpdr(mnnds,1),dpds(mnnds,1)
       REAL(rp) :: l(mnnds,3)
         
       tol = 1d-9
       maxit = 100
       info = 0
-      
-      et = base%el_type(eln)
-      p = np(et)  
+     
         
       IF (mod(et,2) == 1) THEN
         r(1) = -1d0/3d0
-        r(2) = -1d0/3d0
+        s(1) = -1d0/3d0
       ELSE IF (mod(et,2) == 0) THEN
         r(1) = 0d0
-        r(2) = 0d0
+        s(1) = 0d0
       ENDIF
 
-      DO it = 1,maxit     
-           
-        IF (mod(et,2) == 1) THEN
-          CALL tri_basis(p,n,1,r(1),r(2),phi,dpdr,dpds)
-        ELSE IF (mod(et,2) == 0) THEN
-          CALL quad_basis(p,n,1,r(1),r(2),phi,dpdr,dpds)
-        ENDIF
+      DO it = 1,maxit                        
+              
+        CALL element_basis(et,p,n,1,r,s,phi,dpdr,dpds)
         
         DO i = 1,n
 
           l(i,1) = phi(i,1)
           l(i,2) = dpdr(i,1)
           l(i,3) = dpds(i,1)                
-       
-        ENDDO     
           
+        ENDDO            
+                  
 
         CALL DGETRS("N",n,3,V(1,1,et),mnnds,ipiv(1,et),l,mnnds,info)
-!         IF (info /= 0 ) PRINT*, "LAPACK ERROR"      
+!         IF (info /= 0 ) PRINT*, "LAPACK ERROR"   
         
         dfdr = 0d0
         dfds = 0d0
@@ -305,24 +339,25 @@ search: DO srch = 1,srchdp
         
         DO i = 1,n
 
-          dfdr = dfdr + l(i,2)*base%elxy(i,eln,1)
-          dfds = dfds + l(i,3)*base%elxy(i,eln,1)
-          dgdr = dgdr + l(i,2)*base%elxy(i,eln,2)
-          dgds = dgds + l(i,3)*base%elxy(i,eln,2)
+          dfdr = dfdr + l(i,2)*elx(i)
+          dfds = dfds + l(i,3)*elx(i)
+          dgdr = dgdr + l(i,2)*ely(i)
+          dgds = dgds + l(i,3)*ely(i)
           
-          f = f + l(i,1)*base%elxy(i,eln,1)
-          g = g + l(i,1)*base%elxy(i,eln,2)
+          f = f + l(i,1)*elx(i)
+          g = g + l(i,1)*ely(i)
+
         ENDDO
-        
-        jac = dfdr*dgds - dgdr*dfds
-        
+                
+        jac_recip = 1d0/(dfdr*dgds - dgdr*dfds)
+
         f = f - x(1)
-        g = g - x(2)
+        g = g - y(1)
         
-        r(1) = r(1) - (1d0/jac)*( dgds*f - dfds*g)
-        r(2) = r(2) - (1d0/jac)*(-dgdr*f + dfdr*g)   
+        r(1) = r(1) - ( dgds*f - dfds*g)*jac_recip
+        s(1) = s(1) - (-dgdr*f + dfdr*g)*jac_recip   
 !         PRINT("(3(A,F20.15))"), "   f = ",f, "   g = ", g, "  jac = ", jac        
-!         PRINT("(2(A,F20.15))"), "   r = ",r(1), "   s = ", r(2)
+!         PRINT("(2(A,F20.15))"), "   r = ",r(1), "   s = ", s(1)
               
         
         IF (ABS(f) < tol .AND. ABS(g) < tol) THEN
@@ -333,68 +368,22 @@ search: DO srch = 1,srchdp
       ENDDO
       
       error = max(abs(f),abs(g))
+      
 !       IF (it >= maxit) THEN
 !         PRINT("(A,E22.15)"), "   MAX ITERATIONS EXCEEDED, error = ",error
-!         PRINT("(2(A,F20.15))"), "   r = ",r(1), "   s = ", r(2)
+!         PRINT("(2(A,F20.15))"), "   r = ",r(1), "   s = ", s(1)
 !       ELSE       
 !         PRINT("(A,I7,A,E22.15)"), "   iterations: ",it, "  error = ",error
-!         PRINT("(2(A,F20.15))"), "   r = ",r(1), "   s = ", r(2)
+!         PRINT("(2(A,F20.15))"), "   r = ",r(1), "   s = ", s(1)
 !       ENDIF
 
-
       RETURN
-      END SUBROUTINE newton
-      
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!      
-
-      SUBROUTINE check_elem(xt,el_found)      
-      
-      USE globals, ONLY: base,fbnds
-
-      IMPLICIT NONE
-      
-
-      REAL(rp), INTENT(IN) :: xt(2)
-      INTEGER, INTENT(IN) :: el_found
-            
-      INTEGER :: el,eln,clnd
-      INTEGER :: found      
-
-            
-      
-      CALL kdtree2_n_nearest(tp=tree_xy,qv=xt,nn=1,results=closest)              
-        
-  
-      found = 0      
-      clnd = fbnds(closest(1)%idx)          
-
-elem: DO el = 1,base%nepn(clnd) 
- 
-        eln = base%epn(el,clnd)
-            
-        IF (eln == el_found) THEN
-          found = 1
-          EXIT elem
-        ENDIF
-            
-      ENDDO elem
-
-        
-
-        
-      IF (found == 0) THEN
-        PRINT*, "ERROR FINDING ELEMENT FOR VERTEX NODE"
-        STOP
-      ENDIF     
- 
+      END SUBROUTINE rs_coords      
       
       
-      RETURN
-      END SUBROUTINE check_elem
-
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!   
+
 
       SUBROUTINE ref_elem_coords(nel_type,rsre)
       
@@ -425,7 +414,55 @@ elem: DO el = 1,base%nepn(clnd)
       ENDDO
       
       END SUBROUTINE ref_elem_coords
+      
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!         
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!   
+
+
+      SUBROUTINE check_elem(xt,el_found)      
+      
+      IMPLICIT NONE
+      
+
+      REAL(rp), INTENT(IN) :: xt(2)
+      INTEGER, INTENT(IN) :: el_found
+            
+      INTEGER :: el,eln,clnd
+      INTEGER :: found      
+
+                  
+      CALL kdtree2_n_nearest(tp=tree_xy,qv=xt,nn=1,results=closest)              
+        
+  
+      found = 0      
+      clnd = closest(1)%idx          
+
+elem: DO el = 1,nnd2el(clnd) 
+ 
+        eln = nd2el(el,clnd)
+            
+        IF (eln == el_found) THEN
+          found = 1
+          EXIT elem
+        ENDIF
+            
+      ENDDO elem
+        
+        
+      IF (found == 0) THEN
+        PRINT*, "ERROR FINDING ELEMENT FOR VERTEX NODE"
+        STOP
+      ENDIF     
+ 
+      
+      
+      RETURN
+      END SUBROUTINE check_elem
+
+      
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!       
+
 
       END MODULE find_element

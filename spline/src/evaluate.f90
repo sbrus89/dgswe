@@ -43,9 +43,7 @@
 !         ENDDO        
 !         PRINT*, " "
 
-        
-      ENDDO
-      
+      ENDDO     
       
       
       RETURN      

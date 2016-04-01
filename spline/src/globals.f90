@@ -2,6 +2,8 @@
       
       IMPLICIT NONE
 
+      SAVE
+      
       INTEGER, PARAMETER :: rp = kind(1d0) ! precision 
       REAL(rp), PARAMETER  ::  pi=3.141592653589793D0     
       REAL(rp), PARAMETER :: deg2rad = pi/180d0      

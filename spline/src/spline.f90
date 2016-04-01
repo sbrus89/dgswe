@@ -1,6 +1,6 @@
       PROGRAM spline
 
-      USE globals, ONLY: rp,base,eval,ctp,nverts,nel_type, &
+      USE globals, ONLY: rp,base,eval,ctp,nverts,np,nnds,nel_type, &
                          ax,bx,cx,dx,ay,by,cy,dy,dt, &
                          rpts,theta_tol,sig, &
                          nfbnds,fbnds_xy,nfbnd2el,fbnd2el
@@ -65,7 +65,7 @@
       
       CALL spline_init(num,nmax)
       
-      CALL find_element_init(nel_type,nfbnds,fbnds_xy,nfbnd2el,fbnd2el)
+      CALL find_element_init(nel_type,nverts,np,nnds,nfbnds,fbnds_xy,nfbnd2el,fbnd2el)
       
       CALL vandermonde()  
       
@@ -189,7 +189,7 @@
               xa(2) = .5d0*(1d0-ra)*n1y + .5d0*(1d0+ra)*n2y                                  
               
               PRINT*, "FINDING ELEMENT FOR POINT: ", i, " NODE: ",n1
-              CALL in_element(xa,el_in,eds)   
+              CALL in_element(xa,base%el_type,base%elxy,el_in,eds)   
               CALL find_edge(seg,n1,n2,xa,el_in,eds,base_bed)  ! find base edge (to get correct spline coefficients) 
               
               nd = base_bed       
