@@ -40,7 +40,7 @@ endif
 #                               Objects                                #
 ########################################################################
 
-objects = kdtree2.o globals.o allocation.o basis.o find_element.o quit.o \
+objects = kdtree2.o globals.o allocation.o basis.o find_element_mod.o quit.o \
           vandermonde.o shape_functions_mod.o transformation.o spherical_mod.o \
           curvilinear_nodes_mod.o bathymetry_interp_mod.o bathy_interp.o \
           write_results.o connect.o edge_connectivity_mod.o  \
@@ -148,7 +148,7 @@ $(ODIR)basis.o: ../../src/basis.F90                             $(ODIR)globals.o
 	$(FC) $(FFLAGS) -c $< -o $@
 	mv basis.mod $(ODIR)	
 	
-$(ODIR)find_element.o: find_element.f90                         $(ODIR)kdtree2.o  $(ODIR)globals.o $(ODIR)shape_functions_mod.o $(ODIR)transformation.o
+$(ODIR)find_element_mod.o: ../../src/find_element_mod.F90       $(ODIR)kdtree2.o  $(ODIR)globals.o $(ODIR)shape_functions_mod.o $(ODIR)transformation.o $(ODIR)vandermonde.o
 	$(FC) $(FFLAGS) -c $< -o $@
 	mv find_element.mod $(ODIR) 
 
@@ -159,11 +159,11 @@ $(ODIR)write_results.o: write_results.f90                       $(ODIR)globals.o
 $(ODIR)connect.o: connect.f90                                   $(ODIR)globals.o $(ODIR)edge_connectivity_mod.o
 	$(FC) $(FFLAGS) -c $< -o $@
 
-$(ODIR)evaluate.o: evaluate.f90                                 $(ODIR)kdtree2.o  $(ODIR)globals.o  $(ODIR)basis.o  $(ODIR)find_element.o  $(ODIR)lapack_interfaces.o $(ODIR)shape_functions_mod.o
+$(ODIR)evaluate.o: evaluate.f90                                 $(ODIR)kdtree2.o  $(ODIR)globals.o  $(ODIR)basis.o  $(ODIR)find_element_mod.o  $(ODIR)lapack_interfaces.o $(ODIR)shape_functions_mod.o
 	$(FC) $(FFLAGS) -c $< -o $@
 	mv evaluate.mod $(ODIR)
 	
-$(ODIR)boundary_check.o : boundary_check.F90                    $(ODIR)globals.o  $(ODIR)find_element.o
+$(ODIR)boundary_check.o : boundary_check.F90                    $(ODIR)globals.o  $(ODIR)find_element_mod.o
 	$(FC) $(FFLAGS) -c $< -o $@
 	
 $(ODIR)filter_normals.o : filter_normals.f90                    $(ODIR)globals.o  $(ODIR)kdtree2.o $(ODIR)evaluate.o
@@ -181,7 +181,7 @@ $(ODIR)curvilinear.o : curvilinear.f90                          $(ODIR)globals.o
 $(ODIR)bathy_interp.o : bathy_interp.f90                        $(ODIR)globals.o $(ODIR)bathymetry_interp_mod.o
 	$(FC) $(FFLAGS) -c $< -o $@		
 	
-$(ODIR)compute_random.o : compute_random.f90                    $(ODIR)kdtree2.o  $(ODIR)globals.o  $(ODIR)basis.o $(ODIR)find_element.o  $(ODIR)evaluate.o  $(ODIR)lapack_interfaces.o
+$(ODIR)compute_random.o : compute_random.f90                    $(ODIR)kdtree2.o  $(ODIR)globals.o  $(ODIR)basis.o $(ODIR)find_element_mod.o  $(ODIR)evaluate.o  $(ODIR)lapack_interfaces.o
 	$(FC) $(FFLAGS) -c $< -o $@	
 		
 $(ODIR)version.o : ../../src/version.F90                        $(ODIR)globals.o

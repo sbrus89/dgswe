@@ -45,7 +45,7 @@ endif
 ########################################################################
 
 spline_objects = globals.o kdtree2.o lapack_interfaces.o basis.o allocation.o edge_connectivity_mod.o\
-                 calc_spline.o check.o find_element.o find_edge.o grid_file_mod.o\
+                 find_element_mod.o calc_spline.o check.o find_edge.o grid_file_mod.o\
                  read_grid.o read_input.o connect.o write_output.o version.o spline.o \
                  quit.o spherical_mod.o shape_functions_mod.o transformation.o vandermonde.o
                  
@@ -139,11 +139,11 @@ $(ODIR)calc_spline.o : calc_spline.f90                        $(ODIR)globals.o  
 	$(FC) $(FFLAGS) -c $< -o $@
 	mv calc_spline.mod $(ODIR)
 	
-$(ODIR)check.o : check.f90                                    $(ODIR)globals.o $(ODIR)calc_spline.o  $(ODIR)find_element.o
+$(ODIR)check.o : check.f90                                    $(ODIR)globals.o $(ODIR)calc_spline.o  $(ODIR)find_element_mod.o
 	$(FC) $(FFLAGS) -c $< -o $@
 	mv check.mod $(ODIR)
 	
-$(ODIR)find_element.o : find_element.f90                      $(ODIR)globals.o  $(ODIR)kdtree2.o  $(ODIR)shape_functions_mod.o $(ODIR)transformation.o $(ODIR)vandermonde.o
+$(ODIR)find_element_mod.o : ../../src/find_element_mod.F90    $(ODIR)globals.o  $(ODIR)kdtree2.o  $(ODIR)shape_functions_mod.o $(ODIR)transformation.o $(ODIR)vandermonde.o
 	$(FC) $(FFLAGS) -c $< -o $@
 	mv find_element.mod $(ODIR)
 	
@@ -159,7 +159,7 @@ $(ODIR)edge_connectivity_mod.o : ../../src/edge_connectivity_mod.F90 $(ODIR)glob
 	$(FC) $(FFLAGS) -c $< -o $@
 	mv edge_connectivity_mod.mod $(ODIR)	
 
-$(ODIR)spline.o : spline.f90                                  $(ODIR)globals.o  $(ODIR)allocation.o  $(ODIR)calc_spline.o  $(ODIR)check.o $(ODIR)find_element.o
+$(ODIR)spline.o : spline.f90                                  $(ODIR)globals.o  $(ODIR)allocation.o  $(ODIR)calc_spline.o  $(ODIR)check.o $(ODIR)find_element_mod.o
 	$(FC) $(FFLAGS) -c $< -o $@
 
 $(ODIR)read_grid.o : read_grid.f90                            $(ODIR)globals.o  $(ODIR)grid_file_mod.o $(ODIR)spherical_mod.o 
