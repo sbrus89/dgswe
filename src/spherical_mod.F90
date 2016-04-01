@@ -68,5 +68,35 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!      
 
+      SUBROUTINE cpp_inverse(coord_sys,r_earth,slam0,sphi0,nn,xy)
+      
+      IMPLICIT NONE
+      
+      INTEGER, INTENT(IN) :: coord_sys
+      REAL(rp), INTENT(IN) :: r_earth
+      REAL(rp), INTENT(IN) :: slam0
+      REAL(rp), INTENT(IN) :: sphi0        
+      INTEGER, INTENT(IN) :: nn
+      REAL(rp), DIMENSION(:,:), INTENT(INOUT) :: xy  
+      
+      INTEGER :: i
+      
+      
+      IF (coord_sys /= 1) THEN
+        DO i = 1,nn      
+          xy(1,i) = xy(1,i)/(r_earth*cos(sphi0)) + slam0
+          xy(2,i) = xy(2,i)/r_earth
+          
+          xy(1,i) = xy(1,i)/deg2rad
+          xy(2,i) = xy(2,i)/deg2rad
+        ENDDO      
+      ENDIF
+      
+      
+      END SUBROUTINE cpp_inverse
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
 
       END MODULE spherical_mod
