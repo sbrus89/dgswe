@@ -355,7 +355,11 @@
       INTEGER :: nmax
       INTEGER :: nbseg,btype
       LOGICAL :: file_exists
-      INTEGER :: alloc_status       
+      INTEGER :: alloc_status   
+      
+      IF (ctp == 1) THEN
+        RETURN
+      ENDIF
       
       
       INQUIRE(FILE=curve_file, EXIST = file_exists)  

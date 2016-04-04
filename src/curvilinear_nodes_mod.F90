@@ -98,7 +98,13 @@
       INTEGER :: i,ed,nd
       INTEGER :: ged,seg,n1,el,led
       INTEGER :: n1ind
-      REAL(rp), DIMENSION(2,ctp-1) :: segxy      
+      REAL(rp), DIMENSION(2,ctp-1) :: segxy     
+      
+      IF (ctp == 1) THEN
+        RETURN
+      ENDIF
+      
+      
       
       
       DO ed = 1,nnfbed
