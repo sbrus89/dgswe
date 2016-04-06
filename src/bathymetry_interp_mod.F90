@@ -12,22 +12,28 @@
        
       
       
-      SUBROUTINE shape_functions_eltypes_at_hbp(nel_type,np,psi)
+      SUBROUTINE shape_functions_eltypes_at_hbp(space,nel_type,np,psi,dpdr,dpds,ext,nnds)
 
       USE basis, ONLY: element_nodes
       USE shape_functions_mod, ONLY: shape_functions_area_eval      
       
       IMPLICIT NONE    
       
+      INTEGER, INTENT(IN) :: space
       INTEGER, INTENT(IN) :: nel_type
       INTEGER, DIMENSION(:), INTENT(IN) :: np
       REAL(rp), DIMENSION(:,:,:), ALLOCATABLE, INTENT(OUT) :: psi
+      REAL(rp), DIMENSION(:,:,:), ALLOCATABLE, INTENT(OUT), OPTIONAL :: dpdr
+      REAL(rp), DIMENSION(:,:,:), ALLOCATABLE, INTENT(OUT), OPTIONAL :: dpds     
+      CHARACTER(2), INTENT(IN), OPTIONAL :: ext
+      INTEGER, DIMENSION(:), INTENT(INOUT), OPTIONAL :: nnds
       
       
       INTEGER :: pt,i,j
       INTEGER :: et,hbp_type
       INTEGER :: npts,nnd
       INTEGER :: mnp,mnnds
+      INTEGER :: calc_deriv,extract
       REAL(rp), DIMENSION(:), ALLOCATABLE :: r,s
       
       ! Evaluates linear/curvilinear shape functions at high-order batymetry nodal sets
@@ -42,6 +48,16 @@
       ALLOCATE(psi(mnnds,mnnds,nel_type))             
       psi = 0d0 
       
+      calc_deriv = 0
+      IF (PRESENT(dpdr) .AND. PRESENT(dpds)) THEN
+        calc_deriv = 1
+        ALLOCATE(dpdr(mnnds,mnnds,nel_type),dpds(mnnds,mnnds,nel_type))
+      ENDIF
+      
+      extract = 0
+      IF (PRESENT(ext) .AND. PRESENT(nnds)) THEN
+        extract = 1
+      ENDIF
       
        
       DO et = 1,nel_type     
@@ -52,9 +68,18 @@
           hbp_type = 6
         ENDIF   
                  
-
-        CALL element_nodes(et,1,np(hbp_type),npts,r,s)
-        CALL shape_functions_area_eval(et,np(et),nnd,npts,r,s,psi(:,:,et))             
+        IF (extract) THEN
+          CALL element_nodes(et,space,np(hbp_type),npts,r,s,ext)
+          nnds(hbp_type) = npts
+        ELSE
+          CALL element_nodes(et,space,np(hbp_type),npts,r,s)                  
+        ENDIF
+        
+        IF (calc_deriv) THEN
+          CALL shape_functions_area_eval(et,np(et),nnd,npts,r,s,psi(:,:,et),dpdr(:,:,et),dpds(:,:,et))                    
+        ELSE
+          CALL shape_functions_area_eval(et,np(et),nnd,npts,r,s,psi(:,:,et))     
+        ENDIF
                 
 !         PRINT*, "psic"        
 !         DO i = 1,nnd
@@ -74,7 +99,7 @@
 
 
 
-      SUBROUTINE bathy_coordinates(ne,nnds,nverts,el_type,elxy,psic,xyhb,depth,ect,elhb)
+      SUBROUTINE bathy_coordinates(ne,nnds,nverts,el_type,elxy,psic,xyhb,depth,ect,elhb,dpdr,dpds,dhbdx,dhbdy,nhb)
       
       USE transformation, ONLY: element_transformation      
       
@@ -90,31 +115,51 @@
       REAL(rp), DIMENSION(:), INTENT(IN), OPTIONAL :: depth
       INTEGER, DIMENSION(:,:), INTENT(IN), OPTIONAL :: ect
       REAL(rp), DIMENSION(:,:), ALLOCATABLE, INTENT(OUT), OPTIONAL :: elhb
+      REAL(rp), DIMENSION(:,:,:), INTENT(IN), OPTIONAL :: dpdr
+      REAL(rp), DIMENSION(:,:,:), INTENT(IN), OPTIONAL :: dpds
+      REAL(rp), DIMENSION(:,:), ALLOCATABLE, INTENT(OUT), OPTIONAL :: dhbdx
+      REAL(rp), DIMENSION(:,:), ALLOCATABLE, INTENT(OUT), OPTIONAL :: dhbdy
+      REAL(rp), DIMENSION(:,:,:), ALLOCATABLE, INTENT(OUT), OPTIONAL :: nhb
       
-      INTEGER :: interp
+      INTEGER :: interp,calc_deriv,calc_norm
       INTEGER :: el,pt,nd
       INTEGER :: et,npts,mnnds,nv
       INTEGER :: et_linear
       INTEGER :: nnd_coord,nnd_interp
-      REAL(rp) :: xpt,ypt,hb      
+      REAL(rp) :: xpt,ypt,hb,dhdx,dhdy      
+      REAL(rp) :: drdx,drdy,dsdx,dsdy,jac,Sp
       REAL(rp) :: hbvert(4)
+      REAL(rp) :: nrm
       REAL(rp), DIMENSION(:), ALLOCATABLE :: x,y
+      
+      
+      mnnds = MAXVAL(nnds)      
+      ALLOCATE(x(mnnds),y(mnnds))      
+      ALLOCATE(xyhb(mnnds,ne,2))
       
       
       interp = 0
       IF ( PRESENT(depth) .AND. PRESENT(ect) .AND. PRESENT(elhb) ) THEN
         interp = 1
+        ALLOCATE(elhb(mnnds,ne))  
+      ENDIF
+      
+      calc_deriv = 0
+      IF (PRESENT(dpdr) .AND. PRESENT(dpds) .AND. PRESENT(dhbdx) .AND. PRESENT(dhbdy)) THEN
+        calc_deriv = 1
+        ALLOCATE(dhbdx(mnnds,ne),dhbdy(mnnds,ne))
+      ENDIF
+      
+      calc_norm = 0
+      IF (PRESENT(nhb)) THEN
+        calc_norm = 1
+        ALLOCATE(nhb(mnnds,ne,3))
       ENDIF
       
       
-      mnnds = MAXVAL(nnds)      
-      ALLOCATE(x(mnnds),y(mnnds))
+
       
-      ALLOCATE(xyhb(mnnds,ne,2))
       
-      IF (interp) THEN
-        ALLOCATE(elhb(mnnds,ne))
-      ENDIF
 
       DO el = 1,ne
       
@@ -133,23 +178,52 @@
       
         DO pt = 1,npts              
 
-          CALL element_transformation(nnd_coord,elxy(:,el,1),elxy(:,el,2),psic(:,pt,et),xpt,ypt)
-          
-!           elhb(pt,el) = 10d0
-!           elhb(pt,el) = 10d0 - 5d0*cos(2d0*pi/500d0*ypt)        
+        
+        
+          IF (calc_deriv) THEN
+            CALL element_transformation(nnd_coord,elxy(:,el,1),elxy(:,el,2),psic(:,pt,et),xpt,ypt, &
+                                        dpdr(:,pt,et),dpds(:,pt,et),drdx,drdy,dsdx,dsdy,jac)
+          ELSE
+            CALL element_transformation(nnd_coord,elxy(:,el,1),elxy(:,el,2),psic(:,pt,et),xpt,ypt)
+          ENDIF
+  
           xyhb(pt,el,1) = xpt
           xyhb(pt,el,2) = ypt 
+          
+          
         
         
           IF (interp) THEN
             DO nd = 1,nv        
               hbvert(nd) = depth(ect(nd,el))         
             ENDDO        
+                         
+            Sp = 1d0             
                                               
-            CALL bathymetry_interp_eval(nnd_interp,hbvert,psic(:,pt,et_linear),hb)
+            IF (calc_deriv) THEN
+              CALL bathymetry_interp_eval(nnd_interp,hbvert,psic(:,pt,et_linear),hb, &
+                                          dpdr(:,pt,et_linear),dpds(:,pt,et_linear),drdx,drdy,dsdx,dsdy,Sp,dhdx,dhdy)
+                                          
+              dhbdx(pt,el) = dhdx
+              dhbdy(pt,el) = dhdy
+            ELSE
+              CALL bathymetry_interp_eval(nnd_interp,hbvert,psic(:,pt,et_linear),hb)
+            ENDIF 
             
-            elhb(pt,el) = hb            
+            elhb(pt,el) = hb   
+!           elhb(pt,el) = 10d0
+!           elhb(pt,el) = 10d0 - 5d0*cos(2d0*pi/500d0*ypt) 
+
+          
+            IF (calc_norm) THEN
+              nrm = sqrt(dhdx**2 + dhdy**2 + 1d0)
+              nhb(pt,el,1) = dhdx/nrm
+              nhb(pt,el,2) = dhdy/nrm
+              nhb(pt,el,3) = -1d0/nrm
+            ENDIF
           ENDIF
+          
+          
         
         ENDDO
       
