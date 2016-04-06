@@ -1,107 +1,60 @@
       PROGRAM rimls
 
-      USE globals
-      USE allocation
+      USE globals, ONLY: nel_type,nverts,curve_file,eval,base
+      USE allocation, ONLY: sizes
       USE evaluate
-      USE basis
       USE write_results
-      USE grid_file_mod
+      USE grid_file_mod, ONLY: read_curve_file
+      USE find_element, ONLY: find_element_init
+      USE transformation, ONLY: init_vandermonde
 
       IMPLICIT NONE
 
       INTEGER :: el,nd,pt,i,j,ed
       INTEGER :: myrank
-      
-      myrank = 0      
+   
       
       CALL version()
       
       CALL read_input()  
       
-      CALL sizes()
+      CALL sizes(base)
+      CALL sizes(eval)
 
-      CALL read_grid(base)
-      
-      IF (refinement) THEN
-        CALL read_grid(eval)
-      ENDIF                             
-      
+      CALL read_grid(base)      
+      CALL read_grid(eval)                         
       
       CALL connect(base) 
-      
-      IF (refinement) THEN
-        CALL connect(eval)       
-      ENDIF
-      
-      
-      
-      
-      CALL ref_elem_coords()  
-      
-      CALL shape_functions_eval()     
-      
-      IF (refinement) THEN
-        CALL read_curve_file(myrank,curve_file,ctp,eval%nbou,eval%xy,eval%bndxy)       
-      ELSE
-        CALL read_curve_file(myrank,curve_file,ctp,base%nbou,base%xy,base%bndxy)     
-      ENDIF
-      
-      
-      
-      IF (refinement) THEN
-        CALL curvilinear(eval)
-      ELSE 
-        CALL curvilinear(base)       
-      ENDIF      
-      
-      
-      IF (refinement) THEN
-        CALL bathymetry_eval_nodes(eval)
-      ELSE
-        CALL bathymetry_eval_nodes(base)
-      ENDIF
-      
-      
-      CALL normals(base)
-      
-      IF (refinement) THEN
-        CALL group_eval_coordinates(eval)
-      ELSE
-        CALL group_eval_coordinates(base)
-      ENDIF
-      
+      CALL connect(eval)       
 
       
+      myrank = 0                 
+      CALL read_curve_file(myrank,curve_file,eval%ctp,eval%nbou,eval%xy,eval%bndxy)       
+      CALL curvilinear(eval)
+
+      CALL bathymetry_eval_nodes(eval)
+      CALL bathymetry_base_nodes(base)
+    
+            
       
-      
+      CALL find_element_init(nel_type,nverts,base%np,base%nnds,base%nn,base%xy,base%nepn,base%epn)           
+
+      CALL group_eval_coordinates(eval)            
+      CALL init_vandermonde(nel_type,base%np)
       
       CALL write_normals()
+      CALL write_linear_nodes(eval)      
+      
+      
+      CALL compute_surface()
 
-      IF (refinement) THEN
-        CALL write_linear_nodes(eval)
-      ELSE 
-        CALL write_linear_nodes(base)
-      ENDIF
       
-       
-            
+      
 
-      IF (nrpt > 0) THEN      
-        CALL compute_random()
-      ELSE 
-        CALL compute_surface()
-      ENDIF
-      
-      
-      IF (refinement) THEN
-        CALL write_rimls_nodes(eval)
-        CALL rewrite_fort14(eval)  
-        CALL write_elem_nodes(eval)
-      ELSE
-        CALL write_rimls_nodes(base)
-        CALL rewrite_fort14(base)  
-        CALL write_elem_nodes(base)
-      ENDIF
+      CALL write_rimls_nodes(eval)
+      CALL rewrite_fort14(eval)  
+      CALL write_elem_nodes(eval)
+
 
       
      

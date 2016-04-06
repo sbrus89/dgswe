@@ -69,9 +69,6 @@
       
    
    
-   
-      CALL grid_size(base) 
-   
       ALLOCATE(h_rand(nrpt))
       DO i = 1,nrpt
         CALL kdtree2_n_nearest(tp=tree_xy_rand,qv=xy_rand(1:2,i),nn=srchdp,results=closest)

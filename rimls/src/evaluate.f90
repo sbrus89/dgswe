@@ -11,260 +11,95 @@
       CONTAINS
       
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!             
-      
-      SUBROUTINE ref_elem_coords()
-      
-      USE globals, ONLY: np,mnnds,nel_type,rsre
-      USE basis, ONLY: tri_nodes,quad_nodes
-      
-      IMPLICIT NONE
-      INTEGER :: et,pt,n
-      REAL(rp) :: r(mnnds),s(mnnds)
-      
-      
-      DO et = 1,nel_type
-
-        IF (mod(et,2) == 1) THEN
-          CALL tri_nodes(1,np(1),n,r,s)
-        ELSE IF (mod(et,2) == 0) THEN
-          CALL quad_nodes(1,np(2),n,r,s)
-        ENDIF
-        
-        DO pt = 1,n
-          rsre(1,pt,et) = r(pt)
-          rsre(2,pt,et) = s(pt)
-        ENDDO
-        
-      ENDDO
-      
-            
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!       
-      
-      
-      RETURN      
-      END SUBROUTINE ref_elem_coords
-      
-      SUBROUTINE shape_functions_eval()
-      
-      USE globals, ONLY: mnnds,nel_type,nnds,np,nverts,l,dldr,dlds
-      USE basis, ONLY: tri_nodes,quad_nodes
-      USE shape_functions_mod
-      
-      IMPLICIT NONE
-      
-      INTEGER :: et,pt,i,j
-      INTEGER :: n,p,np1,pn,nnd,nv
-      INTEGER :: info
-      REAL(rp), DIMENSION(mnnds+1) :: r,s
-      
-      PRINT "(A)", "Computing interpolating polynomials..."        
-      
-      ALLOCATE(l(mnnds,mnnds+1,nel_type))
-      ALLOCATE(dldr(mnnds,mnnds+1,nel_type))
-      ALLOCATE(dlds(mnnds,mnnds+1,nel_type))
-      
-      DO et = 1,nel_type
-        n = nnds(et)
-        p = np(et)
-        nv = nverts(et)
-      
-        IF (mod(et,2) == 1) THEN    
-          pn = np(3)
-          CALL tri_nodes(1,pn,nnd,r,s)
-        ELSE IF (mod(et,2) == 0) THEN
-          pn = np(4)
-          CALL quad_nodes(1,pn,nnd,r,s)
-        ENDIF     
-        
-        np1 = nnd+1
-        
-        IF (mod(et,2) == 1) THEN
-          r(np1) = -1d0/3d0
-          s(np1) = -1d0/3d0
-        ELSE IF (mod(et,2) == 0) THEN
-          r(np1) = 0d0
-          s(np1) = 0d0
-        ENDIF        
-        
-        CALL shape_functions_area_eval(nv,p,n,np1,r,s,l(:,:,et),dldr(:,:,et),dlds(:,:,et))
-        
-      ENDDO
-      
-      
-      RETURN
-      END SUBROUTINE shape_functions_eval     
- 
-      
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!       
-      
-      SUBROUTINE normals(mesh)
-      
-      USE globals, ONLY: np,nnds,mnnds,V,l,dlds,dldr,ipiv,grid  
-      USE transformation, ONLY: element_transformation
-      USE bathymetry_interp_mod, ONLY: bathymetry_interp_eval
-
-      IMPLICIT NONE
-      INTEGER :: it,el,et,p,n,i,np1,nnd
-      REAL(rp) :: xpt,ypt
-      REAL(rp) :: dxdr,dxds,dydr,dyds,jac
-      REAL(rp) :: drdx,drdy,dsdx,dsdy
-      REAL(rp) :: hb,dhdx,dhdy
-      REAL(rp) :: nx,ny,nz,nrm
-      REAL(rp) :: x1,x2,y1,y2,z1,z2
-      REAL(rp) :: Sp
-      
-      TYPE(grid) :: mesh
-      
-      PRINT "(A)", "Computing element normals..."      
-            
-      ALLOCATE(mesh%nhb(3,mesh%ne))
-      ALLOCATE(mesh%xyhc(3,mesh%ne))
-      
-      mesh%xyhc = 0d0
-      
-      DO el = 1,mesh%ne
-      
-        et = mesh%el_type(el) 
-        n = nnds(et)
-        IF (mod(et,2) == 1) THEN
-          nnd = nnds(3)
-        ELSE IF (mod(et,2) == 0) THEN
-          nnd = nnds(4)
-        ENDIF             
-        np1 = nnd+1             
-        
-        CALL element_transformation(n,mesh%elxy(:,el,1),mesh%elxy(:,el,2),l(:,np1,et),xpt,ypt, &
-                                    dldr(:,np1,et),dlds(:,np1,et),drdx,drdy,dsdx,dsdy,jac)         
-        Sp = 1d0
-             
-        CALL bathymetry_interp_eval(n,mesh%elhb(:,el),l(:,np1,et),hb, &
-                                    dldr(:,np1,et),dlds(:,np1,et),drdx,drdy,dsdx,dsdy,Sp,dhdx,dhdy)
-                                    
-        mesh%xyhc(1,el) = xpt
-        mesh%xyhc(2,el) = ypt
-        mesh%xyhc(3,el) = hb
-      
-        nrm = sqrt(dhdx**2 + dhdy**2 + 1d0)
-      
-        mesh%nhb(1,el) = dhdx/nrm
-        mesh%nhb(2,el) = dhdy/nrm
-        mesh%nhb(3,el) = -1d0/nrm
-      
-!       !Cross product normals as a check
-!       x1 = elxy(2,el,1) - elxy(1,el,1)
-!       x2 = elxy(3,el,1) - elxy(1,el,1)
-!       
-!       y1 = elxy(2,el,2) - elxy(1,el,2)
-!       y2 = elxy(3,el,2) - elxy(1,el,2)
-!       
-!       z1 = elhb(2,el) - elhb(1,el)
-!       z2 = elhb(3,el) - elhb(1,el)
-!       
-!       nx =   y1*z2 - y2*z1
-!       ny = -(x1*z2 - x2*z1)
-!       nz =   x1*y2 - x2*y1
-!       
-!       nrm = sqrt(nx**2 + ny**2 + nz**2)
-!       
-!       nx = nx/nrm
-!       ny = ny/nrm
-!       nz = nz/nrm
-!       
-!       PRINT*, (nhb(i,el), i=1,3)
-!       PRINT*, nx,ny,nz
-!       PRINT*, " " 
-        
-      ENDDO  
-      
-      RETURN 
-      END SUBROUTINE normals
-      
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
       SUBROUTINE group_eval_coordinates(mesh)
       
-      USE globals, ONLY: rp,mnnds,nnds,np,nverts,l, &
-                         grid                         
-      USE transformation, ONLY: element_transformation                         
-      USE bathymetry_interp_mod, ONLY: bathymetry_interp_eval                         
+      USE globals, ONLY: rp,nverts,grid                                               
       
       IMPLICIT NONE
       
       INTEGER :: el,i,pt,led,j,ed
-      INTEGER :: et,n,pn,nnd,nv,bed
+      INTEGER :: et,n,pn,nnd,nv,bed,edt
       
       REAL(rp) :: xpt,ypt,ytest
       
       TYPE(grid) :: mesh
            
            
-      ALLOCATE(mesh%xyhv(1,mesh%nn,3)) 
-      ALLOCATE(mesh%xyhi(mnnds,mesh%ne,3))      
-      ALLOCATE(mesh%xyhe(mnnds,mesh%ned,3))
-      ALLOCATE(mesh%bnd_flag(mnnds,mesh%ned))
-
-      
-      mesh%bnd_flag(:,:) = 0
-      
-      mesh%xyhe = 0d0
-      mesh%xyhi = 0d0
+      ALLOCATE(mesh%npts_vertex(mesh%nn),mesh%xyh_vertex(1,mesh%nn,3))       
+      ALLOCATE(mesh%npts_edge(mesh%ned),mesh%xyh_edge(mesh%mnnds,mesh%ned,3))
+      ALLOCATE(mesh%npts_interior(mesh%ne),mesh%xyh_interior(mesh%mnnds,mesh%ne,3))       
+      ALLOCATE(mesh%bnd_flag(mesh%mnnds,mesh%ned))
+     
+      mesh%xyh_vertex = 0d0      
+      mesh%xyh_edge = 0d0
+      mesh%xyh_interior = 0d0
+      mesh%bnd_flag = 0      
       
       PRINT "(A)", "Grouping vertex nodes..."
       
       DO i = 1,mesh%nn  
-        mesh%xyhv(1,i,1) = mesh%xy(1,i)
-        mesh%xyhv(1,i,2) = mesh%xy(2,i)
-        mesh%xyhv(1,i,3) = mesh%depth(i)
+        mesh%xyh_vertex(1,i,1) = mesh%xy(1,i)
+        mesh%xyh_vertex(1,i,2) = mesh%xy(2,i)
+        mesh%xyh_vertex(1,i,3) = mesh%depth(i)
+        mesh%npts_vertex(i) = 1
       ENDDO
+      mesh%tpts_vertex = mesh%nn
       
       
       
       PRINT "(A)", "Grouping extra edge nodes..."        
-      
+      mesh%tpts_edge = 0
       DO ed = 1,mesh%ned
       
         el = mesh%ged2el(1,ed)
         led = mesh%ged2led(1,ed)
         et = mesh%el_type(el)
         nv = nverts(et)
+        edt = mesh%ed_type(ed)
         
         IF (mod(et,2) == 1) THEN   
-          pn = np(5)
+          pn = mesh%np(5)
         ELSE IF (mod(et,2) == 0) THEN
-          pn = np(6)
+          pn = mesh%np(6)
         ENDIF    
         
         DO pt = 1,pn-1
           
           j = mod(led,nv)*pn + pt + 1          
           
-          mesh%xyhe(pt,ed,1) = mesh%elxyh(j,el,1)
-          mesh%xyhe(pt,ed,2) = mesh%elxyh(j,el,2)
-          mesh%xyhe(pt,ed,3) = mesh%elhb(j,el)
+          mesh%xyh_edge(pt,ed,1) = mesh%elxyh(j,el,1)
+          mesh%xyh_edge(pt,ed,2) = mesh%elxyh(j,el,2)
+          mesh%xyh_edge(pt,ed,3) = mesh%elhb(j,el)
           
-        ENDDO                               
-      
+          IF (edt /= 0) THEN
+            mesh%bnd_flag(pt,ed) = 1
+          ENDIF
+          
+        ENDDO      
+        
+        mesh%npts_edge(ed) = pn-1
+        mesh%tpts_edge = mesh%tpts_edge + pn-1
       ENDDO
       
       
       
+      
+      
       PRINT "(A)", "Grouping extra interior element nodes..."          
-          
+      mesh%tpts_interior = 0    
       DO el = 1,mesh%ne
       
         et = mesh%el_type(el)
         nv = nverts(et)
         
         IF (mod(et,2) == 1) THEN   
-          pn = np(5)
-          nnd = nnds(5)
+          pn = mesh%np(5)
+          nnd = mesh%nnds(5)
         ELSE IF (mod(et,2) == 0) THEN
-          pn = np(6)
-          nnd = nnds(6)          
+          pn = mesh%np(6)
+          nnd = mesh%nnds(6)          
         ENDIF    
 
         pt = 0
@@ -272,12 +107,14 @@
         
           pt = pt + 1           
           
-          mesh%xyhi(pt,el,1) = mesh%elxyh(j,el,1)
-          mesh%xyhi(pt,el,2) = mesh%elxyh(j,el,2)
-          mesh%xyhi(pt,el,3) = mesh%elhb(j,el)          
+          mesh%xyh_interior(pt,el,1) = mesh%elxyh(j,el,1)
+          mesh%xyh_interior(pt,el,2) = mesh%elxyh(j,el,2)
+          mesh%xyh_interior(pt,el,3) = mesh%elhb(j,el)          
           
         ENDDO
-                
+        
+        mesh%npts_interior(el) = pt
+        mesh%tpts_interior = mesh%tpts_interior + pt        
       ENDDO
       
       RETURN
@@ -288,12 +125,11 @@
 
       SUBROUTINE compute_surface()
       
-      USE globals, ONLY: refinement,np,mninds,mnnds,base,eval,kdresults,closest,tree_xy,tree_c,hmin,hmax,srchdp
+      USE globals, ONLY: refinement,base,eval,hmin,hmax
       USE kdtree2_module      
       
       IMPLICIT NONE
-      
-      srchdp = 10
+
       
       maxit = 100
       maxptit = 100
@@ -305,283 +141,66 @@
       
       hmin = minval(base%depth)
       hmax = maxval(base%depth)
-      
-      ! Build kd-tree           
-!       tree_xy => kdtree2_create(vxy , rearrange=.true., sort=.true.)
-      tree_xy => kdtree2_create(base%xyhc(1:2,:)  , rearrange=.true., sort=.true.)
-      tree_c  => kdtree2_create(base%xyhc, rearrange=.true., sort=.true.)
-      
-      ALLOCATE(kdresults(base%ne))       
-      ALLOCATE(closest(srchdp))        
-!       
-      CALL grid_size(base)
+       
+
       
 !       CALL filter_normals()
       
-      
-      IF (refinement) THEN
+
         PRINT("(A)"), "Computing rimls surface: verticies"
-        CALL mls_surface(eval%nn,1,1,eval%xyhv)      
+        CALL mls_surface(eval%nn,eval%npts_vertex,eval%xyh_vertex)      
         PRINT("(A)"), "Computing rimls surface: edges"      
-        CALL mls_surface(eval%ned,np(6)-1,mnnds,eval%xyhe)
+        CALL mls_surface(eval%ned,eval%npts_edge,eval%xyh_edge)
         PRINT("(A)"), "Computing rimls surface: interior"
-        CALL mls_surface(eval%ne,mninds,mnnds,eval%xyhi)      
-      ELSE 
-        PRINT("(A)"), "Computing rimls surface: verticies"
-        CALL mls_surface(base%nn,1,1,base%xyhv)      
-        PRINT("(A)"), "Computing rimls surface: edges"      
-        CALL mls_surface(base%ned,np(6)-1,mnnds,base%xyhe)
-        PRINT("(A)"), "Computing rimls surface: interior"
-        CALL mls_surface(base%ne,mninds,mnnds,base%xyhi)         
-      ENDIF
-      
-!       IF (refinement) THEN
+        CALL mls_surface(eval%ne,eval%npts_interior,eval%xyh_interior)      
+
 !         PRINT("(A)"), "Computing rimls surface: verticies"
 !         CALL rimls_surface(eval%nn,1,1,eval%xyhv)      
 !         PRINT("(A)"), "Computing rimls surface: edges"      
-!         CALL rimls_surface(eval%ned,np(6)-1,mnnds,eval%xyhe)
+!         CALL rimls_surface(eval%ned,eval%np(6)-1,eval%mnnds,eval%xyhe)
 !         PRINT("(A)"), "Computing rimls surface: interior"
-!         CALL rimls_surface(eval%ne,mninds,mnnds,eval%xyhi)      
-!       ELSE 
-!         PRINT("(A)"), "Computing rimls surface: verticies"
-!         CALL rimls_surface(base%nn,1,1,base%xyhv)      
-!         PRINT("(A)"), "Computing rimls surface: edges"      
-!         CALL rimls_surface(base%ned,np(6)-1,mnnds,base%xyhe)
-!         PRINT("(A)"), "Computing rimls surface: interior"
-!         CALL rimls_surface(base%ne,mninds,mnnds,base%xyhi)         
-!       ENDIF
-      
-!       IF (refinement) THEN
+!         CALL rimls_surface(eval%ne,eval%mninds,eval%mnnds,eval%xyhi)      
+! 
 !         PRINT("(A)"), "Computing rimls surface: verticies"
 !         CALL function_surface(eval%nn,1,1,eval%xyhv)      
 !         PRINT("(A)"), "Computing rimls surface: edges"      
-!         CALL function_surface(eval%ned,np(6)-1,mnnds,eval%xyhe)
+!         CALL function_surface(eval%ned,eval%np(6)-1,eval%mnnds,eval%xyhe)
 !         PRINT("(A)"), "Computing rimls surface: interior"
-!         CALL function_surface(eval%ne,mninds,mnnds,eval%xyhi)      
-!       ELSE 
-!         PRINT("(A)"), "Computing rimls surface: verticies"
-!         CALL function_surface(base%nn,1,1,base%xyhv)      
-!         PRINT("(A)"), "Computing rimls surface: edges"      
-!         CALL function_surface(base%ned,np(6)-1,mnnds,base%xyhe)
-!         PRINT("(A)"), "Computing rimls surface: interior"
-!         CALL function_surface(base%ne,mninds,mnnds,base%xyhi)         
-!       ENDIF      
-!       
+!         CALL function_surface(eval%ne,eval%mninds,eval%mnnds,eval%xyhi)      
+
       RETURN
       END SUBROUTINE
       
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-
-      SUBROUTINE rimls_surface(n,npts,mnpts,xyh)
-      
-      USE globals, ONLY: tree_xy,tree_c,kdresults,base,hmin,hmax,phi0,lambda0,Erad
-      USE find_element, ONLY: in_element
-      USE kdtree2_module
-      
-      IMPLICIT NONE
-      
-      INTEGER :: i,j,pt,it,ptit,cpt
-      INTEGER :: n,npts,mnpts
-      INTEGER :: nneigh,nneigh_pre
-      INTEGER :: nd,el
-      INTEGER :: neighbors(base%ne),found
-      REAL(rp) :: search_r
-      REAL(rp) :: xyh(mnpts,n,3)
-      REAL(rp) :: x(3),p(3),px(3),np(3),hpt,f,grad_f(3),grad_w(3),fgradf(3),npmgradf(3)
-      REAL(rp) :: alpha(base%ne),alpha_old(base%ne)
-      REAL(rp) :: sumW,sumF
-      REAL(rp) :: sumGw(3),sumGF(3),sumN(3)
-      REAL(rp) :: w,fx
-     
-      
-
-      
-      DO i = 1,n
-       
-        IF (mod(i,1000) == 0) THEN       
-          PRINT*,i,"/",n
-        ENDIF
-        DO pt = 1,npts  
-        
-          x(1) = xyh(pt,i,1)
-          x(2) = xyh(pt,i,2)
-          x(3) = xyh(pt,i,3)          
-      
-!           CALL kdtree2_n_nearest(tp=tree_xy,qv=(/x(1),x(2)/),nn=1,results=kdresults)
-!           
-! !           nd = vxyn(kdresults(1)%idx)
-!            nd = kdresults(1)%idx           
-!            hpt = (r*base%h(base%epn(1,nd)))**2   
-
-!           CALL kdtree2_n_nearest(tp=tree_xy,qv=x(1:2),nn=1,results=kdresults)
-!           el = kdresults(1)%idx        
-          
-          CALL in_element(i,x(1:2),el,found)                    
-   
-          hpt = r*base%h(el) 
-          search_r = SQRT(-hpt**2*LOG(threshold))          
-          CALL kdtree2_r_nearest(tp=tree_xy,qv=x(1:2),r2=search_r**2,nfound=nneigh,nalloc=base%ne,results=kdresults)
-          
-!           IF (nneigh == 0) THEN
-!             PRINT*, x(1)/(Erad*cos(phi0))+lambda0,x(2)/Erad
-!             PRINT*,el, base%ged2el(1,i),base%ged2el(2,i)
-!           ENDIF
-          
-          
-!           IF (i == 8595) PRINT*, el, nneigh
-          
-!           CALL boundary_check(i,x,nneigh,neighbors)
-          CALL boundary_check2(i,el,nneigh,neighbors)
-                 
-          
-          grad_f(:) = 1d0
-          f = 1d0          
-
-          ptit = 0
-          fgradf = f*grad_f
-   wloop: DO WHILE (norm(fgradf) > threshold)
-            it = 0
-                        
-            DO j = 1,nneigh
-              alpha(j) = 1d0
-              alpha_old(j) = 0d0
-            ENDDO
-            
-            DO WHILE (it < maxit)
-              
-              sumW = 0d0
-              sumF = 0d0
-              sumGw(:) = 0d0
-              sumGF(:) = 0d0
-              sumN(:) = 0d0
-            
-              DO cpt = 1,nneigh
-              
-!                 el = kdresults(cpt)%idx
-                el = neighbors(cpt)
-                p  = base%xyhc(:,el)
-                np = base%nhb(:,el)
-!                 hpt = r*base%h(el)   ! try using grid spacing of neighbor point
-                
-                px = x - p
-                
-                fx = DOT_PRODUCT(px,np)
-                
-                IF (it > 0) THEN
-                  npmgradf = np-grad_f
-                  alpha(cpt) = exp(-((fx-f)/(sigma_r*hpt))**2)*exp(-(norm(npmgradf)/sigma_n)**2)
-                ELSE
-                  alpha(cpt) = 1d0
-                ENDIF                           
-                
-                w = alpha(cpt)*phi(px,hpt)
-                grad_w = alpha(cpt)*dphi(px,hpt)               
-                
-                sumW = sumW + w
-                sumGw = sumGw + grad_w
-                sumF = sumF + w*fx
-                sumGF = sumGF + grad_w*fx
-                sumN = sumN + w*np                               
-                
-              ENDDO
-              
-              f = sumF/sumW
-              grad_f = (sumGF - f*sumGw + sumN)/sumW
-                            
-              it = it + 1              
-              
-              
-              DO j = 1,nneigh
-                alpha_old(j) = alpha(j)
-              ENDDO
-              
-            ENDDO
-            
-            fgradf = f*grad_f
-            x = x - fgradf
-            ptit = ptit + 1
-            
-            IF (ptit == maxptit) THEN
-              EXIT wloop
-            ENDIF
-            
-          ENDDO wloop
-                
-          IF (ptit < maxptit) THEN
-          
-            IF (x(1) /= x(1) .or. x(2) /= x(2) .or. x(3) /= x(3)) THEN
-          
-              PRINT*, "WARNING: Nan detected, i = ",i
-              PRINT*, "    # neighbors = ", nneigh
-                         
-              DO cpt = 1,nneigh
-                PRINT*, "    ", neighbors(cpt)
-              ENDDO
-              
-            ELSE IF (x(3) < hmin) THEN 
-            
-              xyh(pt,i,3) = hmin 
-!               PRINT*, "WARNING: Limiting hmin"
-              
-            ELSE IF (x(3) > hmax) THEN
-            
-              xyh(pt,i,3) = hmax
-!               PRINT*, "WARNING: Limiting hmax"              
-              
-!             ELSE IF (abs((x(3)-xyh(pt,i,3))/xyh(pt,i,3))*100d0 > percent_max) THEN
-!             
-!               PRINT*, "WARNING: Percent change exceedes tolerance, i = ",i
-              
-            ELSE
-            
-!               print*, norm(fgradf)
-              xyh(pt,i,1) = x(1)
-              xyh(pt,i,2) = x(2)
-              xyh(pt,i,3) = x(3)               
-
-            ENDIF
-            
-          ELSE
-            PRINT*, "WARNING: max point iterations reached, i = ",i
-            STOP
-          ENDIF
-      
-        ENDDO
-      ENDDO
-      
-      CALL invcpp(n,npts,mnpts,xyh)
-      
-      
-      RETURN
-      END SUBROUTINE rimls_surface        
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
       
-      SUBROUTINE mls_surface(n,npts,mnpts,xyh)
+      SUBROUTINE mls_surface(n,npts,xyh_eval)
       
-      USE globals, ONLY: tree_xy,tree_c,kdresults,base,hmin,hmax,phi0,lambda0,Erad,lsp
-      USE find_element, ONLY: in_element,newton
+      USE globals, ONLY: base,hmin,hmax,lsp
+      USE find_element, ONLY: in_element,tree_xy,closest
       USE kdtree2_module
-      USE basis, ONLY: tri_basis,quad_basis
+      USE basis, ONLY: element_basis
+      USE transformation, ONLY: xy2rs
       
       IMPLICIT NONE
       
-      INTEGER :: i,pt,cpt,l,m,k      
-      INTEGER :: n,npts,mnpts  
+      INTEGER, INTENT(IN) :: n
+      INTEGER, DIMENSION(:), INTENT(IN) :: npts
+      REAL(rp), DIMENSION(:,:,:), INTENT(INOUT) :: xyh_eval
+      
+      
+      INTEGER :: i,j,pt,nd,l,m,k       
       INTEGER :: ne,el,elin,et
-      INTEGER :: ndf
-      INTEGER :: neighbors(base%ne),nneigh,found
+      INTEGER :: ndf,nnd,p,nhnd
+      INTEGER :: neighbors(base%ne),nnd_neigh,nel_neigh,leds(4),el_flag(base%ne)
       INTEGER :: small_flag
-      INTEGER :: info,lwork
-      REAL(rp) :: xyh(mnpts,n,3)  
-      REAL(rp) :: x(3),p(3),px(3),np(3),xbar(3)      
-      REAL(rp) :: d,w,rhs,lhs
-      REAL(rp) :: s,t,sv(1),tv(1)
-      REAL(rp) :: hpt,search_r,tol
+      INTEGER :: info,lwork,lda,ldb
+      REAL(rp) :: elx(base%mnnds),ely(base%mnnds)
+      REAL(rp) :: xpt(3),xnd(3),xnd_nrm(3),xbar(3)      
+      REAL(rp) :: w,rhs,lhs
+      REAL(rp) :: s,t,sv(1),tv(1),x(1),y(1)
+      REAL(rp) :: hpt,search_r,tol      
       REAL(rp) :: nwork(1)
       REAL(rp), ALLOCATABLE :: A(:,:),b(:),work(:)
       REAL(rp), ALLOCATABLE :: phi(:,:)
@@ -590,9 +209,12 @@
       tol = 1d-16
       ndf = (lsp+1)**2
       
-      ALLOCATE(A(ne,ndf),b(ne))
-      CALL DGELS('N',ne,ndf,1,A,ne,b,ne,nwork,-1,info)  ! find the optimal work array size
-                                                        ! using ne is likely a huge overestimate     
+      lda = ne*base%mninds
+      ldb = lda
+      
+      ALLOCATE(A(lda,ndf),b(ldb))
+      CALL DGELS('N',ne,ndf,1,A,lda,b,ldb,nwork,-1,info)  ! find the optimal work array size
+                                                          ! using ne is likely a huge overestimate     
                                                         
       ALLOCATE(phi(ndf,1))                                                        
       
@@ -605,45 +227,137 @@
       
       DO i = 1,n
       
-        IF (mod(i,1000) == 0) THEN       
+!         IF (mod(i,1000) == 0) THEN       
           PRINT*,i,"/",n
-        ENDIF   
+!         ENDIF   
         
-        DO pt = 1,npts  
+        DO pt = 1,npts(i)  
         
-          x(1) = xyh(pt,i,1)
-          x(2) = xyh(pt,i,2)
-          x(3) = xyh(pt,i,3)       
+          xpt(1) = xyh_eval(pt,i,1)
+          xpt(2) = xyh_eval(pt,i,2)
+          xpt(3) = xyh_eval(pt,i,3)       
           
-
-          CALL in_element(i,x(1:2),elin,found)  
-          et = base%el_type(elin)          
+          CALL in_element(xpt(1:2),base%el_type,base%elxy,elin,leds)          
+          et = base%el_type(elin)       
+          p = base%np(et)
+          
+          DO nd = 1,base%nnds(et)
+            elx(nd) = base%elxy(nd,elin,1)
+            ely(nd) = base%elxy(nd,elin,2)
+          ENDDO
    
           hpt = r*base%h(elin)           
           search_r = SQRT(-hpt**2*LOG(tol))
-          CALL kdtree2_r_nearest(tp=tree_xy,qv=x(1:2),r2=search_r**2,nfound=nneigh,nalloc=base%ne,results=kdresults)
+          CALL kdtree2_r_nearest(tp=tree_xy,qv=xpt(1:2),r2=search_r**2,nfound=nnd_neigh,nalloc=base%nn,results=closest)
           
-          CALL boundary_check2(i,elin,nneigh,neighbors)
+          el_flag = 0
+          nel_neigh = 0
+          DO k = 1,nnd_neigh
+            nd = closest(k)%idx
+            DO j = 1,base%nepn(nd)
+              el = base%epn(j,nd)
+              
+              IF (el_flag(el) == 0) THEN
+                nel_neigh = nel_neigh + 1
+                neighbors(nel_neigh) = el
+                el_flag(el) = 1
+              ENDIF
+            ENDDO
+          ENDDO
+
           
+          CALL boundary_check2(i,elin,nel_neigh,neighbors)
+          
+
+
+
+          small_flag = 0
+          nnd = 0
+          DO j = 1,nel_neigh
+                      
+            el = neighbors(j)
+            
+            IF (mod(base%el_type(el),2) == 1) THEN
+              nhnd = base%nnds(5)
+            ELSE IF (mod(base%el_type(el),2) == 0) THEN
+              nhnd = base%nnds(6)
+            ENDIF
+                        
+            DO nd = 1,nhnd
+            
+              nnd = nnd + 1
+              
+              xnd(1) = base%elxyh(nd,el,1)
+              xnd(2) = base%elxyh(nd,el,2)
+              xnd(3) = base%elhb(nd,el)
+            
+!             xnd_nrm = base%nhb(:,el)  
+            
+              w = theta(xpt,xnd,hpt)
+            
+              IF (w <= tol*10d0) THEN
+                small_flag = 1
+              ENDIF
+            
+              x(1) = xnd(1)
+              y(1) = xnd(2)            
+              CALL xy2rs(et,p,elx,ely,1,x,y,sv,tv)
+            
+              CALL element_basis(et,lsp,ndf,1,sv,tv,phi) 
+            
+              DO m = 1,ndf
+                A(nnd,m) = w*phi(m,1)
+              ENDDO
+            
+              b(nnd) = w*xnd(3)            
+            ENDDO
+          ENDDO
+          
+          
+!           IF (small_flag /= 1) THEN
+!             PRINT*, "Increase search radius"
+!             STOP
+!           ENDIF
+          
+          CALL DGELS('N',nnd,ndf,1,A,lda,b,ldb,work,lwork,info)          
+
+          x(1) = xpt(1)
+          y(1) = xpt(2)
+          CALL xy2rs(et,p,elx,ely,1,x,y,sv,tv)          
+          
+          CALL element_basis(et,lsp,ndf,1,sv,tv,phi)          
+          
+          xyh_eval(pt,i,3) = 0d0
+          DO m = 1,ndf
+              xyh_eval(pt,i,3) = xyh_eval(pt,i,3) + b(m)*phi(m,1)
+          ENDDO    
+              
+          
+        ENDDO
+      
+      ENDDO
+      
+!       CALL invcpp(n,npts,mnpts,xyh_eval)      
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!   Constant Least Squares Fit !!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !           rhs = 0d0
 !           lhs = 0d0
 !           small_flag = 0
-!           DO cpt = 1,nneigh
+!           DO nd = 1,nneigh
 !           
-!             el = neighbors(cpt)
-!             p  = base%xyhc(:,el)
-!             np = base%nhb(:,el)  
+!             el = neighbors(nd)
+!             xnd  = base%xyhc(:,el)
+!             xnd_nrm = base%nhb(:,el)  
 !             
-!             w = theta(x,p,hpt)
+!             w = theta(xpt,xnd,hpt)
 !             
 !             IF (w < 1d-10) THEN
 !               small_flag = 1
 !             ENDIF
 !             
-!             rhs = rhs + w**2*p(3)
+!             rhs = rhs + w**2*xnd(3)
 !             lhs = lhs + w**2
 !           
 !           ENDDO
@@ -654,100 +368,187 @@
 !             STOP
 !           ENDIF
 !           
-!           xyh(pt,i,3) = rhs/lhs
+!           xyh_eval(pt,i,3) = rhs/lhs
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-
-          xbar = base%xyhc(:,elin)
-
-          small_flag = 0
-          DO cpt = 1,nneigh
-          
-            el = neighbors(cpt)
-            p  = base%xyhc(:,el)
-            np = base%nhb(:,el)  
-            
-            w = theta(x,p,hpt)
-            
-            IF (w <= tol*10d0) THEN
-              small_flag = 1
-            ENDIF
-            
-            CALL newton(cpt,p(1),p(2),elin,sv,tv)
-            
-            IF (mod(et,2) == 1) THEN
-              CALL tri_basis(lsp,ndf,1,sv,tv,phi)
-            ELSE IF (mod(et,2) == 0) THEN
-              CALL quad_basis(lsp,ndf,1,sv,tv,phi)
-            ENDIF
-            
-            DO m = 1,ndf
-              A(cpt,m) = w*phi(m,1)
-            ENDDO
-            
-            b(cpt) = w*p(3)            
-            
-!!!!!!!  Standard (non-orthogonal) Basis !!!!!!!                 
-!             s = p(1)-xbar(1)
-!             t = p(2)-xbar(2)
-!             
-!             k = 0
-!             DO l = 0,lsp
-!               DO m = 0,lsp-l
-!                 k = k + 1            
-!                 A(cpt,k) = w*(s**l*t**m)
-!               ENDDO
-!             ENDDO
-            
-!             b(cpt) = w*p(3)
-
-          ENDDO
-          
-          
-!           IF (small_flag /= 1) THEN
-!             PRINT*, "Increase search radius"
-!             STOP
-!           ENDIF
-          
-          CALL DGELS('N',nneigh,ndf,1,A,ne,b,ne,work,lwork,info)          
-
-          CALL newton(cpt,x(1),x(2),elin,sv,tv)
-
-          IF (mod(et,2) == 1) THEN
-            CALL tri_basis(lsp,ndf,1,sv,tv,phi)
-          ELSE IF (mod(et,2) == 0) THEN
-            CALL quad_basis(lsp,ndf,1,sv,tv,phi)
-          ENDIF   
-          
-          xyh(pt,i,3) = 0d0
-          DO m = 1,ndf
-              xyh(pt,i,3) = xyh(pt,i,3) + b(m)*phi(m,1)
-          ENDDO    
-          
-!!!!!!!  Standard (non-orthogonal) Basis !!!!!!!          
-!           s = (x(1)-xbar(1))
-!           t = (x(2)-xbar(2))
-!           
-!           k = 0
-!           xyh(pt,i,3) = 0d0
-!           DO l = 0,lsp
-!             DO m = 0,lsp-l
-!               k = k + 1
-!               xyh(pt,i,3) = xyh(pt,i,3) + b(k)*(s**l*t**m)
-!             ENDDO
-!           ENDDO          
-          
-        ENDDO
-      
-      ENDDO
-      
-      CALL invcpp(n,npts,mnpts,xyh)      
       
       RETURN
       END SUBROUTINE mls_surface
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
+
+! 
+! 
+!       SUBROUTINE rimls_surface(n,npts,mnpts,xyh)
+!       
+!       USE globals, ONLY: tree_xy,tree_c,kdresults,base,hmin,hmax,phi0,lambda0,Erad
+!       USE find_element, ONLY: in_element
+!       USE kdtree2_module
+!       
+!       IMPLICIT NONE
+!       
+!       INTEGER :: i,j,pt,it,ptit
+!       INTEGER :: n,npts,mnpts
+!       INTEGER :: nneigh,nneigh_pre
+!       INTEGER :: nd,el,elin
+!       INTEGER :: neighbors(base%ne),leds(4)
+!       REAL(rp) :: search_r
+!       REAL(rp) :: xyh(mnpts,n,3)
+!       REAL(rp) :: xpt(3),p(3),px(3),np(3),hpt,f,grad_f(3),grad_w(3),fgradf(3),npmgradf(3)
+!       REAL(rp) :: alpha(base%ne),alpha_old(base%ne)
+!       REAL(rp) :: sumW,sumF
+!       REAL(rp) :: sumGw(3),sumGF(3),sumN(3)
+!       REAL(rp) :: w,fx
+!      
+!       
+! 
+!       
+!       DO i = 1,n
+!        
+!         IF (mod(i,1000) == 0) THEN       
+!           PRINT*,i,"/",n
+!         ENDIF
+!         DO pt = 1,npts  
+!         
+!           xpt(1) = xyh(pt,i,1)
+!           xpt(2) = xyh(pt,i,2)
+!           xpt(3) = xyh(pt,i,3)          
+!                 
+!           
+!           CALL in_element(xpt(1:2),base%el_type,base%elxy,elin,leds)           
+!    
+!           hpt = r*base%h(elin) 
+!           search_r = SQRT(-hpt**2*LOG(threshold))          
+!           CALL kdtree2_r_nearest(tp=tree_xy,qv=xpt(1:2),r2=search_r**2,nfound=nneigh,nalloc=base%ne,results=kdresults)
+!           
+! 
+!           CALL boundary_check2(i,elin,nneigh,neighbors)
+!                  
+!           
+!           grad_f(:) = 1d0
+!           f = 1d0          
+! 
+!           ptit = 0
+!           fgradf = f*grad_f
+!    wloop: DO WHILE (norm(fgradf) > threshold)
+!             it = 0
+!                         
+!             DO j = 1,nneigh
+!               alpha(j) = 1d0
+!               alpha_old(j) = 0d0
+!             ENDDO
+!             
+!             DO WHILE (it < maxit)
+!               
+!               sumW = 0d0
+!               sumF = 0d0
+!               sumGw(:) = 0d0
+!               sumGF(:) = 0d0
+!               sumN(:) = 0d0
+!             
+!               DO nd = 1,nneigh
+!               
+! 
+!                 el = neighbors(nd)
+!                 p  = base%xyhc(:,el)
+!                 np = base%nhb(:,el)
+!                 
+!                 px = xpt - p
+!                 
+!                 fx = DOT_PRODUCT(px,np)
+!                 
+!                 IF (it > 0) THEN
+!                   npmgradf = np-grad_f
+!                   alpha(nd) = exp(-((fx-f)/(sigma_r*hpt))**2)*exp(-(norm(npmgradf)/sigma_n)**2)
+!                 ELSE
+!                   alpha(nd) = 1d0
+!                 ENDIF                           
+!                 
+!                 w = alpha(nd)*phi(px,hpt)
+!                 grad_w = alpha(nd)*dphi(px,hpt)               
+!                 
+!                 sumW = sumW + w
+!                 sumGw = sumGw + grad_w
+!                 sumF = sumF + w*fx
+!                 sumGF = sumGF + grad_w*fx
+!                 sumN = sumN + w*np                               
+!                 
+!               ENDDO
+!               
+!               f = sumF/sumW
+!               grad_f = (sumGF - f*sumGw + sumN)/sumW
+!                             
+!               it = it + 1              
+!               
+!               
+!               DO j = 1,nneigh
+!                 alpha_old(j) = alpha(j)
+!               ENDDO
+!               
+!             ENDDO
+!             
+!             fgradf = f*grad_f
+!             xpt = xpt - fgradf
+!             ptit = ptit + 1
+!             
+!             IF (ptit == maxptit) THEN
+!               EXIT wloop
+!             ENDIF
+!             
+!           ENDDO wloop
+!                 
+!           IF (ptit < maxptit) THEN
+!           
+!             IF (xpt(1) /= xpt(1) .or. xpt(2) /= xpt(2) .or. xpt(3) /= xpt(3)) THEN
+!           
+!               PRINT*, "WARNING: Nan detected, i = ",i
+!               PRINT*, "    # neighbors = ", nneigh
+!                          
+!               DO nd = 1,nneigh
+!                 PRINT*, "    ", neighbors(nd)
+!               ENDDO
+!               
+!             ELSE IF (xpt(3) < hmin) THEN 
+!             
+!               xyh(pt,i,3) = hmin 
+! !               PRINT*, "WARNING: Limiting hmin"
+!               
+!             ELSE IF (xpt(3) > hmax) THEN
+!             
+!               xyh(pt,i,3) = hmax
+! !               PRINT*, "WARNING: Limiting hmax"              
+!               
+! !             ELSE IF (abs((xpt(3)-xyh(pt,i,3))/xyh(pt,i,3))*100d0 > percent_max) THEN
+! !             
+! !               PRINT*, "WARNING: Percent change exceedes tolerance, i = ",i
+!               
+!             ELSE
+!             
+! !               print*, norm(fgradf)
+!               xyh(pt,i,1) = xpt(1)
+!               xyh(pt,i,2) = xpt(2)
+!               xyh(pt,i,3) = xpt(3)               
+! 
+!             ENDIF
+!             
+!           ELSE
+!             PRINT*, "WARNING: max point iterations reached, i = ",i
+!             STOP
+!           ENDIF
+!       
+!         ENDDO
+!       ENDDO
+!       
+! !       CALL invcpp(n,npts,mnpts,xyh)
+!       
+!       
+!       RETURN
+!       END SUBROUTINE rimls_surface     
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       
       SUBROUTINE function_surface(n,npts,mnpts,xyh)
       
@@ -796,47 +597,7 @@
       d = sqrt((x(1)-p(1))**2 + (x(2)-p(2))**2)
       w = exp(-d**2/h**2)      
       
-      END FUNCTION theta        
-      
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-      SUBROUTINE grid_size(mesh)
-      
-      USE globals, ONLY: grid
-      
-      IMPLICIT NONE
-      
-      INTEGER :: el
-      REAL(rp) :: x1,x2,x3
-      REAL(rp) :: y1,y2,y3
-      REAL(rp) :: a,b,c,s,r
-      
-      TYPE(grid) :: mesh
-      
-      ALLOCATE(mesh%h(mesh%ne))
-                 
-      DO el = 1,mesh%ne
-        x1 = mesh%xy(1,mesh%ect(1,el))
-        x2 = mesh%xy(1,mesh%ect(2,el))
-        x3 = mesh%xy(1,mesh%ect(3,el))
-        
-        y1 = mesh%xy(2,mesh%ect(1,el))
-        y2 = mesh%xy(2,mesh%ect(2,el))
-        y3 = mesh%xy(2,mesh%ect(3,el))
-        
-        a = sqrt((x1-x2)**2+(y1-y2)**2)
-        b = sqrt((x2-x3)**2+(y2-y3)**2)
-        c = sqrt((x3-x1)**2+(y3-y1)**2)
-        
-        s = .5d0*(a+b+c)
-        r = sqrt((s-a)*(s-b)*(s-c)/s)
-        
-        mesh%h(el) = 2d0*r
-      ENDDO
-      
-      RETURN
-      END SUBROUTINE grid_size
+      END FUNCTION theta              
       
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -880,46 +641,7 @@
 !       gp = (-8d0*a*(1d0-norm(a)**2/h**2)**3)/h**2
       gp = ((-2d0*a)/h**2)*exp(-(norm(a)**2)/h**2)
       
-      END FUNCTION dphi    
-      
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-      SUBROUTINE invcpp(n,np,mnp,xyh,xyh2)
-      
-      USE globals, ONLY: Erad,phi0,lambda0
-      
-      IMPLICIT NONE
-      
-      INTEGER :: i,pt
-      INTEGER :: n,np,mnp
-      REAL(rp) :: xyh(mnp,n,3)
-      REAL(rp), OPTIONAL :: xyh2(mnp,n,3)      
-      
-      IF(PRESENT(xyh2)) THEN
-      
-        DO i = 1,n
-          DO pt = 1,np
-            xyh2(pt,i,1) = xyh(pt,i,1)/(Erad*cos(phi0))+lambda0
-            xyh2(pt,i,2) = xyh(pt,i,2)/Erad
-            xyh2(pt,i,3) = xyh(pt,i,3)           
-          ENDDO
-        ENDDO      
-      
-      ELSE
-      
-        DO i = 1,n
-          DO pt = 1,np
-            xyh(pt,i,1) = xyh(pt,i,1)/(Erad*cos(phi0))+lambda0
-            xyh(pt,i,2) = xyh(pt,i,2)/Erad
-            xyh(pt,i,3) = xyh(pt,i,3)           
-          ENDDO
-        ENDDO
-        
-      ENDIF
-      
-      RETURN
-      END SUBROUTINE
+      END FUNCTION dphi          
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

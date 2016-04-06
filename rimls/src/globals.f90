@@ -5,30 +5,14 @@
       IMPLICIT NONE
 
       INTEGER, PARAMETER :: rp = kind(1d0) ! precision 
-      INTEGER :: p ! polynomial order      
-      INTEGER :: npart ! number of element partitions      
-      REAL(rp) :: cf ! bottom friction parameter  
-      REAL(rp) :: dt ! time step 
-      REAL(rp) :: tf ! final time      
-      REAL(rp) :: dramp ! numer of ramp days      
-      REAL(rp) :: lines ! number of lines in output files      
 
       CHARACTER(100) :: curve_file      
       CHARACTER(100) :: out_direc           
       
       INTEGER, PARAMETER :: nel_type = 4 !(type #s: 1 -> triangles, 2 -> quads, 3 -> curved triangles, 4-> curved quads)   
-      INTEGER, PARAMETER :: norder = 6 ! # of different orders (straight sided elements for tri/quad = 1, curvilinear tri/quad = ctp, high-order bathymetry = hbp)       
-      INTEGER :: order(2*nel_type)      
-      INTEGER :: ctp
-      INTEGER :: hbp
+      INTEGER, PARAMETER :: norder = 6 ! # of different orders (straight sided elements for tri/quad = 1, curvilinear tri/quad = ctp, high-order bathymetry = hbp)             
       INTEGER :: lsp
-      INTEGER :: nverts(nel_type)
-      INTEGER :: np(norder)
-      INTEGER :: nnds(norder)
-      INTEGER :: mnnds      
-      INTEGER :: ndof(nel_type)      
-      INTEGER :: mndof          
-      INTEGER :: mninds
+      INTEGER :: nverts(nel_type)    
       
       LOGICAL :: refinement     
       
@@ -39,6 +23,13 @@
         
         INTEGER :: ne ! number of elements
         INTEGER :: nn ! number of nodes        
+        
+        INTEGER :: ctp
+        INTEGER :: hbp        
+        INTEGER :: np(norder)
+        INTEGER :: nnds(norder)
+        INTEGER :: mnnds         
+        INTEGER :: mninds
       
         INTEGER, ALLOCATABLE, DIMENSION(:) :: el_type      
       
@@ -47,12 +38,21 @@
         REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: elxy
         REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: elxyh        
         REAL(rp), ALLOCATABLE, DIMENSION(:) :: depth ! depth at each node
-        REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: elhb  
-        REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: nhb
-        REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: xyhc      
-        REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: xyhe      
-        REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: xyhi 
-        REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: xyhv       
+        REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: elhb 
+        REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: dhbdx
+        REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: dhbdy        
+        REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: nhb  
+        
+        INTEGER :: tpts_edge
+        INTEGER, ALLOCATABLE, DIMENSION(:) :: npts_edge
+        REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: xyh_edge  
+        INTEGER :: tpts_interior
+        INTEGER, ALLOCATABLE, DIMENSION(:) :: npts_interior       
+        REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: xyh_interior 
+        INTEGER :: tpts_vertex
+        INTEGER, ALLOCATABLE, DIMENSION(:) :: npts_vertex        
+        REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: xyh_vertex          
+        
         REAL(rp), ALLOCATABLE, DIMENSION(:) :: h
         INTEGER, ALLOCATABLE, DIMENSION(:,:) :: bnd_flag 
         REAL(rp), ALLOCATABLE, DIMENSION(:,:,:,:) :: bndxy          
@@ -93,26 +93,14 @@
                
       
       END TYPE
-      
-      REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: xyhw          
+         
       
       TYPE(grid) :: base
       TYPE(grid) :: eval
-      
-      REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: V
-      REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: l
-      REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: dldr
-      REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: dlds      
-      INTEGER, ALLOCATABLE, DIMENSION(:,:) :: ipiv
+
       
       REAL(rp) :: r,sigma_n
-      REAL(rp) :: hmin,hmax
-      
-      INTEGER :: srchdp
-      REAL(rp) :: rsre(2,4,4)      
-      TYPE(kdtree2), POINTER :: tree_xy,tree_c,tree_xy_rand
-      TYPE(kdtree2_result), ALLOCATABLE, DIMENSION(:) :: kdresults  
-      TYPE(kdtree2_result), ALLOCATABLE, DIMENSION(:) :: closest    
+      REAL(rp) :: hmin,hmax      
       
       INTEGER :: nrpt
       REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: xy_rand     

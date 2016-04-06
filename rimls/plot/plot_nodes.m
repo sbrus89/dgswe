@@ -12,7 +12,7 @@ out_dir = '../output/';
 finp = fopen('../work/rimls.inp');
 
 n = 0;
-while n < 2 && ~feof(finp)
+while n < 4 && ~feof(finp)
    temp = strtrim(fgetl(finp));
      
    if isempty(temp) || temp(1) == '!'
@@ -25,7 +25,7 @@ while n < 2 && ~feof(finp)
 end
 
 base_name = names{1};
-eval_name = names{2};
+eval_name = names{4};
 
 
 mesh = 'on';
@@ -62,32 +62,31 @@ ybox = [0 0];
 % ybox = [35.14 37.70];
 
 
-[base_ect,base_xy,base_hb,nelnds,opedat,boudat,header,base_bvnds] = readfort14(base_name);
+[base_ect,base_xy,base_hb,base_nelnds,opedat,boudat,header,base_bvnds] = readfort14(base_name);
 if strcmp(base_name,eval_name)
     eval_ect = base_ect;
     eval_xy = base_xy;
+    eval_nelnds = base_nelnds;
     eval_hb = base_hb;
     eval_bvnds = base_bvnds;
 else
-    [eval_ect,eval_xy,eval_hb,nelnds,opedat,boudat,header,eval_bvnds] = readfort14(eval_name);
+    [eval_ect,eval_xy,eval_hb,eval_nelnds,opedat,boudat,header,eval_bvnds] = readfort14(eval_name);
 end
 
 
 fid = fopen([out_dir,'edge_nodes.d']);
-N = fscanf(fid,'%g %g',2) ;
-nends = N(1)*N(2);
+nends = fscanf(fid,'%g',1) ;
 ends = fscanf(fid,'%g %g %g \n', [3 nends])' ;
 fclose(fid);
 
 fid4 = fopen([out_dir,'interior_nodes.d']);
-N = fscanf(fid4,'%g %g',2) ;
-ninds = N(1)*N(2);
+ninds = fscanf(fid4,'%g',1) ;
 inds = fscanf(fid4,'%g %g %g \n', [3 ninds])' ;
 fclose(fid4);
 
 fid2 = fopen([out_dir,'centers.d']);
-ne = fscanf(fid2,'%g',1) ;
-cnds = fscanf(fid2,'%g %g %g \n', [3 ne])' ;
+ncnds = fscanf(fid2,'%g',1) ;
+cnds = fscanf(fid2,'%g %g %g \n', [3 ncnds])' ;
 fclose(fid2);
 
 fid3 = fopen([out_dir,'normals.d']);
@@ -96,27 +95,23 @@ nrm = fscanf(fid3,'%g %g %g \n', [3 ne])' ;
 fclose(fid3);
 
 fid8 = fopen([out_dir,'boundary_nodes.d']);
-N = fscanf(fid8,'%g %g',2) ;
-nends = N(1)*N(2);
+nends = fscanf(fid8,'%g',1) ;
 bends = fscanf(fid8,'%g \n', [1 nends])' ;
 fclose(fid8);
 
 
 fid5 = fopen([out_dir,'rimls_edge_nodes.d']);
-N = fscanf(fid5,'%g %g',2) ;
-nends = N(1)*N(2);
+nends = fscanf(fid5,'%g',1) ;
 rimls_ends = fscanf(fid5,'%g %g %g \n', [3 nends])' ;
 fclose(fid5);
 
 fid6 = fopen([out_dir,'rimls_interior_nodes.d']);
-N = fscanf(fid6,'%g %g',2) ;
-ninds = N(1)*N(2);
+ninds = fscanf(fid6,'%g',1) ;
 rimls_inds = fscanf(fid6,'%g %g %g \n', [3 ninds])' ;
 fclose(fid6);
 
 fid7 = fopen([out_dir,'rimls_vertex_nodes.d']);
-N = fscanf(fid7,'%g %g',2) ;
-ninds = N(1)*N(2);
+ninds = fscanf(fid7,'%g',1) ;
 rimls_vnds = fscanf(fid7,'%g %g %g \n', [3 ninds])' ;
 fclose(fid7);
 
@@ -166,13 +161,13 @@ yvplot = base_xy(in,2);
 hvplot = base_hb(in);
 bvnds_plot = base_bvnds(in);
 
-figure(99)
-plot(random_pts(:,1),random_pts(:,2),'b.')
-
-figure(100);
-ect_rand = delaunay(random_pts(:,1),random_pts(:,2));
-nodes = [random_pts(:,1) random_pts(:,2)];
-pdeplot( nodes', [], ect_rand', 'xydata',-random_pts(:,3), 'zdata',-random_pts(:,3),'colormap', 'jet', 'mesh','on') ;
+% figure(99)
+% plot(random_pts(:,1),random_pts(:,2),'b.')
+% 
+% figure(100);
+% ect_rand = delaunay(random_pts(:,1),random_pts(:,2));
+% nodes = [random_pts(:,1) random_pts(:,2)];
+% pdeplot( nodes', [], ect_rand', 'xydata',-random_pts(:,3), 'zdata',-random_pts(:,3),'colormap', 'jet', 'mesh','on') ;
 
 
 
@@ -201,11 +196,15 @@ ylabel('latitude')
 title('grid and evaluation points')
 axis image
 hold on
-plot(xplot,yplot,'r.')
+plot(xplot,yplot,'ro','MarkerSize',6,'MarkerFaceColor','r')
+plot(cnds(:,1),cnds(:,2),'g.')
+drawNGonMesh4( eval_xy, horzcat(eval_nelnds,eval_ect), 'ElNum', 'off', 'NodeNum', 'off', 'k' )
 
-% Plot of base grid bathymetry
+% Plot of base grid bathymetry nodes
 figure(3)
-pdeplot( nodes', [], ect1c', 'xydata',hvplot, 'zdata',hvplot,'colormap', 'jet', 'mesh','on') ;
+ect2 = delaunay(cnds(:,1),cnds(:,2));
+nodes = [cnds(:,1),cnds(:,2)];
+pdeplot( nodes', [], ect2', 'xydata',cnds(:,3), 'zdata',cnds(:,3),'colormap', 'jet', 'mesh','on') ;
 xlabel('longitude')
 ylabel('latitude')
 zlabel('bathymetry (m)')

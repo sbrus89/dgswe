@@ -1,12 +1,12 @@
       SUBROUTINE read_input()
 
-      USE globals, ONLY: base,eval,p,ctp,hbp,Erad,lambda0,phi0,deg2rad, &
+      USE globals, ONLY: base,eval,Erad,lambda0,phi0,deg2rad, &
                          refinement,r,sigma_n,out_direc,lsp,nrpt,eps,curve_file
                          
 
       IMPLICIT NONE
       
-      INTEGER, PARAMETER :: ninp = 13
+      INTEGER, PARAMETER :: ninp = 15
       INTEGER :: inp_read,skipped
       CHARACTER(100) :: temp
       LOGICAL :: file_exists
@@ -39,42 +39,48 @@
             CASE (1)
               base%grid_file = TRIM(ADJUSTL(temp))
               PRINT*, "base%grid_file = ", base%grid_file
-            CASE (2)
+            CASE (2) 
+              READ(temp,*) base%hbp
+              PRINT*, "hbp = ", base%hbp              
+            CASE (3)
+              READ(temp,*) base%ctp
+              PRINT*, "ctp = ", base%ctp              
+            CASE (4)
               eval%grid_file = TRIM(ADJUSTL(temp))
               PRINT*, "eval%grid_file = ", eval%grid_file
-            CASE (3) 
-              READ(temp,*) hbp
-              PRINT*, "hbp = ", hbp
-            CASE (4)
+            CASE (5) 
+              READ(temp,*) eval%hbp
+              PRINT*, "hbp = ", eval%hbp
+            CASE (6)
+              READ(temp,*) eval%ctp
+              PRINT*, "ctp = ", eval%ctp              
+            CASE (7)
               curve_file = TRIM(ADJUSTL(temp))
               PRINT*, "curve_file = ", curve_file
-            CASE (5)
-              READ(temp,*) ctp
-              PRINT*, "ctp = ", ctp
-            CASE (6)
+            CASE (8)
               READ(temp,*) lsp
               PRINT*, "lsp = ", lsp              
-            CASE (7) 
+            CASE (9) 
               READ(temp,*) Erad
               PRINT*, "Erad = ", Erad
-            CASE (8)
+            CASE (10)
               READ(temp,*) lambda0,phi0
               PRINT*, "lambda0,phi0 = ", lambda0 , phi0
               lambda0 = lambda0*deg2rad
               phi0 = phi0*deg2rad
-            CASE (9)
+            CASE (11)
               READ(temp,*) r
               PRINT*, "r = ", r
-            CASE (10)
+            CASE (12)
               READ(temp,*) sigma_n
               PRINT*, "sigma_n = ", sigma_n
-            CASE (11)
+            CASE (13)
               out_direc = TRIM(ADJUSTL(temp))
               PRINT*, "out_direc = ", out_direc
-            CASE (12)
+            CASE (14)
               READ(temp,*) nrpt
               PRINT*, "nrpt = ", nrpt
-            CASE (13)
+            CASE (15)
               READ(temp,*) eps
               PRINT*, "eps = ", eps              
           

@@ -27,34 +27,40 @@
 ! 0d0                                                                                                       ! eps - bathymetry perturbation (for converging channel hardwire)
 
 
-/home/sbrus/Codes/dgswe/grids/converge4_bath_dble.grd                                                     ! base grid - used to determine the rimls surface
-/home/sbrus/Codes/dgswe/grids/converge1_dble.grd                                                          ! eval grid - used to determine rimls surface evaluation points
-3                                                                                                         ! hbp - bathymetry order
-/home/sbrus/Codes/dgswe/grids/converge1_dble_ctp3.cb                                                      ! curved boundary file
-3                                                                                                         ! ctp - parametric coordinate transformation order
-4                                                                                                         ! lsp - moving least squares fit order
+! /home/sbrus/Codes/dgswe/grids/converge4_bath_dble.grd                                                     ! base grid - used to determine the rimls surface
+! !/home/sbrus/Codes/dgswe/grids/converge1_bath_dble.grd                                                     ! base grid - used to determine the rimls surface
+! 2                                                                                                         ! base hbp - bathymetry order
+! 1                                                                                                         ! base ctp - parametric coordinate transformation order
+! /home/sbrus/Codes/dgswe/grids/converge1_dble.grd                                                          ! eval grid - used to determine rimls surface evaluation points
+! 3                                                                                                         ! eval hbp - bathymetry order
+! 3                                                                                                         ! eval ctp - parametric coordinate transformation order
+! /home/sbrus/Codes/dgswe/grids/converge1_dble_ctp3.cb                                                      ! curved boundary file
+! 4                                                                                                         ! lsp - moving least squares fit order
+! 1d0                                                                                                       ! Erad - radius of Earth
+! 0d0,0d0                                                                                                   ! lambda0,phi0 - center of CPP coordinate system
+! 2d0                                                                                                       ! r - muliplier for search radius (1.5 - 4.0)
+! 1.5d0                                                                                                     ! sigma_n - smoothing parameter (0.5 - 1.5)
+! ../output/                                                                                                ! output directory
+! 0                                                                                                         ! nrpt - number of random points (for converging channel hardwire)
+! 0d0                                                                                                       ! eps - bathymetry perturbation (for converging channel hardwire)
+
+
+/home/sbrus/data-drive/galveston/adcirc/original/ESL0/fort.14                                             ! base grid - used to determine the rimls surface
+2                                                                                                         ! base hbp - bathymetry order
+1                                                                                                         ! base ctp - parametric coordinate transformation order
+/home/sbrus/data-drive/galveston/adcirc/original/ESL0/fort.14                                             ! eval grid - used to determine rimls surface evaluation points
+3                                                                                                         ! eval hbp - bathymetry order
+1                                                                                                         ! eval ctp - parametric coordinate transformation order
+./curve_file.cb                                                                                           ! curved boundary file
+1                                                                                                         ! lsp - moving least squares fit order
 1d0                                                                                                       ! Erad - radius of Earth
 0d0,0d0                                                                                                   ! lambda0,phi0 - center of CPP coordinate system
-4d0                                                                                                       ! r - muliplier for search radius (1.5 - 4.0)
+1.1d0                                                                                                     ! r - muliplier for search radius (1.5 - 4.0)
 1.5d0                                                                                                     ! sigma_n - smoothing parameter (0.5 - 1.5)
 ../output/                                                                                                ! output directory
-10000                                                                                                     ! nrpt - number of random points (for converging channel hardwire)
+0                                                                                                         ! nrpt - number of random points (for converging channel hardwire)
 0d0                                                                                                       ! eps - bathymetry perturbation (for converging channel hardwire)
 
-
-! /home/sbrus/data-drive/galveston/adcirc/original/ESL0/fort.14                                           ! base grid - used to determine the rimls surface
-! /home/sbrus/data-drive/galveston/adcirc/original/ESL0/fort.14                                           ! eval grid - used to determine rimls surface evaluation points
-! 3                                                                                                       ! hbp - bathymetry order
-! ./curve_file.cb                                                                                         ! curved boundary file
-! 1                                                                                                       ! ctp - parametric coordinate transformation order
-! 4                                                                                                       ! lsp - moving least squares fit order
-! 1d0                                                                                                     ! Erad - radius of Earth
-! 0d0,0d0                                                                                                 ! lambda0,phi0 - center of CPP coordinate system       
-! 2.5d0                                                                                                   ! r - muliplier for search radius (1.5 - 4.0)
-! 1.5d0                                                                                                   ! sigma_n - smoothing parameter (0.5 - 1.5)
-! ../output/                                                                                              ! output directory
-! 40000                                                                                                   ! nrpt - number of random points (for converging channel hardwire)
-! 0d0                                                                                                     ! eps - bathymetry perturbation (for converging channel hardwire)
 
 
 !/home/sbrus/data-drive/galveston/adcirc/original/ESL0/fort.14                                              ! base grid - used to determine the rimls surface

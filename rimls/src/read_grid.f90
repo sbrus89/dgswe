@@ -1,8 +1,7 @@
       SUBROUTINE read_grid(mesh)
       
-      USE globals, ONLY: rp,grid,ctp,mnnds,nverts, &
-                         Erad,lambda0,phi0
-      USE allocation, ONLY: grid_alloc    
+      USE globals, ONLY: rp,grid,nverts, &
+                         Erad,lambda0,phi0   
       USE grid_file_mod
       USE spherical_mod, ONLY: cpp_transformation
 
@@ -32,8 +31,8 @@
       
       
       
-      ALLOCATE(mesh%elxy(mnnds,mesh%ne,2))
-      ALLOCATE(mesh%elhb(mnnds,mesh%ne))
+      ALLOCATE(mesh%elxy(mesh%mnnds,mesh%ne,2))
+      ALLOCATE(mesh%elhb(mesh%mnnds,mesh%ne))
 
       DO el = 1,mesh%ne       
         et = mesh%el_type(el)
@@ -57,6 +56,10 @@
       CALL read_flow_boundaries(mesh%nbou,mesh%nvel,mesh%fbseg,mesh%fbnds) 
       
       CALL print_grid_info(mesh%grid_file,mesh%grid_name,mesh%ne,mesh%nn)      
+      
+      
+      CALL grid_size(mesh%ne,mesh%el_type,mesh%ect,mesh%xy,mesh%h)
+      
       
       RETURN
       END SUBROUTINE read_grid
