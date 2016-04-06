@@ -51,7 +51,7 @@
       ! of subroutine calling arguments
       
       tree_xy => kdtree2_create(xy(1:2,1:nn), rearrange=.true., sort=.true.)
-      ALLOCATE(closest(srchdp))      
+      ALLOCATE(closest(nn))      
             
             
       CALL ref_elem_coords(nel_type,rsre)
@@ -123,13 +123,13 @@ search: DO srch = 1,srchdp
 
           clnd = closest(srch)%idx
           
-          PRINT("(A,I5)"), "   closest node: ", clnd
+!           PRINT("(A,I5)"), "   closest node: ", clnd
 
    elem:  DO el = 1,nnd2el(clnd) 
  
             eln = nd2el(el,clnd)
             
-            PRINT("(A,I5)"), "   testing: ", eln                               
+!             PRINT("(A,I5)"), "     testing element: ", eln                               
 
             ! Compute sum of sub-triangle areas
             CALL sub_element(xt,eln,el_type,elxy,diff,leds)            
@@ -141,7 +141,7 @@ search: DO srch = 1,srchdp
           
             ! The station is in the element if the reference element area and sum of sub triangle are the same
             IF (diff < tol) THEN
-              PRINT("(A,I5)"), "   element found", eln                            
+!               PRINT("(A,I5)"), "   element found", eln                            
                       
               el_found = eln        
               found = 1                        
