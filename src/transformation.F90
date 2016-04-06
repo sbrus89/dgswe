@@ -1,10 +1,15 @@
       MODULE transformation
       
       USE globals, ONLY: rp
+      USE lapack_interfaces
       
       IMPLICIT NONE
       
-
+      INTEGER :: ldv
+      INTEGER :: vandermonde_init = 0
+      REAL(rp), DIMENSION(:,:,:), ALLOCATABLE :: V
+      INTEGER, DIMENSION(:,:), ALLOCATABLE :: ipiv
+      
       CONTAINS
       
       SUBROUTINE init_element_coordinates(ne,mnnds,el_type,nverts,xy,ect,elxy)
@@ -38,6 +43,38 @@
       RETURN
       END SUBROUTINE init_element_coordinates
       
+      
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!   
+
+      SUBROUTINE init_vandermonde(nel_type,np)
+      
+      USE vandermonde, ONLY: vandermonde_area
+      
+      IMPLICIT NONE
+      
+      INTEGER, INTENT(IN) :: nel_type
+      INTEGER, DIMENSION(:), INTENT(IN) :: np
+      
+      INTEGER :: et
+      INTEGER :: nnd
+      INTEGER :: mp,mnnds
+      INTEGER :: info
+      
+      mp = MAXVAL(np)
+      ldv = (mp+1)**2
+      ALLOCATE(V(ldv,ldv,nel_type))
+      ALLOCATE(ipiv(ldv,nel_type))
+      
+      DO et = 1,nel_type
+        CALL vandermonde_area(et,np(et),nnd,V(:,:,et))
+        CALL DGETRF(nnd,nnd,V(1,1,et),ldv,ipiv(1,et),info)           
+      ENDDO
+      
+      vandermonde_init = 1
+      
+      RETURN
+      END SUBROUTINE      
       
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!      
@@ -113,12 +150,13 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!     
 
-      SUBROUTINE xy2rs(nv,p,elx,ely,npt,x,y,r,s)
+      SUBROUTINE xy2rs(et,p,elx,ely,npt,x,y,r,s)
 
       USE shape_functions_mod, ONLY: shape_functions_area_eval
+      USE basis, ONLY: element_basis
 
       IMPLICIT NONE
-      INTEGER, INTENT(IN) :: nv
+      INTEGER, INTENT(IN) :: et
       INTEGER, INTENT(IN) :: p
       REAL(rp), DIMENSION(:), INTENT(IN) :: elx
       REAL(rp), DIMENSION(:), INTENT(IN) :: ely
@@ -128,28 +166,31 @@
       REAL(rp), DIMENSION(:), INTENT(OUT) :: r   
       REAL(rp), DIMENSION(:), INTENT(OUT) :: s      
       
-      INTEGER :: it,n,pt
+      INTEGER :: it,n,pt,m
       INTEGER :: maxit
       INTEGER :: mnnds
+      INTEGER :: info
       REAL(rp) :: tol    
       REAL(rp) :: f,g
       REAL(rp) :: error(npt),err
       REAL(rp) :: drdf,drdg,dsdf,dsdg,jac
       REAL(rp), DIMENSION(:,:), ALLOCATABLE :: l,dldr,dlds
+      REAL(rp), DIMENSION(:,:), ALLOCATABLE :: phi
         
       tol = 1d-9
       maxit = 100
           
       mnnds = (p+1)**2      
       ALLOCATE(l(mnnds,npt),dldr(mnnds,npt),dlds(mnnds,npt))
+      ALLOCATE(phi(mnnds,3*npt))
         
-        
-      IF (mod(nv,2) == 1) THEN
+      ! Initial guesses    
+      IF (mod(et,2) == 1) THEN
         DO pt = 1,npt
           r(pt) = -1d0/3d0
           s(pt) = -1d0/3d0
         ENDDO
-      ELSE IF (mod(nv,2) == 0) THEN
+      ELSE IF (mod(et,2) == 0) THEN
         DO pt = 1,npt
           r(pt) = 0d0
           s(pt) = 0d0
@@ -159,13 +200,44 @@
 
       DO it = 1,maxit     
            
+        IF (vandermonde_init) THEN
+          ! Evaluate basis functions at r,s coordinates 
+          CALL element_basis(et,p,n,npt,r,s,l,dldr,dlds)
+          
+          DO pt = 1,npt
+            DO m = 1,n              
+              phi(m,pt) = l(m,pt)
+              phi(m,npt+pt) = dldr(m,pt)
+              phi(m,2*npt+pt) = dlds(m,pt)          
+            ENDDO
+          ENDDO                  
+        
+          ! Solve linear systems to get nodal shape functions/derivatives (l,dldr,dlds) at r,s coordinates
+          ! V l(r,s) = phi(r,s), V dldr(r,s) = dpdr(r,s), V dlds(r,s) = dpds(r,s)
+          CALL DGETRS("N",n,3*npt,V(1,1,et),ldv,ipiv(1,et),phi,mnnds,info) 
+          
+          DO pt = 1,npt
+            DO m = 1,n              
+              l(m,pt) = phi(m,pt)
+              dldr(m,pt) = phi(m,npt+pt)
+              dlds(m,pt) = phi(m,2*npt+pt)          
+            ENDDO
+          ENDDO            
+          
+        ELSE
+          CALL shape_functions_area_eval(et,p,n,npt,r,s,l,dldr,dlds) 
+        ENDIF
 
-        CALL shape_functions_area_eval(nv,p,n,npt,r,s,l,dldr,dlds)     
+        
+        
+
         
         DO pt = 1,npt
+          ! Evaluate transformation function/derivatives at r,s coordinates
           CALL element_transformation(n,elx,ely,l(:,pt),f,g, &
                                     dldr(:,pt),dlds(:,pt),drdf,drdg,dsdf,dsdg,jac)               
         
+          ! Newton iteration 
           f = f - x(pt)
           g = g - y(pt)
         
