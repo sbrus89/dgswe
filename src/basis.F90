@@ -412,18 +412,27 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!    
 
-      SUBROUTINE element_nodes(et,space,p,n,r,s)
+      SUBROUTINE element_nodes(et,space,p,n,r,s,ext)
       
       IMPLICIT NONE
       
       INTEGER, INTENT(IN) :: et,space,p
       INTEGER, INTENT(OUT) :: n
       REAL(rp), DIMENSION(:), INTENT(OUT) :: r,s
+      CHARACTER(2), INTENT(IN), OPTIONAL :: ext
+      
+      INTEGER :: nv
       
       IF (mod(et,2) == 1) THEN
+        nv = 3
         CALL tri_nodes(1,p,n,r,s)
       ELSE IF  (mod(et,2) == 0) THEN
+        nv = 4
         CALL quad_nodes(1,p,n,r,s)
+      ENDIF
+      
+      IF (PRESENT(ext)) THEN
+        CALL nodes_extract(ext,nv,p,n,r,s)
       ENDIF
       
       END SUBROUTINE element_nodes
@@ -477,6 +486,11 @@
       ALLOCATE(w1e(n),w2e(n),w3e(n))
       ALLOCATE(var1(n),var2(n),var3(n))
       ALLOCATE(w1mat(n,p+1),w2mat(n,p+1),w3mat(n,p+1))
+      
+      IF (space == -1) THEN
+        CALL tri_nodes_random(n,r,s)
+        RETURN
+      ENDIF
 
 !c     Create equally distributed nodes on equalateral triangle
 
@@ -670,6 +684,9 @@
       
       IF (space == 1) THEN
         CALL lglpts(p,xi)
+      ELSE IF (space == -1) THEN
+        CALL quad_nodes_random(n,r,s)
+        RETURN
       ELSE
         xi(1) = -1d0
         DO i = 1,p-1
@@ -750,7 +767,8 @@
       END SUBROUTINE
 
 
-!ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
 
       subroutine lglpts(n,r)
 !c     Returns the n+1 nth order Legendre-Gauss-Lebotto points on an iterval of (-1,1) in r.
@@ -811,7 +829,8 @@
       return 
       end subroutine
 
-!ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
 
       subroutine lagrange(nn,ne,xn,xe,pmat)
 !c     Evaluates the Lagrange polynomial associated with nodes nn at points xe
@@ -844,7 +863,9 @@
       return
       end subroutine
 
-!ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc	
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
+
       subroutine xytors(np,x,y,r,s)  
       
       implicit none
@@ -864,7 +885,110 @@
 
       return
       end subroutine
+      
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
 
-!ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+      SUBROUTINE tri_nodes_random(n,r,s)            
+      
+      IMPLICIT NONE
+      
+      INTEGER, INTENT(IN) :: n
+      REAL(rp), DIMENSION(:), INTENT(OUT) :: r
+      REAL(rp), DIMENSION(:), INTENT(OUT) :: s
+      
+      INTEGER :: i
+      REAL(rp) :: rnd
+      
+      CALL RANDOM_SEED(put=(/3/))  
+      
+      DO i = 1,n
+        CALL RANDOM_NUMBER(rnd)        
+        r(i) = 2d0*rnd - 1d0
+        
+        CALL RANDOM_NUMBER(rnd)         
+        s(i) = (r(i)-1d0)*rnd - 1d0
+      ENDDO
+      
+      RETURN
+      END SUBROUTINE tri_nodes_random      
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
+
+      SUBROUTINE quad_nodes_random(n,r,s)
+      
+      IMPLICIT NONE
+      
+      INTEGER, INTENT(IN) :: n
+      REAL(rp), DIMENSION(:), INTENT(OUT) :: r
+      REAL(rp), DIMENSION(:), INTENT(OUT) :: s 
+      
+      INTEGER :: i
+      REAL(rp) :: rnd
+      
+      CALL RANDOM_SEED(put=(/3/))      
+      
+      DO i = 1,n
+        CALL RANDOM_NUMBER(rnd)       
+        r(i) = 2d0*rnd-1d0
+        
+        CALL RANDOM_NUMBER(rnd)         
+        s(i) = 2d0*rnd-1d0
+      ENDDO      
+      
+      RETURN
+      END SUBROUTINE quad_nodes_random
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
+
+     SUBROUTINE nodes_extract(ext,nv,p,n,r,s)
+     
+     IMPLICIT NONE
+     
+     CHARACTER(2), INTENT(IN) :: ext
+     INTEGER, INTENT(IN) :: p
+     INTEGER, INTENT(INOUT) :: n
+     REAL(rp), DIMENSION(:), INTENT(INOUT) :: r
+     REAL(rp), DIMENSION(:), INTENT(INOUT) :: s
+     
+     INTEGER :: i
+     INTEGER :: nv
+     INTEGER :: n_ext
+     REAL(rp) :: r_ext(n),s_ext(n)
+
+     
+      IF (ext == "IN") THEN
+       
+         n_ext = 0     
+         DO i = nv*(p-1)+nv+1,n
+           n_ext = n_ext + 1
+           
+           r_ext(n_ext) = r(i)
+           s_ext(n_ext) = s(i)           
+         ENDDO  
+         
+     ELSE
+     
+       RETURN
+         
+     ENDIF
+     
+     
+     r = 0
+     s = 0 
+     DO i = 1,n_ext
+       r(i) = r_ext(i)
+       s(i) = s_ext(i)       
+     ENDDO
+     n = n_ext
+     
+     RETURN
+     END SUBROUTINE nodes_extract
+     
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
 
       END MODULE basis
