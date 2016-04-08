@@ -225,5 +225,77 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
       
+!       SUBROUTINE blend_coordinates()
+!       
+!       
+!       IF ( BLENDFLAG == 1 ) THEN
+! !C============================================ DW =========================== 
+! !     ----- For blending ---  
+!         SELECT CASE( LED)
+!         CASE (3)
+!             Vr = CLNDS(1,:) ; ! r
+!         CASE (1)
+!             Vr = CLNDS(2,:) ; ! r
+!         CASE (2)
+!             Vr = CLNDS(2,:) ; ! s
+!         END SELECT
+! 
+!         !IF ( LED == 3 ) Vr = CLNDS(1,:) ; ! r
+!         !IF ( LED == 1 ) Vr = CLNDS(2,:) ; ! s
+!         !IF ( LED == 2 ) Vr = CLNDS(2,:) ; ! s
+!  
+!         Fr = Vr(Fmask(:,LED)) ; 
+!         CALL Vandermonde1Da( Vface, CLP, Fr ) ; 
+!         CALL Vandermonde1Da( Vvol, CLP, Vr  ) ;  
+!       
+!         !c LU   
+!         NI = CLP + 1 ;
+!         NRHS = 1 ;
+!         CALL DGETRF(NI,NI,Vface,NI,IPIV,IINFO) ;
+!  
+!         FDXM(:,1) = FDX ;
+!         CALL DGETRS( 'N', NI, NRHS, Vface, NI, IPIV, FDXM, NI, IINFO ) ;        
+!         Vdx = MATMUL(VVol, FDXM(:,1) ) ;
+!  
+!         FDYM(:,1) = FDY ;
+!         CALL DGETRS( 'N', NI, NRHS, Vface, NI, IPIV, FDYM, NI, IINFO ) ;        
+!         Vdy = MATMUL(Vvol, FDYM(:,1) ) ;
+! 
+!       
+!         ids = 0 ; 
+!         nids = 0 ;
+!         DO PT = 1, NCLNDS
+!           IF ( abs(1.D0 - Vr(PT)) > 1.0D-8 ) THEN
+!              nids = nids + 1 ;
+! 
+!              ids(nids) = PT ;
+!           END IF
+!         END DO  
+!     
+!         blend = 0.D0 ; 
+!         SELECT CASE (LED)
+!         CASE (3)
+!            blend(ids(1:nids)) = -(CLNDS(1,ids(1:nids)) + CLNDS(2,ids(1:nids)))/ &
+!         &   (1.D0 - Vr(ids(1:nids))) ; 
+!         CASE (1) 
+!            blend(ids(1:nids)) =  (CLNDS(1,ids(1:nids)) + 1.D0)/ &
+!         &   (1.D0 - Vr(ids(1:nids))) ; 
+!         CASE (2)
+!            blend(ids(1:nids)) = -(CLNDS(1,ids(1:nids)) + CLNDS(2,ids(1:nids)))/ &
+!         &   (1.D0 - Vr(ids(1:nids))) ; 
+!         END SELECT 
+! 
+!         XCL(:,EDCNT) = XCL(:,EDCNT) + blend*Vdx ;
+!         YCL(:,EDCNT) = YCL(:,EDCNT) + blend*Vdy ;
+!       ELSE
+! 
+!        XCL(MOD(LED,3)*CLP+2:MOD(LED,3)*CLP+CLP,EDCNT) = &
+!             & XCL(MOD(LED,3)*CLP+2:MOD(LED,3)*CLP+CLP,EDCNT) + FDX(2:CLP) ;
+!        YCL(MOD(LED,3)*CLP+2:MOD(LED,3)*CLP+CLP,EDCNT) = &
+!             & YCL(MOD(LED,3)*CLP+2:MOD(LED,3)*CLP+CLP,EDCNT) + FDY(2:CLP) ; 
+!       END IF
+! !C=========================================== DW ============================  
+! 
+!       END SUBROUTINE blend_coordinates
       
       END MODULE curvilinear_nodes_mod
