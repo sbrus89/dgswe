@@ -7,6 +7,7 @@
       USE grid_file_mod, ONLY: read_curve_file
       USE find_element, ONLY: find_element_init
       USE transformation, ONLY: init_vandermonde
+      USE group_coordinates, ONLY: separate_coordinates, gather_coordinates
 
       IMPLICIT NONE
 
@@ -39,7 +40,7 @@
       
       CALL find_element_init(nel_type,nverts,base%np,base%nnds,base%nn,base%xy,base%nepn,base%epn)           
 
-      CALL group_eval_coordinates(eval)            
+      CALL separate_coordinates(eval)            
       CALL init_vandermonde(nel_type,base%np)
       
       CALL write_normals()
@@ -50,7 +51,7 @@
 
       
       
-
+      CALL gather_coordinates(eval)
       CALL write_rimls_nodes(eval)
       CALL rewrite_fort14(eval)  
       CALL write_elem_nodes(eval)

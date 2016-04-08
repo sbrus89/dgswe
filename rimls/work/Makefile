@@ -1,6 +1,6 @@
 FC = ifort
-# FFLAGS = -132 -heap-arrays -I$(ODIR) #-traceback -g -C
-FFLAGS = -132 -heap-arrays -I$(ODIR) -profile-loops=all 
+FFLAGS = -132 -heap-arrays -I$(ODIR) -traceback -g -C
+# FFLAGS = -132 -heap-arrays -I$(ODIR) -profile-loops=all 
 
 VPATH := ../src/
 ODIR = odir/
@@ -44,7 +44,7 @@ endif
 objects = kdtree2.o globals.o allocation.o basis.o find_element_mod.o quit.o \
           vandermonde.o shape_functions_mod.o transformation.o spherical_mod.o \
           curvilinear_nodes_mod.o bathymetry_interp_mod.o bathy_interp.o \
-          write_results.o connect.o edge_connectivity_mod.o  \
+          write_results.o group_coordinates.o connect.o edge_connectivity_mod.o  \
           evaluate.o boundary_check.o \
           read_input.o read_grid.o grid_file_mod.o \
           curvilinear.o lapack_interfaces.o version.o rimls.o 
@@ -153,6 +153,10 @@ $(ODIR)basis.o: ../../src/basis.F90                             $(ODIR)globals.o
 $(ODIR)find_element_mod.o: ../../src/find_element_mod.F90       $(ODIR)kdtree2.o  $(ODIR)globals.o $(ODIR)shape_functions_mod.o $(ODIR)transformation.o $(ODIR)vandermonde.o
 	$(FC) $(FFLAGS) -c $< -o $@
 	mv find_element.mod $(ODIR) 
+	
+$(ODIR)group_coordinates.o: group_coordinates.f90               $(ODIR)globals.o
+	$(FC) $(FFLAGS) -c $< -o $@
+	mv group_coordinates.mod $(ODIR) 
 
 $(ODIR)write_results.o: write_results.f90                       $(ODIR)globals.o
 	$(FC) $(FFLAGS) -c $< -o $@
@@ -189,7 +193,7 @@ $(ODIR)compute_random.o : compute_random.f90                    $(ODIR)kdtree2.o
 $(ODIR)version.o : ../../src/version.F90                        $(ODIR)globals.o
 	$(FC) $(FFLAGS) -c $< -o $@
 
-$(ODIR)rimls.o: rimls.f90                                       $(ODIR)globals.o $(ODIR)allocation.o $(ODIR)transformation.o $(ODIR)find_element_mod.o $(ODIR)write_results.o $(ODIR)evaluate.o $(ODIR)grid_file_mod.o
+$(ODIR)rimls.o: rimls.f90                                       $(ODIR)globals.o $(ODIR)allocation.o $(ODIR)transformation.o $(ODIR)find_element_mod.o $(ODIR)write_results.o $(ODIR)evaluate.o $(ODIR)grid_file_mod.o $(ODIR)group_coordinates.o
 	$(FC) $(FFLAGS) -c $< -o $@
 	
 

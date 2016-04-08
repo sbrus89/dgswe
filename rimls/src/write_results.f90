@@ -204,95 +204,16 @@
 
       IMPLICIT NONE
       
-      INTEGER :: el,ed,et,nv,pt,i,pn,led,n,nd,v,nnd,hbp
+      INTEGER :: el,et,i,nnd
       INTEGER :: sind,eind
       CHARACTER(100) :: name
       CHARACTER(1) :: hbp_char
       TYPE(grid) :: mesh
-      REAL(rp) :: nodes(mesh%mnnds,mesh%ne)
-      REAL(rp) :: xnodes(mesh%mnnds,mesh%ne)
-      REAL(rp) :: ynodes(mesh%mnnds,mesh%ne)      
-      
-      nodes = 0d0
+
       
       PRINT "(A)", "Writing rimls element nodes..."  
       PRINT*, ""     
-      
-      hbp = mesh%hbp
-      
-      ! Verticies
-      DO el = 1,mesh%ne
-        et = mesh%el_type(el)
-        nv = nverts(et)
-        
-        DO v = 1,nv
-          i = (v-1)*hbp + 1
-          nd = mesh%ect(v,el)
-          nodes(i,el) = mesh%xyh_vertex(1,nd,3)
-          xnodes(i,el) = mesh%xyh_vertex(1,nd,1)
-          ynodes(i,el) = mesh%xyh_vertex(1,nd,2)
-        ENDDO
-      ENDDO
-      
-      ! Edge points
-      DO ed = 1,mesh%ned
-        
-        el = mesh%ged2el(1,ed)
-        led = mesh%ged2led(1,ed)
-        et = mesh%el_type(el)
-        nv = nverts(et)       
-          
-        DO pt = 1,hbp-1          
-          i = mod(led,nv)*hbp + pt + 1
-          nodes(i,el) = mesh%xyh_edge(pt,ed,3)
-          xnodes(i,el) = mesh%xyh_edge(pt,ed,1)
-          ynodes(i,el) = mesh%xyh_edge(pt,ed,2)          
-          
-!           PRINT*, el,led,nodes(i,el)
-        ENDDO          
-          
-        IF (mesh%ed_type(ed) == 0) THEN
-        
-          el = mesh%ged2el(2,ed)
-          led = mesh%ged2led(2,ed)
-          et = mesh%el_type(el)
-          nv = nverts(et)                 
-          
-          DO pt = 1,hbp-1          
-            i = mod(led,nv)*hbp + hbp - pt + 1     
-!             i = mod(led,nv)*hbp + pt + 1
-            nodes(i,el) = mesh%xyh_edge(pt,ed,3)
-            xnodes(i,el) = mesh%xyh_edge(pt,ed,1)
-            ynodes(i,el) = mesh%xyh_edge(pt,ed,2)            
-!             PRINT*, el,led,nodes(i,el)            
-          ENDDO            
 
-        ENDIF   
-        
-!         PRINT*, " "
-          
-      ENDDO
-      
-      ! Interior points
-      DO el = 1,mesh%ne
-        et = mesh%el_type(el)
-        n = mesh%nnds(et)
-        nv = nverts(et)
-        
-        IF (mod(et,2) == 1) THEN   
-          nnd = mesh%nnds(3)
-        ELSE IF (mod(et,2) == 0) THEN
-          nnd = mesh%nnds(4)          
-        ENDIF    
-
-        pt = 0
-        DO i = nv*(hbp-1)+nv+1,nnd 
-          pt = pt + 1
-          nodes(i,el) = mesh%xyh_interior(pt,el,3) 
-          xnodes(i,el) = mesh%xyh_interior(pt,el,1)
-          ynodes(i,el) = mesh%xyh_interior(pt,el,2)
-        ENDDO
-      ENDDO
       
       sind = INDEX(ADJUSTL(TRIM(mesh%grid_file)),"/",.true.)
       eind = INDEX(ADJUSTL(TRIM(mesh%grid_file)),".",.false.)
@@ -300,20 +221,20 @@
 !       name = ADJUSTL(TRIM(mesh%grid_file(sind+1:eind-1)))     
 !       OPEN(UNIT = 13, FILE = TRIM(out_direc) // ADJUSTL(TRIM(name)) // ".hb")    
 
-      WRITE(hbp_char,"(I1)") hbp
+      WRITE(hbp_char,"(I1)") mesh%hbp
       
       name = ADJUSTL(TRIM(mesh%grid_file(1:eind-1)))     
       OPEN(UNIT = 13, FILE = ADJUSTL(TRIM(name)) // "_hbp" // hbp_char // "_rimls.hb")            
-      WRITE(13,"(2(I7,1x))") mesh%ne,hbp
+      WRITE(13,"(2(I7,1x))") mesh%ne,mesh%hbp
       
       OPEN(UNIT = 14, FILE = TRIM(out_direc) // "elem_nodes.d")      
-      WRITE(14,"(2(I7,1x))") mesh%ne,hbp
+      WRITE(14,"(2(I7,1x))") mesh%ne,mesh%hbp
       
       OPEN(UNIT = 15, FILE = TRIM(out_direc) // "xelem_nodes.d")      
-      WRITE(15,"(2(I7,1x))") mesh%ne,hbp
+      WRITE(15,"(2(I7,1x))") mesh%ne,mesh%hbp
       
       OPEN(UNIT = 16, FILE = TRIM(out_direc) // "yelem_nodes.d")      
-      WRITE(16,"(2(I7,1x))") mesh%ne,hbp      
+      WRITE(16,"(2(I7,1x))") mesh%ne,mesh%hbp      
       
       DO el = 1,mesh%ne
         et = mesh%el_type(el)
@@ -324,10 +245,10 @@
           nnd = mesh%nnds(4)          
         ENDIF    
 
-        WRITE(13,"(2(I7),1x,60(e24.17,1x))") el,nnd,(nodes(i,el), i = 1,nnd)        
-        WRITE(14,"(2(I7),1x,60(e24.17,1x))") el,nnd,(nodes(i,el), i = 1,nnd)
-        WRITE(15,"(2(I7),1x,60(e24.17,1x))") el,nnd,(xnodes(i,el), i = 1,nnd)
-        WRITE(16,"(2(I7),1x,60(e24.17,1x))") el,nnd,(ynodes(i,el), i = 1,nnd)
+        WRITE(13,"(2(I7),1x,60(e24.17,1x))") el,nnd,(mesh%elhb(i,el), i = 1,nnd)        
+        WRITE(14,"(2(I7),1x,60(e24.17,1x))") el,nnd,(mesh%elhb(i,el), i = 1,nnd)
+        WRITE(15,"(2(I7),1x,60(e24.17,1x))") el,nnd,(mesh%elxyh(i,el,1), i = 1,nnd)
+        WRITE(16,"(2(I7),1x,60(e24.17,1x))") el,nnd,(mesh%elxyh(i,el,2), i = 1,nnd)
       ENDDO
       
       CLOSE(14)
