@@ -69,7 +69,7 @@
       
 
       
-      OPEN(unit=11,file=TRIM(out_direc) // 'centers.d')
+      OPEN(unit=11,file=TRIM(out_direc) // 'base_nodes.d')
       WRITE(11,*) base%tpts_interior    
       DO el = 1,base%ne      
         DO i = 1,base%npts_interior(el)
@@ -88,6 +88,14 @@
       ENDDO
       
       CLOSE(12)
+      
+      OPEN(unit=13,file=TRIM(out_direc) // 'base_centers.d')
+      WRITE(13,*) base%ne    
+      DO el = 1,base%ne      
+        WRITE(13,*) base%elxy_center(1,el,1),base%elxy_center(1,el,2)
+      ENDDO      
+      
+      CLOSE(13)      
       
       RETURN
       END SUBROUTINE write_normals

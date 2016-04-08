@@ -35,6 +35,7 @@
 
       CALL bathymetry_eval_nodes(eval)
       CALL bathymetry_base_nodes(base)
+      CALL element_center_nodes(base)      
     
             
       

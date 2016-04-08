@@ -80,13 +80,6 @@
       ENDDO      
 
         
-        
-        
-        
-        
-        
-        
-        
 !       !Cross product normals as a check
 !       x1 = elxy(2,el,1) - elxy(1,el,1)
 !       x2 = elxy(3,el,1) - elxy(1,el,1)
@@ -113,3 +106,37 @@
       
       RETURN
       END SUBROUTINE bathymetry_base_nodes
+      
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!          
+
+
+      SUBROUTINE element_center_nodes(mesh)
+      
+      USE globals, ONLY: rp,grid,nel_type,nverts
+      USE bathymetry_interp_mod, ONLY: shape_functions_eltypes_at_hbp,bathy_coordinates      
+      
+      IMPLICIT NONE
+      
+      TYPE(grid) :: mesh
+      INTEGER :: space
+      INTEGER :: hbp
+      INTEGER :: el,et
+      INTEGER :: np(6),nnds(6)
+      REAL(rp), DIMENSION(:,:,:), ALLOCATABLE :: psic
+
+      space = 1      
+      
+      np = mesh%np        
+      np(5) = 3
+      np(6) = 2
+      
+      nnds = mesh%nnds
+      
+      CALL shape_functions_eltypes_at_hbp(space,nel_type,np,psic,ext="IN",nnds=nnds)      
+      
+      CALL bathy_coordinates(mesh%ne,nnds,nverts,mesh%el_type,mesh%elxy,psic,mesh%elxy_center)     
+  
+      
+      RETURN
+      END SUBROUTINE element_center_nodes      

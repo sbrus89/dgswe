@@ -122,15 +122,20 @@
           PRINT*,i,"/",n
 !         ENDIF   
         
-        DO pt = 1,npts(i)  
+        DO pt = 1,npts(i) 
         
           xpt(1) = xyh_eval(pt,i,1)
           xpt(2) = xyh_eval(pt,i,2)
-          xpt(3) = xyh_eval(pt,i,3)       
+          xpt(3) = xyh_eval(pt,i,3)
+          
+!           PRINT*, "pt = ", pt, "x = ",xpt(1), "y = ",xpt(2)         
           
           CALL in_element(xpt(1:2),base%el_type,base%elxy,elin,leds)          
           et = base%el_type(elin)       
           p = base%np(et)
+          
+          xbar(1) = base%elxy_center(1,elin,1)
+          xbar(2) = base%elxy_center(1,elin,2)          
           
           DO nd = 1,base%nnds(et)
             elx(nd) = base%elxy(nd,elin,1)

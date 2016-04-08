@@ -12,6 +12,7 @@
       INTEGER, PARAMETER :: nel_type = 4 !(type #s: 1 -> triangles, 2 -> quads, 3 -> curved triangles, 4-> curved quads)   
       INTEGER, PARAMETER :: norder = 6 ! # of different orders (straight sided elements for tri/quad = 1, curvilinear tri/quad = ctp, high-order bathymetry = hbp)             
       INTEGER :: lsp
+      INTEGER :: basis_opt
       INTEGER :: nverts(nel_type)    
       
       LOGICAL :: refinement     
@@ -36,7 +37,7 @@
         INTEGER, ALLOCATABLE, DIMENSION(:,:) :: ect ! element connectivity table
         REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: xy ! x,y coordinates of nodes
         REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: elxy
-        REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: elxyh        
+        REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: elxyh           
         REAL(rp), ALLOCATABLE, DIMENSION(:) :: depth ! depth at each node
         REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: elhb 
         REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: dhbdx
@@ -52,6 +53,8 @@
         INTEGER :: tpts_vertex
         INTEGER, ALLOCATABLE, DIMENSION(:) :: npts_vertex        
         REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: xyh_vertex          
+        
+        REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: elxy_center
         
         REAL(rp), ALLOCATABLE, DIMENSION(:) :: h
         INTEGER, ALLOCATABLE, DIMENSION(:,:) :: bnd_flag 
