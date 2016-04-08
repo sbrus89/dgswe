@@ -372,6 +372,39 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+      SUBROUTINE simple_basis(p,ndfs,npts,r,s,phi)
+      
+      IMPLICIT NONE
+      
+      INTEGER, INTENT(IN) :: p
+      INTEGER, INTENT(OUT) :: ndfs
+      INTEGER, INTENT(IN) :: npts
+      REAL(rp), DIMENSION(:), INTENT(IN) :: r
+      REAL(rp), DIMENSION(:), INTENT(IN) :: s
+      REAL(rp), DIMENSION(:,:), INTENT(OUT) :: phi
+      
+      INTEGER :: i,j,m,pt
+      
+      ndfs = (p+1)*(p+2)/2      
+      
+      DO pt = 1,npts
+      
+        m = 0
+        DO i = 0,p
+          DO j = 0,p-i
+            m = m + 1            
+            phi(m,pt) = r(pt)**i*s(pt)**j
+          ENDDO
+        ENDDO      
+      
+      ENDDO
+      
+      RETURN
+      END SUBROUTINE
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
       SUBROUTINE linear(n,r,s,phil)     
 
         IMPLICIT NONE
