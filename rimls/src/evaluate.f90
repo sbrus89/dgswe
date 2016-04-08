@@ -68,10 +68,10 @@
       
       SUBROUTINE mls_surface(n,npts,xyh_eval)
       
-      USE globals, ONLY: base,hmin,hmax,lsp
+      USE globals, ONLY: base,hmin,hmax,lsp,basis_opt
       USE find_element, ONLY: in_element,tree_xy,closest
       USE kdtree2_module
-      USE basis, ONLY: element_basis
+      USE basis, ONLY: element_basis,simple_basis
       USE transformation, ONLY: xy2rs
       
       IMPLICIT NONE
@@ -88,7 +88,7 @@
       INTEGER :: small_flag
       INTEGER :: info,lwork,lda,ldb
       REAL(rp) :: elx(base%mnnds),ely(base%mnnds)
-      REAL(rp) :: xpt(3),xnd(3),xnd_nrm(3),xbar(3)      
+      REAL(rp) :: xpt(3),xnd(3),xnd_nrm(3),xbar(2)      
       REAL(rp) :: w,rhs,lhs
       REAL(rp) :: s,t,sv(1),tv(1),x(1),y(1)
       REAL(rp) :: hpt,search_r,tol      
@@ -197,10 +197,16 @@
             
               x(1) = xnd(1)
               y(1) = xnd(2)            
-              CALL xy2rs(et,p,elx,ely,1,x,y,sv,tv)
-            
-              CALL element_basis(et,lsp,ndf,1,sv,tv,phi) 
-            
+              
+              IF (basis_opt == 1) THEN
+                CALL xy2rs(et,p,elx,ely,1,x,y,sv,tv)             
+                CALL element_basis(et,lsp,ndf,1,sv,tv,phi)
+              ELSE
+                sv(1) = x(1) - xbar(1)
+                tv(1) = y(1) - xbar(2)
+                CALL simple_basis(lsp,ndf,1,sv,tv,phi)
+              ENDIF
+              
               DO m = 1,ndf
                 A(nnd,m) = w*phi(m,1)
               ENDDO
@@ -219,9 +225,15 @@
 
           x(1) = xpt(1)
           y(1) = xpt(2)
-          CALL xy2rs(et,p,elx,ely,1,x,y,sv,tv)          
           
-          CALL element_basis(et,lsp,ndf,1,sv,tv,phi)          
+          IF (basis_opt == 1) THEN
+            CALL xy2rs(et,p,elx,ely,1,x,y,sv,tv)      
+            CALL element_basis(et,lsp,ndf,1,sv,tv,phi)          
+          ELSE
+            sv(1) = x(1) - xbar(1)
+            tv(1) = y(1) - xbar(2)          
+            CALL simple_basis(lsp,ndf,1,sv,tv,phi)          
+          ENDIF
           
           xyh_eval(pt,i,3) = 0d0
           DO m = 1,ndf

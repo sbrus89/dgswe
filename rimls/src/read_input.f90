@@ -1,12 +1,12 @@
       SUBROUTINE read_input()
 
-      USE globals, ONLY: base,eval,Erad,lambda0,phi0,deg2rad, &
+      USE globals, ONLY: base,eval,Erad,lambda0,phi0,deg2rad,basis_opt, &
                          refinement,r,sigma_n,out_direc,lsp,nrpt,eps,curve_file
                          
 
       IMPLICIT NONE
       
-      INTEGER, PARAMETER :: ninp = 15
+      INTEGER, PARAMETER :: ninp = 16
       INTEGER :: inp_read,skipped
       CHARACTER(100) :: temp
       LOGICAL :: file_exists
@@ -59,28 +59,31 @@
               PRINT*, "curve_file = ", curve_file
             CASE (8)
               READ(temp,*) lsp
-              PRINT*, "lsp = ", lsp              
-            CASE (9) 
+              PRINT*, "lsp = ", lsp    
+            CASE (9)
+              READ(temp,*) basis_opt
+              PRINT*, "basis_opt = ", basis_opt               
+            CASE (10) 
               READ(temp,*) Erad
               PRINT*, "Erad = ", Erad
-            CASE (10)
+            CASE (11)
               READ(temp,*) lambda0,phi0
               PRINT*, "lambda0,phi0 = ", lambda0 , phi0
               lambda0 = lambda0*deg2rad
               phi0 = phi0*deg2rad
-            CASE (11)
+            CASE (12)
               READ(temp,*) r
               PRINT*, "r = ", r
-            CASE (12)
+            CASE (13)
               READ(temp,*) sigma_n
               PRINT*, "sigma_n = ", sigma_n
-            CASE (13)
+            CASE (14)
               out_direc = TRIM(ADJUSTL(temp))
               PRINT*, "out_direc = ", out_direc
-            CASE (14)
+            CASE (15)
               READ(temp,*) nrpt
               PRINT*, "nrpt = ", nrpt
-            CASE (15)
+            CASE (16)
               READ(temp,*) eps
               PRINT*, "eps = ", eps              
           
