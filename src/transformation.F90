@@ -5,6 +5,8 @@
       
       IMPLICIT NONE
       
+      SAVE 
+      
       INTEGER :: ldv
       INTEGER :: vandermonde_init = 0
       REAL(rp), DIMENSION(:,:,:), ALLOCATABLE :: V
