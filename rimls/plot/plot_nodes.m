@@ -84,14 +84,19 @@ ninds = fscanf(fid4,'%g',1) ;
 inds = fscanf(fid4,'%g %g %g \n', [3 ninds])' ;
 fclose(fid4);
 
-fid2 = fopen([out_dir,'centers.d']);
-ncnds = fscanf(fid2,'%g',1) ;
-cnds = fscanf(fid2,'%g %g %g \n', [3 ncnds])' ;
+fid2 = fopen([out_dir,'base_nodes.d']);
+nbnds = fscanf(fid2,'%g',1) ;
+base_nds = fscanf(fid2,'%g %g %g \n', [3 nbnds])' ;
 fclose(fid2);
 
 fid3 = fopen([out_dir,'normals.d']);
 ne = fscanf(fid3,'%g',1) ;
 nrm = fscanf(fid3,'%g %g %g \n', [3 ne])' ;
+fclose(fid3);
+
+fid3 = fopen([out_dir,'base_centers.d']);
+ne = fscanf(fid3,'%g',1) ;
+base_centers = fscanf(fid3,'%g %g \n', [2 ne])' ;
 fclose(fid3);
 
 fid8 = fopen([out_dir,'boundary_nodes.d']);
@@ -115,10 +120,10 @@ ninds = fscanf(fid7,'%g',1) ;
 rimls_vnds = fscanf(fid7,'%g %g %g \n', [3 ninds])' ;
 fclose(fid7);
 
-fid8 = fopen([out_dir,'random_pts.d']);
-ne = fscanf(fid8,'%g',1) ;
-random_pts = fscanf(fid8,'%g %g %g \n', [3 ne])' ;
-fclose(fid8);
+% fid8 = fopen([out_dir,'random_pts.d']);
+% ne = fscanf(fid8,'%g',1) ;
+% random_pts = fscanf(fid8,'%g %g %g \n', [3 ne])' ;
+% fclose(fid8);
 
 
 
@@ -197,14 +202,15 @@ title('grid and evaluation points')
 axis image
 hold on
 plot(xplot,yplot,'ro','MarkerSize',6,'MarkerFaceColor','r')
-plot(cnds(:,1),cnds(:,2),'g.')
+plot(base_nds(:,1),base_nds(:,2),'g.')
+plot(base_centers(:,1),base_centers(:,2),'bo','MarkerSize',4,'MarkerFaceColor','b')
 drawNGonMesh4( eval_xy, horzcat(eval_nelnds,eval_ect), 'ElNum', 'off', 'NodeNum', 'off', 'k' )
 
 % Plot of base grid bathymetry nodes
 figure(3)
-ect2 = delaunay(cnds(:,1),cnds(:,2));
-nodes = [cnds(:,1),cnds(:,2)];
-pdeplot( nodes', [], ect2', 'xydata',cnds(:,3), 'zdata',cnds(:,3),'colormap', 'jet', 'mesh','on') ;
+ect2 = delaunay(base_nds(:,1),base_nds(:,2));
+nodes = [base_nds(:,1),base_nds(:,2)];
+pdeplot( nodes', [], ect2', 'xydata',base_nds(:,3), 'zdata',base_nds(:,3),'colormap', 'jet', 'mesh','on') ;
 xlabel('longitude')
 ylabel('latitude')
 zlabel('bathymetry (m)')

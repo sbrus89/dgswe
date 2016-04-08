@@ -1,10 +1,10 @@
-close all
+% close all
 clear all
 clc
 
 file = fopen('../work/spline.out');
 
-figure
+% figure
 
 %     th = fscanf(fid_H,' %g ', 1); % read in time
 %     Z = fscanf(fid_H,' %g ', [ne mndof])'; % read in H solution at time t
@@ -130,24 +130,24 @@ fclose(file);
 
 
 
-hold on
-
-fid = fopen('../work/nodes.out') ;
-
-agrid = fgetl(fid) ;
-disp(agrid) ;
-title = agrid ; 
-
-N = fscanf(fid,'%g %g',2) ;
-
-Val = zeros(N(2),4) ;
-Val = fscanf(fid,'%d %g %g %g \n', [4 N(2)])' ;
-VX = Val(:,2:3) ;
-
-plot(VX(:,1),VX(:,2),'mx')
-
-axis equal
-%axis([23000 27000 10000 12500])
+% hold on
+% 
+% fid = fopen('../work/nodes.out') ;
+% 
+% agrid = fgetl(fid) ;
+% disp(agrid) ;
+% title = agrid ; 
+% 
+% N = fscanf(fid,'%g %g',2) ;
+% 
+% Val = zeros(N(2),4) ;
+% Val = fscanf(fid,'%d %g %g %g \n', [4 N(2)])' ;
+% VX = Val(:,2:3) ;
+% 
+% plot(VX(:,1),VX(:,2),'mx')
+% 
+% axis equal
+% %axis([23000 27000 10000 12500])
 
 
 

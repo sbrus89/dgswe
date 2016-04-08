@@ -6,8 +6,9 @@ function h = drawNGonMesh4( VK, EToV, lcolor, OP1, VAL1, elcolor, OP2, VAL2, ndc
 %    xndoes   - DG Nodes
 
 
-% elems = [21270 21274 8577 8582];
-% nodes = [270 13811 13813 974 280 8962 ];
+elems = [3158 3198 44
+];
+nodes = [1945];
 
 
 h = findobj ;
@@ -79,10 +80,10 @@ if ( strcmpi(OPD{1,2},'on') )
         x = sum(xp)/ngon ;
         y = sum(yp)/ngon ;
         
-%         if ismember(i,elems) 
+        if ismember(i,elems) 
           txt = sprintf('%d',i) ;
           text(x,y,txt,'Color',elcolor,'FontSize',6) ;
-%         end
+        end
     end
 end
 
@@ -91,10 +92,10 @@ if ( strcmpi(OPD{2,2},'on') )
         x = VK(i,1) ;
         y = VK(i,2) ;
         
-%         if ismember(i,nodes)
+        if ismember(i,nodes)
           txt = sprintf('%d',i) ;
           text(x,y,txt,'Color',ndcolor,'FontSize',6) ;
-%         end
+        end
     end
 end
     
