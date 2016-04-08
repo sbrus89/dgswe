@@ -172,31 +172,33 @@
       ALLOCATE(x(mnnds),y(mnnds))
        
        
-      et = el_type(el) 
-      nv = nverts(et)      
-      IF (mod(et,2) == 1) THEN
-        el_type(el) = 3 
-        nnd = nnds(3)      
-      ELSE IF (mod(et,2) == 0) THEN
-        el_type(el) = 4
-        nnd = nnds(4)                  
-      ENDIF
-         
+      et = el_type(el)
+      nv = nverts(et)  
         
-      DO nd = 1,nv
-        x(nd) = xy(1,ect(nd,el))
-        y(nd) = xy(2,ect(nd,el))
-      ENDDO        
+      IF (et <= 2) THEN            ! only compute extra nodes if element isn't already curved
+                                   ! otherwise, just adjust the boundary nodes. 
+        IF (mod(et,2) == 1) THEN   ! this is important for elements with two no normal flow boundaries
+          el_type(el) = 3 
+          nnd = nnds(3)      
+        ELSE IF (mod(et,2) == 0) THEN
+          el_type(el) = 4
+          nnd = nnds(4)                  
+        ENDIF         
         
-      DO pt = 1,nnd               
+        DO nd = 1,nv
+          x(nd) = xy(1,ect(nd,el))
+          y(nd) = xy(2,ect(nd,el))
+        ENDDO        
+        
+        DO pt = 1,nnd               
 
-        CALL element_transformation(nv,x,y,psiv(:,pt,et),xpt,ypt)
+          CALL element_transformation(nv,x,y,psiv(:,pt,et),xpt,ypt)
         
-        elxy(pt,el,1) = xpt
-        elxy(pt,el,2) = ypt
-      ENDDO      
+          elxy(pt,el,1) = xpt
+          elxy(pt,el,2) = ypt
+        ENDDO      
         
-        
+      ENDIF
         
       DO nd = 1,ctp-1
         pt = mod(led,nv)*ctp + 1 + nd
