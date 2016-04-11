@@ -452,7 +452,7 @@
       INTEGER, INTENT(IN) :: et,space,p
       INTEGER, INTENT(OUT) :: n
       REAL(rp), DIMENSION(:), INTENT(OUT) :: r,s
-      CHARACTER(2), INTENT(IN), OPTIONAL :: ext
+      INTEGER, INTENT(IN), OPTIONAL :: ext
       
       INTEGER :: nv
       
@@ -980,31 +980,44 @@
      
      IMPLICIT NONE
      
-     CHARACTER(2), INTENT(IN) :: ext
+     INTEGER, INTENT(IN) :: ext
      INTEGER, INTENT(IN) :: p
      INTEGER, INTENT(INOUT) :: n
      REAL(rp), DIMENSION(:), INTENT(INOUT) :: r
      REAL(rp), DIMENSION(:), INTENT(INOUT) :: s
      
-     INTEGER :: i
-     INTEGER :: nv
+     INTEGER :: i,j
+     INTEGER :: nv,led
      INTEGER :: n_ext
      REAL(rp) :: r_ext(n),s_ext(n)
 
      
-      IF (ext == "IN") THEN
-       
-         n_ext = 0     
-         DO i = nv*(p-1)+nv+1,n
-           n_ext = n_ext + 1
-           
-           r_ext(n_ext) = r(i)
-           s_ext(n_ext) = s(i)           
-         ENDDO  
+  
          
-     ELSE
+     IF (ext <= 0) THEN          
      
        RETURN
+       
+     ELSE IF (ext > nv) THEN
+       
+       n_ext = 0     
+       DO i = nv*(p-1)+nv+1,n
+         n_ext = n_ext + 1
+           
+         r_ext(n_ext) = r(i)
+         s_ext(n_ext) = s(i)           
+       ENDDO       
+              
+     ELSE 
+     
+       led = ext     
+       n_ext = p+1     
+       DO i = 1,n_ext
+         j = mod(led,nv)*p + i
+           
+         r_ext(i) = r(j)
+         s_ext(i) = s(j)           
+       ENDDO             
          
      ENDIF
      

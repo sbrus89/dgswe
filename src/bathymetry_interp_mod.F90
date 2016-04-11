@@ -25,12 +25,12 @@
       REAL(rp), DIMENSION(:,:,:), ALLOCATABLE, INTENT(OUT) :: psi
       REAL(rp), DIMENSION(:,:,:), ALLOCATABLE, INTENT(OUT), OPTIONAL :: dpdr
       REAL(rp), DIMENSION(:,:,:), ALLOCATABLE, INTENT(OUT), OPTIONAL :: dpds     
-      CHARACTER(2), INTENT(IN), OPTIONAL :: ext
+      INTEGER, INTENT(IN), OPTIONAL :: ext
       INTEGER, DIMENSION(:), INTENT(INOUT), OPTIONAL :: nnds
       
       
       INTEGER :: pt,i,j
-      INTEGER :: et,hbp_type
+      INTEGER :: et,hbp_type     
       INTEGER :: npts,nnd
       INTEGER :: mnp,mnnds
       INTEGER :: calc_deriv,extract
