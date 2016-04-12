@@ -126,7 +126,7 @@
       INTEGER :: ext
       REAL(rp), DIMENSION(:,:,:), ALLOCATABLE :: psic
 
-      space = 1      
+      space = 0      
       
       np = mesh%np        
       np(5) = 3
