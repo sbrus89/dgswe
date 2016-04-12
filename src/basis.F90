@@ -1014,6 +1014,10 @@
        n_ext = p+1     
        DO i = 1,n_ext
          j = mod(led,nv)*p + i
+         
+         IF (j == nv*p + 1) THEN
+           j = 1
+         ENDIF 
            
          r_ext(i) = r(j)
          s_ext(i) = s(j)           
