@@ -5,6 +5,8 @@
       
       
       IMPLICIT NONE
+      
+      INTEGER :: blend = 1      
 
       CONTAINS
       
@@ -167,9 +169,11 @@
       INTEGER :: nnd,nv,et,mnnds
       REAL(rp) :: xpt,ypt
       REAL(rp), DIMENSION(:), ALLOCATABLE :: x,y
+      REAL(rp), DIMENSION(:,:), ALLOCATABLE :: eddx      
        
       mnnds = MAXVAL(nnds)
       ALLOCATE(x(mnnds),y(mnnds))
+      ALLOCATE(eddx(ctp+1,2))
        
        
       et = el_type(el)
@@ -198,11 +202,13 @@
           elxy(pt,el,2) = ypt
         ENDDO      
         
-      ENDIF
+      ENDIF        
+      
+      eddx = 0d0    
+      
+      DO nd = 1,ctp-1                   ! adjust mid-edge nodes to spline coordinates, 
+        pt = mod(led,nv)*ctp + 1 + nd   ! verticies have already been adjusted in read_curve_file
         
-      DO nd = 1,ctp-1
-        pt = mod(led,nv)*ctp + 1 + nd
-          
 !         ytest = elxy(pt,el,2)
 !         xpt = elxy(pt,el,1) 
 !           
@@ -212,90 +218,171 @@
 !           ypt = 500d0 - 100d0*(1d0/(COSH(4d0*(xpt-2000d0)/500d0)))
 !         ENDIF
 !         
-!         elxy(pt,el,2) = ypt
+!         eddx(nd+1,2) = ypt - elxy(pt,el,2)        
+          
 
-        elxy(pt,el,1) = segxy(1,nd)
-        elxy(pt,el,2) = segxy(2,nd)
+        eddx(nd+1,1) = segxy(1,nd)-elxy(pt,el,1)
+        eddx(nd+1,2) = segxy(2,nd)-elxy(pt,el,2)
+
       ENDDO           
-       
+      
+      IF (blend) THEN
+        IF (mod(et,2) == 1) THEN
+          CALL tri_blend_coordinates(et,el,ctp,led,mnnds,eddx,elxy)
+        ELSE IF (mod(et,2) == 0) THEN
+!         CALL quad_blend_coordinates(et,el,ctp,led,mnnds,eddx,elxy)
+          CALL set_coordinates(nv,el,ctp,led,eddx,elxy)
+        ENDIF
+      ELSE
+        CALL set_coordinates(nv,el,ctp,led,eddx,elxy)
+      ENDIF
+
       RETURN
       END SUBROUTINE edge_coordinates_curved
 
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+      SUBROUTINE set_coordinates(nv,el,ctp,led,eddx,elxy)
+      
+      IMPLICIT NONE
+      
+      INTEGER, INTENT(IN) :: nv
+      INTEGER, INTENT(IN) :: el
+      INTEGER, INTENT(IN) :: ctp
+      INTEGER, INTENT(IN) :: led
+      REAL(rp), DIMENSION(:,:), INTENT(IN) :: eddx
+      REAL(rp), DIMENSION(:,:,:), INTENT(INOUT) :: elxy
+      
+      INTEGER :: nd,pt
+      
+        DO nd = 1,ctp-1                   
+          pt = mod(led,nv)*ctp + 1 + nd                      
+
+          elxy(pt,el,1) = elxy(pt,el,1) + eddx(nd+1,1)
+          elxy(pt,el,2) = elxy(pt,el,2) + eddx(nd+1,2) 
+        ENDDO        
+      
+      RETURN
+      END SUBROUTINE set_coordinates
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
       
-!       SUBROUTINE blend_coordinates()
-!       
-!       
-!       IF ( BLENDFLAG == 1 ) THEN
-! !C============================================ DW =========================== 
-! !     ----- For blending ---  
-!         SELECT CASE( LED)
-!         CASE (3)
-!             Vr = CLNDS(1,:) ; ! r
-!         CASE (1)
-!             Vr = CLNDS(2,:) ; ! r
-!         CASE (2)
-!             Vr = CLNDS(2,:) ; ! s
-!         END SELECT
-! 
-!         !IF ( LED == 3 ) Vr = CLNDS(1,:) ; ! r
-!         !IF ( LED == 1 ) Vr = CLNDS(2,:) ; ! s
-!         !IF ( LED == 2 ) Vr = CLNDS(2,:) ; ! s
-!  
-!         Fr = Vr(Fmask(:,LED)) ; 
-!         CALL Vandermonde1Da( Vface, CLP, Fr ) ; 
-!         CALL Vandermonde1Da( Vvol, CLP, Vr  ) ;  
-!       
-!         !c LU   
-!         NI = CLP + 1 ;
-!         NRHS = 1 ;
-!         CALL DGETRF(NI,NI,Vface,NI,IPIV,IINFO) ;
-!  
-!         FDXM(:,1) = FDX ;
-!         CALL DGETRS( 'N', NI, NRHS, Vface, NI, IPIV, FDXM, NI, IINFO ) ;        
-!         Vdx = MATMUL(VVol, FDXM(:,1) ) ;
-!  
-!         FDYM(:,1) = FDY ;
-!         CALL DGETRS( 'N', NI, NRHS, Vface, NI, IPIV, FDYM, NI, IINFO ) ;        
-!         Vdy = MATMUL(Vvol, FDYM(:,1) ) ;
-! 
-!       
-!         ids = 0 ; 
-!         nids = 0 ;
-!         DO PT = 1, NCLNDS
-!           IF ( abs(1.D0 - Vr(PT)) > 1.0D-8 ) THEN
-!              nids = nids + 1 ;
-! 
-!              ids(nids) = PT ;
-!           END IF
-!         END DO  
-!     
-!         blend = 0.D0 ; 
-!         SELECT CASE (LED)
-!         CASE (3)
-!            blend(ids(1:nids)) = -(CLNDS(1,ids(1:nids)) + CLNDS(2,ids(1:nids)))/ &
-!         &   (1.D0 - Vr(ids(1:nids))) ; 
-!         CASE (1) 
-!            blend(ids(1:nids)) =  (CLNDS(1,ids(1:nids)) + 1.D0)/ &
-!         &   (1.D0 - Vr(ids(1:nids))) ; 
-!         CASE (2)
-!            blend(ids(1:nids)) = -(CLNDS(1,ids(1:nids)) + CLNDS(2,ids(1:nids)))/ &
-!         &   (1.D0 - Vr(ids(1:nids))) ; 
-!         END SELECT 
-! 
-!         XCL(:,EDCNT) = XCL(:,EDCNT) + blend*Vdx ;
-!         YCL(:,EDCNT) = YCL(:,EDCNT) + blend*Vdy ;
-!       ELSE
-! 
-!        XCL(MOD(LED,3)*CLP+2:MOD(LED,3)*CLP+CLP,EDCNT) = &
-!             & XCL(MOD(LED,3)*CLP+2:MOD(LED,3)*CLP+CLP,EDCNT) + FDX(2:CLP) ;
-!        YCL(MOD(LED,3)*CLP+2:MOD(LED,3)*CLP+CLP,EDCNT) = &
-!             & YCL(MOD(LED,3)*CLP+2:MOD(LED,3)*CLP+CLP,EDCNT) + FDY(2:CLP) ; 
-!       END IF
-! !C=========================================== DW ============================  
-! 
-!       END SUBROUTINE blend_coordinates
+      SUBROUTINE tri_blend_coordinates(et,el,ctp,led,mnnds,eddx,elxy)
+      
+      USE basis, ONLY: element_nodes,jacobi
+      USE lapack_interfaces
+
+      IMPLICIT NONE
+      
+      INTEGER, INTENT(IN) :: et
+      INTEGER, INTENT(IN) :: el
+      INTEGER, INTENT(IN) :: ctp
+      INTEGER, INTENT(IN) :: led
+      INTEGER, INTENT(IN) :: mnnds
+      REAL(rp), DIMENSION(:,:), INTENT(INOUT) :: eddx
+      REAL(rp), DIMENSION(:,:,:), INTENT(INOUT) :: elxy
+      
+      INTEGER :: i,j,pt
+      INTEGER :: nnd,nrhs
+      INTEGER :: npt_el,npt_ed
+      INTEGER :: ipiv(mnnds),info
+      REAL(rp) :: r(mnnds),s(mnnds)
+      REAL(rp) :: er(mnnds),es(mnnds)
+      REAL(rp) :: elr(mnnds),edr(mnnds)
+      REAL(rp) :: Ved(ctp+1,ctp+1),Vel(mnnds,ctp+1)
+      REAL(rp) :: phi(mnnds)
+      REAL(rp) :: dx(mnnds),dy(mnnds)
+      REAL(rp) :: blend,denom
+      
+      
+
+        CALL element_nodes(et,1,ctp,npt_el,r,s)
+        CALL element_nodes(et,1,ctp,npt_ed,er,es,led)      
+
+        
+        SELECT CASE(led)
+        CASE (3)
+            elr = r  
+            edr = er
+        CASE (1)
+            elr = s
+            edr = es
+        CASE (2)
+            elr = s
+            edr = es
+        END SELECT    
+        
+
+
+ 
+        nnd = ctp + 1       
+        
+        DO i = 1,nnd
+          CALL jacobi(0,0,i-1,edr,npt_ed,phi)    
+          DO pt = 1,npt_ed              
+            Ved(pt,i) = phi(pt)
+          ENDDO
+        ENDDO
+        
+        
+
+        CALL DGETRF(nnd,nnd,Ved,nnd,ipiv,info)  
+
+        nrhs = 2
+        CALL DGETRS('N',nnd,nrhs,Ved,nnd,ipiv,eddx,nnd,info)
+   
+        
+        DO i = 1,nnd
+          CALL jacobi(0,0,i-1,elr,npt_el,phi)    
+          DO pt = 1,npt_el              
+            Vel(pt,i) = phi(pt)
+          ENDDO
+        ENDDO
+        
+
+        
+        dx = 0d0
+        dy = 0d0
+        DO j = 1,nnd        
+          DO i = 1,npt_el
+            dx(i) = dx(i) + Vel(i,j)*eddx(j,1)
+            dy(i) = dy(i) + Vel(i,j)*eddx(j,2)            
+          ENDDO
+        ENDDO
+     
+
+ 
+        DO pt = 1,npt_el
+          
+          blend = 0d0
+          denom = 1d0-elr(pt)
+          IF (abs(denom) > 1d-8) THEN
+          
+            SELECT CASE (led)
+              CASE(3)
+                blend = -(r(pt)+s(pt))/denom
+              CASE(1)
+                blend = (r(pt)+1d0)/denom
+              CASE(2)
+                blend = -(r(pt)+s(pt))/denom
+            END SELECT
+            
+          ENDIF
+          
+          elxy(pt,el,1) = elxy(pt,el,1) + blend*dx(pt)
+          elxy(pt,el,2) = elxy(pt,el,2) + blend*dy(pt)
+        ENDDO
+        
+        
+        
+ 
+ 
+      END SUBROUTINE tri_blend_coordinates
+      
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!        
       
       END MODULE curvilinear_nodes_mod

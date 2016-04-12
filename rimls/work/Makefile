@@ -1,5 +1,5 @@
 FC = ifort
-FFLAGS = -132 -heap-arrays -I$(ODIR) -traceback -g -C
+FFLAGS = -132 -heap-arrays -I$(ODIR) # -traceback -g -C
 # FFLAGS = -132 -heap-arrays -I$(ODIR) -profile-loops=all 
 
 VPATH := ../src/
@@ -138,7 +138,7 @@ $(ODIR)spherical_mod.o : ../../src/spherical_mod.F90            $(ODIR)globals.o
 	$(FC) $(FFLAGS) -c $< -o $@
 	mv spherical_mod.mod $(ODIR)	
 	
-$(ODIR)curvilinear_nodes_mod.o : ../../src/curvilinear_nodes_mod.F90  $(ODIR)globals.o $(ODIR)shape_functions_mod.o
+$(ODIR)curvilinear_nodes_mod.o : ../../src/curvilinear_nodes_mod.F90  $(ODIR)globals.o $(ODIR)shape_functions_mod.o $(ODIR)transformation.o $(ODIR)basis.o $(ODIR)lapack_interfaces.o
 	$(FC) $(FFLAGS) -c $< -o $@
 	mv curvilinear_nodes_mod.mod $(ODIR)		
 	
