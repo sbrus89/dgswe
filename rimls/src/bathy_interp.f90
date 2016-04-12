@@ -34,7 +34,7 @@
       INTEGER :: space
       INTEGER :: hbp
       INTEGER :: el,et
-      CHARACTER(2) :: extract
+      INTEGER :: extract
       REAL(rp), DIMENSION(:,:,:), ALLOCATABLE :: psic
       REAL(rp), DIMENSION(:,:,:), ALLOCATABLE :: dpdr
       REAL(rp), DIMENSION(:,:,:), ALLOCATABLE :: dpds
@@ -44,13 +44,13 @@
       
       IF (nrpt == 0) THEN
         space = 1
-        extract = "IN"
+        extract = 5 ! extract interior nodes
         mesh%np(5) = hbp + 2
         mesh%np(6) = hbp + 1
         mesh%mninds = (mesh%np(6)-1)**2
       ELSE
         space = -1
-        extract = "NO"
+        extract = 0 ! return all nodes
       ENDIF     
       
 
@@ -123,6 +123,7 @@
       INTEGER :: hbp
       INTEGER :: el,et
       INTEGER :: np(6),nnds(6)
+      INTEGER :: ext
       REAL(rp), DIMENSION(:,:,:), ALLOCATABLE :: psic
 
       space = 1      
@@ -130,10 +131,11 @@
       np = mesh%np        
       np(5) = 3
       np(6) = 2
+      ext = 5    ! extract interior node
       
       nnds = mesh%nnds
       
-      CALL shape_functions_eltypes_at_hbp(space,nel_type,np,psic,ext="IN",nnds=nnds)      
+      CALL shape_functions_eltypes_at_hbp(space,nel_type,np,psic,ext=ext,nnds=nnds)      
       
       CALL bathy_coordinates(mesh%ne,nnds,nverts,mesh%el_type,mesh%elxy,psic,mesh%elxy_center)     
   
