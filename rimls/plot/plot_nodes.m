@@ -120,6 +120,12 @@ ninds = fscanf(fid7,'%g',1) ;
 rimls_vnds = fscanf(fid7,'%g %g %g \n', [3 ninds])' ;
 fclose(fid7);
 
+fid9 = fopen([out_dir,'curved_element_nodes.d']);
+nends = fscanf(fid9,'%g',1) ;
+cel_nds = fscanf(fid9,'%g %g \n', [2 nends])' ;
+fclose(fid9);
+
+
 % fid8 = fopen([out_dir,'random_pts.d']);
 % ne = fscanf(fid8,'%g',1) ;
 % random_pts = fscanf(fid8,'%g %g %g \n', [3 ne])' ;
@@ -204,6 +210,7 @@ hold on
 plot(xplot,yplot,'ro','MarkerSize',6,'MarkerFaceColor','r')
 plot(base_nds(:,1),base_nds(:,2),'g.')
 plot(base_centers(:,1),base_centers(:,2),'bo','MarkerSize',4,'MarkerFaceColor','b')
+plot(cel_nds(:,1),cel_nds(:,2),'co','MarkerSize',4,'MarkerFaceColor','c')
 drawNGonMesh4( eval_xy, horzcat(eval_nelnds,eval_ect), 'ElNum', 'off', 'NodeNum', 'off', 'k' )
 
 % Plot of base grid bathymetry nodes

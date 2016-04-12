@@ -45,7 +45,8 @@
       CALL init_vandermonde(nel_type,base%np)
       
       CALL write_normals()
-      CALL write_linear_nodes(eval)      
+      CALL write_linear_nodes(eval)  
+      CALL write_curved_coordinates(eval)      
       
       
       CALL compute_surface()

@@ -50,8 +50,61 @@
       
       CLOSE(13)         
 
+      
       RETURN
       END SUBROUTINE write_linear_nodes
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+     SUBROUTINE write_curved_coordinates(mesh)
+     
+     IMPLICIT NONE
+     
+     TYPE(grid) :: mesh 
+     INTEGER :: i,ed,pt
+     INTEGER :: ged,el,et
+     INTEGER :: nlist,nnodes
+     INTEGER :: found
+     INTEGER :: el_list(mesh%ne)    
+     
+     nlist = 0
+     nnodes = 0
+     DO ed = 1,mesh%nnfbed
+       ged = mesh%nfbedn(ed)
+       el = mesh%ged2el(1,ged)
+       et = mesh%el_type(el)
+       
+       found = 0
+search:DO i = 1,nlist
+         IF (el == el_list(i)) THEN
+           found = 1           
+           EXIT search       
+         ENDIF
+       ENDDO search
+       
+       IF (found == 0) THEN
+         nlist = nlist + 1     
+         el_list(nlist) = el
+         
+         nnodes = nnodes + mesh%nnds(et)
+       ENDIF
+     ENDDO
+     
+     OPEN(unit=10,file=TRIM(out_direc) // 'curved_element_nodes.d')
+     WRITE(10,*) nnodes
+     DO i = 1,nlist
+       el = el_list(i)
+       et = mesh%el_type(el)
+       DO pt = 1,mesh%nnds(et)
+         WRITE(10,*) mesh%elxy(pt,el,1), mesh%elxy(pt,el,2)
+       ENDDO
+     ENDDO
+     CLOSE(10)
+     
+     RETURN
+     END SUBROUTINE write_curved_coordinates
+
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -138,10 +191,10 @@
       WRITE(11,*) mesh%nn
       DO nd = 1,mesh%nn
           WRITE(11,*) (mesh%xyh_vertex(1,nd,j), j = 1,3)
-      ENDDO
-      
+      ENDDO      
       CLOSE(11)        
 
+            
       RETURN
       END SUBROUTINE write_rimls_nodes
       
