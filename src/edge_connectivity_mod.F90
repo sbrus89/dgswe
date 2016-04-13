@@ -382,7 +382,7 @@
       INTEGER, DIMENSION(:), ALLOCATABLE :: fbedn_temp
       
       
-      ALLOCATE(nfbedn_temp(nbed),nfbednn_temp(nbed,2),fbedn_temp(nbed), STAT=alloc_status)
+      ALLOCATE(nfbedn_temp(nbed),nfbednn_temp(nbed,3),fbedn_temp(nbed), STAT=alloc_status)
       IF (alloc_status /= 0) THEN
         PRINT*, "Allocation error"
         CALL abort()
@@ -425,6 +425,7 @@
                 nfbedn_temp(nnfbed) = ged
                 nfbednn_temp(nnfbed,1) = seg
                 nfbednn_temp(nnfbed,2) = n1bed
+                nfbednn_temp(nnfbed,3) = nd                
                 recv_edge(ged) = 0
                 ed_type(ged) = 10
                 found = 1
@@ -455,12 +456,12 @@
         ENDDO
       ENDDO
       
-      ALLOCATE(nfbedn(nnfbed),nfbednn(nnfbed,2),fbedn(nfbed), STAT=alloc_status)
+      ALLOCATE(nfbedn(nnfbed),nfbednn(nnfbed,3),fbedn(nfbed), STAT=alloc_status)
       DEALLOCATE(bedn, STAT=alloc_status)
       
       
       nfbedn(1:nnfbed) = nfbedn_temp(1:nnfbed)
-      nfbednn(1:nnfbed,1:2) = nfbednn_temp(1:nnfbed,1:2)
+      nfbednn(1:nnfbed,1:3) = nfbednn_temp(1:nnfbed,1:3)
       fbedn(1:nfbed) = fbedn_temp(1:nfbed)
 
       END SUBROUTINE find_flow_edges
