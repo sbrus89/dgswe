@@ -49,13 +49,13 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
 
 
-      SUBROUTINE write_spline(n,seg)
+      SUBROUTINE write_spline(n,bou)
       
       USE globals, ONLY: rp,ax,bx,cx,dx,ay,by,cy,dy,dt
       
       IMPLICIT NONE
            
-      INTEGER :: n,seg      
+      INTEGER :: n,bou      
       INTEGER :: i
       REAL(rp) :: t
       
@@ -64,10 +64,10 @@
 
       t = 0d0
       DO i = 1,n-1        
-        WRITE(30,"(9(E25.12,1x))"), ax(i,seg),bx(i,seg),cx(i,seg),dx(i,seg),ay(i,seg),by(i,seg),cy(i,seg),dy(i,seg),t
-        t = t + dt(i,seg)
+        WRITE(30,"(9(E25.12,1x))"), ax(i,bou),bx(i,bou),cx(i,bou),dx(i,bou),ay(i,bou),by(i,bou),cy(i,bou),dy(i,bou),t
+        t = t + dt(i,bou)
       ENDDO
-      WRITE(30,"(9(E25.12,1x))"), ax(n,seg),0d0,0d0,0d0,ay(n,seg),0d0,0d0,0d0,t
+      WRITE(30,"(9(E25.12,1x))"), ax(n,bou),0d0,0d0,0d0,ay(n,bou),0d0,0d0,0d0,t
 
       
       

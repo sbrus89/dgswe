@@ -1,5 +1,5 @@
 
-      SUBROUTINE find_edge(pt1,pt2,xm,el_in,led,base_seg,base_bed)
+      SUBROUTINE find_edge(pt1,pt2,xm,el_in,led,base_bou,base_bed)
       
       USE globals, ONLY: rp,base,eval,nverts
       
@@ -10,9 +10,9 @@
       INTEGER, INTENT(IN) :: el_in      
       INTEGER, INTENT(IN) :: led(4)
       
-      INTEGER, INTENT(OUT) :: base_bed,base_seg     
+      INTEGER, INTENT(OUT) :: base_bed,base_bou     
       
-      INTEGER :: nv,ged,seg,n1    
+      INTEGER :: nv,ged,bou,n1    
       INTEGER :: i,j,ed
       INTEGER :: found
       INTEGER :: n1bed,n2bed,n1ed1,n2ed1
@@ -37,14 +37,14 @@
         DO ed = 1,base%nnfbed
           
           IF (ged == base%nfbedn(ed)) THEN
-            seg = base%nfbednn(ed,1)
+            bou = base%nfbednn(ed,1)
             n1 = base%nfbednn(ed,3)
             
             found = 1
-            base_seg = seg
+            base_bou = bou
             base_bed = n1
             
-            PRINT*, base_seg,base_bed
+            PRINT*, base_bou,base_bed
             
             EXIT edge
           ENDIF
@@ -68,7 +68,7 @@
         x2(2) = eval%xy(2,pt2)        
         
 
- bseg2: DO ed = 1,base%nnfbed
+   bnd: DO ed = 1,base%nnfbed
               
           ged = base%nfbedn(ed)
           n1bed = base%ged2nn(1,ged)
@@ -98,11 +98,11 @@
           
           IF ((r>=-1d0-eps .and. r<=1d0+eps) ) THEN
           
-            seg = base%nfbednn(ed,1)
+            bou = base%nfbednn(ed,1)
             n1 = base%nfbednn(ed,3)
             
             found = 1
-            base_seg = seg
+            base_bou = bou
             base_bed = n1 
           
 !             PRINT*, "n1bed = ",n1bed, "n2bed = ",n2bed 
@@ -115,13 +115,13 @@
 !             PRINT*, "XM = ", xm(1), "YM = ", xm(2)
 !             PRINT*, "X2 = ", x2(1), "Y2 = ", x2(2)   
 
-            EXIT bseg2
+            EXIT bnd
             
           ENDIF          
             
               
               
-       ENDDO bseg2     
+       ENDDO bnd     
        
        IF (found == 0) THEN
          PRINT*, "BOUNDARY EDGE NOT FOUND"

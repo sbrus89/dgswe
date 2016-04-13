@@ -22,28 +22,28 @@
       
       INTEGER :: num
       INTEGER :: nmax
-      INTEGER :: nd,seg,i,j,skip
+      INTEGER :: nd,bou,i,j,skip
       INTEGER :: el,et,nv,ged,led,edt
-      INTEGER :: segtype
+      INTEGER :: btype
 
       
       ! Count no normal flow boundaries and nodes
       
-      num = 0       ! number of no normal flow segments
-      nmax = 0      ! max number of nodes in any no normal flow segment
+      num = 0       ! number of no normal flow boundaries
+      nmax = 0      ! max number of nodes in any no normal flow boundary
       nfbnds = 0    ! number of total no normal flow boundary nodes
-      DO seg = 1,base%nbou
-        segtype = base%fbseg(2,seg)
-        IF( segtype == 0 .OR. segtype == 10 .OR. segtype == 20  .OR. &   ! land boundaries
-            segtype == 1 .OR. segtype == 11 .OR. segtype == 21 ) THEN    ! island boundaries
+      DO bou = 1,base%nbou
+        btype = base%fbseg(2,bou)
+        IF( btype == 0 .OR. btype == 10 .OR. btype == 20  .OR. &   ! land boundaries
+            btype == 1 .OR. btype == 11 .OR. btype == 21 ) THEN    ! island boundaries
         
           num = num + 1
           
-          IF (base%fbseg(1,seg) > nmax) THEN
-            nmax = base%fbseg(1,seg)
+          IF (base%fbseg(1,bou) > nmax) THEN
+            nmax = base%fbseg(1,bou)
           ENDIF
           
-          DO j = 1,base%fbseg(1,seg)
+          DO j = 1,base%fbseg(1,bou)
             nfbnds = nfbnds + 1            
           ENDDO
           
@@ -57,13 +57,13 @@
       ALLOCATE(fbnds(nfbnds),fbnds_xy(2,nfbnds))
       
       nfbnds = 0
-      DO seg = 1,base%nbou
-        segtype = base%fbseg(2,seg)
-        IF( segtype == 0 .OR. segtype == 10 .OR. segtype == 20  .OR. &   ! land boundaries
-            segtype == 1 .OR. segtype == 11 .OR. segtype == 21 ) THEN    ! island boundaries
+      DO bou = 1,base%nbou
+        btype = base%fbseg(2,bou)
+        IF( btype == 0 .OR. btype == 10 .OR. btype == 20  .OR. &   ! land boundaries
+            btype == 1 .OR. btype == 11 .OR. btype == 21 ) THEN    ! island boundaries
                             
-          DO j = 1,base%fbseg(1,seg)
-            nd = base%fbnds(j,seg)
+          DO j = 1,base%fbseg(1,bou)
+            nd = base%fbnds(j,bou)
             
             skip = 0           ! skip duplicate nodes
             DO i = 1,nfbnds
@@ -113,7 +113,7 @@
 
       PRINT "(A)", " "
       PRINT "(A,I5)", "Total number of type 0 normal flow boundaries ",num
-      PRINT "(A,I5)", "Max number of nodes in a flow boundary segment ",nmax
+      PRINT "(A,I5)", "Max number of nodes in a flow boundary ",nmax
       PRINT "(A)", " "
       
       ALLOCATE(ax(nmax,num),cx(nmax,num),bx(nmax-1,num),dx(nmax-1,num))
@@ -136,14 +136,14 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
 
       
-      SUBROUTINE calc_cubic_spline(coord,seg,n,sig,a,b,c,d,dt)
+      SUBROUTINE calc_cubic_spline(coord,bou,n,sig,a,b,c,d,dt)
 
       USE globals, ONLY: base
       
       IMPLICIT NONE
       
       INTEGER, INTENT(IN) :: coord
-      INTEGER, INTENT(IN) :: seg
+      INTEGER, INTENT(IN) :: bou
       INTEGER, INTENT(IN) :: n
       INTEGER :: i      
       INTEGER :: info
@@ -161,11 +161,11 @@
       
         dt(i) = 1d0/(real(n,rp)-1d0)
         
-!         x1 = base%xy(1,base%fbnds(i,seg))
-!         y1 = base%xy(2,base%fbnds(i,seg))
+!         x1 = base%xy(1,base%fbnds(i,bou))
+!         y1 = base%xy(2,base%fbnds(i,bou))
 !         
-!         x2 = base%xy(1,base%fbnds(i+1,seg))
-!         y2 = base%xy(2,base%fbnds(i+1,seg))
+!         x2 = base%xy(1,base%fbnds(i+1,bou))
+!         y2 = base%xy(2,base%fbnds(i+1,bou))
 !         
 !         dt(i) = sqrt((x2-x1)**2 + (y2-y1)**2)
       
@@ -174,7 +174,7 @@
 
       ! Load nodal boundary coordinates 
       DO i = 1,n
-        a(i) = base%xy(coord,base%fbnds(i,seg))
+        a(i) = base%xy(coord,base%fbnds(i,bou))
       ENDDO      
      
 

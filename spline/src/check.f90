@@ -9,14 +9,14 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-      SUBROUTINE check_angle(seg,nd,dt,ti,ax,bx,cx,dx,ay,by,cy,dy)
+      SUBROUTINE check_angle(bou,nd,dt,ti,ax,bx,cx,dx,ay,by,cy,dy)
       
       USE globals, ONLY: base,theta_tol
       USE calc_spline, ONLY: newton      
       
       IMPLICIT NONE     
       
-      INTEGER, INTENT(IN) :: nd,seg
+      INTEGER, INTENT(IN) :: nd,bou
       REAL(rp), INTENT(IN) :: dt,ti
       REAL(rp), INTENT(INOUT) :: ax,bx,cx,dx,ay,by,cy,dy      
       
@@ -30,20 +30,20 @@
       REAL(rp) :: xi(3),yi(3)
       REAL(rp) :: r
 
-      n = base%fbseg(1,seg)    ! n nodes, n-1 subintervals
+      n = base%fbseg(1,bou)    ! n nodes, n-1 subintervals
       
-      n1bed = base%fbnds(nd,seg)
-      n2bed = base%fbnds(nd+1,seg) 
+      n1bed = base%fbnds(nd,bou)
+      n2bed = base%fbnds(nd+1,bou) 
       IF (nd == n-1) THEN
-        n3bed = base%fbnds(2,seg)
+        n3bed = base%fbnds(2,bou)
       ELSE
-        n3bed = base%fbnds(nd+2,seg)            
+        n3bed = base%fbnds(nd+2,bou)            
       ENDIF
             
       IF (nd == 1) THEN
-        n4bed = base%fbnds(n-1,seg)
+        n4bed = base%fbnds(n-1,bou)
       ELSE
-        n4bed = base%fbnds(nd-1,seg)            
+        n4bed = base%fbnds(nd-1,bou)            
       ENDIF           
             
       n1x = base%xy(1,n1bed)
@@ -94,7 +94,7 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-      SUBROUTINE check_deformation(seg,nd,dt,ti,ax,bx,cx,dx,ay,by,cy,dy)
+      SUBROUTINE check_deformation(bou,nd,dt,ti,ax,bx,cx,dx,ay,by,cy,dy)
       
       USE globals, ONLY: base,deform_tol
       USE find_element, ONLY: in_element
@@ -102,7 +102,7 @@
       
       IMPLICIT NONE
       
-      INTEGER, INTENT(IN) :: seg,nd
+      INTEGER, INTENT(IN) :: bou,nd
       REAL(rp), INTENT(IN) :: dt,ti
       REAL(rp), INTENT(INOUT) :: ax,bx,cx,dx,ay,by,cy,dy
       INTEGER :: i
@@ -119,8 +119,8 @@
       INTEGER :: el_in,leds(4) 
         
 
-        n1 = base%fbnds(nd,seg)
-        n2 = base%fbnds(nd+1,seg) 
+        n1 = base%fbnds(nd,bou)
+        n2 = base%fbnds(nd+1,bou) 
 
         xn1(1) = base%xy(1,n1)
         xn1(2) = base%xy(2,n1)

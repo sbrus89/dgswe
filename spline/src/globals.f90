@@ -45,13 +45,13 @@
         REAL(rp), ALLOCATABLE, DIMENSION(:) :: h
         INTEGER, ALLOCATABLE, DIMENSION(:,:) :: bnd_flag 
 
-        INTEGER :: nope ! number of open boundary segents
-        INTEGER, ALLOCATABLE, DIMENSION(:) :: obseg ! number of nodes in each open boundary segment
+        INTEGER :: nope ! number of open boundaries
+        INTEGER, ALLOCATABLE, DIMENSION(:) :: obseg ! number of nodes in each open boundary
         INTEGER :: neta ! total elevation specified boundary nodes
         INTEGER, ALLOCATABLE, DIMENSION(:,:) :: obnds ! open boundary nodes
 
-        INTEGER :: nbou  ! number of normal flow boundary segments
-        INTEGER, ALLOCATABLE, DIMENSION(:,:) :: fbseg ! number of nodes and type of each normal flow boundary segment
+        INTEGER :: nbou  ! number of normal flow boundaries
+        INTEGER, ALLOCATABLE, DIMENSION(:,:) :: fbseg ! number of nodes and type of each normal flow boundary
         INTEGER :: nvel  ! total number of normal flow boundary nodes
         INTEGER, ALLOCATABLE, DIMENSION(:,:) :: fbnds ! normal flow boundary nodes
       
