@@ -87,11 +87,11 @@
       INTEGER, ALLOCATABLE, DIMENSION(:) :: nfbnd2el
       INTEGER, ALLOCATABLE, DIMENSION(:,:) :: fbnd2el
       
-      
-      
-      REAL(rp), ALLOCATABLE, DIMENSION(:) :: ax,bx,cx,dx
-      REAL(rp), ALLOCATABLE, DIMENSION(:) :: ay,by,cy,dy      
-      REAL(rp), ALLOCATABLE, DIMENSION(:) :: dt 
+
+      REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: ax,bx,cx,dx
+      REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: ay,by,cy,dy      
+      REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: dt 
+
       
       REAL(rp), ALLOCATABLE, DIMENSION(:) :: rpts
  
@@ -99,10 +99,10 @@
       TYPE(grid) :: base
       TYPE(grid) :: eval   
       
-      REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: V
-      REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: l
-      REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: dldr
-      REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: dlds      
+!       REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: V
+!       REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: l
+!       REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: dldr
+!       REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: dlds      
       INTEGER, ALLOCATABLE, DIMENSION(:,:) :: ipiv                
       
       CHARACTER(50) :: gitSHA

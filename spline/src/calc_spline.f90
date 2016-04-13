@@ -116,9 +116,9 @@
       PRINT "(A,I5)", "Max number of nodes in a flow boundary segment ",nmax
       PRINT "(A)", " "
       
-      ALLOCATE(ax(nmax),cx(nmax),bx(nmax-1),dx(nmax-1))
-      ALLOCATE(ay(nmax),cy(nmax),by(nmax-1),dy(nmax-1)) 
-      ALLOCATE(dt(nmax))
+      ALLOCATE(ax(nmax,num),cx(nmax,num),bx(nmax-1,num),dx(nmax-1,num))
+      ALLOCATE(ay(nmax,num),cy(nmax,num),by(nmax-1,num),dy(nmax-1,num)) 
+      ALLOCATE(dt(nmax,num))
       
       ALLOCATE(rpts(ctp+1))
       
@@ -149,9 +149,9 @@
       INTEGER :: info
       
       REAL(rp), INTENT(IN) :: sig
-      REAL(rp), INTENT(OUT) , DIMENSION(n) :: a
-      REAL(rp), INTENT(OUT), DIMENSION(n) :: b,c,d
-      REAL(rp), INTENT(OUT), DIMENSION(n) :: dt
+      REAL(rp), INTENT(OUT) , DIMENSION(:) :: a
+      REAL(rp), INTENT(OUT), DIMENSION(:) :: b,c,d
+      REAL(rp), INTENT(OUT), DIMENSION(:) :: dt
       REAL(rp) :: mult
       REAL(rp) :: x1,y1,x2,y2
       REAL(rp), DIMENSION(n) :: Ml,Md,Mu,v                 

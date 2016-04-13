@@ -12,12 +12,12 @@
       USE find_element, ONLY: in_element,check_elem,find_element_init 
 
       IMPLICIT NONE
-      INTEGER :: i,j,k,n,seg,num,nmax,qpts,btype
+      INTEGER :: i,j,k,n,seg,num,nmax,qpts,btype,ebou
       INTEGER :: el,eln,nd,ndn,led,n1ed1,n2ed1,n1bed,n2bed,nvert
       INTEGER :: el_in,found
       INTEGER :: segtype
       INTEGER :: n1,n2
-      INTEGER :: base_bed
+      INTEGER :: base_bed,base_seg
       INTEGER :: neval,nbase
       REAL(rp) :: htest,ti,tpt,r,ra,xs,ys
       REAL(rp) :: d1,d2,d3,t1,t2,xr(2),xa(2)
@@ -32,24 +32,11 @@
       
 
 
-
-        
-
-      
       PRINT "(A)", " "
       
       CALL version()
       
       CALL read_input()
-      
-      eind = INDEX(ADJUSTL(TRIM(eval%grid_file)),".",.false.)   
-      name = ADJUSTL(TRIM(eval%grid_file(1:eind-1)))
-      WRITE(ctp_char,"(I1)") ctp
-
-      OPEN(unit=30,file='spline.out')   
-      OPEN(unit=60,file='eval_nodes.out') 
-      OPEN(unit=90,file='max_deform.out')
-      OPEN(unit=40,file=ADJUSTL(TRIM(name)) // "_ctp" // ctp_char // ".cb") 
       
       CALL sizes()
 
@@ -70,15 +57,15 @@
       ALLOCATE(x(ctp+1),y(ctp+1))
 
     
-
+      OPEN(unit=30,file='spline.out')   
+      OPEN(unit=90,file='max_deform.out')
+    
       WRITE(30,*) num
-      WRITE(60,*) num
       WRITE(90,*) num
       
-      WRITE(40,"(I8,19x,A)") base%nbou, "! total number of normal flow boundary segments"
-      WRITE(40,"(2(I8),19x,A)") eval%nvel,ctp, "! max number of normal flow nodes, ctp order"    
+ 
 
-      DO seg = 1,base%nbou
+ calc:DO seg = 1,base%nbou
       
         segtype = base%fbseg(2,seg)               
         
@@ -104,7 +91,9 @@
           !!!!!!!!!!!!!!!!!!!
 
 
-          CALL calc_cubic_spline(1,seg,n,sig,ax,bx,cx,dx,dt)
+          CALL calc_cubic_spline(1,seg,n,sig,ax(:,seg),bx(:,seg), &
+                                             cx(:,seg),dx(:,seg), &
+                                             dt(:,seg))
 
 
           !!!!!!!!!!!!!!!!!!!
@@ -112,7 +101,9 @@
           !!!!!!!!!!!!!!!!!!!
 
 
-          CALL calc_cubic_spline(2,seg,n,sig,ay,by,cy,dy,dt)
+          CALL calc_cubic_spline(2,seg,n,sig,ay(:,seg),by(:,seg), &
+                                             cy(:,seg),dy(:,seg), &
+                                             dt(:,seg))
           
                   
            
@@ -126,35 +117,62 @@
           
             ti = 0d0        ! find starting parameter value for found edge
             DO j = 1,nd-1
-              ti = ti + dt(j)
+              ti = ti + dt(j,seg)
             ENDDO            
                                             
-            CALL check_angle(seg,nd,dt(nd),ti,ax(nd),bx(nd),cx(nd),dx(nd),ay(nd),by(nd),cy(nd),dy(nd))            
+            CALL check_angle(seg,nd,dt(nd,seg),ti,ax(nd,seg),bx(nd,seg),cx(nd,seg),dx(nd,seg), &
+                                                  ay(nd,seg),by(nd,seg),cy(nd,seg),dy(nd,seg))            
                                               
-            CALL check_deformation(seg,nd,dt(nd),ti,ax(nd),bx(nd),cx(nd),dx(nd),ay(nd),by(nd),cy(nd),dy(nd))                           
+            CALL check_deformation(seg,nd,dt(nd,seg),ti,ax(nd,seg),bx(nd,seg),cx(nd,seg),dx(nd,seg), &
+                                                        ay(nd,seg),by(nd,seg),cy(nd,seg),dy(nd,seg))                           
                         
           ENDDO          
 
 
 
-          CALL write_spline(n)
+          CALL write_spline(n,seg)      
           
+        ENDIF
+      ENDDO calc
+        
+      DO i = 1,10  
+        PRINT*,""  
+      ENDDO
+      
+      
+      
+      
+      
+      
+      eind = INDEX(ADJUSTL(TRIM(eval%grid_file)),".",.false.)   
+      name = ADJUSTL(TRIM(eval%grid_file(1:eind-1)))
+      WRITE(ctp_char,"(I1)") ctp      
+      
+      OPEN(unit=60,file='eval_nodes.out')       
+      OPEN(unit=40,file=ADJUSTL(TRIM(name)) // "_ctp" // ctp_char // ".cb")    
+      
+      WRITE(40,"(I8,19x,A)") eval%nbou, "! total number of normal flow boundary segments"
+      WRITE(40,"(2(I8),19x,A)") eval%nvel,ctp, "! max number of normal flow nodes, ctp order"  
+      
+      WRITE(60,*) eval%nbou      
           
-          
-          !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-          ! evaluate spline at eval grid points
-          !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!         
-  
-          neval = eval%fbseg(1,seg)
-          segtype = eval%fbseg(2,seg)
+      DO ebou = 1,eval%nbou
+        !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        ! evaluate spline at eval grid points
+        !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!         
+        
+        neval = eval%fbseg(1,ebou)
+        segtype = eval%fbseg(2,ebou)
+        IF( segtype == 0 .OR. segtype == 10 .OR. segtype == 20  .OR. &   ! land boundaries
+             segtype == 1 .OR. segtype == 11 .OR. segtype == 21 ) THEN    ! island boundaries          
           
           WRITE(40,"(2(I8),19x,A)") neval,segtype, "! number of nodes in segment, boundary type"            
           WRITE(60,*) ctp*(neval-1) + 1
 
           DO i = 1,neval-1  
              
-            n1 = eval%fbnds(i,seg)
-            n2 = eval%fbnds(i+1,seg)
+            n1 = eval%fbnds(i,ebou)
+            n2 = eval%fbnds(i+1,ebou)
                    
             n1x = eval%xy(1,n1)
             n1y = eval%xy(2,n1)
@@ -186,9 +204,10 @@
               
               PRINT*, "FINDING ELEMENT FOR POINT: ", i, " NODE: ",n1
               CALL in_element(xa,base%el_type,base%elxy,el_in,eds)   
-              CALL find_edge(seg,n1,n2,xa,el_in,eds,base_bed)  ! find base edge (to get correct spline coefficients) 
+              CALL find_edge(n1,n2,xa,el_in,eds,base_seg,base_bed)  ! find base edge (to get correct spline coefficients) 
               
-              nd = base_bed       
+              nd = base_bed 
+              seg = base_seg
               
               xr(1) = .5d0*(1d0-r)*n1x + .5d0*(1d0+r)*n2x
               xr(2) = .5d0*(1d0-r)*n1y + .5d0*(1d0+r)*n2y                
@@ -201,11 +220,13 @@
             
               ti = 0d0        ! find starting parameter value for found edge
               DO k = 1,nd-1
-                ti = ti + dt(k)
+                ti = ti + dt(k,seg)
               ENDDO              
                       
                    
-              CALL newton(r,dt(nd),ti,xr,ax(nd),bx(nd),cx(nd),dx(nd),ay(nd),by(nd),cy(nd),dy(nd),x(j+1),y(j+1))
+              CALL newton(r,dt(nd,seg),ti,xr,ax(nd,seg),bx(nd,seg),cx(nd,seg),dx(nd,seg), &
+                                             ay(nd,seg),by(nd,seg),cy(nd,seg),dy(nd,seg), &
+                                             x(j+1),y(j+1))
               
 
 !               ! Try new initial guess if minimum was not found in (-1,1) interval              
@@ -241,6 +262,7 @@
         ELSE
         
           WRITE(40,"(2(I8),19x,A)") 0,segtype, "! Flow-specified normal flow boundary"
+          WRITE(60,*) 0
               
         ENDIF 
         
