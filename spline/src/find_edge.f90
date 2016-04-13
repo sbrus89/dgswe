@@ -32,28 +32,6 @@
        
  edge: DO i = 1,nv
          ged = base%el2ged(el_in,led(i))
-
-!          n1ed1 = base%ged2nn(1,ged)
-!          n2ed1 = base%ged2nn(2,ged)
-!                 
-!                          
-!    bseg: DO j = 1,base%fbseg(1,seg)-1
-!               
-!            n1bed = base%fbnds(j,seg)
-!            n2bed = base%fbnds(j+1,seg)                    
-!                                                         
-!            IF(((n1ed1 == n1bed).AND.(n2ed1 == n2bed)).OR. &
-!               ((n1ed1 == n2bed).AND.(n2ed1 == n1bed))) THEN
-!               PRINT*, "n1bed = ",n1bed, "n2bed = ",n2bed    
-! !             PRINT*, n1bed, base%xy(1,n1bed), base%xy(2,n1bed)
-! 
-!               found = 1                   
-!               base_bed = j
-!                 
-!               EXIT edge
-!            ENDIF         
-!               
-!         ENDDO bseg
         
         
         DO ed = 1,base%nnfbed
@@ -89,15 +67,13 @@
         x2(1) = eval%xy(1,pt2)
         x2(2) = eval%xy(2,pt2)        
         
-!  bseg2: DO j = 1,base%fbseg(1,seg)-1
+
  bseg2: DO ed = 1,base%nnfbed
               
           ged = base%nfbedn(ed)
           n1bed = base%ged2nn(1,ged)
           n2bed = base%ged2nn(2,ged)
           
-!           n1bed = base%fbnds(j,seg)
-!           n2bed = base%fbnds(j+1,seg)             
           
           x3(1) = base%xy(1,n1bed)
           x3(2) = base%xy(2,n1bed)
