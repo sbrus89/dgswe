@@ -70,23 +70,23 @@ $(ODIR) :
 	mkdir -p $@
 	
 version:
-	@sed -i '10 c \      gitBranch = "$(GIT_BRANCH)" ' $(VPATH)version.F90
-	@sed -i '11 c \      gitSHA = "$(GIT_SHA) $(GIT_MOD)" ' $(VPATH)version.F90
-	@sed -i '12 c \      compiler_version = "$(FC_VERSION)" ' $(VPATH)version.F90
-	@sed -i '13 c \      compiler_flags = "$(FFLAGS)" ' $(VPATH)version.F90
-	@sed -i '14 c \      modified_files = "$(GIT_MFILES)" ' $(VPATH)version.F90
-	@sed -i '15 c \      compile_date = "$(DATE)" ' $(VPATH)version.F90
-	@sed -i '16 c \      host = "$(NAME)" ' $(VPATH)version.F90	
+	@sed -i '10 c \      gitBranch = "$(GIT_BRANCH)" ' ../../src/version.F90
+	@sed -i '11 c \      gitSHA = "$(GIT_SHA) $(GIT_MOD)" ' ../../src/version.F90
+	@sed -i '12 c \      compiler_version = "$(FC_VERSION)" ' ../../src/version.F90
+	@sed -i '13 c \      compiler_flags = "$(FFLAGS)" ' ../../src/version.F90
+	@sed -i '14 c \      modified_files = "$(GIT_MFILES)" ' ../../src/version.F90
+	@sed -i '15 c \      compile_date = "$(DATE)" ' ../../src/version.F90
+	@sed -i '16 c \      host = "$(NAME)" ' ../../src/version.F90	
 	
 ########################################################################
 #                            File Targets                              #
 ########################################################################	
 
-$(ODIR)kdtree2.o: kdtree2.F
+$(ODIR)kdtree2.o: ../../src/kdtree2.F
 	$(FC) $(FFLAGS) -c $< -o $@
 	mv kdtree2_*.mod  $(ODIR)
 
-$(ODIR)lapack_interfaces.o : lapack_interfaces.f90
+$(ODIR)lapack_interfaces.o : ../../src/lapack_interfaces.F90
 	$(FC) $(FFLAGS) -c $< -o $@
 	mv lapack_interfaces.mod $(ODIR)
 
@@ -98,7 +98,7 @@ $(ODIR)allocation.o: allocation.f90                             $(ODIR)globals.o
 	$(FC) $(FFLAGS) -c $< -o $@
 	mv allocation.mod $(ODIR)
 
-$(ODIR)basis.o: basis.f90                                       $(ODIR)globals.o
+$(ODIR)basis.o: ../../src/basis.F90                             $(ODIR)globals.o $(ODIR)lapack_interfaces.o
 	$(FC) $(FFLAGS) -c $< -o $@
 	mv basis.mod $(ODIR)
 
@@ -138,7 +138,7 @@ $(ODIR)interp_check.o: interp_check.f90                         $(ODIR)globals.o
 $(ODIR)bathy_interp.o: bathy_interp.F90                         $(ODIR)globals.o  $(ODIR)allocation.o  $(ODIR)basis.o  $(ODIR)read_grid.o  $(ODIR)evaluate.o  $(ODIR)find_element.o 
 	$(FC) $(FFLAGS) -c $< -o $@
 	
-$(ODIR)version.o: version.F90
+$(ODIR)version.o: ../../src/version.F90
 	$(FC) $(FFLAGS) -c $< -o $@
 
 ########################################################################
