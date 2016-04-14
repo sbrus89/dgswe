@@ -13,6 +13,7 @@
       
       USE globals, ONLY: base,theta_tol
       USE calc_spline, ONLY: newton      
+      USE calc_spline, ONLY: eval_cubic_spline
       
       IMPLICIT NONE     
       
@@ -25,10 +26,10 @@
       REAL(rp) :: n1x,n1y,n2x,n2y,n3x,n3y,n4x,n4y
       REAL(rp) :: theta1,theta2   
       REAL(rp) :: edlen
-      REAL(rp) :: x,y
+      REAL(rp) :: x,y,xp,yp
       REAL(rp) :: xr(2)
-      REAL(rp) :: xi(3),yi(3)
-      REAL(rp) :: r
+      REAL(rp) :: xi(4),yi(4),ri(2)
+      REAL(rp) :: r,t
 
       n = base%fbseg(1,bou)    ! n nodes, n-1 subintervals
       
@@ -73,8 +74,8 @@
         xr(1) = .5d0*n1x + .5d0*n2x
         xr(2) = .5d0*n1y + .5d0*n2y
               
-        r = 0d0                                        
-        CALL newton(r,dt,ti,xr,ax,bx,cx,dx,ay,by,cy,dy,x,y) 
+        ri(1) = 0d0                                        
+        CALL newton(ri(1),dt,ti,xr,ax,bx,cx,dx,ay,by,cy,dy,x,y) 
         
         xi(1) = n1x
         xi(2) = x
@@ -84,8 +85,34 @@
         yi(2) = y
         yi(3) = n2y
         
-        r = 0d0
-        CALL quad_interp(r,dt,ti,xi,yi,ax,bx,cx,dx,ay,by,cy,dy)
+        CALL quad_interp(ri(1),dt,ti,xi,yi,ax,bx,cx,dx,ay,by,cy,dy)
+
+!       This was a dumb idea, since it satisfies four constraints from the existing 
+!       spline segment, it results in the same curve.
+!       
+!         xi(1) = n1x
+!         xi(2) = x
+!         xi(4) = n2x
+!         
+!         yi(1) = n1y
+!         yi(2) = y
+!         yi(4) = n2y
+!         
+!         IF (theta1 < theta_tol) THEN
+!           ri(2) = -1d0
+!         ELSE IF (theta2 < theta_tol) THEN
+!           ri(2) = 1d0
+!         ENDIF
+!         
+!         
+!         t = .5d0*dt*(ri(2)+1d0) + ti
+!         CALL eval_cubic_spline(t,ti,ax,bx,cx,dx,x,xp)               
+!         CALL eval_cubic_spline(t,ti,ay,by,cy,dy,y,yp)
+!             
+!         xi(3) = xp
+!         yi(3) = yp
+!           
+!         CALL cubic_interp(1,ri,dt,ti,xi,yi,ax,bx,cx,dx,ay,by,cy,dy)             
               
       ENDIF                
             
