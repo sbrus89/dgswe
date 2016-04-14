@@ -230,8 +230,8 @@
         IF (mod(et,2) == 1) THEN
           CALL tri_blend_coordinates(et,el,ctp,led,mnnds,eddx,elxy)
         ELSE IF (mod(et,2) == 0) THEN
-!         CALL quad_blend_coordinates(et,el,ctp,led,mnnds,eddx,elxy)
-          CALL set_coordinates(nv,el,ctp,led,eddx,elxy)
+          CALL quad_blend_coordinates(et,el,ctp,led,mnnds,eddx,elxy)
+!           CALL set_coordinates(nv,el,ctp,led,eddx,elxy)
         ENDIF
       ELSE
         CALL set_coordinates(nv,el,ctp,led,eddx,elxy)
@@ -304,13 +304,13 @@
 
         
         SELECT CASE(led)
-        CASE (3)
+          CASE (3)
             elr = r  
             edr = er
-        CASE (1)
+          CASE (1)
             elr = s
             edr = es
-        CASE (2)
+          CASE (2)
             elr = s
             edr = es
         END SELECT    
@@ -384,5 +384,119 @@
       
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!        
+
+      SUBROUTINE quad_blend_coordinates(et,el,ctp,led,mnnds,eddx,elxy)
+      
+      USE basis, ONLY: element_nodes,jacobi
+      USE lapack_interfaces
+
+      IMPLICIT NONE
+      
+      INTEGER, INTENT(IN) :: et
+      INTEGER, INTENT(IN) :: el
+      INTEGER, INTENT(IN) :: ctp
+      INTEGER, INTENT(IN) :: led
+      INTEGER, INTENT(IN) :: mnnds
+      REAL(rp), DIMENSION(:,:), INTENT(INOUT) :: eddx
+      REAL(rp), DIMENSION(:,:,:), INTENT(INOUT) :: elxy
+      
+      INTEGER :: i,j,pt
+      INTEGER :: nnd,nrhs
+      INTEGER :: npt_el,npt_ed
+      INTEGER :: ipiv(mnnds),info
+      REAL(rp) :: r(mnnds),s(mnnds)
+      REAL(rp) :: er(mnnds),es(mnnds)
+      REAL(rp) :: elr(mnnds),edr(mnnds)
+      REAL(rp) :: Ved(ctp+1,ctp+1),Vel(mnnds,ctp+1)
+      REAL(rp) :: phi(mnnds)
+      REAL(rp) :: dx(mnnds),dy(mnnds)
+      REAL(rp) :: blend,denom
+      
+      
+
+        CALL element_nodes(et,1,ctp,npt_el,r,s)
+        CALL element_nodes(et,1,ctp,npt_ed,er,es,led)      
+
+        
+        SELECT CASE(led)
+          CASE (4)
+            elr = r  
+            edr = er
+          CASE (1)
+            elr = s
+            edr = es
+          CASE (2)
+            elr = r
+            edr = er
+          CASE (3)
+            elr = s
+            edr = es
+        END SELECT    
+        
+
+
+ 
+        nnd = ctp + 1       
+        
+        DO i = 1,nnd
+          CALL jacobi(0,0,i-1,edr,npt_ed,phi)    
+          DO pt = 1,npt_ed              
+            Ved(pt,i) = phi(pt)
+          ENDDO
+        ENDDO
+        
+        
+
+        CALL DGETRF(nnd,nnd,Ved,nnd,ipiv,info)  
+
+        nrhs = 2
+        CALL DGETRS('N',nnd,nrhs,Ved,nnd,ipiv,eddx,nnd,info)
+   
+        
+        DO i = 1,nnd
+          CALL jacobi(0,0,i-1,elr,npt_el,phi)    
+          DO pt = 1,npt_el              
+            Vel(pt,i) = phi(pt)
+          ENDDO
+        ENDDO
+        
+
+        
+        dx = 0d0
+        dy = 0d0
+        DO j = 1,nnd        
+          DO i = 1,npt_el
+            dx(i) = dx(i) + Vel(i,j)*eddx(j,1)
+            dy(i) = dy(i) + Vel(i,j)*eddx(j,2)            
+          ENDDO
+        ENDDO
+     
+
+ 
+        DO pt = 1,npt_el          
+         
+            SELECT CASE (led)            
+              CASE(4)
+                blend = .5d0*(1d0-s(pt))
+              CASE(1)
+                blend = .5d0*(1d0+r(pt))
+              CASE(2)
+                blend = .5d0*(1d0+s(pt))
+              CASE(3)
+                blend = .5d0*(1d0-r(pt))
+            END SELECT
+          
+          elxy(pt,el,1) = elxy(pt,el,1) + blend*dx(pt)
+          elxy(pt,el,2) = elxy(pt,el,2) + blend*dy(pt)
+        ENDDO
+        
+        
+        
+ 
+ 
+      END SUBROUTINE quad_blend_coordinates
+      
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
       
       END MODULE curvilinear_nodes_mod
