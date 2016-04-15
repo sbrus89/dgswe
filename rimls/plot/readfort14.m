@@ -27,8 +27,16 @@ iv = sort(Val(:,1)) ;
 Val = Val(iv,:) ; 
 
 
-idx = fscanf(fid,'%d %d %d %d %d \n', [5 N(1)])' ;
+% idx = fscanf(fid,'%d %d %d %d %d \n', [5 N(1)])' ;
 
+idx = zeros(N(1),6);
+for i = 1:N(1)
+    line = fgetl(fid);
+    v = sscanf(line,'%d',6)';
+    idx(i,1) = v(1);
+    idx(i,2) = v(2);
+    idx(i,3:v(2)+2) = v(3:v(2)+2);
+end
 
 iv = sort(idx(:,1)) ;
 idx = idx(iv,:) ; 

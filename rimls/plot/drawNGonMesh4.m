@@ -47,7 +47,7 @@ Nel = length(EToV)  ;
 for i = 1: Nel
     
     % Plot polygonal %
-    ngon = EToV(1) ;
+    ngon = EToV(i,1) ;
     vx  = VK(EToV(i,2:ngon+1),:) ;
     for ig = 1: ngon
         ib = ig ;
