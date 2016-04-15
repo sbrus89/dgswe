@@ -56,46 +56,41 @@
       RETURN      
       END SUBROUTINE vandermonde
       
+      
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!      
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!       
-      
-      SUBROUTINE re_vert(mesh)
-      
-      USE globals, ONLY: rp,grid,nel_type
-      USE basis, ONLY: tri_nodes, quad_nodes
-      
-      IMPLICIT NONE
-      
-      INTEGER :: et,pt
-      INTEGER :: n,p
-      REAL(rp) :: r(4),s(4)
-      TYPE(grid) :: mesh
-      
-      DO et = 1,nel_type
-        IF (mod(et,2) == 1) THEN
-          p = mesh%np(1)
-          CALL tri_nodes(1,p,n,r,s)
-        ELSE IF (mod(et,2) == 0) THEN
-          p = mesh%np(2)
-          CALL quad_nodes(1,p,n,r,s)
-        ENDIF
-        
-        DO pt = 1,n
-          mesh%rsre(1,pt,et) = r(pt)
-          mesh%rsre(2,pt,et) = s(pt)
-        ENDDO
-        
-!         PRINT("(4(F15.5))"), (mesh%rsre(1,pt,et), pt = 1,n)
-!         PRINT("(4(F15.5))"), (mesh%rsre(2,pt,et), pt = 1,n)        
-!         PRINT*, " "
-        
-      ENDDO      
-      
-      RETURN
-      END SUBROUTINE re_vert
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+
+      SUBROUTINE eval_pts()
+
+      USE globals, ONLY: rp,nel_type,eval,mnept,nept,ept
+      USE basis, ONLY: tri_nodes,quad_nodes
+
+      IMPLICIT NONE 
+      INTEGER :: i,pt,et
+      
+      mnept = (eval%hbp+1)**2
+      ALLOCATE(ept(mnept,2,nel_type))      
+      
+      DO i = 1,nel_type     
+
+        IF (mod(i,2) == 1) THEN
+          CALL tri_nodes(1,eval%np(5),nept(i),ept(:,1,i),ept(:,2,i))
+        ELSE
+          CALL quad_nodes(1,eval%np(6),nept(i),ept(:,1,i),ept(:,2,i))
+        ENDIF
+                
+      ENDDO
+      
+      mnept = maxval(nept)
+               
+      RETURN
+      END SUBROUTINE eval_pts
+
+      
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!      
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!     
+
 
       SUBROUTINE function_eval()
       
@@ -165,13 +160,14 @@
 
       INTEGER, INTENT(IN) :: ele
       INTEGER, INTENT(IN) :: pte
-      REAL(rp), INTENT(IN), OPTIONAL :: xe(2)      
+      REAL(rp), INTENT(IN), OPTIONAL :: xe(2)    
+      REAL(rp), INTENT(OUT) :: x(2)
+      REAL(rp), INTENT(OUT) :: hb 
+      
       INTEGER :: elb,ete,etb,et
       INTEGER :: npts,nd,n
       INTEGER :: info
-      INTEGER :: exceed
-      REAL(rp), INTENT(OUT) :: x(2)
-      REAL(rp), INTENT(OUT) :: hb      
+      INTEGER :: leds(4)     
       REAL(rp) :: r(2)
       REAL(rp) :: error
 
@@ -194,19 +190,12 @@
           
 !       PRINT*,ele,pte
 !       PRINT*,x(1),x(2)
-      CALL in_element(x(1:2),elb,r(1:2),error,exceed)     
+
+!       CALL in_element(x(1:2),elb,r(1:2),error,exceed)    
+      CALL in_element(x,base%el_type,base%elxy,elb,leds,r)
           
       etb = base%el_type(elb)  ! element type for base element          
-      
-      IF (exceed == 1) THEN
-        PRINT*, "MAX ITERATIONS EXCEEDED IN FINDING R,S COORDINATES"
-        PRINT*, "ERROR: ",error
-        PRINT*, "ELEMENT TYPE: ", etb
-      ELSE 
-!         PRINT*, "error: ",error
-!         PRINT*, "element type: ", etb        
-      ENDIF
-      
+        
         
       IF (mod(etb,2) == 1) THEN
         et = 5

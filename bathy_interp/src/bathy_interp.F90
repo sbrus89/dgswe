@@ -2,10 +2,9 @@
 
       USE globals
       USE allocation
-      USE read_grid
       USE evaluate
       USE basis   
-      USE find_element, ONLY: in_element
+      USE find_element, ONLY: find_element_init
 
       IMPLICIT NONE
 
@@ -21,11 +20,15 @@
 
  
 
-      CALL version () ! print out current git branch/SHA
+      CALL version () ! print out current git branch/SHA          
       
       CALL read_input()  ! read bathy.inp file      
+
+      CALL sizes(base)    
+      CALL sizes(eval)        
       
-      CALL read_grids()  ! read coarse, fine, and base grids     
+      CALL read_grid(base)  ! read coarse, fine, and base grids     
+      CALL read_grid(eval)
       
       CALL connect(base)
       CALL connect(eval)
@@ -34,9 +37,6 @@
       
       CALL vandermonde(base) ! compute Vandermonde matricies
       CALL vandermonde(eval)
-            
-      CALL re_vert(base) ! find reference element verticies
-      CALL re_vert(eval)     
       
       CALL curvilinear(base)
       CALL curvilinear(eval)       
@@ -52,11 +52,12 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
 
       
-      tree_xy  => kdtree2_create(base%vxy, rearrange=.true., sort=.true.)  
-      ALLOCATE(closest(srchdp))   
+      CALL find_element_init(nel_type,nverts,base%np,base%nnds,base%nn,base%xy,base%nepn,base%epn) 
 
       
       ALLOCATE(base%l(base%mnnds,mnept,nel_type+2))
+      ALLOCATE(eval%elhbxy(eval%mnnds,eval%ne,2))        
+      ALLOCATE(eval%hbxy(3,eval%mnnds*eval%ne))          
       
 
       
@@ -102,7 +103,7 @@
         el_in = eval%ged2el(1,ged)
         led_in = eval%ged2led(1,ged)
         et_in = eval%el_type(el_in)
-        nv_in = eval%nverts(et_in)
+        nv_in = nverts(et_in)
         
         DO i = 1,p-1 
         
@@ -134,7 +135,7 @@
         ENDIF            
       
         et_in = eval%el_type(el_in)
-        nv_in = eval%nverts(et_in)        
+        nv_in = nverts(et_in)        
         
         IF (mod(et_in,2) == 1) THEN
           nnds = eval%nnds(5)
@@ -164,7 +165,7 @@
       ! Populate all vertex values
       DO el_in = 1,eval%ne
         et_in = eval%el_type(el_in)
-        nv_in = eval%nverts(et_in)
+        nv_in = nverts(et_in)
         
         DO i = 1,nv_in
           nd = (i-1)*p + 1
@@ -183,17 +184,17 @@
       ! Populate all edge values      
       DO ged = 1,eval%ned            
       
-        IF (eval%bed_flag(ged) == 0) THEN
+        IF (eval%ed_type(ged) == 0) THEN
         
           el_in = eval%ged2el(1,ged)
           led_in = eval%ged2led(1,ged)
           et_in = eval%el_type(el_in)
-          nv_in = eval%nverts(et_in)        
+          nv_in = nverts(et_in)        
                       
           el_ex = eval%ged2el(2,ged)
           led_ex = eval%ged2led(2,ged)
           et_ex = eval%el_type(el_ex)
-          nv_ex = eval%nverts(et_ex)
+          nv_ex = nverts(et_ex)
           
           DO i = 1,p-1
           

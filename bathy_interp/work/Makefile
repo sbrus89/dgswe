@@ -4,9 +4,9 @@ VPATH := ../src/
 ODIR = odir/
 
 FC = ifort
-FFLAGS = -O3 -132 -I$(ODIR) #-Dadcirc
+#FFLAGS = -O3 -132 -I$(ODIR) #-Dadcirc
 # FFLAGS = -O0 -fp-model strict -132 -I$(ODIR) #-Dadcirc
-#FFLAGS = -132 -C -g -traceback -I$(ODIR) #-Dadcirc
+FFLAGS = -132 -C -g -traceback -I$(ODIR) #-Dadcirc
 
 FULLNAME := $(shell hostname)
 NAME := $(strip $(subst ., , $(FULLNAME)))
@@ -44,10 +44,11 @@ endif
 ########################################################################
 
 objects = globals.o kdtree2.o allocation.o basis.o  \
-          connect.o curvilinear.o evaluate.o find_element.o \
+          connect.o curvilinear.o evaluate.o find_element_mod.o \
           read_input.o read_grid.o read_bathy.o write_results.o \
-          eval_pts.o bathy_interp.o lapack_interfaces.o interp_check.o \
-          version.o
+          bathy_interp.o lapack_interfaces.o interp_check.o \
+          grid_file_mod.o shape_functions_mod.o curvilinear_nodes_mod.o  \
+          transformation.o vandermonde.o edge_connectivity_mod.o quit.o version.o
 
 obj := $(patsubst %.o, $(ODIR)%.o,$(objects))
 
@@ -93,6 +94,34 @@ $(ODIR)lapack_interfaces.o : ../../src/lapack_interfaces.F90
 $(ODIR)globals.o: globals.f90                                   $(ODIR)kdtree2.o
 	$(FC) $(FFLAGS) -c $< -o $@
 	mv globals.mod $(ODIR)
+	
+$(ODIR)grid_file_mod.o : ../../src/grid_file_mod.F90            $(ODIR)globals.o $(ODIR)quit.o
+	$(FC) $(FFLAGS) -c $< -o $@
+	mv grid_file_mod.mod $(ODIR)
+	
+$(ODIR)edge_connectivity_mod.o : ../../src/edge_connectivity_mod.F90 $(ODIR)quit.o $(ODIR)globals.o
+	$(FC) $(FFLAGS) -c $< -o $@
+	mv edge_connectivity_mod.mod $(ODIR)	
+	
+$(ODIR)curvilinear_nodes_mod.o : ../../src/curvilinear_nodes_mod.F90  $(ODIR)globals.o $(ODIR)shape_functions_mod.o $(ODIR)transformation.o $(ODIR)basis.o $(ODIR)lapack_interfaces.o
+	$(FC) $(FFLAGS) -c $< -o $@
+	mv curvilinear_nodes_mod.mod $(ODIR)
+	
+$(ODIR)shape_functions_mod.o : ../../src/shape_functions_mod.F90 $(ODIR)globals.o $(ODIR)basis.o $(ODIR)lapack_interfaces.o $(ODIR)vandermonde.o
+	$(FC) $(FFLAGS) -c $< -o $@
+	mv shape_functions_mod.mod $(ODIR)
+
+$(ODIR)transformation.o : ../../src/transformation.F90          $(ODIR)globals.o $(ODIR)basis.o $(ODIR)lapack_interfaces.o $(ODIR)vandermonde.o $(ODIR)shape_functions_mod.o
+	$(FC) $(FFLAGS) -c $< -o $@
+	mv transformation.mod $(ODIR)
+	
+$(ODIR)vandermonde.o : ../../src/vandermonde.F90                $(ODIR)globals.o $(ODIR)basis.o
+	$(FC) $(FFLAGS) -c $< -o $@
+	mv vandermonde.mod $(ODIR)		
+	
+$(ODIR)quit.o : ../../src/quit.F90                              $(ODIR)globals.o
+	$(FC) $(FFLAGS) -c $< -o $@
+	mv quit.mod $(ODIR)	
 
 $(ODIR)allocation.o: allocation.f90                             $(ODIR)globals.o
 	$(FC) $(FFLAGS) -c $< -o $@
@@ -102,15 +131,14 @@ $(ODIR)basis.o: ../../src/basis.F90                             $(ODIR)globals.o
 	$(FC) $(FFLAGS) -c $< -o $@
 	mv basis.mod $(ODIR)
 
-$(ODIR)evaluate.o: evaluate.F90                                 $(ODIR)globals.o  $(ODIR)basis.o  $(ODIR)find_element.o  $(ODIR)lapack_interfaces.o
+$(ODIR)evaluate.o: evaluate.F90                                 $(ODIR)globals.o  $(ODIR)basis.o  $(ODIR)find_element_mod.o  $(ODIR)lapack_interfaces.o
 	$(FC) $(FFLAGS) -c $< -o $@
 	mv evaluate.mod $(ODIR)
 
-$(ODIR)read_grid.o: read_grid.f90                               $(ODIR)globals.o  $(ODIR)allocation.o
+$(ODIR)read_grid.o: read_grid.f90                               $(ODIR)globals.o  $(ODIR)allocation.o $(ODIR)grid_file_mod.o
 	$(FC) $(FFLAGS) -c $< -o $@
-	mv read_grid.mod $(ODIR)
 
-$(ODIR)find_element.o: find_element.f90                         $(ODIR)globals.o  $(ODIR)kdtree2.o  $(ODIR)basis.o  
+$(ODIR)find_element_mod.o: ../../src/find_element_mod.F90       $(ODIR)globals.o  $(ODIR)kdtree2.o  $(ODIR)shape_functions_mod.o $(ODIR)transformation.o $(ODIR)vandermonde.o  
 	$(FC) $(FFLAGS) -c $< -o $@
 	mv find_element.mod $(ODIR)
 
@@ -123,19 +151,16 @@ $(ODIR)read_bathy.o: read_bathy.f90                             $(ODIR)globals.o
 $(ODIR)write_results.o: write_results.f90                       $(ODIR)globals.o
 	$(FC) $(FFLAGS) -c $< -o $@
 
-$(ODIR)eval_pts.o: eval_pts.f90                                 $(ODIR)globals.o  $(ODIR)basis.o
-	$(FC) $(FFLAGS) -c $< -o $@
-
-$(ODIR)connect.o: connect.f90                                   $(ODIR)globals.o 
+$(ODIR)connect.o: connect.f90                                   $(ODIR)globals.o  $(ODIR)edge_connectivity_mod.o
 	$(FC) $(FFLAGS) -c $< -o $@
 	
-$(ODIR)curvilinear.o: curvilinear.f90                           $(ODIR)globals.o 
+$(ODIR)curvilinear.o: curvilinear.f90                           $(ODIR)globals.o  $(ODIR)curvilinear_nodes_mod.o
 	$(FC) $(FFLAGS) -c $< -o $@
 	
 $(ODIR)interp_check.o: interp_check.f90                         $(ODIR)globals.o 
 	$(FC) $(FFLAGS) -c $< -o $@
 	
-$(ODIR)bathy_interp.o: bathy_interp.F90                         $(ODIR)globals.o  $(ODIR)allocation.o  $(ODIR)basis.o  $(ODIR)read_grid.o  $(ODIR)evaluate.o  $(ODIR)find_element.o 
+$(ODIR)bathy_interp.o: bathy_interp.F90                         $(ODIR)globals.o  $(ODIR)allocation.o  $(ODIR)basis.o  $(ODIR)read_grid.o  $(ODIR)evaluate.o  $(ODIR)find_element_mod.o 
 	$(FC) $(FFLAGS) -c $< -o $@
 	
 $(ODIR)version.o: ../../src/version.F90

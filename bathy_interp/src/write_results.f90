@@ -59,7 +59,7 @@
       ENDDO      
       
       DO i = 1,mesh%ned
-        IF (mesh%bed_flag(i) /= 0) THEN
+        IF (mesh%ed_type(i) /= 0) THEN
           flag = 1
         ELSE 
           flag = 0
