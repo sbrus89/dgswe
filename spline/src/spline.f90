@@ -20,7 +20,7 @@
       INTEGER :: base_bed,base_bou
       INTEGER :: neval,nbase
       REAL(rp) :: htest,ti,tpt,r,ra,xs,ys
-      REAL(rp) :: d1,d2,d3,t1,t2,xr(2),xa(2)
+      REAL(rp) :: d1,d2,d3,t1,t2,xr(2),xa(2),rs(2)
       REAL(rp) :: n1x,n1y,n2x,n2y,n3x,n3y,n4x,n4y,edlen
       REAL(rp) :: theta1,theta2
       REAL(rp), ALLOCATABLE, DIMENSION(:) :: x,y
@@ -203,7 +203,7 @@
               xa(2) = .5d0*(1d0-ra)*n1y + .5d0*(1d0+ra)*n2y                                  
               
               PRINT*, "FINDING ELEMENT FOR POINT: ", i, " NODE: ",n1
-              CALL in_element(xa,base%el_type,base%elxy,el_in,eds)   
+              CALL in_element(xa,base%el_type,base%elxy,el_in,eds,rs)   
               CALL find_edge(n1,n2,xa,el_in,eds,base_bou,base_bed)  ! find base edge (to get correct spline coefficients) 
               
               nd = base_bed 

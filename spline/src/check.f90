@@ -135,7 +135,7 @@
       INTEGER :: i
       INTEGER :: n1,n2
       REAL(rp) :: xn1(2),xn2(2)
-      REAL(rp) :: xa(2)
+      REAL(rp) :: xa(2),ra(2)
       REAL(rp) :: xe,ye
       REAL(rp) :: x,y
       REAL(rp) :: xs,ys
@@ -158,7 +158,7 @@
         xa(1) = .5d0*(xn1(1)+xn2(1))
         xa(2) = .5d0*(xn1(2)+xn2(2))
       
-        CALL in_element(xa,base%el_type,base%elxy,el_in,leds)  
+        CALL in_element(xa,base%el_type,base%elxy,el_in,leds,ra)  
         max_dist = deform_tol*base%minedlen(el_in)
         
         r = 0d0 

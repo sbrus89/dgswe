@@ -88,7 +88,7 @@
       INTEGER :: small_flag
       INTEGER :: info,lwork,lda,ldb
       REAL(rp) :: elx(base%mnnds),ely(base%mnnds)
-      REAL(rp) :: xpt(3),xnd(3),xnd_nrm(3),xbar(2)      
+      REAL(rp) :: xpt(3),xnd(3),xnd_nrm(3),xbar(2),rs(2)      
       REAL(rp) :: w,rhs,lhs
       REAL(rp) :: s,t,sv(1),tv(1),x(1),y(1)
       REAL(rp) :: hpt,search_r,tol      
@@ -130,7 +130,7 @@
           
 !           PRINT*, "pt = ", pt, "x = ",xpt(1), "y = ",xpt(2)         
           
-          CALL in_element(xpt(1:2),base%el_type,base%elxy,elin,leds)          
+          CALL in_element(xpt(1:2),base%el_type,base%elxy,elin,leds,rs)          
           et = base%el_type(elin)       
           p = base%np(et)
           

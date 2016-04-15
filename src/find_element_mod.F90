@@ -87,15 +87,16 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!      
       
 
-      SUBROUTINE in_element(xt,el_type,elxy,el_found,leds)
+      SUBROUTINE in_element(xy,el_type,elxy,el_found,leds,rs)
 
       IMPLICIT NONE
               
-      REAL(rp), INTENT(IN) :: xt(2)
+      REAL(rp), INTENT(IN) :: xy(2)
       INTEGER, DIMENSION(:), INTENT(IN) :: el_type
       REAL(rp), DIMENSION(:,:,:), INTENT(IN) :: elxy
       INTEGER, INTENT(OUT) :: el_found          
-      INTEGER, INTENT(OUT), OPTIONAL :: leds(4)
+      INTEGER, INTENT(OUT) :: leds(4)
+      REAL(rp), INTENT(OUT) :: rs(2)
             
       INTEGER :: srch,nd
       INTEGER :: el,eln,clnd,et,n
@@ -106,7 +107,7 @@
             
       
       tol = 1d-5 
-        CALL kdtree2_n_nearest(tp=tree_xy,qv=xt,nn=srchdp,results=closest) ! find what element xt is in               
+        CALL kdtree2_n_nearest(tp=tree_xy,qv=xy,nn=srchdp,results=closest) ! find what element xy is in               
         
         ! Test elements to see which element point is located in    
         found = 0      
@@ -124,7 +125,7 @@ search: DO srch = 1,srchdp
 !             PRINT("(A,I5)"), "     testing element: ", eln                               
 
             ! Compute sum of sub-triangle areas
-            CALL sub_element(xt,eln,el_type,elxy,diff,leds)            
+            CALL sub_element(xy,eln,el_type,elxy,diff,leds,rs)            
             
             IF (diff < min_diff) THEN  ! keep track of element with minimum difference in sum of sub-triangle areas                                  
               min_diff = diff          ! to return if tolerance is not met
@@ -154,7 +155,7 @@ search: DO srch = 1,srchdp
           PRINT*, "ELEMENT NOT FOUND"  
           PRINT*, "USING ELEMENT ", el_found, "(AREA DIFF = ",min_diff, ")"       
 
-          CALL sub_element(xt,el_found,el_type,elxy,diff,leds)           
+          CALL sub_element(xy,el_found,el_type,elxy,diff,leds,rs)           
           
         ENDIF     
  
@@ -167,18 +168,19 @@ search: DO srch = 1,srchdp
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
  
 
-      SUBROUTINE sub_element(xt,eln,el_type,elxy,diff,closest_ed)   
+      SUBROUTINE sub_element(xy,eln,el_type,elxy,diff,closest_ed,rs)   
       
       USE transformation, ONLY: xy2rs
       
       IMPLICIT NONE
       
-      REAL(rp), INTENT(IN) :: xt(2)        
+      REAL(rp), INTENT(IN) :: xy(2)        
       INTEGER, INTENT(IN) :: eln
       INTEGER, DIMENSION(:), INTENT(IN) :: el_type
       REAL(rp), DIMENSION(:,:,:), INTENT(IN) :: elxy          
       REAL(rp), INTENT(OUT) :: diff      
       INTEGER, INTENT(OUT) :: closest_ed(4)
+      REAL(rp), INTENT(OUT) :: rs(2)
       
       INTEGER :: i,j    
       INTEGER :: nv,et,n,npt,nd,p
@@ -205,11 +207,14 @@ search: DO srch = 1,srchdp
         elny(nd) = elxy(nd,eln,2)
       ENDDO
       
-      x(1) = xt(1)
-      y(1) = xt(2)
+      x(1) = xy(1)
+      y(1) = xy(2)
                                                         
       ! Compute the local (r,s) coordinates of the (x,y) point
       CALL xy2rs(et,p,elnx,elny,npt,x,y,r,s)
+      
+      rs(1) = r(1)
+      rs(2) = s(1)
           
       ! Find reference element area
       IF (mod(et,2) == 1) THEN
@@ -242,6 +247,10 @@ search: DO srch = 1,srchdp
           
 !     PRINT("(A,F20.15,A,F20.15)"), "   area = ",area, "   area sum = ", area_sum
 !     PRINT*, " "
+          
+          
+          
+          
           
       diff = abs(area-area_sum) 
       
@@ -303,19 +312,19 @@ search: DO srch = 1,srchdp
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!   
 
 
-      SUBROUTINE check_elem(xt,el_found)      
+      SUBROUTINE check_elem(xy,el_found)      
       
       IMPLICIT NONE
       
 
-      REAL(rp), INTENT(IN) :: xt(2)
+      REAL(rp), INTENT(IN) :: xy(2)
       INTEGER, INTENT(IN) :: el_found
             
       INTEGER :: el,eln,clnd
       INTEGER :: found      
 
                   
-      CALL kdtree2_n_nearest(tp=tree_xy,qv=xt,nn=1,results=closest)              
+      CALL kdtree2_n_nearest(tp=tree_xy,qv=xy,nn=1,results=closest)              
         
   
       found = 0      
