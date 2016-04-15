@@ -63,17 +63,19 @@
       INTEGER :: mp,mnnds
       INTEGER :: info
       
-      mp = MAXVAL(np)
-      ldv = (mp+1)**2
-      ALLOCATE(V(ldv,ldv,nel_type))
-      ALLOCATE(ipiv(ldv,nel_type))
+      IF (vandermonde_init /= 0) THEN
+        mp = MAXVAL(np)
+        ldv = (mp+1)**2
+        ALLOCATE(V(ldv,ldv,nel_type))
+        ALLOCATE(ipiv(ldv,nel_type))
       
-      DO et = 1,nel_type
-        CALL vandermonde_area(et,np(et),nnd,V(:,:,et))
-        CALL DGETRF(nnd,nnd,V(1,1,et),ldv,ipiv(1,et),info)           
-      ENDDO
+        DO et = 1,nel_type
+          CALL vandermonde_area(et,np(et),nnd,V(:,:,et))
+          CALL DGETRF(nnd,nnd,V(1,1,et),ldv,ipiv(1,et),info)           
+        ENDDO
       
-      vandermonde_init = 1
+        vandermonde_init = 1
+      ENDIF
       
       RETURN
       END SUBROUTINE      

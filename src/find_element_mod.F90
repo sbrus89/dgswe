@@ -18,8 +18,6 @@
       INTEGER, DIMENSION(:), ALLOCATABLE :: np
       INTEGER, DIMENSION(:), ALLOCATABLE :: nnds      
       REAL(rp), DIMENSION(:), ALLOCATABLE :: elnx,elny
-      REAL(rp), DIMENSION(:,:,:), ALLOCATABLE :: V
-      INTEGER, DIMENSION(:,:), ALLOCATABLE :: ipiv
       INTEGER :: mnnds
       
 
@@ -30,7 +28,7 @@
 
       SUBROUTINE find_element_init(nel_type,nvertex,nporder,nnodes,nn,xy,nepn,epn)
       
-      USE vandermonde, ONLY: vandermonde_area
+      USE transformation, ONLY: init_vandermonde
       
       IMPLICIT NONE
       
@@ -79,13 +77,7 @@
       mnnds = (mnp+1)**2
       ALLOCATE(elnx(mnnds),elny(mnnds))
       
-      
-      ALLOCATE(V(mnnds,mnnds,nel_type),ipiv(mnnds,nel_type))
-      DO et = 1,nel_type
-        p = np(et)
-        CALL vandermonde_area(et,p,n,V(:,:,et))
-        CALL DGETRF(n,n,V(1,1,et),mnnds,ipiv(1,et),info)           
-      ENDDO
+      CALL init_vandermonde(nel_type,np)            
           
       
       RETURN
@@ -217,8 +209,7 @@ search: DO srch = 1,srchdp
       y(1) = xt(2)
                                                         
       ! Compute the local (r,s) coordinates of the (x,y) point
-!       CALL xy2rs(et,p,elnx,elny,npt,x,y,r,s)
-      CALL rs_coords(et,p,elnx,elny,x,y,r,s)
+      CALL xy2rs(et,p,elnx,elny,npt,x,y,r,s)
           
       ! Find reference element area
       IF (mod(et,2) == 1) THEN
@@ -271,114 +262,6 @@ search: DO srch = 1,srchdp
       
       RETURN
       END SUBROUTINE sub_element    
-      
-      
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!     
-      
-      
-      SUBROUTINE rs_coords(et,p,elx,ely,x,y,r,s)
-
-      USE basis, ONLY: element_basis,tri_basis,quad_basis
-
-      IMPLICIT NONE
-      
-      INTEGER, INTENT(IN) :: et
-      INTEGER, INTENT(IN) :: p
-      REAL(rp), DIMENSION(:), INTENT(IN) :: elx
-      REAL(rp), DIMENSION(:), INTENT(IN) :: ely
-      REAL(rp), INTENT(IN) :: x(1)  
-      REAL(rp), INTENT(IN) :: y(1)        
-      REAL(rp), INTENT(OUT) :: r(1)    
-      REAL(rp), INTENT(OUT) :: s(1)      
-      
-      INTEGER :: it,n,i,j
-      INTEGER :: info
-      INTEGER :: maxit
-      REAL(rp) :: tol
-      REAL(rp) :: f,g,error
-      REAL(rp) :: dfdr,dfds,dgdr,dgds,jac_recip
-      REAL(rp) :: phi(mnnds,1),dpdr(mnnds,1),dpds(mnnds,1)
-      REAL(rp) :: l(mnnds,3)
-        
-      tol = 1d-9
-      maxit = 100
-      info = 0
-     
-        
-      IF (mod(et,2) == 1) THEN
-        r(1) = -1d0/3d0
-        s(1) = -1d0/3d0
-      ELSE IF (mod(et,2) == 0) THEN
-        r(1) = 0d0
-        s(1) = 0d0
-      ENDIF
-
-      DO it = 1,maxit                        
-              
-        CALL element_basis(et,p,n,1,r,s,phi,dpdr,dpds)
-        
-        DO i = 1,n
-
-          l(i,1) = phi(i,1)
-          l(i,2) = dpdr(i,1)
-          l(i,3) = dpds(i,1)                
-          
-        ENDDO            
-                  
-
-        CALL DGETRS("N",n,3,V(1,1,et),mnnds,ipiv(1,et),l,mnnds,info)
-!         IF (info /= 0 ) PRINT*, "LAPACK ERROR"   
-        
-        dfdr = 0d0
-        dfds = 0d0
-        dgdr = 0d0
-        dgds = 0d0
-        f = 0d0
-        g = 0d0        
-        
-        DO i = 1,n
-
-          dfdr = dfdr + l(i,2)*elx(i)
-          dfds = dfds + l(i,3)*elx(i)
-          dgdr = dgdr + l(i,2)*ely(i)
-          dgds = dgds + l(i,3)*ely(i)
-          
-          f = f + l(i,1)*elx(i)
-          g = g + l(i,1)*ely(i)
-
-        ENDDO
-                
-        jac_recip = 1d0/(dfdr*dgds - dgdr*dfds)
-
-        f = f - x(1)
-        g = g - y(1)
-        
-        r(1) = r(1) - ( dgds*f - dfds*g)*jac_recip
-        s(1) = s(1) - (-dgdr*f + dfdr*g)*jac_recip   
-!         PRINT("(3(A,F20.15))"), "   f = ",f, "   g = ", g, "  jac = ", jac        
-!         PRINT("(2(A,F20.15))"), "   r = ",r(1), "   s = ", s(1)
-              
-        
-        IF (ABS(f) < tol .AND. ABS(g) < tol) THEN
-          EXIT
-        ENDIF        
-       
-        
-      ENDDO
-      
-      error = max(abs(f),abs(g))
-      
-!       IF (it >= maxit) THEN
-!         PRINT("(A,E22.15)"), "   MAX ITERATIONS EXCEEDED, error = ",error
-!         PRINT("(2(A,F20.15))"), "   r = ",r(1), "   s = ", s(1)
-!       ELSE       
-!         PRINT("(A,I7,A,E22.15)"), "   iterations: ",it, "  error = ",error
-!         PRINT("(2(A,F20.15))"), "   r = ",r(1), "   s = ", s(1)
-!       ENDIF
-
-      RETURN
-      END SUBROUTINE rs_coords      
       
       
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
