@@ -21,6 +21,7 @@
       IMPLICIT NONE
       
       INTEGER :: num
+      INTEGER :: nbou
       INTEGER :: nmax
       INTEGER :: nd,bou,i,j,skip
       INTEGER :: el,et,nv,ged,led,edt
@@ -116,9 +117,11 @@
       PRINT "(A,I5)", "Max number of nodes in a flow boundary ",nmax
       PRINT "(A)", " "
       
-      ALLOCATE(ax(nmax,num),cx(nmax,num),bx(nmax-1,num),dx(nmax-1,num))
-      ALLOCATE(ay(nmax,num),cy(nmax,num),by(nmax-1,num),dy(nmax-1,num)) 
-      ALLOCATE(dt(nmax,num))
+      nbou = base%nbou
+      
+      ALLOCATE(ax(nmax,nbou),cx(nmax,nbou),bx(nmax-1,nbou),dx(nmax-1,nbou))
+      ALLOCATE(ay(nmax,nbou),cy(nmax,nbou),by(nmax-1,nbou),dy(nmax-1,nbou)) 
+      ALLOCATE(dt(nmax,nbou))
       
       ALLOCATE(rpts(ctp+1))
       
