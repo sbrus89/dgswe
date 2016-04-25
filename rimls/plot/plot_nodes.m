@@ -31,8 +31,11 @@ eval_name = names{4};
 mesh = 'on';
 
 % entire area
-xbox = [0 0];
-ybox = [0 0];
+% xbox = [0 0];
+% ybox = [0 0];
+
+xbox = [-94.835 -94.667];
+ybox = [29.298 29.404];
 
 % beaufort deep
 % xbox = [-75.5 -73];
@@ -167,10 +170,30 @@ rimls_bnds_plot = bnds_flag(in);
 
 in = inpolygon (base_xy(:,1),base_xy(:,2),xbox,ybox);
 
-xvplot = base_xy(in,1);
-yvplot = base_xy(in,2);
-hvplot = base_hb(in);
-bvnds_plot = base_bvnds(in);
+base_xvert_plot = base_xy(in,1);
+base_yvert_plot = base_xy(in,2);
+base_hvert_plot = base_hb(in);
+base_bouvert_plot = base_bvnds(in);
+
+in = inpolygon (eval_xy(:,1),eval_xy(:,2),xbox,ybox);
+
+eval_xvert_plot = eval_xy(in,1);
+eval_yvert_plot = eval_xy(in,2);
+[eval_ect_plot,eval_nelnds_plot] = filter_ect(eval_ect,eval_nelnds,in);
+
+in = inpolygon(base_nds(:,1),base_nds(:,2),xbox,ybox);
+base_xnds_plot = base_nds(in,1);
+base_ynds_plot = base_nds(in,2);
+
+in = inpolygon(cel_nds(:,1),cel_nds(:,2),xbox,ybox);
+cel_xnds_plot = cel_nds(in,1);
+cel_ynds_plot = cel_nds(in,2);
+
+in = inpolygon(base_centers(:,1),base_centers(:,2),xbox,ybox);
+base_xcenters_plot = base_centers(in,1);
+base_ycenters_plot = base_centers(in,2);
+
+
 
 % figure(99)
 % plot(random_pts(:,1),random_pts(:,2),'b.')
@@ -196,22 +219,26 @@ ylabel('latitude')
 axis image
 grid on
 
+
+%%
 % Plot of grid and extra nodes in zoom box
 figure(2);
-ect1 = delaunay(xvplot,yvplot);
-ect1c = clean_ect(ect1,bvnds_plot);
-nodes = [xvplot yvplot];
-pdeplot( nodes', [], ect1c','mesh','on') ;
+% ect1 = delaunay(base_xvert_plot,base_yvert_plot);
+% ect1c = clean_ect(ect1,base_bouvert_plot);
+% nodes = [base_xvert_plot base_xvert_plot];
+% pdeplot( nodes', [], ect1c','mesh','on') ;
+hold on
+plot(xplot,yplot,'ro','MarkerSize',6,'MarkerFaceColor','r')
+plot(base_xnds_plot,base_ynds_plot,'g.')
+plot(base_xcenters_plot,base_ycenters_plot,'bo','MarkerSize',4,'MarkerFaceColor','b')
+plot(cel_xnds_plot,cel_ynds_plot,'co','MarkerSize',4,'MarkerFaceColor','c')
+drawNGonMesh4(horzcat(eval_xvert_plot,eval_yvert_plot), horzcat(eval_nelnds_plot,eval_ect_plot), 'ElNum', 'off', 'NodeNum', 'off', 'k' )
 xlabel('longitude')
 ylabel('latitude')
 title('grid and evaluation points')
 axis image
-hold on
-plot(xplot,yplot,'ro','MarkerSize',6,'MarkerFaceColor','r')
-plot(base_nds(:,1),base_nds(:,2),'g.')
-plot(base_centers(:,1),base_centers(:,2),'bo','MarkerSize',4,'MarkerFaceColor','b')
-plot(cel_nds(:,1),cel_nds(:,2),'co','MarkerSize',4,'MarkerFaceColor','c')
-drawNGonMesh4( eval_xy, horzcat(eval_nelnds,eval_ect), 'ElNum', 'off', 'NodeNum', 'off', 'k' )
+
+% break
 
 % Plot of base grid bathymetry nodes
 figure(3)
