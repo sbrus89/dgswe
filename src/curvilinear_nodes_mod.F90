@@ -97,7 +97,7 @@
       REAL(rp), DIMENSION(:,:,:,:), INTENT(IN) :: bndxy
       REAL(rp), DIMENSION(:,:,:), INTENT(INOUT) :: elxy
      
-      INTEGER :: i,ed,nd
+      INTEGER :: i,ed,nd,j
       INTEGER :: ged,seg,n1,el,led
       INTEGER :: n1ind
       REAL(rp), DIMENSION(2,ctp-1) :: segxy     
@@ -107,7 +107,7 @@
       ENDIF
       
       
-      
+      j = 0
       
       DO ed = 1,nnfbed
         ged = nfbedn(ed)
@@ -117,6 +117,11 @@
         
         el = ged2el(1,ged)
         led = ged2led(1,ged)     
+        
+!         IF (seg == 1) THEN
+!           PRINT "(3(A,I6))", "led = ",led, ", start node = ",n1, ", el = ",el
+!           j = j + 1
+!         ENDIF      
         
         n1ind = 0
  search:DO i = 1,fbseg(1,seg)-1
@@ -136,10 +141,11 @@
           segxy(2,nd) = bndxy(2,nd,n1ind,seg)
         ENDDO
         
-        CALL edge_coordinates_curved(el,ctp,led,nnds,nverts,el_type,xy,ect,segxy,psiv,elxy)
-                
+        CALL edge_coordinates_curved(el,ctp,led,nnds,nverts,el_type,xy,ect,segxy,psiv,elxy)      
         
       ENDDO     
+      
+!       PRINT*, "n = ", j
      
      END SUBROUTINE eval_coordinates_curved
 
@@ -167,7 +173,11 @@
       
       INTEGER :: pt,nd
       INTEGER :: nnd,nv,et,mnnds
+      INTEGER :: pt1,pt2
+      INTEGER :: reverse      
       REAL(rp) :: xpt,ypt
+      REAL(rp) :: d1,d2
+      REAL(rp) :: dx1,dy1,dx2,dy2
       REAL(rp), DIMENSION(:), ALLOCATABLE :: x,y
       REAL(rp), DIMENSION(:,:), ALLOCATABLE :: eddx      
        
@@ -204,10 +214,37 @@
         
       ENDIF        
       
-      eddx = 0d0    
+      d1 = 0d0                                   ! Make sure the same boundary orientation is used  
+      d2 = 0d0                                   ! between the segxy data and elxy. 
+      DO nd = 1,ctp-1                            ! The orientation that gives the minimum total difference 
+        pt1 = mod(led,nv)*ctp + 1 + nd           ! should be the correct one
+        pt2 = mod(led,nv)*ctp + 1 + ctp - nd
+
+        dx1 = segxy(1,nd)-elxy(pt1,el,1)
+        dy1 = segxy(2,nd)-elxy(pt1,el,2)
+        
+        dx2 = segxy(1,nd)-elxy(pt2,el,1)
+        dy2 = segxy(2,nd)-elxy(pt2,el,2)     
+        
+        d1 = d1 + sqrt(dx1**2+dy1**2)
+        d2 = d2 + sqrt(dx2**2+dy2**2)
+
+      ENDDO      
+      
+      reverse = 0
+      IF (d2 < d1) THEN
+        reverse = 1
+      ENDIF
+      
+      eddx = 0d0                
       
       DO nd = 1,ctp-1                   ! adjust mid-edge nodes to spline coordinates, 
-        pt = mod(led,nv)*ctp + 1 + nd   ! verticies have already been adjusted in read_curve_file
+                                        ! verticies have already been adjusted in read_curve_file
+        IF (reverse == 0) THEN                                        
+          pt = mod(led,nv)*ctp + 1 + nd                                        
+        ELSE IF (reverse == 1) THEN
+          pt = mod(led,nv)*ctp + 1 + ctp - nd
+        ENDIF
         
 !         ytest = elxy(pt,el,2)
 !         xpt = elxy(pt,el,1) 
@@ -219,7 +256,6 @@
 !         ENDIF
 !         
 !         eddx(nd+1,2) = ypt - elxy(pt,el,2)        
-          
 
         eddx(nd+1,1) = segxy(1,nd)-elxy(pt,el,1)
         eddx(nd+1,2) = segxy(2,nd)-elxy(pt,el,2)
@@ -273,6 +309,7 @@
       SUBROUTINE tri_blend_coordinates(et,el,ctp,led,mnnds,eddx,elxy)
       
       USE basis, ONLY: element_nodes,jacobi
+      USE transformation, ONLY: xy2rs
       USE lapack_interfaces
 
       IMPLICIT NONE
@@ -296,6 +333,7 @@
       REAL(rp) :: phi(mnnds)
       REAL(rp) :: dx(mnnds),dy(mnnds)
       REAL(rp) :: blend,denom
+!       REAL(rp) :: elxy_old(mnnds,2)
       
       
 
@@ -354,6 +392,7 @@
         ENDDO
      
 
+!         elxy_old = elxy(:,el,:)
  
         DO pt = 1,npt_el
           
@@ -377,8 +416,11 @@
         ENDDO
         
         
+!         CALL xy2rs(et,ctp,elxy_old(:,1),elxy_old(:,2),npt_el,elxy(:,el,1),elxy(:,el,2),r,s)
         
- 
+!         DO pt = 1,npt_el
+!           PRINT*, r(pt),s(pt)
+!         ENDDO
  
       END SUBROUTINE tri_blend_coordinates
       
