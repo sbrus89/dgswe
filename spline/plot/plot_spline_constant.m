@@ -18,7 +18,7 @@ for j = 1:n_seg
 
   
    
-   coef_xy = fscanf(file, '%g',[9, n])';
+   coef_xy = fscanf(file, '%g',[10, n])';
    ax = coef_xy(:,1);
    bx = coef_xy(:,2);
    cx = coef_xy(:,3);
@@ -32,7 +32,7 @@ for j = 1:n_seg
    ti = coef_xy(:,9);
   
  
-   t = linspace(ti(1),ti(n),100*n);
+   t = linspace(ti(1),ti(n),10*n);
    
   
    %%%%%%%%%% Plot boundary polynomials %%%%%%%%%%
@@ -70,6 +70,13 @@ for j = 1:n_seg
     plot(ax,ay,'o','MarkerSize',12,'Color',[0.4660    0.6740    0.1880])
     plot(xe,ye,'k')
 
+%     if j == 8
+%     for i = 1:n
+%        k = round(coef_xy(i,10));
+%        txt = sprintf('%d',k) ;
+%        text(ax(i),ay(i),txt,'FontSize',6) ; 
+%     end
+%     end
     
 
     hold off
@@ -108,19 +115,22 @@ hold on
 
 file = fopen('../work/max_deform.out');
 
-n_seg = fscanf(file,'%d',1);
+n_seg = fscanf(file,'%d \n',1);
 
 for j = 1:n_seg
 %     figure(j)
     hold on
     
-    n = fscanf(file, '%d',1); 
+    nnds = textscan(file, '%d \n',1); 
+    n = nnds{1};
     
     xy = fscanf(file, '%f',[7,n])';
+
     
      for i = 1:n
        plot([xy(i,1),xy(i,3)],[xy(i,2),xy(i,4)],'r')
      end
+     
 
 end
 fclose(file);
@@ -145,9 +155,9 @@ fclose(file);
 % VX = Val(:,2:3) ;
 % 
 % plot(VX(:,1),VX(:,2),'mx')
-% 
-% axis equal
-% %axis([23000 27000 10000 12500])
+
+axis equal
+%axis([23000 27000 10000 12500])
 
 
 

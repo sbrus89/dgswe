@@ -80,9 +80,6 @@
           PRINT "(A)", " "
           PRINT "(A,I5)", "Normal flow boundary ",bou
           PRINT "(A,I5)", "Normal flow boundary nodes ",n
-
-
-!           PAUSE
  
 
 
@@ -111,9 +108,10 @@
           ! modify spline if necessary
           !!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-          WRITE(90,*) n-1
+          WRITE(90,"(I6)") n-1
           
           DO nd = 1,n-1
+            PRINT*, "node: ",nd ,"node #:", base%fbnds(nd,bou)
           
             ti = 0d0        ! find starting parameter value for found edge
             DO j = 1,nd-1
@@ -121,16 +119,21 @@
             ENDDO            
                                             
             CALL check_angle(bou,nd,dt(nd,bou),ti,ax(nd,bou),bx(nd,bou),cx(nd,bou),dx(nd,bou), &
-                                                  ay(nd,bou),by(nd,bou),cy(nd,bou),dy(nd,bou))            
+                                                  ay(nd,bou),by(nd,bou),cy(nd,bou),dy(nd,bou), &
+                                                  theta1,theta2)            
                                               
-            CALL check_deformation(bou,nd,dt(nd,bou),ti,ax(nd,bou),bx(nd,bou),cx(nd,bou),dx(nd,bou), &
-                                                        ay(nd,bou),by(nd,bou),cy(nd,bou),dy(nd,bou))                           
+            CALL check_deformation(bou,nd,dt(nd,bou),ti,theta1,theta2,ax(nd,bou),bx(nd,bou),cx(nd,bou),dx(nd,bou), &
+                                                                      ay(nd,bou),by(nd,bou),cy(nd,bou),dy(nd,bou)) 
+                                                        
+            PRINT*, "------------------"                                           
                         
           ENDDO          
 
 
 
-          CALL write_spline(n,bou)      
+          CALL write_spline(n,bou,base%fbnds(:,bou))   
+          
+!           PAUSE
           
         ENDIF
       ENDDO calc
@@ -138,8 +141,6 @@
       DO i = 1,10  
         PRINT*,""  
       ENDDO
-      
-      
       
       
       
@@ -245,12 +246,12 @@
                        
             ENDDO  
             
-            WRITE(40,"(I8,10(E24.17,1X))") n1, (x(j), j=1,ctp)
-            WRITE(40,"(I8,10(E24.17,1X))") n1, (y(j), j=1,ctp)
+            WRITE(40,"(I8,1X,10(E24.17,1X))") n1, (x(j), j=1,ctp)
+            WRITE(40,"(I8,1X,10(E24.17,1X))") n1, (y(j), j=1,ctp)
             
             IF (i == neval-1) THEN
-              WRITE(40,"(I8,10(E24.17,1X))") n2, x(ctp+1)
-              WRITE(40,"(I8,10(E24.17,1X))") n2, y(ctp+1)            
+              WRITE(40,"(I8,1X,10(E24.17,1X))") n2, x(ctp+1)
+              WRITE(40,"(I8,1X,10(E24.17,1X))") n2, y(ctp+1)            
             ENDIF
             
             

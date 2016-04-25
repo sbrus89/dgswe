@@ -4,7 +4,7 @@ VPATH := ../src/
 ODIR  = odir/
 
 FC = ifort
-FFLAGS = -O2 -C -g -traceback
+FFLAGS = -O3 # -C -g -traceback
 
 FULLNAME := $(shell hostname)
 NAME := $(strip $(subst ., , $(FULLNAME)))

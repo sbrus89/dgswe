@@ -12,8 +12,13 @@
       INTEGER :: coord_sys
       TYPE(grid) :: mesh
       
+!       coord_sys = 2      
+!       Erad = 6378206.4d0 
+!       lambda0 = 95d0
+!       phi0 = 29d0
+
       coord_sys = 1      
-      Erad = 1d0
+      Erad = 1d0 
       lambda0 = 0d0
       phi0 = 0d0
       

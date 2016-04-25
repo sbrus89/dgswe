@@ -49,7 +49,7 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
 
 
-      SUBROUTINE write_spline(n,bou)
+      SUBROUTINE write_spline(n,bou,ndnums)
       
       USE globals, ONLY: rp,ax,bx,cx,dx,ay,by,cy,dy,dt
       
@@ -57,6 +57,7 @@
            
       INTEGER :: n,bou      
       INTEGER :: i
+      INTEGER, DIMENSION(n) :: ndnums
       REAL(rp) :: t
       
       
@@ -64,10 +65,10 @@
 
       t = 0d0
       DO i = 1,n-1        
-        WRITE(30,"(9(E25.12,1x))"), ax(i,bou),bx(i,bou),cx(i,bou),dx(i,bou),ay(i,bou),by(i,bou),cy(i,bou),dy(i,bou),t
+        WRITE(30,"(9(E25.12,1x),I7)"), ax(i,bou),bx(i,bou),cx(i,bou),dx(i,bou),ay(i,bou),by(i,bou),cy(i,bou),dy(i,bou),t,ndnums(i)
         t = t + dt(i,bou)
       ENDDO
-      WRITE(30,"(9(E25.12,1x))"), ax(n,bou),0d0,0d0,0d0,ay(n,bou),0d0,0d0,0d0,t
+      WRITE(30,"(9(E25.12,1x),I7)"), ax(n,bou),0d0,0d0,0d0,ay(n,bou),0d0,0d0,0d0,t,ndnums(n)
 
       
       
