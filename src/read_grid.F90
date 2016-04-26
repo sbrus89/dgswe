@@ -1,6 +1,6 @@
       SUBROUTINE read_grid()
       
-      USE globals, ONLY: rp,ne,nn,nverts,ect,xy,depth,elxy,elhb,bndxy, &
+      USE globals, ONLY: rp,ne,nn,nverts,ect,xy,depth,elxy,elhb,bndxy,el_size, &
                          nope,neta,obseg,obnds,nvel,nbou,fbseg,fbnds,grid_name, &
                          el_type,mnnds, &
                          r_earth,deg2rad
@@ -8,13 +8,13 @@
       USE messenger2, ONLY: myrank
       USE read_dginp, ONLY: grid_file,bathy_file,curve_file, &
                             cb_file_exists,hb_file_exists, &
-                            ctp,hbp,h0,coord_sys,slam0,sphi0
+                            p,ctp,hbp,h0,coord_sys,slam0,sphi0
       USE spherical_mod, ONLY: cpp_transformation                                                        
       USE grid_file_mod                            
 
       IMPLICIT NONE
 
-
+      REAL(rp) :: cfl,u      
 
 
       CALL read_header(grid_file,grid_name,ne,nn)  
@@ -37,7 +37,11 @@
         CALL print_grid_info(grid_file,grid_name,ne,nn)
       ENDIF
       
+      CALL grid_size(ne,el_type,ect,xy,el_size)
       
+      cfl = 1d0
+      u = 0d0
+      CALL courant(p,ne,u,cfl,el_type,nverts,ect,depth,el_size)
   
       
 

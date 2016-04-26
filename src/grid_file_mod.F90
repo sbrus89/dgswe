@@ -1,6 +1,6 @@
       MODULE grid_file_mod
 
-      USE globals, ONLY: rp,pi
+      USE globals, ONLY: rp,pi,g
       USE quit, ONLY: abort    
    
       
@@ -602,6 +602,60 @@
       END FUNCTION
       
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!      
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
+
+     
+      SUBROUTINE courant(p,ne,u,cfl,el_type,nverts,ect,depth,h)
+      
+      IMPLICIT NONE
+      
+      INTEGER, INTENT(IN) :: p
+      INTEGER, INTENT(IN) :: ne
+      REAL(rp), INTENT(IN) :: u
+      REAL(rp), INTENT(IN) :: cfl      
+      INTEGER, DIMENSION(:), INTENT(IN) :: el_type
+      INTEGER, DIMENSION(:), INTENT(IN) :: nverts
+      INTEGER, DIMENSION(:,:), INTENT(IN) :: ect
+      REAL(rp), DIMENSION(:), INTENT(IN) :: depth
+      REAL(rp), DIMENSION(:), INTENT(IN) :: h
+      
+      INTEGER :: el,nd
+      INTEGER :: et
+      INTEGER :: nv
+      REAL(rp) :: hb
+      REAL(rp) :: c
+      REAL(rp) :: dt,dtmin
+      
+      dtmin = 9999d0
+      
+      DO el = 1,ne
+        et = el_type(el)
+        nv = nverts(et)
+        
+        hb = 0d0
+        DO nd = 1,nv
+          hb = hb + depth(ect(nv,el))          
+        ENDDO
+        hb = hb/real(nv,rp)
+        
+        c = u + sqrt(g*hb)
+       
+        dt = h(el)/c
+        dt = dt/(2d0*real(p,rp)+1d0)
+        
+        IF (dt < dtmin) THEN
+          dtmin = dt
+        ENDIF
+          
+      ENDDO
+      
+      PRINT ("(A,F6.3,A,F6.3,A,F6.3,A)"), "Rough max timestep based on CFL = ",cfl, " and u = ", u, ": ", dtmin, " sec"
+      PRINT*,""
+      
+      RETURN
+      END SUBROUTINE
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!      
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
       END MODULE grid_file_mod

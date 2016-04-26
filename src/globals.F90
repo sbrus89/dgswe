@@ -80,6 +80,7 @@
       REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: elhb
       REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: hbnodes 
       REAL(rp), ALLOCATABLE, DIMENSION(:,:,:,:) :: bndxy
+      REAL(rp), ALLOCATABLE, DIMENSION(:) :: el_size
 
       INTEGER :: nope ! number of open boundary segents
       INTEGER, ALLOCATABLE, DIMENSION(:) :: obseg ! number of nodes in each open boundary segment
