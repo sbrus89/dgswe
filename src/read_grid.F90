@@ -29,9 +29,9 @@
       
       CALL read_flow_boundaries(nbou,nvel,fbseg,fbnds)
       
-      CALL read_bathy_file(myrank,bathy_file,hbp,ne,el_type,nverts,depth,ect,elhb)
+      CALL read_bathy_file(myrank,bathy_file,hbp,ne,el_type,nverts,depth,ect,elhb,hb_file_exists)
                   
-      CALL read_curve_file(myrank,curve_file,ctp,nbou,xy,bndxy)      
+      CALL read_curve_file(myrank,curve_file,ctp,nbou,xy,bndxy,cb_file_exists)      
       
       IF (myrank == 0) THEN
         CALL print_grid_info(grid_file,grid_name,ne,nn)

@@ -261,7 +261,7 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 
-      SUBROUTINE read_bathy_file(myrank,bathy_file,hbp,ne,el_type,nverts,depth,ect,elhb)
+      SUBROUTINE read_bathy_file(myrank,bathy_file,hbp,ne,el_type,nverts,depth,ect,elhb,hb_file_exists)
       
       IMPLICIT NONE
       
@@ -274,6 +274,7 @@
       REAL(rp), DIMENSION(:), INTENT(IN) :: depth
       INTEGER, DIMENSION(:,:), INTENT(IN) :: ect
       REAL(rp), DIMENSION(:,:), ALLOCATABLE, INTENT(OUT) :: elhb      
+      LOGICAL, INTENT(OUT), OPTIONAL :: hb_file_exists
       
       INTEGER :: i
       INTEGER :: el,nd
@@ -326,7 +327,11 @@
         ENDDO
       
         CLOSE(14)
-      ENDIF            
+      ENDIF      
+      
+      IF (PRESENT(hb_file_exists)) THEN
+        hb_file_exists = file_exists
+      ENDIF      
       
       
       RETURN 
@@ -337,7 +342,7 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 
-      SUBROUTINE read_curve_file(myrank,curve_file,ctp,nbou,xy,bndxy)
+      SUBROUTINE read_curve_file(myrank,curve_file,ctp,nbou,xy,bndxy,cb_file_exists)
       
       IMPLICIT NONE
       
@@ -347,15 +352,16 @@
       INTEGER, INTENT(IN) :: nbou
       REAL(rp), DIMENSION(:,:), INTENT(OUT) :: xy
       REAL(rp), DIMENSION(:,:,:,:), ALLOCATABLE, INTENT(OUT) :: bndxy
+      LOGICAL, INTENT(OUT), OPTIONAL :: cb_file_exists      
 
       INTEGER :: i,j,k
       INTEGER :: nd
       INTEGER :: nbou_check
       INTEGER :: ctp_check
       INTEGER :: nmax
-      INTEGER :: nbseg,btype
-      LOGICAL :: file_exists
+      INTEGER :: nbseg,btype      
       INTEGER :: alloc_status   
+      LOGICAL :: file_exists        
       
       IF (ctp == 1) THEN
         RETURN
@@ -406,7 +412,9 @@
       ENDIF      
       
       
-      
+      IF (PRESENT(cb_file_exists)) THEN
+        cb_file_exists = file_exists
+      ENDIF
   
       
       RETURN 
