@@ -1,11 +1,28 @@
-      SUBROUTINE area_qpts( )
-
-      USE globals, ONLY: rp,nqpta,mnqpta,wpta,qpta,nel_type      
-      USE allocation, ONLY: alloc_qpt_arrays      
-      USE messenger2, ONLY: myrank
-      USE read_dginp, ONLY: p,ctp
+      MODULE area_qpts_mod
+     
+      USE globals, ONLY: rp
+      USE edge_qpts_mod, ONLY: gauss_qpts
+     
+      IMPLICIT NONE
+     
+      CONTAINS
+     
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!     
+     
+      SUBROUTINE area_qpts(myrank,p,ctp,nel_type,nqpta,mnqpta,wpta,qpta)
 
       IMPLICIT NONE 
+      
+      INTEGER, INTENT(IN) :: myrank
+      INTEGER, INTENT(IN) :: p
+      INTEGER, INTENT(IN) :: ctp
+      INTEGER, INTENT(IN) :: nel_type
+      INTEGER, DIMENSION(:), INTENT(OUT) :: nqpta
+      INTEGER, INTENT(OUT) :: mnqpta
+      REAL(rp), DIMENSION(:,:), ALLOCATABLE, INTENT(OUT) :: wpta
+      REAL(rp), DIMENSION(:,:,:), ALLOCATABLE, INTENT(OUT) :: qpta
+      
       INTEGER :: i,pt,et
       INTEGER :: order(nel_type)
       INTEGER :: npt(nel_type)
@@ -16,11 +33,14 @@
       order(3) = 2*(p+ctp)
       order(4) = order(3)
       
-      et = 1
+
       DO i = 1,nel_type
       
-        CALL cubature(et,order(i),npt(i),r(:,:,i))
-        et = et*-1
+        IF (mod(i,2) == 1) THEN        
+          CALL tri_cubature(order(i),npt(i),r(:,:,i))
+        ELSE IF (mod(i,2) == 0) THEN        
+          CALL quad_cubature(order(i),npt(i),r(:,:,i))
+        ENDIF
         
       ENDDO
       
@@ -28,7 +48,8 @@
       mnqpta = maxval(npt)
       
       
-      CALL alloc_qpt_arrays(1)
+      ALLOCATE(qpta(mnqpta,2,nel_type))
+      ALLOCATE(wpta(mnqpta,nel_type))
       
       DO i = 1,nel_type
         nqpta(i) = npt(i)
@@ -65,19 +86,13 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!      
       
-      SUBROUTINE cubature(eltype,p,nqpta,qpta)
-      
-      USE globals, ONLY: rp
+      SUBROUTINE tri_cubature(p,nqpta,qpta)
       
       IMPLICIT NONE
       
-      INTEGER :: p,eltype
-      INTEGER :: i,j,n
-      INTEGER :: nqpta,npt
-      REAL(rp) :: qpta(13**2,3)
-      REAL(rp) :: w(13),r(13)
-      
-      IF (eltype == 1) THEN
+      INTEGER, INTENT(IN) :: p
+      INTEGER, INTENT(OUT) :: nqpta
+      REAL(rp), DIMENSION(:,:), INTENT(OUT) :: qpta
       
         SELECT CASE( p ) 
           case( 1 )
@@ -491,8 +506,24 @@
              STOP
  
          END SELECT      
+      
+      RETURN
+      END SUBROUTINE tri_cubature
+      
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!           
+      
+      SUBROUTINE quad_cubature(p,nqpta,qpta)
          
-         ELSE IF (eltype == -1) THEN
+      IMPLICIT NONE
+      
+      INTEGER, INTENT(IN) :: p
+      INTEGER, INTENT(OUT) :: nqpta
+      REAL(rp), DIMENSION(:,:), INTENT(OUT) :: qpta
+      
+      INTEGER :: i,j,n
+      INTEGER :: npt
+      REAL(rp) :: w(13),r(13)     
          
 !            IF (p == 2) THEN
 !              qpta(1,:) = (/ 0d0 , (sqrt(3d0)+sqrt(15d0))/6d0 /)
@@ -537,7 +568,7 @@
 !              nqpta = 10             
 !            ELSE
          
-             CALL guass_qpts(p,npt,w,r)
+             CALL gauss_qpts(p,npt,w,r)
            
              n = 1
              DO i = 1,npt
@@ -552,8 +583,12 @@
              ENDDO
            
              nqpta = npt*npt
-           ENDIF
            
 !          ENDIF
        
-       END SUBROUTINE cubature
+       END SUBROUTINE quad_cubature
+       
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!            
+       
+       END MODULE area_qpts_mod

@@ -1,12 +1,27 @@
-      SUBROUTINE edge_qpts()
-
-      USE globals, ONLY: rp,nqpte,mnqpte,wpte,qpte,nel_type      
-      USE allocation, ONLY: alloc_qpt_arrays      
-      USE messenger2, ONLY: myrank
-      USE read_dginp, ONLY: p,ctp
+      MODULE edge_qpts_mod
+      
+      USE globals, ONLY: rp
+      
+      IMPLICIT NONE
+      
+      CONTAINS
+      
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!        
+      
+      SUBROUTINE edge_qpts(myrank,p,ctp,nel_type,nqpte,mnqpte,wpte,qpte)
 
       IMPLICIT NONE
-      INTEGER :: alloc_status
+      
+      INTEGER, INTENT(IN) :: myrank
+      INTEGER, INTENT(IN) :: p
+      INTEGER, INTENT(IN) :: ctp
+      INTEGER, INTENT(IN) :: nel_type
+      INTEGER, DIMENSION(:), INTENT(OUT) :: nqpte
+      INTEGER, INTENT(OUT) :: mnqpte
+      REAL(rp), DIMENSION(:,:), ALLOCATABLE, INTENT(OUT) :: wpte
+      REAL(rp), DIMENSION(:,:,:), ALLOCATABLE, INTENT(OUT) :: qpte      
+      
       INTEGER :: pt,et,led,i
       INTEGER :: order(nel_type),npt(nel_type)
       REAL(rp) :: w(13,nel_type),r(13,nel_type)
@@ -22,12 +37,15 @@
 !       order(4) = order(1)
       
       DO et = 1,nel_type
-        CALL guass_qpts(order(et),npt(et),w(:,et),r(:,et))
+        CALL gauss_qpts(order(et),npt(et),w(:,et),r(:,et))
       ENDDO
+      
       
       mnqpte = maxval(npt)
       
-      CALL alloc_qpt_arrays(2)
+      
+      ALLOCATE(qpte(4*mnqpte,2,nel_type))        
+      ALLOCATE(wpte(4*mnqpte,nel_type))
    
    
       DO et = 1,nel_type 
@@ -111,14 +129,15 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       
-      SUBROUTINE guass_qpts(p,nqpte,wpte,qpte)
+      SUBROUTINE gauss_qpts(p,nqpte,wpte,qpte)
 
       USE globals, ONLY: rp
       
       IMPLICIT NONE
-      INTEGER :: p
-      INTEGER :: nqpte
-      REAL(rp) :: wpte(13),qpte(13)
+      INTEGER, INTENT(IN) :: p
+      INTEGER, INTENT(OUT) :: nqpte
+      REAL(rp), DIMENSION(:), INTENT(OUT) :: wpte
+      REAL(rp), DIMENSION(:), INTENT(OUT) :: qpte
 
       wpte = 0d0
       qpte = 0d0
@@ -391,4 +410,9 @@
 
 
       RETURN
-      END SUBROUTINE guass_qpts      
+      END SUBROUTINE gauss_qpts      
+      
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!      
+      
+      END MODULE edge_qpts_mod

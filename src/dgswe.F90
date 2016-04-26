@@ -8,6 +8,8 @@
       USE read_dginp
       USE output
       USE quit
+      USE area_qpts_mod
+      USE edge_qpts_mod
 
       IMPLICIT NONE
       INTEGER :: it,tskp,cnt
@@ -36,10 +38,10 @@
       CALL connect()
 
       ! Get quadrature points for area integration
-      CALL area_qpts()
+      CALL area_qpts(myrank,p,ctp,nel_type,nqpta,mnqpta,wpta,qpta)
 
       ! Calculate basis function values at edge quadrature points
-      CALL edge_qpts()   
+      CALL edge_qpts(myrank,p,ctp,nel_type,nqpte,mnqpte,wpte,qpte)   
       
       ! Calculate basis function and derivative values at area quadrature points
       CALL area_basis()  

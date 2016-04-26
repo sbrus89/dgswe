@@ -161,7 +161,7 @@ dgswe_objects = globals.o lapack_interfaces.o messenger2.o allocation.o grid_fil
                 curvilinear_nodes_mod.o curvilinear.o \
                 vandermonde.o shape_functions_mod.o shape_functions_eval.o transformation.o spherical_mod.o\
                 element_data.o area_transformation.o normals.o edge_transformation.o \
-                basis.o basis_eval.o area_qpts.o edge_qpts.o \
+                basis.o basis_eval.o area_qpts_mod.o edge_qpts_mod.o \
                 rhs2.o rk.o \
                 area_integration.o edge_integration.o  numerical_flux.o linear_solve.o \
                 boundary_edge_land.o boundary_edge_flow.o boundary_edge_elev.o  \
@@ -171,7 +171,7 @@ dgswe_obj := $(patsubst %.o, $(ODIR)%.o,$(dgswe_objects))
 
 dgprep_objects = globals.o messenger2.o read_input.o allocation.o grid_file_mod.o \
                  read_grid.o read_forcing.o  curvilinear.o\
-                 edge_connectivity_mod.o connect.o edge_qpts.o metis2.o decomp2.o \
+                 edge_connectivity_mod.o connect.o edge_qpts_mod.o metis2.o decomp2.o \
                  basis.o basis_eval.o vandermonde.o shape_functions_mod.o shape_functions_eval.o transformation.o \
                  normals.o bathymetry_interp_mod.o bathymetry_interp.o edge_transformation.o spherical_mod.o\
                  modal2nodal.o write_files.o version.o quit.o dgprep.o
@@ -396,11 +396,13 @@ $(ODIR)curvilinear_nodes_mod.o : curvilinear_nodes_mod.F90     $(ODIR)globals.o 
 	$(FC) $(FFLAGS) -c $< -o $@
 	mv curvilinear_nodes_mod.mod $(ODIR)
 
-$(ODIR)area_qpts.o : area_qpts.F90                             $(ODIR)globals.o $(ODIR)messenger2.o $(ODIR)read_input.o $(ODIR)allocation.o
+$(ODIR)area_qpts_mod.o : area_qpts_mod.F90                     $(ODIR)globals.o $(ODIR)edge_qpts_mod.o
 	$(FC) $(FFLAGS) -c $< -o $@
+	mv area_qpts_mod.mod $(ODIR)
 
-$(ODIR)edge_qpts.o : edge_qpts.F90                             $(ODIR)globals.o $(ODIR)messenger2.o $(ODIR)read_input.o $(ODIR)allocation.o
+$(ODIR)edge_qpts_mod.o : edge_qpts_mod.F90                     $(ODIR)globals.o 
 	$(FC) $(FFLAGS) -c $< -o $@
+	mv edge_qpts_mod.mod $(ODIR)	
 	
 $(ODIR)basis_eval.o : basis_eval.F90                           $(ODIR)globals.o $(ODIR)messenger2.o $(ODIR)read_input.o $(ODIR)allocation.o $(ODIR)basis.o
 	$(FC) $(FFLAGS) -c $< -o $@
@@ -486,7 +488,7 @@ $(ODIR)linear_solve.o : linear_solve.F90                       $(ODIR)globals.o
 $(ODIR)version.o : version.F90                                 $(ODIR)globals.o 
 	$(FC) $(FFLAGS) -c $< -o $@
 
-$(ODIR)dgswe.o : dgswe.F90                                     $(ODIR)globals.o $(ODIR)messenger2.o $(ODIR)read_input.o $(ODIR)allocation.o $(ODIR)basis.o $(ODIR)output.o 
+$(ODIR)dgswe.o : dgswe.F90                                     $(ODIR)globals.o $(ODIR)messenger2.o $(ODIR)read_input.o $(ODIR)allocation.o $(ODIR)basis.o $(ODIR)output.o $(ODIR)area_qpts_mod.o $(ODIR)edge_qpts_mod.o 
 	$(FC) $(FFLAGS) -c $< -o $@
 
 # prep file targets
