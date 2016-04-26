@@ -170,7 +170,7 @@ dgswe_objects = globals.o lapack_interfaces.o messenger2.o allocation.o grid_fil
 dgswe_obj := $(patsubst %.o, $(ODIR)%.o,$(dgswe_objects))
 
 dgprep_objects = globals.o messenger2.o read_input.o allocation.o grid_file_mod.o \
-                 read_grid.o read_forcing.o  curvilinear.o\
+                 read_grid.o read_forcing.o curvilinear_nodes_mod.o curvilinear.o\
                  edge_connectivity_mod.o connect.o edge_qpts_mod.o metis2.o decomp2.o \
                  basis.o basis_eval.o vandermonde.o shape_functions_mod.o shape_functions_eval.o transformation.o \
                  normals.o bathymetry_interp_mod.o bathymetry_interp.o edge_transformation.o spherical_mod.o\
@@ -425,7 +425,7 @@ $(ODIR)initial.o : initial.F90                                 $(ODIR)globals.o 
 $(ODIR)connect.o : connect.F90                                 $(ODIR)globals.o $(ODIR)messenger2.o $(ODIR)read_input.o $(ODIR)edge_connectivity_mod.o
 	$(FC) $(FFLAGS) -c $< -o $@
 
-$(ODIR)curvilinear.o : curvilinear.F90                         $(ODIR)globals.o $(ODIR)read_input.o $(ODIR)shape_functions_mod.o $(ODIR)curvilinear_nodes_mod.o
+$(ODIR)curvilinear.o : curvilinear.F90                         $(ODIR)globals.o $(ODIR)read_input.o $(ODIR)shape_functions_mod.o $(ODIR)curvilinear_nodes_mod.o $(ODIR)bathymetry_interp_mod.o
 	$(FC) $(FFLAGS) -c $< -o $@
 
 $(ODIR)element_data.o : element_data.F90                       $(ODIR)globals.o $(ODIR)read_input.o $(ODIR)allocation.o $(ODIR)basis.o $(ODIR)vandermonde.o $(ODIR)shape_functions_mod.o $(ODIR)transformation.o

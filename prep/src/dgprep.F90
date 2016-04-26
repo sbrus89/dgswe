@@ -4,9 +4,8 @@
       USE allocation, ONLY: sizes, alloc_trans_arrays
       USE read_dginp
       USE messenger2, ONLY: message_init,nproc
-      USE vandermonde, ONLY: area_vandermonde,edge_vandermonde
-      USE shape_functions, ONLY: shape_functions_qpts,shape_functions_vertex, &
-                                 shape_functions_curve,shape_functions_edge
+      USE edge_qpts_mod, ONLY: edge_qpts
+      USE transformation, ONLY: init_element_coordinates
 
       IMPLICIT NONE
       
@@ -28,38 +27,30 @@
       
       CALL read_grid()            
       
+      CALL init_element_coordinates(ne,mnnds,el_type,nverts,xy,ect,elxy)      
+      
       CALL read_forcing()
       
       CALL connect()
       
-      CALL edge_qpts()
+      CALL edge_qpts(0,p,ctp,nel_type,nqpte,mnqpte,wpte,qpte)
       
       mnqpta = 0
       nqpta = 0 
       
       CALL alloc_trans_arrays()
       
-      CALL area_vandermonde()
+      CALL shape_functions_area_qpts()
       
-      CALL shape_functions_qpts()
+      CALL shape_functions_edge_qpts()
       
-      CALL shape_functions_vertex()
-
-      CALL shape_functions_curve()
-      
-      CALL edge_vandermonde()
-      
-      CALL shape_functions_edge()
-      
-      IF (ctp > 1 .AND. curved_grid == 0) THEN  
-        CALL curvilinear()    
-      ENDIF          
+      CALL curvilinear()          
       
       CALL normals()
       
       CALL edge_transformation()      
       
-      CALL bathymetry_interp()
+      CALL bathymetry_interp_edge_qpts()
       
       CALL metis2(nproc)
       

@@ -1,6 +1,6 @@
       SUBROUTINE decomp2()
       
-      USE globals, ONLY: rp,nn,ne,ned,part,ect,vct,nelnds,nverts,mnelnds,lect,lnelnds,mnnds, &
+      USE globals, ONLY: rp,nn,ne,ned,part,ect,nverts,lect,lnelnds,mnnds, &
                          ged2el,ged2led,el_type, &
                          nsred,sredn, &
                          nresel,el_g2l,el_l2g, &
@@ -175,10 +175,10 @@
       ! find local global domain boundary nodes
       ALLOCATE(nresnd(nproc))
       ALLOCATE(ndflag(nn))
-      ALLOCATE(lect(mnelnds,mnepe,nproc))
+      ALLOCATE(lect(4,mnepe,nproc))
       ALLOCATE(lnelnds(mnepe,nproc))
       ALLOCATE(nd_g2l(nn))
-      ALLOCATE(nd_l2g(mnelnds*mnepe,nproc))
+      ALLOCATE(nd_l2g(4*mnepe,nproc))
       
       mnobnds = MAXVAL(obseg)
       ALLOCATE(lobseg(nope,nproc))
@@ -230,7 +230,7 @@
           et = el_type(eln)
           lnelnds(el,pe) = nverts(et)
           DO j = 1,nverts(et) ! loop through each node of all elements on subdomain pe
-            nd = vct(j,eln)   ! find global node number
+            nd = ect(j,eln)   ! find global node number
             IF(ndflag(nd) == 0) THEN  ! decide if it's been counted already
               nresnd(pe) = nresnd(pe) + 1 ! count as a resident node
               nd_l2g(nresnd(pe),pe) = nd  ! local node nresnd(pe) on subdomain pe is global node nd
