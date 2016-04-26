@@ -15,6 +15,7 @@
       INTEGER :: et,typ,eo
       INTEGER :: nvert,nnd,npts,nt,nq
       INTEGER :: n1,n1ind
+      INTEGER :: space
       REAL(rp) :: xpt,ypt,ytest,hb
       REAL(rp) :: x(mnnds),y(mnnds)      
       REAL(rp) :: rq(mnnds),sq(mnnds)
@@ -29,8 +30,8 @@
                                    nnfbed,nfbedn,nfbednn,ged2el,ged2led, &
                                    psiv,bndxy,elxy)     
                                    
-                                   
-      CALL shape_functions_eltypes_at_hbp(nel_type,np,psic)                                      
+      space = 1                                   
+      CALL shape_functions_eltypes_at_hbp(space,nel_type,np,psic)                                      
       
       CALL bathy_coordinates(ne,nnds,nverts,el_type,elxy,psic,xyhb)      
       

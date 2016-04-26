@@ -117,11 +117,7 @@
         
         el = ged2el(1,ged)
         led = ged2led(1,ged)     
-        
-!         IF (seg == 1) THEN
-!           PRINT "(3(A,I6))", "led = ",led, ", start node = ",n1, ", el = ",el
-!           j = j + 1
-!         ENDIF      
+         
         
         n1ind = 0
  search:DO i = 1,fbseg(1,seg)-1
@@ -144,8 +140,7 @@
         CALL edge_coordinates_curved(el,ctp,led,nnds,nverts,el_type,xy,ect,segxy,psiv,elxy)      
         
       ENDDO     
-      
-!       PRINT*, "n = ", j
+
      
      END SUBROUTINE eval_coordinates_curved
 
