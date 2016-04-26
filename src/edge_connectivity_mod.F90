@@ -470,7 +470,7 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
 
-      SUBROUTINE find_recieve_edges(ned,recv_edge,nred,redn,el_type)
+      SUBROUTINE find_recieve_edges(ned,recv_edge,nred,redn,ed_type)
       
       IMPLICIT NONE
       
@@ -478,7 +478,7 @@
       INTEGER, DIMENSION(:), INTENT(IN) :: recv_edge
       INTEGER, INTENT(OUT) :: nred
       INTEGER, DIMENSION(:), ALLOCATABLE, INTENT(OUT) :: redn
-      INTEGER, DIMENSION(:), INTENT(INOUT) :: el_type
+      INTEGER, DIMENSION(:), INTENT(INOUT) :: ed_type
       
       INTEGER :: el
       INTEGER :: nd

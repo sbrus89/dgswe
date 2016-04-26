@@ -26,7 +26,7 @@
       
       CALL find_flow_edges(nbou,fbseg,fbnds,ged2nn,nnfbed,nfbedn,nfbednn,nfbed,fbedn,recv_edge,ed_type)
       
-      CALL find_recieve_edges(ned,recv_edge,nred,redn,el_type)
+      CALL find_recieve_edges(ned,recv_edge,nred,redn,ed_type)
       
       IF (myrank == 0) THEN      
         CALL print_connect_info(mnepn,ned,nied,nobed,nfbed,nnfbed,nred)
