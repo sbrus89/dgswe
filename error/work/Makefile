@@ -42,7 +42,7 @@ endif
 #                               Objects                                #
 ########################################################################
 
-objects = globals.o version.o allocation.o basis.o evaluate.o read_input.o read_grid.o read_solution.o kdtree2.o find_nesting.o area_qpts.o error.o
+objects = globals.o version.o allocation.o basis.o evaluate.o read_input.o read_grid.o read_solution.o kdtree2.o find_nesting.o area_qpts_mod.o edge_qpts_mod.o error.o
 
 obj := $(patsubst %.o, $(ODIR)%.o,$(objects))
 
@@ -103,6 +103,14 @@ $(ODIR)basis.o : ../../src/basis.F90                            $(ODIR)globals.o
 $(ODIR)evaluate.o: evaluate.F90                                 $(ODIR)globals.o  $(ODIR)basis.o
 	$(FC) $(FFLAGS) -c $< -o $@
 	mv evaluate.mod $(ODIR)
+	
+$(ODIR)area_qpts_mod.o: ../../src/area_qpts_mod.F90             $(ODIR)globals.o $(ODIR)edge_qpts_mod.o
+	$(FC) $(FFLAGS) -c $< -o $@
+	mv area_qpts_mod.mod $(ODIR)
+	
+$(ODIR)edge_qpts_mod.o: ../../src/edge_qpts_mod.F90             $(ODIR)globals.o
+	$(FC) $(FFLAGS) -c $< -o $@
+	mv edge_qpts_mod.mod $(ODIR)		
 
 $(ODIR)read_input.o: read_input.f90                             $(ODIR)globals.o
 	$(FC) $(FFLAGS) -c $< -o $@
@@ -115,9 +123,6 @@ $(ODIR)read_solution.o: read_solution.F90                       $(ODIR)globals.o
 	$(FC) $(FFLAGS) -c $< -o $@
 
 $(ODIR)find_nesting.o: find_nesting.f90                         $(ODIR)globals.o  $(ODIR)kdtree2.o  $(ODIR)evaluate.o  
-	$(FC) $(FFLAGS) -c $< -o $@
-
-$(ODIR)area_qpts.o: area_qpts.f90
 	$(FC) $(FFLAGS) -c $< -o $@
 
 $(ODIR)version.o : ../../src/version.F90                      $(ODIR)globals.o

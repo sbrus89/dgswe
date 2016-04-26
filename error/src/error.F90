@@ -5,12 +5,14 @@
       USE read_grid
       USE evaluate
       USE basis
+      USE area_qpts_mod
 
       IMPLICIT NONE
 
       INTEGER :: el,nd,pt,elc,elf,elb,i,dof
       INTEGER :: et,etf,etc,npts
       INTEGER :: ne,mndof
+      INTEGER :: myrank,p_int,ctp_int 
 
       REAL(rp) :: HL2,QxL2,QyL2 
       REAL(rp) :: tcoarse,tfine
@@ -18,6 +20,10 @@
       REAL(rp) :: Hdiff,Qxdiff,Qydiff
       REAL(rp) :: Hmax,Qxmax,Qymax
       REAL(rp), ALLOCATABLE, DIMENSION(:) :: Hel,Qxel,Qyel
+      
+      myrank = 0
+      p_int = 5
+      ctp_int = 0
 
       CALL version () ! print out current git branch/SHA
       
@@ -36,9 +42,9 @@
       CALL re_vert(fine)
       CALL re_vert(base)
       
-      CALL area_qpts()     ! get area quadrature points   
-      CALL function_eval() ! evaluate basis and shape functions for fine grid quadrature points
-      CALL detJ_eval()     ! compute determinant of Jacobian for fine grid elements at quadrature points
+      CALL area_qpts(myrank,p_int,ctp_int,nel_type,nqpta,mnqpta,wpta,qpta)    ! get area quadrature points   
+      CALL function_eval()                                                    ! evaluate basis and shape functions for fine grid quadrature points
+      CALL detJ_eval()                                                        ! compute determinant of Jacobian for fine grid elements at quadrature points
       
       
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
