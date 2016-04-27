@@ -63,7 +63,7 @@
       INTEGER :: mp,mnnds
       INTEGER :: info
       
-      IF (vandermonde_init /= 0) THEN
+      IF (vandermonde_init == 0) THEN
         mp = MAXVAL(np)
         ldv = (mp+1)**2
         ALLOCATE(V(ldv,ldv,nel_type))
@@ -79,6 +79,24 @@
       
       RETURN
       END SUBROUTINE      
+      
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!   
+
+      SUBROUTINE final_vandermonde()
+      
+      IMPLICIT NONE
+      
+      IF (vandermonde_init == 1) THEN
+      
+        DEALLOCATE(V)
+        DEALLOCATE(ipiv)     
+      
+        vandermonde_init = 0
+      ENDIF
+      
+      RETURN
+      END SUBROUTINE            
       
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!      
@@ -181,8 +199,8 @@
       REAL(rp), DIMENSION(:,:), ALLOCATABLE :: l,dldr,dlds
       REAL(rp), DIMENSION(:,:), ALLOCATABLE :: phi
         
-      tol = 1d-9
-      maxit = 100
+      tol = 1d-10
+      maxit = 1000
           
       mnnds = (p+1)**2      
       ALLOCATE(l(mnnds,npt),dldr(mnnds,npt),dlds(mnnds,npt))
