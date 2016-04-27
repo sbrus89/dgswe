@@ -31,11 +31,12 @@ eval_name = names{4};
 mesh = 'on';
 
 % entire area
-% xbox = [0 0];
-% ybox = [0 0];
+xbox = [0 0];
+ybox = [0 0];
 
-xbox = [-94.835 -94.667];
-ybox = [29.298 29.404];
+% % galveston SL18+TX33 inlet
+% xbox = [-94.835 -94.667];
+% ybox = [29.298 29.404];
 
 % beaufort deep
 % xbox = [-75.5 -73];
@@ -174,6 +175,7 @@ base_xvert_plot = base_xy(in,1);
 base_yvert_plot = base_xy(in,2);
 base_hvert_plot = base_hb(in);
 base_bouvert_plot = base_bvnds(in);
+[base_ect_plot,base_nelnds_plot] = filter_ect(base_ect,base_nelnds,in);
 
 in = inpolygon (eval_xy(:,1),eval_xy(:,2),xbox,ybox);
 
@@ -223,11 +225,8 @@ grid on
 %%
 % Plot of grid and extra nodes in zoom box
 figure(2);
-% ect1 = delaunay(base_xvert_plot,base_yvert_plot);
-% ect1c = clean_ect(ect1,base_bouvert_plot);
-% nodes = [base_xvert_plot base_xvert_plot];
-% pdeplot( nodes', [], ect1c','mesh','on') ;
 hold on
+drawNGonMesh4(horzcat(base_xvert_plot,base_yvert_plot), horzcat(base_nelnds_plot,base_ect_plot), 'ElNum', 'off', 'NodeNum', 'off', 'b' )
 plot(xplot,yplot,'ro','MarkerSize',6,'MarkerFaceColor','r')
 plot(base_xnds_plot,base_ynds_plot,'g.')
 plot(base_xcenters_plot,base_ycenters_plot,'bo','MarkerSize',4,'MarkerFaceColor','b')
