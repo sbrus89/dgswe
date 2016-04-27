@@ -356,5 +356,25 @@ elem: DO el = 1,nnd2el(clnd)
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!       
 
+      SUBROUTINE find_element_final()
+      
+      USE transformation, ONLY: final_vandermonde      
+      
+      IMPLICIT NONE
+      
+      NULLIFY(tree_xy)
+      DEALLOCATE(closest)
+      DEALLOCATE(rsre)
+      DEALLOCATE(nnd2el,nd2el)
+      DEALLOCATE(nverts,np,nnds)
+      DEALLOCATE(elnx,elny)
+      
+      CALL final_vandermonde
+      
+      RETURN
+      END SUBROUTINE find_element_final
 
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!   
+      
       END MODULE find_element
