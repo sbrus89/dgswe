@@ -7,13 +7,20 @@
       
       TYPE(grid) :: mesh
       INTEGER :: space
+      INTEGER :: mnnds,el
       REAL(rp), DIMENSION(:,:,:), ALLOCATABLE :: psic
 
       space = 1
       CALL shape_functions_eltypes_at_hbp(space,nel_type,mesh%np,psic) 
       
-      CALL bathy_coordinates(mesh%ne,mesh%nnds,nverts,mesh%el_type,mesh%elxy,psic,mesh%elxyh, &
-                             mesh%depth,mesh%ect,mesh%elhb)
+      mnnds = MAXVAL(mesh%nnds)
+!       ALLOCATE(mesh%elhb(mnnds,mesh%ne))
+      ALLOCATE(mesh%elxyh(mnnds,mesh%ne,2))
+      
+      DO el = 1,mesh%ne
+        CALL bathy_coordinates(el,mesh%nnds,nverts,mesh%el_type,mesh%elxy,psic,mesh%elxyh, &
+                               mesh%depth,mesh%ect,mesh%elhb)
+      ENDDO
 
 
       RETURN
@@ -26,6 +33,8 @@
       SUBROUTINE bathymetry_base_nodes(mesh)
       
       USE globals, ONLY: rp,grid,nel_type,nverts,nrpt
+      USE basis, ONLY: element_nodes
+      USE shape_functions_mod, ONLY: shape_functions_area_eval        
       USE bathymetry_interp_mod, ONLY: shape_functions_eltypes_at_hbp,bathy_coordinates      
       
       IMPLICIT NONE
@@ -35,9 +44,12 @@
       INTEGER :: hbp
       INTEGER :: el,et
       INTEGER :: extract
+      INTEGER :: hbp_type      
+      INTEGER :: mnnds,npts,nnd
       REAL(rp), DIMENSION(:,:,:), ALLOCATABLE :: psic
       REAL(rp), DIMENSION(:,:,:), ALLOCATABLE :: dpdr
       REAL(rp), DIMENSION(:,:,:), ALLOCATABLE :: dpds
+      REAL(rp), DIMENSION(:), ALLOCATABLE :: r,s      
       
       
       hbp = mesh%np(5)      
@@ -54,14 +66,36 @@
       ENDIF     
       
 
-            
-      
+                  
       CALL shape_functions_eltypes_at_hbp(space,nel_type,mesh%np,psic,dpdr,dpds,extract,mesh%nnds)      
 
+      mnnds = MAXVAL(mesh%nnds)      
+!       ALLOCATE(mesh%elhb(mnnds,mesh%ne))  
+      ALLOCATE(mesh%dhbdx(mnnds,mesh%ne),mesh%dhbdy(mnnds,mesh%ne))
+      ALLOCATE(mesh%nhb(mnnds,mesh%ne,3))
+      ALLOCATE(mesh%elxyh(mnnds,mesh%ne,2))
+      ALLOCATE(r(mnnds),s(mnnds))       
       
-      CALL bathy_coordinates(mesh%ne,mesh%nnds,nverts,mesh%el_type,mesh%elxy,psic,mesh%elxyh, &
-                             mesh%depth,mesh%ect,mesh%elhb, &
-                             dpdr,dpds,mesh%dhbdx,mesh%dhbdy,mesh%nhb)      
+      DO el = 1,mesh%ne
+      
+        IF (space < 0 ) THEN
+          et = mesh%el_type(el)
+          IF (mod(et,2) == 1) THEN
+            hbp_type = 5    
+          ELSE IF (mod(et,2) == 0) THEN
+            hbp_type = 6
+          ENDIF    
+        
+          CALL element_nodes(et,space,mesh%np(hbp_type),npts,r,s)       
+          CALL shape_functions_area_eval(et,mesh%np(et),nnd,npts,r,s, &
+               psic(:,:,et),dpdr(:,:,et),dpds(:,:,et))        
+        ENDIF
+      
+        CALL bathy_coordinates(el,mesh%nnds,nverts,mesh%el_type,mesh%elxy,psic,mesh%elxyh, &
+                               mesh%depth,mesh%ect,mesh%elhb, &
+                               dpdr,dpds,mesh%dhbdx,mesh%dhbdy,mesh%nhb)      
+                             
+      ENDDO                             
       
       
       
@@ -124,6 +158,7 @@
       INTEGER :: el,et
       INTEGER :: np(6),nnds(6)
       INTEGER :: ext
+      INTEGER :: mnnds
       REAL(rp), DIMENSION(:,:,:), ALLOCATABLE :: psic
 
       space = 0      
@@ -137,7 +172,12 @@
       
       CALL shape_functions_eltypes_at_hbp(space,nel_type,np,psic,ext=ext,nnds=nnds)      
       
-      CALL bathy_coordinates(mesh%ne,nnds,nverts,mesh%el_type,mesh%elxy,psic,mesh%elxy_center)     
+      mnnds = MAXVAL(mesh%nnds)          
+      ALLOCATE(mesh%elxy_center(mnnds,mesh%ne,2))  
+      
+      DO el = 1,mesh%ne
+        CALL bathy_coordinates(el,nnds,nverts,mesh%el_type,mesh%elxy,psic,mesh%elxy_center)     
+      ENDDO 
   
       
       RETURN

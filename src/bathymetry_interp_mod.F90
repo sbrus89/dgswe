@@ -99,71 +99,66 @@
 
 
 
-      SUBROUTINE bathy_coordinates(ne,nnds,nverts,el_type,elxy,psic,xyhb,depth,ect,elhb,dpdr,dpds,dhbdx,dhbdy,nhb)
+      SUBROUTINE bathy_coordinates(el,nnds,nverts,el_type,elxy,psic,xyhb,depth,ect,elhb, &
+                                   dpdr,dpds,dhbdx,dhbdy,nhb)
       
-      USE transformation, ONLY: element_transformation      
+      USE transformation, ONLY: element_transformation          
       
-      IMPLICIT NONE
+      IMPLICIT NONE        
       
-      INTEGER, INTENT(IN) :: ne   
+!       INTEGER, INTENT(IN) :: ne   
+      INTEGER, INTENT(IN) :: el
       INTEGER, DIMENSION(:), INTENT(IN) :: nnds
       INTEGER, DIMENSION(:), INTENT(IN) :: nverts      
       INTEGER, DIMENSION(:), INTENT(IN) :: el_type
       REAL(rp), DIMENSION(:,:,:), INTENT(IN) :: elxy
-      REAL(rp), DIMENSION(:,:,:), INTENT(IN) :: psic
-      REAL(rp), DIMENSION(:,:,:), ALLOCATABLE, INTENT(OUT) :: xyhb
+      REAL(rp), DIMENSION(:,:,:), INTENT(INOUT) :: psic
+      REAL(rp), DIMENSION(:,:,:), ALLOCATABLE, INTENT(INOUT) :: xyhb
       REAL(rp), DIMENSION(:), INTENT(IN), OPTIONAL :: depth
       INTEGER, DIMENSION(:,:), INTENT(IN), OPTIONAL :: ect
-      REAL(rp), DIMENSION(:,:), ALLOCATABLE, INTENT(OUT), OPTIONAL :: elhb
+      REAL(rp), DIMENSION(:,:), ALLOCATABLE, INTENT(INOUT), OPTIONAL :: elhb
       REAL(rp), DIMENSION(:,:,:), INTENT(IN), OPTIONAL :: dpdr
       REAL(rp), DIMENSION(:,:,:), INTENT(IN), OPTIONAL :: dpds
-      REAL(rp), DIMENSION(:,:), ALLOCATABLE, INTENT(OUT), OPTIONAL :: dhbdx
-      REAL(rp), DIMENSION(:,:), ALLOCATABLE, INTENT(OUT), OPTIONAL :: dhbdy
-      REAL(rp), DIMENSION(:,:,:), ALLOCATABLE, INTENT(OUT), OPTIONAL :: nhb
+      REAL(rp), DIMENSION(:,:), ALLOCATABLE, INTENT(INOUT), OPTIONAL :: dhbdx
+      REAL(rp), DIMENSION(:,:), ALLOCATABLE, INTENT(INOUT), OPTIONAL :: dhbdy
+      REAL(rp), DIMENSION(:,:,:), ALLOCATABLE, INTENT(INOUT), OPTIONAL :: nhb
       
       INTEGER :: interp,calc_deriv,calc_norm
-      INTEGER :: el,pt,nd
-      INTEGER :: et,npts,mnnds,nv
+      INTEGER :: pt,nd
+      INTEGER :: et,npts,mnnds,nv,nnd
       INTEGER :: et_linear
       INTEGER :: nnd_coord,nnd_interp
       REAL(rp) :: xpt,ypt,hb,dhdx,dhdy      
       REAL(rp) :: drdx,drdy,dsdx,dsdy,jac,Sp
       REAL(rp) :: hbvert(4)
       REAL(rp) :: nrm
-      REAL(rp), DIMENSION(:), ALLOCATABLE :: x,y
+
       
       
-      mnnds = MAXVAL(nnds)      
-      ALLOCATE(x(mnnds),y(mnnds))      
-      ALLOCATE(xyhb(mnnds,ne,2))
-      
+!       mnnds = MAXVAL(nnds)                 
       
       interp = 0
       IF ( PRESENT(depth) .AND. PRESENT(ect) .AND. PRESENT(elhb) ) THEN
         interp = 1
-        ALLOCATE(elhb(mnnds,ne))  
+!         ALLOCATE(elhb(mnnds,ne))  
       ENDIF
       
       calc_deriv = 0
       IF (PRESENT(dpdr) .AND. PRESENT(dpds) .AND. PRESENT(dhbdx) .AND. PRESENT(dhbdy)) THEN
         calc_deriv = 1
-        ALLOCATE(dhbdx(mnnds,ne),dhbdy(mnnds,ne))
+!         ALLOCATE(dhbdx(mnnds,ne),dhbdy(mnnds,ne))
       ENDIF
       
       calc_norm = 0
       IF (PRESENT(nhb)) THEN
         calc_norm = 1
-        ALLOCATE(nhb(mnnds,ne,3))
+!         ALLOCATE(nhb(mnnds,ne,3))
       ENDIF
-      
-      
 
       
       
-
-      DO el = 1,ne
+        et = el_type(el)      
       
-        et = el_type(el)        
         nv = nverts(et)
         IF (mod(et,2) == 1) THEN
           npts = nnds(5) 
@@ -226,8 +221,7 @@
           
         
         ENDDO
-      
-      ENDDO
+
       
       END SUBROUTINE bathy_coordinates      
 

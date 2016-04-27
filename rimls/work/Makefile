@@ -1,5 +1,5 @@
 FC = ifort
-FFLAGS = -132 -heap-arrays -I$(ODIR) # -traceback -g -C
+FFLAGS = -132 -heap-arrays -I$(ODIR) #-traceback -g -C
 # FFLAGS = -132 -heap-arrays -I$(ODIR) -profile-loops=all 
 
 VPATH := ../src/
@@ -184,7 +184,7 @@ $(ODIR)read_grid.o: read_grid.f90                               $(ODIR)globals.o
 $(ODIR)curvilinear.o : curvilinear.f90                          $(ODIR)globals.o $(ODIR)curvilinear_nodes_mod.o
 	$(FC) $(FFLAGS) -c $< -o $@	
 	
-$(ODIR)bathy_interp.o : bathy_interp.f90                        $(ODIR)globals.o $(ODIR)bathymetry_interp_mod.o
+$(ODIR)bathy_interp.o : bathy_interp.f90                        $(ODIR)globals.o $(ODIR)bathymetry_interp_mod.o $(ODIR)basis.o $(ODIR)shape_functions_mod.o
 	$(FC) $(FFLAGS) -c $< -o $@		
 	
 $(ODIR)compute_random.o : compute_random.f90                    $(ODIR)kdtree2.o  $(ODIR)globals.o  $(ODIR)basis.o $(ODIR)find_element_mod.o  $(ODIR)evaluate.o  $(ODIR)lapack_interfaces.o
