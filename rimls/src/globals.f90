@@ -112,6 +112,7 @@
       
       REAL(rp) :: Erad 
       REAL(rp) :: phi0,lambda0
+      REAL(rp), PARAMETER :: g = 9.81d0      
       REAL(rp), PARAMETER :: pi = 3.141592653589793D0
       REAL(rp), PARAMETER :: deg2rad = pi/180d0
       
