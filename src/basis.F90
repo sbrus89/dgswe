@@ -2,6 +2,10 @@
       
       USE lapack_interfaces
       USE globals, ONLY: rp      
+      
+      IMPLICIT NONE
+      
+      INTEGER, SAVE :: seed = 1
 
       CONTAINS
 
@@ -458,10 +462,10 @@
       
       IF (mod(et,2) == 1) THEN
         nv = 3
-        CALL tri_nodes(1,p,n,r,s)
+        CALL tri_nodes(space,p,n,r,s)
       ELSE IF  (mod(et,2) == 0) THEN
         nv = 4
-        CALL quad_nodes(1,p,n,r,s)
+        CALL quad_nodes(space,p,n,r,s)
       ENDIF
       
       IF (PRESENT(ext)) THEN
@@ -931,18 +935,40 @@
       REAL(rp), DIMENSION(:), INTENT(OUT) :: s
       
       INTEGER :: i
-      REAL(rp) :: rnd
+      REAL(rp) :: a,b
       
-      CALL RANDOM_SEED(put=(/3/))  
+      CALL RANDOM_SEED(put=(/seed/))  
       
-      DO i = 1,n
-        CALL RANDOM_NUMBER(rnd)        
-        r(i) = 2d0*rnd - 1d0
+!       DO i = 1,n
+!         CALL RANDOM_NUMBER(a)                
+!         CALL RANDOM_NUMBER(b) 
+!         a = 2d0*a - 1d0
+!         b = 2d0*b - 1d0
+!         
+!         r(i) = .5d0*(1d0+a)*(1d0-b)-1d0       
+!         s(i) = b
+! 
+!       ENDDO
+
+      i = 0
+ pts: DO 
+        CALL RANDOM_NUMBER(a)                
+        CALL RANDOM_NUMBER(b) 
+        a = 2d0*a - 1d0
+        b = 2d0*b - 1d0
         
-        CALL RANDOM_NUMBER(rnd)         
-        s(i) = (r(i)-1d0)*rnd - 1d0
-      ENDDO
+        IF (b <= -a) THEN
+         i = i + 1
+         r(i) = a
+         s(i) = b
+        ENDIF
+              
+        IF (i == n) THEN
+          EXIT pts
+        ENDIF
+      ENDDO pts
       
+      seed = seed + 1
       RETURN
       END SUBROUTINE tri_nodes_random      
 
@@ -960,7 +986,7 @@
       INTEGER :: i
       REAL(rp) :: rnd
       
-      CALL RANDOM_SEED(put=(/3/))      
+      CALL RANDOM_SEED(put=(/seed/))      
       
       DO i = 1,n
         CALL RANDOM_NUMBER(rnd)       
@@ -970,6 +996,7 @@
         s(i) = 2d0*rnd-1d0
       ENDDO      
       
+      seed = seed + 1
       RETURN
       END SUBROUTINE quad_nodes_random
 
