@@ -11,12 +11,18 @@
       CHARACTER(50) :: compile_date
       CHARACTER(50) :: host       
       
+      REAL(rp), PARAMETER :: pi = 3.141592653589793D0
+      REAL(rp), PARAMETER :: deg2rad = pi/180d0  
+      REAL(rp), PARAMETER :: g = 9.81d0      
+      
       INTEGER, PARAMETER :: nel_type = 4 !(type #s: 1 -> triangles, 2 -> quads, 3 -> curved triangles, 4-> curved quads)         
+      INTEGER :: nverts(nel_type)   
 
       INTEGER :: lines ! number of lines in output files  
       REAL(rp) :: tf ! final time   
       
       LOGICAL :: exclude_bndel
+         
       
       TYPE :: solution 
         CHARACTER(10) :: sol_name
@@ -31,18 +37,14 @@
         INTEGER :: curved_grid
         
         INTEGER, ALLOCATABLE, DIMENSION(:) :: el_type   
-        INTEGER :: nverts(nel_type)
         INTEGER :: np(nel_type)
         INTEGER :: nnds(nel_type)
         INTEGER :: mnnds      
         INTEGER :: ndof(nel_type)
         INTEGER :: mndof         
       
-        INTEGER, ALLOCATABLE, DIMENSION(:,:) :: ect,vct ! element connectivity table
-        INTEGER, ALLOCATABLE, DIMENSION(:) :: nelnds
-        INTEGER :: mnelnds      
-        REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: xy,vxy ! x,y coordinates of nodes
-        INTEGER, ALLOCATABLE, DIMENSION(:) :: vxyn
+        INTEGER, ALLOCATABLE, DIMENSION(:,:) :: ect ! element connectivity table    
+        REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: xy ! x,y coordinates of nodes
         REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: elxy    
         REAL(rp), ALLOCATABLE, DIMENSION(:) :: depth ! depth at each node
         REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: elhb   
@@ -60,7 +62,25 @@
         INTEGER, ALLOCATABLE, DIMENSION(:) :: bndel ! array to flag land boundary elements
         
         INTEGER, ALLOCATABLE, DIMENSION(:) :: nepn ! number of elements per node
+        INTEGER :: mnepn
         INTEGER, ALLOCATABLE, DIMENSION(:,:) :: epn ! elements associated with each node 
+        
+        INTEGER :: ned
+        INTEGER :: nied
+        INTEGER, ALLOCATABLE, DIMENSION(:) :: iedn  
+        INTEGER :: nobed    
+        INTEGER, ALLOCATABLE, DIMENSION(:) :: obedn
+        INTEGER :: nfbed
+        INTEGER, ALLOCATABLE, DIMENSION(:) :: fbedn        
+        INTEGER :: nnfbed
+        INTEGER, ALLOCATABLE, DIMENSION(:) :: nfbedn 
+        INTEGER, ALLOCATABLE, DIMENSION(:,:) :: nfbednn          
+        INTEGER :: nred
+        INTEGER, ALLOCATABLE, DIMENSION(:) :: recv_edge
+        INTEGER, ALLOCATABLE, DIMENSION(:) :: ed_type      
+        
+        INTEGER, ALLOCATABLE, DIMENSION(:,:) :: ged2nn,ged2el,ged2led              
+        
         
         REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: V ! vandermonde matrix
         INTEGER, ALLOCATABLE, DIMENSION(:,:) :: ipiv 

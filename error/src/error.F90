@@ -2,10 +2,10 @@
 
       USE globals
       USE allocation
-      USE read_grid
       USE evaluate
       USE basis
       USE area_qpts_mod
+      USE transformation, ONLY: init_vandermonde,xy2rs
 
       IMPLICIT NONE
 
@@ -34,13 +34,9 @@
       
       CALL read_grids()  ! read coarse, fine, and base grids
       
-      CALL vandermonde(coarse) ! compute Vandermonde matricies
-      CALL vandermonde(fine)
-      CALL vandermonde(base)
-            
-      CALL re_vert(coarse) ! find reference element verticies
-      CALL re_vert(fine)
-      CALL re_vert(base)
+      CALL connect(base)
+      CALL connect(fine)      
+      CALL connect(coarse)                   
       
       CALL area_qpts(myrank,p_int,ctp_int,nel_type,nqpta,mnqpta,wpta,qpta)    ! get area quadrature points   
       CALL function_eval()                                                    ! evaluate basis and shape functions for fine grid quadrature points
@@ -77,6 +73,7 @@
       PRINT "(A)", "---------------------------------------------"
       PRINT "(A)", " "
 
+      CALL init_vandermonde(nel_type,coarse%np)
       
       HL2 = 0d0
       QxL2 = 0d0
@@ -109,7 +106,8 @@ elemf:DO elf = 1,fine%ne  ! Calculate error integral in the fine grid elements
         ENDDO
         
         ! calculate r,s coordinates of fine element quadrature points
-        CALL newton(coarse,xf,yf,npts,elc,r,s,hb)  
+!         CALL newton(coarse,xf,yf,npts,elc,r,s,hb)  
+        CALL xy2rs(etc,coarse%np(etc),coarse%elxy(:,elc,1),coarse%elxy(:,elc,2),npts,xf,yf,r,s)
                
         ! evalute coarse element basis functions at fine element quadrautre points               
         IF (mod(etc,2) == 1) THEN 
