@@ -34,13 +34,13 @@ clear all
 %              '/home/sbrus/data-drive/galveston/dgswe/tri/p2/';
 %              '/home/sbrus/data-drive/galveston/dgswe/tri/p3/';};
 
-sta_direc = {'/home/sbrus/data-drive/galveston/dgswe/tri_spline/p1/';
+sta_direc = {%'/home/sbrus/data-drive/galveston/dgswe/tri_spline/p1/';
             % '/home/sbrus/data-drive/galveston/dgswe/tri_spline/p2/';
              '/home/sbrus/data-drive/galveston/dgswe/tri_spline/p3/';};
 
 labels = {'adcirc';
           'adcircx64';
-          'DG p1';
+          %'DG p1';
           %'DG p2';
           'DG p3'}; 
 
@@ -55,16 +55,15 @@ labels = {'adcirc';
 adc_direc1 = '/home/sbrus/data-drive/galveston/adcirc/original/ESL0/';
 adc_direc2 = '/home/sbrus/data-drive/galveston/adcirc/refinedx64/ESL0/';
         
-grid_name = '/home/sbrus/data-drive/galveston/dgswe/quad2_spline_channel/p1/galveston2_plot.grd';
-% grid_name = '/home/sbrus/data-drive/galveston/dgswe/tri/p1/galveston_tri.grd';
+% grid_name = '/home/sbrus/data-drive/galveston/dgswe/quad2_spline_channel/p1/galveston2_plot.grd';
+grid_name = '/home/sbrus/data-drive/galveston/dgswe/tri/p1/galveston_tri.grd';
 
 % sta = 1:401
 sta = 1:81; %middle 
 % sta = 82:163; %left
 %  sta = 164:246; %right
 
-nsnap = 49;
-
+nsnap = 24;
 nruns = length(sta_direc);
 
 figure(1)
@@ -116,28 +115,35 @@ end
 u = Qx./H;
 v = Qy./H;
 
-nsnap = snap;
+% nsnap = snap;
 
 for snap = nsnap
     figure(1)
     plot(H(sta,snap)-hb(sta,snap));
     figure(2)
     plot(sqrt(u(sta,snap).^2 + v(sta,snap).^2))
+
 end
 
 end
 
 figure(1)
-legend(labels,'Location','Southwest')
+% legend(labels,'Location','Southwest','FontSize',10)
 xlabel('station')
 ylabel('surface elevation (m)')
+set(gcf, 'units', 'inches', 'pos', [0 0 3.5 2.8])
+set(gcf,'PaperPositionMode','auto') ;
+print('-dpdf',['~/Presentations/proposal/figures/galveston_zeta_',num2str(nsnap),'.pdf'])
 figure(2)
-legend(labels,'Location','Northwest')
+% legend(labels,'Location','Northwest','FontSize',10)
 xlabel('station')
 ylabel('velocity (m/s)')
+set(gcf, 'units', 'inches', 'pos', [0 0 3.5 2.8])
+set(gcf,'PaperPositionMode','auto') ;
+print('-dpdf',['~/Presentations/proposal/figures/galveston_vel_',num2str(nsnap),'.pdf'])
 
-figure
-hold on
-plot_grid(grid_name);
-plot(xyH(sta,1),xyH(sta,2),'ro','MarkerFaceColor','r','MarkerSize',2)
-% quiver(xyH(sta,1),xyH(sta,2),u(sta,snap),v(sta,snap),'b')
+% figure
+% hold on
+% plot_grid(grid_name);
+% plot(xyH(sta,1),xyH(sta,2),'ro','MarkerFaceColor','r','MarkerSize',2)
+% % quiver(xyH(sta,1),xyH(sta,2),u(sta,snap),v(sta,snap),'b')
