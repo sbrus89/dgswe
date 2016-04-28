@@ -152,6 +152,7 @@
       OPEN(unit=60,file='eval_nodes.out')       
       OPEN(unit=40,file=ADJUSTL(TRIM(name)) // "_ctp" // ctp_char // ".cb")    
       
+      WRITE(40,"(A)") "base grid file: " // base%grid_file 
       WRITE(40,"(I8,19x,A)") eval%nbou, "! total number of normal flow boundaries"
       WRITE(40,"(2(I8),19x,A)") eval%nvel,ctp, "! max number of normal flow nodes, ctp order"  
       

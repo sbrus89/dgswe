@@ -7,7 +7,7 @@
                          nsred,el_l2g,mndof,nlines, &
                          el_type,elhb,nnds,order
                          
-      USE read_dginp, ONLY: write_local,hbp,ctp,cb_file_exists,hb_file_exists   
+      USE read_dginp, ONLY: write_local,hbp,ctp,curve_file,bathy_file,cb_file_exists,hb_file_exists   
       USE messenger2, ONLY: nproc,nx_sr,ny_sr,nqpte_sr,hb_sr,detJe_sr, &
                             ned_sr,pe_sr,el_sr,led_sr
 
@@ -268,6 +268,7 @@
        
        WRITE(dirname(3:lname),"(I4.4)") pe-1      
        OPEN(UNIT=14,FILE=dirname(1:lname)//'/'//'fort.hb')
+       WRITE(14,"(A)") "decomposed from: " // bathy_file       
        WRITE(14,"(2(I7))") nresel(pe),hbp
        DO el = 1,nresel(pe)
          gel = el_l2g(el,pe)
@@ -289,7 +290,7 @@
      
        WRITE(dirname(3:lname),"(I4.4)") pe-1      
        OPEN(UNIT=14,FILE=dirname(1:lname)//'/'//'fort.cb')     
-       
+        WRITE(14,"(A)") "decomposed from: " // curve_file
         WRITE(14,"(I8,19x,A)") lnbou(pe), "! number of normal flow boundaries"
         WRITE(14,"(I8,I8,19x,A)") lnvel(pe), ctp, "! total number of normal flow nodes"
         

@@ -315,7 +315,7 @@
         IF (myrank == 0 ) PRINT*, "reading in high order bathymetry file"  
         
         OPEN(UNIT = 14, FILE = bathy_file)
-      
+        READ(14,*) !read in the header info
         READ(14,*) ne_check, hbp_check
         IF (ne_check /= ne .or. hbp_check /= hbp) THEN
           IF (myrank == 0) PRINT*, "incorrect high order bathymetry file"
@@ -382,6 +382,7 @@
       
         OPEN(UNIT=14, FILE=curve_file)
         
+        READ(14,*) !read in the header info
         READ(14,*) nbou_check
         READ(14,*) nmax,ctp_check
         
