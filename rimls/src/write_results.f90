@@ -286,7 +286,7 @@ search:DO i = 1,nlist
       
       name = ADJUSTL(TRIM(eval%grid_file(1:eind-1)))     
       OPEN(UNIT = 13, FILE = ADJUSTL(TRIM(name)) // "_hbp" // hbp_char // "_rimls.hb") 
-      WRITE(15,"(A,I9,A,I5)") "base grid: " // ADJUSTL(TRIM(base%grid_file)) // "   number of base grid points: ", &
+      WRITE(13,"(A,I9,A,I5)") " base grid: " // ADJUSTL(TRIM(base%grid_file)) // "   number of base grid points: ", &
                                base%tpts_interior, "base hbp: ", base%hbp 
       WRITE(13,"(2(I7,1x),A,I8)") eval%ne,eval%hbp
       
