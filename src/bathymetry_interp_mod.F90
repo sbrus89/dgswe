@@ -1,6 +1,6 @@
       MODULE bathymetry_interp_mod
 
-      USE globals, ONLY: rp
+      USE globals, ONLY: rp,pi
       
       IMPLICIT NONE
       
@@ -205,9 +205,10 @@
               CALL bathymetry_interp_eval(nnd_interp,hbvert,psic(:,pt,et_linear),hb)
             ENDIF 
             
-            elhb(pt,el) = hb   
-!           elhb(pt,el) = 10d0
-!           elhb(pt,el) = 10d0 - 5d0*cos(2d0*pi/500d0*ypt) 
+!             elhb(pt,el) = hb   
+!             elhb(pt,el) = 10d0
+            ypt = 500d0/(f2(xpt)-f1(xpt))*ypt - 500d0/(f2(xpt)-f1(xpt))*f1(xpt)
+            elhb(pt,el) = 10d0 - 5d0*cos(2d0*pi/500d0*ypt) 
 
           
             IF (calc_norm) THEN
@@ -277,6 +278,34 @@
       
       RETURN
       END SUBROUTINE bathymetry_interp_eval
+      
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!      
+      
+      FUNCTION f1(x) RESULT(y)
+
+      IMPLICIT NONE
+      
+      REAL(rp) :: x
+      REAL(rp) :: y
+      
+      y = 0d0 + 100d0*(1d0/(COSH(4d0*(x-2000d0)/500d0)))
+      
+      END FUNCTION
+      
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!      
+
+      FUNCTION f2(x) RESULT(y)
+
+      IMPLICIT NONE
+      
+      REAL(rp) :: x
+      REAL(rp) :: y
+      
+      y = 500d0 - 100d0*(1d0/(COSH(4d0*(x-2000d0)/500d0)))
+      
+      END FUNCTION      
       
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!      
