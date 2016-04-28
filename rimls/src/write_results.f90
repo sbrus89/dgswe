@@ -259,7 +259,7 @@ search:DO i = 1,nlist
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-      SUBROUTINE write_elem_nodes(mesh)
+      SUBROUTINE write_elem_nodes(eval,base)
       
       USE globals, ONLY: nverts
 
@@ -269,47 +269,47 @@ search:DO i = 1,nlist
       INTEGER :: sind,eind
       CHARACTER(100) :: name
       CHARACTER(1) :: hbp_char
-      TYPE(grid) :: mesh
+      TYPE(grid) :: eval,base
 
       
       PRINT "(A)", "Writing rimls element nodes..."  
       PRINT*, ""     
 
       
-      sind = INDEX(ADJUSTL(TRIM(mesh%grid_file)),"/",.true.)
-      eind = INDEX(ADJUSTL(TRIM(mesh%grid_file)),".",.false.)
+      sind = INDEX(ADJUSTL(TRIM(eval%grid_file)),"/",.true.)
+      eind = INDEX(ADJUSTL(TRIM(eval%grid_file)),".",.false.)
       
-!       name = ADJUSTL(TRIM(mesh%grid_file(sind+1:eind-1)))     
+!       name = ADJUSTL(TRIM(eval%grid_file(sind+1:eind-1)))     
 !       OPEN(UNIT = 13, FILE = TRIM(out_direc) // ADJUSTL(TRIM(name)) // ".hb")    
 
-      WRITE(hbp_char,"(I1)") mesh%hbp
+      WRITE(hbp_char,"(I1)") eval%hbp
       
-      name = ADJUSTL(TRIM(mesh%grid_file(1:eind-1)))     
+      name = ADJUSTL(TRIM(eval%grid_file(1:eind-1)))     
       OPEN(UNIT = 13, FILE = ADJUSTL(TRIM(name)) // "_hbp" // hbp_char // "_rimls.hb")            
-      WRITE(13,"(2(I7,1x))") mesh%ne,mesh%hbp
+      WRITE(13,"(2(I7,1x),A,I8)") eval%ne,eval%hbp,"   base grid: " // ADJUSTL(TRIM(base%grid_file)) // "   number of base grid points: ", base%tpts_interior
       
       OPEN(UNIT = 14, FILE = TRIM(out_direc) // "elem_nodes.d")      
-      WRITE(14,"(2(I7,1x))") mesh%ne,mesh%hbp
+      WRITE(14,"(2(I7,1x))") eval%ne,eval%hbp
       
       OPEN(UNIT = 15, FILE = TRIM(out_direc) // "xelem_nodes.d")      
-      WRITE(15,"(2(I7,1x))") mesh%ne,mesh%hbp
+      WRITE(15,"(2(I7,1x))") eval%ne,eval%hbp
       
       OPEN(UNIT = 16, FILE = TRIM(out_direc) // "yelem_nodes.d")      
-      WRITE(16,"(2(I7,1x))") mesh%ne,mesh%hbp      
+      WRITE(16,"(2(I7,1x))") eval%ne,eval%hbp      
       
-      DO el = 1,mesh%ne
-        et = mesh%el_type(el)
+      DO el = 1,eval%ne
+        et = eval%el_type(el)
         
         IF (mod(et,2) == 1) THEN   
-          nnd = mesh%nnds(3)
+          nnd = eval%nnds(5)
         ELSE IF (mod(et,2) == 0) THEN
-          nnd = mesh%nnds(4)          
+          nnd = eval%nnds(6)          
         ENDIF    
 
-        WRITE(13,"(2(I7),1x,60(e24.17,1x))") el,nnd,(mesh%elhb(i,el), i = 1,nnd)        
-        WRITE(14,"(2(I7),1x,60(e24.17,1x))") el,nnd,(mesh%elhb(i,el), i = 1,nnd)
-        WRITE(15,"(2(I7),1x,60(e24.17,1x))") el,nnd,(mesh%elxyh(i,el,1), i = 1,nnd)
-        WRITE(16,"(2(I7),1x,60(e24.17,1x))") el,nnd,(mesh%elxyh(i,el,2), i = 1,nnd)
+        WRITE(13,"(2(I7),1x,60(e24.17,1x))") el,nnd,(eval%elhb(i,el), i = 1,nnd)        
+        WRITE(14,"(2(I7),1x,60(e24.17,1x))") el,nnd,(eval%elhb(i,el), i = 1,nnd)
+        WRITE(15,"(2(I7),1x,60(e24.17,1x))") el,nnd,(eval%elxyh(i,el,1), i = 1,nnd)
+        WRITE(16,"(2(I7),1x,60(e24.17,1x))") el,nnd,(eval%elxyh(i,el,2), i = 1,nnd)
       ENDDO
       
       CLOSE(14)

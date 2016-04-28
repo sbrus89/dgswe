@@ -56,7 +56,7 @@
       CALL gather_coordinates(eval)
       CALL write_rimls_nodes(eval)
       CALL rewrite_fort14(eval)  
-      CALL write_elem_nodes(eval)
+      CALL write_elem_nodes(eval,base)
 
 
       
