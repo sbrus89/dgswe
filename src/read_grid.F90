@@ -1,6 +1,6 @@
       SUBROUTINE read_grid()
       
-      USE globals, ONLY: rp,ne,nn,nverts,ect,xy,depth,elxy,elhb,bndxy,el_size, &
+      USE globals, ONLY: rp,ne,nn,nverts,nnds,ect,xy,depth,elxy,elhb,bndxy,el_size, &
                          nope,neta,obseg,obnds,nvel,nbou,fbseg,fbnds,grid_name, &
                          el_type,mnnds, &
                          r_earth,deg2rad
@@ -41,7 +41,7 @@
       
       cfl = 1d0
       u = 0d0
-      CALL courant(p,ne,u,cfl,el_type,nverts,ect,depth,el_size)
+      CALL courant(p,ne,u,cfl,el_type,nverts,nnds,elhb,el_size)
   
       
 

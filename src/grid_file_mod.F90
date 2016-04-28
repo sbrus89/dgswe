@@ -614,7 +614,7 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
 
      
-      SUBROUTINE courant(p,ne,u,cfl,el_type,nverts,ect,depth,h)
+      SUBROUTINE courant(p,ne,u,cfl,el_type,nverts,nnds,elhb,h)
       
       IMPLICIT NONE
       
@@ -624,13 +624,12 @@
       REAL(rp), INTENT(IN) :: cfl      
       INTEGER, DIMENSION(:), INTENT(IN) :: el_type
       INTEGER, DIMENSION(:), INTENT(IN) :: nverts
-      INTEGER, DIMENSION(:,:), INTENT(IN) :: ect
-      REAL(rp), DIMENSION(:), INTENT(IN) :: depth
+      INTEGER, DIMENSION(:), INTENT(IN) :: nnds
+      REAL(rp), DIMENSION(:,:), INTENT(IN) :: elhb
       REAL(rp), DIMENSION(:), INTENT(IN) :: h
       
       INTEGER :: el,nd
-      INTEGER :: et
-      INTEGER :: nv
+      INTEGER :: et,nv,nnd
       REAL(rp) :: hb
       REAL(rp) :: c
       REAL(rp) :: dt,dtmin
@@ -641,11 +640,19 @@
         et = el_type(el)
         nv = nverts(et)
         
+        IF (mod(et,2) == 1) THEN
+          nnd = nnds(5)
+        ELSE IF (mod(et,2) == 0) THEN
+          nnd = nnds(6)
+        ENDIF
+
         hb = 0d0
-        DO nd = 1,nv
-          hb = hb + depth(ect(nv,el))          
+        DO nd = 1,nnd
+          IF (elhb(nd,el) > hb) THEN
+            hb = elhb(nd,el)
+          ENDIF
         ENDDO
-        hb = hb/real(nv,rp)
+
         
         c = u + sqrt(g*hb)
        
