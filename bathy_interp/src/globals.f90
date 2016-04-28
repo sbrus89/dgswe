@@ -7,6 +7,7 @@
       INTEGER, PARAMETER :: rp = kind(1d0) ! precision   
       REAL(rp), PARAMETER  ::  pi=3.141592653589793D0     
       REAL(rp), PARAMETER :: deg2rad = pi/180d0      
+      REAL(rp), PARAMETER :: g = 9.81d0        
       
       CHARACTER(50) :: gitSHA
       CHARACTER(50) :: gitBranch
