@@ -33,6 +33,7 @@
       space = 1                                   
       CALL shape_functions_eltypes_at_hbp(space,nel_type,np,psic)                                      
       
+      ALLOCATE(xyhb(mnnds,ne,2))
       DO el = 1,ne
         CALL bathy_coordinates(el,nnds,nverts,el_type,elxy,psic,xyhb)      
       ENDDO 
