@@ -160,7 +160,7 @@ $(ODIR)curvilinear.o: curvilinear.f90                           $(ODIR)globals.o
 $(ODIR)interp_check.o: interp_check.f90                         $(ODIR)globals.o 
 	$(FC) $(FFLAGS) -c $< -o $@
 	
-$(ODIR)bathy_interp.o: bathy_interp.F90                         $(ODIR)globals.o  $(ODIR)allocation.o  $(ODIR)basis.o  $(ODIR)read_grid.o  $(ODIR)evaluate.o  $(ODIR)find_element_mod.o 
+$(ODIR)bathy_interp.o: bathy_interp.F90                         $(ODIR)globals.o  $(ODIR)allocation.o  $(ODIR)basis.o  $(ODIR)grid_file_mod.o  $(ODIR)evaluate.o  $(ODIR)find_element_mod.o 
 	$(FC) $(FFLAGS) -c $< -o $@
 	
 $(ODIR)version.o: ../../src/version.F90

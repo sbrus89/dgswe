@@ -5,6 +5,7 @@
       USE evaluate
       USE basis   
       USE find_element, ONLY: find_element_init
+      USE grid_file_mod, ONLY: read_bathy_file
 
       IMPLICIT NONE
 
@@ -15,10 +16,11 @@
       INTEGER :: nv_in,nv_ex
       INTEGER :: ged,i,nd
       INTEGER :: p,nnds
+      INTEGER :: myrank
       REAL(rp) :: x(2),xe(2)
       REAL(rp) :: hb
 
- 
+      myrank = 0
 
       CALL version () ! print out current git branch/SHA          
       
@@ -44,7 +46,8 @@
       CALL eval_pts()      ! get area evaluation points   
       CALL function_eval() ! evaluate basis and shape functions for eval grid evaluation points            
                    
-      CALL read_bathy()  
+!       CALL read_bathy()  
+      CALL read_bathy_file(myrank,base%bathy_file,base%hbp,base%ne,base%el_type,nverts,base%depth,base%ect,base%elhb)      
       
            
                   
