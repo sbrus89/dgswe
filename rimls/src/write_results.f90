@@ -288,6 +288,7 @@ search:DO i = 1,nlist
       OPEN(UNIT = 13, FILE = ADJUSTL(TRIM(name)) // "_hbp" // hbp_char // "_rimls.hb") 
       WRITE(13,"(A,I9,A,I5)") " base grid: " // ADJUSTL(TRIM(base%grid_file)) // "   number of base grid points: ", &
                                base%tpts_interior, "   base hbp: ", base%hbp 
+
       WRITE(13,"(2(I7,1x),A,I8)") eval%ne,eval%hbp
       
       OPEN(UNIT = 14, FILE = TRIM(out_direc) // "elem_nodes.d")      
