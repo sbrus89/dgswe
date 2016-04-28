@@ -3,6 +3,8 @@ CFLAGS1 = -c -O3 -g -132 -traceback
 CFLAGS2 = -O3 -o 
 LIB = -llapack
 
+VPATH := ../src/
+
 objects = globals.o basis.o evaluate.o read_input.o read_grid.o read_stations.o kdtree2.o stations.o
 
 main: $(objects)
