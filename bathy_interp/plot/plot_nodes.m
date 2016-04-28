@@ -25,7 +25,7 @@ while n < 8 && ~feof(finp)
 end
 
 base_name = names{1};
-eval_name = names{5};
+eval_name = names{6};
 
 
 mesh = 'on';
