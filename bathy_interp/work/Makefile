@@ -46,7 +46,7 @@ endif
 objects = globals.o kdtree2.o allocation.o basis.o  \
           connect.o curvilinear.o evaluate.o find_element_mod.o \
           read_input.o read_grid.o write_results.o \
-          bathy_interp.o lapack_interfaces.o interp_check.o \
+          bathy_interp.o bathymetry_interp_mod.o lapack_interfaces.o interp_check.o \
           grid_file_mod.o shape_functions_mod.o curvilinear_nodes_mod.o  \
           transformation.o vandermonde.o edge_connectivity_mod.o quit.o version.o
 
@@ -117,7 +117,11 @@ $(ODIR)transformation.o : ../../src/transformation.F90          $(ODIR)globals.o
 	
 $(ODIR)vandermonde.o : ../../src/vandermonde.F90                $(ODIR)globals.o $(ODIR)basis.o
 	$(FC) $(FFLAGS) -c $< -o $@
-	mv vandermonde.mod $(ODIR)		
+	mv vandermonde.mod $(ODIR)
+	
+$(ODIR)bathymetry_interp_mod.o : ../../src/bathymetry_interp_mod.F90 $(ODIR)globals.o $(ODIR)basis.o $(ODIR)transformation.o $(ODIR)shape_functions_mod.o
+	$(FC) $(FFLAGS) -c $< -o $@
+	mv bathymetry_interp_mod.mod $(ODIR)
 	
 $(ODIR)quit.o : ../../src/quit.F90                              $(ODIR)globals.o
 	$(FC) $(FFLAGS) -c $< -o $@
@@ -131,7 +135,7 @@ $(ODIR)basis.o: ../../src/basis.F90                             $(ODIR)globals.o
 	$(FC) $(FFLAGS) -c $< -o $@
 	mv basis.mod $(ODIR)
 
-$(ODIR)evaluate.o: evaluate.F90                                 $(ODIR)globals.o  $(ODIR)basis.o  $(ODIR)find_element_mod.o  $(ODIR)lapack_interfaces.o
+$(ODIR)evaluate.o: evaluate.F90                                 $(ODIR)globals.o $(ODIR)find_element_mod.o $(ODIR)shape_functions_mod.o $(ODIR)transformation.o $(ODIR)bathymetry_interp_mod.o
 	$(FC) $(FFLAGS) -c $< -o $@
 	mv evaluate.mod $(ODIR)
 
@@ -157,7 +161,7 @@ $(ODIR)curvilinear.o: curvilinear.f90                           $(ODIR)globals.o
 $(ODIR)interp_check.o: interp_check.f90                         $(ODIR)globals.o 
 	$(FC) $(FFLAGS) -c $< -o $@
 	
-$(ODIR)bathy_interp.o: bathy_interp.F90                         $(ODIR)globals.o  $(ODIR)allocation.o  $(ODIR)basis.o  $(ODIR)grid_file_mod.o  $(ODIR)evaluate.o  $(ODIR)find_element_mod.o 
+$(ODIR)bathy_interp.o: bathy_interp.F90                         $(ODIR)globals.o  $(ODIR)allocation.o  $(ODIR)basis.o  $(ODIR)grid_file_mod.o  $(ODIR)evaluate.o  $(ODIR)find_element_mod.o $(ODIR)bathymetry_interp_mod.o
 	$(FC) $(FFLAGS) -c $< -o $@
 	
 $(ODIR)version.o: ../../src/version.F90

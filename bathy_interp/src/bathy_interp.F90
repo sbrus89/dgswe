@@ -6,6 +6,7 @@
       USE basis   
       USE find_element, ONLY: find_element_init
       USE grid_file_mod, ONLY: read_bathy_file
+      USE bathymetry_interp_mod, ONLY: shape_functions_eltypes_at_hbp
 
       IMPLICIT NONE
 
@@ -16,11 +17,12 @@
       INTEGER :: nv_in,nv_ex
       INTEGER :: ged,i,nd
       INTEGER :: p,nnds
-      INTEGER :: myrank
+      INTEGER :: myrank,space
       REAL(rp) :: x(2),xe(2)
       REAL(rp) :: hb
 
       myrank = 0
+      space = 1
 
       CALL version () ! print out current git branch/SHA          
       
@@ -31,23 +33,22 @@
       
       CALL read_grid(base)  ! read coarse, fine, and base grids     
       CALL read_grid(eval)
+      CALL read_bathy_file(myrank,base%bathy_file,base%hbp,base%ne,base%el_type,nverts,base%depth,base%ect,base%elhb)            
       
       CALL connect(base)
       CALL connect(eval)
       
       mnepn = max(base%mnepn,eval%mnepn)
       
-      CALL vandermonde(base) ! compute Vandermonde matricies
-      CALL vandermonde(eval)
-      
       CALL curvilinear(base)
       CALL curvilinear(eval)       
       
-      CALL eval_pts()      ! get area evaluation points   
-      CALL function_eval() ! evaluate basis and shape functions for eval grid evaluation points            
+ 
+
+      ! evaluate shape functions at evaluation points (to compute r,s -> x,y transformtion)
+      CALL shape_functions_eltypes_at_hbp(space,nel_type,eval%np,eval%l,eval%dldr,eval%dlds)
                    
-!       CALL read_bathy()  
-      CALL read_bathy_file(myrank,base%bathy_file,base%hbp,base%ne,base%el_type,nverts,base%depth,base%ect,base%elhb)      
+
       
            
                   
@@ -58,7 +59,7 @@
       CALL find_element_init(nel_type,nverts,base%np,base%nnds,base%nn,base%xy,base%nepn,base%epn) 
 
       
-      ALLOCATE(base%l(base%mnnds,mnept,nel_type+2))
+      ALLOCATE(base%l(base%mnnds,eval%mnnds,nel_type+2))
       ALLOCATE(eval%elhbxy(eval%mnnds,eval%ne,2))        
       ALLOCATE(eval%hbxy(3,eval%mnnds*eval%ne))          
       

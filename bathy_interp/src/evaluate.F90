@@ -1,150 +1,10 @@
       MODULE evaluate
       
-      USE lapack_interfaces
-      
       IMPLICIT NONE
       
       
       
       CONTAINS
-      
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!      
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!       
-            
-      SUBROUTINE vandermonde(mesh)
-      
-      USE globals, ONLY: rp,nel_type,grid
-      USE basis, ONLY: tri_nodes,tri_basis,quad_nodes,quad_basis
-      
-      IMPLICIT NONE
-      TYPE(grid) :: mesh
-      
-      INTEGER :: et,n
-      REAL(rp) :: r(mesh%mnnds),s(mesh%mnnds)
-      INTEGER :: info    
-      
-
-      
-      ALLOCATE(mesh%V(mesh%mnnds,mesh%mnnds,nel_type+2))
-      ALLOCATE(mesh%ipiv(mesh%mnnds,nel_type+2))
-      
-      ! Evaluate basis functions at reference element nodes
-      DO et = 1,nel_type+2
-        n = mesh%nnds(et)
-
-        IF (mod(et,2) == 1) THEN
-          CALL tri_nodes(1,mesh%np(et),n,r,s)
-          CALL tri_basis(mesh%np(et),n,n,r,s,mesh%V(:,:,et))       
-        ELSE 
-          CALL quad_nodes(1,mesh%np(et),n,r,s)
-          CALL quad_basis(mesh%np(et),n,n,r,s,mesh%V(:,:,et))
-        ENDIF
-        
-        
-        ! Do LU decomposition 
-        CALL DGETRF(n,n,mesh%V(1,1,et),mesh%mnnds,mesh%ipiv(1,et),info)
-        
-!         DO pt = 1,n
-!             PRINT("(100(e15.5))"), (mesh%V(dof,pt,et), dof = 1,n)
-!         ENDDO        
-!         PRINT*, " "       
-        
-      ENDDO
-      
-      
-      
-      RETURN      
-      END SUBROUTINE vandermonde
-      
-      
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!      
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-
-      SUBROUTINE eval_pts()
-
-      USE globals, ONLY: rp,nel_type,eval,mnept,nept,ept
-      USE basis, ONLY: tri_nodes,quad_nodes
-
-      IMPLICIT NONE 
-      INTEGER :: i,pt,et
-      
-      mnept = (eval%hbp+1)**2
-      ALLOCATE(ept(mnept,2,nel_type))      
-      
-      DO i = 1,nel_type     
-
-        IF (mod(i,2) == 1) THEN
-          CALL tri_nodes(1,eval%np(5),nept(i),ept(:,1,i),ept(:,2,i))
-        ELSE
-          CALL quad_nodes(1,eval%np(6),nept(i),ept(:,1,i),ept(:,2,i))
-        ENDIF
-                
-      ENDDO
-      
-      mnept = maxval(nept)
-               
-      RETURN
-      END SUBROUTINE eval_pts
-
-      
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!      
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!     
-
-
-      SUBROUTINE function_eval()
-      
-      USE globals, ONLY: rp,nel_type,mnept,nept,ept,eval,base
-      USE basis, ONLY: tri_basis,quad_basis,adcirc_basis
-      
-      IMPLICIT NONE
-           
-      INTEGER :: p,n,et,m,i,pt,mnnds,mndof,npt
-      INTEGER :: info
-      
-      REAL(rp) :: r(mnept),s(mnept)
-      
-      mnnds = eval%mnnds
-          
-      
-      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-      ! evaluate shape functions at evaluation points (to compute r,s -> x,y transformtion)
-      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-      
-      ALLOCATE(eval%l(mnnds,mnept,nel_type))   
-      ALLOCATE(eval%dldr(mnnds,mnept,nel_type))
-      ALLOCATE(eval%dlds(mnnds,mnept,nel_type))
-      
-      DO et = 1,nel_type
-        p = eval%np(et)     ! transformation order
-        n = eval%nnds(et)   ! transformation nodes
-        npt = nept(et)
-        
-        DO pt = 1,npt
-          r(pt) = ept(pt,1,et) 
-          s(pt) = ept(pt,2,et)
-        ENDDO
-        
-        IF (mod(et,2) == 1) THEN
-          CALL tri_basis(p,n,npt,r,s,eval%l(:,:,et),eval%dldr(:,:,et),eval%dlds(:,:,et))
-        ELSE IF (mod(et,2) == 0) THEN
-          CALL quad_basis(p,n,npt,r,s,eval%l(:,:,et),eval%dldr(:,:,et),eval%dlds(:,:,et))
-        ENDIF       
-        
-        CALL DGETRS("N",n,npt,eval%V(1,1,et),mnnds,eval%ipiv(1,et),eval%l(1,1,et),mnnds,info)  
-        CALL DGETRS("N",n,npt,eval%V(1,1,et),mnnds,eval%ipiv(1,et),eval%dldr(1,1,et),mnnds,info)      
-        CALL DGETRS("N",n,npt,eval%V(1,1,et),mnnds,eval%ipiv(1,et),eval%dlds(1,1,et),mnnds,info)              
-      
-      ENDDO
-      
-      
-
-
-      
-      RETURN
-      END SUBROUTINE function_eval
-      
-        
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!      
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
@@ -153,8 +13,10 @@
       SUBROUTINE eval_hb(ele,pte,xe,x,hb)
 
       USE globals, ONLY: rp,base,eval
-      USE basis, ONLY: tri_basis,quad_basis
       USE find_element, ONLY: in_element
+      USE shape_functions_mod, ONLY: shape_functions_area_eval
+      USE transformation, ONLY: element_transformation
+      USE bathymetry_interp_mod, ONLY: bathymetry_interp_eval
 
       IMPLICIT NONE
 
@@ -165,10 +27,10 @@
       REAL(rp), INTENT(OUT) :: hb 
       
       INTEGER :: elb,ete,etb,et
-      INTEGER :: npts,nd,n
+      INTEGER :: npt,nd,n
       INTEGER :: info
       INTEGER :: leds(4)     
-      REAL(rp) :: r(2)
+      REAL(rp) :: rs(2),r(1),s(1)
       REAL(rp) :: error
 
       ete = eval%el_type(ele)
@@ -179,47 +41,26 @@
         x(2) = xe(2)
       ELSE
         ! evaluate x,y coordinates of eval element evaluation point
-        x(1) = 0d0
-        x(2) = 0d0
-      
-        DO nd = 1,eval%nnds(ete)
-          x(1) = x(1) + eval%l(nd,pte,ete)*eval%elxy(nd,ele,1)  
-          x(2) = x(2) + eval%l(nd,pte,ete)*eval%elxy(nd,ele,2)
-        ENDDO   
+        CALL element_transformation(eval%nnds(ete),eval%elxy(:,ele,1),eval%elxy(:,ele,2),eval%l(:,pte,ete),x(1),x(2))        
       ENDIF
-          
-!       PRINT*,ele,pte
-!       PRINT*,x(1),x(2)
-
-!       CALL in_element(x(1:2),elb,r(1:2),error,exceed)    
-      CALL in_element(x,base%el_type,base%elxy,elb,leds,r)
+  
+      CALL in_element(x,base%el_type,base%elxy,elb,leds,rs)
           
       etb = base%el_type(elb)  ! element type for base element          
         
-        
-      IF (mod(etb,2) == 1) THEN
-        et = 5
-        CALL tri_basis(base%hbp,n,1,r(1),r(2),base%l(:,:,et))
-      ELSE IF (mod(etb,2) == 0) THEN
-        et = 6
-        CALL quad_basis(base%hbp,n,1,r(1),r(2),base%l(:,:,et))
-      ENDIF       
-        
-      CALL DGETRS("N",n,1,base%V(1,1,et),base%mnnds,base%ipiv(1,et),base%l(1,1,et),base%mnnds,info)                          
-               
+      r(1) = rs(1)
+      s(1) = rs(2)
+      npt = 1  
+      CALL shape_functions_area_eval(etb,base%hbp,n,npt,r,s,base%l(:,:,etb))        
+
                
       ! Evaluate bathymetry at r,s coordinates
-      hb = 0d0
-      DO nd = 1,n
-        hb = hb + base%l(nd,1,et)*base%elhb(nd,elb)
-      ENDDO            
-
-  
+      CALL bathymetry_interp_eval(n,base%elhb(:,elb),base%l(:,1,etb),hb)
 
       RETURN
       END SUBROUTINE eval_hb
 
-
-      
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!      
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!        
       
       END MODULE evaluate
