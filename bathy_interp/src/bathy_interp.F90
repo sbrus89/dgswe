@@ -215,7 +215,7 @@
         
       ENDDO
       
-      CALL write_results(eval)
+      CALL write_results(eval,base)
       
       CALL interp_check()          
           

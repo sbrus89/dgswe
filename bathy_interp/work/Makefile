@@ -45,7 +45,7 @@ endif
 
 objects = globals.o kdtree2.o allocation.o basis.o  \
           connect.o curvilinear.o evaluate.o find_element_mod.o \
-          read_input.o read_grid.o read_bathy.o write_results.o \
+          read_input.o read_grid.o write_results.o \
           bathy_interp.o lapack_interfaces.o interp_check.o \
           grid_file_mod.o shape_functions_mod.o curvilinear_nodes_mod.o  \
           transformation.o vandermonde.o edge_connectivity_mod.o quit.o version.o
@@ -143,9 +143,6 @@ $(ODIR)find_element_mod.o: ../../src/find_element_mod.F90       $(ODIR)globals.o
 	mv find_element.mod $(ODIR)
 
 $(ODIR)read_input.o: read_input.f90                             $(ODIR)globals.o
-	$(FC) $(FFLAGS) -c $< -o $@
-
-$(ODIR)read_bathy.o: read_bathy.f90                             $(ODIR)globals.o
 	$(FC) $(FFLAGS) -c $< -o $@
 	
 $(ODIR)write_results.o: write_results.f90                       $(ODIR)globals.o
