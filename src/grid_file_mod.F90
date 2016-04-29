@@ -259,12 +259,12 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!      
       
-      SUBROUTINE init_element_coordinates(ne,mnnds,el_type,nverts,xy,ect,elxy)
+      SUBROUTINE init_element_coordinates(ne,ctp,el_type,nverts,xy,ect,elxy)
       
       IMPLICIT NONE
       
       INTEGER, INTENT(IN) :: ne
-      INTEGER, INTENT(IN) :: mnnds
+      INTEGER, INTENT(IN) :: ctp
       INTEGER, DIMENSION(:), INTENT(IN) :: el_type
       INTEGER, DIMENSION(:), INTENT(IN) :: nverts
       REAL(rp), DIMENSION(:,:), INTENT(IN) :: xy
@@ -273,7 +273,10 @@
             
       INTEGER :: el,nd
       INTEGER :: et,nv
+      INTEGER :: mnnds
       INTEGER :: alloc_status
+      
+      mnnds = (ctp+1)**2
       
       ALLOCATE(elxy(mnnds,ne,2), STAT=alloc_status)
       
@@ -289,6 +292,42 @@
       
       RETURN
       END SUBROUTINE init_element_coordinates      
+
+      
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+      SUBROUTINE init_element_depth(ne,hbp,el_type,nverts,depth,ect,elhb)
+      
+      IMPLICIT NONE
+      
+      INTEGER, INTENT(IN) :: ne
+      INTEGER, INTENT(IN) :: hbp
+      INTEGER, DIMENSION(:), INTENT(IN) :: el_type
+      INTEGER, DIMENSION(:), INTENT(IN) :: nverts
+      REAL(rp), DIMENSION(:), INTENT(IN) :: depth
+      INTEGER, DIMENSION(:,:), INTENT(IN) :: ect
+      REAL(rp), DIMENSION(:,:), ALLOCATABLE, INTENT(OUT) :: elhb
+            
+      INTEGER :: el,nd
+      INTEGER :: et,nv
+      INTEGER :: mnnds
+      INTEGER :: alloc_status
+      
+      mnnds = (hbp+1)**2
+      
+      ALLOCATE(elhb(mnnds,ne), STAT=alloc_status)              
+      
+      DO el = 1,ne        
+        et = el_type(el)
+        nv = nverts(et)
+        DO nd = 1,nv
+          elhb(nd,el) = depth(ect(nd,el))
+        ENDDO              
+      ENDDO        
+      
+      RETURN
+      END SUBROUTINE init_element_depth      
 
       
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -313,18 +352,13 @@
       INTEGER :: i
       INTEGER :: el,nd
       INTEGER :: et,nv
-      INTEGER :: nnds
+      INTEGER :: nnds,mnnds
       INTEGER :: ne_check
       INTEGER :: hbp_check
       LOGICAL :: file_exists  
       INTEGER :: alloc_status       
-      
-      ALLOCATE(elhb((hbp+1)**2,ne), STAT=alloc_status)
-      IF (alloc_status /= 0) THEN
-        PRINT*, "Allocation error"
-        CALL abort()
-      ENDIF         
-     
+              
+      mnnds = (hbp+1)**2
       
       INQUIRE(FILE=bathy_file, EXIST = file_exists)
       IF(file_exists == .FALSE.) THEN
@@ -335,13 +369,8 @@
           CALL abort()   
         ELSE  
         
-          DO el = 1,ne        
-            et = el_type(el)
-            nv = nverts(et)
-            DO nd = 1,nv
-              elhb(nd,el) = depth(ect(nd,el))
-            ENDDO              
-          ENDDO  
+          
+          CALL init_element_depth(ne,hbp,el_type,nverts,depth,ect,elhb)          
           
         ENDIF
       ELSE
@@ -355,6 +384,12 @@
           IF (myrank == 0) PRINT*, "incorrect high order bathymetry file"
           CALL abort()
         ENDIF
+        
+        ALLOCATE(elhb(mnnds,ne), STAT=alloc_status)
+        IF (alloc_status /= 0) THEN
+          PRINT*, "Allocation error"
+          CALL abort()
+        ENDIF         
         
         DO i = 1,ne
           READ(14,*) el,nnds,(elhb(nd,el), nd = 1,nnds)

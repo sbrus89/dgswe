@@ -1,6 +1,6 @@
       SUBROUTINE read_grid(mesh)
       
-      USE globals, ONLY: rp,grid,nverts,mnnds, &
+      USE globals, ONLY: rp,grid,nverts,mnnds,ctp, &
                          Erad,lambda0,phi0          
       USE grid_file_mod
       USE spherical_mod, ONLY: cpp_transformation      
@@ -30,25 +30,8 @@
       
       CALL read_connectivity(mesh%ne,mesh%ect,mesh%el_type)      
 
-      
-      
-
-      ALLOCATE(mesh%elxy(mnnds,mesh%ne,2))     
-      
-      DO el = 1,mesh%ne
-        et = mesh%el_type(el)
-        nv = nverts(et)
-        
-        DO j = 1,nv
-          mesh%elxy(j,el,1) = mesh%xy(1,mesh%ect(j,el))
-          mesh%elxy(j,el,2) = mesh%xy(2,mesh%ect(j,el))
-        ENDDO      
-        
-      ENDDO
-      
-
-      
-
+      CALL init_element_coordinates(mesh%ne,ctp,mesh%el_type,nverts,mesh%xy,mesh%ect,mesh%elxy)
+     
       CALL read_open_boundaries(mesh%nope,mesh%neta,mesh%obseg,mesh%obnds)
 
       CALL read_flow_boundaries(mesh%nbou,mesh%nvel,mesh%fbseg,mesh%fbnds) 

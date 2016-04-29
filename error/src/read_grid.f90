@@ -48,7 +48,7 @@
 
                  
       INTEGER :: el,j           
-      INTEGER :: et,nv                        
+      INTEGER :: et,nv      
       INTEGER :: coord_sys
       REAL(rp) :: h0
       INTEGER :: alloc_status   
@@ -65,30 +65,7 @@
       
       CALL read_connectivity(mesh%ne,mesh%ect,mesh%el_type)
       
-      
-      
-      
-      
-      
-      ALLOCATE(mesh%elxy(mesh%mnnds,mesh%ne,2))
-      ALLOCATE(mesh%elhb(mesh%mnnds,mesh%ne))
-
-      DO el = 1,mesh%ne       
-        et = mesh%el_type(el)
-        nv = nverts(et)
-        DO j = 1,nv
-          mesh%elxy(j,el,1) = mesh%xy(1,mesh%ect(j,el))
-          mesh%elxy(j,el,2) = mesh%xy(2,mesh%ect(j,el))
-          mesh%elhb(j,el)   = mesh%depth(mesh%ect(j,el))
-        ENDDO      
-        
-      ENDDO
-      
-      
-
-      
-
-      
+      CALL init_element_coordinates(mesh%ne,mesh%ctp,mesh%el_type,nverts,mesh%xy,mesh%ect,mesh%elxy)     
 
       CALL read_open_boundaries(mesh%nope,mesh%neta,mesh%obseg,mesh%obnds) 
 
