@@ -1,20 +1,20 @@
       SUBROUTINE read_stations()
 
-      USE globals, ONLY: pres,nbou,fbseg,fbnds,xy,nsta,xysta,ndsta, &
-                         out_direc
+      USE globals, ONLY: rp,nbou,fbseg,fbnds,xy,nsta,xysta,ndsta
+      USE read_dginp, ONLY: out_direc
 
       IMPLICIT NONE
       
       INTEGER, PARAMETER :: nista = 4 ! number of stations bewteen 101 boundary nodes
-      REAL(pres) :: r(nista),h
+      REAL(rp) :: r(nista),h
       INTEGER :: sta,i
       INTEGER :: bou,nd
       INTEGER :: nnds,btype
       LOGICAL :: file_exists
       
-      h = 2d0/real(nista+1,pres)
+      h = 2d0/real(nista+1,rp)
       DO i = 1,nista
-        r(i) = -1d0 + h*real(i,pres)
+        r(i) = -1d0 + h*real(i,rp)
       ENDDO
       
       file_exists = .FALSE.

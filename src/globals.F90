@@ -73,6 +73,13 @@
       
       REAL(rp) :: nlines
       
+      INTEGER :: nsta
+      INTEGER, ALLOCATABLE, DIMENSION(:) :: ndsta
+      INTEGER, ALLOCATABLE, DIMENSION(:) :: elsta
+      REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: xysta ! x,y coordinates of stations
+      REAL(rp), ALLOCATABLE, DIMENSION(:) :: hbsta
+      REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: phi_sta      
+      
       INTEGER, ALLOCATABLE, DIMENSION(:,:) :: ect ! element connectivity table
       REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: xy ! x,y coordinates of nodes
       REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: elxy            
