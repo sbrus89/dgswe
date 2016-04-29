@@ -25,6 +25,8 @@
 
       CALL read_connectivity(ne,ect,el_type)
       
+      CALL init_element_coordinates(ne,mnnds,el_type,nverts,xy,ect,elxy)            
+      
       CALL read_open_boundaries(nope,neta,obseg,obnds)      
       
       CALL read_flow_boundaries(nbou,nvel,fbseg,fbnds)

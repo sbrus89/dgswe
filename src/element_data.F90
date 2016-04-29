@@ -11,7 +11,6 @@
       USE basis, ONLY:       
       USE allocation, ONLY: alloc_trans_arrays
       USE read_dginp, ONLY: p,ctp
-      USE transformation, ONLY: init_element_coordinates
 
       IMPLICIT NONE
       INTEGER :: el,ed,led,dof,pt,i,nd
@@ -23,9 +22,7 @@
       REAL(rp), ALLOCATABLE, DIMENSION(:) :: r,s
       REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: jac    
     
-      CALL alloc_trans_arrays()             
-      
-      CALL init_element_coordinates(ne,mnnds,el_type,nverts,xy,ect,elxy)          
+      CALL alloc_trans_arrays()                       
       
       IF (ctp > 1) THEN  
         CALL curvilinear()    
