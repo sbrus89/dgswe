@@ -5,7 +5,6 @@
       USE read_dginp
       USE messenger2, ONLY: message_init,nproc
       USE edge_qpts_mod, ONLY: edge_qpts
-      USE transformation, ONLY: init_element_coordinates
 
       IMPLICIT NONE
       
@@ -25,9 +24,7 @@
       
       CALL sizes()
       
-      CALL read_grid()            
-      
-      CALL init_element_coordinates(ne,mnnds,el_type,nverts,xy,ect,elxy)      
+      CALL read_grid()                
       
       CALL read_forcing()
       
