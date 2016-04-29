@@ -4,9 +4,9 @@ VPATH := ../src/
 ODIR = odir/
 
 FC = ifort
-#FFLAGS = -O3 -132 -I$(ODIR) #-Dadcirc
+FFLAGS = -O3 -132 -I$(ODIR) #-Dadcirc
 # FFLAGS = -O0 -fp-model strict -132 -I$(ODIR) #-Dadcirc
-FFLAGS = -132 -C -g -traceback -I$(ODIR) #-Dadcirc
+# FFLAGS = -132 -C -g -traceback -I$(ODIR) #-Dadcirc
 
 FULLNAME := $(shell hostname)
 NAME := $(strip $(subst ., , $(FULLNAME)))
