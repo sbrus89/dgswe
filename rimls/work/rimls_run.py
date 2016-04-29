@@ -12,7 +12,7 @@ import pprint
 #          lines with spaces between cases
        
 
-nlines = 11
+nlines = 16
 file = 'rimls.inp'
 exe = 'rimls'
 

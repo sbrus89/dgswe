@@ -14,7 +14,7 @@ import pprint
        
 
 
-nlines = 8          # number of lines per case
+nlines = 10          # number of lines per case
 file = 'bathy.inp'  # input file name
 exe = 'bathy'       # executable name
 
