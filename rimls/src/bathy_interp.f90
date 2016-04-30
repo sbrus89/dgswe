@@ -63,6 +63,7 @@
       ELSE
         space = -1
         extract = 0 ! return all nodes
+        mesh%mninds = (hbp+1)**2
       ENDIF     
       
 
