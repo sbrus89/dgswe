@@ -302,17 +302,17 @@
             n = lfbseg(1,bnd,pe)
             IF (segtype == 0 .OR. segtype == 10 .OR. segtype == 20 .OR. &
                 segtype == 1 .OR. segtype == 11 .OR. segtype == 21) THEN
-              WRITE(14,"(I8,1x,I8,10x,A,1x,I8)") n,segtype, "! number of nodes in normal flow boundary", i
+              WRITE(14,"(I8,1X,I8,10x,A,1x,I8)") n,segtype, "! number of nodes in normal flow boundary", i
               DO nd = 1,n-1
                 lnd = lfbnds(nd,bnd,pe)
                 gnd = nd_l2g(lnd,pe)
-                WRITE(14,"(I8,10(D24.17,1X))") lnd, xy(1,gnd), (lbndxy(1,k,nd,bnd,pe), k=1,ctp-1)
-                WRITE(14,"(I8,10(D24.17,1X))") lnd, xy(2,gnd), (lbndxy(2,k,nd,bnd,pe), k=1,ctp-1)
+                WRITE(14,"(I8,1X,10(D24.17,1X))") lnd, xy(1,gnd), (lbndxy(1,k,nd,bnd,pe), k=1,ctp-1)
+                WRITE(14,"(I8,1X,10(D24.17,1X))") lnd, xy(2,gnd), (lbndxy(2,k,nd,bnd,pe), k=1,ctp-1)
               ENDDO
               lnd = lfbnds(n,bnd,pe)
               gnd = nd_l2g(lnd,pe)              
-              WRITE(14,"(I8,D24.17,1X)") lnd, xy(1,gnd)
-              WRITE(14,"(I8,D24.17,1X)") lnd, xy(2,gnd)            
+              WRITE(14,"(I8,1X,D24.17,1X)") lnd, xy(1,gnd)
+              WRITE(14,"(I8,1X,D24.17,1X)") lnd, xy(2,gnd)            
               
             ELSE
             
