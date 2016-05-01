@@ -356,7 +356,8 @@
       INTEGER :: ne_check
       INTEGER :: hbp_check
       LOGICAL :: file_exists  
-      INTEGER :: alloc_status       
+      INTEGER :: alloc_status   
+      CHARACTER(200) :: tmp
               
       mnnds = (hbp+1)**2
       
@@ -378,7 +379,7 @@
         IF (myrank == 0 ) PRINT*, "reading in high order bathymetry file"  
         
         OPEN(UNIT = 14, FILE = bathy_file)
-        READ(14,*) !read in the header info
+        READ(14,*) tmp !read in the header info
         READ(14,*) ne_check, hbp_check
         IF (ne_check /= ne .or. hbp_check /= hbp) THEN
           IF (myrank == 0) PRINT*, "incorrect high order bathymetry file"
@@ -431,6 +432,7 @@
       INTEGER :: nbseg,btype      
       INTEGER :: alloc_status   
       LOGICAL :: file_exists        
+      CHARACTER(200) :: tmp
       
       IF (ctp == 1) THEN
         RETURN
@@ -451,7 +453,7 @@
       
         OPEN(UNIT=14, FILE=curve_file)
         
-        READ(14,*) !read in the header info
+        READ(14,*) tmp    !read in the header info
         READ(14,*) nbou_check
         READ(14,*) nmax,ctp_check
         
