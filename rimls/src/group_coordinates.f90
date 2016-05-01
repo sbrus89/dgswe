@@ -200,9 +200,9 @@
         nv = nverts(et)
         
         IF (mod(et,2) == 1) THEN   
-          nnd = mesh%nnds(3)
+          nnd = mesh%nnds(5)
         ELSE IF (mod(et,2) == 0) THEN
-          nnd = mesh%nnds(4)          
+          nnd = mesh%nnds(6)          
         ENDIF    
 
         pt = 0
