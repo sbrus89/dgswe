@@ -520,51 +520,6 @@
       RETURN
       END SUBROUTINE print_grid_info
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-!       SUBROUTINE write_grid()
-! 
-!       IMPLICIT NONE
-!           
-!       INTEGER :: nd,el,bnd
-!       INTEGER :: et,nv
-!       
-!       OPEN(UNIT=14,FILE='nodes.out')
-!       WRITE(14,*) "spline output nodes"
-!       WRITE(14,*) ne,nn
-!       DO nd = 1,nn
-!         WRITE(14,"(I7,3(e24.16))") nd,xy(1,nd),xy(2,nd),depth(nd)
-!       ENDDO
-!       DO el = 1,ne
-!         et = el_type(el)
-!         nv = nverts(et)
-!         WRITE(14,"(20(I9))") el,nv, (ect(nd,el),nd=1,nv)
-!       ENDDO
-!       
-!       WRITE(14,"(I9,A)") nope, "   = Number of open boundaries"
-!       WRITE(14,"(I9,A)") neta, "   = Total number of open boundary nodes"
-!       DO bnd = 1,nope
-!         WRITE(14,"(2(I9))") obseg(bnd), 0
-!         DO nd = 1,obseg(bnd)
-!           WRITE(14,"(I9)") obnds(nd,bnd)
-!         ENDDO
-!       ENDDO
-!       
-!       WRITE(14,"(I9,A)") nbou, "   = Number of land boundaries"
-!       WRITE(14,"(I9,A)") nvel, "   = Total number of land boundary nodes"
-!       DO bnd = 1,nbou
-!         WRITE(14,"(2(I9))") fbseg(1,bnd), fbseg(2,bnd)
-!         DO nd = 1,fbseg(1,bnd)
-!           WRITE(14,"(I9)") fbnds(nd,bnd)
-!         ENDDO
-!       ENDDO
-!       
-!       CLOSE(14)
-! 
-!       RETURN
-!       END SUBROUTINE write_grid
-      
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!      
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
@@ -742,7 +697,150 @@
       RETURN
       END SUBROUTINE
 
+      
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!      
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+      SUBROUTINE write_header(grid_file,grid_name,ne,nn)
+
+      IMPLICIT NONE
+      
+      CHARACTER(100), INTENT(IN)  :: grid_file
+      CHARACTER(100), INTENT(IN) :: grid_name      
+      INTEGER, INTENT(IN) :: ne
+      INTEGER, INTENT(IN) :: nn   
+      
+      ! open fort.14 grid file      
+      OPEN(UNIT=14, FILE=TRIM(grid_file))                 
+                       
+      ! write out name of grid
+      WRITE(14,"(A)"), TRIM(grid_name)                                         
+
+      ! read in number of elements and number of nodes
+      WRITE(14,"(2(I8,1x))"), ne, nn       
+
+      RETURN
+      END SUBROUTINE write_header
+      
+      
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
+
+
+      SUBROUTINE write_coords(nn,xy,depth)
+      
+      IMPLICIT NONE
+      
+      INTEGER, INTENT(IN) :: nn
+      REAL(rp), DIMENSION(:,:), INTENT(IN) :: xy
+      REAL(rp), DIMENSION(:)  , INTENT(IN) :: depth
+      
+      INTEGER :: i
+
+      ! write out node coordinates and depths
+      DO i = 1,nn                                                      
+!         WRITE(14,"(I8,1X,3(D24.17,1X))"), i, xy(1,i), xy(2,i), depth(i)
+        WRITE(14,"(I8,1X,3(E24.17,1X))"), i, xy(1,i), xy(2,i), depth(i)           
+      ENDDO 
+      
+      RETURN
+      END SUBROUTINE write_coords
+      
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
+
+
+      SUBROUTINE write_connectivity(ne,ect,el_type,nverts)
+      
+      IMPLICIT NONE
+      
+      INTEGER, INTENT(IN) :: ne
+      INTEGER, DIMENSION(:,:), INTENT(IN) :: ect
+      INTEGER, DIMENSION(:)  , INTENT(IN) :: el_type
+      INTEGER, DIMENSION(:)  , INTENT(IN) :: nverts
+
+      INTEGER :: i,j
+      INTEGER :: et,nv
+      
+      ! write out element connectivity
+      DO i = 1,ne
+        et = el_type(i)
+        nv = nverts(et)
+        WRITE(14,"(6(I8,1x))") i,nv,(ect(j,i),j = 1,nv)        
+      ENDDO           
+   
+      
+      RETURN
+      END SUBROUTINE write_connectivity 
+      
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
+
+
+      SUBROUTINE write_open_boundaries(nope,neta,obseg,obnds)
+      
+      IMPLICIT NONE     
+      
+      INTEGER, INTENT(IN) :: nope
+      INTEGER, INTENT(IN) :: neta
+      INTEGER, DIMENSION(:)  , INTENT(IN) :: obseg      
+      INTEGER, DIMENSION(:,:), INTENT(IN) :: obnds
+      
+      INTEGER :: i,j
+      INTEGER :: nbseg     
+                  
+      WRITE(14,"(I8,19x,A)") nope, "! number of open boundaries"                                                
+      WRITE(14,"(I8,19x,A)") neta, "! number of total elevation specified boundary nodes"
+
+      DO i = 1,nope      
+        nbseg = obseg(i)
+        WRITE(14,"(I8,10x,A,1x,I8)"), nbseg, "! number of nodes in open boundary", i
+        DO j = 1,nbseg
+          WRITE(14,"(I8)") obnds(j,i) ! write out open boundary node numbers
+        ENDDO
+      ENDDO   
+      
+      RETURN
+      END SUBROUTINE write_open_boundaries
+
+      
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+      SUBROUTINE write_flow_boundaries(nbou,nvel,fbseg,fbnds)
+      
+      IMPLICIT NONE
+      
+      INTEGER, INTENT(IN) :: nbou
+      INTEGER, INTENT(IN) :: nvel
+      INTEGER, DIMENSION(:,:), INTENT(IN) :: fbseg
+      INTEGER, DIMENSION(:,:), INTENT(IN) :: fbnds
+            
+      INTEGER :: i,j      
+      INTEGER :: nbseg,btype      
+            
+      WRITE(14,"(I8,19x,A)") nbou, "! number of normal flow boundaries"
+      WRITE(14,"(I8,19x,A)") nvel, "! total number of normal flow nodes"
+
+      DO i = 1,nbou
+        nbseg = fbseg(1,i)
+        btype = fbseg(2,i)      
+        WRITE(14,"(I8,1x,I8,10x,A,1x,I8)"), nbseg, btype, "! number of nodes in normal flow boundary", i
+        DO j = 1,nbseg
+          WRITE(14,"(I8)"), fbnds(j,i)  ! read in normal flow boundary node numbers
+        ENDDO
+      ENDDO
+      
+      CLOSE(14)        
+
+      RETURN
+      END SUBROUTINE write_flow_boundaries
+      
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
 
       END MODULE grid_file_mod
