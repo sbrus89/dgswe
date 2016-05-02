@@ -1,4 +1,6 @@
       PROGRAM dgpost
+      
+      USE globalize, ONLY: globalize_solution
 
       IMPLICIT NONE
       
@@ -9,8 +11,8 @@
       INTEGER, PARAMETER :: pres = kind(1d0)
       INTEGER :: lname
       CHARACTER(6) :: dirname
+      CHARACTER(100) :: file_name
       INTEGER, ALLOCATABLE, DIMENSION(:) :: lel2gel
-      REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: H_local, Qx_local, Qy_local
       REAL(pres), ALLOCATABLE, DIMENSION(:,:,:) :: H_global, Qx_global, Qy_global
       REAL(pres), ALLOCATABLE, DIMENSION(:,:) :: hb_local, hb_global
       REAL(pres), ALLOCATABLE, DIMENSION(:) :: t
@@ -50,8 +52,8 @@
         
         
         
-        IF(.not. ALLOCATED(H_local)) THEN
-          ALLOCATE(H_local(mne,ndof),Qx_local(mne,ndof),Qy_local(mne,ndof),hb_local(mne,ndof))
+        IF(.not. ALLOCATED(hb_local)) THEN
+          ALLOCATE(hb_local(mne,ndof))
         ENDIF        
         
         IF(.not. ALLOCATED(H_global))THEN
@@ -59,84 +61,16 @@
           ALLOCATE(H_global(tne,ndof,lines+1),Qx_global(tne,ndof,lines+1),Qy_global(tne,ndof,lines+1),hb_global(tne,ndof))
         ENDIF  
         
+        file_name = dirname(1:lname)//'/'//'solution_H.d'
+        CALL globalize_solution(file_name,ne,mne,ndof,lel2gel,t,H_global)
         
+        file_name = dirname(1:lname)//'/'//'solution_Qx.d'
+        CALL globalize_solution(file_name,ne,mne,ndof,lel2gel,t,Qx_global)   
+        
+        file_name = dirname(1:lname)//'/'//'solution_Qy.d'
+        CALL globalize_solution(file_name,ne,mne,ndof,lel2gel,t,Qy_global)        
 
-        OPEN(UNIT=63,FILE=dirname(1:lname)//'/'//'solution_H.d')
-        READ(63,*)
-        tstep = 0
-        DO         
-          READ(63,*,IOSTAT=read_stat) t(tstep + 1)
-          IF(read_stat < 0) THEN
-            EXIT 
-          ENDIF          
-  
-          DO dof = 1,ndof
-            READ(63,6364) (H_local(el,dof), el = 1,ne)   
-          ENDDO
-          
-          tstep = tstep + 1
-          
-          DO dof = 1,ndof
-            DO el = 1,ne
-              H_global(lel2gel(el),dof,tstep) = H_local(el,dof)
-            ENDDO
-          ENDDO
-                 
-        ENDDO 
-        CLOSE(63)
 
-           
-  
-        OPEN(UNIT=641,FILE=dirname(1:lname)//'/'//'solution_Qx.d')
-        READ(641,*)
-        tstep = 0
-        DO 
-          READ(641,*,IOSTAT=read_stat) t(tstep + 1)
-          IF(read_stat < 0) THEN
-            EXIT 
-          ENDIF
-          DO dof = 1,ndof
-            READ(641,6364) (Qx_local(el,dof), el = 1,ne)
-          ENDDO
-          
-          tstep = tstep + 1
-          
-          DO dof = 1,ndof
-            DO el = 1,ne
-              Qx_global(lel2gel(el),dof,tstep) = Qx_local(el,dof)
-            ENDDO
-          ENDDO
-          
-        ENDDO  
-        CLOSE(641)
-
-        
-        
-
-        OPEN(UNIT=642,FILE=dirname(1:lname)//'/'//'solution_Qy.d')
-        READ(642,*)
-        tstep = 0
-        DO 
-          READ(642,*,IOSTAT=read_stat) t(tstep + 1)
-          IF(read_stat < 0) THEN
-            EXIT
-          ENDIF          
-          DO dof = 1,ndof
-            READ(642,6364) (Qy_local(el,dof), el = 1,ne)
-          ENDDO
-          
-          tstep = tstep + 1
-          
-          DO dof = 1,ndof
-            DO el = 1,ne
-              Qy_global(lel2gel(el),dof,tstep) = Qy_local(el,dof)
-            ENDDO
-          ENDDO
-          
-        ENDDO
-        CLOSE(642)
-        
-        
 
         OPEN(UNIT=65,FILE=dirname(1:lname)//'/'//'hb_modal.d')
         DO dof = 1,4

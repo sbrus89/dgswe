@@ -178,7 +178,7 @@ dgprep_objects = globals.o messenger2.o read_input.o allocation.o grid_file_mod.
                  
 dgprep_obj := $(patsubst %.o, $(ODIR)%.o,$(dgprep_objects))  
 
-dgpost_objects = globals.o messenger2.o version.o dgpost.o
+dgpost_objects = globals.o globalize.o version.o dgpost.o
 
 dgpost_obj := $(patsubst %.o, $(ODIR)%.o,$(dgpost_objects))  
 
@@ -504,5 +504,9 @@ $(ODIR)dgprep.o : ../prep/src/dgprep.F90                        $(ODIR)globals.o
 
 # post file targets
 
-$(ODIR)dgpost.o : ../post/dgpost.F90                        
+$(ODIR)globalize.o : ../post/globalize.F90                   $(ODIR)globals.o     
+	$(FC) $(FFLAGS) -c $< -o $@
+	mv globalize.mod $(ODIR)
+
+$(ODIR)dgpost.o : ../post/dgpost.F90                         $(ODIR)globals.o $(ODIR)version.o $(ODIR)globalize.o         
 	$(FC) $(FFLAGS) -c $< -o $@
