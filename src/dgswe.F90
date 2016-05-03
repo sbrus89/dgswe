@@ -12,9 +12,11 @@
       USE edge_qpts_mod
 
       IMPLICIT NONE
-      INTEGER :: it,tskp,cnt
+      INTEGER :: it
+      INTEGER :: cnt_sol,cnt_sta
       INTEGER :: i,j,et
-      REAL(rp) :: tstep,t_start,t_end
+      INTEGER :: tstep
+      REAL(rp) :: t_start,t_end
       
 
 
@@ -91,13 +93,14 @@
 
       
       tf = tf*86400d0
-      tstep = int(tf/dt)
-      tskp = int(tf/(lines*dt))             
+      tstep = int(tf/dt)           
 
       t = 0d0
-      cnt = 0
+      cnt_sol = 0
+      cnt_sta = 0
  
       CALL write_solution(.true.)
+      CALL write_stations(.true.)
       
       
       
@@ -121,13 +124,17 @@
 
          t = t + dt
 
-         cnt = cnt + 1
-         IF(cnt == tskp) THEN
-
+         cnt_sol = cnt_sol + 1
+         IF(sol_opt > 0 .and. cnt_sol == tskp_sol) THEN
            CALL write_solution(.false.)             
-           cnt = 0
-
+           cnt_sol = 0
          ENDIF
+         
+         cnt_sta = cnt_sta + 1
+         IF(sta_opt > 0 .and. cnt_sta == tskp_sta) THEN
+           CALL write_stations(.false.)             
+           cnt_sta = 0
+         ENDIF         
 
       ENDDO
 

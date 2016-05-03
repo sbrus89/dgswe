@@ -50,9 +50,11 @@
       INTEGER, ALLOCATABLE, DIMENSION(:) :: gel2ael ! gives the aligned element number that corresponds to a global element number
       INTEGER, ALLOCATABLE, DIMENSION(:) :: ael2gel ! gives the global element number that corresponds to an aligned element number      
 
-      REAL(rp) :: t ! simulation time
-      REAL(rp) :: tstage ! rk stage time
-      REAL(rp) :: ramp ! boundary condition ramp value
+      REAL(rp) :: t                ! simulation time
+      INTEGER :: tskp_sol,tskp_sta ! time steps to skip between output
+      INTEGER :: nout_sol,nout_sta ! number of outputs 
+      REAL(rp) :: tstage           ! rk stage time
+      REAL(rp) :: ramp             ! boundary condition ramp value
       REAL(rp), PARAMETER :: pt3333 = 1d0/3d0 ! 1/3 for 3rd order rk
       
       REAL(rp), DIMENSION(5), PARAMETER :: ark = (/ 0d0, &
@@ -70,8 +72,7 @@
                                                     0.370400957364204773d0, &
                                                     0.622255763134443168d0, &
                                                     0.958282130674690254d0 /)           
-      
-      REAL(rp) :: nlines
+
       
       INTEGER :: nsta
       INTEGER, ALLOCATABLE, DIMENSION(:) :: ndsta
@@ -285,6 +286,9 @@
       REAL(rp), ALLOCATABLE, DIMENSION(:,:,:,:) :: lfbamp
       REAL(rp), ALLOCATABLE, DIMENSION(:,:,:,:) :: lfbph 
       INTEGER, ALLOCATABLE, DIMENSION(:) :: lnbouf  
+      
+      INTEGER, ALLOCATABLE, DIMENSION(:) :: nlsta
+      INTEGER, ALLOCATABLE, DIMENSION(:,:) :: sta_l2g
       
 
       

@@ -4,23 +4,29 @@
                          lnope,lneta,lobseg,lobnds,lnbou,lnvel,lfbseg,lfbnds,lbndxy, &
                          nobfr,obtag,obtag2,obfreq,obnfact,obeq,lobamp,lobph, &
                          nfbfr,fbtag,fbtag2,fbfreq,fbnfact,fbeq,lfbamp,lfbph,lnbouf, &
-                         nsred,el_l2g,mndof,nlines, &
-                         el_type,elhb,nnds,order
+                         nsred,el_l2g,el_g2l,mndof, &
+                         el_type,elhb,nnds,order, &
+                         nsta,nlsta,sta_l2g,xysta
                          
-      USE read_dginp, ONLY: write_local,hbp,ctp,curve_file,bathy_file,cb_file_exists,hb_file_exists   
+      USE read_dginp, ONLY: write_local,hbp,ctp,curve_file,bathy_file,cb_file_exists,hb_file_exists, &
+                            sol_opt,sta_opt,sol_snap,sta_snap,tf,dt
       USE messenger2, ONLY: nproc,nx_sr,ny_sr,nqpte_sr,hb_sr,detJe_sr, &
                             ned_sr,pe_sr,el_sr,led_sr
+                            
+      USE output, ONLY: time_snaps                            
 
       IMPLICIT NONE
 
       
-      INTEGER :: i,k,pe,pes,nd,el,bnd,bfr,seg,ed,pt,sed
+      INTEGER :: i,k,pe,pes,nd,el,bnd,bfr,seg,ed,pt,sed,sta
       INTEGER :: n,segtype,et
-      INTEGER :: gnd,gel,lnd
+      INTEGER :: gnd,gel,lnd,lsta,gsta
       INTEGER :: nnd
       INTEGER :: npes,ned2pes
       INTEGER :: match
       INTEGER :: lname
+      INTEGER :: tskp_sol,tskp_sta
+      INTEGER :: nout_sol,nout_sta
       CHARACTER(6) :: dirname
       LOGICAL :: file_exists
 
@@ -61,7 +67,7 @@
         
         DO nd = 1,nresnd(pe)
           gnd = nd_l2g(nd,pe)
-          WRITE(14,"(I8,1X,3(D24.17,1X))") nd, xy(1,gnd), xy(2,gnd), depth(gnd)
+          WRITE(14,"(I8,1X,3(E24.17,1X))") nd, xy(1,gnd), xy(2,gnd), depth(gnd)
         ENDDO
         
         DO el = 1,nresel(pe)
@@ -173,6 +179,21 @@
         CLOSE(15)
       ENDDO
       
+      ! Write the local stations file
+      DO pe = 1,nproc
+        WRITE(dirname(3:lname),"(I4.4)") pe-1      
+        OPEN(UNIT=18,FILE=dirname(1:lname)//'/'//'fort.sta') 
+        
+        WRITE(18,*) nlsta(pe)
+        DO lsta = 1,nlsta(pe)
+          gsta = sta_l2g(lsta,pe)
+          WRITE(18,"(2(e24.17,1x))") xysta(1,gsta), xysta(2,gsta)
+        ENDDO
+        
+        CLOSE(18)
+      ENDDO
+      
+      
       ! Write the fort.18 message passing file
       ALLOCATE(sended(nsred))
       DO pe = 1,nproc
@@ -223,6 +244,10 @@
       ENDDO
       
       
+      
+      
+      CALL time_snaps(sol_opt,sol_snap,tf,dt,tskp_sol,nout_sol)
+      
       ! Write the local to global element table
       DO pe = 1,nproc
         WRITE(dirname(3:lname),"(I4.4)") pe-1      
@@ -233,7 +258,7 @@
         WRITE(80,*) MAXVAL(nresel)
         WRITE(80,*) nresel(pe)
         WRITE(80,*) mndof
-        WRITE(80,*) nlines
+        WRITE(80,*) nout_sol
         
         DO el = 1,nresel(pe)
           WRITE(80,*) el, el_l2g(el,pe) 
@@ -253,13 +278,33 @@
         WRITE(81,*) MAXVAL(nresnd)
         WRITE(81,*) nresnd(pe)
         WRITE(81,*) mndof
-        WRITE(81,*) nlines
+        WRITE(81,*) nout_sol
         
         DO el = 1,nresnd(pe)
           WRITE(81,*) nd_l2g(el,pe) 
         ENDDO
         CLOSE(81)
       ENDDO        
+      
+      
+      CALL time_snaps(sta_opt,sta_snap,tf,dt,tskp_sta,nout_sta)      
+      
+      ! Write the local to global stations table
+      DO pe = 1,nproc
+        WRITE(dirname(3:lname),"(I4.4)") pe-1      
+        OPEN(UNIT=82,FILE=dirname(1:lname)//'/'//'fort.82') 
+        
+        WRITE(82,*) nproc
+        WRITE(82,*) nsta
+        WRITE(82,*) MAXVAL(nlsta)
+        WRITE(82,*) nlsta(pe)
+        WRITE(82,*) nout_sta
+        
+        DO sta = 1,nlsta(pe)
+          WRITE(82,*) sta_l2g(sta,pe) 
+        ENDDO
+        CLOSE(82)
+      ENDDO             
       
       
      ! Write the high order bathymetry file
@@ -326,6 +371,13 @@
        
      ENDDO
      ENDIF
+     
+     
+     OPEN(UNIT=89, FILE='fort.89')
+     DO el = 1,ne
+       WRITE(89,*) el,el_g2l(1,el),el_g2l(2,el)
+     ENDDO
+     CLOSE(89)
             
       
       ! Write the local input file

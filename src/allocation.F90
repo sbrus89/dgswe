@@ -19,8 +19,8 @@
       SUBROUTINE sizes()
       
       USE globals, ONLY: ndof,nverts,np,nnds,order, &
-                         mndof,mnp,mnnds,nlines                         
-      USE read_dginp, ONLY: p,ctp,hbp,lines
+                         mndof,mnp,mnnds                         
+      USE read_dginp, ONLY: p,ctp,hbp
       
       IMPLICIT NONE
       
@@ -59,9 +59,7 @@
       order(6) = 6
       order(7) = 5
       order(8) = 6
-      
-      nlines = lines ! avoids module dependency between messenger2 and read_dginp
-      
+            
       RETURN
       END SUBROUTINE sizes
 

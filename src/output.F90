@@ -4,6 +4,7 @@
       USE netcdf       
 #endif      
 
+      USE globals, ONLY: rp
       USE messenger2, ONLY: myrank,dirname,lname
       USE read_dginp, ONLY: out_direc,grid_file      
        
@@ -80,9 +81,10 @@
         
       SUBROUTINE write_solution(init)
       
-      USE globals, ONLY: rp,t,mndof,ne, &
+      USE globals, ONLY: t,mndof,ne,tskp_sol,nout_sol, &
                          Hwrite,Zwrite,Qxwrite,Qywrite, &
                          Znc,Qxnc,Qync
+      USE read_dginp, ONLY: tf,dt,sol_opt,sol_snap                         
 
       IMPLICIT NONE
 
@@ -95,10 +97,11 @@
 
       IF (init) THEN
       
-        ! Initialize files and write initial condition      
-      
- 
+        ! Set number of timesteps between output
+        CALL time_snaps(sol_opt,sol_snap,tf,dt,tskp_sol,nout_sol) 
 
+      
+        ! Initialize files and write initial condition            
         OPEN(unit=63,file=trim(out_direc) // 'solution_H.d')
         OPEN(unit=641,file=trim(out_direc) // 'solution_Qx.d')
         OPEN(unit=642,file=trim(out_direc) // 'solution_Qy.d')
@@ -164,10 +167,166 @@
       
 
       RETURN
-      END SUBROUTINE
+      END SUBROUTINE write_solution
       
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!        
+
+      SUBROUTINE write_stations(init)
+      
+      USE globals, ONLY: t,ndof,mndof,nsta,xysta,elsta,el_type,hbsta,phi_sta,tskp_sta,nout_sta, &
+                         Hwrite,Zwrite,Qxwrite,Qywrite, &
+                         Znc,Qxnc,Qync
+      USE read_dginp, ONLY: tf,dt,sta_opt,sta_snap                         
+
+      IMPLICIT NONE
+
+      INTEGER :: dof,sta
+      INTEGER :: elin,et
+      LOGICAL :: init
+      REAL(rp) :: Zsta,Qxsta,Qysta
+      
+      INTEGER, DIMENSION(3) :: var_start,var_end
+      REAL(rp), DIMENSION(1) :: t_tmp
+     
+
+      IF (init) THEN
+      
+        IF (sta_opt > 0) THEN
+          CALL find_stations()
+        ENDIF      
+      
+        ! Set number of timesteps between output
+        CALL time_snaps(sta_opt,sta_snap,tf,dt,tskp_sta,nout_sta)    
+      
+      
+        ! Initialize files and write initial condition              
+        OPEN(UNIT=611,FILE=trim(out_direc) //"station_H.d")
+        OPEN(UNIT=612,FILE=trim(out_direc) //"station_hb.d")
+        OPEN(UNIT=621,FILE=trim(out_direc) //"station_Qx.d")     
+        OPEN(UNIT=622,FILE=trim(out_direc) //"station_Qy.d")   
+
+        WRITE(611,"(A)") grid_file
+        WRITE(612,"(A)") grid_file        
+        WRITE(621,"(A)") grid_file
+        WRITE(622,"(A)") grid_file
+        
+        WRITE(611,*) nsta
+        WRITE(612,*) nsta        
+        WRITE(621,*) nsta
+        WRITE(622,*) nsta        
+        
+      DO sta = 1,nsta                       
+        WRITE(612,"(E24.17)") hbsta(sta)
+      ENDDO                
+      CLOSE(612)
+        
+        ! Set up netcdf output files
+!         CALL nc_setup()    
+
+
+        
+      ELSE
+
+!         IF(myrank == 0) THEN
+!           PRINT("(A,e15.8)"), 't = ', t
+!         ENDIF
+        
+                  
+      ENDIF
+
+
+      WRITE(611,*) t
+      WRITE(621,*) t
+      WRITE(622,*) t           
+                
+      DO sta = 1,nsta
+               
+        elin = elsta(sta)                 
+        et = el_type(elin)                 
+                    
+        Zsta = 0d0
+        Qxsta = 0d0
+        Qysta = 0d0
+        DO dof = 1,ndof(et)
+          Zsta  = Zsta  + Zwrite(elin,dof)%ptr*phi_sta(dof,sta)
+          Qxsta = Qxsta + Qxwrite(elin,dof)%ptr*phi_sta(dof,sta)            
+          Qysta = Qysta + Qywrite(elin,dof)%ptr*phi_sta(dof,sta)
+        ENDDO                
+          
+        WRITE(611,"(E24.17)") Zsta
+        WRITE(621,"(E24.17)") Qxsta
+        WRITE(622,"(E24.17)") Qysta
+      ENDDO  
+      
+      
+      
+      
+#ifdef NETCDF      
+!       DO dof = 1,mndof
+!         DO el = 1,ne
+!           Znc(el,dof)  = Zwrite(el,dof)%ptr
+!           Qxnc(el,dof) = Qxwrite(el,dof)%ptr
+!           Qync(el,dof) = Qywrite(el,dof)%ptr
+!         ENDDO
+!       ENDDO
+!       
+!       
+!       
+!       var_start = (/ 1, 1, nsnap /)
+!       var_end = (/ ne, mndof, 1 /)
+!       
+!       t_tmp(1) = t
+!       CALL check(NF90_PUT_VAR(ncid,tid,t_tmp,(/nsnap/),(/1/)))
+!       CALL check(NF90_PUT_VAR(ncid,zid,Znc,var_start,var_end ))
+!       CALL check(NF90_PUT_VAR(ncid,qxid,Qxnc,var_start,var_end ))
+!       CALL check(NF90_PUT_VAR(ncid,qyid,Qync,var_start,var_end ))
+! 
+!       nsnap = nsnap + 1
+#endif      
+      
+
+      RETURN
+      END SUBROUTINE write_stations
+      
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!        
+
+      SUBROUTINE time_snaps(opt,snap,tf,dt,tskp,nout)
+      
+      IMPLICIT NONE
+      
+      INTEGER, INTENT(IN) :: opt
+      REAL(rp), INTENT(IN) :: snap
+      REAL(rp), INTENT(IN) :: tf
+      REAL(rp), INTENT(IN) :: dt
+      INTEGER, INTENT(OUT) :: tskp
+      INTEGER, INTENT(OUT) :: nout
+      
+      
+        ! Set number of timesteps between output
+        SELECT CASE (opt)
+          CASE (0)                    ! output off
+            tskp = int(tf/dt) + 1     ! more than the number of total iterations
+            nout = 0
+          CASE (1)                    ! snap = number of total snaps
+            tskp = int(tf/(snap*dt))  
+            nout = int(snap)
+          CASE (2)                    ! snap = number of timesteps between snaps
+            tskp = int(snap)          
+            nout = int(tf/(snap*dt))
+          CASE (3)                    ! snap = number of seconds between snaps
+            tskp = int(snap/dt)       
+            nout = int(tf/snap)
+          CASE DEFAULT
+            PRINT*, "output option not supported"
+        END SELECT          
+      
+      RETURN
+      END SUBROUTINE time_snaps
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!    
 
       SUBROUTINE close_output()     
       
@@ -179,6 +338,10 @@
       CLOSE(63)
       CLOSE(641)
       CLOSE(642)
+      
+      CLOSE(611)
+      CLOSE(621)
+      CLOSE(622)
 
 #ifdef NETCDF      
       CALL check(NF90_CLOSE(ncid))

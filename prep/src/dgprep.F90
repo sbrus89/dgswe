@@ -26,9 +26,13 @@
       
       CALL read_grid()                
       
-      CALL read_forcing()
+      CALL read_forcing()              
       
       CALL connect()
+      
+      IF (sta_opt > 0) THEN
+        CALL find_stations()
+      ENDIF       
       
       CALL edge_qpts(0,p,ctp,nel_type,nqpte,mnqpte,wpte,qpte)
       

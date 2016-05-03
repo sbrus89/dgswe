@@ -193,7 +193,7 @@
 
       SUBROUTINE read_message_files()
       
-      USE globals, ONLY: rp,ne,mndof,nlines,mnqpte
+      USE globals, ONLY: rp,ne,mndof,nout_sol,mnqpte
       
       IMPLICIT NONE
       
@@ -201,7 +201,7 @@
       INTEGER :: pe,ed,el,j,pt
       LOGICAL :: file_exists
       INTEGER :: npe,tne,mne,ne2,ndof2
-      REAL(rp) :: lines2
+      REAL(rp) :: nout2
       INTEGER :: reorder,info
       
       INQUIRE(FILE=dirname(1:lname)//'/'//'fort.18', EXIST = file_exists)
@@ -270,7 +270,7 @@
       READ(80,*) mne
       READ(80,*) ne2
       READ(80,*) ndof2
-      READ(80,*) lines2
+      READ(80,*) nout2
       
       ! Check the post processing information against run input 
       IF(npe /= nproc) THEN
@@ -288,10 +288,10 @@
         CALL abort()
       ENDIF
       
-      IF(lines2 /= nlines) THEN
-        PRINT*, "number of output lines does not agree with files"
-        CALL abort()
-      ENDIF
+!       IF(nout2 /= nout_sol) THEN
+!         PRINT*, "number of output lines does not agree with files"
+!         CALL abort()
+!       ENDIF
       
       ALLOCATE(lel2gel(ne))
       

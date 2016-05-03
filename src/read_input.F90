@@ -75,12 +75,17 @@
       CHARACTER(100), TARGET :: out_direc 
       CHARACTER(100), TARGET :: bathy_file
       CHARACTER(100), TARGET :: curve_file
+      CHARACTER(100), TARGET :: stations_file
       INTEGER, TARGET :: p
       INTEGER, TARGET :: ctp
       INTEGER, TARGET :: hbp
       INTEGER, TARGET :: rk_type 
       INTEGER, TARGET  :: npart 
       INTEGER, TARGET :: coord_sys      
+      INTEGER, TARGET :: sol_opt
+      INTEGER, TARGET :: sta_opt
+      REAL(rp), TARGET :: sol_snap
+      REAL(rp), TARGET :: sta_snap
       REAL(rp), TARGET  :: dt
       REAL(rp), TARGET  :: tf
       REAL(rp), TARGET  :: dramp
@@ -530,7 +535,7 @@
       dginp(8)%key = "tf";              dginp(8)%rptr => tf;              dginp(8)%required = .true.;      dginp(8)%rptr = 1
       dginp(9)%key = "dramp";           dginp(9)%rptr => dramp;           dginp(9)%required = .true.;      dginp(9)%rptr = 0.08d0
       dginp(10)%key = "cf";             dginp(10)%rptr => cf;             dginp(10)%required = .true.;     dginp(10)%rptr = 0.0025d0
-      dginp(11)%key = "lines";          dginp(11)%rptr => lines;          dginp(11)%required = .true.;     dginp(11)%rptr = 10d0
+!       dginp(11)%key = "lines";          dginp(11)%rptr => lines;          dginp(11)%required = .true.;     dginp(11)%rptr = 10d0
       dginp(12)%key = "out_direc";      dginp(12)%cptr => out_direc;      dginp(12)%required = .false.;    dginp(12)%cptr = "./"
       dginp(13)%key = "npart";          dginp(13)%iptr => npart;          dginp(13)%required = .true.;     dginp(13)%iptr = 1
       dginp(14)%key = "bathy_file";     dginp(14)%cptr => bathy_file;     dginp(14)%required = .false.;    dginp(14)%cptr = "./elem_nodes.d"
@@ -539,11 +544,11 @@
       dginp(17)%key = "sphi0";          dginp(17)%rptr => sphi0;          dginp(17)%required = .false.;    dginp(17)%rptr = 35.0d0 
       dginp(18)%key = "h0";             dginp(18)%rptr => h0;             dginp(18)%required = .false.;    dginp(18)%rptr = 1d0   
       dginp(19)%key = "curve_file";     dginp(19)%cptr => curve_file;     dginp(19)%required = .false.;    dginp(19)%cptr = "./cl_nodes.cb"
-!       dginp(20)%key = "??";             dginp(20)%?ptr => ??;             dginp(20)%required = .false.;    dginp(20)%?ptr = ??  
-!       dginp(21)%key = "??";             dginp(21)%?ptr => ??;             dginp(21)%required = .false.;    dginp(21)%?ptr = ??  
-!       dginp(22)%key = "??";             dginp(22)%?ptr => ??;             dginp(22)%required = .false.;    dginp(22)%?ptr = ??  
-!       dginp(23)%key = "??";             dginp(23)%?ptr => ??;             dginp(23)%required = .false.;    dginp(23)%?ptr = ??  
-!       dginp(24)%key = "??";             dginp(24)%?ptr => ??;             dginp(24)%required = .false.;    dginp(24)%?ptr = ??  
+      dginp(20)%key = "sol_opt";        dginp(20)%iptr => sol_opt;        dginp(20)%required = .false.;    dginp(20)%iptr = 0  
+      dginp(21)%key = "sta_opt";        dginp(21)%iptr => sta_opt;        dginp(21)%required = .false.;    dginp(21)%iptr = 0  
+      dginp(22)%key = "sol_snap";       dginp(22)%rptr => sol_snap;       dginp(22)%required = .false.;    dginp(22)%rptr = 0  
+      dginp(23)%key = "sta_snap";       dginp(23)%rptr => sta_snap;       dginp(23)%required = .false.;    dginp(23)%rptr = 0  
+      dginp(24)%key = "sta_file";       dginp(24)%cptr => stations_file;  dginp(24)%required = .false.;    dginp(24)%cptr = "./stations.d"  
 !       dginp(25)%key = "??";             dginp(25)%?ptr => ??;             dginp(25)%required = .false.;    dginp(25)%?ptr = ??  
       
 
@@ -619,6 +624,7 @@
       out_direc = './' // dirname(1:lname) //'/'
       bathy_file = './' // dirname(1:lname) //'/'//"fort.hb"
       curve_file = './' // dirname(1:lname) //'/'//"fort.cb"      
+      stations_file = './' // dirname(1:lname) //'/'//"fort.sta"         
       
       ! write inputs
       DO i = 1,maxopt        

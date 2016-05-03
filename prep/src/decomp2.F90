@@ -14,7 +14,9 @@
                          nfbfr,fbamp,fbph,lfbamp,lfbph,lnbouf, &
                          nx_pt,ny_pt,detJe, &
                          hbqpted,nqpte,mnqpte,elhb, &
-                         lbndxy,bndxy
+                         lbndxy,bndxy, &
+                         nsta,elsta,xysta, &
+                         nlsta,sta_l2g
                          
                          
       USE read_dginp, ONLY: hbp,ctp                           
@@ -24,7 +26,7 @@
 
       IMPLICIT NONE
 
-      INTEGER :: el,pe,nd,ed,i,j,k,bnd,eln,bfr,pt
+      INTEGER :: el,pe,nd,ed,i,j,k,bnd,eln,bfr,pt,sta
       INTEGER :: ged,lnd,nv
       INTEGER :: lled,gled,ln1,ln2,gn1,gn2,n1,n2
       INTEGER :: el1,el2
@@ -36,10 +38,11 @@
       INTEGER :: mnepe
       INTEGER :: mnobnds,mnfbnds
       INTEGER :: segtype
-      INTEGER :: bnd_flag
+      INTEGER :: bnd_flag,stop_flag
       INTEGER :: lbou,mlbou
       
       INTEGER, ALLOCATABLE, DIMENSION(:) :: ndflag 
+      INTEGER, ALLOCATABLE, DIMENSION(:) :: sta_flag
       INTEGER, ALLOCATABLE, DIMENSION(:,:) :: bou_l2g
       
       REAL(rp) :: elhb_old(mnnds,ne)
@@ -406,6 +409,44 @@
         ENDDO
         
       ENDDO pes
+      
+      
+      
+      
+      
+      
+      ALLOCATE(nlsta(nproc))
+      ALLOCATE(sta_l2g(nsta,nproc))
+      ALLOCATE(sta_flag(nsta))
+      
+      nlsta = 0
+      sta_flag = 0
+      DO pe = 1,nproc      
+        DO el = 1,nresel(pe) 
+          eln = el_l2g(el,pe)
+          
+          DO sta = 1,nsta   
+            IF (elsta(sta) == eln) THEN
+            
+              nlsta(pe) = nlsta(pe) + 1
+              sta_l2g(nlsta(pe),pe) = sta
+              sta_flag(sta) = sta_flag(sta) + 1
+              
+            ENDIF
+          ENDDO 
+          
+        ENDDO      
+      ENDDO
+      
+      stop_flag = 0
+      DO sta = 1,nsta
+        IF (sta_flag(sta) /= 1) THEN
+          PRINT*, "station: ",sta," not found placed in pe",sta_flag(sta), elsta(sta)
+          stop_flag = 1
+        ENDIF
+      ENDDO
+      
+!       IF (stop_flag) STOP
       
       
       RETURN 

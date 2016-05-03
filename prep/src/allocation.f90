@@ -6,7 +6,7 @@
                          nope,neta,nbou,nvel, &
                          nobfr,nfbfr   
                          
-      USE read_dginp, ONLY: p,ctp,npart,lines,hbp                         
+      USE read_dginp, ONLY: p,ctp,npart,hbp                         
 
       
       IMPLICIT NONE
@@ -19,7 +19,7 @@
       SUBROUTINE sizes()
       
       USE globals, ONLY: ndof,nverts,np,nnds, &
-                         mndof,mnp,mnnds,nlines, &
+                         mndof,mnp,mnnds, &
                          hbnds,mhbnds
                          
       
@@ -53,8 +53,7 @@
       hbnds(3) = hbnds(1)
       hbnds(4) = hbnds(2)
       mhbnds = maxval(hbnds)
-      
-      nlines = lines
+
       
       RETURN
       END SUBROUTINE sizes
