@@ -28,8 +28,7 @@
       
       INTEGER :: elb,ete,etb,et
       INTEGER :: npt,nd,n
-      INTEGER :: info
-      INTEGER :: leds(4)     
+      INTEGER :: info    
       REAL(rp) :: rs(2),r(1),s(1)
       REAL(rp) :: error
 
@@ -44,7 +43,7 @@
         CALL element_transformation(eval%nnds(ete),eval%elxy(:,ele,1),eval%elxy(:,ele,2),eval%l(:,pte,ete),x(1),x(2))        
       ENDIF
   
-      CALL in_element(x,base%el_type,base%elxy,elb,leds,rs)
+      CALL in_element(x,base%el_type,base%elxy,elb,rs)
           
       etb = base%el_type(elb)  ! element type for base element          
         

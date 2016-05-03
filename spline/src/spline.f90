@@ -17,9 +17,9 @@
       INTEGER :: el_in,found
       INTEGER :: btype
       INTEGER :: n1,n2
-      INTEGER :: base_bed,base_bou
+      INTEGER :: base_bed,base_bou,base_led,base_vert
       INTEGER :: neval,nbase
-      REAL(rp) :: htest,ti,tpt,r,ra,xs,ys
+      REAL(rp) :: htest,ti,tpt,r,ra,xs,ys,r0
       REAL(rp) :: d1,d2,d3,t1,t2,xr(2),xa(2),rs(2)
       REAL(rp) :: n1x,n1y,n2x,n2y,n3x,n3y,n4x,n4y,edlen
       REAL(rp) :: theta1,theta2
@@ -205,8 +205,8 @@
               xa(2) = .5d0*(1d0-ra)*n1y + .5d0*(1d0+ra)*n2y                                  
               
               PRINT*, "FINDING ELEMENT FOR POINT: ", i, " NODE: ",n1
-              CALL in_element(xa,base%el_type,base%elxy,el_in,eds,rs)   
-              CALL find_edge(n1,n2,xa,el_in,eds,base_bou,base_bed)  ! find base edge (to get correct spline coefficients) 
+              CALL in_element(xa,base%el_type,base%elxy,el_in,rs,eds,base_vert)   
+              CALL find_edge(n1,n2,xa,el_in,eds,base_bou,base_bed,base_led)  ! find base edge (to get correct spline coefficients) 
               
               nd = base_bed 
               bou = base_bou
@@ -214,11 +214,11 @@
               xr(1) = .5d0*(1d0-r)*n1x + .5d0*(1d0+r)*n2x
               xr(2) = .5d0*(1d0-r)*n1y + .5d0*(1d0+r)*n2y                
               
-              ! check to make sure vertex offset used to find element isn't 
-              ! too large that the found element isn't connected to the vertex point
-              IF (j == 0 .OR. j == ctp) THEN           
-                CALL check_elem(xr,el_in)         
-              ENDIF               
+! !               check to make sure vertex offset used to find element isn't 
+! !               too large that the found element isn't connected to the vertex point
+!               IF (j == 0 .OR. j == ctp) THEN           
+!                 CALL check_elem(xr,el_in)         
+!               ENDIF               
             
               ti = 0d0        ! find starting parameter value for found edge
               DO k = 1,nd-1
@@ -226,30 +226,70 @@
               ENDDO              
                       
                    
+              IF (base_vert /= 0) THEN  ! if the eval point is near a base vertex, use start of segement              
+                r0 = -1d0               ! as the initial guess
+              ELSE
+                SELECT CASE (base_led)  ! use the initial guess that corresponds to the closest edge
+                  CASE(1)         
+                    r0 = rs(1)
+                  CASE(2) 
+                    r0 = rs(2)
+                  CASE(3) 
+                    r0 = rs(1)
+                END SELECT
+              ENDIF
+              
+              
+                   
+              r = r0     
               CALL newton(r,dt(nd,bou),ti,xr,ax(nd,bou),bx(nd,bou),cx(nd,bou),dx(nd,bou), &
                                              ay(nd,bou),by(nd,bou),cy(nd,bou),dy(nd,bou), &
                                              x(j+1),y(j+1))
               
 
-!               ! Try new initial guess if minimum was not found in (-1,1) interval              
-!               IF (r < -1d0) THEN
-!                 PRINT "(A,F24.17)", "R = ", r
-!                 r = -1d0
-!                 CALL newton(r,dt(nd),ti,xr,ax(nd),bx(nd),cx(nd),dx(nd),ay(nd),by(nd),cy(nd),dy(nd),x,y)
-!               ENDIF
+
+              ! Try new initial guess if minimum was not found in (-1,1) interval              
+              IF (abs(r)-1d0 > 1d-8) THEN
+                PRINT "(A,F24.17)", "WARNING: R VALUE NOT FOUND IN INTERVAL, R = ", r
+                PRINT "(A)", "  trying another r0 value..."
+                
+                r = r0*-1d0
+                CALL newton(r,dt(nd,bou),ti,xr,ax(nd,bou),bx(nd,bou),cx(nd,bou),dx(nd,bou), &
+                                               ay(nd,bou),by(nd,bou),cy(nd,bou),dy(nd,bou), &
+                                               x(j+1),y(j+1))                                               
+              ENDIF
+
               
-!               ! Evaluate spline at specified parameter value (no distance minimixation)              
+!               ! Evaluate spline at specified parameter value (no distance minimiztion)              
 !               tpt = .5d0*dt(nd)*(r + 1d0) + ti               
 !               CALL eval_cubic_spline(tpt,ti,ax(nd),bx(nd),cx(nd),dx(nd),x)
 !               CALL eval_cubic_spline(tpt,ti,ay(nd),by(nd),cy(nd),dy(nd),y)              
               
               WRITE(60,*) x(j+1),y(j+1)
+              
+                           
+              IF (abs(r)-1d0 > 1d-8) THEN
+                PRINT "(A,F24.17)", "ERROR: R VALUE NOT FOUND IN INTERVAL, R = ", r
+                STOP
+              ELSE 
+                PRINT "(A,F24.17)", "R = ", r 
+              ENDIF              
+              
+              IF (j == 0) THEN
+                eval%xy(1,n1) = x(j+1)
+                eval%xy(2,n1) = y(j+1)
+              ELSE IF (j == ctp) THEN  
+                eval%xy(1,n2) = x(j+1)
+                eval%xy(2,n2) = y(j+1)              
+              ENDIF              
+              
                        
             ENDDO  
             
             WRITE(40,"(I8,1X,10(E24.17,1X))") n1, (x(j), j=1,ctp)
             WRITE(40,"(I8,1X,10(E24.17,1X))") n1, (y(j), j=1,ctp)
             
+
             IF (i == neval-1) THEN
               WRITE(40,"(I8,1X,10(E24.17,1X))") n2, x(ctp+1)
               WRITE(40,"(I8,1X,10(E24.17,1X))") n2, y(ctp+1)            
@@ -277,7 +317,7 @@
       
       
       
-      CALL write_grid(base)
+      CALL write_grid(eval,base%grid_file)
 
       END PROGRAM spline
       

@@ -13,7 +13,6 @@
       INTEGER :: n1,n2
       INTEGER :: el_found,found
       INTEGER :: elf2elc(fine%ne)
-      INTEGER :: leds(4)
       
       REAL(rp) :: xf(2)   
       REAL(rp) :: rs(2)
@@ -33,7 +32,7 @@ elemf:DO elf = 1,fine%ne
         ! Compute the (x,y) coordinates of the first quadrature point (from fine element)         
         CALL element_transformation(fine%nnds(etf),fine%elxy(:,elf,1),fine%elxy(:,elf,2),fine%l(:,1,etf),xf(1),xf(2))
                         
-        CALL in_element(xf,coarse%el_type,coarse%elxy,elin,leds,rs)          
+        CALL in_element(xf,coarse%el_type,coarse%elxy,elin,rs)          
        
         elf2elc(elf) = elin            
                                                               

@@ -84,7 +84,7 @@
       INTEGER :: i,j,pt,nd,l,m,k       
       INTEGER :: ne,el,elin,et
       INTEGER :: ndf,nnd,p,nhnd
-      INTEGER :: neighbors(base%ne),nnd_neigh,nel_neigh,leds(4),el_flag(base%ne)
+      INTEGER :: neighbors(base%ne),nnd_neigh,nel_neigh,el_flag(base%ne)
       INTEGER :: small_flag
       INTEGER :: info,lwork,lda,ldb
       REAL(rp) :: elx(base%mnnds),ely(base%mnnds)
@@ -130,7 +130,7 @@
           
 !           PRINT*, "pt = ", pt, "x = ",xpt(1), "y = ",xpt(2)         
           
-          CALL in_element(xpt(1:2),base%el_type,base%elxy,elin,leds,rs)          
+          CALL in_element(xpt(1:2),base%el_type,base%elxy,elin,rs)          
           et = base%el_type(elin)       
           p = base%np(et)
           

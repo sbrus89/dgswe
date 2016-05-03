@@ -1,16 +1,17 @@
 
       
-      SUBROUTINE write_grid(mesh)
+      SUBROUTINE write_grid(mesh,base_name)
 
       USE globals, ONLY: grid,ctp,nverts
 
       IMPLICIT NONE
           
-      INTEGER :: nd,el,bnd,et,nv
+      INTEGER :: nd,el,bnd,et,nv,btype,nbseg
       TYPE(grid) :: mesh
+      CHARACTER(100) :: base_name
       
       OPEN(UNIT=14,FILE='nodes.out')
-      WRITE(14,*) "spline output nodes"
+      WRITE(14,"(A)") "spline output nodes based on "//base_name
       WRITE(14,*) mesh%ne,mesh%nn
       DO nd = 1,mesh%nn
         WRITE(14,"(I7,3(e24.16))") nd,mesh%xy(1,nd),mesh%xy(2,nd),mesh%depth(nd)
@@ -24,7 +25,7 @@
       WRITE(14,"(I9,A)") mesh%nope, "   = Number of open boundaries"
       WRITE(14,"(I9,A)") mesh%neta, "   = Total number of open boundary nodes"
       DO bnd = 1,mesh%nope
-        WRITE(14,"(2(I9))") mesh%obseg(bnd), 0
+        WRITE(14,"(I9)") mesh%obseg(bnd)
         DO nd = 1,mesh%obseg(bnd)
           WRITE(14,"(I9)") mesh%obnds(nd,bnd)
         ENDDO
@@ -33,10 +34,17 @@
       WRITE(14,"(I9,A)") mesh%nbou, "   = Number of land boundaries"
       WRITE(14,"(I9,A)") mesh%nvel, "   = Total number of land boundary nodes"
       DO bnd = 1,mesh%nbou
-        WRITE(14,"(2(I9))") mesh%fbseg(1,bnd), mesh%fbseg(2,bnd)
-        DO nd = 1,mesh%fbseg(1,bnd)
+        btype = mesh%fbseg(2,bnd)
+        nbseg = mesh%fbseg(1,bnd)
+        
+        IF (btype == 1 .OR. btype == 11 .OR. btype == 21) THEN
+          nbseg = nbseg - 1
+        ENDIF        
+        
+        WRITE(14,"(2(I9))") nbseg, btype
+        DO nd = 1,nbseg
           WRITE(14,"(I9)") mesh%fbnds(nd,bnd)
-        ENDDO
+        ENDDO        
       ENDDO
       
       CLOSE(14)

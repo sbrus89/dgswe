@@ -87,7 +87,7 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!      
       
 
-      SUBROUTINE in_element(xy,el_type,elxy,el_found,leds,rs)
+      SUBROUTINE in_element(xy,el_type,elxy,el_found,rs,closest_eds,closest_vertex)
 
       IMPLICIT NONE
               
@@ -95,13 +95,16 @@
       INTEGER, DIMENSION(:), INTENT(IN) :: el_type
       REAL(rp), DIMENSION(:,:,:), INTENT(IN) :: elxy
       INTEGER, INTENT(OUT) :: el_found          
-      INTEGER, INTENT(OUT) :: leds(4)
       REAL(rp), INTENT(OUT) :: rs(2)
+      INTEGER, INTENT(OUT), OPTIONAL :: closest_eds(4)      
+      INTEGER, INTENT(OUT), OPTIONAL :: closest_vertex 
+     
             
       INTEGER :: srch,nd
       INTEGER :: el,eln,clnd,et,n
       INTEGER :: found     
       INTEGER :: min_el
+      INTEGER :: vert,leds(4)
       REAL(rp) :: diff,min_diff
       REAL(rp) :: tol
             
@@ -125,7 +128,7 @@ search: DO srch = 1,srchdp
 !             PRINT("(A,I5)"), "     testing element: ", eln                               
 
             ! Compute sum of sub-triangle areas
-            CALL sub_element(xy,eln,el_type,elxy,diff,leds,rs)            
+            CALL sub_element(xy,eln,el_type,elxy,diff,leds,vert,rs)            
             
             IF (diff < min_diff) THEN  ! keep track of element with minimum difference in sum of sub-triangle areas                                  
               min_diff = diff          ! to return if tolerance is not met
@@ -155,10 +158,17 @@ search: DO srch = 1,srchdp
           PRINT*, "ELEMENT NOT FOUND"  
           PRINT*, "USING ELEMENT ", el_found, "(AREA DIFF = ",min_diff, ")"       
 
-          CALL sub_element(xy,el_found,el_type,elxy,diff,leds,rs)           
+          CALL sub_element(xy,el_found,el_type,elxy,diff,leds,vert,rs)           
           
-        ENDIF     
+        ENDIF    
+        
+        IF (PRESENT(closest_vertex) ) THEN
+          closest_vertex = vert
+        ENDIF
  
+        IF (PRESENT(closest_eds)) THEN
+          closest_eds = leds
+        ENDIF 
 
       RETURN
       END SUBROUTINE in_element
@@ -168,7 +178,7 @@ search: DO srch = 1,srchdp
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
  
 
-      SUBROUTINE sub_element(xy,eln,el_type,elxy,diff,closest_ed,rs)   
+      SUBROUTINE sub_element(xy,eln,el_type,elxy,diff,closest_ed,vert,rs)   
       
       USE transformation, ONLY: xy2rs
       
@@ -180,6 +190,7 @@ search: DO srch = 1,srchdp
       REAL(rp), DIMENSION(:,:,:), INTENT(IN) :: elxy          
       REAL(rp), INTENT(OUT) :: diff      
       INTEGER, INTENT(OUT) :: closest_ed(4)
+      INTEGER, INTENT(OUT) :: vert
       REAL(rp), INTENT(OUT) :: rs(2)
       
       INTEGER :: i,j    
@@ -266,6 +277,13 @@ search: DO srch = 1,srchdp
             closest_ed(j) = etemp            
           ENDIF
         ENDDO
+      ENDDO
+      
+      vert = 0             ! if one sub-triangle area dominates, then the point is close 
+      DO i = 1,nv          ! to that  vertex
+        IF (abs(stri_area(j)-area_sum) < 1d-8) THEN
+          vert = i
+        ENDIF
       ENDDO
             
       

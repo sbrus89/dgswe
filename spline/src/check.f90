@@ -75,7 +75,12 @@
         xr(2) = .5d0*n1y + .5d0*n2y
               
         ri(1) = 0d0                                        
-        CALL newton(ri(1),dt,ti,xr,ax,bx,cx,dx,ay,by,cy,dy,x,y) 
+        CALL newton(ri(1),dt,ti,xr,ax,bx,cx,dx,ay,by,cy,dy,x,y)
+        
+        IF (abs(ri(1))-1d0 > 1d-8) THEN
+          PRINT "(A,F24.17)", "ERROR: R VALUE NOT FOUND IN INTERVAL, R = ", ri(1)
+          STOP
+        ENDIF         
         
         xi(1) = n1x
         xi(2) = x
@@ -146,7 +151,7 @@
       REAL(rp) :: xd,max_dist,eps
       REAL(rp) :: ri(2),xi(4),yi(4)
       REAL(rp) :: rval(20),r0(20),xdist(20),error(20)
-      INTEGER :: el_in,leds(4) 
+      INTEGER :: el_in 
       INTEGER :: fail  
       
 
@@ -168,10 +173,16 @@
         CALL newton(r,dt,ti,xa,ax,bx,cx,dx,ay,by,cy,dy,xs,ys)        
         
         WRITE(90,"(7(E26.17E3))") xa(1),xa(2),xs,ys,0d0,0d0,0d0
+        
+        IF (abs(r)-1d0 > 1d-8) THEN
+          PRINT "(A,F24.17)", "ERROR: R VALUE NOT FOUND IN INTERVAL, R = ", r
+          STOP
+        ENDIF 
+              
         RETURN
       ENDIF        
       
-      CALL in_element(xa,base%el_type,base%elxy,el_in,leds,ra)  
+      CALL in_element(xa,base%el_type,base%elxy,el_in,ra)  
       max_dist = deform_tol*base%minedlen(el_in)
         
 !         r = 0d0 

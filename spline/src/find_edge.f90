@@ -1,5 +1,5 @@
 
-      SUBROUTINE find_edge(pt1,pt2,xm,el_in,led,base_bou,base_bed)
+      SUBROUTINE find_edge(pt1,pt2,xm,el_in,led,base_bou,base_bed,base_led)
       
       USE globals, ONLY: rp,base,eval,nverts
       
@@ -10,7 +10,7 @@
       INTEGER, INTENT(IN) :: el_in      
       INTEGER, INTENT(IN) :: led(4)
       
-      INTEGER, INTENT(OUT) :: base_bed,base_bou     
+      INTEGER, INTENT(OUT) :: base_bed,base_bou,base_led     
       
       INTEGER :: nv,ged,bou,n1    
       INTEGER :: i,j,ed
@@ -43,8 +43,9 @@
             found = 1
             base_bou = bou
             base_bed = n1
+            base_led = led(i)
             
-            PRINT*, base_bou,base_bed
+            PRINT*, base_bou,base_bed,base%nfbednn(ed,2), base%fbnds(n1,bou), base%fbnds(n1+1,bou),el_in
             
             EXIT edge
           ENDIF

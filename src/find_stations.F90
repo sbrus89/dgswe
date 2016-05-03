@@ -11,7 +11,7 @@
       IMPLICIT NONE
 
       INTEGER :: sta
-      INTEGER :: elin,leds(4),et,n,npts,nv
+      INTEGER :: elin,et,n,npts,nv
       REAL(rp) :: r(1),s(1),hb,rs(2)
       REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: l,phi           
       
@@ -29,7 +29,7 @@
       npts = 1
       DO sta = 1,nsta
       
-        CALL in_element(xysta(:,sta),el_type,elxy,elin,leds,rs)       
+        CALL in_element(xysta(:,sta),el_type,elxy,elin,rs)       
 
         et = el_type(elin)                  
         nv = nverts(et)     
