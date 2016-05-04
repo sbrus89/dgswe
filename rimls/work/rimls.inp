@@ -27,9 +27,9 @@
 ! 0d0                                                                                                       ! eps - bathymetry perturbation (for converging channel hardwire)
 
 
-! /home/sbrus/Codes/dgswe/grids/converge4_bath_dble.grd                                                     ! base grid - used to determine the rimls surface
+! /home/sbrus/Codes/dgswe/grids/converge2_bath_dble.grd                                                     ! base grid - used to determine the rimls surface
 ! !/home/sbrus/Codes/dgswe/grids/converge1_bath_dble.grd                                                     ! base grid - used to determine the rimls surface
-! 2                                                                                                         ! base hbp - bathymetry order
+! 4                                                                                                         ! base hbp - bathymetry order
 ! 1                                                                                                         ! base ctp - parametric coordinate transformation order
 ! /home/sbrus/Codes/dgswe/grids/converge1_dble.grd                                                          ! eval grid - used to determine rimls surface evaluation points
 ! 3                                                                                                         ! eval hbp - bathymetry order
@@ -39,47 +39,63 @@
 ! 0                                                                                                         ! basis_opt - basis for least squares polynomial (1 - orthonormal, else - simple)
 ! 1d0                                                                                                       ! Erad - radius of Earth
 ! 0d0,0d0                                                                                                   ! lambda0,phi0 - center of CPP coordinate system
-! 2d0                                                                                                       ! r - muliplier for search radius (1.5 - 4.0)
+! 4d0                                                                                                       ! r - muliplier for search radius (1.5 - 4.0)
 ! 1.5d0                                                                                                     ! sigma_n - smoothing parameter (0.5 - 1.5)
 ! ../output/                                                                                                ! output directory
-! 0                                                                                                         ! nrpt - number of random points (for converging channel hardwire)
+! 1                                                                                                         ! nrpt - number of random points (for converging channel hardwire)
 ! 0d0                                                                                                       ! eps - bathymetry perturbation (for converging channel hardwire)
 
 
-! /home/sbrus/data-drive/galveston/dgswe/tri/galveston_tri.grd                                              ! base grid - used to determine the rimls surface
-! 5                                                                                                         ! base hbp - bathymetry order
+! /home/sbrus/data-drive/galveston_spline/grids/galveston_tri_x16.grd                                           ! base grid - used to determine the rimls surface
+! 10                                                                                                        ! base hbp - bathymetry order
 ! 1                                                                                                         ! base ctp - parametric coordinate transformation order
-! /home/sbrus/data-drive/galveston/dgswe/quad2/galveston_quad2.grd                                          ! eval grid - used to determine rimls surface evaluation points
-! 5                                                                                                         ! eval hbp - bathymetry order
+! /home/sbrus/data-drive/galveston_spline/grids/galveston_tri_x64.grd                                           ! eval grid - used to determine rimls surface evaluation points
+! 1                                                                                                         ! eval hbp - bathymetry order
+! 1                                                                                                         ! eval ctp - parametric coordinate transformation order
+! /home/sbrus/data-drive/galveston_spline/grids/galveston_tri_ctp3.cb                                       ! curved boundary file
+! 3                                                                                                         ! lsp - moving least squares fit order
+! 0                                                                                                         ! basis_opt - basis for least squares polynomial (1 - orthonormal, else - simple)
+! 1d0                                                                                                       ! Erad - radius of Earth
+! 0d0,0d0                                                                                                   ! lambda0,phi0 - center of CPP coordinate system
+! 1.0d0                                                                                                     ! r - muliplier for search radius (1.5 - 4.0)
+! 1.5d0                                                                                                     ! sigma_n - smoothing parameter (0.5 - 1.5)
+! ../output/                                                                                                ! output directory
+! 1                                                                                                         ! nrpt - number of random points (for converging channel hardwire)
+! 0d0                                                                                                       ! eps - bathymetry perturbation (for converging channel hardwire)
+
+/home/sbrus/data-drive/galveston_spline/grids/spline_mls_modified/galveston_tri_x64.grd                   ! base grid - used to determine the rimls surface
+10                                                                                                        ! base hbp - bathymetry order
+1                                                                                                         ! base ctp - parametric coordinate transformation order
+/home/sbrus/data-drive/galveston_spline/grids/galveston_tri.grd                                           ! eval grid - used to determine rimls surface evaluation points
+2                                                                                                         ! eval hbp - bathymetry order
+2                                                                                                         ! eval ctp - parametric coordinate transformation order
+/home/sbrus/data-drive/galveston_spline/grids/galveston_tri_ctp2.cb                                       ! curved boundary file
+3                                                                                                         ! lsp - moving least squares fit order
+0                                                                                                         ! basis_opt - basis for least squares polynomial (1 - orthonormal, else - simple)
+1d0                                                                                                       ! Erad - radius of Earth
+0d0,0d0                                                                                                   ! lambda0,phi0 - center of CPP coordinate system
+1.0d0                                                                                                     ! r - muliplier for search radius (1.5 - 4.0)
+1.5d0                                                                                                     ! sigma_n - smoothing parameter (0.5 - 1.5)
+../output/                                                                                                ! output directory
+1                                                                                                         ! nrpt - number of random points (for converging channel hardwire)
+0d0       
+
+! /home/sbrus/data-drive/galveston/SL18+TX33_andika/galveston_SL18+TX33.grd                                 ! base grid - used to determine the rimls surface
+! 2                                                                                                         ! base hbp - bathymetry order
+! 1                                                                                                         ! base ctp - parametric coordinate transformation order
+! /home/sbrus/data-drive/galveston/SL18+TX33_andika/galveston_SL18+TX33.grd                                 ! eval grid - used to determine rimls surface evaluation points
+! 3                                                                                                         ! eval hbp - bathymetry order
 ! 3                                                                                                         ! eval ctp - parametric coordinate transformation order
-! ./galveston_quad2_ctp3.cb                                                                                          ! curved boundary file
+! /home/sbrus/data-drive/galveston/SL18+TX33_andika/galveston_SL18+TX33_ctp3.cb                             ! curved boundary file
 ! 2                                                                                                         ! lsp - moving least squares fit order
 ! 0                                                                                                         ! basis_opt - basis for least squares polynomial (1 - orthonormal, else - simple)
 ! 1d0                                                                                                       ! Erad - radius of Earth
 ! 0d0,0d0                                                                                                   ! lambda0,phi0 - center of CPP coordinate system
-! .75d0                                                                                                      ! r - muliplier for search radius (1.5 - 4.0)
+! 1.5d0                                                                                                      ! r - muliplier for search radius (1.5 - 4.0)
 ! 1.5d0                                                                                                     ! sigma_n - smoothing parameter (0.5 - 1.5)
 ! ../output/                                                                                                ! output directory
 ! 0                                                                                                         ! nrpt - number of random points (for converging channel hardwire)
-! 0d0                                                                                                       ! eps - bathymetry perturbation (for converging channel hardwire)
-
-
-/home/sbrus/data-drive/galveston/SL18+TX33_andika/galveston_SL18+TX33.grd                                 ! base grid - used to determine the rimls surface
-2                                                                                                         ! base hbp - bathymetry order
-1                                                                                                         ! base ctp - parametric coordinate transformation order
-/home/sbrus/data-drive/galveston/SL18+TX33_andika/galveston_SL18+TX33.grd                                 ! eval grid - used to determine rimls surface evaluation points
-3                                                                                                         ! eval hbp - bathymetry order
-3                                                                                                         ! eval ctp - parametric coordinate transformation order
-/home/sbrus/data-drive/galveston/SL18+TX33_andika/galveston_SL18+TX33_ctp3.cb                             ! curved boundary file
-2                                                                                                         ! lsp - moving least squares fit order
-0                                                                                                         ! basis_opt - basis for least squares polynomial (1 - orthonormal, else - simple)
-1d0                                                                                                       ! Erad - radius of Earth
-0d0,0d0                                                                                                   ! lambda0,phi0 - center of CPP coordinate system
-1.5d0                                                                                                      ! r - muliplier for search radius (1.5 - 4.0)
-1.5d0                                                                                                     ! sigma_n - smoothing parameter (0.5 - 1.5)
-../output/                                                                                                ! output directory
-0                                                                                                         ! nrpt - number of random points (for converging channel hardwire)
-0d0   
+! 0d0   
 
 !/home/sbrus/data-drive/galveston/adcirc/original/ESL0/fort.14                                              ! base grid - used to determine the rimls surface
 !/home/sbrus/data-drive/galveston/adcirc/refinedx64/ESL0/fort.14

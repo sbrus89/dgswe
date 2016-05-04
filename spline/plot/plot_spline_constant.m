@@ -4,7 +4,7 @@ clc
 
 file = fopen('../work/spline.out');
 
-% figure
+figure(2)
 
 %     th = fscanf(fid_H,' %g ', 1); % read in time
 %     Z = fscanf(fid_H,' %g ', [ne mndof])'; % read in H solution at time t
@@ -32,7 +32,7 @@ for j = 1:n_seg
    ti = coef_xy(:,9);
   
  
-   t = linspace(ti(1),ti(n),10*n);
+   t = linspace(ti(1),ti(n),40*n);
    
   
    %%%%%%%%%% Plot boundary polynomials %%%%%%%%%%
@@ -65,10 +65,10 @@ for j = 1:n_seg
     
 
     hold on
-    plot(x,y,'-b')
+    plot(x,y,'-b','LineWidth',2)
     hold all
-    plot(ax,ay,'o','MarkerSize',12,'Color',[0.4660    0.6740    0.1880])
-    plot(xe,ye,'k')
+    plot(ax,ay,'o','MarkerSize',12,'MarkerFaceColor','b','Color','b')
+%     plot(xe,ye,'k')
 
 %     if j == 8
 %     for i = 1:n
@@ -103,7 +103,7 @@ for j = 1:n_seg
     xy = textscan(file, '%f%f',n{1});
     
 
-     plot(xy{:,1},xy{:,2},'x','MarkerSize',20,'Color',[0.4660    0.6740    0.1880])
+     plot(xy{:,1},xy{:,2},'x','MarkerSize',20,'Color','b')
 
 end
 fclose(file);
@@ -128,7 +128,7 @@ for j = 1:n_seg
 
     
      for i = 1:n
-       plot([xy(i,1),xy(i,3)],[xy(i,2),xy(i,4)],'r')
+       plot([xy(i,1),xy(i,3)],[xy(i,2),xy(i,4)],'b','LineWidth',2)
      end
      
 

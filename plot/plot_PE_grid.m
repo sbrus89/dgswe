@@ -3,7 +3,8 @@ close all
 clc
 restoredefaultpath
 
-direc = '/home/sbrus/Codes/dgswe/work/';
+% direc = '/home/sbrus/Codes/dgswe/work/';
+direc = '/home/sbrus/data-drive/galveston_spline/tri/p1/ctp1/hbp1/';
 % direc = '/home/sbrus/data-drive/EC2001/dgswe/';
 
 lcolor = lines;

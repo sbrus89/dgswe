@@ -15,16 +15,16 @@
 
 grid_file = ../grids/converge1_dble.grd
 forcing_file = ../grids/converge1_dble.bfr  
-!bathy_file = ../grids/converge1_dble_hbp1_interp.hb
-curve_file = ../grids/converge1_dble_ctp3.cb
-p = 1
-ctp = 3
-hbp = 1
+bathy_file = ../grids/converge1_dble_hbp3_interp.hb
+ curve_file = ../grids/converge1_dble_ctp3.cb
+p = 3
+ ctp = 3
+hbp = 3
 rk = 22
-dt = 0.5d0
+dt = 0.125d0
 tf = 1d0
 dramp = 0.08d0 
-cf = .0025d0
+ cf = .0025d0
 lines = 10d0
 out_direc = ./
 npart = 1

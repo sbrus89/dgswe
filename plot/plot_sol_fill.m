@@ -3,17 +3,19 @@ clear all
 close all
 clc
 
-grd_direc = '~/Codes/dgswe/grids/';
-% sol_direc = '~/Codes/dgswe/work/';
-sol_direc = '/home/sbrus/data-drive/converge_serial_mpi/4b31566d/np2/';
-% sol_direc = '~/data-drive/converge_quad/mesh1/P2/CTP2/';
-% sol_direc = '/home/sbrus/data-drive/dgswe_converge_curve_bath/converge3/p3/ctp3/hbp3/';
-% grd_name = 'inlet1.grd';
-% grd_name = 'converge3.grd';
-grd_name = 'converge1_dble.grd';
-% grd_name = 'beaufort_hb+2.grd';
-plot_folder = 'velplot';
 format = 'ascii';
+
+% grd_direc = '~/Codes/dgswe/grids/';
+% % sol_direc = '~/Codes/dgswe/work/';
+% sol_direc = '/home/sbrus/data-drive/converge_serial_mpi/4b31566d/np2/';
+% % sol_direc = '~/data-drive/converge_quad/mesh1/P2/CTP2/';
+% % sol_direc = '/home/sbrus/data-drive/dgswe_converge_curve_bath/converge3/p3/ctp3/hbp3/';
+% % grd_name = 'inlet1.grd';
+% % grd_name = 'converge3.grd';
+% grd_name = 'converge1_dble.grd';
+% % grd_name = 'beaufort_hb+2.grd';
+% plot_folder = 'velplot';
+
 
 % grd_direc = '~/Codes/dgswe/work/PE0000/';
 % sol_direc = '~/Codes/dgswe/work/PE0000/';
@@ -62,10 +64,15 @@ format = 'ascii';
 % grd_name = 'galveston_tri_spline.grd';
 % plot_folder = 'velplot_scale';
 
+grd_direc = '/home/sbrus/data-drive/galveston_spline/grids/original/';
+sol_direc = '/home/sbrus/data-drive/galveston_spline/tri/p3/ctp3/hbp3/';
+grd_name = 'galveston_tri.grd';
+plot_folder = 'velplot_scale';
+
 
 ctp = 2;
 
-nsnap = 10;
+nsnap = 2;
 
 grid_on = 0;
 

@@ -34,6 +34,15 @@ mesh = 'on';
 xbox = [0 0];
 ybox = [0 0];
 
+% galveston trinity bay
+% xbox = [3.152e5 3.4e5];
+% ybox = [3.272e6 3.3e6];
+
+
+% converging channel constriction
+% xbox = [1875 2125];
+% ybox = [50 160];
+
 % % galveston SL18+TX33 inlet
 % xbox = [-94.835 -94.667];
 % ybox = [29.298 29.404];
@@ -209,47 +218,48 @@ base_ycenters_plot = base_centers(in,2);
 
 
 % Plot of full grid batymetry and zoom box
-figure(1)
-pdeplot( base_xy', [], base_ect', 'xydata',base_hb, 'colormap', 'jet', 'mesh','on') ;
-hold on 
-plot([xbox(1) xbox(2)],[ybox(1) ybox(1)],'r','LineWidth',5)
-plot([xbox(1) xbox(2)],[ybox(2) ybox(2) ],'r','LineWidth',5)
-plot([xbox(1) xbox(1)],[ybox(1) ybox(2) ],'r','LineWidth',5)
-plot([xbox(2) xbox(2)],[ybox(1) ybox(2) ],'r','LineWidth',5)
-xlabel('longitude')
-ylabel('latitude')
-axis image
-grid on
+% figure(1)
+% pdeplot( base_xy', [], base_ect', 'xydata',base_hb, 'colormap', 'jet', 'mesh','on') ;
+% hold on 
+% plot([xbox(1) xbox(2)],[ybox(1) ybox(1)],'r','LineWidth',5)
+% plot([xbox(1) xbox(2)],[ybox(2) ybox(2) ],'r','LineWidth',5)
+% plot([xbox(1) xbox(1)],[ybox(1) ybox(2) ],'r','LineWidth',5)
+% plot([xbox(2) xbox(2)],[ybox(1) ybox(2) ],'r','LineWidth',5)
+% xlabel('longitude')
+% ylabel('latitude')
+% axis image
+% grid on
 
 
 %%
-% Plot of grid and extra nodes in zoom box
-figure(2);
-hold on
-drawNGonMesh4(horzcat(base_xvert_plot,base_yvert_plot), horzcat(base_nelnds_plot,base_ect_plot), 'ElNum', 'off', 'NodeNum', 'off', 'b' )
-plot(xplot,yplot,'ro','MarkerSize',6,'MarkerFaceColor','r')
-plot(base_xnds_plot,base_ynds_plot,'g.')
-plot(base_xcenters_plot,base_ycenters_plot,'bo','MarkerSize',4,'MarkerFaceColor','b')
-plot(cel_xnds_plot,cel_ynds_plot,'co','MarkerSize',4,'MarkerFaceColor','c')
-drawNGonMesh4(horzcat(eval_xvert_plot,eval_yvert_plot), horzcat(eval_nelnds_plot,eval_ect_plot), 'ElNum', 'off', 'NodeNum', 'off', 'k' )
-xlabel('longitude')
-ylabel('latitude')
-title('grid and evaluation points')
-axis image
+% % Plot of grid and extra nodes in zoom box
+% figure(2);
+% hold on
+% drawNGonMesh4(horzcat(base_xvert_plot,base_yvert_plot), horzcat(base_nelnds_plot,base_ect_plot), 'ElNum', 'off', 'NodeNum', 'off', 'b',1 )
+% plot(base_xnds_plot,base_ynds_plot,'g.')
+% % plot(base_xcenters_plot,base_ycenters_plot,'bo','MarkerSize',4,'MarkerFaceColor','b')
+% drawNGonMesh4(horzcat(eval_xvert_plot,eval_yvert_plot), horzcat(eval_nelnds_plot,eval_ect_plot), 'ElNum', 'off', 'NodeNum', 'off', 'k',3 )
+% plot(xplot,yplot,'ro','MarkerSize',9,'MarkerFaceColor','r')
+% plot(cel_xnds_plot,cel_ynds_plot,'ko','MarkerSize',7,'MarkerFaceColor','k')
+% xlabel('longitude')
+% ylabel('latitude')
+% title('grid and evaluation points')
+% axis equal
 
 % break
 
 % Plot of base grid bathymetry nodes
-figure(3)
-ect2 = delaunay(base_nds(:,1),base_nds(:,2));
-nodes = [base_nds(:,1),base_nds(:,2)];
-pdeplot( nodes', [], ect2', 'xydata',base_nds(:,3), 'zdata',base_nds(:,3),'colormap', 'jet', 'mesh','on') ;
-xlabel('longitude')
-ylabel('latitude')
-zlabel('bathymetry (m)')
-title('base grid bathymetry')
-grid on
+% figure(3)
+% ect2 = delaunay(base_nds(:,1),base_nds(:,2));
+% nodes = [base_nds(:,1),base_nds(:,2)];
+% pdeplot( nodes', [], ect2', 'xydata',base_nds(:,3), 'zdata',base_nds(:,3),'colormap', 'jet', 'mesh','on') ;
+% xlabel('longitude')
+% ylabel('latitude')
+% zlabel('bathymetry (m)')
+% title('base grid bathymetry')
+% grid on
 
+%%
 % Plot of linearly interpolated nodes
 figure(4)
 ect2 = delaunay(xplot,yplot);
@@ -257,11 +267,21 @@ ect2c = clean_ect(ect2,bnds_plot);
 nodes = [xplot yplot];
 pdeplot( nodes', [], ect2c', 'xydata',hplot,'zdata',hplot, 'colormap', 'jet', 'mesh',mesh) ;
 grid on
-xlabel('longitude')
-ylabel('latitude')
-zlabel('bathymetry (m)')
-title('linearly interpolated nodes')
+% xlabel('longitude')
+% ylabel('latitude')
+% zlabel('bathymetry (m)')
+% title('linearly interpolated nodes')
 
+% galveston trinity bay 
+% caxis([.5 3.5])
+% set(gca,'CameraPosition',[226105.1750978218 3500057.695551115 10.028497019894523])
+% set(gca,'CameraTarget',[327500.0 3285000.0 2.0])
+% set(gca,'CameraViewAngle',10.472173081209045)
+% set(gcf,'PaperPosition',[.25 2.5 8 6])
+% set(gcf,'Position',[1 1 1300 700])
+% print('-r400','-dpng','~/galveston_linear_nodes.png') ;
+
+%%
 % Plot of rimls surface nodes
 figure(5)
 ect3 = delaunay(rimls_xplot,rimls_yplot);
@@ -269,10 +289,19 @@ ect3c = clean_ect(ect3,rimls_bnds_plot);
 nodes = [rimls_xplot rimls_yplot];
 pdeplot( nodes', [], ect3c', 'xydata',rimls_hplot,'zdata',rimls_hplot, 'colormap', 'jet', 'mesh',mesh) ;
 grid on
-xlabel('longitude')
-ylabel('latitude')
-zlabel('bathymetry (m)')
-title('rimls surface nodes')
+% xlabel('longitude')
+% ylabel('latitude')
+% zlabel('bathymetry (m)')
+% title('rimls surface nodes')
+
+% galveston trinity bay
+% caxis([.5 3.5])
+% set(gca,'CameraPosition',[226105.1750978218 3500057.695551115 10.028497019894523])
+% set(gca,'CameraTarget',[327500.0 3285000.0 2.0])
+% set(gca,'CameraViewAngle',10.472173081209045)
+% set(gcf,'PaperPosition',[.25 2.5 8 6])
+% set(gcf,'Position',[1 1 1300 700])
+% print('-r400','-dpng','~/galveston_rimls_nodes.png') ;
 
 % % Plot of element normals
 % figure(6)
@@ -291,6 +320,11 @@ disp('Max absolute difference between rimls and verticies')
 disp(max(abs(rimls_vnds(:,3)-eval_hb)))
 disp('Max relative difference between rimls and verticies')
 disp(max(abs(rimls_vnds(:,3)-eval_hb))/max(eval_hb)*100)
+
+disp('Max rimls value')
+disp(max(rimls_hpts))
+disp('Min rimls value')
+disp(min(rimls_hpts))
 
 
 

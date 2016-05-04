@@ -7,20 +7,27 @@ elcolor = 'b';
 ndcolor = 'r';
 lcolor = 'k';
 
-elem = 'on';
+elem = 'off';
 node = 'on';
 
 p = 1 ;
 
 % grd_direc = '/home/sbrus/Codes/dgswe/grids/';
-% grd_name = 'converge1_dble.grd';
+% grd_name = 'converge5_dble.grd';
 % % grd_name = 'inlet1.grd';
 
 grd_direc = '/home/sbrus/data-drive/galveston/dgswe/tri/';
 grd_name = 'galveston_tri.grd';
 
-% grd_direc = '/home/sbrus/data-drive/galveston/adcirc/refinedx64/ESL0/';
-% grd_name = 'fort.14';
+
+%  grd_direc ='/home/sbrus/data-drive/galveston/dgswe/quad2/';
+%  grd_name = 'galveston_quad2.grd';
+ 
+% grd_direc = '/home/sbrus/data-drive/galveston_spline/grids/rimls/';
+% grd_name = 'fort.14_rimls';
+
+% grd_direc = '/home/sbrus/Codes/dgswe/spline/work/';
+% grd_name = 'nodes.out';
 
 [EToV,VX,HB,nelnds,opedat,boudat,title] = readfort14([grd_direc,grd_name]);
 [ne,nc] = size(EToV);
@@ -31,7 +38,7 @@ DEToV = zeros(length(EToV(:,1)),nc+1) ;
 DEToV(:,1) = nelnds ;
 DEToV(:,2:nc+1) = EToV ;
 drawNGonMesh4( VX, DEToV, lcolor, 'ElNum', elem, elcolor, 'NodeNum', node, ndcolor )
-axis image
+axis equal
 
 % x1 = 2000.00000000000;
 % xm = 1949.72923397938;

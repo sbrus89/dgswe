@@ -24,6 +24,20 @@
 !2d0                                                                                                     ! tf - final time (days)
 !20                                                                                                      ! lines - lines in output files
 
+/home/sbrus/data-drive/galveston_spline/grids/galveston_tri.grd                                             ! coarse grid file
+/home/sbrus/data-drive/galveston_spline/tri/p1/ctp2/hbp1/                                                   ! coarse output directory
+1                                                                                                           ! p - coarse polynomial order
+2                                                                                                           ! ctp - coarse parametric coordinate transformation order
+1d0                                                                                                         ! dt - coarse timestep
+/home/sbrus/data-drive/galveston_spline/grids/galveston_tri.grd                                             ! fine grid file
+/home/sbrus/data-drive/galveston_spline/tri/p1/ctp2/hbp1/serial/                                            ! fine output directory
+1                                                                                                           ! p - fine polynomial order
+2                                                                                                           ! ctp - fine parametric coordinate transformation order
+1d0                                                                                                         ! dt - fine timestep
+4d0                                                                                                         ! tf - final time (days)
+48d0                                                                                                        ! lines - lines in output files
+/home/sbrus/data-drive/galveston_spline/grids/galveston_tri.grd                                             ! coarse grid file
+2  
 
 ! /home/sbrus/data-drive/converge_tri-revised/LLF-curved/P1/Mesh3/fort.14                                         ! coarse grid file
 ! /home/sbrus/data-drive/converge_tri-revised/LLF-curved/P1/Mesh3/                                                ! coarse output directory
@@ -107,20 +121,20 @@
 ! /home/sbrus/Codes/dgswe/grids/inlet1.grd                                                                    ! coarse grid file
 ! 1  
 
-/home/sbrus/Codes/dgswe/grids/inlet1_dble.grd                                                                       ! coarse grid file
-/home/sbrus/data-drive/serial_mpi/inlet1/dble_prec_grid_strict_lapack_bnds_eqpts/p3/ref/                                                 ! coarse output directory
-3                                                                                                           ! p - coarse polynomial order
-1                                                                                                           ! ctp - coarse parametric coordinate transformation order
-.5d0                                                                                                        ! dt - coarse timestep
-/home/sbrus/Codes/dgswe/grids/inlet1_dble.grd                                                                    ! fine grid file
-/home/sbrus/data-drive/serial_mpi/inlet1/dble_prec_grid_strict_lapack_bnds_eqpts/p3/np8/                                                 ! fine output directory
-3                                                                                                           ! p - fine polynomial order
-1                                                                                                           ! ctp - fine parametric coordinate transformation order
-.25d0                                                                                                       ! dt - fine timestep
-1d0                                                                                                         ! tf - final time (days)
-100                                                                                                         ! lines - lines in output files
-/home/sbrus/Codes/dgswe/grids/inlet1_dble.grd                                                                    ! coarse grid file
-1  
+! /home/sbrus/Codes/dgswe/grids/inlet1_dble.grd                                                               ! coarse grid file
+! /home/sbrus/data-drive/serial_mpi/inlet1/dble_prec_grid_strict_lapack_bnds_eqpts_nxnyhb2/p3/ref/            ! coarse output directory
+! 3                                                                                                           ! p - coarse polynomial order
+! 1                                                                                                           ! ctp - coarse parametric coordinate transformation order
+! .5d0                                                                                                        ! dt - coarse timestep
+! /home/sbrus/Codes/dgswe/grids/inlet1_dble.grd                                                               ! fine grid file
+! /home/sbrus/data-drive/serial_mpi/inlet1/dble_prec_grid_strict_lapack_bnds_eqpts_nxnyhb2/p3/np8/            ! fine output directory
+! 3                                                                                                           ! p - fine polynomial order
+! 1                                                                                                           ! ctp - fine parametric coordinate transformation order
+! .25d0                                                                                                       ! dt - fine timestep
+! 1d0                                                                                                         ! tf - final time (days)
+! 100                                                                                                         ! lines - lines in output files
+! /home/sbrus/Codes/dgswe/grids/inlet1_dble.grd                                                                    ! coarse grid file
+! 1  
 
 ! /home/sbrus/Codes/dgswe/grids/inlet1.grd                                                                       ! coarse grid file
 ! /home/sbrus/data-drive/serial_mpi/inlet1_outflow/p1/ref/                                                     ! coarse output directory

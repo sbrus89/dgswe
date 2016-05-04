@@ -3,8 +3,8 @@
 /home/sbrus/Codes/dgswe/grids/converge4_dble_ctp3.cb                                                     ! base curved boundary file
 3                                                                                                        ! hbp - base bathymetry order
 /home/sbrus/Codes/dgswe/grids/converge4_dble_hbp3_rimls.hb                                               ! base bathymetry file
-/home/sbrus/Codes/dgswe/grids/converge4_dble.grd                                                         ! eval grid file
+/home/sbrus/Codes/dgswe/grids/converge1_dble.grd                                                         ! eval grid file
 3                                                                                                        ! ctp - eval parametric coordinate transformation order
-/home/sbrus/Codes/dgswe/grids/converge4_dble_ctp3.cb                                                     ! eval curved boundary file
+/home/sbrus/Codes/dgswe/grids/converge1_dble_ctp3.cb                                                     ! eval curved boundary file
 3                                                                                                        ! hbp - eval bathymetry order
 ../output/                                                                                               ! output directory

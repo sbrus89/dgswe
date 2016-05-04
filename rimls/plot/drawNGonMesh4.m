@@ -1,4 +1,4 @@
-function h = drawNGonMesh4( VK, EToV, OP1, VAL1, OP2, VAL2, lcolor )
+function h = drawNGonMesh4( VK, EToV, OP1, VAL1, OP2, VAL2, lcolor,lwidth )
 % Plot DG mesh (wireframe).
 % Note:
 %    VK- Coordinate
@@ -53,7 +53,7 @@ for i = 1: Nel
         ib = ig ;
         ie = mod(ig,ngon) + 1 ;  
         plot( [vx(ib,1) vx(ie,1)], ...
-              [vx(ib,2) vx(ie,2)], 'Color',lcolor ) ;
+              [vx(ib,2) vx(ie,2)], 'Color',lcolor,'LineWidth',lwidth ) ;
     end
     
     xp(1:ngon,i) = vx(:,1) ;

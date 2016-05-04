@@ -8,11 +8,11 @@
       
       
       gitBranch = "master" 
-      gitSHA = "9c70d5f9ac2be2f926eb5632c28a7eb503ba5c08 +" 
+      gitSHA = "87e1b75aecedf62fec85c296af422732b6dd4c38 +" 
       compiler_version = "ifort version 14.0.0" 
-      compiler_flags = "-132 -heap-arrays -Iodir/ -traceback -g -C" 
-      modified_files = "../src/evaluate.f90 ../src/find_element.f90 ../src/read_grid.f90 ../src/rimls.f90 Makefile" 
-      compile_date = "Mon Mar 21 15:49:35 EDT 2016" 
+      compiler_flags = "-O3 -xHost -Iodir_dgprep/" 
+      modified_files = "../bathy_interp/work/bathy.inp ../error/work/error.inp ../grids/convert14.py ../grids/convert2dm.py ../grids/dble_prec_grid.F90 ../grids/refine_grid.m ../plot/drawNGonMesh4.m ../plot/plot_PE_grid.m ../plot/plot_grid.m ../plot/plot_sol_fill.m ../rimls/plot/drawNGonMesh4.m ../rimls/plot/plot_nodes.m ../rimls/src/write_results.f90 ../rimls/work/rimls.inp ../spline/plot/plot_spline_constant.m ../spline/src/calc_spline.f90 ../spline/src/spline.f90 ../spline/work/Makefile ../spline/work/spline.inp ../src/bathymetry_interp_mod.F90 ../src/grid_file_mod.F90 ../src/version.F90 ../stations/src/stations.f90 ../stations/work/Makefile dgswe.inp" 
+      compile_date = "Wed May  4 02:51:15 EDT 2016" 
       host = "chl-tilos" 
       
       length = LEN(TRIM(ADJUSTL(modified_files)))

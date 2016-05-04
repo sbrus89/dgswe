@@ -6,9 +6,12 @@ function h = drawNGonMesh4( VK, EToV, lcolor, OP1, VAL1, elcolor, OP2, VAL2, ndc
 %    xndoes   - DG Nodes
 
 
-elems = [3158 3198 44
-];
-nodes = [1945];
+[NN ~] = size(VK) ;
+[Nel ~] = size(EToV)  ;
+
+
+elems = [1:Nel];
+nodes = [1:NN];
 
 
 h = findobj ;
@@ -47,8 +50,7 @@ if ( length(Opt) > 0 )
 end
 
 % Nel = length(VK1(:,1)) ;
-% ncol = length(VK1(1,:)) ;
-[Nel ~] = size(EToV)  ;
+
 %lcolor = 'k' ;
 for i = 1: Nel
     
