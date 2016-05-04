@@ -691,7 +691,7 @@
           
       ENDDO
       
-      PRINT ("(A,F6.3,A,F6.3,A,F6.3,A)"), "Rough max timestep based on CFL = ",cfl, " and u = ", u, ": ", dtmin, " sec"
+      PRINT ("(A,F6.3,A,F6.3,A,F18.3,A)"), "Rough max timestep based on CFL = ",cfl, " and u = ", u, ": ", dtmin, " sec"
       PRINT*,""
       
       RETURN
