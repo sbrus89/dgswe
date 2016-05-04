@@ -294,7 +294,7 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       
-      SUBROUTINE newton(r,dt,ti,xr,ax,bx,cx,dx,ay,by,cy,dy,x,y)
+      SUBROUTINE newton(r,dt,ti,xr,ax,bx,cx,dx,ay,by,cy,dy,x,y,error_flag)
       
       IMPLICIT NONE      
       
@@ -305,6 +305,7 @@
       REAL(rp), INTENT(IN) :: xr(2)
       REAL(rp), INTENT(IN) :: ax,bx,cx,dx,ay,by,cy,dy
       REAL(rp), INTENT(OUT) :: x,y
+      INTEGER, INTENT(OUT), OPTIONAL :: error_flag
       REAL(rp) :: t
       REAL(rp) :: f,fp,fpp,g,gp,gpp
       REAL(rp) :: d,dp,tol
@@ -340,7 +341,15 @@ iter: DO it = 1,maxit
       
       IF (it >= maxit) THEN
         PRINT "(A,E28.16)", "MAX ITERATIONS EXCEEDED IN FINDING EVALUATION PARAMETER, ERROR: ", ABS(d)        
-      ENDIF     
+      ENDIF  
+      
+      IF (PRESENT(error_flag)) THEN
+        IF (ABS(d) > 1d0) THEN
+          error_flag = 1
+        ELSE
+          error_flag = 0
+        ENDIF
+      ENDIF
 
       
       RETURN 

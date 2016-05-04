@@ -19,7 +19,8 @@
       INTEGER :: n1,n2
       INTEGER :: base_bed,base_bou,base_led,base_vert
       INTEGER :: neval,nbase
-      REAL(rp) :: htest,ti,tpt,r,ra,xs,ys,r0
+      INTEGER :: error_flag,ntry,try
+      REAL(rp) :: htest,ti,tpt,r,ra,xs,ys,r0,dr
       REAL(rp) :: d1,d2,d3,t1,t2,xr(2),xa(2),rs(2)
       REAL(rp) :: n1x,n1y,n2x,n2y,n3x,n3y,n4x,n4y,edlen
       REAL(rp) :: theta1,theta2
@@ -242,9 +243,10 @@
               
                    
               r = r0     
+              PRINT*, "R0 = ",r0
               CALL newton(r,dt(nd,bou),ti,xr,ax(nd,bou),bx(nd,bou),cx(nd,bou),dx(nd,bou), &
                                              ay(nd,bou),by(nd,bou),cy(nd,bou),dy(nd,bou), &
-                                             x(j+1),y(j+1))
+                                             x(j+1),y(j+1),error_flag)
               
 
 
@@ -256,7 +258,24 @@
                 r = r0*-1d0
                 CALL newton(r,dt(nd,bou),ti,xr,ax(nd,bou),bx(nd,bou),cx(nd,bou),dx(nd,bou), &
                                                ay(nd,bou),by(nd,bou),cy(nd,bou),dy(nd,bou), &
-                                               x(j+1),y(j+1))                                               
+                                               x(j+1),y(j+1),error_flag)                                               
+              ENDIF
+              
+              IF (error_flag) THEN
+                ntry = 20
+                r0 = -1d0
+                dr = 2d0/(real(ntry,rp)-1d0)
+      try_loop: DO try = 1,ntry
+                  r = r0
+                  CALL newton(r,dt(nd,bou),ti,xr,ax(nd,bou),bx(nd,bou),cx(nd,bou),dx(nd,bou), &
+                                                 ay(nd,bou),by(nd,bou),cy(nd,bou),dy(nd,bou), &
+                                                 x(j+1),y(j+1),error_flag)                   
+                  r0 = r0+dr
+                  IF (abs(r)-1d0 < 1d-8 .and. error_flag == 0) THEN
+                    EXIT try_loop
+                  ENDIF
+                ENDDO try_loop
+              
               ENDIF
 
               
@@ -298,6 +317,7 @@
             
             PRINT*, "------------------------------------------------------------"            
             PRINT*, " "
+            
             
           ENDDO
 
