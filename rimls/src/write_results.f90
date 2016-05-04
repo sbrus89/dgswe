@@ -205,9 +205,10 @@ search:DO i = 1,nlist
 
       IMPLICIT NONE
       
-      INTEGER :: i,j
+      INTEGER :: i,j,nd,bnd
       INTEGER :: et,nv
       TYPE(grid) :: mesh
+      INTEGER :: nbseg,btype
       
       PRINT "(A)", "Writing fort.14 with rimls nodes..."       
       
@@ -218,7 +219,7 @@ search:DO i = 1,nlist
       WRITE(14,*) mesh%ne,mesh%nn         
       
       DO i = 1,mesh%nn
-        WRITE(14,"(I7,1x,3(e24.17,1x))") i, (mesh%xyh_vertex(1,i,j), j = 1,3)  ! write new rimls x,y, depth coordinates
+        WRITE(14,"(I7,1x,3(e24.17,1x))") i, mesh%xy(1,i), mesh%xy(2,i), mesh%xyh_vertex(1,i,3)  ! write new rimls x,y, depth coordinates
       ENDDO
       
       DO i = 1,mesh%ne
@@ -227,24 +228,29 @@ search:DO i = 1,nlist
         WRITE(14,*) i, nv, (mesh%ect(j,i), j = 1,nv)               
       ENDDO
       
-      WRITE(14,*) mesh%nope
-      WRITE(14,*) mesh%neta
-      
-      DO i = 1,mesh%nope
-        WRITE(14,*) mesh%obseg(i)
-        DO j = 1,mesh%obseg(i)
-          WRITE(14,*) mesh%obnds(j,i)
+      WRITE(14,"(I9,A)") mesh%nope, "   = Number of open boundaries"
+      WRITE(14,"(I9,A)") mesh%neta, "   = Total number of open boundary nodes"
+      DO bnd = 1,mesh%nope
+        WRITE(14,"(I9)") mesh%obseg(bnd)
+        DO nd = 1,mesh%obseg(bnd)
+          WRITE(14,"(I9)") mesh%obnds(nd,bnd)
         ENDDO
       ENDDO
       
-      WRITE(14,*) mesh%nbou      
-      WRITE(14,*) mesh%nvel
-      
-      DO i = 1,mesh%nbou
-        WRITE(14,*) mesh%fbseg(1,i), mesh%fbseg(2,i)
-        DO j = 1,mesh%fbseg(1,i)
-          WRITE(14,*) mesh%fbnds(j,i)
-        ENDDO
+      WRITE(14,"(I9,A)") mesh%nbou, "   = Number of land boundaries"
+      WRITE(14,"(I9,A)") mesh%nvel, "   = Total number of land boundary nodes"
+      DO bnd = 1,mesh%nbou
+        btype = mesh%fbseg(2,bnd)
+        nbseg = mesh%fbseg(1,bnd)
+        
+        IF (btype == 1 .OR. btype == 11 .OR. btype == 21) THEN
+          nbseg = nbseg - 1
+        ENDIF        
+        
+        WRITE(14,"(2(I9))") nbseg, btype
+        DO nd = 1,nbseg
+          WRITE(14,"(I9)") mesh%fbnds(nd,bnd)
+        ENDDO   
       ENDDO
       
       CLOSE(14)
