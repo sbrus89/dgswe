@@ -50,8 +50,8 @@
       CALL elements_per_node(ne,nn,nverts,el_type,ect,nepn,mnepn,epn)                   
 
       
-      
-      
+      CALL create_101btype_stations()
+      STOP
       
       CALL find_stations()
       

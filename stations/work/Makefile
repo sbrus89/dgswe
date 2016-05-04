@@ -16,7 +16,7 @@ GIT_MOD := $(strip $(subst 1,+,$(GIT_MOD)))
 GIT_MOD := $(strip $(subst 0,,$(GIT_MOD)))
 GIT_MFILES := $(strip $(shell git ls-files ../* -m))
 
-objects = globals.o quit.o lapack_interfaces.o basis.o read_input.o find_stations.o\
+objects = globals.o quit.o lapack_interfaces.o basis.o read_input.o find_stations.o create_stations.o\
           messenger2.o grid_file_mod.o spherical_mod.o read_grid.o find_element_mod.o\
           edge_connectivity_mod.o read_stations.o kdtree2.o version.o stations.o \
           bathymetry_interp_mod.o transformation.o shape_functions_mod.o vandermonde.o
@@ -107,6 +107,9 @@ $(ODIR)read_stations.o: ../../src/read_stations.F90                      $(ODIR)
 	
 $(ODIR)find_stations.o: ../../src/find_stations.F90                      $(ODIR)globals.o  $(ODIR)basis.o  $(ODIR)read_input.o $(ODIR)bathymetry_interp_mod.o $(ODIR)find_element_mod.o $(ODIR)shape_functions_mod.o
 	$(FC) $(FFLAGS) -c $< -o $@	
+	
+$(ODIR)create_stations.o: create_stations.f90                            $(ODIR)globals.o $(ODIR)read_input.o
+	$(FC) $(FFLAGS) -c $< -o $@	
 
 $(ODIR)kdtree2.o: ../../src/kdtree2.F
 	$(FC) $(FFLAGS) -c $< -o $@
@@ -114,7 +117,7 @@ $(ODIR)kdtree2.o: ../../src/kdtree2.F
 	mv kdtree2_module.mod $(ODIR)
 	mv kdtree2_priority_queue_module.mod $(ODIR)
 
-$(ODIR)stations.o: stations.f90                                          $(ODIR)globals.o  $(ODIR)basis.o  $(ODIR)read_input.o $(ODIR)bathymetry_interp_mod.o $(ODIR)edge_connectivity_mod.o $(ODIR)find_element_mod.o $(ODIR)messenger2.o  $(ODIR)shape_functions_mod.o
+$(ODIR)stations.o: stations.f90                                          $(ODIR)globals.o   $(ODIR)read_input.o $(ODIR)edge_connectivity_mod.o $(ODIR)messenger2.o $(ODIR)create_stations.o
 	$(FC) $(FFLAGS) -c $< -o $@
 
 .PHONY : clean

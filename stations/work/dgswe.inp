@@ -1,0 +1,13 @@
+grid_file = /home/sbrus/data-drive/galveston/dgswe/quad2/galveston_quad2.grd                                      ! grid file
+forcing_file = /home/sbrus/data-drive/galveston/dgswe/tri_spline/p3/galveston.bfr                             ! forcing file
+p = 3                                                                                                         ! p - polynomial order
+ctp = 1                                                                                                       ! ctp - parametric coordinate transformation order
+dt = 2d0                                                                                                      ! dt - timestep
+tf = 4d0                                                                                                      ! tf - final time (days)
+dramp = .5d0                                                                                                  ! dramp - ramping parameter (days)
+cf = .003d0                                                                                                   ! cf - friction coefficient
+sol_opt = 1
+sol_snap = 48d0
+out_direc = /home/sbrus/data-drive/galveston/dgswe/tri_spline/p3/                                             ! output directory
+npart = 1                                                                                                     ! npart - edge blocking parameter
+
