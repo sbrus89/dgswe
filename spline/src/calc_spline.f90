@@ -344,7 +344,7 @@ iter: DO it = 1,maxit
       ENDIF  
       
       IF (PRESENT(error_flag)) THEN
-        IF (ABS(d) > 1d0) THEN
+        IF (ABS(d) > 1d0 .or. abs(r)-1d0 > 1d-8) THEN
           error_flag = 1
         ELSE
           error_flag = 0

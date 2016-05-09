@@ -253,7 +253,6 @@
               ! Try new initial guess if minimum was not found in (-1,1) interval              
               IF (abs(r)-1d0 > 1d-8) THEN
                 PRINT "(A,F24.17)", "WARNING: R VALUE NOT FOUND IN INTERVAL, R = ", r
-                PRINT "(A)", "  trying another r0 value..."
                 
                 r = r0*-1d0
                 CALL newton(r,dt(nd,bou),ti,xr,ax(nd,bou),bx(nd,bou),cx(nd,bou),dx(nd,bou), &
@@ -266,6 +265,7 @@
                 r0 = -1d0
                 dr = 2d0/(real(ntry,rp)-1d0)
       try_loop: DO try = 1,ntry
+                  PRINT "(A)", "  trying another r0 value..."        
                   r = r0
                   CALL newton(r,dt(nd,bou),ti,xr,ax(nd,bou),bx(nd,bou),cx(nd,bou),dx(nd,bou), &
                                                  ay(nd,bou),by(nd,bou),cy(nd,bou),dy(nd,bou), &
@@ -273,6 +273,8 @@
                   r0 = r0+dr
                   IF (abs(r)-1d0 < 1d-8 .and. error_flag == 0) THEN
                     EXIT try_loop
+                  ELSE 
+                    PRINT "(A,F24.17)", "WARNING: R VALUE NOT FOUND IN INTERVAL, R = ", r                
                   ENDIF
                 ENDDO try_loop
               
