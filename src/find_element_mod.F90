@@ -281,7 +281,7 @@ search: DO srch = 1,srchdp
       
       vert = 0             ! if one sub-triangle area dominates, then the point is close 
       DO i = 1,nv          ! to that  vertex
-        IF (abs(stri_area(j)-area_sum) < 1d-8) THEN
+        IF (abs(stri_area(i)-area_sum) < 1d-8) THEN
           vert = i
         ENDIF
       ENDDO
