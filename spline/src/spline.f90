@@ -29,6 +29,7 @@
       INTEGER :: eds(4)
       CHARACTER(100) :: name
       CHARACTER(1) :: ctp_char
+      REAL(rp), PARAMETER :: it_tol = 1d-5
 
       
 
@@ -251,9 +252,9 @@
 
 
               ! Try new initial guess if minimum was not found in (-1,1) interval              
-              IF (abs(r)-1d0 > 1d-8) THEN
+              IF (abs(r)-1d0 > it_tol) THEN
                 PRINT "(A,F24.17)", "WARNING: R VALUE NOT FOUND IN INTERVAL, R = ", r
-                
+                PRINT "(A)", "  trying another r0 value..."     
                 r = r0*-1d0
                 CALL newton(r,dt(nd,bou),ti,xr,ax(nd,bou),bx(nd,bou),cx(nd,bou),dx(nd,bou), &
                                                ay(nd,bou),by(nd,bou),cy(nd,bou),dy(nd,bou), &
@@ -271,7 +272,7 @@
                                                  ay(nd,bou),by(nd,bou),cy(nd,bou),dy(nd,bou), &
                                                  x(j+1),y(j+1),error_flag)                   
                   r0 = r0+dr
-                  IF (abs(r)-1d0 < 1d-8 .and. error_flag == 0) THEN
+                  IF (abs(r)-1d0 < it_tol .and. error_flag == 0) THEN
                     EXIT try_loop
                   ELSE 
                     PRINT "(A,F24.17)", "WARNING: R VALUE NOT FOUND IN INTERVAL, R = ", r                
@@ -289,8 +290,9 @@
               WRITE(60,*) x(j+1),y(j+1)
               
                            
-              IF (abs(r)-1d0 > 1d-8) THEN
+              IF (abs(r)-1d0 > it_tol) THEN
                 PRINT "(A,F24.17)", "ERROR: R VALUE NOT FOUND IN INTERVAL, R = ", r
+                PRINT "(2(F24.17))", abs(r)-1d0, it_tol
                 STOP
               ELSE 
                 PRINT "(A,F24.17)", "R = ", r 
