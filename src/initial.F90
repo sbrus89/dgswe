@@ -12,6 +12,7 @@
       USE allocation, ONLY: alloc_sol_arrays   
       USE basis, ONLY: tri_nodes,tri_basis,quad_nodes,quad_basis
       USE read_dginp, ONLY: out_direc,grid_file
+      USE messenger2, ONLY: myrank      
 
       IMPLICIT NONE
       INTEGER :: i,j,el,l,pt,dof,ed,nd,k,m,n,p
@@ -30,6 +31,7 @@
       xc = 0d0 
       yc = 0d0
       
+      IF (myrank == 0) PRINT "(A)", "Computing initial condition..."
       CALL alloc_sol_arrays()
 
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

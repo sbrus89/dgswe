@@ -9,6 +9,7 @@
                          depth,obnds, &
                          deg2rad,pi
       USE allocation, ONLY: alloc_forcing_arrays 
+      USE messenger2, ONLY: myrank        
 
       IMPLICIT NONE
 
@@ -17,6 +18,8 @@
       INTEGER :: segtype
       REAL(rp) :: xi,l1,l2
       LOGICAL :: any_nfb
+      
+      IF (myrank == 0) PRINT "(A)", "Interoplating boundary forcing..."
       
       ! Convert degrees to radians and frequencies to periods
       

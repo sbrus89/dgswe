@@ -204,6 +204,8 @@
       REAL(rp) :: nout2
       INTEGER :: reorder,info
       
+      IF (myrank == 0) THEN PRINT "(A)", "Reading message passing files..."
+      
       INQUIRE(FILE=dirname(1:lname)//'/'//'fort.18', EXIST = file_exists)
       IF(file_exists == .FALSE.) THEN
         PRINT*, "fort.18 file does not exist for process", myrank
@@ -334,6 +336,8 @@
       INTEGER :: mnedsr,nqpt
       INTEGER :: match
       
+      IF (myrank == 0) THEN PRINT "(A)", "Seting up message passing arrays..."      
+      
       mnedsr = MAXVAL(ned_sr)
       
       ALLOCATE(send_ptr(3*mnedsr*mnqpte,nproc_sr))
@@ -379,20 +383,20 @@
           el = el_sr(ed,pe)
           led = led_sr(ed,pe)
           
-          IF (myrank == 1) THEN
-            IF (el == 214 .and. led == 1) THEN
-              match_edge = edcnt
-              WRITE(195,"(6(ES24.17,1x))") (xy(1,ect(j,214)), j = 1,3)
-              WRITE(195,"(6(ES24.17,1x))") (xy(2,ect(j,214)), j = 1,3)
-            ENDIF
-          ENDIF
-          IF (myrank == 0) THEN
-            IF (el ==  280 .and. led == 2) THEN
-              match_edge = edcnt
-              WRITE(195,"(6(ES24.17,1x))") (xy(1,ect(j,280)), j = 1,3)
-              WRITE(195,"(6(ES24.17,1x))") (xy(2,ect(j,280)), j = 1,3)
-            ENDIF
-          ENDIF                    
+!           IF (myrank == 1) THEN
+!             IF (el == 214 .and. led == 1) THEN
+!               match_edge = edcnt
+!               WRITE(195,"(6(ES24.17,1x))") (xy(1,ect(j,214)), j = 1,3)
+!               WRITE(195,"(6(ES24.17,1x))") (xy(2,ect(j,214)), j = 1,3)
+!             ENDIF
+!           ENDIF
+!           IF (myrank == 0) THEN
+!             IF (el ==  280 .and. led == 2) THEN
+!               match_edge = edcnt
+!               WRITE(195,"(6(ES24.17,1x))") (xy(1,ect(j,280)), j = 1,3)
+!               WRITE(195,"(6(ES24.17,1x))") (xy(2,ect(j,280)), j = 1,3)
+!             ENDIF
+!           ENDIF                    
           
           DO pt = 1,nqpte(1)
             i = i+1
@@ -491,6 +495,8 @@
 #ifdef CMPI      
       
       INTEGER :: pe,tag
+      
+      IF (myrank == 0) THEN PRINT "(A)", "Initializing message passing..."       
       
       ALLOCATE(solreq_recv(nproc_sr))
       ALLOCATE(solreq_send(nproc_sr))

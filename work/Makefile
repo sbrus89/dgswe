@@ -427,10 +427,10 @@ $(ODIR)read_forcing.o : read_forcing.F90                       $(ODIR)globals.o 
 $(ODIR)modal2nodal.o : modal2nodal.F90                         $(ODIR)globals.o  $(ODIR)read_input.o $(ODIR)basis.o
 	$(FC) $(FFLAGS) -c $< -o $@
 
-$(ODIR)interp_forcing.o : interp_forcing.F90                   $(ODIR)globals.o $(ODIR)allocation.o
+$(ODIR)interp_forcing.o : interp_forcing.F90                   $(ODIR)globals.o $(ODIR)allocation.o $(ODIR)messenger2.o
 	$(FC) $(FFLAGS) -c $< -o $@
 
-$(ODIR)initial.o : initial.F90                                 $(ODIR)globals.o $(ODIR)read_input.o $(ODIR)allocation.o $(ODIR)basis.o
+$(ODIR)initial.o : initial.F90                                 $(ODIR)globals.o $(ODIR)read_input.o $(ODIR)allocation.o $(ODIR)basis.o $(ODIR)messenger2.o
 	$(FC) $(FFLAGS) -c $< -o $@
 	
 $(ODIR)read_stations.o: read_stations.F90                      $(ODIR)globals.o $(ODIR)read_input.o
@@ -445,7 +445,7 @@ $(ODIR)connect.o : connect.F90                                 $(ODIR)globals.o 
 $(ODIR)curvilinear.o : curvilinear.F90                         $(ODIR)globals.o $(ODIR)read_input.o $(ODIR)shape_functions_mod.o $(ODIR)curvilinear_nodes_mod.o $(ODIR)bathymetry_interp_mod.o
 	$(FC) $(FFLAGS) -c $< -o $@
 
-$(ODIR)element_data.o : element_data.F90                       $(ODIR)globals.o $(ODIR)read_input.o $(ODIR)allocation.o $(ODIR)basis.o $(ODIR)vandermonde.o $(ODIR)shape_functions_mod.o $(ODIR)transformation.o
+$(ODIR)element_data.o : element_data.F90                       $(ODIR)globals.o $(ODIR)read_input.o $(ODIR)allocation.o $(ODIR)basis.o $(ODIR)vandermonde.o $(ODIR)shape_functions_mod.o $(ODIR)transformation.o $(ODIR)messenger2.o
 	$(FC) $(FFLAGS) -c $< -o $@
 	
 $(ODIR)shape_functions_eval.o : shape_functions_eval.F90       $(ODIR)globals.o $(ODIR)shape_functions_mod.o
@@ -516,7 +516,7 @@ $(ODIR)decomp2.o : ../prep/src/decomp2.F90                     $(ODIR)globals.o 
 $(ODIR)write_files.o : ../prep/src/write_files.F90             $(ODIR)globals.o $(ODIR)read_input.o $(ODIR)messenger2.o $(ODIR)output.o
 	$(FC) $(FFLAGS) -c $< -o $@
 
-$(ODIR)dgprep.o : ../prep/src/dgprep.F90                        $(ODIR)globals.o $(ODIR)allocation.o $(ODIR)read_input.o $(ODIR)messenger2.o $(ODIR)vandermonde.o $(ODIR)shape_functions_mod.o $(ODIR)find_stations.o $(ODIR)read_stations.o
+$(ODIR)dgprep.o : ../prep/src/dgprep.F90                        $(ODIR)globals.o $(ODIR)allocation.o $(ODIR)read_input.o $(ODIR)messenger2.o $(ODIR)vandermonde.o $(ODIR)shape_functions_mod.o $(ODIR)find_stations.o $(ODIR)read_stations.o $(ODIR)grid_file_mod.o
 	$(FC) $(FFLAGS) -c $< -o $@
 
 # post file targets

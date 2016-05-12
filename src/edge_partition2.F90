@@ -219,7 +219,7 @@
       
       
       IF (myrank == 0) THEN
-      
+        PRINT "(A)", ""
         PRINT "(A)", "---------------------------------------------"
         PRINT "(A)", "           Loop Blocking Information         "
         PRINT "(A)", "---------------------------------------------"
@@ -258,7 +258,7 @@
         DO blk = 1,nrblk
           PRINT*, rnfblk(1,blk), rnfblk(2,blk)
         ENDDO      
-      
+        PRINT*, " "
       ENDIF
       
       END SUBROUTINE edge_partition2

@@ -11,6 +11,7 @@
       USE basis, ONLY:       
       USE allocation, ONLY: alloc_trans_arrays
       USE read_dginp, ONLY: p,ctp
+      USE messenger2, ONLY: myrank        
 
       IMPLICIT NONE
       INTEGER :: el,ed,led,dof,pt,i,nd
@@ -25,23 +26,32 @@
       CALL alloc_trans_arrays()                       
       
       IF (ctp > 1) THEN  
+        IF (myrank == 0) PRINT "(A)", "Creating curvilinear element information..."
         CALL curvilinear()    
       ENDIF           
       
+      IF (myrank == 0) PRINT "(A)", "Calculating area shape functions..."
       CALL shape_functions_area_qpts()                         
 
+      IF (myrank == 0) PRINT "(A)", "Computing area transformations..."
       CALL area_transformation() 
       
+      IF (myrank == 0) PRINT "(A)", "Computing element normals..."
       CALL normals()
       
+      IF (myrank == 0) PRINT "(A)", "Calculating edge shape functions..."
       CALL shape_functions_edge_qpts()      
 
+      IF (myrank == 0) PRINT "(A)", "Computing edge transformations..."
       CALL edge_transformation()
       
+      IF (myrank == 0) PRINT "(A)", "Interpolating bathymety onto area quadrature points..."
       CALL bathymetry_interp_area_qpts()
       
+      IF (myrank == 0) PRINT "(A)", "Interpolating bathymety onto edge quadrature points..."      
       CALL bathymetry_interp_edge_qpts()
       
+      IF (myrank == 0) PRINT "(A)", "Computing modal bathymetry..."      
       CALL bathymetry_nodal2modal()
       
       !!!!!!!!!!!!!!!!!!!!!!!!!!
