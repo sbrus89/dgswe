@@ -16,7 +16,8 @@
                          hbqpted,nqpte,mnqpte,elhb, &
                          lbndxy,bndxy, &
                          nsta,elsta,xysta, &
-                         nlsta,sta_l2g
+                         nlsta,sta_l2g, &
+                         elxy
                          
                          
       USE read_dginp, ONLY: hbp,ctp                           
@@ -45,8 +46,10 @@
       INTEGER, ALLOCATABLE, DIMENSION(:) :: sta_flag
       INTEGER, ALLOCATABLE, DIMENSION(:,:) :: bou_l2g
       
-      REAL(rp) :: elhb_old(mnnds,ne)
+      REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: elhb_old
       
+       
+      ALLOCATE(elhb_old(mnnds,ne))
       elhb_old = elhb
       
       ALLOCATE(nresel(nproc))
@@ -72,7 +75,7 @@
         el_l2g(nresel(pe),pe) = el ! local element nresel(pe) on subdomain pe has global element number el
       ENDDO
       
-      
+         
       
       ! Find the commincation edges and 
       ! maximunm number of send/recv edges for allocation
@@ -109,8 +112,10 @@
       ALLOCATE(hb_sr(mnqpte,mned_sr,nproc))
       ALLOCATE(detJe_sr(mnqpte,mned_sr,nproc))
       ALLOCATE(nqpte_sr(mned_sr,nproc))
+
       
       
+
       
       ! Loop through communication edges and keep track of what local edge number from what element gets 
       ! sent/recieved to/from which subdomains
@@ -171,6 +176,12 @@
         
       ENDDO
       
+      DEALLOCATE(nx_pt,ny_pt)
+      DEALLOCATE(hbqpted)
+      DEALLOCATE(detJe)
+      DEALLOCATE(elxy)
+
+      
       
       
       ! Determine local element connectivity table and
@@ -192,7 +203,7 @@
       ALLOCATE(lobph(mnobnds,nope,nobfr,nproc))
       
       mnfbnds = MAXVAL(fbseg(1,:))
-      mlbou = nproc*nbou
+      mlbou = nbou
       ALLOCATE(lfbseg(2,mlbou,nproc))
       ALLOCATE(lfbnds(mnfbnds,mlbou,nproc))
       ALLOCATE(lbndxy(2,ctp+1,mnfbnds,mlbou,nproc))      
