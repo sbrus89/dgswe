@@ -23,10 +23,10 @@
 
 
 
-      OPEN(unit=45, file='dhb.d')
-      OPEN(unit=46, file='hb.d')
-      WRITE(45,*) ne,16
-      WRITE(46,*) ne, 16
+!       OPEN(unit=45, file='dhb.d')
+!       OPEN(unit=46, file='hb.d')
+!       WRITE(45,*) ne,16
+!       WRITE(46,*) ne, 16
     
       
       
@@ -51,8 +51,8 @@
                                         dhbdx_init(el,pt),dhbdy_init(el,pt))
                      
 !              IF (et == 1) THEN        
-               WRITE(45,"(I7,4(e24.17,1x))") el,xpt,ypt,dhbdx_init(el,pt),dhbdy_init(el,pt)      
-               WRITE(46,"(I7,4(e24.17,1x))") el,xpt,ypt,hbqpta_init(el,pt)
+!                WRITE(45,"(I7,4(e24.17,1x))") el,xpt,ypt,dhbdx_init(el,pt),dhbdy_init(el,pt)      
+!                WRITE(46,"(I7,4(e24.17,1x))") el,xpt,ypt,hbqpta_init(el,pt)
 !              ENDIF
              
           ENDDO pts          
@@ -61,8 +61,8 @@
                   
       ENDDO
       
-      CLOSE(45)
-      CLOSE(46)      
+!       CLOSE(45)
+!       CLOSE(46)      
       
       RETURN
 
