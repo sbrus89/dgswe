@@ -97,6 +97,10 @@
 
       IF (init) THEN
       
+        IF (myrank == 0) THEN 
+          PRINT "(A)", "Initializing solution output files..."         
+        ENDIF
+        
         ! Set number of timesteps between output
         CALL time_snaps(sol_opt,sol_snap,tf,dt,tskp_sol,nout_sol) 
 
@@ -191,6 +195,10 @@
      
 
       IF (init) THEN
+      
+        IF (myrank == 0) THEN 
+          PRINT "(A)", "Initializing station output files..."      
+        ENDIF
       
         IF (sta_opt > 0) THEN
           CALL find_stations()

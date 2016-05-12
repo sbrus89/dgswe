@@ -103,6 +103,7 @@
       options(5) = 0 ! always set to zero
 
       IF (myrank == 0) THEN
+        PRINT "(A)", " "
         PRINT "(A)", "---------------------------------------------"
         PRINT "(A)", "      Metis Partitioning Information         "
         PRINT "(A)", "---------------------------------------------"  
