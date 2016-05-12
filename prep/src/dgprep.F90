@@ -5,11 +5,13 @@
       USE read_dginp
       USE messenger2, ONLY: message_init,nproc
       USE edge_qpts_mod, ONLY: edge_qpts
+      USE grid_file_mod, ONLY: courant
 
       IMPLICIT NONE
       
       INTEGER :: pe
       REAL :: elsum,elavg,elstd
+      REAL(rp) :: cfl,u       
 
       PRINT*, "dgprep"
       PRINT*, " "            
@@ -24,7 +26,11 @@
       
       CALL sizes()
       
-      CALL read_grid()                
+      CALL read_grid()   
+      
+      cfl = 1d0
+      u = 0d0
+      CALL courant(p,ne,u,cfl,el_type,nverts,nnds,elhb,el_size)
       
       CALL read_forcing()              
       
