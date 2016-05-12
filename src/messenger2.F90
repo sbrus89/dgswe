@@ -204,7 +204,9 @@
       REAL(rp) :: nout2
       INTEGER :: reorder,info
       
-      IF (myrank == 0) THEN PRINT "(A)", "Reading message passing files..."
+      IF (myrank == 0) THEN 
+        PRINT "(A)", "Reading message passing files..."
+      ENDIF
       
       INQUIRE(FILE=dirname(1:lname)//'/'//'fort.18', EXIST = file_exists)
       IF(file_exists == .FALSE.) THEN
@@ -336,8 +338,10 @@
       INTEGER :: mnedsr,nqpt
       INTEGER :: match
       
-      IF (myrank == 0) THEN PRINT "(A)", "Seting up message passing arrays..."      
-      
+      IF (myrank == 0) THEN 
+        PRINT "(A)", "Seting up message passing arrays..."      
+      ENDIF
+        
       mnedsr = MAXVAL(ned_sr)
       
       ALLOCATE(send_ptr(3*mnedsr*mnqpte,nproc_sr))
@@ -496,7 +500,9 @@
       
       INTEGER :: pe,tag
       
-      IF (myrank == 0) THEN PRINT "(A)", "Initializing message passing..."       
+      IF (myrank == 0) THEN 
+        PRINT "(A)", "Initializing message passing..."       
+      ENDIF
       
       ALLOCATE(solreq_recv(nproc_sr))
       ALLOCATE(solreq_send(nproc_sr))
