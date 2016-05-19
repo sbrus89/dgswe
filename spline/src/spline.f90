@@ -7,7 +7,7 @@
       USE allocation, ONLY: sizes
                          
       USE calc_spline, ONLY: calc_cubic_spline,eval_cubic_spline, &
-                             newton,spline_init
+                             newton,spline_init,evaluate
       USE check, ONLY: check_angle,check_deformation,l2_project,quad_interp
       USE find_element, ONLY: in_element,check_elem,find_element_init 
 
@@ -245,47 +245,9 @@
                    
               r = r0     
               PRINT*, "R0 = ",r0
-              CALL newton(r,dt(nd,bou),ti,xr,ax(nd,bou),bx(nd,bou),cx(nd,bou),dx(nd,bou), &
+              CALL evaluate(r,dt(nd,bou),ti,xr,ax(nd,bou),bx(nd,bou),cx(nd,bou),dx(nd,bou), &
                                              ay(nd,bou),by(nd,bou),cy(nd,bou),dy(nd,bou), &
                                              x(j+1),y(j+1),error_flag)
-              
-
-
-              ! Try new initial guess if minimum was not found in (-1,1) interval              
-              IF (abs(r)-1d0 > it_tol) THEN
-                PRINT "(A,F24.17)", "WARNING: R VALUE NOT FOUND IN INTERVAL, R = ", r
-                PRINT "(A)", "  trying another r0 value..."     
-                r = r0*-1d0
-                CALL newton(r,dt(nd,bou),ti,xr,ax(nd,bou),bx(nd,bou),cx(nd,bou),dx(nd,bou), &
-                                               ay(nd,bou),by(nd,bou),cy(nd,bou),dy(nd,bou), &
-                                               x(j+1),y(j+1),error_flag)                                               
-              ENDIF
-              
-              IF (error_flag) THEN
-                ntry = 20
-                r0 = -1d0
-                dr = 2d0/(real(ntry,rp)-1d0)
-      try_loop: DO try = 1,ntry
-                  PRINT "(A)", "  trying another r0 value..."        
-                  r = r0
-                  CALL newton(r,dt(nd,bou),ti,xr,ax(nd,bou),bx(nd,bou),cx(nd,bou),dx(nd,bou), &
-                                                 ay(nd,bou),by(nd,bou),cy(nd,bou),dy(nd,bou), &
-                                                 x(j+1),y(j+1),error_flag)                   
-                  r0 = r0+dr
-                  IF (abs(r)-1d0 < it_tol .and. error_flag == 0) THEN
-                    EXIT try_loop
-                  ELSE 
-                    PRINT "(A,F24.17)", "WARNING: R VALUE NOT FOUND IN INTERVAL, R = ", r                
-                  ENDIF
-                ENDDO try_loop
-              
-              ENDIF
-
-              
-!               ! Evaluate spline at specified parameter value (no distance minimiztion)              
-!               tpt = .5d0*dt(nd)*(r + 1d0) + ti               
-!               CALL eval_cubic_spline(tpt,ti,ax(nd),bx(nd),cx(nd),dx(nd),x)
-!               CALL eval_cubic_spline(tpt,ti,ay(nd),by(nd),cy(nd),dy(nd),y)              
               
               WRITE(60,*) x(j+1),y(j+1)
               

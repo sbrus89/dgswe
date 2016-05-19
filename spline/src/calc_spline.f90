@@ -289,6 +289,76 @@
       
       RETURN
       END SUBROUTINE eval_cubic_spline
+      
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+      SUBROUTINE evaluate(r,dt,ti,xr,ax,bx,cx,dx,ay,by,cy,dy,x,y,error_flag)
+                 
+      IMPLICIT NONE      
+      
+      REAL(rp), INTENT(INOUT) :: r
+      REAL(rp), INTENT(IN) :: dt
+      REAL(rp), INTENT(IN) :: ti
+      REAL(rp), DIMENSION(:), INTENT(IN) :: xr
+      REAL(rp), INTENT(IN) :: ax,bx,cx,dx,ay,by,cy,dy
+      REAL(rp), INTENT(OUT) :: x,y
+      INTEGER, INTENT(OUT) :: error_flag
+      
+      REAL(rp) :: r0
+      REAL(rp) :: dr
+      REAL(rp), PARAMETER :: it_tol = 1d-5      
+      INTEGER :: try
+      INTEGER :: ntry
+      
+      r0 = r
+      PRINT*, "R0 = ",r0
+      CALL newton(r,dt,ti,xr,ax,bx,cx,dx, &
+                             ay,by,cy,dy, &
+                             x,y,error_flag)
+              
+
+
+      ! Try new initial guess if minimum was not found in (-1,1) interval              
+      IF (abs(r)-1d0 > it_tol) THEN
+        PRINT "(A,F24.17)", "WARNING: R VALUE NOT FOUND IN INTERVAL, R = ", r
+        PRINT "(A)", "  trying another r0 value..."     
+        r = r0*-1d0
+        CALL newton(r,dt,ti,xr,ax,bx,cx,dx, &
+                               ay,by,cy,dy, &
+                               x,y,error_flag)                                               
+      ENDIF
+              
+      IF (error_flag) THEN
+        ntry = 20
+        r0 = -1d0
+        dr = 2d0/(real(ntry,rp)-1d0)
+try_loop: DO try = 1,ntry
+            PRINT "(A)", "  trying another r0 value..."        
+            r = r0
+            CALL newton(r,dt,ti,xr,ax,bx,cx,dx, &
+                                   ay,by,cy,dy, &
+                                   x,y,error_flag)                   
+            r0 = r0+dr
+            IF (abs(r)-1d0 < it_tol .and. error_flag == 0) THEN
+              EXIT try_loop
+            ELSE 
+              PRINT "(A,F24.17)", "WARNING: R VALUE NOT FOUND IN INTERVAL, R = ", r                
+            ENDIF
+          ENDDO try_loop
+              
+        ENDIF
+
+              
+!         ! Evaluate spline at specified parameter value (no distance minimiztion)              
+!         tpt = .5d0*dt*(r + 1d0) + ti               
+!         CALL eval_cubic_spline(tpt,ti,ax,bx,cx,dx,x)
+!         CALL eval_cubic_spline(tpt,ti,ay,by,cy,dy,y)              
+                                                                    
+      
+      
+      RETURN
+      END SUBROUTINE 
 
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
