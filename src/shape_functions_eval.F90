@@ -1,6 +1,6 @@
       SUBROUTINE shape_functions_area_qpts()
 
-      USE globals, ONLY: rp,nel_type,order,nverts,nnds,mnnds, &
+      USE globals, ONLY: rp,nel_type,order,nverts, &
                          mnqpta,nqpta,mnqpte,nqpte,np, &
                          qpta,qpte,psia,dpsidr,dpsids
       USE shape_functions_mod, ONLY: shape_functions_area_eval
@@ -26,14 +26,12 @@
           et = typ - 4
         ENDIF
         
-        eo = order(typ)
+        eo = order(typ)        
+        p = np(eo)           
         
         nv = nverts(et)
         nqa = nqpta(et)
-        nqe = nv*nqpte(et)
-        
-        nnd = nnds(eo)
-        p = np(eo)      
+        nqe = nv*nqpte(et)   
       
         tpts = nqa+nqe     
       
