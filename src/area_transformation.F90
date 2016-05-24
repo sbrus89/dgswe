@@ -40,6 +40,10 @@
 
           CALL element_transformation(nnd,elxy(:,el,1),elxy(:,el,2),psia(:,pt,et),xpt,ypt, &
                                       dpsidr(:,pt,et),dpsids(:,pt,et),drdx,drdy,dsdx,dsdy,detJa(el,pt))
+                                      
+          IF (detJa(el,pt) < 0d0) THEN
+            PRINT*, "Negative Jacobian determinant detected, el = ",el
+          ENDIF
             
           CALL cpp_factor(coord_sys,r_earth,slam0,sphi0,ypt,Sp)
                      
