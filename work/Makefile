@@ -155,7 +155,7 @@ METIS_LIB = -L../metis-4.0.3 -lmetis
 
 dgswe_objects = globals.o lapack_interfaces.o messenger2.o allocation.o grid_file_mod.o \
                 read_input.o read_grid.o read_forcing.o read_stations.o \
-                kdtree2.o find_element_mod.o find_stations.o\
+                kdtree2.o find_element_mod.o find_stations.o sort_mod.o \
                 bathymetry_interp_mod.o bathymetry_interp.o bathymetry_nodal2modal.o \
                 edge_connectivity_mod.o connect.o initial.o interp_forcing.o \
                 edge_partition2.o metis2.o \
@@ -172,7 +172,7 @@ dgswe_obj := $(patsubst %.o, $(ODIR)%.o,$(dgswe_objects))
 
 dgprep_objects = globals.o messenger2.o read_input.o allocation.o grid_file_mod.o find_stations.o\
                  read_grid.o read_forcing.o read_stations.o curvilinear_nodes_mod.o curvilinear.o\
-                 kdtree2.o find_element_mod.o edge_connectivity_mod.o connect.o edge_qpts_mod.o metis2.o decomp2.o \
+                 kdtree2.o find_element_mod.o sort_mod.o edge_connectivity_mod.o connect.o edge_qpts_mod.o metis2.o decomp2.o \
                  basis.o basis_eval.o vandermonde.o shape_functions_mod.o shape_functions_eval.o transformation.o \
                  normals.o bathymetry_interp_mod.o bathymetry_interp.o edge_transformation.o spherical_mod.o\
                  modal2nodal.o write_files.o version.o quit.o output.o dgprep.o
@@ -383,9 +383,13 @@ $(ODIR)spherical_mod.o : spherical_mod.F90                     $(ODIR)globals.o
 	$(FC) $(FFLAGS) -c $< -o $@
 	mv spherical_mod.mod $(ODIR)
 	
-$(ODIR)find_element_mod.o: find_element_mod.F90                $(ODIR)kdtree2.o  $(ODIR)globals.o $(ODIR)shape_functions_mod.o $(ODIR)transformation.o $(ODIR)vandermonde.o
+$(ODIR)find_element_mod.o: find_element_mod.F90                $(ODIR)kdtree2.o  $(ODIR)globals.o $(ODIR)shape_functions_mod.o $(ODIR)transformation.o $(ODIR)vandermonde.o $(ODIR)sort_mod.o
 	$(FC) $(FFLAGS) -c $< -o $@
-	mv find_element.mod $(ODIR) 		
+	mv find_element.mod $(ODIR) 
+	
+$(ODIR)sort_mod.o : sort_mod.F90                               $(ODIR)globals.o
+	$(FC) $(FFLAGS) -c $< -o $@
+	mv sort_mod.mod $(ODIR)		
 	
 $(ODIR)output.o : output.F90                                   $(ODIR)globals.o $(ODIR)messenger2.o $(ODIR)read_input.o
 	$(FC) $(FFLAGS) $(NETCDF_INC) -c $< -o $@

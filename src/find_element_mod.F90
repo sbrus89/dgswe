@@ -3,6 +3,7 @@
       USE globals, ONLY: rp
       USE kdtree2_module
       USE lapack_interfaces
+      USE sort_mod
       
       IMPLICIT NONE
       
@@ -18,6 +19,7 @@
       INTEGER, DIMENSION(:), ALLOCATABLE :: np
       INTEGER, DIMENSION(:), ALLOCATABLE :: nnds      
       REAL(rp), DIMENSION(:), ALLOCATABLE :: elnx,elny
+      INTEGER :: mnepn
       INTEGER :: mnnds
       
 
@@ -42,7 +44,7 @@
       INTEGER, DIMENSION(:,:), INTENT(IN) :: epn
             
       INTEGER :: nd,el,et,n,p
-      INTEGER :: mnepn,mnp
+      INTEGER :: mnp
       INTEGER :: info
       
       ! initialize module varibles to increase flexibility and decrease number
@@ -87,7 +89,7 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!      
       
 
-      SUBROUTINE in_element(xy,el_type,elxy,el_found,rs,closest_eds,closest_vertex)
+      SUBROUTINE in_element(xy,el_type,elxy,el_found,rs,closest_eds,closest_vertex,closest_els)
 
       IMPLICIT NONE
               
@@ -98,34 +100,57 @@
       REAL(rp), INTENT(OUT) :: rs(2)
       INTEGER, INTENT(OUT), OPTIONAL :: closest_eds(4)      
       INTEGER, INTENT(OUT), OPTIONAL :: closest_vertex 
+      INTEGER, INTENT(OUT), DIMENSION(:), ALLOCATABLE, OPTIONAL :: closest_els
      
             
-      INTEGER :: srch,nd
+      INTEGER :: srch,nd,i,j
       INTEGER :: el,eln,clnd,et,n
-      INTEGER :: found     
+      INTEGER :: found,etemp     
       INTEGER :: min_el
       INTEGER :: vert,leds(4)
+      INTEGER :: ntested,tested
+      INTEGER, ALLOCATABLE, DIMENSION(:) :: el_tested
       REAL(rp) :: diff,min_diff
-      REAL(rp) :: tol
+      REAL(rp) :: tol,dtemp
+      REAL(rp), ALLOCATABLE, DIMENSION(:) :: el_diff
             
+      ALLOCATE(el_tested(mnepn*srchdp))
+      ALLOCATE(el_diff(mnepn*srchdp))
       
       tol = 1d-5 
-        CALL kdtree2_n_nearest(tp=tree_xy,qv=xy,nn=srchdp,results=closest) ! find what element xy is in               
+      CALL kdtree2_n_nearest(tp=tree_xy,qv=xy,nn=srchdp,results=closest) ! find what element xy is in               
         
-        ! Test elements to see which element point is located in    
-        found = 0      
-        min_diff = 999d0
+      ! Test elements to see which element point is located in    
+      ntested = 0
+      found = 0      
+      min_diff = 999d0
 search: DO srch = 1,srchdp
 
-          clnd = closest(srch)%idx
+          clnd = closest(srch)%idx          
           
-!           PRINT("(A,I5)"), "   closest node: ", clnd
+!           PRINT("(A,I9)"), "   closest node: ", clnd
 
-   elem:  DO el = 1,nnd2el(clnd) 
+    elem: DO el = 1,nnd2el(clnd) 
  
             eln = nd2el(el,clnd)
             
-!             PRINT("(A,I5)"), "     testing element: ", eln                               
+            tested = 0
+     check: DO i = 1,ntested
+              IF (el_tested(i) == eln) THEN
+                tested = 1      
+                EXIT check
+              ENDIF
+            ENDDO check
+            
+            IF (tested == 1) THEN
+              CYCLE elem
+            ELSE
+              ntested = ntested + 1
+              el_tested(ntested) = eln
+            ENDIF
+            
+            
+!             PRINT("(A,I9)"), "     testing element: ", eln                               
 
             ! Compute sum of sub-triangle areas
             CALL sub_element(xy,eln,el_type,elxy,diff,leds,vert,rs)            
@@ -134,10 +159,12 @@ search: DO srch = 1,srchdp
               min_diff = diff          ! to return if tolerance is not met
               min_el = eln
             ENDIF
+            
+            el_diff(ntested) = diff
           
             ! The station is in the element if the reference element area and sum of sub triangle are the same
             IF (diff < tol) THEN
-!               PRINT("(A,I5)"), "   element found", eln                            
+!               PRINT("(A,I9)"), "   element found", eln                            
                       
               el_found = eln        
               found = 1                        
@@ -169,6 +196,16 @@ search: DO srch = 1,srchdp
         IF (PRESENT(closest_eds)) THEN
           closest_eds = leds
         ENDIF 
+        
+        IF (PRESENT(closest_els)) THEN        
+          ALLOCATE(closest_els(ntested))                    
+          CALL insertion_sort(ntested,el_diff,el_tested)          
+          
+          DO i = 1,ntested
+            closest_els(i) = el_tested(i)
+!             PRINT*, el_diff(i),el_tested(i)
+          ENDDO                    
+        ENDIF
 
       RETURN
       END SUBROUTINE in_element
@@ -265,19 +302,22 @@ search: DO srch = 1,srchdp
           
       diff = abs(area-area_sum) 
       
-      DO i = 1,nv           ! keep track of minimum sub-triangle area to determine
-        DO j = i+1,nv       ! which edge the point lies on, or is closest to
-          IF (stri_area(j) < stri_area(i)) THEN
-            atemp = stri_area(i)
-            stri_area(i) = stri_area(j)
-            stri_area(j) = atemp
-            
-            etemp = closest_ed(i)
-            closest_ed(i) = closest_ed(j)
-            closest_ed(j) = etemp            
-          ENDIF
-        ENDDO
-      ENDDO
+!       DO i = 1,nv           ! keep track of minimum sub-triangle area to determine
+!         DO j = i+1,nv       ! which edge the point lies on, or is closest to
+!           IF (stri_area(j) < stri_area(i)) THEN
+!             atemp = stri_area(i)
+!             stri_area(i) = stri_area(j)
+!             stri_area(j) = atemp
+!             
+!             etemp = closest_ed(i)
+!             closest_ed(i) = closest_ed(j)
+!             closest_ed(j) = etemp            
+!           ENDIF
+!         ENDDO
+!       ENDDO
+      
+      CALL insertion_sort(nv,stri_area,closest_ed) ! keep track of minimum sub-triangle area to determine
+                                                   ! which edge the point lies on, or is closest to
       
       vert = 0             ! if one sub-triangle area dominates, then the point is close 
       DO i = 1,nv          ! to that  vertex
