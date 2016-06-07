@@ -12,12 +12,10 @@
       CHARACTER(100) :: out_direc           
       
       INTEGER, PARAMETER :: nel_type = 4 !(type #s: 1 -> triangles, 2 -> quads, 3 -> curved triangles, 4-> curved quads)   
-      INTEGER :: ctp
       INTEGER :: nverts(nel_type)
-      INTEGER :: np(nel_type)
-      INTEGER :: nnds(nel_type)
-      INTEGER :: mnnds         
-      INTEGER :: mninds  
+      
+   
+      
       
       REAL(rp) :: Erad
       REAL(rp) :: lambda0
@@ -36,12 +34,25 @@
         
         INTEGER :: ne ! number of elements
         INTEGER :: nn ! number of nodes        
-      
-        INTEGER, ALLOCATABLE, DIMENSION(:) :: el_type      
+        
+        INTEGER :: ctp
+        INTEGER :: np(nel_type)
+        INTEGER :: nnds(nel_type)
+        INTEGER :: mnnds           
+        REAL(rp), ALLOCATABLE, DIMENSION(:) :: rpts  
+        
+        INTEGER :: nqpta(nel_type),mnqpta
+        INTEGER :: nqpte(nel_type),mnqpte
+        REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: wpta,wpte
+        REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: qpta,qpte
+        REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: psi,dpdr,dpds           
+        REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: psiv
+        
+        INTEGER, ALLOCATABLE, DIMENSION(:) :: el_type,el_type_spline      
       
         INTEGER, ALLOCATABLE, DIMENSION(:,:) :: ect ! element connectivity table     
         REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: xy ! x,y coordinates of nodes
-        REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: elxy        
+        REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: elxy,elxy_spline        
         REAL(rp), ALLOCATABLE, DIMENSION(:) :: depth ! depth at each node      
         REAL(rp), ALLOCATABLE, DIMENSION(:) :: h
         INTEGER, ALLOCATABLE, DIMENSION(:,:) :: bnd_flag 
@@ -94,7 +105,7 @@
       REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: dt 
 
       
-      REAL(rp), ALLOCATABLE, DIMENSION(:) :: rpts
+
  
    
       TYPE(grid) :: base

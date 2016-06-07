@@ -4,7 +4,7 @@ VPATH := ../src/
 ODIR  = odir/
 
 FC = ifort
-FFLAGS = -O3  #-C -g -traceback
+FFLAGS = -O3  -C -g -traceback
 
 FULLNAME := $(shell hostname)
 NAME := $(strip $(subst ., , $(FULLNAME)))
@@ -44,10 +44,10 @@ endif
 #                               Objects                                #
 ########################################################################
 
-spline_objects = globals.o kdtree2.o lapack_interfaces.o basis.o allocation.o edge_connectivity_mod.o\
-                 find_element_mod.o calc_spline.o check.o find_edge.o grid_file_mod.o\
+spline_objects = globals.o kdtree2.o sort_mod.o lapack_interfaces.o basis.o allocation.o edge_connectivity_mod.o \
+                 find_element_mod.o calc_spline.o check.o find_edge.o grid_file_mod.o area_qpts_mod.o edge_qpts_mod.o\
                  read_grid.o read_input.o connect.o write_output.o version.o spline.o \
-                 quit.o spherical_mod.o shape_functions_mod.o transformation.o vandermonde.o
+                 quit.o spherical_mod.o shape_functions_eval.o shape_functions_mod.o curvilinear_nodes_mod.o transformation.o vandermonde.o
                  
 spline_obj := $(patsubst %.o, $(ODIR)%.o,$(spline_objects)) 
 
@@ -127,7 +127,7 @@ $(ODIR)transformation.o : ../../src/transformation.F90        $(ODIR)globals.o
 	$(FC) $(FFLAGS) -c $< -o $@
 	mv transformation.mod $(ODIR)		
 
-$(ODIR)allocation.o : allocation.f90                          $(ODIR)globals.o
+$(ODIR)allocation.o : allocation.f90                          $(ODIR)globals.o $(ODIR)basis.o
 	$(FC) $(FFLAGS) -c $< -o $@
 	mv allocation.mod $(ODIR)
 	
@@ -135,17 +135,21 @@ $(ODIR)basis.o : ../../src/basis.F90                          $(ODIR)globals.o  
 	$(FC) $(FFLAGS) -c $< -o $@
 	mv basis.mod $(ODIR)
 	
-$(ODIR)calc_spline.o : calc_spline.f90                        $(ODIR)globals.o  $(ODIR)kdtree2.o $(ODIR)lapack_interfaces.o 
+$(ODIR)calc_spline.o : calc_spline.f90                        $(ODIR)globals.o  $(ODIR)kdtree2.o $(ODIR)lapack_interfaces.o $(ODIR)curvilinear_nodes_mod.o $(ODIR)calc_spline.o
 	$(FC) $(FFLAGS) -c $< -o $@
 	mv calc_spline.mod $(ODIR)
 	
-$(ODIR)check.o : check.f90                                    $(ODIR)globals.o $(ODIR)calc_spline.o  $(ODIR)find_element_mod.o
+$(ODIR)check.o : check.f90                                    $(ODIR)globals.o  $(ODIR)find_element_mod.o $(ODIR)calc_spline.o $(ODIR)transformation.o
 	$(FC) $(FFLAGS) -c $< -o $@
 	mv check.mod $(ODIR)
 	
-$(ODIR)find_element_mod.o : ../../src/find_element_mod.F90    $(ODIR)globals.o  $(ODIR)kdtree2.o  $(ODIR)shape_functions_mod.o $(ODIR)transformation.o $(ODIR)vandermonde.o
+$(ODIR)find_element_mod.o : ../../src/find_element_mod.F90    $(ODIR)globals.o  $(ODIR)kdtree2.o  $(ODIR)shape_functions_mod.o $(ODIR)transformation.o $(ODIR)vandermonde.o $(ODIR)sort_mod.o
 	$(FC) $(FFLAGS) -c $< -o $@
 	mv find_element.mod $(ODIR)
+	
+$(ODIR)sort_mod.o : ../../src/sort_mod.F90                    $(ODIR)globals.o
+	$(FC) $(FFLAGS) -c $< -o $@
+	mv sort_mod.mod $(ODIR)	
 	
 $(ODIR)spherical_mod.o : ../../src/spherical_mod.F90          $(ODIR)globals.o 
 	$(FC) $(FFLAGS) -c $< -o $@
@@ -158,8 +162,20 @@ $(ODIR)quit.o : ../../src/quit.F90                            $(ODIR)globals.o
 $(ODIR)edge_connectivity_mod.o : ../../src/edge_connectivity_mod.F90 $(ODIR)globals.o $(ODIR)quit.o
 	$(FC) $(FFLAGS) -c $< -o $@
 	mv edge_connectivity_mod.mod $(ODIR)	
+	
+$(ODIR)area_qpts_mod.o : ../../src/area_qpts_mod.F90          $(ODIR)globals.o $(ODIR)edge_qpts_mod.o
+	$(FC) $(FFLAGS) -c $< -o $@
+	mv area_qpts_mod.mod $(ODIR)
 
-$(ODIR)spline.o : spline.f90                                  $(ODIR)globals.o  $(ODIR)allocation.o  $(ODIR)calc_spline.o  $(ODIR)check.o $(ODIR)find_element_mod.o
+$(ODIR)edge_qpts_mod.o : ../../src/edge_qpts_mod.F90          $(ODIR)globals.o 
+	$(FC) $(FFLAGS) -c $< -o $@
+	mv edge_qpts_mod.mod $(ODIR)	
+	
+$(ODIR)curvilinear_nodes_mod.o : ../../src/curvilinear_nodes_mod.F90  $(ODIR)globals.o $(ODIR)shape_functions_mod.o $(ODIR)transformation.o $(ODIR)basis.o $(ODIR)lapack_interfaces.o
+	$(FC) $(FFLAGS) -c $< -o $@
+	mv curvilinear_nodes_mod.mod $(ODIR)
+
+$(ODIR)spline.o : spline.f90                                  $(ODIR)globals.o  $(ODIR)allocation.o  $(ODIR)calc_spline.o  $(ODIR)check.o $(ODIR)find_element_mod.o $(ODIR)curvilinear_nodes_mod.o
 	$(FC) $(FFLAGS) -c $< -o $@
 
 $(ODIR)read_grid.o : read_grid.f90                            $(ODIR)globals.o  $(ODIR)grid_file_mod.o $(ODIR)spherical_mod.o 
@@ -173,6 +189,9 @@ $(ODIR)connect.o : connect.f90                                $(ODIR)globals.o $
 	
 $(ODIR)find_edge.o : find_edge.f90                            $(ODIR)globals.o
 	$(FC) $(FFLAGS) -c $< -o $@	
+	
+$(ODIR)shape_functions_eval.o : shape_functions_eval.f90      $(ODIR)globals.o  $(ODIR)shape_functions_mod.o  $(ODIR)edge_qpts_mod.o $(ODIR)area_qpts_mod.o
+	$(FC) $(FFLAGS) -c $< -o $@		
 
 $(ODIR)write_output.o : write_output.f90                      $(ODIR)globals.o
 	$(FC) $(FFLAGS) -c $< -o $@

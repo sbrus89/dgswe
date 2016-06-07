@@ -2,7 +2,7 @@
       
       SUBROUTINE write_grid(mesh,base_name)
 
-      USE globals, ONLY: grid,ctp,nverts
+      USE globals, ONLY: grid,nverts
 
       IMPLICIT NONE
           

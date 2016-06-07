@@ -4,7 +4,7 @@ clc
 
 file = fopen('../work/spline.out');
 
-figure(2)
+figure(1)
 
 %     th = fscanf(fid_H,' %g ', 1); % read in time
 %     Z = fscanf(fid_H,' %g ', [ne mndof])'; % read in H solution at time t
@@ -103,7 +103,7 @@ for j = 1:n_seg
     xy = textscan(file, '%f%f',n{1});
     
 
-     plot(xy{:,1},xy{:,2},'x','MarkerSize',20,'Color','b')
+     plot(xy{:,1},xy{:,2},'x','MarkerSize',20,'Color','r')
 
 end
 fclose(file);

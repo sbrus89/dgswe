@@ -1,15 +1,17 @@
       PROGRAM spline
 
-      USE globals, ONLY: rp,base,eval,ctp,nverts,np,nnds,nel_type, &
+      USE globals, ONLY: rp,base,eval,nverts,nel_type, &
                          ax,bx,cx,dx,ay,by,cy,dy,dt, &
-                         rpts,theta_tol,sig, &
+                         theta_tol,sig, &
                          nfbnds,fbnds_xy,nfbnd2el,fbnd2el
       USE allocation, ONLY: sizes
                          
       USE calc_spline, ONLY: calc_cubic_spline,eval_cubic_spline, &
-                             newton,spline_init,evaluate
-      USE check, ONLY: check_angle,check_deformation,l2_project,quad_interp
-      USE find_element, ONLY: in_element,check_elem,find_element_init 
+                             newton,spline_init,evaluate,update_elxy_spline
+      USE check, ONLY: check_angle,check_deformation,check_transformations, &
+                       l2_project,quad_interp
+      USE find_element, ONLY: in_element,check_elem,find_element_init,sub_element 
+      USE curvilinear_nodes_mod, ONLY: shape_functions_linear_at_ctp
 
       IMPLICIT NONE
       INTEGER :: i,j,k,n,bou,num,nmax,qpts,ebou
@@ -19,11 +21,13 @@
       INTEGER :: n1,n2
       INTEGER :: base_bed,base_bou,base_led,base_vert
       INTEGER :: neval,nbase
-      INTEGER :: error_flag,ntry,try
-      REAL(rp) :: htest,ti,tpt,r,ra,xs,ys,r0,dr
+      INTEGER :: error_flag,ntry,try,success
+      INTEGER, ALLOCATABLE, DIMENSION(:) :: base_els
+      REAL(rp) :: htest,ti,tpt,r,rpt,ra,xs,ys,r0,dr
       REAL(rp) :: d1,d2,d3,t1,t2,xr(2),xa(2),rs(2)
       REAL(rp) :: n1x,n1y,n2x,n2y,n3x,n3y,n4x,n4y,edlen
       REAL(rp) :: theta1,theta2
+      REAL(rp) :: diff
       REAL(rp), ALLOCATABLE, DIMENSION(:) :: x,y
       INTEGER :: eind
       INTEGER :: eds(4)
@@ -40,7 +44,8 @@
       
       CALL read_input()
       
-      CALL sizes()
+      CALL sizes(base)
+      CALL sizes(eval)
 
       CALL read_grid(base)
       CALL read_grid(eval)
@@ -50,13 +55,14 @@
       
       sig = 0d0
       
+      CALL shape_functions_at_qpts(base)
+      CALL shape_functions_linear_at_ctp(nel_type,base%np,base%psiv)      
       
       CALL spline_init(num,nmax)
       
-      CALL find_element_init(nel_type,nverts,np,nnds,nfbnds,fbnds_xy,nfbnd2el,fbnd2el)
+      CALL find_element_init(nel_type,nverts,eval%np,eval%nnds,nfbnds,fbnds_xy,nfbnd2el,fbnd2el)
       
-      
-      ALLOCATE(x(ctp+1),y(ctp+1))
+
 
     
       OPEN(unit=30,file='spline.out')   
@@ -126,8 +132,15 @@
                                               
             CALL check_deformation(bou,nd,dt(nd,bou),ti,theta1,theta2,ax(nd,bou),bx(nd,bou),cx(nd,bou),dx(nd,bou), &
                                                                       ay(nd,bou),by(nd,bou),cy(nd,bou),dy(nd,bou)) 
+                                                                      
+            CALL update_elxy_spline(base,nverts,bou,nd,dt(nd,bou),ti,ax(nd,bou),bx(nd,bou),cx(nd,bou),dx(nd,bou), &
+                                                                       ay(nd,bou),by(nd,bou),cy(nd,bou),dy(nd,bou))                                                                                  
                                                         
-            PRINT*, "------------------"                                           
+            PRINT*, "------------------"       
+            
+!             IF(base%fbnds(nd,bou) == 1314) THEN
+!               STOP
+!             ENDIF
                         
           ENDDO          
 
@@ -140,23 +153,32 @@
         ENDIF
       ENDDO calc
         
+        
+      CALL check_transformations(base,nverts)  
+        
+        
       DO i = 1,10  
         PRINT*,""  
       ENDDO
       
+      PAUSE
       
+      
+      
+      
+      ALLOCATE(x(eval%ctp+1),y(eval%ctp+1))      
       
       
       eind = INDEX(ADJUSTL(TRIM(eval%grid_file)),".",.false.)   
       name = ADJUSTL(TRIM(eval%grid_file(1:eind-1)))
-      WRITE(ctp_char,"(I1)") ctp      
+      WRITE(ctp_char,"(I1)") eval%ctp      
       
       OPEN(unit=60,file='eval_nodes.out')       
       OPEN(unit=40,file=ADJUSTL(TRIM(name)) // "_ctp" // ctp_char // ".cb")    
       
       WRITE(40,"(A)") "base grid file: " // base%grid_file 
       WRITE(40,"(I8,19x,A)") eval%nbou, "! total number of normal flow boundaries"
-      WRITE(40,"(2(I8),19x,A)") eval%nvel,ctp, "! max number of normal flow nodes, ctp order"  
+      WRITE(40,"(2(I8),19x,A)") eval%nvel,eval%ctp, "! max number of normal flow nodes, ctp order"  
       
       WRITE(60,*) eval%nbou      
           
@@ -171,7 +193,7 @@
              btype == 1 .OR. btype == 11 .OR. btype == 21 ) THEN    ! island boundaries          
           
           WRITE(40,"(2(I8),19x,A)") neval,btype, "! number of nodes in boundary, boundary type"            
-          WRITE(60,*) ctp*(neval-1) + 1
+          WRITE(60,*) eval%ctp*(neval-1) + 1
 
           DO i = 1,neval-1  
              
@@ -185,85 +207,106 @@
             n2y = eval%xy(2,n2)             
             
             IF (i == neval-1) THEN
-              n = ctp
+              n = eval%ctp
             ELSE 
-              n = ctp-1
+              n = eval%ctp-1
             ENDIF
                    
 !             PRINT*, "EVALUATING SPLINE COORDINATES"        
             DO j = 0,n                                     
             
-              r = rpts(j+1)   
+              rpt = eval%rpts(j+1)   
               
               IF (j == 0) THEN
-                ra = r + 1d-2          ! add an offset avoid ambiguity with verticies
-              ELSE IF (j == ctp) THEN
-                ra = r - 1d-2
+                ra = rpt + 1d-2          ! add an offset avoid ambiguity with verticies
+              ELSE IF (j == eval%ctp) THEN
+                ra = rpt - 1d-2
               ELSE 
-                ra = r
+                ra = rpt
               ENDIF
                                                             
               xa(1) = .5d0*(1d0-ra)*n1x + .5d0*(1d0+ra)*n2x 
               xa(2) = .5d0*(1d0-ra)*n1y + .5d0*(1d0+ra)*n2y                                  
               
               PRINT*, "FINDING ELEMENT FOR POINT: ", i, " NODE: ",n1
-              CALL in_element(xa,base%el_type,base%elxy,el_in,rs,eds,base_vert)   
-              CALL find_edge(n1,n2,xa,el_in,eds,base_bou,base_bed,base_led)  ! find base edge (to get correct spline coefficients) 
+              success = 0
+              CALL in_element(xa,base%el_type,base%elxy,el_in,rs,eds,base_vert,base_els) 
               
-              nd = base_bed 
-              bou = base_bou
+    try_elems:DO el = 1,size(base_els) ! loop over elements in case a point isn't found in the -1,1 interval for the closest element by area difference
+    
+                el_in = base_els(el)
+                PRINT*, "USING ELEMENT ", el_in
+                CALL sub_element(xa,el_in,base%el_type,base%elxy,diff,eds,base_vert,rs) ! this is a little sloppy since it's a reapeat call for the first element
+                                                                                        ! but it's needed to update information for elements in the loop                                                                                        
+                CALL find_edge(n1,n2,xa,el_in,eds,base_bou,base_bed,base_led)  ! find base edge (to get correct spline coefficients) 
               
-              xr(1) = .5d0*(1d0-r)*n1x + .5d0*(1d0+r)*n2x
-              xr(2) = .5d0*(1d0-r)*n1y + .5d0*(1d0+r)*n2y                
+                nd = base_bed 
+                bou = base_bou
               
-! !               check to make sure vertex offset used to find element isn't 
-! !               too large that the found element isn't connected to the vertex point
-!               IF (j == 0 .OR. j == ctp) THEN           
-!                 CALL check_elem(xr,el_in)         
-!               ENDIF               
+                xr(1) = .5d0*(1d0-rpt)*n1x + .5d0*(1d0+rpt)*n2x
+                xr(2) = .5d0*(1d0-rpt)*n1y + .5d0*(1d0+rpt)*n2y                
+              
+! !                 check to make sure vertex offset used to find element isn't 
+! !                 too large that the found element isn't connected to the vertex point
+!                 IF (j == 0 .OR. j == eval%ctp) THEN           
+!                   CALL check_elem(xr,el_in)         
+!                 ENDIF               
             
-              ti = 0d0        ! find starting parameter value for found edge
-              DO k = 1,nd-1
-                ti = ti + dt(k,bou)
-              ENDDO              
+                ti = 0d0        ! find starting parameter value for found edge
+                DO k = 1,nd-1
+                  ti = ti + dt(k,bou)
+                ENDDO              
                       
                    
-              IF (base_vert /= 0) THEN  ! if the eval point is near a base vertex, use start of segement              
-                r0 = -1d0               ! as the initial guess
-              ELSE
-                SELECT CASE (base_led)  ! use the initial guess that corresponds to the closest edge
-                  CASE(1)         
-                    r0 = rs(1)
-                  CASE(2) 
-                    r0 = rs(2)
-                  CASE(3) 
-                    r0 = rs(1)
-                END SELECT
-              ENDIF
+                IF (base_vert /= 0) THEN  ! if the eval point is near a base vertex, use start of segement              
+                  r0 = -1d0               ! as the initial guess
+                ELSE
+                  SELECT CASE (base_led)  ! use the initial guess that corresponds to the closest edge
+                    CASE(1)         
+                      r0 = rs(1)
+                    CASE(2) 
+                      r0 = rs(2)
+                    CASE(3) 
+                      r0 = rs(1)
+                  END SELECT
+                ENDIF
               
               
                    
-              r = r0     
-              PRINT*, "R0 = ",r0
-              CALL evaluate(r,dt(nd,bou),ti,xr,ax(nd,bou),bx(nd,bou),cx(nd,bou),dx(nd,bou), &
-                                             ay(nd,bou),by(nd,bou),cy(nd,bou),dy(nd,bou), &
-                                             x(j+1),y(j+1),error_flag)
-              
-              WRITE(60,*) x(j+1),y(j+1)
+                r = r0     
+                CALL evaluate(r,dt(nd,bou),ti,xr,ax(nd,bou),bx(nd,bou),cx(nd,bou),dx(nd,bou), &
+                                                 ay(nd,bou),by(nd,bou),cy(nd,bou),dy(nd,bou), &
+                                                 x(j+1),y(j+1),error_flag)
+
+                WRITE(60,*) x(j+1),y(j+1)                                                  
               
                            
-              IF (abs(r)-1d0 > it_tol) THEN
-                PRINT "(A,F24.17)", "ERROR: R VALUE NOT FOUND IN INTERVAL, R = ", r
-                PRINT "(2(F24.17))", abs(r)-1d0, it_tol
-                STOP
+                IF (abs(r)-1d0 > it_tol) THEN
+                  PRINT "(A,F24.17)", "ERROR: R VALUE NOT FOUND IN INTERVAL, R = ", r
+                  PRINT "(2(F24.17))", abs(r)-1d0, it_tol
+!                   STOP
+                ELSE 
+                  PRINT "(A,F24.17)", "R = ", r 
+                  success = 1
+                  EXIT try_elems
+                ENDIF              
+              
+              ENDDO try_elems
+              
+              IF (success == 1) THEN
+                WRITE(60,*) x(j+1),y(j+1)              
               ELSE 
-                PRINT "(A,F24.17)", "R = ", r 
-              ENDIF              
+                PRINT "(A,F24.17)", "ERROR: R VALUE NOT FOUND IN INTERVAL FOR ANY NEIGHBOR ELEMENTS"
+                STOP
+              ENDIF
+              
+
+                
               
               IF (j == 0) THEN
                 eval%xy(1,n1) = x(j+1)
                 eval%xy(2,n1) = y(j+1)
-              ELSE IF (j == ctp) THEN  
+              ELSE IF (j == eval%ctp) THEN  
                 eval%xy(1,n2) = x(j+1)
                 eval%xy(2,n2) = y(j+1)              
               ENDIF              
@@ -271,13 +314,17 @@
                        
             ENDDO  
             
-            WRITE(40,"(I8,1X,10(E24.17,1X))") n1, (x(j), j=1,ctp)
-            WRITE(40,"(I8,1X,10(E24.17,1X))") n1, (y(j), j=1,ctp)
+!               IF (i == 17) THEN
+!                 STOP
+!               ENDIF            
+            
+            WRITE(40,"(I8,1X,10(E24.17,1X))") n1, (x(j), j=1,eval%ctp)
+            WRITE(40,"(I8,1X,10(E24.17,1X))") n1, (y(j), j=1,eval%ctp)
             
 
             IF (i == neval-1) THEN
-              WRITE(40,"(I8,1X,10(E24.17,1X))") n2, x(ctp+1)
-              WRITE(40,"(I8,1X,10(E24.17,1X))") n2, y(ctp+1)            
+              WRITE(40,"(I8,1X,10(E24.17,1X))") n2, x(eval%ctp+1)
+              WRITE(40,"(I8,1X,10(E24.17,1X))") n2, y(eval%ctp+1)            
             ENDIF
             
             

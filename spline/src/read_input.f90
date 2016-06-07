@@ -1,6 +1,6 @@
       SUBROUTINE read_input()
 
-      USE globals, ONLY: base,eval,ctp,out_direc,theta_tol,deform_tol,sig
+      USE globals, ONLY: base,eval,out_direc,theta_tol,deform_tol,sig
 
       IMPLICIT NONE
       
@@ -42,8 +42,8 @@
               eval%grid_file = TRIM(ADJUSTL(temp))
               PRINT*, "eval%grid_file = ", eval%grid_file
             CASE (3)
-              READ(temp,*) ctp
-              PRINT*, "ctp = ", ctp
+              READ(temp,*) eval%ctp
+              PRINT*, "ctp = ", eval%ctp
             CASE (4)
               READ(temp,*) sig
               PRINT*, "sig = ", sig
@@ -62,6 +62,9 @@
       
       
       ENDDO
+      
+      base%ctp = 3
+      
       
       PRINT*, " "
       PRINT*, "Lines skipped: ", skipped

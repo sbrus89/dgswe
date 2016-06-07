@@ -13,10 +13,9 @@
 
       SUBROUTINE spline_init(num,nmax)
       
-      USE globals, ONLY: rp,base,ax,bx,cx,dx,ay,by,cy,dy,dt, &
+      USE globals, ONLY: rp,base,eval,ax,bx,cx,dx,ay,by,cy,dy,dt, &
                          nfbnds,fbnds,fbnds_xy,nfbnd2el,fbnd2el, &
-                         nverts,ctp,rpts     
-      USE basis, ONLY: lglpts         
+                         nverts         
       
       IMPLICIT NONE
       
@@ -123,14 +122,7 @@
       ALLOCATE(ay(nmax,nbou),cy(nmax,nbou),by(nmax-1,nbou),dy(nmax-1,nbou)) 
       ALLOCATE(dt(nmax,nbou))
       
-      ALLOCATE(rpts(ctp+1))
-      
-!       DO j = 0,ctp
-!         rpts(j) = -1d0 + real(j,rp)*2d0/real(ctp,rp)   
-!       ENDDO
-      
-      CALL lglpts(ctp,rpts)
-      
+
       
       RETURN
       END SUBROUTINE spline_init
@@ -322,11 +314,14 @@
       ! Try new initial guess if minimum was not found in (-1,1) interval              
       IF (abs(r)-1d0 > it_tol) THEN
         PRINT "(A,F24.17)", "WARNING: R VALUE NOT FOUND IN INTERVAL, R = ", r
-        PRINT "(A)", "  trying another r0 value..."     
+        PRINT "(A)", "  trying negative of r0 value..."     
         r = r0*-1d0
         CALL newton(r,dt,ti,xr,ax,bx,cx,dx, &
                                ay,by,cy,dy, &
-                               x,y,error_flag)                                               
+                               x,y,error_flag)           
+            IF (abs(r)-1d0 < it_tol .and. error_flag == 0) THEN
+              PRINT "(A,F24.17)", "WARNING: R VALUE NOT FOUND IN INTERVAL, R = ", r                
+            ENDIF                               
       ENDIF
               
       IF (error_flag) THEN
@@ -428,5 +423,89 @@ iter: DO it = 1,maxit
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!      
 
+      SUBROUTINE update_elxy_spline(mesh,nverts,bou,bnd,dt,ti,ax,bx,cx,dx,ay,by,cy,dy)  
+      
+      USE globals, ONLY: grid      
+      USE curvilinear_nodes_mod, ONLY: edge_coordinates_curved
+      USE transformation, ONLY: element_transformation
+      
+      IMPLICIT NONE
+      
+      TYPE(grid), INTENT(INOUT) :: mesh
+      INTEGER, DIMENSION(:), INTENT(IN) :: nverts
+      INTEGER, INTENT(IN) :: bou
+      INTEGER, INTENT(IN) :: bnd
+      REAL(rp), INTENT(IN) :: dt
+      REAL(rp), INTENT(IN) :: ti
+      REAL(rp), INTENT(INOUT) :: ax,bx,cx,dx,ay,by,cy,dy 
+            
+      INTEGER :: ed,pt,nd
+      INTEGER :: ged,el,led,et
+      INTEGER :: n1,n2
+      INTEGER :: found,error_flag
+      REAL(rp) :: n1x,n1y,n2x,n2y
+      REAL(rp) :: r,xr(2)
+      REAL(rp) :: x,y
+      REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: segxy
+      
+      ALLOCATE(segxy(2,mesh%ctp))
+      
+            
+      found = 0      
+edges:DO ed = 1,mesh%nnfbed
+      
+        IF (mesh%nfbednn(ed,1) == bou .AND. mesh%nfbednn(ed,3) == bnd) THEN
+          ged = mesh%nfbedn(ed)
+          el = mesh%ged2el(1,ged)
+          led = mesh%ged2led(1,ged)
+          et = mesh%el_type(el)
+          
+          n1 = mesh%fbnds(bnd,bou)
+          n2 = mesh%fbnds(bnd+1,bou)
+                   
+          n1x = mesh%xy(1,n1)
+          n1y = mesh%xy(2,n1)
+          
+          n2x = mesh%xy(1,n2)
+          n2y = mesh%xy(2,n2)                   
+          
+          found = 1
+          EXIT edges
+        ENDIF
+      
+      ENDDO edges
+      
+      IF (found == 1) THEN
+      
+        DO nd = 1,mesh%ctp-1
+          r = mesh%rpts(nd+1) 
+        
+          xr(1) = .5d0*(1d0-r)*n1x + .5d0*(1d0+r)*n2x
+          xr(2) = .5d0*(1d0-r)*n1y + .5d0*(1d0+r)*n2y        
+        
+          CALL evaluate(r,dt,ti,xr,ax,bx,cx,dx, &
+                                   ay,by,cy,dy, &
+                                   x,y,error_flag)    
+                                 
+          segxy(1,nd) = x
+          segxy(2,nd) = y
+        
+        ENDDO
+       
+        CALL edge_coordinates_curved(el,mesh%ctp,led,mesh%nnds,nverts,mesh%el_type_spline,mesh%xy,mesh%ect,segxy,mesh%psiv,mesh%elxy_spline)              
+      
+      ELSE
+       
+        PRINT*, "ELEMENT NOT FOUND: cannot update element coordinates"
+        STOP
+        
+       
+      ENDIF
+      
+      RETURN
+      END SUBROUTINE update_elxy_spline
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
       
       END MODULE calc_spline

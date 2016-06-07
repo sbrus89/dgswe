@@ -360,6 +360,54 @@
       
       RETURN
       END SUBROUTINE
+      
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+      SUBROUTINE check_transformations(mesh,nverts)  
+      
+      USE globals, ONLY: grid      
+      USE transformation, ONLY: element_transformation
+      
+      IMPLICIT NONE
+      
+      TYPE(grid), INTENT(INOUT) :: mesh
+      INTEGER, DIMENSION(:), INTENT(IN) :: nverts
+!       INTEGER, INTENT(IN) :: bou
+!       INTEGER, INTENT(IN) :: bnd
+!       REAL(rp), INTENT(IN) :: dt
+!       REAL(rp), INTENT(IN) :: ti
+!       REAL(rp), INTENT(INOUT) :: ax,bx,cx,dx,ay,by,cy,dy 
+            
+      INTEGER :: pt
+      INTEGER :: el,et
+      INTEGER :: detected
+      REAL(rp) :: xpt,ypt
+      REAL(rp) :: drdx,drdy,dsdx,dsdy,detJ
+      
+      detected = 0   
+      DO el = 1,mesh%ne
+      
+        et = mesh%el_type_spline(el)
+        
+        DO pt = 1,mesh%nqpta(et)
+            
+            CALL element_transformation(mesh%nnds(et),mesh%elxy_spline(:,el,1),mesh%elxy_spline(:,el,2),mesh%psi(:,pt,et),xpt,ypt, &
+                                        mesh%dpdr(:,pt,et),mesh%dpds(:,pt,et),drdx,drdy,dsdx,dsdy,detJ)
+                                        
+            IF (detJ < 0d0) THEN
+              PRINT*, "Negative Jacobian determinant detected, el = ",el        
+              detected = 1
+            ENDIF
+        ENDDO   
+      ENDDO
+      
+      IF (detected == 1) THEN
+        STOP
+      ENDIF
+      
+      RETURN
+      END SUBROUTINE
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

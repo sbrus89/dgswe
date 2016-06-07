@@ -45,7 +45,7 @@
             base_bed = n1
             base_led = led(i)
             
-            PRINT*, base_bou,base_bed,base%nfbednn(ed,2), base%fbnds(n1,bou), base%fbnds(n1+1,bou),el_in
+!             PRINT*, base_bou,base_bed,base%nfbednn(ed,2), base%fbnds(n1,bou), base%fbnds(n1+1,bou),el_in
             
             EXIT edge
           ENDIF
