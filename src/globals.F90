@@ -12,15 +12,7 @@
       REAL(rp), PARAMETER :: deg2rad = pi/180d0      
       REAL(rp), PARAMETER :: r_earth = 6378206.4d0      
       CHARACTER(100) :: grid_name ! name of the grid
-      
-      CHARACTER(50) :: gitSHA
-      CHARACTER(50) :: gitBranch
-      CHARACTER(100) :: compiler_version
-      CHARACTER(50) :: compiler_flags
-      CHARACTER(1000) :: modified_files
-      CHARACTER(50) :: compile_date
-      CHARACTER(50) :: host
-      
+
       INTEGER, PARAMETER :: nel_type = 4 !(type #s: 1 -> triangles, 2 -> quads, 3 -> curved triangles, 4-> curved quads)
       INTEGER, PARAMETER :: norder = 6 ! # of different orders (straight sided elements for tri/quad = 1, curvilinear tri/quad = ctp, high-order bathymetry = hbp) 
       INTEGER :: nverts(nel_type)

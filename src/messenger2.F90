@@ -133,6 +133,8 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
        
       SUBROUTINE message_init()
+      
+      USE version, ONLY: version_information
          
       IMPLICIT NONE
       
@@ -181,7 +183,7 @@
         PRINT*, 'Started: ',date,time
         PRINT*, ' '        
         
-        CALL version()
+        CALL version_information(unit=6)
       ENDIF           
        
       RETURN           

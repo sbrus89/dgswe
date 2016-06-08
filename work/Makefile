@@ -102,6 +102,14 @@ ifeq ($(BUILDTYPE),dgpost)
   MESSAGE = Compling post program with $(FLAG_TYPE) flags
 endif
 
+ifeq ($(BUILDTYPE),convert)
+  FC := ifort
+  ODIR = odir_convert/
+
+  EXE_NAME = convert
+  MESSAGE = Compling convert program with $(FLAG_TYPE) flags
+endif
+
 
 ### Other compiler flags ###
 # -no-prec-div
@@ -179,9 +187,13 @@ dgprep_objects = globals.o messenger2.o read_input.o allocation.o grid_file_mod.
                  
 dgprep_obj := $(patsubst %.o, $(ODIR)%.o,$(dgprep_objects))  
 
-dgpost_objects = globals.o globalize.o version.o dgpost.o
+dgpost_objects = globals.o read_write_output.o version.o dgpost.o
 
 dgpost_obj := $(patsubst %.o, $(ODIR)%.o,$(dgpost_objects))  
+
+convert_objects = globals.o quit.o sizes.o messenger2.o version.o read_input.o grid_file_mod.o convert.o
+
+convert_obj := $(patsubst %.o, $(ODIR)%.o,$(convert_objects))  
 
 ########################################################################
 #                          Executable Targets                          #
@@ -208,6 +220,10 @@ dgprep :
 dgpost : 
 	@printf "\n\n"
 	$(MAKE) BUILDTYPE=dgpost OPTS=$(OPTS) dgpost
+	
+convert : 
+	@printf "\n\n"
+	$(MAKE) BUILDTYPE=convert OPTS=$(OPTS) convert
 
 else
 
@@ -242,6 +258,13 @@ dgpost: version $(ODIR)  $(dgpost_obj)
 	@printf "Modified: $(GIT_MOD) \n\n"
 	$(FC) $(FFLAGS) -o $(EXE_NAME) $(dgpost_obj)
 	@printf "\n\n"
+	
+convert: version $(ODIR)  $(convert_obj)
+	@printf " \n\033[35m$(MESSAGE) on $(FULLNAME) \033[0m \n"
+	@printf "Git SHA: $(GIT_SHA) \n"
+	@printf "Modified: $(GIT_MOD) \n\n"
+	$(FC) $(FFLAGS) -o $(EXE_NAME) $(convert_obj)
+	@printf "\n\n"	
 
 
 endif
@@ -255,13 +278,13 @@ $(ODIR) :
 	mkdir -p $@
 	
 version :
-	@sed -i '10 c \      gitBranch = "$(GIT_BRANCH)" ' $(VPATH)version.F90
-	@sed -i '11 c \      gitSHA = "$(GIT_SHA) $(GIT_MOD)" ' $(VPATH)version.F90
-	@sed -i '12 c \      compiler_version = "$(FC_VERSION)" ' $(VPATH)version.F90
-	@sed -i '13 c \      compiler_flags = "$(FFLAGS)" ' $(VPATH)version.F90
-	@sed -i '14 c \      modified_files = "$(GIT_MFILES)" ' $(VPATH)version.F90
-	@sed -i '15 c \      compile_date = "$(DATE)" ' $(VPATH)version.F90
-	@sed -i '16 c \      host = "$(NAME)" ' $(VPATH)version.F90	
+	@sed -i '5 c \      CHARACTER(:), ALLOCATABLE, PARAMETER :: gitBranch = "$(GIT_BRANCH)" ' $(VPATH)version.F90
+	@sed -i '6 c \      CHARACTER(:), ALLOCATABLE, PARAMETER :: gitSHA = "$(GIT_SHA) $(GIT_MOD)" ' $(VPATH)version.F90
+	@sed -i '7 c \      CHARACTER(:), ALLOCATABLE, PARAMETER :: compiler_version = "$(FC_VERSION)" ' $(VPATH)version.F90
+	@sed -i '8 c \      CHARACTER(:), ALLOCATABLE, PARAMETER :: compiler_flags = "$(FFLAGS)" ' $(VPATH)version.F90
+	@sed -i '9 c \      CHARACTER(:), ALLOCATABLE, PARAMETER :: modified_files = "$(GIT_MFILES)" ' $(VPATH)version.F90
+	@sed -i '10 c \      CHARACTER(:), ALLOCATABLE, PARAMETER :: compile_date = "$(DATE)" ' $(VPATH)version.F90
+	@sed -i '11 c \      CHARACTER(:), ALLOCATABLE, PARAMETER :: host = "$(NAME)" ' $(VPATH)version.F90	
 	
 ########################################################################
 #                            Clean Targets                             #
@@ -338,6 +361,11 @@ $(ODIR)kdtree2.o: kdtree2.F
 	mv kdtree2_precision_module.mod $(ODIR)
 	mv kdtree2_module.mod $(ODIR)
 	mv kdtree2_priority_queue_module.mod $(ODIR)
+	
+	
+$(ODIR)version.o : version.F90                                
+	$(FC) $(FFLAGS) -c $< -o $@
+	mv version.mod $(ODIR)
 
 $(ODIR)globals.o : globals.F90
 	$(FC) $(FFLAGS) -c $< -o $@
@@ -347,7 +375,7 @@ $(ODIR)lapack_interfaces.o : lapack_interfaces.F90
 	$(FC) $(FFLAGS) -c $< -o $@
 	mv lapack_interfaces.mod $(ODIR)
 
-$(ODIR)messenger2.o : messenger2.F90                           $(ODIR)globals.o $(ODIR)quit.o
+$(ODIR)messenger2.o : messenger2.F90                           $(ODIR)globals.o $(ODIR)quit.o $(ODIR)version.o
 	$(FC) $(FFLAGS) -c $< -o $@
 	mv messenger2.mod $(ODIR)
 
@@ -505,9 +533,6 @@ $(ODIR)boundary_edge_elev.o : boundary_edge_elev.F90           $(ODIR)globals.o
 
 $(ODIR)linear_solve.o : linear_solve.F90                       $(ODIR)globals.o
 	$(FC) $(FFLAGS) -c $< -o $@	
-	
-$(ODIR)version.o : version.F90                                 $(ODIR)globals.o 
-	$(FC) $(FFLAGS) -c $< -o $@
 
 $(ODIR)dgswe.o : dgswe.F90                                     $(ODIR)globals.o $(ODIR)messenger2.o $(ODIR)read_input.o $(ODIR)allocation.o $(ODIR)basis.o $(ODIR)output.o $(ODIR)area_qpts_mod.o $(ODIR)edge_qpts_mod.o 
 	$(FC) $(FFLAGS) -c $< -o $@
@@ -525,9 +550,18 @@ $(ODIR)dgprep.o : ../prep/src/dgprep.F90                        $(ODIR)globals.o
 
 # post file targets
 
-$(ODIR)globalize.o : ../post/globalize.F90                   $(ODIR)globals.o     
+$(ODIR)read_write_output.o : ../post/read_write_output.F90   $(ODIR)globals.o     
 	$(FC) $(FFLAGS) -c $< -o $@
-	mv globalize.mod $(ODIR)
+	mv read_write_output.mod $(ODIR)
 
-$(ODIR)dgpost.o : ../post/dgpost.F90                         $(ODIR)globals.o $(ODIR)version.o $(ODIR)globalize.o         
+$(ODIR)dgpost.o : ../post/dgpost.F90                         $(ODIR)globals.o $(ODIR)version.o $(ODIR)read_write_output.o         
 	$(FC) $(FFLAGS) -c $< -o $@
+
+	
+# convert file targets
+
+$(ODIR)convert.o : ../post/convert.F90                       $(ODIR)globals.o $(ODIR)version.o $(ODIR)read_input.o $(ODIR)grid_file_mod.o        
+	$(FC) $(FFLAGS) -c $< -o $@
+	
+$(ODIR)sizes.o : ../post/sizes.F90                           $(ODIR)read_input.o    
+	$(FC) $(FFLAGS) -c $< -o $@	
