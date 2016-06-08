@@ -6,6 +6,7 @@
       USE basis
       USE area_qpts_mod
       USE transformation, ONLY: init_vandermonde,xy2rs
+      USE version, ONLY: version_information
 
       IMPLICIT NONE
 
@@ -25,7 +26,7 @@
       p_int = 5
       ctp_int = 0
 
-      CALL version () ! print out current git branch/SHA
+      CALL version_information(unit=6) ! print out current git branch/SHA
       
       CALL read_input()  ! read error.inp file
       
