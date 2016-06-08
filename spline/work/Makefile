@@ -73,13 +73,13 @@ $(ODIR) :
 	mkdir -p $@	
 	
 version :
-	@sed -i '10 c \      gitBranch = "$(GIT_BRANCH)" ' ../../src/version.F90
-	@sed -i '11 c \      gitSHA = "$(GIT_SHA) $(GIT_MOD)" ' ../../src/version.F90
-	@sed -i '12 c \      compiler_version = "$(FC_VERSION)" ' ../../src/version.F90
-	@sed -i '13 c \      compiler_flags = "$(FFLAGS)" ' ../../src/version.F90
-	@sed -i '14 c \      modified_files = "$(GIT_MFILES)" ' ../../src/version.F90
-	@sed -i '15 c \      compile_date = "$(DATE)" ' ../../src/version.F90
-	@sed -i '16 c \      host = "$(NAME)" ' ../../src/version.F90
+	@sed -i '5 c \      CHARACTER(:), ALLOCATABLE, PARAMETER :: gitBranch = "$(GIT_BRANCH)" ' ../../src/version.F90
+	@sed -i '6 c \      CHARACTER(:), ALLOCATABLE, PARAMETER :: gitSHA = "$(GIT_SHA) $(GIT_MOD)" ' ../../src/version.F90
+	@sed -i '7 c \      CHARACTER(:), ALLOCATABLE, PARAMETER :: compiler_version = "$(FC_VERSION)" ' ../../src/version.F90
+	@sed -i '8 c \      CHARACTER(:), ALLOCATABLE, PARAMETER :: compiler_flags = "$(FFLAGS)" ' ../../src/version.F90
+	@sed -i '9 c \      CHARACTER(:), ALLOCATABLE, PARAMETER :: modified_files = "$(GIT_MFILES)" ' ../../src/version.F90
+	@sed -i '10 c \      CHARACTER(:), ALLOCATABLE, PARAMETER :: compile_date = "$(DATE)" ' ../../src/version.F90
+	@sed -i '11 c \      CHARACTER(:), ALLOCATABLE, PARAMETER :: host = "$(NAME)" ' ../../src/version.F90	
 
 
 ########################################################################
@@ -102,6 +102,10 @@ $(ODIR)kdtree2.o : ../../src/kdtree2.F
 	mv kdtree2_precision_module.mod $(ODIR)
 	mv kdtree2_module.mod $(ODIR)
 	mv kdtree2_priority_queue_module.mod $(ODIR)
+	
+$(ODIR)version.o : ../../src/version.F90                     
+	$(FC) $(FFLAGS) -c $< -o $@	
+	mv version.mod $(ODIR)
 	
 $(ODIR)lapack_interfaces.o : ../../src/lapack_interfaces.F90
 	$(FC) $(FFLAGS) -c $< -o $@
@@ -175,7 +179,7 @@ $(ODIR)curvilinear_nodes_mod.o : ../../src/curvilinear_nodes_mod.F90  $(ODIR)glo
 	$(FC) $(FFLAGS) -c $< -o $@
 	mv curvilinear_nodes_mod.mod $(ODIR)
 
-$(ODIR)spline.o : spline.f90                                  $(ODIR)globals.o  $(ODIR)allocation.o  $(ODIR)calc_spline.o  $(ODIR)check.o $(ODIR)find_element_mod.o $(ODIR)curvilinear_nodes_mod.o
+$(ODIR)spline.o : spline.f90                                  $(ODIR)globals.o  $(ODIR)allocation.o  $(ODIR)calc_spline.o  $(ODIR)check.o $(ODIR)find_element_mod.o $(ODIR)curvilinear_nodes_mod.o $(ODIR)version.o
 	$(FC) $(FFLAGS) -c $< -o $@
 
 $(ODIR)read_grid.o : read_grid.f90                            $(ODIR)globals.o  $(ODIR)grid_file_mod.o $(ODIR)spherical_mod.o 
@@ -196,5 +200,4 @@ $(ODIR)shape_functions_eval.o : shape_functions_eval.f90      $(ODIR)globals.o  
 $(ODIR)write_output.o : write_output.f90                      $(ODIR)globals.o
 	$(FC) $(FFLAGS) -c $< -o $@
 	
-$(ODIR)version.o : ../../src/version.F90                      $(ODIR)globals.o
-	$(FC) $(FFLAGS) -c $< -o $@
+

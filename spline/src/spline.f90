@@ -12,6 +12,7 @@
                        l2_project,quad_interp
       USE find_element, ONLY: in_element,check_elem,find_element_init,sub_element 
       USE curvilinear_nodes_mod, ONLY: shape_functions_linear_at_ctp
+      USE version, ONLY: version_information
 
       IMPLICIT NONE
       INTEGER :: i,j,k,n,bou,num,nmax,qpts,ebou
@@ -40,7 +41,7 @@
 
       PRINT "(A)", " "
       
-      CALL version()
+      CALL version_information(unit=6)
       
       CALL read_input()
       
