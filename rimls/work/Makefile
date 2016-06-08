@@ -41,7 +41,7 @@ endif
 #                               Objects                                #
 ########################################################################
 
-objects = kdtree2.o globals.o allocation.o basis.o find_element_mod.o quit.o \
+objects = kdtree2.o globals.o allocation.o basis.o find_element_mod.o sort_mod.o quit.o \
           vandermonde.o shape_functions_mod.o transformation.o spherical_mod.o \
           curvilinear_nodes_mod.o bathymetry_interp_mod.o bathy_interp.o \
           write_results.o group_coordinates.o connect.o edge_connectivity_mod.o  \
@@ -72,13 +72,13 @@ $(ODIR) :
 	mkdir -p $@	
 	
 version :
-	@sed -i '10 c \      gitBranch = "$(GIT_BRANCH)" ' ../../src/version.F90
-	@sed -i '11 c \      gitSHA = "$(GIT_SHA) $(GIT_MOD)" ' ../../src/version.F90
-	@sed -i '12 c \      compiler_version = "$(FC_VERSION)" ' ../../src/version.F90
-	@sed -i '13 c \      compiler_flags = "$(FFLAGS)" ' ../../src/version.F90
-	@sed -i '14 c \      modified_files = "$(GIT_MFILES)" ' ../../src/version.F90
-	@sed -i '15 c \      compile_date = "$(DATE)" ' ../../src/version.F90
-	@sed -i '16 c \      host = "$(NAME)" ' ../../src/version.F90
+	@sed -i '5 c \      CHARACTER(:), ALLOCATABLE, PARAMETER :: gitBranch = "$(GIT_BRANCH)" ' ../../src/version.F90
+	@sed -i '6 c \      CHARACTER(:), ALLOCATABLE, PARAMETER :: gitSHA = "$(GIT_SHA) $(GIT_MOD)" ' ../../src/version.F90
+	@sed -i '7 c \      CHARACTER(:), ALLOCATABLE, PARAMETER :: compiler_version = "$(FC_VERSION)" ' ../../src/version.F90
+	@sed -i '8 c \      CHARACTER(:), ALLOCATABLE, PARAMETER :: compiler_flags = "$(FFLAGS)" ' ../../src/version.F90
+	@sed -i '9 c \      CHARACTER(:), ALLOCATABLE, PARAMETER :: modified_files = "$(GIT_MFILES)" ' ../../src/version.F90
+	@sed -i '10 c \      CHARACTER(:), ALLOCATABLE, PARAMETER :: compile_date = "$(DATE)" ' ../../src/version.F90
+	@sed -i '11 c \      CHARACTER(:), ALLOCATABLE, PARAMETER :: host = "$(NAME)" ' ../../src/version.F90	
 	
 ########################################################################
 #                            Clean Targets                             #
@@ -97,6 +97,10 @@ $(ODIR)kdtree2.o: ../../src/kdtree2.F
 	mv kdtree2_precision_module.mod $(ODIR)
 	mv kdtree2_module.mod $(ODIR)
 	mv kdtree2_priority_queue_module.mod $(ODIR)
+	
+$(ODIR)version.o : ../../src/version.F90                      
+	$(FC) $(FFLAGS) -c $< -o $@	
+	mv version.mod $(ODIR)
 
 $(ODIR)globals.o: globals.f90                                   $(ODIR)kdtree2.o
 	$(FC) $(FFLAGS) -c $< -o $@
@@ -150,9 +154,13 @@ $(ODIR)basis.o: ../../src/basis.F90                             $(ODIR)globals.o
 	$(FC) $(FFLAGS) -c $< -o $@
 	mv basis.mod $(ODIR)	
 	
-$(ODIR)find_element_mod.o: ../../src/find_element_mod.F90       $(ODIR)kdtree2.o  $(ODIR)globals.o $(ODIR)shape_functions_mod.o $(ODIR)transformation.o $(ODIR)vandermonde.o
+$(ODIR)find_element_mod.o: ../../src/find_element_mod.F90       $(ODIR)kdtree2.o  $(ODIR)globals.o $(ODIR)shape_functions_mod.o $(ODIR)transformation.o $(ODIR)vandermonde.o $(ODIR)sort_mod.o
 	$(FC) $(FFLAGS) -c $< -o $@
 	mv find_element.mod $(ODIR) 
+	
+$(ODIR)sort_mod.o : ../../src/sort_mod.F90                      $(ODIR)globals.o
+	$(FC) $(FFLAGS) -c $< -o $@
+	mv sort_mod.mod $(ODIR)			
 	
 $(ODIR)group_coordinates.o: group_coordinates.f90               $(ODIR)globals.o
 	$(FC) $(FFLAGS) -c $< -o $@
@@ -188,12 +196,9 @@ $(ODIR)bathy_interp.o : bathy_interp.f90                        $(ODIR)globals.o
 	$(FC) $(FFLAGS) -c $< -o $@		
 	
 $(ODIR)compute_random.o : compute_random.f90                    $(ODIR)kdtree2.o  $(ODIR)globals.o  $(ODIR)basis.o $(ODIR)find_element_mod.o  $(ODIR)evaluate.o  $(ODIR)lapack_interfaces.o
-	$(FC) $(FFLAGS) -c $< -o $@	
-		
-$(ODIR)version.o : ../../src/version.F90                        $(ODIR)globals.o
-	$(FC) $(FFLAGS) -c $< -o $@
+	$(FC) $(FFLAGS) -c $< -o $@			
 
-$(ODIR)rimls.o: rimls.f90                                       $(ODIR)globals.o $(ODIR)allocation.o $(ODIR)transformation.o $(ODIR)find_element_mod.o $(ODIR)write_results.o $(ODIR)evaluate.o $(ODIR)grid_file_mod.o $(ODIR)group_coordinates.o
+$(ODIR)rimls.o: rimls.f90                                       $(ODIR)globals.o $(ODIR)allocation.o $(ODIR)transformation.o $(ODIR)find_element_mod.o $(ODIR)write_results.o $(ODIR)evaluate.o $(ODIR)grid_file_mod.o $(ODIR)group_coordinates.o $(ODIR)version.o
 	$(FC) $(FFLAGS) -c $< -o $@
 	
 

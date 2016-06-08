@@ -8,6 +8,7 @@
       USE find_element, ONLY: find_element_init
       USE transformation, ONLY: init_vandermonde
       USE group_coordinates, ONLY: separate_coordinates, gather_coordinates
+      USE version, ONLY: version_information
 
       IMPLICIT NONE
 
@@ -15,7 +16,7 @@
       INTEGER :: myrank
    
       
-      CALL version()
+      CALL version_information(unit=6)
       
       CALL read_input()  
       
