@@ -44,7 +44,7 @@ endif
 ########################################################################
 
 objects = globals.o kdtree2.o allocation.o basis.o  \
-          connect.o curvilinear.o evaluate.o find_element_mod.o \
+          connect.o curvilinear.o evaluate.o find_element_mod.o sort_mod.o \
           read_input.o read_grid.o write_results.o \
           bathy_interp.o bathymetry_interp_mod.o lapack_interfaces.o interp_check.o \
           grid_file_mod.o shape_functions_mod.o curvilinear_nodes_mod.o  \
@@ -71,13 +71,13 @@ $(ODIR) :
 	mkdir -p $@
 	
 version:
-	@sed -i '10 c \      gitBranch = "$(GIT_BRANCH)" ' ../../src/version.F90
-	@sed -i '11 c \      gitSHA = "$(GIT_SHA) $(GIT_MOD)" ' ../../src/version.F90
-	@sed -i '12 c \      compiler_version = "$(FC_VERSION)" ' ../../src/version.F90
-	@sed -i '13 c \      compiler_flags = "$(FFLAGS)" ' ../../src/version.F90
-	@sed -i '14 c \      modified_files = "$(GIT_MFILES)" ' ../../src/version.F90
-	@sed -i '15 c \      compile_date = "$(DATE)" ' ../../src/version.F90
-	@sed -i '16 c \      host = "$(NAME)" ' ../../src/version.F90	
+	@sed -i '5 c \      CHARACTER(:), ALLOCATABLE, PARAMETER :: gitBranch = "$(GIT_BRANCH)" ' ../../src/version.F90
+	@sed -i '6 c \      CHARACTER(:), ALLOCATABLE, PARAMETER :: gitSHA = "$(GIT_SHA) $(GIT_MOD)" ' ../../src/version.F90
+	@sed -i '7 c \      CHARACTER(:), ALLOCATABLE, PARAMETER :: compiler_version = "$(FC_VERSION)" ' ../../src/version.F90
+	@sed -i '8 c \      CHARACTER(:), ALLOCATABLE, PARAMETER :: compiler_flags = "$(FFLAGS)" ' ../../src/version.F90
+	@sed -i '9 c \      CHARACTER(:), ALLOCATABLE, PARAMETER :: modified_files = "$(GIT_MFILES)" ' ../../src/version.F90
+	@sed -i '10 c \      CHARACTER(:), ALLOCATABLE, PARAMETER :: compile_date = "$(DATE)" ' ../../src/version.F90
+	@sed -i '11 c \      CHARACTER(:), ALLOCATABLE, PARAMETER :: host = "$(NAME)" ' ../../src/version.F90
 	
 ########################################################################
 #                            File Targets                              #
@@ -86,6 +86,10 @@ version:
 $(ODIR)kdtree2.o: ../../src/kdtree2.F
 	$(FC) $(FFLAGS) -c $< -o $@
 	mv kdtree2_*.mod  $(ODIR)
+	
+$(ODIR)version.o: ../../src/version.F90
+	$(FC) $(FFLAGS) -c $< -o $@
+	mv version.mod $(ODIR)
 
 $(ODIR)lapack_interfaces.o : ../../src/lapack_interfaces.F90
 	$(FC) $(FFLAGS) -c $< -o $@
@@ -142,9 +146,13 @@ $(ODIR)evaluate.o: evaluate.F90                                 $(ODIR)globals.o
 $(ODIR)read_grid.o: read_grid.f90                               $(ODIR)globals.o  $(ODIR)allocation.o $(ODIR)grid_file_mod.o
 	$(FC) $(FFLAGS) -c $< -o $@
 
-$(ODIR)find_element_mod.o: ../../src/find_element_mod.F90       $(ODIR)globals.o  $(ODIR)kdtree2.o  $(ODIR)shape_functions_mod.o $(ODIR)transformation.o $(ODIR)vandermonde.o  
+$(ODIR)find_element_mod.o: ../../src/find_element_mod.F90       $(ODIR)globals.o  $(ODIR)kdtree2.o  $(ODIR)shape_functions_mod.o $(ODIR)transformation.o $(ODIR)vandermonde.o  $(ODIR)sort_mod.o
 	$(FC) $(FFLAGS) -c $< -o $@
 	mv find_element.mod $(ODIR)
+	
+$(ODIR)sort_mod.o : ../../src/sort_mod.F90                      $(ODIR)globals.o
+	$(FC) $(FFLAGS) -c $< -o $@
+	mv sort_mod.mod $(ODIR)	
 
 $(ODIR)read_input.o: read_input.f90                             $(ODIR)globals.o
 	$(FC) $(FFLAGS) -c $< -o $@
@@ -161,11 +169,10 @@ $(ODIR)curvilinear.o: curvilinear.f90                           $(ODIR)globals.o
 $(ODIR)interp_check.o: interp_check.f90                         $(ODIR)globals.o 
 	$(FC) $(FFLAGS) -c $< -o $@
 	
-$(ODIR)bathy_interp.o: bathy_interp.F90                         $(ODIR)globals.o  $(ODIR)allocation.o  $(ODIR)basis.o  $(ODIR)grid_file_mod.o  $(ODIR)evaluate.o  $(ODIR)find_element_mod.o $(ODIR)bathymetry_interp_mod.o
+$(ODIR)bathy_interp.o: bathy_interp.F90                         $(ODIR)globals.o  $(ODIR)allocation.o  $(ODIR)basis.o  $(ODIR)grid_file_mod.o  $(ODIR)evaluate.o  $(ODIR)find_element_mod.o $(ODIR)bathymetry_interp_mod.o $(ODIR)version.o
 	$(FC) $(FFLAGS) -c $< -o $@
 	
-$(ODIR)version.o: ../../src/version.F90
-	$(FC) $(FFLAGS) -c $< -o $@
+
 
 ########################################################################
 #                            Clean Targets                             #

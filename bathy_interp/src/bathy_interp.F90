@@ -7,6 +7,7 @@
       USE find_element, ONLY: find_element_init
       USE grid_file_mod, ONLY: read_bathy_file
       USE bathymetry_interp_mod, ONLY: shape_functions_eltypes_at_hbp
+      USE version, ONLY: version_information
 
       IMPLICIT NONE
 
@@ -24,7 +25,7 @@
       myrank = 0
       space = 1
 
-      CALL version () ! print out current git branch/SHA          
+      CALL version_information(unit=6) ! print out current git branch/SHA          
       
       CALL read_input()  ! read bathy.inp file      
 
