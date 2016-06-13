@@ -17,7 +17,7 @@
       REAL(rp) :: cfl,u      
 
 
-      CALL read_header(grid_file,grid_name,ne,nn)  
+      CALL read_header(myrank,grid_file,grid_name,ne,nn)  
       
       CALL read_coords(nn,xy,depth,h0)
       

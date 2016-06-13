@@ -162,7 +162,7 @@ METIS_LIB = -L../metis-4.0.3 -lmetis
 ########################################################################
 
 dgswe_objects = globals.o lapack_interfaces.o messenger2.o allocation.o grid_file_mod.o \
-                read_input.o read_grid.o read_forcing.o read_stations.o \
+                read_input.o read_grid.o read_forcing.o read_stations.o system.o \
                 kdtree2.o find_element_mod.o find_stations.o sort_mod.o \
                 bathymetry_interp_mod.o bathymetry_interp.o bathymetry_nodal2modal.o \
                 edge_connectivity_mod.o connect.o initial.o interp_forcing.o \
@@ -174,24 +174,25 @@ dgswe_objects = globals.o lapack_interfaces.o messenger2.o allocation.o grid_fil
                 rhs2.o rk.o \
                 area_integration.o edge_integration.o  numerical_flux.o linear_solve.o \
                 boundary_edge_land.o boundary_edge_flow.o boundary_edge_elev.o  \
-                output.o quit.o modal2nodal.o version.o dgswe.o
+                output.o read_write_output.o quit.o modal2nodal.o version.o dgswe.o
 
 dgswe_obj := $(patsubst %.o, $(ODIR)%.o,$(dgswe_objects))
 
-dgprep_objects = globals.o messenger2.o read_input.o allocation.o grid_file_mod.o find_stations.o\
-                 read_grid.o read_forcing.o read_stations.o curvilinear_nodes_mod.o curvilinear.o\
+dgprep_objects = globals.o messenger2.o read_input.o allocation.o grid_file_mod.o find_stations.o \
+                 read_grid.o read_forcing.o read_stations.o curvilinear_nodes_mod.o curvilinear.o system.o \
                  kdtree2.o find_element_mod.o sort_mod.o edge_connectivity_mod.o connect.o edge_qpts_mod.o metis2.o decomp2.o \
                  basis.o basis_eval.o vandermonde.o shape_functions_mod.o shape_functions_eval.o transformation.o \
-                 normals.o bathymetry_interp_mod.o bathymetry_interp.o edge_transformation.o spherical_mod.o\
-                 modal2nodal.o write_files.o version.o quit.o output.o dgprep.o
+                 normals.o bathymetry_interp_mod.o bathymetry_interp.o edge_transformation.o spherical_mod.o \
+                 modal2nodal.o write_files.o version.o quit.o output.o read_write_output.o dgprep.o
                  
 dgprep_obj := $(patsubst %.o, $(ODIR)%.o,$(dgprep_objects))  
 
-dgpost_objects = globals.o read_write_output.o version.o dgpost.o
+dgpost_objects = globals.o read_input.o messenger2.o read_write_output.o version.o quit.o system.o dgpost.o
 
 dgpost_obj := $(patsubst %.o, $(ODIR)%.o,$(dgpost_objects))  
 
-convert_objects = globals.o quit.o sizes.o messenger2.o version.o read_input.o grid_file_mod.o convert.o
+convert_objects = globals.o quit.o sizes.o messenger2.o version.o \
+                  read_write_output.o read_input.o grid_file_mod.o convert.o
 
 convert_obj := $(patsubst %.o, $(ODIR)%.o,$(convert_objects))  
 
@@ -365,7 +366,10 @@ $(ODIR)kdtree2.o: kdtree2.F
 	
 $(ODIR)version.o : version.F90                                
 	$(FC) $(FFLAGS) -c $< -o $@
-	mv version.mod $(ODIR)
+	mv version.mod $(ODIR)	
+	
+$(ODIR)system.o : system.F90                                
+	$(FC) $(FFLAGS) -c $< -o $@
 
 $(ODIR)globals.o : globals.F90
 	$(FC) $(FFLAGS) -c $< -o $@
@@ -417,9 +421,13 @@ $(ODIR)find_element_mod.o: find_element_mod.F90                $(ODIR)kdtree2.o 
 	
 $(ODIR)sort_mod.o : sort_mod.F90                               $(ODIR)globals.o
 	$(FC) $(FFLAGS) -c $< -o $@
-	mv sort_mod.mod $(ODIR)		
+	mv sort_mod.mod $(ODIR)
 	
-$(ODIR)output.o : output.F90                                   $(ODIR)globals.o $(ODIR)messenger2.o $(ODIR)read_input.o
+$(ODIR)read_write_output.o : read_write_output.F90             $(ODIR)globals.o
+	$(FC) $(FFLAGS) $(NETCDF_INC) -c $< -o $@
+	mv read_write_output.mod $(ODIR)
+	
+$(ODIR)output.o : output.F90                                   $(ODIR)globals.o $(ODIR)messenger2.o $(ODIR)read_input.o $(ODIR)read_write_output.o
 	$(FC) $(FFLAGS) $(NETCDF_INC) -c $< -o $@
 	mv output.mod $(ODIR)
 	
@@ -549,10 +557,6 @@ $(ODIR)dgprep.o : ../prep/src/dgprep.F90                        $(ODIR)globals.o
 	$(FC) $(FFLAGS) -c $< -o $@
 
 # post file targets
-
-$(ODIR)read_write_output.o : ../post/read_write_output.F90   $(ODIR)globals.o     
-	$(FC) $(FFLAGS) -c $< -o $@
-	mv read_write_output.mod $(ODIR)
 
 $(ODIR)dgpost.o : ../post/dgpost.F90                         $(ODIR)globals.o $(ODIR)version.o $(ODIR)read_write_output.o         
 	$(FC) $(FFLAGS) -c $< -o $@

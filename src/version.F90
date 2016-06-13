@@ -3,11 +3,11 @@
       IMPLICIT NONE
       
       CHARACTER(:), ALLOCATABLE, PARAMETER :: gitBranch = "master" 
-      CHARACTER(:), ALLOCATABLE, PARAMETER :: gitSHA = "5224b824ba9c74314e3ac2f7faeb9eacaf45857b +" 
+      CHARACTER(:), ALLOCATABLE, PARAMETER :: gitSHA = "b08fa604cd455d8dd1e05739072791b1f8c07833 +" 
       CHARACTER(:), ALLOCATABLE, PARAMETER :: compiler_version = "ifort version 14.0.0" 
-      CHARACTER(:), ALLOCATABLE, PARAMETER :: compiler_flags = "-O3  -C -g -traceback -Iodir/" 
-      CHARACTER(:), ALLOCATABLE, PARAMETER :: modified_files = "../src/spline.f90 Makefile" 
-      CHARACTER(:), ALLOCATABLE, PARAMETER :: compile_date = "Wed Jun  8 15:55:32 EDT 2016" 
+      CHARACTER(:), ALLOCATABLE, PARAMETER :: compiler_flags = "-O3 -xHost -Iodir_dgprep/" 
+      CHARACTER(:), ALLOCATABLE, PARAMETER :: modified_files = "../plot/plot_PE_grid.m ../plot/plot_grid.m ../rimls/work/rimls.inp ../stations/plot/plot_adcirc_stations.m ../stations/plot/plot_grid.m ../stations/plot/plot_stations.m ../stations/src/stations.f90" 
+      CHARACTER(:), ALLOCATABLE, PARAMETER :: compile_date = "Mon Jun 13 14:23:46 EDT 2016" 
       CHARACTER(:), ALLOCATABLE, PARAMETER :: host = "chl-tilos" 
             
       CONTAINS      

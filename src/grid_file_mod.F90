@@ -13,16 +13,18 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 
-      SUBROUTINE read_header(grid_file,grid_name,ne,nn)
+      SUBROUTINE read_header(myrank,grid_file,grid_name,ne,nn)
 
       IMPLICIT NONE
       
+      INTEGER, INTENT(IN) :: myrank
       CHARACTER(100), INTENT(IN)  :: grid_file
       CHARACTER(100), INTENT(OUT) :: grid_name      
       INTEGER, INTENT(OUT) :: ne
       INTEGER, INTENT(OUT) :: nn   
       
-      LOGICAL :: file_exists      
+      LOGICAL :: file_exists          
+      
 
       ! open fort.14 grid file
       INQUIRE(FILE=grid_file, EXIST=file_exists)
@@ -30,6 +32,9 @@
         PRINT*, "grid file does not exist"
         CALL abort()        
       ENDIF
+      
+      
+      IF (myrank == 0 ) PRINT "(A)", "Reading in grid file"       
       
       OPEN(UNIT=14, FILE=grid_file)                 
                        
@@ -357,7 +362,7 @@
       INTEGER :: hbp_check
       LOGICAL :: file_exists  
       INTEGER :: alloc_status   
-      CHARACTER(200) :: tmp
+      CHARACTER(200) :: tmp      
               
       mnnds = (hbp+1)**2
       
@@ -376,7 +381,8 @@
         ENDIF
       ELSE
       
-        IF (myrank == 0 ) PRINT*, "reading in high order bathymetry file"  
+      
+        IF (myrank == 0 ) PRINT "(A)", "Reading in high order bathymetry file"  
         
         OPEN(UNIT = 14, FILE = bathy_file)
         READ(14,*) tmp !read in the header info
@@ -422,7 +428,7 @@
       INTEGER, INTENT(IN) :: nbou
       REAL(rp), DIMENSION(:,:), INTENT(OUT) :: xy
       REAL(rp), DIMENSION(:,:,:,:), ALLOCATABLE, INTENT(OUT) :: bndxy
-      LOGICAL, INTENT(OUT), OPTIONAL :: cb_file_exists      
+      LOGICAL, INTENT(OUT), OPTIONAL :: cb_file_exists 
 
       INTEGER :: i,j,k
       INTEGER :: nd
@@ -432,7 +438,7 @@
       INTEGER :: nbseg,btype      
       INTEGER :: alloc_status   
       LOGICAL :: file_exists        
-      CHARACTER(200) :: tmp
+      CHARACTER(200) :: tmp        
       
       IF (ctp == 1) THEN
         RETURN
@@ -449,7 +455,9 @@
         ENDIF        
         
       ELSE
-        IF (myrank == 0) PRINT*, "reading in curved boundary file"
+      
+      
+        IF (myrank == 0) PRINT "(A)", "Reading in curved boundary file"
       
         OPEN(UNIT=14, FILE=curve_file)
         

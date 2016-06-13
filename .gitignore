@@ -27,3 +27,5 @@ fort.*
 *.bfr
 *.nc
 *.cb
+*.sta
+*.sol

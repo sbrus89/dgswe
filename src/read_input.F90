@@ -95,20 +95,20 @@
       REAL(rp), TARGET :: h0   
       LOGICAL :: hb_file_exists
       LOGICAL :: cb_file_exists
-     
-     
-     
+ 
+          
  
       CONTAINS 
       
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!      
       
-      SUBROUTINE read_input()
-      
-      USE messenger2, ONLY: dirname,lname,myrank,nthreads
+      SUBROUTINE read_input(myrank,dirname)
       
       IMPLICIT NONE
+      
+      INTEGER, INTENT(IN) :: myrank
+      CHARACTER(*), INTENT(IN) :: dirname
       
       INTEGER :: opt_read
       INTEGER :: read_stat
@@ -118,15 +118,15 @@
       CHARACTER(100) :: temp
       
       ! initialize the dginp option structure
-      CALL dginp_setup()      
+      CALL dginp_setup(myrank)      
 
-      INQUIRE(FILE=dirname(1:lname)//'/'//'dgswe.inp', EXIST = file_exists)
+      INQUIRE(FILE=dirname//'/'//'dgswe.inp', EXIST = file_exists)
       IF(file_exists == .FALSE.) THEN
         PRINT*, "dgswe.inp file does not exist"
         CALL abort()
       ENDIF      
       
-      OPEN(UNIT=15,FILE=dirname(1:lname)//'/'//'dgswe.inp') 
+      OPEN(UNIT=15,FILE=dirname//'/'//'dgswe.inp') 
       
       opt_read = 0
       skipped = 0 
@@ -164,23 +164,19 @@
           IF (myrank == 0) THEN
             PRINT*, "Reading keyword format input file"
           ENDIF
-          CALL read_keyword_dginp()
+          CALL read_keyword_dginp(myrank,dirname)
         ELSE
           IF (myrank == 0) THEN
             PRINT*, "Reading fixed format input file"
           ENDIF
-          CALL read_fixed_dginp()
+          CALL read_fixed_dginp(myrank,dirname)
         ENDIF
       ELSE 
         PRINT*, "ERROR: dgswe.inp does not contain any information"
         CALL abort()
       ENDIF
           
-#ifdef openmp      
-      IF (npart < nthreads) THEN
-        npart = nthreads
-      ENDIF  
-#endif               
+           
       
       
       END SUBROUTINE read_input
@@ -188,11 +184,12 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!      
 
-      SUBROUTINE read_fixed_dginp()
-      
-      USE messenger2, ONLY: myrank,dirname,lname
+      SUBROUTINE read_fixed_dginp(myrank,dirname)
 
       IMPLICIT NONE
+      
+      INTEGER, INTENT(IN) :: myrank
+      CHARACTER(*), INTENT(IN) :: dirname      
       
       INTEGER, PARAMETER :: ninp = 12
       INTEGER :: i
@@ -202,9 +199,9 @@
       CHARACTER(100) :: line
       LOGICAL :: file_exists
       
-!       OPEN(UNIT=16, FILE=dirname(1:lname)//'/'//'fort.16')      
+!       OPEN(UNIT=16, FILE=dirname//'/'//'fort.16')      
       
-      OPEN(UNIT=15,FILE=dirname(1:lname)//'/'//'dgswe.inp',POSITION="rewind")      
+      OPEN(UNIT=15,FILE=dirname//'/'//'dgswe.inp',POSITION="rewind")      
       
       inp_read = 0
       skipped = 0
@@ -288,11 +285,12 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
  
-      SUBROUTINE read_keyword_dginp()
-      
-      USE messenger2, ONLY: myrank,dirname,lname
+      SUBROUTINE read_keyword_dginp(myrank,dirname)    
 
       IMPLICIT NONE
+      
+      INTEGER, INTENT(IN) :: myrank
+      CHARACTER(*), INTENT(IN) :: dirname      
       
       INTEGER :: i,j,opt
       INTEGER :: read_stat
@@ -309,7 +307,7 @@
       blank = 0
       
       
-      OPEN(25,FILE=dirname(1:lname)//'/'//'dgswe.inp',POSITION="rewind")        
+      OPEN(25,FILE=dirname//'/'//'dgswe.inp',POSITION="rewind")        
      
       
       DO WHILE (opt_read < nopt)
@@ -384,7 +382,7 @@
       
       IF (myrank == 0) PRINT*, ""
      
-      CALL check_errors(opt_read)
+      CALL check_errors(myrank,opt_read)
       
       IF (myrank == 0) PRINT*, ""
       CLOSE(25)
@@ -394,15 +392,16 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-     SUBROUTINE check_errors(opt_read)
-     
-     USE messenger2, ONLY: myrank     
-     
+     SUBROUTINE check_errors(myrank,opt_read)
+
      IMPLICIT NONE
      
+     INTEGER, INTENT(IN) :: myrank
+     INTEGER, INTENT(IN) :: opt_read     
+     
      INTEGER :: i,j,opt
-     INTEGER :: opt_read
      INTEGER :: quit
+     INTEGER :: l
      
      IF(opt_read /= nopt) THEN
 
@@ -459,6 +458,14 @@
                   
      ENDIF        
      
+     ! make sure out_direc ends with /
+     l = len(trim(out_direc))
+     IF (out_direc(l:l) /= "/") THEN
+       out_direc = out_direc(1:l) // "/"
+       PRINT*, "Added / to out_direc: ", out_direc
+       
+     ENDIF
+     
      
      RETURN
      END SUBROUTINE check_errors
@@ -466,7 +473,7 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!           
       
-      SUBROUTINE dginp_setup()
+      SUBROUTINE dginp_setup(myrank)
       
       ! Subroutine that configures the fort.dg options
       !
@@ -501,10 +508,11 @@
       !
       !   - fort.dg files containing new feature options can still be used for previous  
       !     versions of the code because the new options will be ignored
-      
-      USE messenger2, ONLY: myrank      
+          
       
       IMPLICIT NONE        
+      
+      INTEGER, INTENT(IN) :: myrank
       
       INTEGER :: i
       INTEGER :: ncheck
@@ -607,17 +615,12 @@
       
       IMPLICIT NONE
             
-      INTEGER :: pe
+      INTEGER, INTENT(IN) :: pe
       CHARACTER(6) :: dirname
       INTEGER,PARAMETER :: lname = 6
-      INTEGER :: i
       
-      
-      
-      dirname = "PE0000"
-      
-      WRITE(dirname(3:lname),"(I4.4)") pe-1         
-      OPEN(UNIT=10,FILE=dirname(1:lname)//'/'//'dgswe.inp')    
+      dirname = "PE0000"      
+      WRITE(dirname(3:lname),"(I4.4)") pe-1          
       
       grid_file = dirname(1:lname)//'/'//"fort.14"
       forcing_file = dirname(1:lname)//'/'//"fort.15"      
@@ -626,26 +629,65 @@
       curve_file = './' // dirname(1:lname) //'/'//"fort.cb"      
       stations_file = './' // dirname(1:lname) //'/'//"fort.sta"         
       
-      ! write inputs
-      DO i = 1,maxopt        
-        IF (ASSOCIATED(dginp(i)%iptr)) THEN  
-          WRITE(10,"(A,A,I8)") dginp(i)%key," = ",dginp(i)%iptr
-        ENDIF
-        
-        IF (ASSOCIATED(dginp(i)%rptr)) THEN 
-          WRITE(10,"(A,A,E21.8)") dginp(i)%key," = ",dginp(i)%rptr
-        ENDIF
-        
-        IF (ASSOCIATED(dginp(i)%cptr)) THEN 
-          WRITE(10,"(A,A,A)") dginp(i)%key," = ",dginp(i)%cptr 
-        ENDIF
-      ENDDO      
-      
-      CLOSE(10)     
+            
+      OPEN(UNIT=10,FILE=dirname(1:lname)//'/'//'dgswe.inp')
+      CALL write_input(file_unit=10)
+      CLOSE(10)
       
       END SUBROUTINE write_local
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!        
+
+      SUBROUTINE write_input(file_unit)
+      
+      IMPLICIT NONE
+      
+      INTEGER, INTENT(IN) :: file_unit
+      INTEGER :: i
+      
+
+      DO i = 1,maxopt        
+        IF (ASSOCIATED(dginp(i)%iptr)) THEN  
+          WRITE(file_unit,"(A,A,I8)") dginp(i)%key," = ",dginp(i)%iptr
+        ENDIF
+        
+        IF (ASSOCIATED(dginp(i)%rptr)) THEN 
+          WRITE(file_unit,"(A,A,E21.8)") dginp(i)%key," = ",dginp(i)%rptr
+        ENDIF
+        
+        IF (ASSOCIATED(dginp(i)%cptr)) THEN 
+          WRITE(file_unit,"(A,A,A)") dginp(i)%key," = ",dginp(i)%cptr 
+        ENDIF
+      ENDDO      
+                
+      
+      RETURN
+      END SUBROUTINE write_input
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
+
+      SUBROUTINE write_file_SHAs(file_unit,dirname)
+           
+      IMPLICIT NONE
+           
+      INTEGER, INTENT(IN) :: file_unit
+      CHARACTER(*) :: dirname
+      
+      CHARACTER(40) :: sha1
+      
+      WRITE(file_unit,"(A)")" "           
+      WRITE(file_unit,"(A,A)") "grid file SHA: ", sha1(grid_file,dirname)   
+      WRITE(file_unit,"(A,A)") "bathy file SHA: ", sha1(bathy_file,dirname) 
+      WRITE(file_unit,"(A,A)") "curve file SHA: ", sha1(curve_file,dirname) 
+      WRITE(file_unit,"(A,A)") "forcing file SHA: ", sha1(forcing_file,dirname) 
+      WRITE(file_unit,"(A,A)") "stations file SHA: ", sha1(stations_file,dirname)       
+      
+      RETURN
+      END SUBROUTINE write_file_SHAs
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       
       END MODULE read_dginp

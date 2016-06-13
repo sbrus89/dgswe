@@ -2,7 +2,7 @@
       
       USE globals, ONLY: rp,ne,np,norder,order,mnnds,nnds,el_type, &
                          hbm,elhb
-      USE read_dginp, ONLY: out_direc
+      USE read_dginp, ONLY: out_direc,grid_file,bathy_file
       USE vandermonde, ONLY: vandermonde_area
       USE lapack_interfaces
       
@@ -36,13 +36,7 @@
         
         CALL DGETRS("T",n,1,V(1,1,eo),mnnds,ipiv(1,eo),hbm(1,el),mnnds,info)                         
         
-      ENDDO
-      
-      OPEN(unit=65,FILE=trim(out_direc) //'hb_modal.d')
-      DO dof = 1,mnnds
-        WRITE(65,"(16000(e24.17,1x))") (hbm(dof,el), el = 1,ne)
-      ENDDO
-      CLOSE(65)     
+      ENDDO          
      
      
       RETURN

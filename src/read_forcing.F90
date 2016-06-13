@@ -12,7 +12,7 @@
 
       IMPLICIT NONE
       INTEGER :: bfr,nd,seg,segtype
-      LOGICAL :: file_exists,any_nfb
+      LOGICAL :: file_exists,any_nfb         
       
       
       INQUIRE(FILE=forcing_file, EXIST = file_exists)
@@ -20,6 +20,8 @@
         PRINT*, "fort.15 file does not exist"
         CALL abort()
       ENDIF
+      
+         
       
       OPEN(UNIT=15, FILE=forcing_file)
 

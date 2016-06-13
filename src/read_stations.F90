@@ -16,6 +16,8 @@
       INQUIRE(FILE=trim(stations_file),EXIST=file_exists)
       
       IF(file_exists) THEN
+        
+        IF (myrank == 0 ) PRINT "(A)", "Reading in stations file"
       
         OPEN(UNIT=15,FILE=trim(stations_file))
         READ(15,*) nsta

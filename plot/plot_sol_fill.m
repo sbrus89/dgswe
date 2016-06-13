@@ -64,8 +64,8 @@ format = 'ascii';
 % grd_name = 'galveston_tri_spline.grd';
 % plot_folder = 'velplot_scale';
 
-grd_direc = '/home/sbrus/data-drive/galveston_spline/grids/original/';
-sol_direc = '/home/sbrus/data-drive/galveston_spline/tri/p3/ctp3/hbp3/';
+grd_direc = '/home/sbrus/data-drive/galveston_spline/grids/';
+sol_direc = '/home/sbrus/Codes/dgswe/work/';
 grd_name = 'galveston_tri.grd';
 plot_folder = 'velplot_scale';
 
@@ -88,17 +88,6 @@ zoom_area = [];
 [nn,~] = size(VX);
 
 
-% fid = fopen([grd_direc,'elem_nodes.d']);
-% idx = zeros(ne,8);
-% for i = 1:ne
-%     line = fgetl(fid);
-%     v = sscanf(line,' %d %d %f %f %f %f %f %f',8)';
-%     idx(i,1) = v(1);
-%     idx(i,2) = v(2);
-%     idx(i,3:v(2)+2) = v(3:v(2)+2);
-% end
-% hbnodes = idx(:,3:end);
-
 
 FramesFolder = strcat(sol_direc,plot_folder) ;
 if ( exist(FramesFolder,'dir') == 0 ) 
@@ -111,12 +100,7 @@ for el = 1:ne
        el_type(el) = 1;
    elseif nelnds(el) == 4
        el_type(el) = 2;
-   elseif nelnds(el) == (ctp+1)*(ctp+2)/2
-       el_type(el) = 3;
-   elseif nelnds(el) == (ctp+1)^2
-       el_type(el) = 4;
-   end
-       
+   end       
 end
 
 fid = fopen([sol_direc,'modal2nodal.d']);
@@ -142,19 +126,6 @@ mndof = max(ndof);
 
 
 
-fid_hb = fopen([sol_direc,'hb_modal.d']);
-hbm = fscanf(fid_hb,'%g', [ne mndof])'; 
-hb = zeros(9,ne,1);
-for el = 1:ne
-    
-    n = nelnds(el);
-    et = el_type(el);
-    
-    hb(1:n,el,1) = m2n(1:n,1:ndof(et+4),et+4)*hbm(1:ndof(et+4),el);
-%     hb(1:n,el,1) = 10;
-    
-end
-fclose(fid_hb);
 
 
 
@@ -164,14 +135,28 @@ if strcmp(format,'nc')
     N = finfo.Dimensions(3).Length;
     
     t = ncread([sol_direc,'solution.nc'],'t');
+    Z = ncread([sol_direc,'solution.nc'],'Z',[1,1,1],[ne,N,nsnap])';
+    Qx = ncread([sol_direc,'solution.nc'],'Qx',[1,1,1],[ne,N,nsnap])';
+    Qy = ncread([sol_direc,'solution.nc'],'Qy',[1,1,1],[ne,N,nsnap])';
 elseif strcmp(format,'ascii')
-    fid_H = fopen([sol_direc,'solution_H.d']);
-    fid_Qx = fopen([sol_direc,'solution_Qx.d']);
-    fid_Qy = fopen([sol_direc,'solution_Qy.d']);
+
+    [Z,t] = read_solution(sol_direc,'Z.sol',nsnap);
+    [Qx,~] = read_solution(sol_direc,'Qx.sol',nsnap);
+    [Qy,~] = read_solution(sol_direc,'Qy.sol',nsnap);
+    [hbm,~] = read_solution(sol_direc,'hb.sol',nsnap);
+
+end
+
+
+
+hb = zeros(9,ne,1);
+for el = 1:ne
     
-    line = fgetl(fid_H);
-    line = fgetl(fid_Qx);
-    line = fgetl(fid_Qy);
+    n = nelnds(el);
+    et = el_type(el);
+    
+    hb(1:n,el,1) = m2n(1:n,1:ndof(et+4),et+4)*hbm(1:ndof(et+4),el,1);
+    
 end
 
 
@@ -190,52 +175,24 @@ v = zeros(9,ne,nsnap);
 
 
 
-snap = 0;
-% while ~feof(fid_H) && snap < nsnap
-for snap = 1:nsnap
-    
-%     snap = snap + 1;
-    
-    if strcmp(format,'ascii')
-        th = fscanf(fid_H,' %g ', 1); % read in time
-        Z = fscanf(fid_H,' %g ', [ne mndof])'; % read in H solution at time t
-        %     H = fscanf(fid_H,' %g ', [ne mndof])'; % read in H solution at time t
-        
-        tqx = fscanf(fid_Qx,' %g ', 1); % read in time
-        Qx = fscanf(fid_Qx,' %g ', [ne mndof])'; % read in Qx solution at time t
-        
-        t(snap) = fscanf(fid_Qy,' %g ', 1); % read in time
-        Qy = fscanf(fid_Qy,' %g ', [ne mndof])'; % read in Qy solution at time t
-    elseif strcmp(format,'nc')
-        
-        Z = ncread([sol_direc,'solution.nc'],'Z',[1,1,snap],[ne,N,1])';
-        Qx = ncread([sol_direc,'solution.nc'],'Qx',[1,1,snap],[ne,N,1])';
-        Qy = ncread([sol_direc,'solution.nc'],'Qy',[1,1,snap],[ne,N,1])';
-    end
-    
+for snap = 1:nsnap       
     
     for el = 1:ne
         
         n = nelnds(el);
         et = el_type(el);
         
-        Zv(1:n,el,snap) = m2n(1:n,1:ndof(et),et)*Z(1:ndof(et),el);
-%         Hv(1:n,el,snap) = m2n(1:n,1:ndof(et),et)*H(1:ndof(et),el);
-        Qxv(1:n,el,snap) = m2n(1:n,1:ndof(et),et)*Qx(1:ndof(et),el);
-        Qyv(1:n,el,snap) = m2n(1:n,1:ndof(et),et)*Qy(1:ndof(et),el);
-        Hv(1:n,el,snap) = Zv(1:n,el,snap)+HB(EToV(el,1:n));
-%         Hv(1:n,el,snap) = Zv(1:n,el,snap)+hbnodes(el,1:n)';
-%         Zv(1:n,el,snap) = Hv(1:n,el,snap)-HB(EToV(el,1:n));
+        Zv(1:n,el,snap) = m2n(1:n,1:ndof(et),et)*Z(1:ndof(et),el,snap);
+        Qxv(1:n,el,snap) = m2n(1:n,1:ndof(et),et)*Qx(1:ndof(et),el,snap);
+        Qyv(1:n,el,snap) = m2n(1:n,1:ndof(et),et)*Qy(1:ndof(et),el,snap);
+        Hv(1:n,el,snap) = Zv(1:n,el,snap)+hb(1:n,el,1);
         
-        u(1:n,el,snap) = Qxv(1:n,el,snap)./hb(1:n,el,1);
-        v(1:n,el,snap) = Qyv(1:n,el,snap)./hb(1:n,el,1);
+        u(1:n,el,snap) = Qxv(1:n,el,snap)./Hv(1:n,el,snap);
+        v(1:n,el,snap) = Qyv(1:n,el,snap)./Hv(1:n,el,snap);
         
     end
     
 end
-
-% u = Qxv./Hv;
-% v = Qyv./Hv;
 
 vel = sqrt(u.^2 + v.^2);
 
@@ -270,10 +227,8 @@ for el = 1:ne
     end
     
     if grid_on == 0
-%         fill(VX(EToV(el,1:n),1),VX(EToV(el,1:n),2),HB(EToV(el,1:n)),'EdgeColor','none')
         fill(VX(EToV(el,1:n),1),VX(EToV(el,1:n),2),hb(1:n,el),'EdgeColor','none')
     else
-%         fill(VX(EToV(el,1:n),1),VX(EToV(el,1:n),2),HB(EToV(el,1:n)))
         fill(VX(EToV(el,1:n),1),VX(EToV(el,1:n),2),hb(1:n,el))
     end
     

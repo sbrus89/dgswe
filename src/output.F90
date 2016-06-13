@@ -6,7 +6,8 @@
 
       USE globals, ONLY: rp
       USE messenger2, ONLY: myrank,dirname,lname
-      USE read_dginp, ONLY: out_direc,grid_file      
+      USE read_dginp, ONLY: out_direc,grid_file
+      USE read_write_output, ONLY: file_init,write_solution_snap,write_stations_snap
        
       IMPLICIT NONE
       INTEGER :: ncid
@@ -79,18 +80,20 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!      
         
-      SUBROUTINE write_solution(init)
+      SUBROUTINE output_solution(init)
       
-      USE globals, ONLY: t,mndof,ne,tskp_sol,nout_sol, &
-                         Hwrite,Zwrite,Qxwrite,Qywrite, &
-                         Znc,Qxnc,Qync
+      USE globals, ONLY: t,mndof,ne,mnnds,tskp_sol,nout_sol, &
+                         Hwrite,Zwrite,Qxwrite,Qywrite,hbm, &
+                         Zout,Qxout,Qyout, &
+                         Zsol_unit,Qxsol_unit,Qysol_unit
       USE read_dginp, ONLY: tf,dt,sol_opt,sol_snap                         
 
       IMPLICIT NONE
 
       INTEGER :: dof,el
       LOGICAL :: init
-      
+      INTEGER :: nout_hb
+      INTEGER :: hb_unit
       INTEGER, DIMENSION(3) :: var_start,var_end
       REAL(rp), DIMENSION(1) :: t_tmp
      
@@ -101,18 +104,20 @@
           PRINT "(A)", "Initializing solution output files..."         
         ENDIF
         
+        ALLOCATE(Zout(ne,mndof),Qxout(ne,mndof),Qyout(ne,mndof))          
+        
         ! Set number of timesteps between output
         CALL time_snaps(sol_opt,sol_snap,tf,dt,tskp_sol,nout_sol) 
-
+        nout_hb = 1
       
-        ! Initialize files and write initial condition            
-        OPEN(unit=63,file=trim(out_direc) // 'solution_H.d')
-        OPEN(unit=641,file=trim(out_direc) // 'solution_Qx.d')
-        OPEN(unit=642,file=trim(out_direc) // 'solution_Qy.d')
-
-        WRITE(63,"(A)") grid_file
-        WRITE(641,"(A)") grid_file
-        WRITE(642,"(A)") grid_file
+        ! Initialize files and write initial condition                    
+        CALL file_init(out_direc,"Z.sol",mndof,ne,nout_sol+1,Zsol_unit)
+        CALL file_init(out_direc,"Qx.sol",mndof,ne,nout_sol+1,Qxsol_unit)
+        CALL file_init(out_direc,"Qy.sol",mndof,ne,nout_sol+1,Qysol_unit) 
+        
+        CALL file_init(out_direc,"hb.sol",mndof,ne,nout_hb,hb_unit)
+        CALL write_solution_snap(hb_unit,mnnds,ne,t,hbm,"T")         
+        CLOSE(hb_unit)
         
         ! Set up netcdf output files
         CALL nc_setup()       
@@ -126,34 +131,22 @@
                   
       ENDIF
 
-
-
-      WRITE(63,"(e24.17)") t
-      DO dof = 1,mndof
-        WRITE(63,"(16000(e24.17,1x))") (Zwrite(el,dof)%ptr, el = 1,ne)
-      ENDDO
-
-      WRITE(641,"(e24.17)") t
-      DO dof = 1,mndof
-        WRITE(641,"(16000(e24.17,1x))") (Qxwrite(el,dof)%ptr, el = 1,ne)
-      ENDDO
-
-      WRITE(642,"(e24.17)") t
-      DO dof = 1,mndof
-        WRITE(642,"(16000(e24.17,1x))") (Qywrite(el,dof)%ptr, el = 1,ne)
-      ENDDO     
       
+      DO dof = 1,mndof
+        DO el = 1,ne
+          Zout(el,dof)  = Zwrite(el,dof)%ptr
+          Qxout(el,dof) = Qxwrite(el,dof)%ptr
+          Qyout(el,dof) = Qywrite(el,dof)%ptr
+        ENDDO
+      ENDDO
       
+      CALL write_solution_snap(Zsol_unit,mndof,ne,t,Zout) 
+      CALL write_solution_snap(Qxsol_unit,mndof,ne,t,Qxout)      
+      CALL write_solution_snap(Qysol_unit,mndof,ne,t,Qyout)            
       
       
 #ifdef NETCDF      
-      DO dof = 1,mndof
-        DO el = 1,ne
-          Znc(el,dof)  = Zwrite(el,dof)%ptr
-          Qxnc(el,dof) = Qxwrite(el,dof)%ptr
-          Qync(el,dof) = Qywrite(el,dof)%ptr
-        ENDDO
-      ENDDO
+
       
       
       
@@ -171,115 +164,92 @@
       
 
       RETURN
-      END SUBROUTINE write_solution
+      END SUBROUTINE output_solution
       
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!        
 
-      SUBROUTINE write_stations(init)
+      SUBROUTINE output_stations(init)
       
       USE globals, ONLY: t,ndof,mndof,nsta,xysta,elsta,el_type,hbsta,phi_sta,tskp_sta,nout_sta, &
                          Hwrite,Zwrite,Qxwrite,Qywrite, &
-                         Znc,Qxnc,Qync
+                         Zsta,Qxsta,Qysta, &
+                         Zsta_unit,Qxsta_unit,Qysta_unit
       USE read_dginp, ONLY: tf,dt,sta_opt,sta_snap                         
 
       IMPLICIT NONE
 
       INTEGER :: dof,sta
       INTEGER :: elin,et
+      INTEGER :: ncol
+      INTEGER :: nout_hb
+      INTEGER :: hb_unit      
       LOGICAL :: init
-      REAL(rp) :: Zsta,Qxsta,Qysta
-      
+
       INTEGER, DIMENSION(3) :: var_start,var_end
       REAL(rp), DIMENSION(1) :: t_tmp
      
 
-      IF (init) THEN
+      IF (init) THEN      
+      
+        IF (sta_opt > 0) THEN
+          CALL read_stations()         
+          CALL find_stations()
+        ELSE 
+          nsta = 0
+          RETURN
+        ENDIF      
       
         IF (myrank == 0) THEN 
           PRINT "(A)", "Initializing station output files..."      
-        ENDIF
-      
-        IF (sta_opt > 0) THEN
-          CALL find_stations()
         ENDIF      
+        
+        ALLOCATE(Zsta(nsta),Qxsta(nsta),Qysta(nsta))
       
         ! Set number of timesteps between output
         CALL time_snaps(sta_opt,sta_snap,tf,dt,tskp_sta,nout_sta)    
-      
-      
-        ! Initialize files and write initial condition              
-        OPEN(UNIT=611,FILE=trim(out_direc) //"station_H.d")
-        OPEN(UNIT=612,FILE=trim(out_direc) //"station_hb.d")
-        OPEN(UNIT=621,FILE=trim(out_direc) //"station_Qx.d")     
-        OPEN(UNIT=622,FILE=trim(out_direc) //"station_Qy.d")   
-
-        WRITE(611,"(A)") grid_file
-        WRITE(612,"(A)") grid_file        
-        WRITE(621,"(A)") grid_file
-        WRITE(622,"(A)") grid_file
+        nout_hb = 1
+        ncol = 1
         
-        WRITE(611,*) nsta
-        WRITE(612,*) nsta        
-        WRITE(621,*) nsta
-        WRITE(622,*) nsta        
+        ! Initialize files and write initial condition                     
+        CALL file_init(out_direc,"Z.sta",nsta,ncol,nout_sta+1,Zsta_unit)   
+        CALL file_init(out_direc,"Qx.sta",nsta,ncol,nout_sta+1,Qxsta_unit)    
+        CALL file_init(out_direc,"Qy.sta",nsta,ncol,nout_sta+1,Qysta_unit)  
         
-      DO sta = 1,nsta                       
-        WRITE(612,"(E24.17)") hbsta(sta)
-      ENDDO                
-      CLOSE(612)
+        CALL file_init(out_direc,"hb.sta",nsta,ncol,nout_hb,hb_unit)            
+        CALL write_stations_snap(hb_unit,nsta,t,hbsta)         
+        CLOSE(hb_unit)                
         
         ! Set up netcdf output files
 !         CALL nc_setup()    
 
-
-        
-      ELSE
-
-!         IF(myrank == 0) THEN
-!           PRINT("(A,e15.8)"), 't = ', t
-!         ENDIF
-        
-                  
       ENDIF
 
 
-      WRITE(611,*) t
-      WRITE(621,*) t
-      WRITE(622,*) t           
+                    
+      Zsta = 0d0
+      Qxsta = 0d0
+      Qysta = 0d0   
                 
       DO sta = 1,nsta
                
         elin = elsta(sta)                 
         et = el_type(elin)                 
-                    
-        Zsta = 0d0
-        Qxsta = 0d0
-        Qysta = 0d0
+
         DO dof = 1,ndof(et)
-          Zsta  = Zsta  + Zwrite(elin,dof)%ptr*phi_sta(dof,sta)
-          Qxsta = Qxsta + Qxwrite(elin,dof)%ptr*phi_sta(dof,sta)            
-          Qysta = Qysta + Qywrite(elin,dof)%ptr*phi_sta(dof,sta)
+          Zsta(sta)  = Zsta(sta)  + Zwrite(elin,dof)%ptr*phi_sta(dof,sta)
+          Qxsta(sta) = Qxsta(sta) + Qxwrite(elin,dof)%ptr*phi_sta(dof,sta)            
+          Qysta(sta) = Qysta(sta) + Qywrite(elin,dof)%ptr*phi_sta(dof,sta)
         ENDDO                
-          
-        WRITE(611,"(E24.17)") Zsta
-        WRITE(621,"(E24.17)") Qxsta
-        WRITE(622,"(E24.17)") Qysta
       ENDDO  
       
       
       
+      CALL write_stations_snap(Zsta_unit,nsta,t,Zsta) 
+      CALL write_stations_snap(Qxsta_unit,nsta,t,Qxsta)    
+      CALL write_stations_snap(Qysta_unit,nsta,t,Qysta)          
       
 #ifdef NETCDF      
-!       DO dof = 1,mndof
-!         DO el = 1,ne
-!           Znc(el,dof)  = Zwrite(el,dof)%ptr
-!           Qxnc(el,dof) = Qxwrite(el,dof)%ptr
-!           Qync(el,dof) = Qywrite(el,dof)%ptr
-!         ENDDO
-!       ENDDO
-!       
-!       
 !       
 !       var_start = (/ 1, 1, nsnap /)
 !       var_end = (/ ne, mndof, 1 /)
@@ -295,7 +265,7 @@
       
 
       RETURN
-      END SUBROUTINE write_stations
+      END SUBROUTINE output_stations
       
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!        
@@ -338,25 +308,28 @@
 
       SUBROUTINE close_output()     
       
+      USE globals, ONLY: Zsol_unit,Qxsol_unit,Qysol_unit, &
+                         Zsta_unit,Qxsta_unit,Qysta_unit
+      
       IMPLICIT NONE      
       
       INTEGER :: i
       
 
-      CLOSE(63)
-      CLOSE(641)
-      CLOSE(642)
+      CLOSE(Zsol_unit)
+      CLOSE(Qxsol_unit)
+      CLOSE(Qysol_unit)
       
-      CLOSE(611)
-      CLOSE(621)
-      CLOSE(622)
+      CLOSE(Zsta_unit)
+      CLOSE(Qxsta_unit)
+      CLOSE(Qysta_unit)
 
 #ifdef NETCDF      
       CALL check(NF90_CLOSE(ncid))
 #endif      
       
       RETURN
-      END SUBROUTINE        
+      END SUBROUTINE close_output       
       
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!      

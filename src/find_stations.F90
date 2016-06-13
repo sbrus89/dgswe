@@ -15,7 +15,6 @@
       REAL(rp) :: r(1),s(1),hb,rs(2)
       REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: l,phi           
       
-      CALL read_stations() 
 
       CALL find_element_init(nel_type,nverts,np,nnds,nn,xy,nepn,epn)         
 

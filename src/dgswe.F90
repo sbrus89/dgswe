@@ -25,7 +25,7 @@
       CALL message_init()
       
       ! Read in the keyword (or fixed) format input file 
-      CALL read_input()
+      CALL read_input(myrank,dirname)        
 
       ! Compute # of dofs and # of nodes straight/curved elements etc.
       CALL sizes()
@@ -75,14 +75,14 @@
       ! Initialize the MPI persistent message passing calls
       CALL communication_setup()    
 
-      OPEN(unit=195,file=trim(out_direc) // 'edge_check.d')        
-
-      DO et = 1,2*nel_type
-        DO i = 1,mnnds
-          WRITE(195,"(100(ES24.17,1x))") (dpsids(i,j,et), j = 1,mnqpta+4*mnqpte)
-        ENDDO
-      WRITE(195,*) " "
-      ENDDO      
+!       OPEN(unit=195,file=trim(out_direc) // 'edge_check.d')        
+! 
+!       DO et = 1,2*nel_type
+!         DO i = 1,mnnds
+!           WRITE(195,"(100(ES24.17,1x))") (dpsids(i,j,et), j = 1,mnqpta+4*mnqpte)
+!         ENDDO
+!       WRITE(195,*) " "
+!       ENDDO      
       
 #ifdef openmp
       t_start = omp_get_wtime()
@@ -99,8 +99,8 @@
       cnt_sol = 0
       cnt_sta = 0
  
-      CALL write_solution(.true.)
-      CALL write_stations(.true.)
+      CALL output_solution(.true.)
+      CALL output_stations(.true.)
       
       
       
@@ -127,13 +127,13 @@
 
          cnt_sol = cnt_sol + 1
          IF(sol_opt > 0 .and. cnt_sol == tskp_sol) THEN
-           CALL write_solution(.false.)             
+           CALL output_solution(.false.)             
            cnt_sol = 0
          ENDIF
          
          cnt_sta = cnt_sta + 1
          IF(sta_opt > 0 .and. cnt_sta == tskp_sta) THEN
-           CALL write_stations(.false.)             
+           CALL output_stations(.false.)             
            cnt_sta = 0
          ENDIF         
 

@@ -97,18 +97,18 @@
       ENDDO
 
 
-      OPEN(unit=10,file=trim(out_direc) // 'projection.d')
+      OPEN(unit=112,file=trim(out_direc) // 'projection.d')
 
-      WRITE(10,*) ndof(1)
+      WRITE(112,*) ndof(1)
       DO i = 1,3
-        WRITE(10,"(160(e24.17,1x))") (ml2(i,j),j=1,ndof(1))
+        WRITE(112,"(160(e24.17,1x))") (ml2(i,j),j=1,ndof(1))
       ENDDO
 
       DO i = 1,3
-        WRITE(10,"(3(e24.17,1x))") (mml(i,j),j=1,3)
+        WRITE(112,"(3(e24.17,1x))") (mml(i,j),j=1,3)
       ENDDO        
             
-      CLOSE(10)
+      CLOSE(112)
 
       RETURN
       END SUBROUTINE modal2nodal

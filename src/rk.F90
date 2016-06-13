@@ -302,7 +302,7 @@
                          t
                          
       USE quit, ONLY: abort 
-      USE output, ONLY: write_solution,close_output
+      USE output, ONLY: output_solution,close_output
       USE read_dginp, ONLY: npart
       
       IMPLICIT NONE
@@ -320,7 +320,7 @@
                 IF (Z(el,dof) /= Z(el,dof)) THEN
                   PRINT*, "NaN detected in H solution"
                   PRINT("(A,e15.8)"), 't = ', t                  
-                  CALL write_solution(.false.)
+                  CALL output_solution(.false.)
                   CALL close_output()
                   CALL abort()
                 ENDIF
@@ -330,7 +330,7 @@
                 IF (Qx(el,dof) /= Qx(el,dof)) THEN
                   PRINT*, "NaN detected in Qx solution"
                   PRINT("(A,e15.8)"), 't = ', t
-                  CALL write_solution(.false.)
+                  CALL output_solution(.false.)
                   CALL close_output()                  
                   CALL abort()
                 ENDIF
@@ -340,7 +340,7 @@
                 IF (Qy(el,dof) /= Qy(el,dof)) THEN
                   PRINT*, "NaN detected in Qy solution"
                   PRINT("(A,e15.8)"), 't = ', t
-                  CALL write_solution(.false.)
+                  CALL output_solution(.false.)
                   CALL close_output()                  
                   CALL abort()
                 ENDIF

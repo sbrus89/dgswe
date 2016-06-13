@@ -22,7 +22,7 @@
       READ(*,*) nproc
       PRINT*, " "
       
-      CALL read_input()
+      CALL read_input(0,".")
       
       CALL sizes()
       

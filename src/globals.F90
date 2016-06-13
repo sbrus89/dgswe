@@ -235,9 +235,19 @@
       TYPE(edge_ptr_array), ALLOCATABLE, DIMENSION(:,:) :: Qxwrite
       TYPE(edge_ptr_array), ALLOCATABLE, DIMENSION(:,:) :: Qywrite
       
-      REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: Znc 
-      REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: Qxnc 
-      REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: Qync       
+      REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: Zout 
+      REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: Qxout 
+      REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: Qyout 
+      REAL(rp), ALLOCATABLE, DIMENSION(:) :: Zsta
+      REAL(rp), ALLOCATABLE, DIMENSION(:) :: Qxsta
+      REAL(rp), ALLOCATABLE, DIMENSION(:) :: Qysta
+      
+      INTEGER :: Zsol_unit
+      INTEGER :: Qxsol_unit
+      INTEGER :: Qysol_unit
+      INTEGER :: Zsta_unit
+      INTEGER :: Qxsta_unit
+      INTEGER :: Qysta_unit
       
       
       REAL(rp), ALLOCATABLE, DIMENSION(:) :: Qxin,Qyin,Hin,Zin
