@@ -19,6 +19,7 @@
       REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: Z_global, Qx_global, Qy_global, hb_global
       REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: Zsta_global, Qxsta_global, Qysta_global, hbsta_global      
       REAL(rp), ALLOCATABLE, DIMENSION(:) :: t_sol,t_sta
+      LOGICAL :: post=.true.
       
       CALL version_information(unit=6)
       
@@ -127,18 +128,18 @@
       
       
       PRINT*, "Writing solutions"
-      CALL write_solution_full(out_direc,'hb.sol',ndof,tne,1,t_sol,hb_global)      
-      CALL write_solution_full(out_direc,'Z.sol',ndof,tne,nout_sol+1,t_sol,Z_global)
-      CALL write_solution_full(out_direc,'Qx.sol',ndof,tne,nout_sol+1,t_sol,Qx_global)      
-      CALL write_solution_full(out_direc,'Qy.sol',ndof,tne,nout_sol+1,t_sol,Qy_global) 
+      CALL write_solution_full(out_direc,'hb.sol',ndof,tne,1,t_sol,hb_global,post)      
+      CALL write_solution_full(out_direc,'Z.sol',ndof,tne,nout_sol+1,t_sol,Z_global,post)
+      CALL write_solution_full(out_direc,'Qx.sol',ndof,tne,nout_sol+1,t_sol,Qx_global,post)      
+      CALL write_solution_full(out_direc,'Qy.sol',ndof,tne,nout_sol+1,t_sol,Qy_global,post) 
       PRINT*, "  done"
 
       
       PRINT*, "Writing stations"
-      CALL write_stations_full(out_direc,'hb.sta',nsta,1,t_sta,hbsta_global)      
-      CALL write_stations_full(out_direc,'Z.sta',nsta,nout_sta+1,t_sta,Zsta_global)
-      CALL write_stations_full(out_direc,'Qx.sta',nsta,nout_sta+1,t_sta,Qxsta_global)
-      CALL write_stations_full(out_direc,'Qy.sta',nsta,nout_sta+1,t_sta,Qysta_global)      
+      CALL write_stations_full(out_direc,'hb.sta',nsta,1,t_sta,hbsta_global,post)      
+      CALL write_stations_full(out_direc,'Z.sta',nsta,nout_sta+1,t_sta,Zsta_global,post)
+      CALL write_stations_full(out_direc,'Qx.sta',nsta,nout_sta+1,t_sta,Qxsta_global,post)
+      CALL write_stations_full(out_direc,'Qy.sta',nsta,nout_sta+1,t_sta,Qysta_global,post)      
       PRINT*, "  done"
 
       

@@ -3,11 +3,11 @@
       IMPLICIT NONE
       
       CHARACTER(:), ALLOCATABLE, PARAMETER :: gitBranch = "master" 
-      CHARACTER(:), ALLOCATABLE, PARAMETER :: gitSHA = "b08fa604cd455d8dd1e05739072791b1f8c07833 +" 
+      CHARACTER(:), ALLOCATABLE, PARAMETER :: gitSHA = "9b2e8208b4afa99cf6aa747bdf44183270eb3072 +" 
       CHARACTER(:), ALLOCATABLE, PARAMETER :: compiler_version = "ifort version 14.0.0" 
-      CHARACTER(:), ALLOCATABLE, PARAMETER :: compiler_flags = "-O3 -xHost -Iodir_dgprep/" 
-      CHARACTER(:), ALLOCATABLE, PARAMETER :: modified_files = "../plot/plot_PE_grid.m ../plot/plot_grid.m ../rimls/work/rimls.inp ../stations/plot/plot_adcirc_stations.m ../stations/plot/plot_grid.m ../stations/plot/plot_stations.m ../stations/src/stations.f90" 
-      CHARACTER(:), ALLOCATABLE, PARAMETER :: compile_date = "Mon Jun 13 14:23:46 EDT 2016" 
+      CHARACTER(:), ALLOCATABLE, PARAMETER :: compiler_flags = "-O3 -xHost -Iodir_dgpost/" 
+      CHARACTER(:), ALLOCATABLE, PARAMETER :: modified_files = "../plot/plot_PE_grid.m ../plot/plot_grid.m ../post/dgpost.F90 ../rimls/work/rimls.inp ../src/read_write_output.F90 ../src/system.F90 ../src/version.F90 ../stations/plot/plot_adcirc_stations.m ../stations/plot/plot_grid.m ../stations/plot/plot_stations.m ../stations/src/stations.f90" 
+      CHARACTER(:), ALLOCATABLE, PARAMETER :: compile_date = "Mon Jun 13 16:18:19 EDT 2016" 
       CHARACTER(:), ALLOCATABLE, PARAMETER :: host = "chl-tilos" 
             
       CONTAINS      

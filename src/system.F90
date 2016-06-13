@@ -23,8 +23,8 @@
       
       INQUIRE(FILE=file_name,EXIST=file_exists)
       IF (file_exists) THEN
-        CALL EXECUTE_COMMAND_LINE("sha1sum "//file_name//" > "//out_dir//"/sha1.out")    
-        OPEN(UNIT=9, FILE=out_dir//"/sha1.out")
+        CALL EXECUTE_COMMAND_LINE("sha1sum "//TRIM(ADJUSTL(file_name))//" > "//TRIM(ADJUSTL(out_dir))//"sha1.out")    
+        OPEN(UNIT=9, FILE=TRIM(ADJUSTL(out_dir))//"sha1.out")
         READ(9,"(A)") sha1
         CLOSE(9, STATUS='DELETE')              
 !        PRINT*, sha1

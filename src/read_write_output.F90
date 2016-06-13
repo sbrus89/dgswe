@@ -9,7 +9,7 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!    
 
-      SUBROUTINE file_init(out_direc,filename,nrow,ncol,nsnap,file_unit)
+      SUBROUTINE file_init(out_direc,filename,nrow,ncol,nsnap,file_unit,post)
       
       
       USE version, ONLY: version_information
@@ -23,14 +23,27 @@
       INTEGER, INTENT(IN) :: ncol
       INTEGER, INTENT(IN) :: nsnap    
       INTEGER, INTENT(OUT) :: file_unit  
+      LOGICAL, INTENT(IN), OPTIONAL :: post
+      
+      INTEGER :: copy
+      
+      copy = 0
+      IF (PRESENT(post)) THEN ! if post, copy version information from PE0000
+        copy = 1
+      ENDIF
                
       file_unit = unit_counter               
       OPEN(UNIT=file_unit,file=TRIM(ADJUSTL(out_direc)) // TRIM(ADJUSTL(filename)))
       unit_counter = unit_counter + 1
       
-      CALL version_information(file_unit)
+      IF (copy == 0) THEN
+        CALL version_information(file_unit)
+      ELSE
+        CALL copy_version_header(file_unit,filename) 
+      ENDIF
+      WRITE(file_unit,"(A)") "-----------------------------------------------------------------------"      
       CALL write_input(file_unit)
-      CALL write_file_SHAs(file_unit,".")
+      CALL write_file_SHAs(file_unit,out_direc)
       WRITE(file_unit,"(A)") "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
       WRITE(file_unit,*) nrow,ncol,nsnap      
 
@@ -106,7 +119,7 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
 
-      SUBROUTINE write_solution_full(out_direc,file_name,ndof,ne,nsnap,t_sol,solution)
+      SUBROUTINE write_solution_full(out_direc,file_name,ndof,ne,nsnap,t_sol,solution,post)
       
       IMPLICIT NONE
       
@@ -117,11 +130,19 @@
       INTEGER, INTENT(IN) :: nsnap
       REAL(rp), DIMENSION(:), INTENT(IN) :: t_sol
       REAL(rp), DIMENSION(:,:,:), INTENT(IN) :: solution
+      LOGICAL, INTENT(IN), OPTIONAL :: post
       
       INTEGER :: file_unit
       INTEGER :: snap
+      
+      
+      IF (PRESENT(post)) THEN ! if post, copy version information from PE0000
+        CALL file_init(out_direc,file_name,ndof,ne,nsnap,file_unit,post) 
+      ELSE 
+        CALL file_init(out_direc,file_name,ndof,ne,nsnap,file_unit) 
+      ENDIF
             
-      CALL file_init(out_direc,file_name,ndof,ne,nsnap,file_unit)      
+     
       
       DO snap = 1,nsnap
         CALL write_solution_snap(file_unit,ndof,ne,t_sol(snap),solution(:,:,snap))
@@ -135,7 +156,7 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
 
-      SUBROUTINE write_stations_full(out_direc,file_name,nsta,nsnap,t_sta,stations)
+      SUBROUTINE write_stations_full(out_direc,file_name,nsta,nsnap,t_sta,stations,post)
       
       IMPLICIT NONE
       
@@ -145,13 +166,19 @@
       INTEGER, INTENT(IN) :: nsnap
       REAL(rp), DIMENSION(:), INTENT(IN) :: t_sta
       REAL(rp), DIMENSION(:,:), INTENT(IN) :: stations
+      LOGICAL, INTENT(IN), OPTIONAL :: post
       
       INTEGER :: file_unit
       INTEGER :: snap
       INTEGER :: ncol
+      
 
       ncol = 1
-      CALL file_init(out_direc,file_name,nsta,ncol,nsnap,file_unit)      
+      IF (PRESENT(post)) THEN ! if post, copy version information from PE0000
+        CALL file_init(out_direc,file_name,nsta,ncol,nsnap,file_unit,post)
+      ELSE
+        CALL file_init(out_direc,file_name,nsta,ncol,nsnap,file_unit)      
+      ENDIF
       
       DO snap = 1,nsnap
         CALL write_stations_snap(file_unit,nsta,t_sta(snap),stations(:,snap))
@@ -322,9 +349,38 @@
       RETURN
       END SUBROUTINE read_stations
       
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
 
+      SUBROUTINE copy_version_header(file_unit,filename)
+      
+      IMPLICIT NONE
+            
+      INTEGER, INTENT(IN) :: file_unit  
+      CHARACTER(*), INTENT(IN) :: filename
+      
+      CHARACTER(200) :: line
+                           
+      OPEN(UNIT=9,file='PE0000/'//TRIM(ADJUSTL(filename)))
+      
+      DO
+      
+        READ(9,"(A)") line      
+        
+        IF (line(1:10) == "----------") THEN
+          EXIT 
+        ELSE 
+          WRITE(file_unit,"(A)") line  
+        ENDIF
+      
+      ENDDO 
+   
+      CLOSE(9)
+      
+      RETURN
+      END SUBROUTINE copy_version_header
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
 
       END MODULE read_write_output
