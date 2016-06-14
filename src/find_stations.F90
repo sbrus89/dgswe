@@ -41,8 +41,8 @@
         CALL element_basis(et,p,ndof(et),npts,r,s,phi)           
         
         phi_sta(:,sta) = phi(:,1)           
-        elsta(sta) = elin                                
-        hbsta(nsta,1) = hb                                         
+        elsta(sta) = elin    
+        hbsta(sta,1) = hb           
       
       ENDDO
 
