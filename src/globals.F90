@@ -70,7 +70,6 @@
       INTEGER, ALLOCATABLE, DIMENSION(:) :: ndsta
       INTEGER, ALLOCATABLE, DIMENSION(:) :: elsta
       REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: xysta ! x,y coordinates of stations
-      REAL(rp), ALLOCATABLE, DIMENSION(:) :: hbsta
       REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: phi_sta      
       
       INTEGER, ALLOCATABLE, DIMENSION(:,:) :: ect ! element connectivity table
@@ -238,9 +237,10 @@
       REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: Zout 
       REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: Qxout 
       REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: Qyout 
-      REAL(rp), ALLOCATABLE, DIMENSION(:) :: Zsta
-      REAL(rp), ALLOCATABLE, DIMENSION(:) :: Qxsta
-      REAL(rp), ALLOCATABLE, DIMENSION(:) :: Qysta
+      REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: Zsta
+      REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: Qxsta
+      REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: Qysta
+      REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: hbsta      
       
       INTEGER :: Zsol_unit
       INTEGER :: Qxsol_unit

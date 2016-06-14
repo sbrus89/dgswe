@@ -120,13 +120,13 @@
       ! initialize the dginp option structure
       CALL dginp_setup(myrank)      
 
-      INQUIRE(FILE=dirname//'/'//'dgswe.inp', EXIST = file_exists)
+      INQUIRE(FILE=TRIM(ADJUSTL(dirname))//'/'//'dgswe.inp', EXIST = file_exists)
       IF(file_exists == .FALSE.) THEN
         PRINT*, "dgswe.inp file does not exist"
         CALL abort()
       ENDIF      
       
-      OPEN(UNIT=15,FILE=dirname//'/'//'dgswe.inp') 
+      OPEN(UNIT=15,FILE=TRIM(ADJUSTL(dirname))//'/'//'dgswe.inp') 
       
       opt_read = 0
       skipped = 0 
@@ -201,7 +201,7 @@
       
 !       OPEN(UNIT=16, FILE=dirname//'/'//'fort.16')      
       
-      OPEN(UNIT=15,FILE=dirname//'/'//'dgswe.inp',POSITION="rewind")      
+      OPEN(UNIT=15,FILE=TRIM(ADJUSTL(dirname))//'/'//'dgswe.inp',POSITION="rewind")      
       
       inp_read = 0
       skipped = 0
@@ -307,7 +307,7 @@
       blank = 0
       
       
-      OPEN(25,FILE=dirname//'/'//'dgswe.inp',POSITION="rewind")        
+      OPEN(UNIT=25,FILE=TRIM(ADJUSTL(dirname))//'/'//'dgswe.inp',POSITION="rewind")        
      
       
       DO WHILE (opt_read < nopt)
@@ -630,7 +630,7 @@
       stations_file = './' // dirname(1:lname) //'/'//"fort.sta"         
       
             
-      OPEN(UNIT=10,FILE=dirname(1:lname)//'/'//'dgswe.inp')
+      OPEN(UNIT=10,FILE=TRIM(ADJUSTL(dirname(1:lname)))//'/'//'dgswe.inp')
       CALL write_input(file_unit=10)
       CLOSE(10)
       

@@ -37,6 +37,7 @@
       CALL connect()
       
       IF (sta_opt > 0) THEN
+        CALL read_stations()
         CALL find_stations()
       ENDIF       
       

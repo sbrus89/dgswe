@@ -20,13 +20,13 @@
         IF (myrank == 0 ) PRINT "(A)", "Reading in stations file"
       
         OPEN(UNIT=15,FILE=trim(stations_file))
-        READ(15,*) nsta
+        READ(15,*) nsta        
         ALLOCATE(xysta(2,nsta))
         DO sta = 1,nsta
           READ(15,*) xysta(1,sta), xysta(2,sta)
         ENDDO
         CLOSE(15)      
-        
+
       ELSE
      
         IF (sta_opt > 0) THEN

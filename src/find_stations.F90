@@ -19,7 +19,7 @@
       CALL find_element_init(nel_type,nverts,np,nnds,nn,xy,nepn,epn)         
 
       ALLOCATE(phi_sta(mndof,nsta))      
-      ALLOCATE(elsta(nsta),hbsta(nsta))
+      ALLOCATE(elsta(nsta),hbsta(nsta,1))
       ALLOCATE(l(mnnds,1))
       ALLOCATE(phi(mndof,1))         
       
@@ -42,7 +42,7 @@
         
         phi_sta(:,sta) = phi(:,1)           
         elsta(sta) = elin                                
-        hbsta(sta) = hb                                         
+        hbsta(nsta,1) = hb                                         
       
       ENDDO
 

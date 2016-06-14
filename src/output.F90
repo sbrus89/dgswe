@@ -7,7 +7,7 @@
       USE globals, ONLY: rp
       USE messenger2, ONLY: myrank,dirname,lname
       USE read_dginp, ONLY: out_direc,grid_file
-      USE read_write_output, ONLY: file_init,write_solution_snap,write_stations_snap
+      USE read_write_output, ONLY: file_init,write_solution_snap
        
       IMPLICIT NONE
       INTEGER :: ncid
@@ -116,7 +116,7 @@
         CALL file_init(out_direc,"Qy.sol",mndof,ne,nout_sol+1,Qysol_unit) 
         
         CALL file_init(out_direc,"hb.sol",mndof,ne,nout_hb,hb_unit)
-        CALL write_solution_snap(hb_unit,mnnds,ne,t,hbm,"T")         
+        CALL write_solution_snap(hb_unit,mnnds,ne,t,hbm,"N")         
         CLOSE(hb_unit)
         
         ! Set up netcdf output files
@@ -140,9 +140,9 @@
         ENDDO
       ENDDO
       
-      CALL write_solution_snap(Zsol_unit,mndof,ne,t,Zout) 
-      CALL write_solution_snap(Qxsol_unit,mndof,ne,t,Qxout)      
-      CALL write_solution_snap(Qysol_unit,mndof,ne,t,Qyout)            
+      CALL write_solution_snap(Zsol_unit,mndof,ne,t,Zout,"T") 
+      CALL write_solution_snap(Qxsol_unit,mndof,ne,t,Qxout,"T")      
+      CALL write_solution_snap(Qysol_unit,mndof,ne,t,Qyout,"T")            
       
       
 #ifdef NETCDF      
@@ -204,7 +204,7 @@
           PRINT "(A)", "Initializing station output files..."      
         ENDIF      
         
-        ALLOCATE(Zsta(nsta),Qxsta(nsta),Qysta(nsta))
+        ALLOCATE(Zsta(nsta,1),Qxsta(nsta,1),Qysta(nsta,1))
       
         ! Set number of timesteps between output
         CALL time_snaps(sta_opt,sta_snap,tf,dt,tskp_sta,nout_sta)    
@@ -217,7 +217,7 @@
         CALL file_init(out_direc,"Qy.sta",nsta,ncol,nout_sta+1,Qysta_unit)  
         
         CALL file_init(out_direc,"hb.sta",nsta,ncol,nout_hb,hb_unit)            
-        CALL write_stations_snap(hb_unit,nsta,t,hbsta)         
+        CALL write_solution_snap(hb_unit,nsta,ncol,t,hbsta,"N")         
         CLOSE(hb_unit)                
         
         ! Set up netcdf output files
@@ -237,17 +237,17 @@
         et = el_type(elin)                 
 
         DO dof = 1,ndof(et)
-          Zsta(sta)  = Zsta(sta)  + Zwrite(elin,dof)%ptr*phi_sta(dof,sta)
-          Qxsta(sta) = Qxsta(sta) + Qxwrite(elin,dof)%ptr*phi_sta(dof,sta)            
-          Qysta(sta) = Qysta(sta) + Qywrite(elin,dof)%ptr*phi_sta(dof,sta)
+          Zsta(sta,1)  = Zsta(sta,1)  + Zwrite(elin,dof)%ptr*phi_sta(dof,sta)
+          Qxsta(sta,1) = Qxsta(sta,1) + Qxwrite(elin,dof)%ptr*phi_sta(dof,sta)            
+          Qysta(sta,1) = Qysta(sta,1) + Qywrite(elin,dof)%ptr*phi_sta(dof,sta)
         ENDDO                
       ENDDO  
       
       
       
-      CALL write_stations_snap(Zsta_unit,nsta,t,Zsta) 
-      CALL write_stations_snap(Qxsta_unit,nsta,t,Qxsta)    
-      CALL write_stations_snap(Qysta_unit,nsta,t,Qysta)          
+      CALL write_solution_snap(Zsta_unit,nsta,1,t,Zsta,"N") 
+      CALL write_solution_snap(Qxsta_unit,nsta,1,t,Qxsta,"N")    
+      CALL write_solution_snap(Qysta_unit,nsta,1,t,Qysta,"N")          
       
 #ifdef NETCDF      
 !       
