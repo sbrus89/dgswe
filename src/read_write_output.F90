@@ -4,7 +4,43 @@
 
       INTEGER :: unit_counter = 10
       
-      CONTAINS            
+      CONTAINS     
+      
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!        
+
+      SUBROUTINE time_snaps(opt,snap,tf,dt,tskp,nout)
+      
+      IMPLICIT NONE
+      
+      INTEGER, INTENT(IN) :: opt
+      REAL(rp), INTENT(IN) :: snap
+      REAL(rp), INTENT(IN) :: tf
+      REAL(rp), INTENT(IN) :: dt
+      INTEGER, INTENT(OUT) :: tskp
+      INTEGER, INTENT(OUT) :: nout
+      
+      
+        ! Set number of timesteps between output
+        SELECT CASE (opt)
+          CASE (0)                    ! output off
+            tskp = int(tf/dt) + 1     ! more than the number of total iterations
+            nout = 0
+          CASE (1)                    ! snap = number of total snaps
+            tskp = int(tf/(snap*dt))  
+            nout = int(snap)
+          CASE (2)                    ! snap = number of timesteps between snaps
+            tskp = int(snap)          
+            nout = int(tf/(snap*dt))
+          CASE (3)                    ! snap = number of seconds between snaps
+            tskp = int(snap/dt)       
+            nout = int(tf/snap)
+          CASE DEFAULT
+            PRINT*, "output option not supported"
+        END SELECT          
+      
+      RETURN
+      END SUBROUTINE time_snaps      
       
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!    
@@ -53,16 +89,16 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!    
 
-      SUBROUTINE write_solution_snap(file_unit,nrow,ncol,t_sol,solution,trnspse)
+      SUBROUTINE write_solution_snap(file_unit,nrow,ncol,trnspse,t_sol,solution)
       
       IMPLICIT NONE
       
       INTEGER, INTENT(IN) :: file_unit
       INTEGER, INTENT(IN) :: nrow      
       INTEGER, INTENT(IN) :: ncol
+      CHARACTER(1), INTENT(IN) :: trnspse      
       REAL(rp), INTENT(IN) :: t_sol
       REAL(rp), DIMENSION(:,:), INTENT(IN) :: solution
-      CHARACTER(1), INTENT(IN) :: trnspse
       
       INTEGER :: row
       INTEGER :: col
@@ -87,7 +123,7 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
 
-      SUBROUTINE write_solution_full(out_direc,file_name,ndof,ne,nsnap,t_sol,solution,trnspse,post)
+      SUBROUTINE write_solution_full(out_direc,file_name,ndof,ne,nsnap,trnspse,t_sol,solution,post)
       
       IMPLICIT NONE
       
@@ -96,9 +132,9 @@
       INTEGER, INTENT(IN) :: ndof
       INTEGER, INTENT(IN) :: ne
       INTEGER, INTENT(IN) :: nsnap
+      CHARACTER(1), INTENT(IN) :: trnspse      
       REAL(rp), DIMENSION(:), INTENT(IN) :: t_sol
       REAL(rp), DIMENSION(:,:,:), INTENT(IN) :: solution
-      CHARACTER(1), INTENT(IN) :: trnspse
       LOGICAL, INTENT(IN), OPTIONAL :: post
       
       INTEGER :: file_unit
@@ -114,7 +150,7 @@
      
       
       DO snap = 1,nsnap
-        CALL write_solution_snap(file_unit,ndof,ne,t_sol(snap),solution(:,:,snap),trnspse)
+        CALL write_solution_snap(file_unit,ndof,ne,trnspse,t_sol(snap),solution(:,:,snap))
       ENDDO
       
       CLOSE(file_unit)
@@ -125,7 +161,7 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
 
-      SUBROUTINE read_header(out_direc,filename,nrow,ncol,nsnap,file_unit)
+      SUBROUTINE read_solution_header(out_direc,filename,nrow,ncol,nsnap,file_unit)
       
       IMPLICIT NONE
             
@@ -137,6 +173,13 @@
       INTEGER, INTENT(OUT) :: file_unit  
       
       CHARACTER(10) :: flag
+      LOGICAL :: file_exists       
+      
+      INQUIRE(FILE=TRIM(ADJUSTL(out_direc)) // TRIM(ADJUSTL(filename)), EXIST=file_exists)
+      IF(file_exists == .FALSE.) THEN
+        PRINT*, "file does not exist"
+        STOP        
+      ENDIF      
                            
       file_unit = unit_counter                               
       OPEN(UNIT=file_unit,file=TRIM(ADJUSTL(out_direc)) // TRIM(ADJUSTL(filename)))
@@ -155,12 +198,12 @@
       READ(file_unit,*) nrow,ncol,nsnap        
       
       RETURN
-      END SUBROUTINE read_header
+      END SUBROUTINE read_solution_header
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
 
-      SUBROUTINE read_solution_snap(file_unit,nrow,ncol,map,read_stat,t,solution,trnspse)
+      SUBROUTINE read_solution_snap(file_unit,nrow,ncol,trnspse,map,read_stat,t,solution)
 
       IMPLICIT NONE
       
@@ -168,11 +211,10 @@
       INTEGER, INTENT(OUT) :: read_stat        
       INTEGER, INTENT(IN) :: nrow
       INTEGER, INTENT(IN) :: ncol      
+      CHARACTER(1), INTENT(IN) :: trnspse      
       INTEGER, DIMENSION(:), INTENT(IN) :: map      
       REAL(rp), INTENT(OUT) :: t
       REAL(rp), DIMENSION(:,:), INTENT(OUT) :: solution   
-      CHARACTER(1), INTENT(IN) :: trnspse
-
       
       INTEGER :: col
       INTEGER :: row
@@ -198,19 +240,19 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
       
-      SUBROUTINE read_solution_full(out_direc,file_name,t,solution,trnspse,lel2gel)
+      SUBROUTINE read_solution_full(out_direc,file_name,trnspse,t,solution,lel2gel)
 
       IMPLICIT NONE
       
       CHARACTER(*), INTENT(IN) :: out_direc      
       CHARACTER(*), INTENT(IN) :: file_name
-      REAL(rp), DIMENSION(:), INTENT(INOUT) :: t
-      REAL(rp), DIMENSION(:,:,:), INTENT(INOUT) :: solution
-      CHARACTER(1), INTENT(IN) :: trnspse
+      CHARACTER(1), INTENT(IN) :: trnspse      
+      REAL(rp), DIMENSION(:), ALLOCATABLE, INTENT(INOUT) :: t
+      REAL(rp), DIMENSION(:,:,:), ALLOCATABLE, INTENT(INOUT) :: solution
       INTEGER, DIMENSION(:), INTENT(IN), OPTIONAL :: lel2gel
       
       
-      INTEGER :: el,n
+      INTEGER :: el,n1,n2
       INTEGER :: tstep
       INTEGER :: read_stat
       INTEGER :: nrow,ncol,nsnap
@@ -218,21 +260,31 @@
       REAL(rp) :: ttemp
       INTEGER, DIMENSION(:), ALLOCATABLE :: map                 
       
-      CALL read_header(out_direc,file_name,nrow,ncol,nsnap,file_unit)          
+      CALL read_solution_header(out_direc,file_name,nrow,ncol,nsnap,file_unit)      
       
       IF (trnspse == "T") THEN
-        n = ncol
+        n1 = ncol     
+        n2 = nrow
       ELSE
-        n = nrow
+        n1 = nrow
+        n2 = ncol
       ENDIF
       
-      ALLOCATE(map(n))
+      IF (.not. ALLOCATED(solution)) THEN
+        ALLOCATE(solution(n1,n2,nsnap))
+      ENDIF      
+      
+      IF (.not. ALLOCATED(t)) THEN
+        ALLOCATE(t(nsnap))
+      ENDIF
+      
+      ALLOCATE(map(n1))
       IF (PRESENT(lel2gel)) THEN
-        DO el = 1,n
+        DO el = 1,n1
           map(el) = lel2gel(el)
         ENDDO
       ELSE
-        DO el = 1,n
+        DO el = 1,n1
           map(el) = el
         ENDDO
       ENDIF   
@@ -244,7 +296,7 @@
       
         tstep = tstep + 1   
 
-        CALL read_solution_snap(file_unit,nrow,ncol,map,read_stat,ttemp,solution(:,:,tstep),trnspse)
+        CALL read_solution_snap(file_unit,nrow,ncol,trnspse,map,read_stat,ttemp,solution(:,:,tstep))
         
         IF(read_stat < 0) THEN
           EXIT 

@@ -7,7 +7,7 @@
       USE globals, ONLY: rp
       USE messenger2, ONLY: myrank,dirname,lname
       USE read_dginp, ONLY: out_direc,grid_file
-      USE read_write_output, ONLY: file_init,write_solution_snap
+      USE read_write_output, ONLY: file_init,write_solution_snap,time_snaps
        
       IMPLICIT NONE
       INTEGER :: ncid
@@ -116,7 +116,7 @@
         CALL file_init(out_direc,"Qy.sol",mndof,ne,nout_sol+1,Qysol_unit) 
         
         CALL file_init(out_direc,"hb.sol",mndof,ne,nout_hb,hb_unit)
-        CALL write_solution_snap(hb_unit,mnnds,ne,t,hbm,"N")         
+        CALL write_solution_snap(hb_unit,mnnds,ne,"N",t,hbm)         
         CLOSE(hb_unit)
         
         ! Set up netcdf output files
@@ -140,9 +140,9 @@
         ENDDO
       ENDDO
       
-      CALL write_solution_snap(Zsol_unit,mndof,ne,t,Zout,"T") 
-      CALL write_solution_snap(Qxsol_unit,mndof,ne,t,Qxout,"T")      
-      CALL write_solution_snap(Qysol_unit,mndof,ne,t,Qyout,"T")            
+      CALL write_solution_snap(Zsol_unit,mndof,ne,"T",t,Zout) 
+      CALL write_solution_snap(Qxsol_unit,mndof,ne,"T",t,Qxout)      
+      CALL write_solution_snap(Qysol_unit,mndof,ne,"T",t,Qyout)            
       
       
 #ifdef NETCDF      
@@ -216,8 +216,8 @@
         CALL file_init(out_direc,"Qx.sta",nsta,ncol,nout_sta+1,Qxsta_unit)    
         CALL file_init(out_direc,"Qy.sta",nsta,ncol,nout_sta+1,Qysta_unit)  
         
-        CALL file_init(out_direc,"hb.sta",nsta,ncol,nout_hb,hb_unit)            
-        CALL write_solution_snap(hb_unit,nsta,ncol,t,hbsta,"N")         
+        CALL file_init(out_direc,"hb.sta",nsta,ncol,nout_hb,hb_unit)         
+        CALL write_solution_snap(hb_unit,nsta,ncol,"N",t,hbsta)         
         CLOSE(hb_unit)                
         
         ! Set up netcdf output files
@@ -245,9 +245,9 @@
       
       
       
-      CALL write_solution_snap(Zsta_unit,nsta,1,t,Zsta,"N") 
-      CALL write_solution_snap(Qxsta_unit,nsta,1,t,Qxsta,"N")    
-      CALL write_solution_snap(Qysta_unit,nsta,1,t,Qysta,"N")          
+      CALL write_solution_snap(Zsta_unit,nsta,1,"N",t,Zsta) 
+      CALL write_solution_snap(Qxsta_unit,nsta,1,"N",t,Qxsta)    
+      CALL write_solution_snap(Qysta_unit,nsta,1,"N",t,Qysta)          
       
 #ifdef NETCDF      
 !       
@@ -267,41 +267,6 @@
       RETURN
       END SUBROUTINE output_stations
       
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!        
-
-      SUBROUTINE time_snaps(opt,snap,tf,dt,tskp,nout)
-      
-      IMPLICIT NONE
-      
-      INTEGER, INTENT(IN) :: opt
-      REAL(rp), INTENT(IN) :: snap
-      REAL(rp), INTENT(IN) :: tf
-      REAL(rp), INTENT(IN) :: dt
-      INTEGER, INTENT(OUT) :: tskp
-      INTEGER, INTENT(OUT) :: nout
-      
-      
-        ! Set number of timesteps between output
-        SELECT CASE (opt)
-          CASE (0)                    ! output off
-            tskp = int(tf/dt) + 1     ! more than the number of total iterations
-            nout = 0
-          CASE (1)                    ! snap = number of total snaps
-            tskp = int(tf/(snap*dt))  
-            nout = int(snap)
-          CASE (2)                    ! snap = number of timesteps between snaps
-            tskp = int(snap)          
-            nout = int(tf/(snap*dt))
-          CASE (3)                    ! snap = number of seconds between snaps
-            tskp = int(snap/dt)       
-            nout = int(tf/snap)
-          CASE DEFAULT
-            PRINT*, "output option not supported"
-        END SELECT          
-      
-      RETURN
-      END SUBROUTINE time_snaps
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!    
