@@ -51,9 +51,10 @@
 
       
       CALL create_101btype_stations()
-      STOP
       
       CALL find_stations()
+      
+      STOP      
       
         
         
