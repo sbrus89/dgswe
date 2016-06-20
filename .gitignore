@@ -10,6 +10,12 @@ dgpost
 dgswem_structure
 dgswem_structure_mpi
 dgswem_structure_omp
+rimls
+bathy
+error
+spline
+convert
+plot
 *~
 *.mod
 PE*
