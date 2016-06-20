@@ -731,68 +731,77 @@
         ENDDO
         xi(p+1) = 1d0
       ENDIF
-        
-      ! Do tensor product, ordering the nodes counter-clockwise
-
-      ! Find number of loops around refence quad element, excluding middle points
-      IF (p <= 2)THEN
-        nl = 1
-      ELSE
-        IF(mod(p,2) == 1) THEN
-          nl = p-1
-        ELSE IF (mod(p,2) == 0) THEN
-          nl = p-2
-        ENDIF
-      ENDIF
-        
+      
       m = 1
-      DO k = 1,nl ! loop over number of loops
-         
-        ! Edge 4
-        DO i = k,p+1 - (k-1)
-          j = k
+      DO i = 1,p+1
+        DO j = 1,p+1
           r(m) = xi(i)
           s(m) = xi(j)
-          
           m = m+1
         ENDDO
-        
-        ! Edge 1
-        DO j = 2 + (k-1),p+1 - (k-1)
-          i = p+1 - (k-1)
-          r(m) = xi(i)
-          s(m) = xi(j)
-          
-          m = m+1
-        ENDDO
-
-        ! Edge 2
-        DO i = p - (k-1),1 + (k-1),-1
-          j = p+1 - (k-1)
-          r(m) = xi(i)
-          s(m) = xi(j)
-          
-          m = m+1      
-        ENDDO
-
-        ! Edge 3
-        DO j = p - (k-1),2 + (k-1),-1
-          i = 1 + (k-1)
-          r(m) = xi(i)
-          s(m) = xi(j)
-
-          m = m+1
-        ENDDO    
-          
       ENDDO
         
-      ! middle point
-      IF (mod(p+1,2) == 1) THEN
-        i = p/2 + 1
-        r(m) = xi(i)
-        s(m) = xi(i)
-          
-      ENDIF   
+!       ! Do tensor product, ordering the nodes counter-clockwise
+! 
+!       ! Find number of loops around refence quad element, excluding middle points
+!       IF (p <= 2)THEN
+!         nl = 1
+!       ELSE
+!         IF(mod(p,2) == 1) THEN
+!           nl = p-1
+!         ELSE IF (mod(p,2) == 0) THEN
+!           nl = p-2
+!         ENDIF
+!       ENDIF
+!         
+!       m = 1
+!       DO k = 1,nl ! loop over number of loops
+!          
+!         ! Edge 4
+!         DO i = k,p+1 - (k-1)
+!           j = k
+!           r(m) = xi(i)
+!           s(m) = xi(j)
+!           
+!           m = m+1
+!         ENDDO
+!         
+!         ! Edge 1
+!         DO j = 2 + (k-1),p+1 - (k-1)
+!           i = p+1 - (k-1)
+!           r(m) = xi(i)
+!           s(m) = xi(j)
+!           
+!           m = m+1
+!         ENDDO
+! 
+!         ! Edge 2
+!         DO i = p - (k-1),1 + (k-1),-1
+!           j = p+1 - (k-1)
+!           r(m) = xi(i)
+!           s(m) = xi(j)
+!           
+!           m = m+1      
+!         ENDDO
+! 
+!         ! Edge 3
+!         DO j = p - (k-1),2 + (k-1),-1
+!           i = 1 + (k-1)
+!           r(m) = xi(i)
+!           s(m) = xi(j)
+! 
+!           m = m+1
+!         ENDDO    
+!           
+!       ENDDO
+!         
+!       ! middle point
+!       IF (mod(p+1,2) == 1) THEN
+!         i = p/2 + 1
+!         r(m) = xi(i)
+!         s(m) = xi(i)
+!           
+!       ENDIF   
                 
 !         PRINT*, ' '
 !         PRINT*, 'Quadrilateral Points'
