@@ -12,6 +12,7 @@ while header == 1
 end
 
 line = fscanf(fid,'%d',[3,1])';
+disp(line)
 ndof = line(1);
 ne = line(2);
 nsnap = line(3);
@@ -21,7 +22,7 @@ if nsnap_read > nsnap
 end
 
 sol = zeros(ndof,ne,nsnap_read);
-t = zeros(nsnap);
+t = zeros(nsnap_read,1);
 
 snap = 0;
 while ~feof(fid) && snap < nsnap_read
