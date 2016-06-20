@@ -29,3 +29,7 @@ fort.*
 *.cb
 *.sta
 *.sol
+*.ps
+*.pdf
+*.png
+
