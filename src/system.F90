@@ -20,6 +20,13 @@
       CHARACTER(*)  :: file_name
       CHARACTER(*)  :: out_dir
       LOGICAL :: file_exists
+      INTEGER :: l
+      
+     ! make sure out_dir ends with /
+     l = len(trim(out_dir))
+     IF (out_dir(l:l) /= "/") THEN
+       out_dir = out_dir(1:l) // "/"       
+     ENDIF      
       
       INQUIRE(FILE=file_name,EXIST=file_exists)
       IF (file_exists) THEN
@@ -35,3 +42,24 @@
       RETURN
       END FUNCTION sha1
       
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!    
+
+      SUBROUTINE directed_output(string,unit)
+      
+      IMPLICIT NONE
+      
+      CHARACTER(*), INTENT(IN) :: string
+      INTEGER, INTENT(IN) :: unit
+      
+      IF (unit == 6) THEN
+        PRINT*, string
+      ELSE
+        WRITE(unit,*) string
+      ENDIF      
+      
+      RETURN
+      END SUBROUTINE
+      
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 

@@ -677,12 +677,12 @@
       
       CHARACTER(40) :: sha1
       
-      WRITE(file_unit,"(A)")" "           
-      WRITE(file_unit,"(A,A)") "grid file SHA: ", sha1(grid_file,dirname)   
-      WRITE(file_unit,"(A,A)") "bathy file SHA: ", sha1(bathy_file,dirname) 
-      WRITE(file_unit,"(A,A)") "curve file SHA: ", sha1(curve_file,dirname) 
-      WRITE(file_unit,"(A,A)") "forcing file SHA: ", sha1(forcing_file,dirname) 
-      WRITE(file_unit,"(A,A)") "stations file SHA: ", sha1(stations_file,dirname)       
+      CALL directed_output(" ",file_unit)          
+      CALL directed_output("grid file SHA: "//sha1(grid_file,dirname)         ,file_unit)    
+      CALL directed_output("bathy file SHA: "//sha1(bathy_file,dirname)       ,file_unit)  
+      CALL directed_output("curve file SHA: "//sha1(curve_file,dirname)       ,file_unit)   
+      CALL directed_output("forcing file SHA: "//sha1(forcing_file,dirname)   ,file_unit)  
+      CALL directed_output("stations file SHA: "//sha1(stations_file,dirname) ,file_unit)        
       
       RETURN
       END SUBROUTINE write_file_SHAs
