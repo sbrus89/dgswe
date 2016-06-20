@@ -191,8 +191,9 @@ dgpost_objects = globals.o read_input.o messenger2.o read_write_output.o version
 
 dgpost_obj := $(patsubst %.o, $(ODIR)%.o,$(dgpost_objects))  
 
-convert_objects = globals.o quit.o sizes.o messenger2.o version.o \
-                  read_write_output.o read_input.o grid_file_mod.o convert.o
+convert_objects = globals.o quit.o sizes.o system.o messenger2.o basis.o version.o \
+                  read_write_output.o read_input.o grid_file_mod.o edge_connectivity_mod.o \
+                  write_adcirc.o convert.o
 
 convert_obj := $(patsubst %.o, $(ODIR)%.o,$(convert_objects))  
 
@@ -201,7 +202,7 @@ convert_obj := $(patsubst %.o, $(ODIR)%.o,$(convert_objects))
 ########################################################################
 
 .PHONY : $(ODIR) version dgswe 
-.PHONY : metis dgprep dgpost 
+.PHONY : metis dgprep dgpost convert
 .PHONY : clean cleanmetis cleandgprep cleandgpost
 
 ifeq ($(MAKELEVEL),0)
@@ -264,7 +265,7 @@ convert: version $(ODIR)  $(convert_obj)
 	@printf " \n\033[35m$(MESSAGE) on $(FULLNAME) \033[0m \n"
 	@printf "Git SHA: $(GIT_SHA) \n"
 	@printf "Modified: $(GIT_MOD) \n\n"
-	$(FC) $(FFLAGS) -o $(EXE_NAME) $(convert_obj)
+	$(FC) $(FFLAGS) -o $(EXE_NAME) $(convert_obj) $(LAPACK_LIB)
 	@printf "\n\n"	
 
 
@@ -563,6 +564,10 @@ $(ODIR)dgpost.o : ../post/dgpost.F90                         $(ODIR)globals.o $(
 
 	
 # convert file targets
+
+$(ODIR)write_adcirc.o : ../post/write_adcirc.F90             $(ODIR)globals.o
+	$(FC) $(FFLAGS) -c $< -o $@
+	mv write_adcirc.mod $(ODIR)
 
 $(ODIR)convert.o : ../post/convert.F90                       $(ODIR)globals.o $(ODIR)version.o $(ODIR)read_input.o $(ODIR)grid_file_mod.o        
 	$(FC) $(FFLAGS) -c $< -o $@
