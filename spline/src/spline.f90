@@ -34,7 +34,7 @@
       INTEGER :: eds(4)
       CHARACTER(100) :: name
       CHARACTER(1) :: ctp_char
-      REAL(rp), PARAMETER :: it_tol = 1d-5
+      REAL(rp), PARAMETER :: it_tol = 1d-4
 
       
 
@@ -279,7 +279,7 @@
                                                  ay(nd,bou),by(nd,bou),cy(nd,bou),dy(nd,bou), &
                                                  x(j+1),y(j+1),error_flag)
 
-                WRITE(60,*) x(j+1),y(j+1)                                                  
+!                 WRITE(60,*) x(j+1),y(j+1)                                                  
               
                            
                 IF (abs(r)-1d0 > it_tol) THEN
