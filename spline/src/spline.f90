@@ -162,7 +162,7 @@
         PRINT*,""  
       ENDDO
       
-      PAUSE
+!       PAUSE
       
       
       

@@ -46,7 +46,7 @@ endif
 
 spline_objects = globals.o kdtree2.o sort_mod.o lapack_interfaces.o basis.o allocation.o edge_connectivity_mod.o \
                  find_element_mod.o calc_spline.o check.o find_edge.o grid_file_mod.o area_qpts_mod.o edge_qpts_mod.o\
-                 read_grid.o read_input.o connect.o write_output.o version.o spline.o \
+                 system.o read_grid.o read_input.o connect.o write_output.o version.o spline.o \
                  quit.o spherical_mod.o shape_functions_eval.o shape_functions_mod.o curvilinear_nodes_mod.o transformation.o vandermonde.o
                  
 spline_obj := $(patsubst %.o, $(ODIR)%.o,$(spline_objects)) 
@@ -103,13 +103,16 @@ $(ODIR)kdtree2.o : ../../src/kdtree2.F
 	mv kdtree2_module.mod $(ODIR)
 	mv kdtree2_priority_queue_module.mod $(ODIR)
 	
-$(ODIR)version.o : ../../src/version.F90                     
+$(ODIR)version.o : ../../src/version.F90                      $(ODIR)system.o
 	$(FC) $(FFLAGS) -c $< -o $@	
 	mv version.mod $(ODIR)
 	
 $(ODIR)lapack_interfaces.o : ../../src/lapack_interfaces.F90
 	$(FC) $(FFLAGS) -c $< -o $@
-	mv lapack_interfaces.mod $(ODIR)		
+	mv lapack_interfaces.mod $(ODIR)
+	
+$(ODIR)system.o : ../../src/system.F90                                
+	$(FC) $(FFLAGS) -c $< -o $@	
 
 $(ODIR)globals.o : globals.f90                                $(ODIR)kdtree2.o
 	$(FC) $(FFLAGS) -c $< -o $@
@@ -139,7 +142,7 @@ $(ODIR)basis.o : ../../src/basis.F90                          $(ODIR)globals.o  
 	$(FC) $(FFLAGS) -c $< -o $@
 	mv basis.mod $(ODIR)
 	
-$(ODIR)calc_spline.o : calc_spline.f90                        $(ODIR)globals.o  $(ODIR)kdtree2.o $(ODIR)lapack_interfaces.o $(ODIR)curvilinear_nodes_mod.o $(ODIR)calc_spline.o
+$(ODIR)calc_spline.o : calc_spline.f90                        $(ODIR)globals.o  $(ODIR)kdtree2.o $(ODIR)lapack_interfaces.o $(ODIR)curvilinear_nodes_mod.o
 	$(FC) $(FFLAGS) -c $< -o $@
 	mv calc_spline.mod $(ODIR)
 	
