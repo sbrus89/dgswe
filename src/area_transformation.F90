@@ -42,7 +42,8 @@
                                       dpsidr(:,pt,et),dpsids(:,pt,et),drdx,drdy,dsdx,dsdy,detJa(el,pt))
                                       
           IF (detJa(el,pt) < 0d0) THEN
-            PRINT*, "Negative Jacobian determinant detected, el = ",el
+            PRINT*, "Negative Jacobian determinant at area quadrature point detected, el = ",el
+            PRINT*, detJa(el,pt)
           ENDIF
             
           CALL cpp_factor(coord_sys,r_earth,slam0,sphi0,ypt,Sp)

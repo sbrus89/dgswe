@@ -34,8 +34,8 @@
         nnd = nnds(et)
         nqa = nqpta(et)
         nqe = nqpte(et)
-        nv = nverts(et)        
-        
+        nv = nverts(et)    
+                   
         DO i = 1,nqe
           pt = nqa + (led-1)*nqe+i
           edpt = (led-1)*nqe+i
@@ -45,7 +45,8 @@
                                       dpsidr(:,pt,et),dpsids(:,pt,et),drdx,drdy,dsdx,dsdy,detJ)
                                       
           IF (detJ < 0d0) THEN
-            PRINT*, "Negative Jacobian determinant detected, el = ",el
+            PRINT*, "Negative Jacobian determinant for edge quadrature point detected, el = ",el    
+            PRINT*, detJ
           ENDIF                                      
             
           CALL cpp_factor(coord_sys,r_earth,slam0,sphi0,ypt,Sp)
