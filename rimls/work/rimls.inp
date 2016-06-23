@@ -46,10 +46,10 @@
 ! 0d0                                                                                                       ! eps - bathymetry perturbation (for converging channel hardwire)
 
 
-! /home/sbrus/data-drive/galveston_spline/grids/galveston_tri_x16.grd                                           ! base grid - used to determine the rimls surface
+! /home/sbrus/data-drive/galveston_spline_oob/grids/spline_mls_modified/galveston_tri_x16.grd                ! base grid - used to determine the rimls surface
 ! 10                                                                                                        ! base hbp - bathymetry order
 ! 1                                                                                                         ! base ctp - parametric coordinate transformation order
-! /home/sbrus/data-drive/galveston_spline/grids/galveston_tri_x64.grd                                           ! eval grid - used to determine rimls surface evaluation points
+! /home/sbrus/data-drive/galveston_spline_oob/grids/spline_only_refinements/galveston_tri_x64.grd           ! eval grid - used to determine rimls surface evaluation points
 ! 1                                                                                                         ! eval hbp - bathymetry order
 ! 1                                                                                                         ! eval ctp - parametric coordinate transformation order
 ! /home/sbrus/data-drive/galveston_spline/grids/galveston_tri_ctp3.cb                                       ! curved boundary file
@@ -63,13 +63,13 @@
 ! 1                                                                                                         ! nrpt - number of random points (for converging channel hardwire)
 ! 0d0                                                                                                       ! eps - bathymetry perturbation (for converging channel hardwire)
 
-/home/sbrus/data-drive/galveston_spline/grids/spline_mls_modified/galveston_tri_x64.grd                   ! base grid - used to determine the rimls surface
+/home/sbrus/data-drive/galveston_spline_oob/grids/spline_mls_modified/galveston_tri_x64.grd               ! base grid - used to determine the rimls surface
 10                                                                                                        ! base hbp - bathymetry order
 1                                                                                                         ! base ctp - parametric coordinate transformation order
-/home/sbrus/data-drive/galveston_spline/grids/galveston_tri.grd                                           ! eval grid - used to determine rimls surface evaluation points
+/home/sbrus/data-drive/galveston_spline_oob/grids/galveston_tri_x64.grd                                           ! eval grid - used to determine rimls surface evaluation points
 2                                                                                                         ! eval hbp - bathymetry order
 2                                                                                                         ! eval ctp - parametric coordinate transformation order
-/home/sbrus/data-drive/galveston_spline/grids/galveston_tri_ctp2.cb                                       ! curved boundary file
+/home/sbrus/data-drive/galveston_spline_oob/grids/galveston_tri_x64_ctp2.cb                                       ! curved boundary file
 3                                                                                                         ! lsp - moving least squares fit order
 0                                                                                                         ! basis_opt - basis for least squares polynomial (1 - orthonormal, else - simple)
 1d0                                                                                                       ! Erad - radius of Earth

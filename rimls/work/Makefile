@@ -47,7 +47,7 @@ objects = kdtree2.o globals.o allocation.o basis.o find_element_mod.o sort_mod.o
           write_results.o group_coordinates.o connect.o edge_connectivity_mod.o  \
           evaluate.o boundary_check.o \
           read_input.o read_grid.o grid_file_mod.o \
-          curvilinear.o lapack_interfaces.o version.o rimls.o 
+          curvilinear.o lapack_interfaces.o version.o system.o rimls.o 
           #compute_random.o filter_normals.o
           
 obj := $(patsubst %.o, $(ODIR)%.o,$(objects))
@@ -109,6 +109,9 @@ $(ODIR)globals.o: globals.f90                                   $(ODIR)kdtree2.o
 $(ODIR)lapack_interfaces.o : ../../src/lapack_interfaces.F90    
 	$(FC) $(FFLAGS) -c $< -o $@
 	mv lapack_interfaces.mod $(ODIR)
+	
+$(ODIR)system.o : ../../src/system.F90                                
+	$(FC) $(FFLAGS) -c $< -o $@		
 
 $(ODIR)grid_file_mod.o : ../../src/grid_file_mod.F90            $(ODIR)globals.o $(ODIR)quit.o $(ODIR)spherical_mod.o
 	$(FC) $(FFLAGS) -c $< -o $@

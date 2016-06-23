@@ -18,7 +18,7 @@
       coord_sys = 1
       h0 = 0d0
       
-      CALL read_header(mesh%grid_file,mesh%grid_name,mesh%ne,mesh%nn)
+      CALL read_header(0,mesh%grid_file,mesh%grid_name,mesh%ne,mesh%nn)
       
       CALL read_coords(mesh%nn,mesh%xy,mesh%depth,h0)  
       
