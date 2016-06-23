@@ -290,7 +290,9 @@
                   PRINT "(A,F24.17)", "R = ", r 
                   success = 1
                   EXIT try_elems
-                ENDIF              
+                ENDIF            
+                
+
               
               ENDDO try_elems
               
@@ -301,6 +303,7 @@
                 STOP
               ENDIF
               
+          
 
                 
               
@@ -318,6 +321,10 @@
 !               IF (i == 17) THEN
 !                 STOP
 !               ENDIF            
+
+!                 IF (n1 == 73384) THEN
+!                   STOP
+!                 ENDIF    
             
             WRITE(40,"(I8,1X,10(E24.17,1X))") n1, (x(j), j=1,eval%ctp)
             WRITE(40,"(I8,1X,10(E24.17,1X))") n1, (y(j), j=1,eval%ctp)

@@ -458,7 +458,6 @@ edges:DO ed = 1,mesh%nnfbed
           ged = mesh%nfbedn(ed)
           el = mesh%ged2el(1,ged)
           led = mesh%ged2led(1,ged)
-          et = mesh%el_type(el)
           
           n1 = mesh%fbnds(bnd,bou)
           n2 = mesh%fbnds(bnd+1,bou)
@@ -486,9 +485,17 @@ edges:DO ed = 1,mesh%nnfbed
           CALL evaluate(r,dt,ti,xr,ax,bx,cx,dx, &
                                    ay,by,cy,dy, &
                                    x,y,error_flag)    
+                                   
+          IF (abs(r)-1d0 > 1d-4) THEN
+            PRINT "(A,F24.17)", "ERROR: R VALUE NOT FOUND IN INTERVAL, R = ", r
+            PRINT "(2(F24.17))", abs(r)-1d0
+            STOP
+          ENDIF
                                  
           segxy(1,nd) = x
           segxy(2,nd) = y
+          
+          
         
         ENDDO
        

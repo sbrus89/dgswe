@@ -379,8 +379,8 @@
 !       REAL(rp), INTENT(IN) :: ti
 !       REAL(rp), INTENT(INOUT) :: ax,bx,cx,dx,ay,by,cy,dy 
             
-      INTEGER :: pt
-      INTEGER :: el,et
+      INTEGER :: pt,el,i
+      INTEGER :: et,nv
       INTEGER :: detected
       REAL(rp) :: xpt,ypt
       REAL(rp) :: drdx,drdy,dsdx,dsdy,detJ
@@ -389,14 +389,16 @@
       DO el = 1,mesh%ne
       
         et = mesh%el_type_spline(el)
+        nv = nverts(et)        
         
-        DO pt = 1,mesh%nqpta(et)
+        DO pt = 1,mesh%nqpta(et)+nv*mesh%nqpte(et)
             
             CALL element_transformation(mesh%nnds(et),mesh%elxy_spline(:,el,1),mesh%elxy_spline(:,el,2),mesh%psi(:,pt,et),xpt,ypt, &
                                         mesh%dpdr(:,pt,et),mesh%dpds(:,pt,et),drdx,drdy,dsdx,dsdy,detJ)
                                         
             IF (detJ < 0d0) THEN
-              PRINT*, "Negative Jacobian determinant detected, el = ",el        
+              PRINT*, "Negative Jacobian determinant detected, el = ",el          
+              PRINT*, detJ
               detected = 1
             ENDIF
         ENDDO   
