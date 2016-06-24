@@ -15,16 +15,20 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-       SUBROUTINE finish()          
+       SUBROUTINE finish(myrank)          
 
        IMPLICIT NONE
+       
+       INTEGER, INTENT(IN) :: myrank
        
        INTEGER :: ierr       
        
 #ifdef CMPI       
        CALL MPI_FINALIZE(ierr)
        
-       PRINT*, "MPI terminated, status = ", ierr
+       IF (myrank == 0) THEN
+         PRINT*, "MPI terminated, status = ", ierr
+       ENDIF
 #endif
        
        STOP

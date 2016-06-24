@@ -165,6 +165,6 @@
       
       
       CALL close_output()
-      CALL finish()
+      CALL finish(myrank)
       
       END PROGRAM swe_tri
