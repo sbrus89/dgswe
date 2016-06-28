@@ -1,0 +1,11 @@
+./                                                                                                     ! input file path
+1                                                                                                      ! zeta plot option 
+1                                                                                                      ! velocity plot option1
+1                                                                                                      ! bathymetry plot option
+0                                                                                                      ! mesh plot option
+1                                                                                                      ! order of nodal set for plotting straight elements
+1                                                                                                      ! order of nodal set for plotting curved elements
+!3.2e5,3.4e5,3.24e6,3.26e6                                                                             ! zoom box
+all   
+10,10                                                                                                    ! timesnap range
+/home/sbrus/Codes/dgswe/plot/default2.cmap                                                             ! colormap path

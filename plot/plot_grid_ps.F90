@@ -1,6 +1,7 @@
       PROGRAM plot_grid_ps
       
-      USE globals, ONLY: rp,ne,nn,nverts,ndof,mndof,np,mnp,nnds,mnnds,nel_type,ect,xy,depth, &
+      USE plot_globals
+      USE globals, ONLY: ne,nn,nverts,ndof,mndof,np,mnp,nnds,mnnds,nel_type,ect,xy,depth, &
                          nope,neta,obseg,obnds,nvel,nbou,fbseg,fbnds,bndxy,grid_name, &
                          el_type,elxy,elhb, &
                          nepn,epn,mnepn,ned,ged2el,ged2el,ged2led,ged2nn,ed_type,recv_edge, &
@@ -9,9 +10,12 @@
       USE grid_file_mod
       USE basis, ONLY: element_nodes,element_basis
       USE read_write_output, ONLY: read_solution_full
-      USE read_dginp, ONLY: read_input,out_direc,p,ctp,hbp,grid_file, &
-                            bathy_file,curve_file,cb_file_exists,hb_file_exists
-      USE plot_mod, ONLY: write_psheader,plot_contours,plot_mesh,close_ps
+      USE read_dginp, ONLY: read_input,out_direc,p,ctp, &
+                            grid_file,curve_file,cb_file_exists
+      USE plot_mod, ONLY: read_colormap,write_psheader,close_ps, &
+                          scale_coordinates,zoom_box, &
+                          evaluate_depth_solution,evaluate_velocity_solution, &
+                          plot_contours,plot_mesh
       USE triangulation, ONLY: reference_element_delaunay
       USE edge_connectivity_mod
       USE curvilinear_nodes_mod
@@ -20,84 +24,20 @@
       
       IMPLICIT NONE
       
-      INTEGER :: coord_sys
-      REAL(rp) :: slam0,sphi0      
-      REAL(rp) :: xmin,xmax
-      REAL(rp) :: ymin,ymax
-      REAL(rp) :: rmin,rmax
-      REAL(rp) :: smin,smax
-      
-      INTEGER :: el,nd,pt
-      INTEGER :: et,nv
-      REAL(rp) :: ax,bx
-      REAL(rp) :: ay,by
-      
-      INTEGER :: ps
-      INTEGER :: pc
-      INTEGER :: pplt(4)
-      INTEGER :: nplt(4)
-      INTEGER :: mnpp
-      INTEGER :: ntri(4)
-      INTEGER :: nred 
-      INTEGER, ALLOCATABLE, DIMENSION(:,:,:) :: rect
 
-      INTEGER :: i,j
-      INTEGER :: nsnap
-      INTEGER :: snap
-      INTEGER :: space
-      INTEGER :: n,ndf,npts,nnd,dof
-      REAL(rp) :: xpt,ypt
-      REAL(rp), ALLOCATABLE, DIMENSION(:) :: t      
-      REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: Z,Qx,Qy,hb 
-      REAL(rp), ALLOCATABLE, DIMENSION(:) :: r,s
-      REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: phi   
-      REAL(rp), DIMENSION(:,:,:), ALLOCATABLE :: xyplt   
-      REAL(rp), DIMENSION(:,:), ALLOCATABLE :: Z_val 
-      REAL(rp), DIMENSION(:,:), ALLOCATABLE :: hb_val           
-      REAL(rp), DIMENSION(:,:), ALLOCATABLE :: vel_val   
-      REAL(rp) :: Qx_val,Qy_val,H_val
-      INTEGER :: outside
-      INTEGER, DIMENSION(:), ALLOCATABLE :: el_in
-      REAL(rp) :: xbox_min,xbox_max,ybox_min,ybox_max
-
-      ps = 6
-      pc = 6
       
-      CALL read_input(0,"../work")
+      CALL read_plot_input()
       
-      ndof(1) = (p+1)*(p+2)/2
-      ndof(2) = (p+1)**2
-      ndof(3) = ndof(1)
-      ndof(4) = ndof(2)      
-      mndof = maxval(ndof)
+      IF (plot_mesh_option == 0 .and. plot_zeta_option == 0 .and. &
+          plot_bathy_option == 0 .and. plot_vel_option == 0) THEN
+        
+        PRINT("(A)"), "No plot options have been specified"
+        STOP
+      ENDIF    
       
-      nverts(1) = 3
-      nverts(2) = 4
-      nverts(3) = 3
-      nverts(4) = 4
+      CALL read_input(0,input_path)
       
-      np(1) = 1
-      np(2) = 1
-      np(3) = ctp
-      np(4) = ctp  
-      mnp = maxval(np)+1
-
-      nnds(1) = 3
-      nnds(2) = 4
-      nnds(3) = (ctp+1)*(ctp+2)/2
-      nnds(4) = (ctp+1)*(ctp+1)      
-      mnnds = maxval(nnds)   
-      
-      pplt(1) = ps
-      pplt(2) = ps
-      pplt(3) = pc
-      pplt(4) = pc
-
-      nplt(1) = (ps+1)*(ps+2)/2
-      nplt(2) = (ps+1)*(ps+1)
-      nplt(3) = (pc+1)*(pc+2)/2
-      nplt(4) = (pc+1)*(pc+1)
-      mnpp = maxval(nplt)
+      CALL sizes()
 
       PRINT*, grid_file
       CALL read_header(0,grid_file,grid_name,ne,nn)        
@@ -105,8 +45,7 @@
       CALL read_connectivity(ne,ect,el_type) 
       CALL init_element_coordinates(ne,ctp,el_type,nverts,xy,ect,elxy)                  
       CALL read_open_boundaries(nope,neta,obseg,obnds)            
-      CALL read_flow_boundaries(nbou,nvel,fbseg,fbnds)      
-      CALL read_bathy_file(0,bathy_file,hbp,ne,el_type,nverts,depth,ect,elhb,hb_file_exists)                  
+      CALL read_flow_boundaries(nbou,nvel,fbseg,fbnds)                       
       CALL read_curve_file(0,curve_file,ctp,nbou,xy,bndxy,cb_file_exists)      
       CALL print_grid_info(grid_file,grid_name,ne,nn)    
       
@@ -162,142 +101,122 @@
 
 
       
-      PRINT*, "Boxing and scaling coordinates..."
+      PRINT*, "Finding zoom box..."
+      CALL zoom_box(ne,el_type,nplt,xyplt,xbox_min,xbox_max,ybox_min,ybox_max, &
+                                                     xmin,xmax,ymin,ymax,el_in)
 
-      xmax = -1d10
-      ymax = -1d10
-      xmin = 1d10
-      ymin = 1d10
+      PRINT*, "Scaling coordinates..."
+      CALL scale_coordinates(ne,nn,el_type,nverts,nplt,xmin,xmax,ymin,ymax,xyplt,xy)
+
       
-      xbox_min = 3.2e5
-      xbox_max = 3.4e5
-      ybox_min = 3.24e6
-      ybox_max = 3.26e6
       
-!       xbox_min = -xmin
-!       xbox_max = -xmax
-!       ybox_min = -ymin
-!       ybox_max = -ymax
+      CALL read_colormap(cmap_file)
       
-      ALLOCATE(el_in(ne))
-      el_in = 1
       
-      DO el = 1,ne      
-        et = el_type(el)                          
-        nnd = nnds(et)
-        npts = nplt(et)
-        outside = 0
-        DO pt = 1,npts  
+
+      snap_start = snap_start + 1
+      snap_end = snap_end + 1      
+      
+      nsnap_Z = snap_end
+      nsnap_Qx = snap_end
+      nsnap_Qy = snap_end
         
-          xpt = xyplt(pt,el,1)
-          ypt = xyplt(pt,el,2)
-        
-          IF (xpt > xmax) THEN
-            xmax = xpt
-          ENDIF
-          
-          IF (xpt < xmin) THEN
-            xmin = xpt
-          ENDIF
-
-          IF (ypt > ymax) THEN
-            ymax = ypt
-          ENDIF
-          
-          IF (ypt < ymin) THEN
-            ymin = ypt
-          ENDIF          
-          
-          IF (xpt < xbox_min .or. xpt > xbox_max) THEN
-            outside = 1
-            xmin = xbox_min
-            xmax = xbox_max
-          ENDIF
-          
-          IF (ypt < ybox_min .or. ypt > ybox_max) THEN
-            outside = 1
-            ymin = ybox_min
-            ymax = ybox_max
-          ENDIF
-
-        ENDDO
-        IF (outside == 1) THEN
-          el_in(el) = 0
+      IF (plot_zeta_option == 1 .or. plot_vel_option == 1) THEN
+        PRINT*, "Reading zeta solution..."          
+        CALL read_solution_full(out_direc,"Z.sol","N",t,Z,nsnap_Z) 
+      ENDIF
+      IF (plot_vel_option == 1) THEN
+        PRINT*, "Reading Qx and Qy solutions..."       
+        CALL read_solution_full(out_direc,"Qx.sol","N",t,Qx,nsnap_Qx)        
+        CALL read_solution_full(out_direc,"Qy.sol","N",t,Qy,nsnap_Qy)  
+      ENDIF
+      IF (plot_bathy_option == 1 .or. plot_vel_option == 1) THEN
+        PRINT*, "Reading bathymetry solution..."          
+        CALL read_solution_full(out_direc,"hb.sol","N",t,hb,nsnap_hb)      
+      ENDIF   
+      
+      
+      
+      IF (plot_bathy_option == 1 .or. plot_vel_option == 1) THEN
+        PRINT*, "Evaluating bathymetry at additional plotting points..."
+        CALL evaluate_depth_solution(ne,el_type,el_in,nplt,ndof,phi,1,hb,hb_val)
+      ENDIF      
+      
+      
+      
+      IF (plot_bathy_option == 1) THEN
+        PRINT*, "Writing bathymetry PostScript file..."
+        CALL write_psheader("bathy.ps",hb_unit)
+        CALL plot_contours(hb_unit,nplt,ntri,rect,ne,el_type,el_in,xyplt,hb_val)     
+        IF (plot_mesh_option == 1) THEN
+          CALL plot_mesh(hb_unit,ne,nverts,el_type,el_in,xy,ect)   
         ENDIF
-      ENDDO    
+        CALL close_ps(hb_unit)
+      ENDIF
+      
+      IF (plot_mesh_option == 1 .and. plot_zeta_option == 0 .and. &
+          plot_bathy_option == 0 .and. plot_vel_option == 0 ) THEN          
+        PRINT*, "Writing mesh PostScript file..."   
+        CALL write_psheader("mesh.ps",mesh_unit)            
+        CALL plot_mesh(mesh_unit,ne,nverts,el_type,el_in,xy,ect)      
+        CALL close_ps(mesh_unit)                      
+      ENDIF
+      
+      IF (plot_zeta_option == 0 .and. plot_vel_option == 0) THEN
+        STOP
+      ENDIF
       
       
-      rmin = 10d0
-      rmax = 602d0
-      smin = 0d0
-      smax = 792d0
+             
+         
+      IF ((snap_start > nsnap_Z) .or. (snap_start > nsnap_Qx) .or. (snap_start > nsnap_Qy)) THEN
+        snap_start = MIN(nsnap_Z,nsnap_Qx,nsnap_Qy)
+      ENDIF                  
       
-      ax = (rmin/(xmin-xmax)+rmax/(xmax-xmin))
-      bx = -(rmin*xmax/(xmin-xmax)+rmax*xmin/(xmax-xmin))
-      
-      ay = ax     ! axis equal
-      by = smin-ax*ymin            
-      
-      DO el = 1,ne
-        et = el_type(el)
-        npts = nplt(et)
-        nv = nverts(et)
-        DO nd = 1,npts
-          xyplt(nd,el,1) = ax*xyplt(nd,el,1) + bx
-          xyplt(nd,el,2) = ay*xyplt(nd,el,2) + by                       
-        ENDDO
-      ENDDO
-      
-      DO nd = 1,nn
-        xy(1,nd) = ax*xy(1,nd) + bx
-        xy(2,nd) = ay*xy(2,nd) + by
-      ENDDO
+      IF ((snap_end > nsnap_Z) .or. (snap_end > nsnap_Qx) .or. (snap_end > nsnap_Qy)) THEN
+        snap_end = MIN(nsnap_Z,nsnap_Qx,nsnap_Qy)
+      ENDIF
       
       
       
+      snap_char = "0000"
+      
+      DO snap = snap_start,snap_end
+      
+        PRINT*, "Time snap: ", snap-1        
+        WRITE(snap_char,"(I4.4)") snap-1
 
+        IF (plot_zeta_option == 1 .or. plot_vel_option == 1) THEN
+          PRINT*, "  Evaluating zeta at additional plotting points..."
+          CALL evaluate_depth_solution(ne,el_type,el_in,nplt,ndof,phi,snap,Z,Z_val)
+        ENDIF
         
-      PRINT*, "Reading solutions..."  
-      CALL read_solution_full("","../work/Z.sol","N",t,Z) 
-      CALL read_solution_full("","../work/Qx.sol","N",t,Qx)  
-      CALL read_solution_full("","../work/Qy.sol","N",t,Qy)        
-      CALL read_solution_full("","../work/hb.sol","N",t,hb)           
-      nsnap = SIZE(Z,3)   
+        IF (plot_zeta_option == 1) THEN        
+          PRINT*, "  Writing zeta PostScript file..."        
+          CALL write_psheader("zeta_"//snap_char//".ps",Z_unit)            
+          CALL plot_contours(Z_unit,nplt,ntri,rect,ne,el_type,el_in,xyplt,Z_val)      
+          IF (plot_mesh_option == 1) THEN
+            CALL plot_mesh(Z_unit,ne,nverts,el_type,el_in,xy,ect)
+          ENDIF      
+          CALL close_ps(Z_unit)        
+        ENDIF        
       
-      PRINT*, "Evaluating solutions at additional plotting points..."
-      snap = 49
-      ALLOCATE(Z_val(mnpp,ne)) 
-      ALLOCATE(hb_val(mnpp,ne))
-      ALLOCATE(vel_val(mnpp,ne))
-      DO el = 1,ne
-        et = el_type(el)
-        npts = nplt(et)
-        ndf = ndof(et)
-        DO nd = 1,npts
-          Z_val(nd,el) = 0d0
-          hb_val(nd,el) = 0d0
-          Qx_val = 0d0
-          Qy_val = 0d0
-          DO dof = 1,ndf
-            Z_val(nd,el) = Z_val(nd,el) + Z(dof,el,snap)*phi(dof,nd,et)
-            hb_val(nd,el) = hb_val(nd,el) + hb(dof,el,1)*phi(dof,nd,et) 
-            Qx_val = Qx_val + Qx(dof,el,snap)*phi(dof,nd,et)           
-            Qy_val = Qy_val + Qy(dof,el,snap)*phi(dof,nd,et)            
-            H_val = Z_val(nd,el) + hb_val(nd,el)
-            vel_val(nd,el) = sqrt((Qx_val/H_val)**2 + (Qy_val/H_val)**2)
-          ENDDO    
-        ENDDO
+        IF (plot_vel_option == 1) THEN
+          PRINT*, "  Evaluating velocity at additional plotting points..."
+          CALL evaluate_velocity_solution(ne,el_type,el_in,nplt,ndof,phi,snap,Qx,Qy,Z_val,hb_val,vel_val)
+        ENDIF       
         
-      ENDDO      
-      
-      PRINT*, "Writing PostScript file..."
-      CALL write_psheader()      
-      
-      CALL plot_contours(nplt,ntri,rect,ne,el_type,el_in,xyplt,vel_val)
-      
-!       CALL plot_mesh(ne,nverts,el_type,el_in,xy,ect)
-      
-      CALL close_ps()
+        IF (plot_vel_option == 1) THEN       
+          PRINT*, "  Writing velocity PostScript file..."        
+          CALL write_psheader("vel_"//snap_char//".ps",vel_unit)            
+          CALL plot_contours(vel_unit,nplt,ntri,rect,ne,el_type,el_in,xyplt,vel_val)      
+          IF (plot_mesh_option == 1) THEN
+            CALL plot_mesh(vel_unit,ne,nverts,el_type,el_in,xy,ect)
+          ENDIF      
+          CALL close_ps(vel_unit)        
+        ENDIF
+            
+      ENDDO
 
       END PROGRAM plot_grid_ps
       

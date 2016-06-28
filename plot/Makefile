@@ -1,5 +1,5 @@
 FC = ifort
-FFLAGS = -I$(ODIR) -traceback -g -C
+FFLAGS = -I$(ODIR) #-traceback -g -C
 
 ODIR = odir/
 
@@ -9,8 +9,8 @@ ODIR = odir/
 ########################################################################
 
 
-plot_objects =  globals.o quit.o basis.o version.o read_input.o \
-           grid_file_mod.o read_write_output.o system.o tripack.o \
+plot_objects =  plot_globals.o globals.o quit.o basis.o version.o read_input.o \
+           read_plot_input.o grid_file_mod.o read_write_output.o system.o tripack.o \
            edge_connectivity_mod.o curvilinear_nodes_mod.o bathymetry_interp_mod.o \
            vandermonde.o transformation.o shape_functions_mod.o triangulation.o plot_mod.o plot.o 
           
@@ -46,6 +46,10 @@ clean :
 ########################################################################
 #                            File Targets                              #
 ########################################################################        
+
+$(ODIR)plot_globals.o: plot_globals.F90                        $(ODIR)globals.o $(ODIR)read_input.o           
+	$(FC) $(FFLAGS) -c $< -o $@
+	mv plot_globals.mod $(ODIR)    
 
 $(ODIR)globals.o: ../src/globals.F90                                   
 	$(FC) $(FFLAGS) -c $< -o $@
@@ -116,6 +120,9 @@ $(ODIR)vandermonde.o : ../src/vandermonde.F90                     $(ODIR)globals
 	
 $(ODIR)system.o : ../src/system.F90                                
 	$(FC) $(FFLAGS) -c $< -o $@	
+	
+$(ODIR)read_plot_input.o : read_plot_input.F90               $(ODIR)plot_globals.o               
+	$(FC) $(FFLAGS) -c $< -o $@		
 
 $(ODIR)convert.o: convert2cartesian.F90                      $(ODIR)globals.o $(ODIR)grid_file_mod.o $(ODIR)spherical_mod.o
 	$(FC) $(FFLAGS) -c $< -o $@
@@ -127,5 +134,5 @@ $(ODIR)plot_mod.o: plot_mod.F90                              $(ODIR)globals.o
 	$(FC) $(FFLAGS) -c $< -o $@ 	
 	mv plot_mod.mod $(ODIR)
 	
-$(ODIR)plot.o: plot_grid_ps.F90                              $(ODIR)globals.o $(ODIR)grid_file_mod.o $(ODIR)plot_mod.o $(ODIR)basis.o $(ODIR)read_write_output.o $(ODIR)read_input.o
+$(ODIR)plot.o: plot_grid_ps.F90                              $(ODIR)plot_globals.o $(ODIR)globals.o $(ODIR)grid_file_mod.o $(ODIR)plot_mod.o $(ODIR)basis.o $(ODIR)read_write_output.o $(ODIR)read_input.o
 	$(FC) $(FFLAGS) -c $< -o $@     
