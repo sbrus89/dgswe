@@ -10,6 +10,7 @@
       INTEGER :: i,pe,el,dof,sta
       INTEGER :: npe,tne,mne,ne,ndof,nout_sol,nsta,mnlsta,nlsta,nout_sta
       INTEGER :: tstep
+      INTEGER :: nsnap_sol,nsnap_sta
       INTEGER :: read_stat
       INTEGER :: lname
       CHARACTER(6) :: dirname
@@ -74,10 +75,11 @@
           ALLOCATE(hb_global(tne,ndof,1))
         ENDIF  
         
-        CALL read_solution_full(pe_direc,'hb.sol',"T",t_sol,hb_global,lel2gel)
-        CALL read_solution_full(pe_direc,'Z.sol',"T",t_sol,Z_global,lel2gel)       
-        CALL read_solution_full(pe_direc,'Qx.sol',"T",t_sol,Qx_global,lel2gel)           
-        CALL read_solution_full(pe_direc,'Qy.sol',"T",t_sol,Qy_global,lel2gel)        
+        nsnap_sol = 9999
+        CALL read_solution_full(pe_direc,'hb.sol',"T",t_sol,hb_global,nsnap_sol,lel2gel)
+        CALL read_solution_full(pe_direc,'Z.sol',"T",t_sol,Z_global,nsnap_sol,lel2gel)       
+        CALL read_solution_full(pe_direc,'Qx.sol',"T",t_sol,Qx_global,nsnap_sol,lel2gel)           
+        CALL read_solution_full(pe_direc,'Qy.sol',"T",t_sol,Qy_global,nsnap_sol,lel2gel)        
 
 
         
@@ -111,10 +113,11 @@
           ALLOCATE(hbsta_global(nsta,1,1))
         ENDIF
         
-        CALL read_solution_full(pe_direc,'hb.sta',"N",t_sta,hbsta_global,sta_l2g)
-        CALL read_solution_full(pe_direc,'Z.sta',"N",t_sta,Zsta_global,sta_l2g) 
-        CALL read_solution_full(pe_direc,'Qx.sta',"N",t_sta,Qxsta_global,sta_l2g) 
-        CALL read_solution_full(pe_direc,'Qy.sta',"N",t_sta,Qysta_global,sta_l2g)      
+        nsnap_sta = 9999
+        CALL read_solution_full(pe_direc,'hb.sta',"N",t_sta,hbsta_global,nsnap_sta,sta_l2g)
+        CALL read_solution_full(pe_direc,'Z.sta',"N",t_sta,Zsta_global,nsnap_sta,sta_l2g) 
+        CALL read_solution_full(pe_direc,'Qx.sta',"N",t_sta,Qxsta_global,nsnap_sta,sta_l2g) 
+        CALL read_solution_full(pe_direc,'Qy.sta',"N",t_sta,Qysta_global,nsnap_sta,sta_l2g)      
         
         
         
@@ -129,17 +132,17 @@
       
       PRINT*, "Writing solutions"
       CALL write_solution_full(out_direc,'hb.sol',ndof,tne,1,"T",t_sol,hb_global,post)      
-      CALL write_solution_full(out_direc,'Z.sol',ndof,tne,nout_sol+1,"T",t_sol,Z_global,post)
-      CALL write_solution_full(out_direc,'Qx.sol',ndof,tne,nout_sol+1,"T",t_sol,Qx_global,post)      
-      CALL write_solution_full(out_direc,'Qy.sol',ndof,tne,nout_sol+1,"T",t_sol,Qy_global,post) 
+      CALL write_solution_full(out_direc,'Z.sol',ndof,tne,nsnap_sol,"T",t_sol,Z_global,post)
+      CALL write_solution_full(out_direc,'Qx.sol',ndof,tne,nsnap_sol,"T",t_sol,Qx_global,post)      
+      CALL write_solution_full(out_direc,'Qy.sol',ndof,tne,nsnap_sol,"T",t_sol,Qy_global,post) 
       PRINT*, "  done"
 
       
       PRINT*, "Writing stations"
       CALL write_solution_full(out_direc,'hb.sta',nsta,1,1,"N",t_sta,hbsta_global,post)      
-      CALL write_solution_full(out_direc,'Z.sta',nsta,1,nout_sta+1,"N",t_sta,Zsta_global,post)
-      CALL write_solution_full(out_direc,'Qx.sta',nsta,1,nout_sta+1,"N",t_sta,Qxsta_global,post)
-      CALL write_solution_full(out_direc,'Qy.sta',nsta,1,nout_sta+1,"N",t_sta,Qysta_global,post)      
+      CALL write_solution_full(out_direc,'Z.sta',nsta,1,nsnap_sta,"N",t_sta,Zsta_global,post)
+      CALL write_solution_full(out_direc,'Qx.sta',nsta,1,nsnap_sta,"N",t_sta,Qxsta_global,post)
+      CALL write_solution_full(out_direc,'Qy.sta',nsta,1,nsnap_sta,"N",t_sta,Qysta_global,post)      
       PRINT*, "  done"
 
       
