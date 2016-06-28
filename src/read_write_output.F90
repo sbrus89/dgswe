@@ -240,7 +240,7 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
       
-      SUBROUTINE read_solution_full(out_direc,file_name,trnspse,t,solution,lel2gel)
+      SUBROUTINE read_solution_full(out_direc,file_name,trnspse,t,solution,nsnap_read,lel2gel)
 
       IMPLICIT NONE
       
@@ -249,6 +249,7 @@
       CHARACTER(1), INTENT(IN) :: trnspse      
       REAL(rp), DIMENSION(:), ALLOCATABLE, INTENT(INOUT) :: t
       REAL(rp), DIMENSION(:,:,:), ALLOCATABLE, INTENT(INOUT) :: solution
+      INTEGER, INTENT(INOUT) :: nsnap_read
       INTEGER, DIMENSION(:), INTENT(IN), OPTIONAL :: lel2gel
       
       
@@ -298,7 +299,7 @@
 
         CALL read_solution_snap(file_unit,nrow,ncol,trnspse,map,read_stat,ttemp,solution(:,:,tstep))
         
-        IF(read_stat < 0) THEN
+        IF(read_stat < 0 .or. tstep == nsnap_read) THEN
           EXIT 
         ELSE  
           t(tstep) = ttemp
@@ -310,7 +311,8 @@
       IF (tstep < nsnap) THEN
         PRINT "(A)", "Number of solution snaps less than expected value"
       ENDIF
-
+      
+      nsnap_read = tstep
 
       RETURN
       END SUBROUTINE read_solution_full
