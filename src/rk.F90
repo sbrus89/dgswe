@@ -301,13 +301,22 @@
                          nel_type,elblk,npartet, &
                          t
                          
-      USE quit, ONLY: abort 
+      USE quit, ONLY: finish 
       USE output, ONLY: output_solution,close_output
       USE read_dginp, ONLY: npart
+      
+#ifdef CMPI 
+      USE messenger2, ONLY: myrank
+      USE mpi                            
+#endif        
       
       IMPLICIT NONE
       
       INTEGER :: et,dof,el,blk
+      INTEGER :: nan_error,nan_error_sum,cnt,ierr
+      
+      nan_error = 0
+      nan_error_sum = 0
       
       DO blk = 1,npart
         DO et = 1,nel_type
@@ -316,33 +325,26 @@
             DO dof = 1,ndof(et)
       
               DO el = elblk(1,blk,et),elblk(2,blk,et)
-!                 IF (H(el,dof) /= H(el,dof)) THEN
                 IF (Z(el,dof) /= Z(el,dof)) THEN
-                  PRINT*, "NaN detected in H solution"
-                  PRINT("(A,e15.8)"), 't = ', t                  
-                  CALL output_solution(.false.)
-                  CALL close_output()
-                  CALL abort()
+                  nan_error = 1
+                  PRINT*, "NaN detected in Z solution"
+                  PRINT("(A,e15.8)"), 't = ', t                      
                 ENDIF
               ENDDO
         
               DO el = elblk(1,blk,et),elblk(2,blk,et)
                 IF (Qx(el,dof) /= Qx(el,dof)) THEN
+                  nan_error = 1
                   PRINT*, "NaN detected in Qx solution"
                   PRINT("(A,e15.8)"), 't = ', t
-                  CALL output_solution(.false.)
-                  CALL close_output()                  
-                  CALL abort()
                 ENDIF
               ENDDO
         
               DO el = elblk(1,blk,et),elblk(2,blk,et)
                 IF (Qy(el,dof) /= Qy(el,dof)) THEN
+                  nan_error = 1
                   PRINT*, "NaN detected in Qy solution"
                   PRINT("(A,e15.8)"), 't = ', t
-                  CALL output_solution(.false.)
-                  CALL close_output()                  
-                  CALL abort()
                 ENDIF
               ENDDO
         
@@ -351,6 +353,19 @@
           ENDIF
         ENDDO
       ENDDO
+      
+#ifdef CMPI
+      cnt = 1
+      CALL MPI_ALLREDUCE(nan_error,nan_error_sum,cnt,MPI_INTEGER,MPI_SUM,MPI_COMM_WORLD,ierr)      
+#else          
+      nan_error_sum = nan_error    
+#endif
+      
+      IF (nan_error_sum > 0) THEN
+        CALL output_solution(.false.)
+        CALL close_output()                  
+        CALL finish(myrank)      
+      ENDIF
       
       RETURN
       END SUBROUTINE nan_check
