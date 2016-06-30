@@ -106,11 +106,12 @@
                                                      xmin,xmax,ymin,ymax,el_in)
 
       PRINT*, "Scaling coordinates..."
-      CALL scale_coordinates(ne,nn,el_type,nverts,nplt,xmin,xmax,ymin,ymax,xyplt,xy)
+      CALL scale_coordinates(ne,nn,el_type,nverts,nplt,figure_width,xmin,xmax,ymin,ymax,xyplt,xy)
 
       
       
       CALL read_colormap(cmap_file)
+
       
       
 

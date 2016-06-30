@@ -8,6 +8,13 @@
       INTEGER :: nlev        
       REAL(rp), DIMENSION(:,:), ALLOCATABLE :: colors        
       
+      REAL(rp) :: lr_margin 
+      REAL(rp) :: cscale_width
+      REAL(rp) :: rmin,rmax
+      REAL(rp) :: smin,smax      
+      REAL(rp) :: ax,bx  
+      REAL(rp) :: ay,by      
+      
       CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -95,7 +102,7 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
 
-      SUBROUTINE scale_coordinates(ne,nn,el_type,nverts,nplt,xmin,xmax,ymin,ymax,xyplt,xy)
+      SUBROUTINE scale_coordinates(ne,nn,el_type,nverts,nplt,figure_width,xmin,xmax,ymin,ymax,xyplt,xy)
       
       IMPLICIT NONE
       
@@ -104,6 +111,7 @@
       INTEGER, DIMENSION(:), INTENT(IN) :: el_type
       INTEGER, DIMENSION(:), INTENT(IN) :: nverts
       INTEGER, DIMENSION(:), INTENT(IN) :: nplt
+      REAL(rp), INTENT(IN) :: figure_width
       REAL(rp), INTENT(IN) :: xmin
       REAL(rp), INTENT(IN) :: xmax
       REAL(rp), INTENT(IN) :: ymin
@@ -113,10 +121,8 @@
       
       INTEGER :: el,nd
       INTEGER :: et,npts,nv
-      REAL(rp) :: rmin,rmax
-      REAL(rp) :: smin,smax
-      REAL(rp) :: ax,bx  
-      REAL(rp) :: ay,by
+
+
       
       
       
@@ -126,10 +132,14 @@
 !       smin = 0d0
 !       smax = 792d0
       
-      rmin = 20d0
-      rmax = 592d0
-      smin = 10d0
+      cscale_width = figure_width*.05d0
+      lr_margin =(612d0 - figure_width + 2d0*cscale_width)/2d0
+      
+      rmin = 0d0 + lr_margin
+      rmax = 612d0 - lr_margin
+      smin = 0d0 + lr_margin
       smax = 772d0
+      
       
       ax = (rmin/(xmin-xmax)+rmax/(xmax-xmin))
       bx = -(rmin*xmax/(xmin-xmax)+rmax*xmin/(xmax-xmin))
@@ -152,6 +162,8 @@
         xy(2,nd) = ay*xy(2,nd) + by
       ENDDO      
       
+      smax = ay*ymax + by
+      
       RETURN
       END SUBROUTINE scale_coordinates
 
@@ -165,6 +177,10 @@
       
       CHARACTER(*), INTENT(IN) :: file_name
       INTEGER, INTENT(OUT) :: unit_number
+      
+      CHARACTER(20) :: font
+      INTEGER :: fontsize
+      
       
       unit_count = unit_count + 1
       unit_number = unit_count
@@ -180,6 +196,23 @@
       WRITE(unit_number,"(A)") ".5 setlinewidth 2 setlinejoin"
       WRITE(unit_number,"(A)") "stroke"      
       WRITE(unit_number,"(A)") "} def" 
+      
+      WRITE(unit_number,"(A)") "/draw-box {"
+      WRITE(unit_number,"(A)") "moveto"
+      WRITE(unit_number,"(A)") "lineto"
+      WRITE(unit_number,"(A)") "lineto"
+      WRITE(unit_number,"(A)") "lineto"      
+      WRITE(unit_number,"(A)") "closepath"
+      WRITE(unit_number,"(A)") ".5 setlinewidth 2 setlinejoin"
+      WRITE(unit_number,"(A)") "stroke"      
+      WRITE(unit_number,"(A)") "} def"   
+      
+      WRITE(unit_number,"(A)") "/draw-line {"
+      WRITE(unit_number,"(A)") "moveto"
+      WRITE(unit_number,"(A)") "lineto"
+      WRITE(unit_number,"(A)") ".5 setlinewidth"
+      WRITE(unit_number,"(A)") "stroke"      
+      WRITE(unit_number,"(A)") "} def"       
       
       WRITE(unit_number,"(A)") "/trifill {"
       WRITE(unit_number,"(A)") "/A exch def"
@@ -198,7 +231,68 @@
 !       WRITE(unit_number,"(A)")   " /AntiAlias true"
       WRITE(unit_number,"(A)") ">>"
       WRITE(unit_number,"(A)") "shfill"
-      WRITE(unit_number,"(A)") "} def"        
+      WRITE(unit_number,"(A)") "} def"  
+      
+      WRITE(unit_number,"(A)") "/recfill {"
+      WRITE(unit_number,"(A)") "/A exch def"
+      WRITE(unit_number,"(A)") "/B exch def"
+      WRITE(unit_number,"(A)") "/C exch def"
+      WRITE(unit_number,"(A)") "/D exch def"      
+      WRITE(unit_number,"(A)") "<<"
+      WRITE(unit_number,"(A)") " /ShadingType 2" 
+      WRITE(unit_number,"(A)") " /ColorSpace /DeviceRGB"
+      WRITE(unit_number,"(A)") " /BBox A "      
+      WRITE(unit_number,"(A)") " /Coords B "
+      WRITE(unit_number,"(A)") " /Function"
+      WRITE(unit_number,"(A)") " <<"
+      WRITE(unit_number,"(A)") "  /FunctionType 2"
+      WRITE(unit_number,"(A)") "  /Domain [0 1]"
+      WRITE(unit_number,"(A)") "  /C0 C "
+      WRITE(unit_number,"(A)") "  /C1 D "
+      WRITE(unit_number,"(A)") "  /N 1"
+      WRITE(unit_number,"(A)") " >>"
+      WRITE(unit_number,"(A)") ">>" 
+      WRITE(unit_number,"(A)") "shfill"
+      WRITE(unit_number,"(A)") "} def"  
+      
+      WRITE(unit_number,"(A)") "/vertcenter-leftalign {"
+      WRITE(unit_number,"(A)") "moveto gsave dup false charpath pathbbox grestore exch pop sub 2 div 0 exch rmoveto pop show"
+      WRITE(unit_number,"(A)") "} def"
+      
+      WRITE(unit_number,"(A)") "/lowalign-horzcenter {"
+      WRITE(unit_number,"(A)") "moveto gsave dup false charpath pathbbox grestore pop exch pop sub 2 div 0 rmoveto show"
+      WRITE(unit_number,"(A)") "} def"      
+      
+      WRITE(unit_number,"(A)") "/upalign-horzcenter {"
+      WRITE(unit_number,"(A)") "moveto gsave dup false charpath pathbbox grestore"
+      WRITE(unit_number,"(A)") "3 1 roll"      
+      WRITE(unit_number,"(A)") "4 1 roll"    
+      WRITE(unit_number,"(A)") "sub neg" 
+      WRITE(unit_number,"(A)") "3 1 roll" 
+      WRITE(unit_number,"(A)") "sub 2 div neg" 
+      WRITE(unit_number,"(A)") "exch" 
+      WRITE(unit_number,"(A)") "rmoveto" 
+      WRITE(unit_number,"(A)") "show" 
+      WRITE(unit_number,"(A)") "} def"         
+      
+      WRITE(unit_number,"(A)") "/vertcenter-rightalign {"
+      WRITE(unit_number,"(A)") "moveto gsave dup false charpath pathbbox grestore"
+      WRITE(unit_number,"(A)") "3 1 roll"      
+      WRITE(unit_number,"(A)") "4 1 roll"    
+      WRITE(unit_number,"(A)") "sub 2 div neg" 
+      WRITE(unit_number,"(A)") "3 1 roll" 
+      WRITE(unit_number,"(A)") "sub neg" 
+      WRITE(unit_number,"(A)") "exch" 
+      WRITE(unit_number,"(A)") "rmoveto" 
+      WRITE(unit_number,"(A)") "show" 
+      WRITE(unit_number,"(A)") "} def"      
+      
+      font = "Times-Roman"
+      fontsize = 12
+      WRITE(unit_number,"(A)") "/"//TRIM(ADJUSTL(font))//" findfont"      
+      WRITE(unit_number,"(I3,A)") fontsize," scalefont"  
+      WRITE(unit_number,"(A)") "setfont"
+      
       
       RETURN
       END SUBROUTINE write_psheader
@@ -360,6 +454,237 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+      SUBROUTINE colorscale(nplt,ne,el_type,sol_val,sol_min,sol_max,dc)
+      
+      IMPLICIT NONE
+      
+      INTEGER, DIMENSION(:), INTENT(IN) :: nplt
+      INTEGER, INTENT(IN) :: ne
+      INTEGER, DIMENSION(:), INTENT(IN) :: el_type
+      REAL(rp), DIMENSION(:,:), INTENT(IN) :: sol_val
+      REAL(rp), INTENT(OUT) :: sol_min
+      REAL(rp), INTENT(OUT) :: sol_max
+      REAL(rp), INTENT(OUT) :: dc
+      
+      INTEGER :: el,nd
+      INTEGER :: et,nv
+      
+      
+      sol_min = 999d0
+      sol_max = -999d0
+      
+      DO el = 1,ne
+        et = el_type(el)
+        nv = nplt(et)
+        DO nd = 1,nv
+          IF (sol_val(nd,el) < sol_min) THEN
+            sol_min = sol_val(nd,el)
+          ENDIF
+        
+          IF (sol_val(nd,el) > sol_max) THEN
+            sol_max = sol_val(nd,el)
+          ENDIF          
+        ENDDO
+        
+      ENDDO
+      
+      PRINT*, sol_min,sol_max
+
+      dc = (sol_max-sol_min)/real(nlev-1,rp)      
+      
+      
+      RETURN
+      END SUBROUTINE colorscale
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+      SUBROUTINE write_colorscale(file_unit,sol_min,sol_max)
+      
+      IMPLICIT NONE
+      
+      INTEGER, INTENT(IN) :: file_unit
+      REAL(rp), INTENT(IN) :: sol_min
+      REAL(rp), INTENT(IN) :: sol_max
+
+      
+      INTEGER :: lev
+      INTEGER :: tick      
+      INTEGER :: nctick
+      REAL(rp) :: r0,r1,s0,s1
+      REAL(rp) :: rbox0,rbox1
+      REAL(rp) :: ds
+      REAL(rp) :: rdash
+      REAL(rp) :: cval
+      REAL(rp) :: dc      
+      CHARACTER(20) :: cchar
+      
+      nctick = 10
+      
+      r0 = rmax
+      s0 = smin
+      r1 = rmax            
+
+      rbox0 = r0 + cscale_width
+      rbox1 = rbox0 + cscale_width
+      
+      ds = (smax-smin)/(nlev-1)
+      DO lev = 1,nlev-1
+      
+        s1 = s0 + ds
+      
+        WRITE(file_unit,"(A,3(F9.5,1x),A)") "[",colors(lev+1,1),colors(lev+1,2),colors(lev+1,3),"]"       
+        WRITE(file_unit,"(A,3(F9.5,1x),A)") "[",colors(lev,1),colors(lev,2),colors(lev,3),"]"  
+        WRITE(file_unit,"(A,4(F9.5,1x),A)") "[",r0,s0,r1,s1,"]" 
+        WRITE(file_unit,"(A,4(F9.5,1x),A)") "[",rbox0,s0,rbox1,s1,"]"         
+        WRITE(file_unit,"(A)") "recfill" 
+        
+        s0 = s1
+        
+      ENDDO
+                     
+      WRITE(file_unit,"(2(F9.5,1x))") rbox0,s1
+      WRITE(file_unit,"(2(F9.5,1x))") rbox1,s1
+      WRITE(file_unit,"(2(F9.5,1x))") rbox1,smin
+      WRITE(file_unit,"(2(F9.5,1x))") rbox0,smin      
+      WRITE(file_unit,"(A)") "draw-box"       
+      
+      rdash = 0.2d0*cscale_width
+      
+      s0 = smin 
+      cval = sol_min
+      dc = (sol_max-sol_min)/(nctick-1)
+      ds = (smax-smin)/(nctick-1)      
+      DO tick = 1,nctick
+              
+        WRITE(file_unit,"(2(F9.5,1x))") rbox0,s0 
+        WRITE(file_unit,"(2(F9.5,1x))") rbox0+rdash,s0     
+        WRITE(file_unit,"(A)") "draw-line" 
+        
+        WRITE(file_unit,"(2(F9.5,1x))") rbox1,s0
+        WRITE(file_unit,"(2(F9.5,1x))") rbox1-rdash,s0     
+        WRITE(file_unit,"(A)") "draw-line"  
+        
+        WRITE(cchar,"(F20.2)") cval       
+        WRITE(file_unit,"(A,2(1x,F9.5))")  "( "//TRIM(ADJUSTL(cchar))//")",rbox1,s0       
+        WRITE(file_unit,"(A)") "vertcenter-leftalign"
+        
+        cval = cval + dc
+        s0 = s0 + ds
+      ENDDO       
+      
+      RETURN
+      END SUBROUTINE write_colorscale
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+      SUBROUTINE write_axis(file_unit)
+      
+      IMPLICIT NONE
+            
+      INTEGER, INTENT(IN) :: file_unit
+      
+      INTEGER :: nxtick
+      INTEGER :: i
+      INTEGER :: expnt
+      REAL(rp) :: dr,ds
+      REAL(rp):: dash
+      REAL(rp) :: r0,r1,s0,s1
+      REAL(rp) :: ramax,ramin
+      REAL(rp) :: samax,samin
+      REAL(rp) :: xval,yval
+      REAL(rp) :: xticklabel_pad,yticklabel_pad
+      REAL(rp) :: xlabel_pad,ylabel_pad      
+      CHARACTER(20) :: xchar,ychar
+      
+      ! x-axis line
+      WRITE(file_unit,"(2(F9.5,1x))") rmin,smin
+      WRITE(file_unit,"(2(F9.5,1x))") rmax,smin     
+      WRITE(file_unit,"(A)") "draw-line"  
+      
+      ! y-axis line
+      WRITE(file_unit,"(2(F9.5,1x))") rmin,smin
+      WRITE(file_unit,"(2(F9.5,1x))") rmin,smax     
+      WRITE(file_unit,"(A)") "draw-line"        
+      
+      nxtick = 10
+
+      dash = 0.2d0*cscale_width
+      xticklabel_pad = 2d0*dash
+      yticklabel_pad = 2d0*dash
+      xlabel_pad = 10d0*dash
+      ylabel_pad = 10d0*dash      
+      
+      ramax = rmax
+      ramin = rmin
+      
+      dr = (ramax-ramin)/(real(nxtick,rp)-1d0)
+      ds = dr
+      
+      s0 = smin
+      s1 = smin + dash
+      r0 = ramin
+      
+      xval = (r0-bx)/ax
+      expnt = INT(LOG10(xval))
+      IF (expnt <= 3) THEN
+        expnt = 0
+      ENDIF
+      
+      DO i = 1,nxtick        
+        WRITE(file_unit,"(2(F9.5,1x))") r0,s1
+        WRITE(file_unit,"(2(F9.5,1x))") r0,s0
+        WRITE(file_unit,"(A)") "draw-line" 
+        
+        xval = (r0-bx)/ax
+        WRITE(xchar,"(F20.2)") xval/(10d0**expnt)       
+        WRITE(file_unit,"(A,2(1x,F9.5))")  "("//TRIM(ADJUSTL(xchar))//")",r0,s0-xticklabel_pad    
+        WRITE(file_unit,"(A)") "upalign-horzcenter"
+        r0 = r0 + dr
+      ENDDO
+      
+      
+      WRITE(file_unit,"(A,2(1x,F9.5))")  "(x)",(rmax+rmin)/2d0,s0-xlabel_pad    
+      WRITE(file_unit,"(A)") "upalign-horzcenter"      
+      
+      
+      r0 = rmin
+      r1 = rmin + dash
+      
+      yval = (s0-by)/ay
+      expnt = INT(LOG10(yval))
+      IF (expnt <= 3) THEN
+        expnt = 0
+      ENDIF      
+      
+      DO 
+      
+        IF (s0 > smax) THEN
+          EXIT        
+        ENDIF
+        
+        WRITE(file_unit,"(2(F9.5,1x))") r0,s0
+        WRITE(file_unit,"(2(F9.5,1x))") r1,s0
+        WRITE(file_unit,"(A)") "draw-line" 
+        
+        yval = (s0-by)/ay
+        WRITE(ychar,"(F20.2)") yval/(10d0**expnt)       
+        WRITE(file_unit,"(A,2(1x,F9.5))")  "("//TRIM(ADJUSTL(ychar))//")",r0-yticklabel_pad,s0        
+        WRITE(file_unit,"(A)") "vertcenter-rightalign"        
+        s0 = s0 + dr        
+      
+      ENDDO 
+      
+!       WRITE(file_unit,"(A,2(1x,F9.5))")  "(x)",(rmax-rmin)/2d0,s0-xlabel_pad    
+!       WRITE(file_unit,"(A)") "upalign-horzcenter"         
+      
+      RETURN
+      END SUBROUTINE write_axis
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
       SUBROUTINE plot_contours(file_unit,nplt,ntri,rect,ne,el_type,el_in,xy,sol_val)
       
       IMPLICIT NONE
@@ -384,32 +709,9 @@
 
 
 
-
-      sol_min = 999d0
-      sol_max = -999d0
-      
-      DO el = 1,ne
-        et = el_type(el)
-        nv = nplt(et)
-        DO nd = 1,nv
-          IF (sol_val(nd,el) < sol_min) THEN
-            sol_min = sol_val(nd,el)
-          ENDIF
-        
-          IF (sol_val(nd,el) > sol_max) THEN
-            sol_max = sol_val(nd,el)
-          ENDIF          
-        ENDDO
-        
-      ENDDO
-      
-      PRINT*, sol_min,sol_max
-      
-  
-
-
-      
-      dc = (sol_max-sol_min)/real(nlev-1,rp)
+      CALL colorscale(nplt,ne,el_type,sol_val,sol_min,sol_max,dc)
+      CALL write_colorscale(file_unit,sol_min,sol_max)
+      CALL write_axis(file_unit)
             
       
  elem:DO el = 1,ne
