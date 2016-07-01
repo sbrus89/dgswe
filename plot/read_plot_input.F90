@@ -1,13 +1,13 @@
       SUBROUTINE read_plot_input()
 
       USE plot_globals, ONLY: input_path,cmap_file,zbox,ps,pc, &
-                              xbox_min,xbox_max,ybox_min,ybox_max, &
+                              xbox_min,xbox_max,ybox_min,ybox_max,figure_width, &
                               plot_mesh_option,plot_zeta_option,plot_vel_option,plot_bathy_option, &
                               snap_start,snap_end
 
       IMPLICIT NONE
       
-      INTEGER, PARAMETER :: ninp = 10
+      INTEGER, PARAMETER :: ninp = 11
       INTEGER :: i,n
       INTEGER :: inp_read,skipped
       CHARACTER(100) :: temp      
@@ -68,10 +68,14 @@
               ELSE
                 READ(temp,*) xbox_min,xbox_max,ybox_min,ybox_max
               ENDIF
-              PRINT("(A,A)"), "Zoom box = ", zbox                   
+              PRINT("(A,A)"), "zoom box = ", zbox    
             CASE (9)
-              READ(temp,*) snap_start,snap_end
+              READ(temp,*) figure_width
+              figure_width = figure_width*72d0  
+              PRINT("(A,F9.5)"), "figure width = ", figure_width              
             CASE (10)
+              READ(temp,*) snap_start,snap_end
+            CASE (11)
               cmap_file = TRIM(ADJUSTL(temp))
               PRINT("(A,A)"), "color map file = ", cmap_file                
 !             CASE ()

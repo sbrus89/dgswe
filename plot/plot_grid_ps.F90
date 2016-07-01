@@ -148,7 +148,7 @@
       IF (plot_bathy_option == 1) THEN
         PRINT*, "Writing bathymetry PostScript file..."
         CALL write_psheader("bathy.ps",hb_unit)
-        CALL plot_contours(hb_unit,nplt,ntri,rect,ne,el_type,el_in,xyplt,hb_val)     
+        CALL plot_contours(hb_unit,nplt,ntri,rect,ne,el_type,el_in,xyplt,hb_val,"bathymetry")     
         IF (plot_mesh_option == 1) THEN
           CALL plot_mesh(hb_unit,ne,nverts,el_type,el_in,xy,ect)   
         ENDIF
@@ -195,7 +195,7 @@
         IF (plot_zeta_option == 1) THEN        
           PRINT*, "  Writing zeta PostScript file..."        
           CALL write_psheader("zeta_"//snap_char//".ps",Z_unit)            
-          CALL plot_contours(Z_unit,nplt,ntri,rect,ne,el_type,el_in,xyplt,Z_val)      
+          CALL plot_contours(Z_unit,nplt,ntri,rect,ne,el_type,el_in,xyplt,Z_val,"surface elevation")      
           IF (plot_mesh_option == 1) THEN
             CALL plot_mesh(Z_unit,ne,nverts,el_type,el_in,xy,ect)
           ENDIF      
@@ -210,7 +210,7 @@
         IF (plot_vel_option == 1) THEN       
           PRINT*, "  Writing velocity PostScript file..."        
           CALL write_psheader("vel_"//snap_char//".ps",vel_unit)            
-          CALL plot_contours(vel_unit,nplt,ntri,rect,ne,el_type,el_in,xyplt,vel_val)      
+          CALL plot_contours(vel_unit,nplt,ntri,rect,ne,el_type,el_in,xyplt,vel_val,"velocity")      
           IF (plot_mesh_option == 1) THEN
             CALL plot_mesh(vel_unit,ne,nverts,el_type,el_in,xy,ect)
           ENDIF      

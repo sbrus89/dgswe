@@ -15,6 +15,10 @@
       REAL(rp) :: ax,bx  
       REAL(rp) :: ay,by      
       
+      CHARACTER(20) :: main_font = "Times-Roman"
+      CHARACTER(20) :: math_font = "Times-Italic"      
+      INTEGER :: fontsize = 12     
+      
       CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -178,8 +182,7 @@
       CHARACTER(*), INTENT(IN) :: file_name
       INTEGER, INTENT(OUT) :: unit_number
       
-      CHARACTER(20) :: font
-      INTEGER :: fontsize
+
       
       
       unit_count = unit_count + 1
@@ -255,15 +258,14 @@
       WRITE(unit_number,"(A)") "shfill"
       WRITE(unit_number,"(A)") "} def"  
       
-      WRITE(unit_number,"(A)") "/vertcenter-leftalign {"
+      ! center vertically, left align horizontally
+      WRITE(unit_number,"(A)") "/caxis-tick-labels {"
       WRITE(unit_number,"(A)") "moveto gsave dup false charpath pathbbox grestore exch pop sub 2 div 0 exch rmoveto pop show"
       WRITE(unit_number,"(A)") "} def"
       
-      WRITE(unit_number,"(A)") "/lowalign-horzcenter {"
-      WRITE(unit_number,"(A)") "moveto gsave dup false charpath pathbbox grestore pop exch pop sub 2 div 0 rmoveto show"
-      WRITE(unit_number,"(A)") "} def"      
-      
-      WRITE(unit_number,"(A)") "/upalign-horzcenter {"
+
+      ! top align vertically, center horizontally
+      WRITE(unit_number,"(A)") "/xaxis-labels {"
       WRITE(unit_number,"(A)") "moveto gsave dup false charpath pathbbox grestore"
       WRITE(unit_number,"(A)") "3 1 roll"      
       WRITE(unit_number,"(A)") "4 1 roll"    
@@ -275,7 +277,8 @@
       WRITE(unit_number,"(A)") "show" 
       WRITE(unit_number,"(A)") "} def"         
       
-      WRITE(unit_number,"(A)") "/vertcenter-rightalign {"
+      ! center vertically, right align horizontally
+      WRITE(unit_number,"(A)") "/yaxis-tick-labels {"
       WRITE(unit_number,"(A)") "moveto gsave dup false charpath pathbbox grestore"
       WRITE(unit_number,"(A)") "3 1 roll"      
       WRITE(unit_number,"(A)") "4 1 roll"    
@@ -285,13 +288,43 @@
       WRITE(unit_number,"(A)") "exch" 
       WRITE(unit_number,"(A)") "rmoveto" 
       WRITE(unit_number,"(A)") "show" 
+      WRITE(unit_number,"(A)") "} def"  
+      
+      ! rotate text, center vertically, right align horizontally
+      WRITE(unit_number,"(A)") "/yaxis-labels {"   
+      WRITE(unit_number,"(A)") "moveto gsave dup false charpath pathbbox grestore"
+      WRITE(unit_number,"(A)") "3 1 roll"      
+      WRITE(unit_number,"(A)") "4 1 roll"    
+      WRITE(unit_number,"(A)") "sub neg" 
+      WRITE(unit_number,"(A)") "3 1 roll" 
+      WRITE(unit_number,"(A)") "sub 2 div neg" 
+      WRITE(unit_number,"(A)") "rmoveto" 
+      WRITE(unit_number,"(A)") "90 rotate"        
+      WRITE(unit_number,"(A)") "show" 
+      WRITE(unit_number,"(A)") "-90 rotate"      
+      WRITE(unit_number,"(A)") "} def"  
+      
+      ! rotate text, center vertically, left align horizontally      
+      WRITE(unit_number,"(A)") "/caxis-labels {"   
+      WRITE(unit_number,"(A)") "moveto gsave dup false charpath pathbbox grestore"
+      WRITE(unit_number,"(A)") "3 1 roll"      
+      WRITE(unit_number,"(A)") "4 1 roll"    
+      WRITE(unit_number,"(A)") "sub " 
+      WRITE(unit_number,"(A)") "3 1 roll" 
+      WRITE(unit_number,"(A)") "sub 2 div neg" 
+      WRITE(unit_number,"(A)") "rmoveto"  
+      WRITE(unit_number,"(A)") "90 rotate"        
+      WRITE(unit_number,"(A)") "show" 
+      WRITE(unit_number,"(A)") "-90 rotate"      
       WRITE(unit_number,"(A)") "} def"      
       
-      font = "Times-Roman"
-      fontsize = 12
-      WRITE(unit_number,"(A)") "/"//TRIM(ADJUSTL(font))//" findfont"      
+      WRITE(unit_number,"(A)") "/choosefont {"
+      WRITE(unit_number,"(A)") "findfont"      
       WRITE(unit_number,"(I3,A)") fontsize," scalefont"  
       WRITE(unit_number,"(A)") "setfont"
+      WRITE(unit_number,"(A)") "} def"   
+      
+      WRITE(unit_number,"(A)") "/"//TRIM(ADJUSTL(main_font))//" choosefont"      
       
       
       RETURN
@@ -499,24 +532,27 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-      SUBROUTINE write_colorscale(file_unit,sol_min,sol_max)
+      SUBROUTINE write_colorscale(file_unit,sol_min,sol_max,sol_label)
       
       IMPLICIT NONE
       
       INTEGER, INTENT(IN) :: file_unit
       REAL(rp), INTENT(IN) :: sol_min
       REAL(rp), INTENT(IN) :: sol_max
+      CHARACTER(*), INTENT(IN) :: sol_label
 
       
       INTEGER :: lev
       INTEGER :: tick      
-      INTEGER :: nctick
+      INTEGER :: nctick      
       REAL(rp) :: r0,r1,s0,s1
       REAL(rp) :: rbox0,rbox1
       REAL(rp) :: ds
-      REAL(rp) :: rdash
+      REAL(rp) :: dash
       REAL(rp) :: cval
-      REAL(rp) :: dc      
+      REAL(rp) :: dc   
+      REAL(rp) :: cticklabel_pad
+      REAL(rp) :: clabel_pad
       CHARACTER(20) :: cchar
       
       nctick = 10
@@ -549,7 +585,9 @@
       WRITE(file_unit,"(2(F9.5,1x))") rbox0,smin      
       WRITE(file_unit,"(A)") "draw-box"       
       
-      rdash = 0.2d0*cscale_width
+      dash = 0.2d0*cscale_width
+      cticklabel_pad = 2d0*dash
+      clabel_pad = 12d0*dash
       
       s0 = smin 
       cval = sol_min
@@ -558,20 +596,23 @@
       DO tick = 1,nctick
               
         WRITE(file_unit,"(2(F9.5,1x))") rbox0,s0 
-        WRITE(file_unit,"(2(F9.5,1x))") rbox0+rdash,s0     
+        WRITE(file_unit,"(2(F9.5,1x))") rbox0+dash,s0     
         WRITE(file_unit,"(A)") "draw-line" 
         
         WRITE(file_unit,"(2(F9.5,1x))") rbox1,s0
-        WRITE(file_unit,"(2(F9.5,1x))") rbox1-rdash,s0     
+        WRITE(file_unit,"(2(F9.5,1x))") rbox1-dash,s0     
         WRITE(file_unit,"(A)") "draw-line"  
         
         WRITE(cchar,"(F20.2)") cval       
-        WRITE(file_unit,"(A,2(1x,F9.5))")  "( "//TRIM(ADJUSTL(cchar))//")",rbox1,s0       
-        WRITE(file_unit,"(A)") "vertcenter-leftalign"
+        WRITE(file_unit,"(A,2(1x,F9.5))")  "("//TRIM(ADJUSTL(cchar))//")",rbox1+cticklabel_pad,s0       
+        WRITE(file_unit,"(A)") "caxis-tick-labels"
         
         cval = cval + dc
         s0 = s0 + ds
       ENDDO       
+      
+        WRITE(file_unit,"(A,2(1x,F9.5))")  "("//TRIM(ADJUSTL(sol_label))//")",rbox1+clabel_pad,(smin+smax)/2d0       
+        WRITE(file_unit,"(A)") "caxis-labels"      
       
       RETURN
       END SUBROUTINE write_colorscale
@@ -640,13 +681,14 @@
         xval = (r0-bx)/ax
         WRITE(xchar,"(F20.2)") xval/(10d0**expnt)       
         WRITE(file_unit,"(A,2(1x,F9.5))")  "("//TRIM(ADJUSTL(xchar))//")",r0,s0-xticklabel_pad    
-        WRITE(file_unit,"(A)") "upalign-horzcenter"
+        WRITE(file_unit,"(A)") "xaxis-labels"
         r0 = r0 + dr
       ENDDO
       
-      
+      WRITE(file_unit,"(A)") "/"//TRIM(ADJUSTL(math_font))//" choosefont"         
       WRITE(file_unit,"(A,2(1x,F9.5))")  "(x)",(rmax+rmin)/2d0,s0-xlabel_pad    
-      WRITE(file_unit,"(A)") "upalign-horzcenter"      
+      WRITE(file_unit,"(A)") "xaxis-labels"      
+      WRITE(file_unit,"(A)") "/"//TRIM(ADJUSTL(main_font))//" choosefont"         
       
       
       r0 = rmin
@@ -671,13 +713,15 @@
         yval = (s0-by)/ay
         WRITE(ychar,"(F20.2)") yval/(10d0**expnt)       
         WRITE(file_unit,"(A,2(1x,F9.5))")  "("//TRIM(ADJUSTL(ychar))//")",r0-yticklabel_pad,s0        
-        WRITE(file_unit,"(A)") "vertcenter-rightalign"        
+        WRITE(file_unit,"(A)") "yaxis-tick-labels"        
         s0 = s0 + dr        
       
       ENDDO 
       
-!       WRITE(file_unit,"(A,2(1x,F9.5))")  "(x)",(rmax-rmin)/2d0,s0-xlabel_pad    
-!       WRITE(file_unit,"(A)") "upalign-horzcenter"         
+      WRITE(file_unit,"(A)") "/"//TRIM(ADJUSTL(math_font))//" choosefont"        
+      WRITE(file_unit,"(A,2(1x,F9.5))")  "(y)",r0-ylabel_pad,(smax+smin)/2d0    
+      WRITE(file_unit,"(A)") "yaxis-labels"  
+      WRITE(file_unit,"(A)") "/"//TRIM(ADJUSTL(main_font))//" choosefont"        
       
       RETURN
       END SUBROUTINE write_axis
@@ -685,7 +729,7 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-      SUBROUTINE plot_contours(file_unit,nplt,ntri,rect,ne,el_type,el_in,xy,sol_val)
+      SUBROUTINE plot_contours(file_unit,nplt,ntri,rect,ne,el_type,el_in,xy,sol_val,sol_label)
       
       IMPLICIT NONE
       
@@ -698,6 +742,7 @@
       INTEGER, DIMENSION(:), INTENT(IN) :: el_in
       REAL(rp), DIMENSION(:,:,:), INTENT(IN) :: xy  
       REAL(rp), DIMENSION(:,:), INTENT(IN) :: sol_val
+      CHARACTER(*), INTENT(IN) :: sol_label
       
       INTEGER :: i,j,v
       INTEGER :: el,nd,dof,lev,tri
@@ -710,7 +755,7 @@
 
 
       CALL colorscale(nplt,ne,el_type,sol_val,sol_min,sol_max,dc)
-      CALL write_colorscale(file_unit,sol_min,sol_max)
+      CALL write_colorscale(file_unit,sol_min,sol_max,sol_label)
       CALL write_axis(file_unit)
             
       
