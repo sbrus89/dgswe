@@ -115,8 +115,8 @@
         CALL file_init(out_direc,"Qx.sol",mndof,ne,nout_sol+1,Qxsol_unit)
         CALL file_init(out_direc,"Qy.sol",mndof,ne,nout_sol+1,Qysol_unit) 
         
-        CALL file_init(out_direc,"hb.sol",mndof,ne,nout_hb,hb_unit)
-        CALL write_solution_snap(hb_unit,mndof,ne,"N",t,hbm)         
+        CALL file_init(out_direc,"hb.sol",mnnds,ne,nout_hb,hb_unit)
+        CALL write_solution_snap(hb_unit,mnnds,ne,"N",t,hbm)         
         CLOSE(hb_unit)
         
         ! Set up netcdf output files
