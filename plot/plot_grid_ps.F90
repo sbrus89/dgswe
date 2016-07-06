@@ -10,12 +10,13 @@
       USE grid_file_mod
       USE basis, ONLY: element_nodes,element_basis
       USE read_write_output, ONLY: read_solution_full
-      USE read_dginp, ONLY: read_input,out_direc,p,ctp, &
+      USE read_dginp, ONLY: read_input,out_direc,p,ctp,hbp, &
                             grid_file,curve_file,cb_file_exists
       USE plot_mod, ONLY: read_colormap,write_psheader,close_ps, &
                           scale_coordinates,zoom_box, &
                           evaluate_depth_solution,evaluate_velocity_solution, &
-                          plot_contours,plot_mesh
+                          plot_contours,plot_mesh, &
+                          write_texheader,close_tex
       USE triangulation, ONLY: reference_element_delaunay
       USE edge_connectivity_mod
       USE curvilinear_nodes_mod
@@ -24,7 +25,7 @@
       
       IMPLICIT NONE
       
-
+      space = 0  
       
       CALL read_plot_input()
       
@@ -63,8 +64,9 @@
                                    nnfbed,nfbedn,nfbednn,ged2el,ged2led, &
                                    psiv,bndxy,elxy)     
       
+!       CALL find_element_init(nel_type,nverts,np,nnds,nn,xy,nepn,epn)      
+      
       PRINT*, "Calculating additional ploting point coordinates..."
-      space = 1  
       ALLOCATE(r(mnpp),s(mnpp))      
       ALLOCATE(psic(mnnds,mnpp,nel_type))
       DO et = 1,nel_type     
@@ -87,16 +89,19 @@
       
       PRINT*, "Evaluating reference element coordinate information..."
       ALLOCATE(phi(mndof,mnpp,nel_type))
+      ALLOCATE(phi_hb(mndof,mnpp,nel_type))      
       ALLOCATE(rect(3,3*mnpp,nel_type))
       DO et = 1,nel_type
-        CALL element_nodes(et,1,pplt(et),n,r,s)
+        CALL element_nodes(et,space,pplt(et),n,r,s)
         CALL element_basis(et,p,ndf,n,r,s,phi(:,:,et))
+        CALL element_basis(et,hbp,ndf,n,r,s,phi_hb(:,:,et))        
         CALL reference_element_delaunay(n,r,s,ntri(et),rect(:,:,et))
         
 !         DO i = 1,3
 !           PRINT "(*(I5))", (rect(i,j,et), j = 1,ntri(et))
 !         ENDDO    
 !         PRINT*, ""
+        PRINT("(A,I4,A,I4)"), "  number of additional nodes/sub-triangles: ", n,"/",ntri(et)
       ENDDO      
 
 
@@ -133,14 +138,14 @@
       ENDIF
       IF (plot_bathy_option == 1 .or. plot_vel_option == 1) THEN
         PRINT*, "Reading bathymetry solution..."          
-        CALL read_solution_full(out_direc,"hb.sol","N",t,hb,nsnap_hb)      
+        CALL read_solution_full(out_direc,"hb.sol","N",t,hb,nsnap_hb)  
       ENDIF   
       
       
       
       IF (plot_bathy_option == 1 .or. plot_vel_option == 1) THEN
         PRINT*, "Evaluating bathymetry at additional plotting points..."
-        CALL evaluate_depth_solution(ne,el_type,el_in,nplt,ndof,phi,1,hb,hb_val)
+        CALL evaluate_depth_solution(ne,el_type,el_in,nplt,ndof_hb,phi_hb,1,hb,hb_val)
       ENDIF      
       
       
@@ -209,12 +214,14 @@
         
         IF (plot_vel_option == 1) THEN       
           PRINT*, "  Writing velocity PostScript file..."        
-          CALL write_psheader("vel_"//snap_char//".ps",vel_unit)            
+          CALL write_psheader("vel_"//snap_char//".ps",vel_unit)  
+          CALL write_texheader("vel_axes.tex",vel_unit)  
           CALL plot_contours(vel_unit,nplt,ntri,rect,ne,el_type,el_in,xyplt,vel_val,"velocity")      
           IF (plot_mesh_option == 1) THEN
             CALL plot_mesh(vel_unit,ne,nverts,el_type,el_in,xy,ect)
           ENDIF      
-          CALL close_ps(vel_unit)        
+          CALL close_ps(vel_unit)   
+          CALL close_tex(vel_unit)
         ENDIF
             
       ENDDO

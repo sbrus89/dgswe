@@ -15,8 +15,14 @@
       REAL(rp) :: ax,bx  
       REAL(rp) :: ay,by      
       
-      CHARACTER(20) :: main_font = "Times-Roman"
-      CHARACTER(20) :: math_font = "Times-Italic"      
+      REAL(rp) :: rmin_page = 0d0
+      REAL(rp) :: rmax_page = 612d0
+      REAL(rp) :: smin_page = 0d0
+      REAL(rp) :: smax_page = 792d0      
+      
+      CHARACTER(100) :: main_font = "/Times-Roman"
+      CHARACTER(100) :: math_font = "/Times-Italic"    
+!       CHARACTER(100) :: main_font = "(/usr/share/fonts/type1/gsfonts/cmr10.pfb)"
       INTEGER :: fontsize = 12     
       
       CONTAINS
@@ -82,22 +88,24 @@
           ENDIF          
           
           IF (xpt < xbox_min .or. xpt > xbox_max) THEN
-            outside = 1
+            outside = outside + 1
             xmin = xbox_min
             xmax = xbox_max
           ENDIF
           
           IF (ypt < ybox_min .or. ypt > ybox_max) THEN
-            outside = 1
+            outside = outside + 1
             ymin = ybox_min
             ymax = ybox_max
           ENDIF
 
         ENDDO
-        IF (outside == 1) THEN
+        IF (outside >= npts) THEN
           el_in(el) = 0
         ENDIF
       ENDDO    
+      
+!       CALL in_element(xy,el_type,elxy,el_found,rs)
             
       
       RETURN
@@ -125,24 +133,15 @@
       
       INTEGER :: el,nd
       INTEGER :: et,npts,nv
-
-
-      
-      
-      
-!!!!!  Letter Size  !!!!      
-!       rmin = 0d0
-!       rmax = 612d0
-!       smin = 0d0
-!       smax = 792d0
+               
       
       cscale_width = figure_width*.05d0
       lr_margin =(612d0 - figure_width + 2d0*cscale_width)/2d0
       
-      rmin = 0d0 + lr_margin
-      rmax = 612d0 - lr_margin
-      smin = 0d0 + lr_margin
-      smax = 772d0
+      rmin = rmin_page + lr_margin
+      rmax = rmax_page - lr_margin
+      smin = smin_page + lr_margin
+      smax = smax_page
       
       
       ax = (rmin/(xmin-xmax)+rmax/(xmax-xmin))
@@ -233,6 +232,7 @@
       WRITE(unit_number,"(A)") "  /DataSource ds" 
 !       WRITE(unit_number,"(A)")   " /AntiAlias true"
       WRITE(unit_number,"(A)") ">>"
+      WRITE(unit_number,"(A)") "closepath"      
       WRITE(unit_number,"(A)") "shfill"
       WRITE(unit_number,"(A)") "} def"  
       
@@ -324,11 +324,36 @@
       WRITE(unit_number,"(A)") "setfont"
       WRITE(unit_number,"(A)") "} def"   
       
-      WRITE(unit_number,"(A)") "/"//TRIM(ADJUSTL(main_font))//" choosefont"      
+      WRITE(unit_number,"(A)") TRIM(ADJUSTL(main_font))//" choosefont"      
+!       WRITE(unit_number,"(A)") "(/usr/share/fonts/type1/gsfonts/n021003l.pfb)     choosefont"    
+      WRITE(unit_number,"(A)") "(/usr/share/fonts/type1/gsfonts/cmr10.pfb)     choosefont"        
       
-      
+  
       RETURN
       END SUBROUTINE write_psheader
+      
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
+
+      SUBROUTINE write_texheader(file_name,unit_number)
+      
+      IMPLICIT NONE
+      
+      CHARACTER(*), INTENT(IN) :: file_name      
+      INTEGER, INTENT(INOUT) :: unit_number      
+      
+      OPEN(UNIT=unit_number+100,FILE=file_name)           
+      WRITE(unit_number+100,"(A)") "\documentclass[12pt]{article}"
+      WRITE(unit_number+100,"(A)") "\pagestyle{empty}"
+      WRITE(unit_number+100,"(A)") "\usepackage[absolute]{textpos}"
+      WRITE(unit_number+100,"(A)") "\setlength{\TPHorizModule}{1pt}"  
+      WRITE(unit_number+100,"(A)") "\setlength{\TPVertModule}{1pt}"
+      WRITE(unit_number+100,"(A)") "\textblockorigin{0pt}{0pt}"
+      WRITE(unit_number+100,"(A)") "\begin{document}"
+       
+      
+      RETURN
+      END SUBROUTINE write_texheader
       
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!              
@@ -344,6 +369,21 @@
       
       RETURN
       END SUBROUTINE close_ps           
+      
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
+
+      SUBROUTINE close_tex(unit_number)
+      
+      IMPLICIT NONE
+      
+      INTEGER, INTENT(INOUT) :: unit_number      
+      
+      WRITE(unit_number+100,"(A)") "\end{document}"
+      CLOSE(unit_number+100)
+      
+      RETURN
+      END SUBROUTINE close_tex      
       
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
@@ -639,15 +679,29 @@
       REAL(rp) :: xlabel_pad,ylabel_pad      
       CHARACTER(20) :: xchar,ychar
       
-      ! x-axis line
-      WRITE(file_unit,"(2(F9.5,1x))") rmin,smin
-      WRITE(file_unit,"(2(F9.5,1x))") rmax,smin     
-      WRITE(file_unit,"(A)") "draw-line"  
+      WRITE(file_unit,"(A)")  "newpath"     
+      WRITE(file_unit,"(2(F9.5,1x),A)") rmin_page,smin_page," moveto"
+      WRITE(file_unit,"(2(F9.5,1x),A)") rmax_page,smin_page," lineto"
+      WRITE(file_unit,"(2(F9.5,1x),A)") rmax_page,smax_page," lineto"  
+      WRITE(file_unit,"(2(F9.5,1x),A)") rmin_page,smax_page," lineto"    
+      WRITE(file_unit,"(2(F9.5,1x),A)") rmin_page,smin_page," lineto"        
+      WRITE(file_unit,"(2(F9.5,1x),A)") rmin,smin," moveto"   
+      WRITE(file_unit,"(2(F9.5,1x),A)") rmin,smax," lineto"  
+      WRITE(file_unit,"(2(F9.5,1x),A)") rmax,smax," lineto"
+      WRITE(file_unit,"(2(F9.5,1x),A)") rmax,smin," lineto"
+      WRITE(file_unit,"(2(F9.5,1x),A)") rmin,smin," lineto"     
+      WRITE(file_unit,"(A)") "gsave 1 1 1 setrgbcolor fill grestore"      
+      WRITE(file_unit,"(A)") "clear"      
       
-      ! y-axis line
-      WRITE(file_unit,"(2(F9.5,1x))") rmin,smin
-      WRITE(file_unit,"(2(F9.5,1x))") rmin,smax     
-      WRITE(file_unit,"(A)") "draw-line"        
+!       ! x-axis line
+!       WRITE(file_unit,"(2(F9.5,1x))") rmin,smin
+!       WRITE(file_unit,"(2(F9.5,1x))") rmax,smin     
+!       WRITE(file_unit,"(A)") "draw-line"  
+!       
+!       ! y-axis line
+!       WRITE(file_unit,"(2(F9.5,1x))") rmin,smin
+!       WRITE(file_unit,"(2(F9.5,1x))") rmin,smax     
+!       WRITE(file_unit,"(A)") "draw-line"        
       
       nxtick = 10
 
@@ -663,8 +717,7 @@
       dr = (ramax-ramin)/(real(nxtick,rp)-1d0)
       ds = dr
       
-      s0 = smin
-      s1 = smin + dash
+
       r0 = ramin
       
       xval = (r0-bx)/ax
@@ -674,25 +727,39 @@
       ENDIF
       
       DO i = 1,nxtick        
-        WRITE(file_unit,"(2(F9.5,1x))") r0,s1
-        WRITE(file_unit,"(2(F9.5,1x))") r0,s0
+        WRITE(file_unit,"(2(F9.5,1x))") r0,smin+dash
+        WRITE(file_unit,"(2(F9.5,1x))") r0,smin
         WRITE(file_unit,"(A)") "draw-line" 
+        
+        WRITE(file_unit,"(2(F9.5,1x))") r0,smax
+        WRITE(file_unit,"(2(F9.5,1x))") r0,smax-dash
+        WRITE(file_unit,"(A)") "draw-line"         
         
         xval = (r0-bx)/ax
         WRITE(xchar,"(F20.2)") xval/(10d0**expnt)       
-        WRITE(file_unit,"(A,2(1x,F9.5))")  "("//TRIM(ADJUSTL(xchar))//")",r0,s0-xticklabel_pad    
-        WRITE(file_unit,"(A)") "xaxis-labels"
+!         WRITE(file_unit,"(A,2(1x,F9.5))")  "("//TRIM(ADJUSTL(xchar))//")",r0,smin-xticklabel_pad    
+!         WRITE(file_unit,"(A)") "xaxis-labels"
+
+        WRITE(file_unit+100,"(A,F9.5,A,F9.5,A)") "\begin{textblock}{400}[0,0](",r0,",",smax_page-smin+xticklabel_pad,")"
+        WRITE(file_unit+100,"(A)") xchar        
+        WRITE(file_unit+100,"(A)") "\end{textblock}"        
+        
         r0 = r0 + dr
       ENDDO
       
-      WRITE(file_unit,"(A)") "/"//TRIM(ADJUSTL(math_font))//" choosefont"         
-      WRITE(file_unit,"(A,2(1x,F9.5))")  "(x)",(rmax+rmin)/2d0,s0-xlabel_pad    
+      WRITE(file_unit,"(A)") TRIM(ADJUSTL(math_font))//" choosefont"         
+      WRITE(file_unit,"(A,2(1x,F9.5))")  "(x)",(rmax+rmin)/2d0,smin-xlabel_pad    
       WRITE(file_unit,"(A)") "xaxis-labels"      
-      WRITE(file_unit,"(A)") "/"//TRIM(ADJUSTL(main_font))//" choosefont"         
+      WRITE(file_unit,"(A)") TRIM(ADJUSTL(main_font))//" choosefont"   
+      
+!       IF (expnt /= 0) THEN
+!       
+!         WRITE(file_unit,"(A,2(1x,F9.5))")  "(x10)",r0,smin-xlabel_pad    
+!         WRITE(file_unit,"(A)") "xaxis-labels"        
+!       ENDIF
       
       
-      r0 = rmin
-      r1 = rmin + dash
+      s0 = smin      
       
       yval = (s0-by)/ay
       expnt = INT(LOG10(yval))
@@ -706,22 +773,26 @@
           EXIT        
         ENDIF
         
-        WRITE(file_unit,"(2(F9.5,1x))") r0,s0
-        WRITE(file_unit,"(2(F9.5,1x))") r1,s0
+        WRITE(file_unit,"(2(F9.5,1x))") rmin,s0
+        WRITE(file_unit,"(2(F9.5,1x))") rmin+dash,s0
         WRITE(file_unit,"(A)") "draw-line" 
+        
+        WRITE(file_unit,"(2(F9.5,1x))") rmax,s0
+        WRITE(file_unit,"(2(F9.5,1x))") rmax-dash,s0
+        WRITE(file_unit,"(A)") "draw-line"         
         
         yval = (s0-by)/ay
         WRITE(ychar,"(F20.2)") yval/(10d0**expnt)       
-        WRITE(file_unit,"(A,2(1x,F9.5))")  "("//TRIM(ADJUSTL(ychar))//")",r0-yticklabel_pad,s0        
+        WRITE(file_unit,"(A,2(1x,F9.5))")  "("//TRIM(ADJUSTL(ychar))//")",rmin-yticklabel_pad,s0        
         WRITE(file_unit,"(A)") "yaxis-tick-labels"        
         s0 = s0 + dr        
       
       ENDDO 
       
-      WRITE(file_unit,"(A)") "/"//TRIM(ADJUSTL(math_font))//" choosefont"        
-      WRITE(file_unit,"(A,2(1x,F9.5))")  "(y)",r0-ylabel_pad,(smax+smin)/2d0    
+      WRITE(file_unit,"(A)") TRIM(ADJUSTL(math_font))//" choosefont"        
+      WRITE(file_unit,"(A,2(1x,F9.5))")  "(y)",rmin-ylabel_pad,(smax+smin)/2d0    
       WRITE(file_unit,"(A)") "yaxis-labels"  
-      WRITE(file_unit,"(A)") "/"//TRIM(ADJUSTL(main_font))//" choosefont"        
+      WRITE(file_unit,"(A)") TRIM(ADJUSTL(main_font))//" choosefont"        
       
       RETURN
       END SUBROUTINE write_axis
@@ -755,8 +826,13 @@
 
 
       CALL colorscale(nplt,ne,el_type,sol_val,sol_min,sol_max,dc)
-      CALL write_colorscale(file_unit,sol_min,sol_max,sol_label)
-      CALL write_axis(file_unit)
+      WRITE(file_unit,"(A)") "gsave newpath"        
+      WRITE(file_unit,"(2(F9.5,1x),A)") rmin,smin,"moveto"
+      WRITE(file_unit,"(2(F9.5,1x),A)") rmax,smin,"lineto"
+      WRITE(file_unit,"(2(F9.5,1x),A)") rmax,smax,"lineto"      
+      WRITE(file_unit,"(2(F9.5,1x),A)") rmin,smax,"lineto"      
+      WRITE(file_unit,"(A)") "closepath"     
+      WRITE(file_unit,"(A)") ".75 .75 .75 setrgbcolor fill grestore"        
             
       
  elem:DO el = 1,ne
@@ -796,6 +872,10 @@
         ENDDO
       ENDDO elem
 
+    
+      CALL write_axis(file_unit)        
+      CALL write_colorscale(file_unit,sol_min,sol_max,sol_label)
+    
 
       END SUBROUTINE plot_contours
       
