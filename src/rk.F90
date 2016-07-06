@@ -303,10 +303,10 @@
                          
       USE quit, ONLY: finish 
       USE output, ONLY: output_solution,close_output
-      USE read_dginp, ONLY: npart
-      
-#ifdef CMPI 
+      USE read_dginp, ONLY: npart     
       USE messenger2, ONLY: myrank
+      
+#ifdef CMPI       
       USE mpi                            
 #endif        
       
