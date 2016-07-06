@@ -20,12 +20,14 @@
       REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: Z_global,Qx_global,Qy_global,hb_global
       REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: Zsta_global,Qxsta_global,Qysta_global,hbsta_global      
       REAL(rp), ALLOCATABLE, DIMENSION(:) :: t_sol,t_sta
+      INTEGER :: ndof_hb      
       LOGICAL :: post=.true.
       
       CALL version_information(unit=6)
       
       CALL read_input(0,".")
       
+      ndof_hb = (hbp+1)*(hbp+1)         
 
       OPEN(UNIT=80,FILE='PE0000/fort.80')      
       READ(80,*) npe
