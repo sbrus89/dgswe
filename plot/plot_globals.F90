@@ -27,7 +27,8 @@
       INTEGER :: ntri(4)
       INTEGER :: nred 
       INTEGER, ALLOCATABLE, DIMENSION(:,:,:) :: rect
-
+      INTEGER :: ndof_hb(4)
+      
       INTEGER :: i,j
       INTEGER :: nsnap
       INTEGER :: snap
@@ -37,7 +38,8 @@
       REAL(rp), ALLOCATABLE, DIMENSION(:) :: t      
       REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: Z,Qx,Qy,hb 
       REAL(rp), ALLOCATABLE, DIMENSION(:) :: r,s
-      REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: phi   
+      REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: phi 
+      REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: phi_hb        
       REAL(rp), DIMENSION(:,:,:), ALLOCATABLE :: xyplt   
       REAL(rp), DIMENSION(:,:), ALLOCATABLE :: Z_val 
       REAL(rp), DIMENSION(:,:), ALLOCATABLE :: hb_val           
@@ -76,7 +78,7 @@
       SUBROUTINE sizes()
       
       USE globals, ONLY: nverts,ndof,mndof,np,mnp,nnds,mnnds
-      USE read_dginp, ONLY: p,ctp
+      USE read_dginp, ONLY: p,ctp,hbp
       
       IMPLICIT NONE
             
@@ -85,6 +87,11 @@
       ndof(3) = ndof(1)
       ndof(4) = ndof(2)      
       mndof = maxval(ndof)
+      
+      ndof_hb(1) = (hbp+1)*(hbp+2)/2
+      ndof_hb(2) = (hbp+1)*(hbp+1)
+      ndof_hb(3) = (hbp+1)*(hbp+2)/2
+      ndof_hb(4) = (hbp+1)*(hbp+1)      
       
       nverts(1) = 3
       nverts(2) = 4
