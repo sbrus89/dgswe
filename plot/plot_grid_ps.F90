@@ -16,7 +16,7 @@
                           scale_coordinates,zoom_box, &
                           evaluate_depth_solution,evaluate_velocity_solution, &
                           plot_contours,plot_mesh, &
-                          write_texheader,close_tex
+                          write_xyaxis_labels,write_caxis_labels,close_tex
       USE triangulation, ONLY: reference_element_delaunay
       USE edge_connectivity_mod
       USE curvilinear_nodes_mod
@@ -152,8 +152,7 @@
       
       IF (plot_bathy_option == 1) THEN
         PRINT*, "Writing bathymetry PostScript file..."
-        CALL write_psheader("bathy.ps",hb_unit)
-        CALL plot_contours(hb_unit,nplt,ntri,rect,ne,el_type,el_in,xyplt,hb_val,"bathymetry")     
+        CALL plot_contours("bathy.ps",hb_unit,nplt,ntri,rect,ne,el_type,el_in,xyplt,hb_val,"bathymetry")     
         IF (plot_mesh_option == 1) THEN
           CALL plot_mesh(hb_unit,ne,nverts,el_type,el_in,xy,ect)   
         ENDIF
@@ -198,9 +197,8 @@
         ENDIF
         
         IF (plot_zeta_option == 1) THEN        
-          PRINT*, "  Writing zeta PostScript file..."        
-          CALL write_psheader("zeta_"//snap_char//".ps",Z_unit)            
-          CALL plot_contours(Z_unit,nplt,ntri,rect,ne,el_type,el_in,xyplt,Z_val,"surface elevation")      
+          PRINT*, "  Writing zeta PostScript file..."                  
+          CALL plot_contours("zeta_"//snap_char//".ps",Z_unit,nplt,ntri,rect,ne,el_type,el_in,xyplt,Z_val,"surface elevation")      
           IF (plot_mesh_option == 1) THEN
             CALL plot_mesh(Z_unit,ne,nverts,el_type,el_in,xy,ect)
           ENDIF      
@@ -213,15 +211,13 @@
         ENDIF       
         
         IF (plot_vel_option == 1) THEN       
-          PRINT*, "  Writing velocity PostScript file..."        
-          CALL write_psheader("vel_"//snap_char//".ps",vel_unit)  
-          CALL write_texheader("vel_axes.tex",vel_unit)  
-          CALL plot_contours(vel_unit,nplt,ntri,rect,ne,el_type,el_in,xyplt,vel_val,"velocity")      
+          PRINT*, "  Writing velocity PostScript file..."              
+          CALL plot_contours("vel_"//snap_char//".ps",vel_unit,nplt,ntri,rect,ne,el_type,el_in,xyplt,vel_val,"velocity")      
           IF (plot_mesh_option == 1) THEN
             CALL plot_mesh(vel_unit,ne,nverts,el_type,el_in,xy,ect)
           ENDIF      
           CALL close_ps(vel_unit)   
-          CALL close_tex(vel_unit)
+
         ENDIF
             
       ENDDO

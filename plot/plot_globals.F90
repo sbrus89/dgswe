@@ -67,6 +67,7 @@
       INTEGER :: hb_unit
       INTEGER :: vel_unit
       INTEGER :: mesh_unit
+      INTEGER :: tex_unit      
       
       CHARACTER(4) :: snap_char
       

@@ -10,10 +10,18 @@
       
       REAL(rp) :: lr_margin 
       REAL(rp) :: cscale_width
-      REAL(rp) :: rmin,rmax
-      REAL(rp) :: smin,smax      
+      REAL(rp) :: axes_width
+      REAL(rp) :: rmin_axes,rmax_axes
+      REAL(rp) :: smin_axes,smax_axes      
       REAL(rp) :: ax,bx  
       REAL(rp) :: ay,by      
+      
+      REAL(rp) :: dash      
+      REAL(rp) :: xticklabel_pad,yticklabel_pad
+      REAL(rp) :: xlabel_pad,ylabel_pad  
+      REAL(rp) :: cticklabel_pad
+      REAL(rp) :: clabel_pad     
+      REAL(rp) :: dr_xlabel,ds_ylabel,ds_clabel
       
       REAL(rp) :: rmin_page = 0d0
       REAL(rp) :: rmax_page = 612d0
@@ -135,20 +143,37 @@
       INTEGER :: et,npts,nv
                
       
-      cscale_width = figure_width*.05d0
-      lr_margin =(612d0 - figure_width + 2d0*cscale_width)/2d0
+
       
-      rmin = rmin_page + lr_margin
-      rmax = rmax_page - lr_margin
-      smin = smin_page + lr_margin
-      smax = smax_page
+
       
+  
       
-      ax = (rmin/(xmin-xmax)+rmax/(xmax-xmin))
-      bx = -(rmin*xmax/(xmin-xmax)+rmax*xmin/(xmax-xmin))
+
+!       lr_margin =(612d0 - figure_width + 2d0*cscale_width + clabel_pad + ylabel_pad)/2d0 
+      lr_margin =(612d0 - figure_width)/2d0 
+      axes_width = figure_width/1.37d0
+      
+      cscale_width = axes_width*.05d0
+      
+      dash = 0.2d0*cscale_width
+      xticklabel_pad = 2d0*dash
+      yticklabel_pad = 2d0*dash
+      xlabel_pad = 10d0*dash
+      ylabel_pad = 15d0*dash        
+      cticklabel_pad = 2d0*dash
+      clabel_pad = 15d0*dash        
+      
+      rmin_axes = rmin_page + lr_margin + ylabel_pad
+      rmax_axes = rmax_page - lr_margin - 2d0*cscale_width - clabel_pad
+      smin_axes = smin_page + lr_margin
+      smax_axes = smax_page      
+            
+      ax = (rmin_axes/(xmin-xmax)+rmax_axes/(xmax-xmin))
+      bx = -(rmin_axes*xmax/(xmin-xmax)+rmax_axes*xmin/(xmax-xmin))
       
       ay = ax     ! axis equal
-      by = smin-ax*ymin            
+      by = smin_axes-ax*ymin            
       
       DO el = 1,ne
         et = el_type(el)
@@ -165,7 +190,7 @@
         xy(2,nd) = ay*xy(2,nd) + by
       ENDDO      
       
-      smax = ay*ymax + by
+      smax_axes = ay*ymax + by
       
       RETURN
       END SUBROUTINE scale_coordinates
@@ -340,16 +365,23 @@
       IMPLICIT NONE
       
       CHARACTER(*), INTENT(IN) :: file_name      
-      INTEGER, INTENT(INOUT) :: unit_number      
+      INTEGER, INTENT(INOUT) :: unit_number 
       
-      OPEN(UNIT=unit_number+100,FILE=file_name)           
-      WRITE(unit_number+100,"(A)") "\documentclass[12pt]{article}"
-      WRITE(unit_number+100,"(A)") "\pagestyle{empty}"
-      WRITE(unit_number+100,"(A)") "\usepackage[absolute]{textpos}"
-      WRITE(unit_number+100,"(A)") "\setlength{\TPHorizModule}{1pt}"  
-      WRITE(unit_number+100,"(A)") "\setlength{\TPVertModule}{1pt}"
-      WRITE(unit_number+100,"(A)") "\textblockorigin{0pt}{0pt}"
-      WRITE(unit_number+100,"(A)") "\begin{document}"
+      unit_count = unit_count + 1
+      unit_number = unit_count      
+      
+      OPEN(UNIT=unit_number,FILE=file_name)           
+      WRITE(unit_number,"(A,I2,A)") "\documentclass[",fontsize,"pt]{article}"
+      WRITE(unit_number,"(A)") "\pagestyle{empty}"
+!       WRITE(unit_number,"(A)") "\usepackage[absolute,showboxes]{textpos}"
+      WRITE(unit_number,"(A)") "\usepackage[absolute]{textpos}"       
+      WRITE(unit_number,"(A)") "\usepackage{graphicx}"  
+      WRITE(unit_number,"(A)") "\usepackage{xcolor}"      
+      WRITE(unit_number,"(A)") "\setlength{\TPHorizModule}{1pt}"  
+      WRITE(unit_number,"(A)") "\setlength{\TPVertModule}{1pt}"
+      WRITE(unit_number,"(A)") "\textblockorigin{0pt}{0pt}"
+      WRITE(unit_number,"(A)") "\setlength{\parindent}{0pt}"      
+      WRITE(unit_number,"(A)") "\begin{document}"
        
       
       RETURN
@@ -364,7 +396,7 @@
       
       INTEGER, INTENT(IN) :: unit_number
 
-      WRITE(unit_number,"(A)") "showpage"
+!       WRITE(unit_number,"(A)") "showpage"
       CLOSE(unit_number)            
       
       RETURN
@@ -379,8 +411,8 @@
       
       INTEGER, INTENT(INOUT) :: unit_number      
       
-      WRITE(unit_number+100,"(A)") "\end{document}"
-      CLOSE(unit_number+100)
+      WRITE(unit_number,"(A)") "\end{document}"
+      CLOSE(unit_number)
       
       RETURN
       END SUBROUTINE close_tex      
@@ -572,7 +604,90 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-      SUBROUTINE write_colorscale(file_unit,sol_min,sol_max,sol_label)
+      SUBROUTINE write_colorscale(file_unit)
+      
+      IMPLICIT NONE
+      
+      INTEGER, INTENT(IN) :: file_unit
+!       REAL(rp), INTENT(IN) :: sol_min
+!       REAL(rp), INTENT(IN) :: sol_max
+!       CHARACTER(*), INTENT(IN) :: sol_label
+
+      
+      INTEGER :: lev
+      INTEGER :: tick      
+      INTEGER :: nctick      
+      REAL(rp) :: r0,r1,s0,s1
+      REAL(rp) :: rbox0,rbox1
+      REAL(rp) :: ds
+      REAL(rp) :: cval
+      REAL(rp) :: dc   
+      CHARACTER(20) :: cchar
+      
+      nctick = 10
+      
+      r0 = rmax_axes
+      s0 = smin_axes
+      r1 = rmax_axes            
+
+      rbox0 = r0 + cscale_width
+      rbox1 = rbox0 + cscale_width
+      
+      ds = (smax_axes-smin_axes)/(nlev-1)
+      DO lev = 1,nlev-1
+      
+        s1 = s0 + ds
+      
+        WRITE(file_unit,"(A,3(F9.5,1x),A)") "[",colors(lev+1,1),colors(lev+1,2),colors(lev+1,3),"]"       
+        WRITE(file_unit,"(A,3(F9.5,1x),A)") "[",colors(lev,1),colors(lev,2),colors(lev,3),"]"  
+        WRITE(file_unit,"(A,4(F9.5,1x),A)") "[",r0,s0,r1,s1,"]" 
+        WRITE(file_unit,"(A,4(F9.5,1x),A)") "[",rbox0,s0,rbox1,s1,"]"         
+        WRITE(file_unit,"(A)") "recfill" 
+        
+        s0 = s1
+        
+      ENDDO
+                     
+      WRITE(file_unit,"(2(F9.5,1x))") rbox0,s1
+      WRITE(file_unit,"(2(F9.5,1x))") rbox1,s1
+      WRITE(file_unit,"(2(F9.5,1x))") rbox1,smin_axes
+      WRITE(file_unit,"(2(F9.5,1x))") rbox0,smin_axes      
+      WRITE(file_unit,"(A)") "draw-box"       
+      
+
+      
+      s0 = smin_axes 
+!       cval = sol_min
+!       dc = (sol_max-sol_min)/(nctick-1)
+      ds = (smax_axes-smin_axes)/(nctick-1)      
+      DO tick = 1,nctick
+              
+        WRITE(file_unit,"(2(F9.5,1x))") rbox0,s0 
+        WRITE(file_unit,"(2(F9.5,1x))") rbox0+dash,s0     
+        WRITE(file_unit,"(A)") "draw-line" 
+        
+        WRITE(file_unit,"(2(F9.5,1x))") rbox1,s0
+        WRITE(file_unit,"(2(F9.5,1x))") rbox1-dash,s0     
+        WRITE(file_unit,"(A)") "draw-line"  
+        
+!         WRITE(cchar,"(F20.2)") cval       
+!         WRITE(file_unit,"(A,2(1x,F9.5))")  "("//TRIM(ADJUSTL(cchar))//")",rbox1+cticklabel_pad,s0       
+!         WRITE(file_unit,"(A)") "caxis-tick-labels"
+        
+!         cval = cval + dc
+        s0 = s0 + ds
+      ENDDO       
+      
+!         WRITE(file_unit,"(A,2(1x,F9.5))")  "("//TRIM(ADJUSTL(sol_label))//")",rbox1+clabel_pad,(smin_axes+smax_axes)/2d0       
+!         WRITE(file_unit,"(A)") "caxis-labels"      
+      
+      RETURN
+      END SUBROUTINE write_colorscale
+      
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+      SUBROUTINE write_caxis_labels(file_unit,sol_min,sol_max,sol_label)
       
       IMPLICIT NONE
       
@@ -591,71 +706,140 @@
       REAL(rp) :: dash
       REAL(rp) :: cval
       REAL(rp) :: dc   
-      REAL(rp) :: cticklabel_pad
-      REAL(rp) :: clabel_pad
       CHARACTER(20) :: cchar
       
       nctick = 10
       
-      r0 = rmax
-      s0 = smin
-      r1 = rmax            
+      r0 = rmax_axes
+      s0 = smin_axes
+      r1 = rmax_axes            
 
       rbox0 = r0 + cscale_width
       rbox1 = rbox0 + cscale_width
       
-      ds = (smax-smin)/(nlev-1)
-      DO lev = 1,nlev-1
-      
-        s1 = s0 + ds
-      
-        WRITE(file_unit,"(A,3(F9.5,1x),A)") "[",colors(lev+1,1),colors(lev+1,2),colors(lev+1,3),"]"       
-        WRITE(file_unit,"(A,3(F9.5,1x),A)") "[",colors(lev,1),colors(lev,2),colors(lev,3),"]"  
-        WRITE(file_unit,"(A,4(F9.5,1x),A)") "[",r0,s0,r1,s1,"]" 
-        WRITE(file_unit,"(A,4(F9.5,1x),A)") "[",rbox0,s0,rbox1,s1,"]"         
-        WRITE(file_unit,"(A)") "recfill" 
-        
-        s0 = s1
-        
-      ENDDO
-                     
-      WRITE(file_unit,"(2(F9.5,1x))") rbox0,s1
-      WRITE(file_unit,"(2(F9.5,1x))") rbox1,s1
-      WRITE(file_unit,"(2(F9.5,1x))") rbox1,smin
-      WRITE(file_unit,"(2(F9.5,1x))") rbox0,smin      
-      WRITE(file_unit,"(A)") "draw-box"       
-      
-      dash = 0.2d0*cscale_width
-      cticklabel_pad = 2d0*dash
-      clabel_pad = 12d0*dash
-      
-      s0 = smin 
       cval = sol_min
       dc = (sol_max-sol_min)/(nctick-1)
-      ds = (smax-smin)/(nctick-1)      
-      DO tick = 1,nctick
-              
-        WRITE(file_unit,"(2(F9.5,1x))") rbox0,s0 
-        WRITE(file_unit,"(2(F9.5,1x))") rbox0+dash,s0     
-        WRITE(file_unit,"(A)") "draw-line" 
-        
-        WRITE(file_unit,"(2(F9.5,1x))") rbox1,s0
-        WRITE(file_unit,"(2(F9.5,1x))") rbox1-dash,s0     
-        WRITE(file_unit,"(A)") "draw-line"  
+      ds = (smax_axes-smin_axes)/(nctick-1)      
+      DO tick = 1,nctick               
         
         WRITE(cchar,"(F20.2)") cval       
-        WRITE(file_unit,"(A,2(1x,F9.5))")  "("//TRIM(ADJUSTL(cchar))//")",rbox1+cticklabel_pad,s0       
-        WRITE(file_unit,"(A)") "caxis-tick-labels"
+!         WRITE(file_unit,"(A,2(1x,F9.5))")  "("//TRIM(ADJUSTL(cchar))//")",rbox1+cticklabel_pad,s0       
+!         WRITE(file_unit,"(A)") "caxis-tick-labels"
+        
+        WRITE(file_unit,"(A,F9.5,A,F9.5,A)") "\begin{textblock}{400}[0,0.5](",rbox1+cticklabel_pad,",",smax_page-s0,")"
+        WRITE(file_unit,"(A)") TRIM(ADJUSTL(cchar))        
+        WRITE(file_unit,"(A)") "\end{textblock}"                 
         
         cval = cval + dc
         s0 = s0 + ds
       ENDDO       
       
-        WRITE(file_unit,"(A,2(1x,F9.5))")  "("//TRIM(ADJUSTL(sol_label))//")",rbox1+clabel_pad,(smin+smax)/2d0       
-        WRITE(file_unit,"(A)") "caxis-labels"      
+!         WRITE(file_unit,"(A,2(1x,F9.5))")  "("//TRIM(ADJUSTL(sol_label))//")",rbox1+clabel_pad,(smin_axes+smax_axes)/2d0       
+!         WRITE(file_unit,"(A)") "caxis-labels"     
+        
+      WRITE(file_unit,"(A,F9.5,A,F9.5,A)") "\begin{textblock}{50}[0,0.5](",-50+rbox1+clabel_pad,",",smax_page-(smax_axes+smin_axes)/2d0,")"
+      WRITE(file_unit,"(A)") "\hfill \rotatebox[origin=c]{90}{"//TRIM(ADJUSTL(sol_label))//"}"        
+      WRITE(file_unit,"(A)") "\end{textblock}"         
       
       RETURN
-      END SUBROUTINE write_colorscale
+      END SUBROUTINE write_caxis_labels     
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+      SUBROUTINE write_xyaxis_labels(file_name,file_unit)
+      
+      IMPLICIT NONE
+            
+      CHARACTER(*), INTENT(IN) :: file_name      
+      INTEGER, INTENT(INOUT) :: file_unit
+      
+      INTEGER :: nxtick
+      INTEGER :: i
+      INTEGER :: expnt
+      REAL(rp) :: r0,r1,s0,s1
+      REAL(rp) :: xval,yval
+    
+      CHARACTER(20) :: xchar,ychar       
+      
+      CALL write_texheader(file_name,file_unit)      
+      
+      nxtick = 10
+
+    
+     
+      
+      dr_xlabel = (rmax_axes-rmin_axes)/(real(nxtick,rp)-1d0)
+      ds_ylabel = dr_xlabel
+      
+
+      r0 = rmin_axes
+      
+      xval = (r0-bx)/ax
+      expnt = INT(LOG10(xval))
+      IF (expnt <= 3) THEN
+        expnt = 0
+      ENDIF
+      
+      DO i = 1,nxtick             
+        
+        xval = (r0-bx)/ax
+        WRITE(xchar,"(F20.2)") xval/(10d0**expnt)       
+        WRITE(file_unit,"(A,F9.5,A,F9.5,A)") "\begin{textblock}{400}[0.5,0](",r0,",",smax_page-smin_axes+xticklabel_pad,")"
+        WRITE(file_unit,"(A)") "\centerline{"//TRIM(ADJUSTL(xchar))//"}"
+        WRITE(file_unit,"(A)") "\end{textblock}"        
+        
+        r0 = r0 + dr_xlabel
+      ENDDO
+      
+      
+      WRITE(file_unit,"(A,F9.5,A,F9.5,A)") "\begin{textblock}{400}[0.5,0](",(rmax_axes+rmin_axes)/2d0,",",smax_page-smin_axes+xlabel_pad,")"
+      WRITE(file_unit,"(A)") "\centerline{$x$}"        
+      WRITE(file_unit,"(A)") "\end{textblock}"   
+ 
+      
+      IF (expnt /= 0) THEN      
+        WRITE(file_unit,"(A,F9.5,A,F9.5,A)") "\begin{textblock}{400}[0,0](",rmin_axes+(nxtick-1)*dr_xlabel,",",smax_page-smin_axes+xticklabel_pad+xlabel_pad/2d0,")"
+        WRITE(file_unit,"(A,I2,A)") "$\times10^{",expnt,"}$"        
+        WRITE(file_unit,"(A)") "\end{textblock}"         
+      ENDIF
+      
+      
+      s0 = smin_axes      
+      
+      yval = (s0-by)/ay
+      expnt = INT(LOG10(yval))
+      IF (expnt <= 3) THEN
+        expnt = 0
+      ENDIF      
+      
+      DO 
+      
+        IF (s0 > smax_axes) THEN
+          EXIT        
+        ENDIF
+        
+        yval = (s0-by)/ay
+        WRITE(ychar,"(F20.2)") yval/(10d0**expnt)                
+        WRITE(file_unit,"(A,F9.5,A,F9.5,A)") "\begin{textblock}{400}[1,0.5](",rmin_axes-yticklabel_pad,",",smax_page-s0,")"
+        WRITE(file_unit,"(A)") "\hfill "//TRIM(ADJUSTL(ychar))        
+        WRITE(file_unit,"(A)") "\end{textblock}"             
+        s0 = s0 + ds_ylabel        
+      
+      ENDDO         
+      
+      WRITE(file_unit,"(A,F9.5,A,F9.5,A)") "\begin{textblock}{50}[0,0.5](",rmin_axes-ylabel_pad,",",smax_page-(smax_axes+smin_axes)/2d0,")"
+      WRITE(file_unit,"(A)") "\rotatebox[origin=c]{90}{$y$}"        
+      WRITE(file_unit,"(A)") "\end{textblock}"       
+      
+      IF (expnt /= 0) THEN      
+        WRITE(file_unit,"(A,F9.5,A,F9.5,A)") "\begin{textblock}{400}[0,1](",rmin_axes,",",smax_page-(smax_axes + yticklabel_pad),")"
+        WRITE(file_unit,"(A,I2,A)") "$\times10^{",expnt,"}$"        
+        WRITE(file_unit,"(A)") "\end{textblock}"         
+      ENDIF
+      
+      RETURN
+      END SUBROUTINE write_xyaxis_labels
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -670,13 +854,10 @@
       INTEGER :: i
       INTEGER :: expnt
       REAL(rp) :: dr,ds
-      REAL(rp):: dash
+      REAL(rp) :: ramin,ramax,samin,samax
       REAL(rp) :: r0,r1,s0,s1
-      REAL(rp) :: ramax,ramin
-      REAL(rp) :: samax,samin
       REAL(rp) :: xval,yval
-      REAL(rp) :: xticklabel_pad,yticklabel_pad
-      REAL(rp) :: xlabel_pad,ylabel_pad      
+    
       CHARACTER(20) :: xchar,ychar
       
       WRITE(file_unit,"(A)")  "newpath"     
@@ -685,34 +866,28 @@
       WRITE(file_unit,"(2(F9.5,1x),A)") rmax_page,smax_page," lineto"  
       WRITE(file_unit,"(2(F9.5,1x),A)") rmin_page,smax_page," lineto"    
       WRITE(file_unit,"(2(F9.5,1x),A)") rmin_page,smin_page," lineto"        
-      WRITE(file_unit,"(2(F9.5,1x),A)") rmin,smin," moveto"   
-      WRITE(file_unit,"(2(F9.5,1x),A)") rmin,smax," lineto"  
-      WRITE(file_unit,"(2(F9.5,1x),A)") rmax,smax," lineto"
-      WRITE(file_unit,"(2(F9.5,1x),A)") rmax,smin," lineto"
-      WRITE(file_unit,"(2(F9.5,1x),A)") rmin,smin," lineto"     
+      WRITE(file_unit,"(2(F9.5,1x),A)") rmin_axes,smin_axes," moveto"   
+      WRITE(file_unit,"(2(F9.5,1x),A)") rmin_axes,smax_axes," lineto"  
+      WRITE(file_unit,"(2(F9.5,1x),A)") rmax_axes,smax_axes," lineto"
+      WRITE(file_unit,"(2(F9.5,1x),A)") rmax_axes,smin_axes," lineto"
+      WRITE(file_unit,"(2(F9.5,1x),A)") rmin_axes,smin_axes," lineto"     
       WRITE(file_unit,"(A)") "gsave 1 1 1 setrgbcolor fill grestore"      
       WRITE(file_unit,"(A)") "clear"      
       
 !       ! x-axis line
-!       WRITE(file_unit,"(2(F9.5,1x))") rmin,smin
-!       WRITE(file_unit,"(2(F9.5,1x))") rmax,smin     
+!       WRITE(file_unit,"(2(F9.5,1x))") rmin_axes,smin_axes
+!       WRITE(file_unit,"(2(F9.5,1x))") rmax_axes,smin_axes     
 !       WRITE(file_unit,"(A)") "draw-line"  
 !       
 !       ! y-axis line
-!       WRITE(file_unit,"(2(F9.5,1x))") rmin,smin
-!       WRITE(file_unit,"(2(F9.5,1x))") rmin,smax     
+!       WRITE(file_unit,"(2(F9.5,1x))") rmin_axes,smin_axes
+!       WRITE(file_unit,"(2(F9.5,1x))") rmin_axes,smax_axes     
 !       WRITE(file_unit,"(A)") "draw-line"        
       
       nxtick = 10
-
-      dash = 0.2d0*cscale_width
-      xticklabel_pad = 2d0*dash
-      yticklabel_pad = 2d0*dash
-      xlabel_pad = 10d0*dash
-      ylabel_pad = 10d0*dash      
       
-      ramax = rmax
-      ramin = rmin
+      ramax = rmax_axes
+      ramin = rmin_axes
       
       dr = (ramax-ramin)/(real(nxtick,rp)-1d0)
       ds = dr
@@ -727,39 +902,30 @@
       ENDIF
       
       DO i = 1,nxtick        
-        WRITE(file_unit,"(2(F9.5,1x))") r0,smin+dash
-        WRITE(file_unit,"(2(F9.5,1x))") r0,smin
+        WRITE(file_unit,"(2(F9.5,1x))") r0,smin_axes+dash
+        WRITE(file_unit,"(2(F9.5,1x))") r0,smin_axes
         WRITE(file_unit,"(A)") "draw-line" 
         
-        WRITE(file_unit,"(2(F9.5,1x))") r0,smax
-        WRITE(file_unit,"(2(F9.5,1x))") r0,smax-dash
+        WRITE(file_unit,"(2(F9.5,1x))") r0,smax_axes
+        WRITE(file_unit,"(2(F9.5,1x))") r0,smax_axes-dash
         WRITE(file_unit,"(A)") "draw-line"         
         
-        xval = (r0-bx)/ax
-        WRITE(xchar,"(F20.2)") xval/(10d0**expnt)       
-!         WRITE(file_unit,"(A,2(1x,F9.5))")  "("//TRIM(ADJUSTL(xchar))//")",r0,smin-xticklabel_pad    
+!         xval = (r0-bx)/ax
+!         WRITE(xchar,"(F20.2)") xval/(10d0**expnt)       
+!         WRITE(file_unit,"(A,2(1x,F9.5))")  "("//TRIM(ADJUSTL(xchar))//")",r0,smin_axes-xticklabel_pad    
 !         WRITE(file_unit,"(A)") "xaxis-labels"
-
-        WRITE(file_unit+100,"(A,F9.5,A,F9.5,A)") "\begin{textblock}{400}[0,0](",r0,",",smax_page-smin+xticklabel_pad,")"
-        WRITE(file_unit+100,"(A)") xchar        
-        WRITE(file_unit+100,"(A)") "\end{textblock}"        
+     
         
         r0 = r0 + dr
       ENDDO
       
-      WRITE(file_unit,"(A)") TRIM(ADJUSTL(math_font))//" choosefont"         
-      WRITE(file_unit,"(A,2(1x,F9.5))")  "(x)",(rmax+rmin)/2d0,smin-xlabel_pad    
-      WRITE(file_unit,"(A)") "xaxis-labels"      
-      WRITE(file_unit,"(A)") TRIM(ADJUSTL(main_font))//" choosefont"   
-      
-!       IF (expnt /= 0) THEN
-!       
-!         WRITE(file_unit,"(A,2(1x,F9.5))")  "(x10)",r0,smin-xlabel_pad    
-!         WRITE(file_unit,"(A)") "xaxis-labels"        
-!       ENDIF
+!       WRITE(file_unit,"(A)") TRIM(ADJUSTL(math_font))//" choosefont"         
+!       WRITE(file_unit,"(A,2(1x,F9.5))")  "(x)",(rmax_axes+rmin_axes)/2d0,smin_axes-xlabel_pad    
+!       WRITE(file_unit,"(A)") "xaxis-labels"      
+!       WRITE(file_unit,"(A)") TRIM(ADJUSTL(main_font))//" choosefont"        
       
       
-      s0 = smin      
+      s0 = smin_axes      
       
       yval = (s0-by)/ay
       expnt = INT(LOG10(yval))
@@ -769,30 +935,30 @@
       
       DO 
       
-        IF (s0 > smax) THEN
+        IF (s0 > smax_axes) THEN
           EXIT        
         ENDIF
         
-        WRITE(file_unit,"(2(F9.5,1x))") rmin,s0
-        WRITE(file_unit,"(2(F9.5,1x))") rmin+dash,s0
+        WRITE(file_unit,"(2(F9.5,1x))") rmin_axes,s0
+        WRITE(file_unit,"(2(F9.5,1x))") rmin_axes+dash,s0
         WRITE(file_unit,"(A)") "draw-line" 
         
-        WRITE(file_unit,"(2(F9.5,1x))") rmax,s0
-        WRITE(file_unit,"(2(F9.5,1x))") rmax-dash,s0
+        WRITE(file_unit,"(2(F9.5,1x))") rmax_axes,s0
+        WRITE(file_unit,"(2(F9.5,1x))") rmax_axes-dash,s0
         WRITE(file_unit,"(A)") "draw-line"         
         
-        yval = (s0-by)/ay
-        WRITE(ychar,"(F20.2)") yval/(10d0**expnt)       
-        WRITE(file_unit,"(A,2(1x,F9.5))")  "("//TRIM(ADJUSTL(ychar))//")",rmin-yticklabel_pad,s0        
-        WRITE(file_unit,"(A)") "yaxis-tick-labels"        
+!         yval = (s0-by)/ay
+!         WRITE(ychar,"(F20.2)") yval/(10d0**expnt)       
+!         WRITE(file_unit,"(A,2(1x,F9.5))")  "("//TRIM(ADJUSTL(ychar))//")",rmin_axes-yticklabel_pad,s0        
+!         WRITE(file_unit,"(A)") "yaxis-tick-labels"        
         s0 = s0 + dr        
       
       ENDDO 
       
-      WRITE(file_unit,"(A)") TRIM(ADJUSTL(math_font))//" choosefont"        
-      WRITE(file_unit,"(A,2(1x,F9.5))")  "(y)",rmin-ylabel_pad,(smax+smin)/2d0    
-      WRITE(file_unit,"(A)") "yaxis-labels"  
-      WRITE(file_unit,"(A)") TRIM(ADJUSTL(main_font))//" choosefont"        
+!       WRITE(file_unit,"(A)") TRIM(ADJUSTL(math_font))//" choosefont"        
+!       WRITE(file_unit,"(A,2(1x,F9.5))")  "(y)",rmin_axes-ylabel_pad,(smax_axes+smin_axes)/2d0    
+!       WRITE(file_unit,"(A)") "yaxis-labels"  
+!       WRITE(file_unit,"(A)") TRIM(ADJUSTL(main_font))//" choosefont"        
       
       RETURN
       END SUBROUTINE write_axis
@@ -800,11 +966,12 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-      SUBROUTINE plot_contours(file_unit,nplt,ntri,rect,ne,el_type,el_in,xy,sol_val,sol_label)
+      SUBROUTINE plot_contours(file_name,file_unit,nplt,ntri,rect,ne,el_type,el_in,xy,sol_val,sol_label)
       
       IMPLICIT NONE
       
-      INTEGER, INTENT(IN) :: file_unit
+      CHARACTER(*), INTENT(IN) :: file_name
+      INTEGER, INTENT(OUT) :: file_unit
       INTEGER, DIMENSION(:), INTENT(IN) :: nplt
       INTEGER, DIMENSION(:), INTENT(IN) :: ntri
       INTEGER, DIMENSION(:,:,:), INTENT(IN) :: rect
@@ -820,17 +987,49 @@
       INTEGER :: et,nv    
       REAL(rp) :: sol_min,sol_max,sol_lev
       REAL(rp) :: dc
+      INTEGER :: tex_unit
+      CHARACTER(1000) :: line
+      INTEGER :: read_stat
+      INTEGER :: nline
    
       REAL(rp) :: color_val(3)
+      
+      CALL colorscale(nplt,ne,el_type,sol_val,sol_min,sol_max,dc)      
+      
+      CALL write_psheader(file_name,file_unit)  
+
+      
+      CALL write_xyaxis_labels("axes.tex",tex_unit)     
+      CALL write_caxis_labels(tex_unit,sol_min,sol_max,sol_label)       
+      CALL close_tex(tex_unit)
+      
+      CALL SYSTEM("latex axes.tex")
+      CALL SYSTEM("dvips -o axes.ps axes.dvi")
+      
+      OPEN(UNIT=10, FILE="axes.ps")
+      WRITE(file_unit,"(A)") "%!PS-Adobe-3.0"      
+      nline = 0
+head: DO
+        READ(10,"(A)",IOSTAT=read_stat) line
+        nline = nline + 1        
+        IF (read_stat < 0 ) THEN
+          PRINT*, "Error in LaTeX file"
+          STOP
+        ELSEIF (TRIM(ADJUSTL(line)) == "%%EndSetup") THEN
+          WRITE(file_unit,"(A)") line
+          EXIT head
+        ELSEIF (nline > 1) THEN
+          WRITE(file_unit,"(A)") line                        
+        ENDIF
+                
+      ENDDO head       
 
 
-
-      CALL colorscale(nplt,ne,el_type,sol_val,sol_min,sol_max,dc)
       WRITE(file_unit,"(A)") "gsave newpath"        
-      WRITE(file_unit,"(2(F9.5,1x),A)") rmin,smin,"moveto"
-      WRITE(file_unit,"(2(F9.5,1x),A)") rmax,smin,"lineto"
-      WRITE(file_unit,"(2(F9.5,1x),A)") rmax,smax,"lineto"      
-      WRITE(file_unit,"(2(F9.5,1x),A)") rmin,smax,"lineto"      
+      WRITE(file_unit,"(2(F9.5,1x),A)") rmin_axes,smin_axes,"moveto"
+      WRITE(file_unit,"(2(F9.5,1x),A)") rmax_axes,smin_axes,"lineto"
+      WRITE(file_unit,"(2(F9.5,1x),A)") rmax_axes,smax_axes,"lineto"      
+      WRITE(file_unit,"(2(F9.5,1x),A)") rmin_axes,smax_axes,"lineto"      
       WRITE(file_unit,"(A)") "closepath"     
       WRITE(file_unit,"(A)") ".75 .75 .75 setrgbcolor fill grestore"        
             
@@ -872,10 +1071,26 @@
         ENDDO
       ENDDO elem
 
-    
+
+     
       CALL write_axis(file_unit)        
-      CALL write_colorscale(file_unit,sol_min,sol_max,sol_label)
-    
+      CALL write_colorscale(file_unit)
+      
+
+tail: DO
+        READ(10,"(A)",IOSTAT=read_stat) line
+        nline = nline + 1        
+        IF (read_stat < 0 ) THEN
+          EXIT tail                
+        ENDIF
+                
+        WRITE(file_unit,"(A)") line
+                
+      ENDDO tail           
+   
+ 
+      CLOSE(10)
+     
 
       END SUBROUTINE plot_contours
       
