@@ -5,6 +5,7 @@
       IMPLICIT NONE
       
       INTEGER :: unit_count = 99
+      INTEGER :: tex_output_unit = 10
       INTEGER :: nlev        
       REAL(rp), DIMENSION(:,:), ALLOCATABLE :: colors     
       INTEGER :: nline_texfile      
@@ -215,163 +216,193 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
       
       
-      SUBROUTINE write_psheader(file_name,unit_number)
+      SUBROUTINE write_psheader(file_name,file_unit)
       
       IMPLICIT NONE
       
       CHARACTER(*), INTENT(IN) :: file_name
-      INTEGER, INTENT(OUT) :: unit_number
+      INTEGER, INTENT(OUT) :: file_unit
       
+      CHARACTER(1000) :: line
+      INTEGER :: read_stat       
 
       
       
       unit_count = unit_count + 1
-      unit_number = unit_count
+      file_unit = unit_count
       
-      OPEN(UNIT=unit_number,FILE=file_name)      
-      WRITE(unit_number,"(A)") "%!PS-Adobe-3.0"
+      OPEN(UNIT=file_unit,FILE=file_name)      
+      WRITE(file_unit,"(A)") "%!PS-Adobe-3.0"
       
-      WRITE(unit_number,"(A)") "/draw-element {"
-      WRITE(unit_number,"(A)") "newpath"        
-      WRITE(unit_number,"(A)") "moveto"
-      WRITE(unit_number,"(A)") "lineto"
-      WRITE(unit_number,"(A)") "lineto"
-      WRITE(unit_number,"(A)") "closepath"
-      WRITE(unit_number,"(A)") ".5 setlinewidth 2 setlinejoin"
-      WRITE(unit_number,"(A)") "stroke"      
-      WRITE(unit_number,"(A)") "} def" 
+      WRITE(file_unit,"(A)") "/draw-element {"
+      WRITE(file_unit,"(A)") "newpath"        
+      WRITE(file_unit,"(A)") "moveto"
+      WRITE(file_unit,"(A)") "lineto"
+      WRITE(file_unit,"(A)") "lineto"
+      WRITE(file_unit,"(A)") "closepath"
+      WRITE(file_unit,"(A)") ".5 setlinewidth 2 setlinejoin"
+      WRITE(file_unit,"(A)") "stroke"      
+      WRITE(file_unit,"(A)") "} def" 
       
-      WRITE(unit_number,"(A)") "/draw-box {"
-      WRITE(unit_number,"(A)") "newpath"        
-      WRITE(unit_number,"(A)") "moveto"
-      WRITE(unit_number,"(A)") "lineto"
-      WRITE(unit_number,"(A)") "lineto"
-      WRITE(unit_number,"(A)") "lineto"      
-      WRITE(unit_number,"(A)") "closepath"
-      WRITE(unit_number,"(A)") ".5 setlinewidth 2 setlinejoin"
-      WRITE(unit_number,"(A)") "stroke"      
-      WRITE(unit_number,"(A)") "} def"   
+      WRITE(file_unit,"(A)") "/draw-box {"
+      WRITE(file_unit,"(A)") "newpath"        
+      WRITE(file_unit,"(A)") "moveto"
+      WRITE(file_unit,"(A)") "lineto"
+      WRITE(file_unit,"(A)") "lineto"
+      WRITE(file_unit,"(A)") "lineto"      
+      WRITE(file_unit,"(A)") "closepath"
+      WRITE(file_unit,"(A)") ".5 setlinewidth 2 setlinejoin"
+      WRITE(file_unit,"(A)") "stroke"      
+      WRITE(file_unit,"(A)") "} def"   
       
-      WRITE(unit_number,"(A)") "/draw-line {"
-      WRITE(unit_number,"(A)") "newpath"      
-      WRITE(unit_number,"(A)") "moveto"
-      WRITE(unit_number,"(A)") "lineto"
-      WRITE(unit_number,"(A)") ".5 setlinewidth"
-      WRITE(unit_number,"(A)") "stroke"      
-      WRITE(unit_number,"(A)") "} def"       
+      WRITE(file_unit,"(A)") "/draw-line {"
+      WRITE(file_unit,"(A)") "newpath"      
+      WRITE(file_unit,"(A)") "moveto"
+      WRITE(file_unit,"(A)") "lineto"
+      WRITE(file_unit,"(A)") ".5 setlinewidth"
+      WRITE(file_unit,"(A)") "stroke"      
+      WRITE(file_unit,"(A)") "} def"       
       
-      WRITE(unit_number,"(A)") "/trifill {"
-      WRITE(unit_number,"(A)") "/A exch def"
-      WRITE(unit_number,"(A)") "/B exch def"
-      WRITE(unit_number,"(A)") "/C exch def"     
-      WRITE(unit_number,"(A)") "/ds ["
-      WRITE(unit_number,"(A)") "  0 A aload pop" 
-      WRITE(unit_number,"(A)") "  0 B aload pop"
-      WRITE(unit_number,"(A)") "  0 C aload pop"
-      WRITE(unit_number,"(A)") "] def"
-      WRITE(unit_number,"(A)") "newpath"
-      WRITE(unit_number,"(A)") "<<"
-      WRITE(unit_number,"(A)") "  /ShadingType 4"
-      WRITE(unit_number,"(A)") "  /ColorSpace [ /DeviceRGB ]"
-      WRITE(unit_number,"(A)") "  /DataSource ds" 
-!       WRITE(unit_number,"(A)")   " /AntiAlias true"
-      WRITE(unit_number,"(A)") ">>"
-      WRITE(unit_number,"(A)") "closepath"      
-      WRITE(unit_number,"(A)") "shfill"
-      WRITE(unit_number,"(A)") "} def"  
+      WRITE(file_unit,"(A)") "/trifill {"
+      WRITE(file_unit,"(A)") "/A exch def"
+      WRITE(file_unit,"(A)") "/B exch def"
+      WRITE(file_unit,"(A)") "/C exch def"     
+      WRITE(file_unit,"(A)") "/ds ["
+      WRITE(file_unit,"(A)") "  0 A aload pop" 
+      WRITE(file_unit,"(A)") "  0 B aload pop"
+      WRITE(file_unit,"(A)") "  0 C aload pop"
+      WRITE(file_unit,"(A)") "] def"
+      WRITE(file_unit,"(A)") "newpath"
+      WRITE(file_unit,"(A)") "<<"
+      WRITE(file_unit,"(A)") "  /ShadingType 4"
+      WRITE(file_unit,"(A)") "  /ColorSpace [ /DeviceRGB ]"
+      WRITE(file_unit,"(A)") "  /DataSource ds" 
+!       WRITE(file_unit,"(A)")   " /AntiAlias true"
+      WRITE(file_unit,"(A)") ">>"
+      WRITE(file_unit,"(A)") "closepath"      
+      WRITE(file_unit,"(A)") "shfill"
+      WRITE(file_unit,"(A)") "} def"  
       
-      WRITE(unit_number,"(A)") "/recfill {"
-      WRITE(unit_number,"(A)") "/A exch def"
-      WRITE(unit_number,"(A)") "/B exch def"
-      WRITE(unit_number,"(A)") "/C exch def"
-      WRITE(unit_number,"(A)") "/D exch def"      
-      WRITE(unit_number,"(A)") "<<"
-      WRITE(unit_number,"(A)") " /ShadingType 2" 
-      WRITE(unit_number,"(A)") " /ColorSpace /DeviceRGB"
-      WRITE(unit_number,"(A)") " /BBox A "      
-      WRITE(unit_number,"(A)") " /Coords B "
-      WRITE(unit_number,"(A)") " /Function"
-      WRITE(unit_number,"(A)") " <<"
-      WRITE(unit_number,"(A)") "  /FunctionType 2"
-      WRITE(unit_number,"(A)") "  /Domain [0 1]"
-      WRITE(unit_number,"(A)") "  /C0 C "
-      WRITE(unit_number,"(A)") "  /C1 D "
-      WRITE(unit_number,"(A)") "  /N 1"
-      WRITE(unit_number,"(A)") " >>"
-      WRITE(unit_number,"(A)") ">>" 
-      WRITE(unit_number,"(A)") "shfill"
-      WRITE(unit_number,"(A)") "} def"  
+      WRITE(file_unit,"(A)") "/recfill {"
+      WRITE(file_unit,"(A)") "/A exch def"
+      WRITE(file_unit,"(A)") "/B exch def"
+      WRITE(file_unit,"(A)") "/C exch def"
+      WRITE(file_unit,"(A)") "/D exch def"      
+      WRITE(file_unit,"(A)") "<<"
+      WRITE(file_unit,"(A)") " /ShadingType 2" 
+      WRITE(file_unit,"(A)") " /ColorSpace /DeviceRGB"
+      WRITE(file_unit,"(A)") " /BBox A "      
+      WRITE(file_unit,"(A)") " /Coords B "
+      WRITE(file_unit,"(A)") " /Function"
+      WRITE(file_unit,"(A)") " <<"
+      WRITE(file_unit,"(A)") "  /FunctionType 2"
+      WRITE(file_unit,"(A)") "  /Domain [0 1]"
+      WRITE(file_unit,"(A)") "  /C0 C "
+      WRITE(file_unit,"(A)") "  /C1 D "
+      WRITE(file_unit,"(A)") "  /N 1"
+      WRITE(file_unit,"(A)") " >>"
+      WRITE(file_unit,"(A)") ">>" 
+      WRITE(file_unit,"(A)") "shfill"
+      WRITE(file_unit,"(A)") "} def"  
       
       ! center vertically, left align horizontally
-      WRITE(unit_number,"(A)") "/caxis-tick-labels {"
-      WRITE(unit_number,"(A)") "moveto gsave dup false charpath pathbbox grestore exch pop sub 2 div 0 exch rmoveto pop show"
-      WRITE(unit_number,"(A)") "} def"
+      WRITE(file_unit,"(A)") "/caxis-tick-labels {"
+      WRITE(file_unit,"(A)") "moveto gsave dup false charpath pathbbox grestore exch pop sub 2 div 0 exch rmoveto pop show"
+      WRITE(file_unit,"(A)") "} def"
       
 
       ! top align vertically, center horizontally
-      WRITE(unit_number,"(A)") "/xaxis-labels {"
-      WRITE(unit_number,"(A)") "moveto gsave dup false charpath pathbbox grestore"
-      WRITE(unit_number,"(A)") "3 1 roll"      
-      WRITE(unit_number,"(A)") "4 1 roll"    
-      WRITE(unit_number,"(A)") "sub neg" 
-      WRITE(unit_number,"(A)") "3 1 roll" 
-      WRITE(unit_number,"(A)") "sub 2 div neg" 
-      WRITE(unit_number,"(A)") "exch" 
-      WRITE(unit_number,"(A)") "rmoveto" 
-      WRITE(unit_number,"(A)") "show" 
-      WRITE(unit_number,"(A)") "} def"         
+      WRITE(file_unit,"(A)") "/xaxis-labels {"
+      WRITE(file_unit,"(A)") "moveto gsave dup false charpath pathbbox grestore"
+      WRITE(file_unit,"(A)") "3 1 roll"      
+      WRITE(file_unit,"(A)") "4 1 roll"    
+      WRITE(file_unit,"(A)") "sub neg" 
+      WRITE(file_unit,"(A)") "3 1 roll" 
+      WRITE(file_unit,"(A)") "sub 2 div neg" 
+      WRITE(file_unit,"(A)") "exch" 
+      WRITE(file_unit,"(A)") "rmoveto" 
+      WRITE(file_unit,"(A)") "show" 
+      WRITE(file_unit,"(A)") "} def"         
       
       ! center vertically, right align horizontally
-      WRITE(unit_number,"(A)") "/yaxis-tick-labels {"
-      WRITE(unit_number,"(A)") "moveto gsave dup false charpath pathbbox grestore"
-      WRITE(unit_number,"(A)") "3 1 roll"      
-      WRITE(unit_number,"(A)") "4 1 roll"    
-      WRITE(unit_number,"(A)") "sub 2 div neg" 
-      WRITE(unit_number,"(A)") "3 1 roll" 
-      WRITE(unit_number,"(A)") "sub neg" 
-      WRITE(unit_number,"(A)") "exch" 
-      WRITE(unit_number,"(A)") "rmoveto" 
-      WRITE(unit_number,"(A)") "show" 
-      WRITE(unit_number,"(A)") "} def"  
+      WRITE(file_unit,"(A)") "/yaxis-tick-labels {"
+      WRITE(file_unit,"(A)") "moveto gsave dup false charpath pathbbox grestore"
+      WRITE(file_unit,"(A)") "3 1 roll"      
+      WRITE(file_unit,"(A)") "4 1 roll"    
+      WRITE(file_unit,"(A)") "sub 2 div neg" 
+      WRITE(file_unit,"(A)") "3 1 roll" 
+      WRITE(file_unit,"(A)") "sub neg" 
+      WRITE(file_unit,"(A)") "exch" 
+      WRITE(file_unit,"(A)") "rmoveto" 
+      WRITE(file_unit,"(A)") "show" 
+      WRITE(file_unit,"(A)") "} def"  
       
       ! rotate text, center vertically, right align horizontally
-      WRITE(unit_number,"(A)") "/yaxis-labels {"   
-      WRITE(unit_number,"(A)") "moveto gsave dup false charpath pathbbox grestore"
-      WRITE(unit_number,"(A)") "3 1 roll"      
-      WRITE(unit_number,"(A)") "4 1 roll"    
-      WRITE(unit_number,"(A)") "sub neg" 
-      WRITE(unit_number,"(A)") "3 1 roll" 
-      WRITE(unit_number,"(A)") "sub 2 div neg" 
-      WRITE(unit_number,"(A)") "rmoveto" 
-      WRITE(unit_number,"(A)") "90 rotate"        
-      WRITE(unit_number,"(A)") "show" 
-      WRITE(unit_number,"(A)") "-90 rotate"      
-      WRITE(unit_number,"(A)") "} def"  
+      WRITE(file_unit,"(A)") "/yaxis-labels {"   
+      WRITE(file_unit,"(A)") "moveto gsave dup false charpath pathbbox grestore"
+      WRITE(file_unit,"(A)") "3 1 roll"      
+      WRITE(file_unit,"(A)") "4 1 roll"    
+      WRITE(file_unit,"(A)") "sub neg" 
+      WRITE(file_unit,"(A)") "3 1 roll" 
+      WRITE(file_unit,"(A)") "sub 2 div neg" 
+      WRITE(file_unit,"(A)") "rmoveto" 
+      WRITE(file_unit,"(A)") "90 rotate"        
+      WRITE(file_unit,"(A)") "show" 
+      WRITE(file_unit,"(A)") "-90 rotate"      
+      WRITE(file_unit,"(A)") "} def"  
       
       ! rotate text, center vertically, left align horizontally      
-      WRITE(unit_number,"(A)") "/caxis-labels {"   
-      WRITE(unit_number,"(A)") "moveto gsave dup false charpath pathbbox grestore"
-      WRITE(unit_number,"(A)") "3 1 roll"      
-      WRITE(unit_number,"(A)") "4 1 roll"    
-      WRITE(unit_number,"(A)") "sub " 
-      WRITE(unit_number,"(A)") "3 1 roll" 
-      WRITE(unit_number,"(A)") "sub 2 div neg" 
-      WRITE(unit_number,"(A)") "rmoveto"  
-      WRITE(unit_number,"(A)") "90 rotate"        
-      WRITE(unit_number,"(A)") "show" 
-      WRITE(unit_number,"(A)") "-90 rotate"      
-      WRITE(unit_number,"(A)") "} def"      
+      WRITE(file_unit,"(A)") "/caxis-labels {"   
+      WRITE(file_unit,"(A)") "moveto gsave dup false charpath pathbbox grestore"
+      WRITE(file_unit,"(A)") "3 1 roll"      
+      WRITE(file_unit,"(A)") "4 1 roll"    
+      WRITE(file_unit,"(A)") "sub " 
+      WRITE(file_unit,"(A)") "3 1 roll" 
+      WRITE(file_unit,"(A)") "sub 2 div neg" 
+      WRITE(file_unit,"(A)") "rmoveto"  
+      WRITE(file_unit,"(A)") "90 rotate"        
+      WRITE(file_unit,"(A)") "show" 
+      WRITE(file_unit,"(A)") "-90 rotate"      
+      WRITE(file_unit,"(A)") "} def"      
       
-      WRITE(unit_number,"(A)") "/choosefont {"
-      WRITE(unit_number,"(A)") "findfont"      
-      WRITE(unit_number,"(I3,A)") fontsize," scalefont"  
-      WRITE(unit_number,"(A)") "setfont"
-      WRITE(unit_number,"(A)") "} def"   
+      WRITE(file_unit,"(A)") "/choosefont {"
+      WRITE(file_unit,"(A)") "findfont"      
+      WRITE(file_unit,"(I3,A)") fontsize," scalefont"  
+      WRITE(file_unit,"(A)") "setfont"
+      WRITE(file_unit,"(A)") "} def"   
       
-      WRITE(unit_number,"(A)") TRIM(ADJUSTL(main_font))//" choosefont"      
-!       WRITE(unit_number,"(A)") "(/usr/share/fonts/type1/gsfonts/n021003l.pfb)     choosefont"    
-      WRITE(unit_number,"(A)") "(/usr/share/fonts/type1/gsfonts/cmr10.pfb)     choosefont"        
+      WRITE(file_unit,"(A)") TRIM(ADJUSTL(main_font))//" choosefont"      
+!       WRITE(file_unit,"(A)") "(/usr/share/fonts/type1/gsfonts/n021003l.pfb)     choosefont"    
+!       WRITE(file_unit,"(A)") "(/usr/share/fonts/type1/gsfonts/cmr10.pfb)     choosefont"        
       
+      
+      
+      OPEN(UNIT=tex_output_unit, FILE="axes.ps")
+      WRITE(file_unit,"(A)") "%!PS-Adobe-3.0"      
+      nline_texfile = 0
+head: DO
+        READ(tex_output_unit,"(A)",IOSTAT=read_stat) line
+        nline_texfile = nline_texfile + 1        
+        IF (read_stat < 0 ) THEN
+          PRINT*, "Error in LaTeX file"
+          STOP
+        ELSEIF (TRIM(ADJUSTL(line)) == "%%EndSetup") THEN
+          WRITE(file_unit,"(A)") line
+          EXIT head
+        ELSEIF (nline_texfile > 1) THEN
+          WRITE(file_unit,"(A)") line                        
+        ENDIF
+                
+      ENDDO head       
+
+     
+      WRITE(file_unit,"(A)") "gsave newpath"        
+      WRITE(file_unit,"(2(F9.5,1x),A)") rmin_axes,smin_axes,"moveto"
+      WRITE(file_unit,"(2(F9.5,1x),A)") rmax_axes,smin_axes,"lineto"
+      WRITE(file_unit,"(2(F9.5,1x),A)") rmax_axes,smax_axes,"lineto"      
+      WRITE(file_unit,"(2(F9.5,1x),A)") rmin_axes,smax_axes,"lineto"      
+      WRITE(file_unit,"(A)") "closepath"     
+      WRITE(file_unit,"(A)") ".75 .75 .75 setrgbcolor fill grestore"      
   
       RETURN
       END SUBROUTINE write_psheader
@@ -431,7 +462,7 @@ tail: DO
       ENDDO tail           
    
  
-      CLOSE(10)      
+      CLOSE(tex_output_unit)      
 
 !       WRITE(unit_number,"(A)") "showpage"
       CLOSE(unit_number)            
@@ -882,7 +913,7 @@ tail: DO
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-      SUBROUTINE write_axis(file_unit)
+      SUBROUTINE write_xyaxis(file_unit)
       
       IMPLICIT NONE
             
@@ -989,7 +1020,7 @@ tail: DO
       
       
       RETURN
-      END SUBROUTINE write_axis
+      END SUBROUTINE write_xyaxis
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -1047,58 +1078,29 @@ tail: DO
       
       RETURN
       END SUBROUTINE write_tbar      
- 
+      
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
 
-      SUBROUTINE plot_contours(file_name,file_unit,nplt,ntri,rect,ne,el_type,el_in,xy,sol_val,sol_min,sol_max,sol_label,t_snap,t_start,t_end)
+      SUBROUTINE latex_all_labels(sol_min,sol_max,sol_label,t_snap,t_start,t_end)
       
       IMPLICIT NONE
       
-      CHARACTER(*), INTENT(IN) :: file_name
-      INTEGER, INTENT(OUT) :: file_unit
-      INTEGER, DIMENSION(:), INTENT(IN) :: nplt
-      INTEGER, DIMENSION(:), INTENT(IN) :: ntri
-      INTEGER, DIMENSION(:,:,:), INTENT(IN) :: rect
-      INTEGER, INTENT(IN) :: ne
-      INTEGER, DIMENSION(:), INTENT(IN) :: el_type
-      INTEGER, DIMENSION(:), INTENT(IN) :: el_in
-      REAL(rp), DIMENSION(:,:,:), INTENT(IN) :: xy  
-      REAL(rp), DIMENSION(:,:), INTENT(IN) :: sol_val
       REAL(rp), INTENT(IN) :: sol_min
       REAL(rp), INTENT(IN) :: sol_max
       CHARACTER(*), INTENT(IN) :: sol_label
-      REAL(rp), OPTIONAL :: t_snap
-      REAL(rp), OPTIONAL :: t_start
-      REAL(rp), OPTIONAL :: t_end
+      REAL(rp), INTENT(IN), OPTIONAL :: t_snap
+      REAL(rp), INTENT(IN), OPTIONAL :: t_start
+      REAL(rp), INTENT(IN), OPTIONAL :: t_end 
       
-      INTEGER :: i,j,v
-      INTEGER :: el,nd,dof,lev,tri
-      INTEGER :: et,nv    
-      REAL(rp) :: sol_lev
-      REAL(rp) :: dc
-      INTEGER :: tex_unit
-      CHARACTER(1000) :: line
-      INTEGER :: read_stat
       INTEGER :: time_bar
-   
-      REAL(rp) :: color_val(3)
-      
+      INTEGER :: tex_unit  
       
       time_bar = 0
       IF (PRESENT(t_snap) .AND. PRESENT(t_start) .AND. PRESENT(t_end)) THEN
         time_bar = 1
-      ENDIF      
+      ENDIF            
       
-
-                  
-
-      
-      
-      
-      CALL write_psheader(file_name,file_unit)  
-
-
       CALL write_xyaxis_labels("axes.tex",tex_unit)     
       CALL write_caxis_labels(tex_unit,time_bar,sol_min,sol_max,sol_label)
       IF (time_bar == 1) THEN
@@ -1109,32 +1111,68 @@ tail: DO
       CALL SYSTEM("latex axes.tex >/dev/null")
       CALL SYSTEM("dvips -q -o axes.ps axes.dvi")
       
-      OPEN(UNIT=10, FILE="axes.ps")
-      WRITE(file_unit,"(A)") "%!PS-Adobe-3.0"      
-      nline_texfile = 0
-head: DO
-        READ(10,"(A)",IOSTAT=read_stat) line
-        nline_texfile = nline_texfile + 1        
-        IF (read_stat < 0 ) THEN
-          PRINT*, "Error in LaTeX file"
-          STOP
-        ELSEIF (TRIM(ADJUSTL(line)) == "%%EndSetup") THEN
-          WRITE(file_unit,"(A)") line
-          EXIT head
-        ELSEIF (nline_texfile > 1) THEN
-          WRITE(file_unit,"(A)") line                        
-        ENDIF
-                
-      ENDDO head       
+          
+      
+      RETURN
+      END SUBROUTINE latex_all_labels
+      
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
 
+      SUBROUTINE write_all_axes(file_unit,t_snap,t_start,t_end)
+      
+      IMPLICIT NONE
+      
+      INTEGER, INTENT(IN) :: file_unit      
+      REAL(rp), OPTIONAL :: t_snap
+      REAL(rp), OPTIONAL :: t_start
+      REAL(rp), OPTIONAL :: t_end 
+      
+      INTEGER :: time_bar
+      
+      time_bar = 0
+      IF (PRESENT(t_snap) .AND. PRESENT(t_start) .AND. PRESENT(t_end)) THEN
+        time_bar = 1
+      ENDIF            
+      
+      CALL write_xyaxis(file_unit)        
+      CALL write_colorscale(file_unit)
+      IF (time_bar == 1) THEN
+        CALL write_tbar(file_unit,t_snap,t_start,t_end)
+      ENDIF            
+      
+      RETURN
+      END SUBROUTINE write_all_axes
+      
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-      WRITE(file_unit,"(A)") "gsave newpath"        
-      WRITE(file_unit,"(2(F9.5,1x),A)") rmin_axes,smin_axes,"moveto"
-      WRITE(file_unit,"(2(F9.5,1x),A)") rmax_axes,smin_axes,"lineto"
-      WRITE(file_unit,"(2(F9.5,1x),A)") rmax_axes,smax_axes,"lineto"      
-      WRITE(file_unit,"(2(F9.5,1x),A)") rmin_axes,smax_axes,"lineto"      
-      WRITE(file_unit,"(A)") "closepath"     
-      WRITE(file_unit,"(A)") ".75 .75 .75 setrgbcolor fill grestore"    
+      SUBROUTINE plot_contours(file_unit,nplt,ntri,rect,ne,el_type,el_in,xy,sol_val,sol_min,sol_max)
+      
+      IMPLICIT NONE
+      
+      INTEGER, INTENT(IN) :: file_unit
+      INTEGER, DIMENSION(:), INTENT(IN) :: nplt
+      INTEGER, DIMENSION(:), INTENT(IN) :: ntri
+      INTEGER, DIMENSION(:,:,:), INTENT(IN) :: rect
+      INTEGER, INTENT(IN) :: ne
+      INTEGER, DIMENSION(:), INTENT(IN) :: el_type
+      INTEGER, DIMENSION(:), INTENT(IN) :: el_in
+      REAL(rp), DIMENSION(:,:,:), INTENT(IN) :: xy  
+      REAL(rp), DIMENSION(:,:), INTENT(IN) :: sol_val
+      REAL(rp), INTENT(IN) :: sol_min
+      REAL(rp), INTENT(IN) :: sol_max
+
+      
+      INTEGER :: i,j,v
+      INTEGER :: el,nd,dof,lev,tri
+      INTEGER :: et,nv    
+      REAL(rp) :: sol_lev
+      REAL(rp) :: dc
+
+   
+      REAL(rp) :: color_val(3)
+
       
       
       dc = (sol_max-sol_min)/real(nlev-1,rp)      
@@ -1177,17 +1215,6 @@ head: DO
         ENDDO
       ENDDO elem
 
-
-     
-      CALL write_axis(file_unit)        
-      CALL write_colorscale(file_unit)
-      IF (time_bar == 1) THEN
-        CALL write_tbar(file_unit,t_snap,t_start,t_end)
-      ENDIF
-      
-
-
-     
 
       END SUBROUTINE plot_contours
       

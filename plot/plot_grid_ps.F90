@@ -16,7 +16,7 @@
                           scale_coordinates,zoom_box, &
                           evaluate_depth_solution,evaluate_velocity_solution, &
                           plot_contours,plot_mesh, &
-                          write_xyaxis_labels,write_caxis_labels,close_tex,convert_ps
+                          latex_all_labels,write_all_axes,close_tex,convert_ps
       USE triangulation, ONLY: reference_element_delaunay
       USE edge_connectivity_mod
       USE curvilinear_nodes_mod
@@ -159,10 +159,13 @@
       
       IF (plot_bathy_option == 1) THEN
         PRINT("(A)"), "Writing bathymetry PostScript file..."
-        CALL plot_contours("bathy.ps",hb_unit,nplt,ntri,rect,ne,el_type,el_in,xyplt,hb_val,hb_min,hb_max,"bathymetry")     
+        CALL latex_all_labels(hb_min,hb_max,"bathymetry")         
+        CALL write_psheader("bathy.ps",hb_unit)              
+        CALL plot_contours(hb_unit,nplt,ntri,rect,ne,el_type,el_in,xyplt,hb_val,hb_min,hb_max)     
         IF (plot_mesh_option == 1) THEN
           CALL plot_mesh(hb_unit,ne,nverts,el_type,el_in,xy,ect)   
         ENDIF
+        CALL write_all_axes(hb_unit)             
         CALL close_ps("bathy",hb_unit)
         CALL convert_ps("bathy",frmt,density,rm_ps)
       ENDIF
@@ -266,10 +269,13 @@
           ENDIF
           PRINT("(2(A,F10.5))"), "  Z_min = ", Z_min, "  Z_max = ", Z_max
           
-          CALL plot_contours("zeta_"//snap_char//".ps",Z_unit,nplt,ntri,rect,ne,el_type,el_in,xyplt,Z_val,Z_min,Z_max,"surface elevation",t_snap,t_start,t_end)      
+          CALL latex_all_labels(Z_min,Z_max,"surface elevation",t_snap,t_start,t_end)          
+          CALL write_psheader("zeta_"//snap_char//".ps",Z_unit)            
+          CALL plot_contours(Z_unit,nplt,ntri,rect,ne,el_type,el_in,xyplt,Z_val,Z_min,Z_max)      
           IF (plot_mesh_option == 1) THEN
             CALL plot_mesh(Z_unit,ne,nverts,el_type,el_in,xy,ect)
           ENDIF      
+          CALL write_all_axes(Z_unit,t_snap,t_start,t_end)               
           CALL close_ps("zeta_"//snap_char,Z_unit)
           CALL convert_ps("zeta_"//snap_char,frmt,density,rm_ps)
         ENDIF        
@@ -299,11 +305,14 @@
             vel_max = cscale_vel_max
           ENDIF
           PRINT("(2(A,F10.5))"), "  vel_min = ", vel_min, "  vel_max = ", vel_max
-                    
-          CALL plot_contours("vel_"//snap_char//".ps",vel_unit,nplt,ntri,rect,ne,el_type,el_in,xyplt,vel_val,vel_min,vel_max,"velocity",t_snap,t_start,t_end)      
+                 
+          CALL latex_all_labels(vel_min,vel_max,"velocity",t_snap,t_start,t_end)                 
+          CALL write_psheader("vel_"//snap_char//".ps",vel_unit)        
+          CALL plot_contours(vel_unit,nplt,ntri,rect,ne,el_type,el_in,xyplt,vel_val,vel_min,vel_max)      
           IF (plot_mesh_option == 1) THEN
             CALL plot_mesh(vel_unit,ne,nverts,el_type,el_in,xy,ect)
           ENDIF      
+          CALL write_all_axes(vel_unit,t_snap,t_start,t_end)          
           CALL close_ps("vel_"//snap_char,vel_unit)   
           CALL convert_ps("vel_"//snap_char,frmt,density,rm_ps)
         ENDIF
