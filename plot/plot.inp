@@ -1,12 +1,25 @@
-./                                                                                                     ! input file path
+../work/                                                                                               ! input file path
 1                                                                                                      ! zeta plot option 
 1                                                                                                      ! velocity plot option1
 1                                                                                                      ! bathymetry plot option
-0                                                                                                      ! mesh plot option
-1                                                                                                      ! order of nodal set for plotting straight elements
-1                                                                                                      ! order of nodal set for plotting curved elements
+1                                                                                                      ! mesh plot option
+16                                                                                                      ! order of nodal set for plotting straight elements
+16                                                                                                      ! order of nodal set for plotting curved elements
 !3.2e5,3.4e5,3.24e6,3.26e6                                                                             ! zoom box
 all   
 7                                                                                                      ! figure width
-10,10                                                                                                  ! timesnap range
-/home/sbrus/Codes/dgswe/plot/default2.cmap                                                             ! colormap path
+1,1                                                                                                  ! timesnap range
+/home/sbrus/Codes/dgswe/plot/jet.cmap                                                                  ! colormap path
+auto-snap                                                                                              ! zeta colorscale limits
+auto-all                                                                                               ! velocity colorscale limits
+11                                                                                                     ! font size
+10                                                                                                     ! number of x ticks
+auto                                                                                                   ! number of y ticks
+10                                                                                                     ! number of c ticks
+0                                                                                                      ! number of x decimal places
+0                                                                                                      ! number of y decimal places
+3                                                                                                      ! number of c decimal places
+3                                                                                                      ! number of t decimal places
+jpg,1                                                                                                  ! additional file format, remove ps file option
+200                                                                                                    ! raster density
+1                                                                                                      ! movie flag

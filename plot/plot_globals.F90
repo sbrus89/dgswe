@@ -4,8 +4,11 @@
       
       CHARACTER(100) :: input_path
       CHARACTER(100) :: cmap_file
-      CHARACTER(100) :: zbox
       CHARACTER(100) :: tsnap_spec
+      CHARACTER(3) :: frmt
+      CHARACTER(3) :: density
+      INTEGER :: rm_ps
+      INTEGER :: make_movie
 
       INTEGER :: coord_sys
       REAL(rp) :: slam0,sphi0      
@@ -35,6 +38,7 @@
       INTEGER :: space
       INTEGER :: n,ndf,npts,nnd,dof
       REAL(rp) :: xpt,ypt
+      REAL(rp) :: t_start,t_end,t_snap
       REAL(rp), ALLOCATABLE, DIMENSION(:) :: t      
       REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: Z,Qx,Qy,hb 
       REAL(rp), ALLOCATABLE, DIMENSION(:) :: r,s
@@ -67,9 +71,26 @@
       INTEGER :: hb_unit
       INTEGER :: vel_unit
       INTEGER :: mesh_unit
-      INTEGER :: tex_unit      
+      INTEGER :: tex_unit   
       
-      CHARACTER(4) :: snap_char
+      REAL(rp) :: Z_min,Z_max
+      REAL(rp) :: hb_min,hb_max
+      REAL(rp) :: vel_min,vel_max
+      
+      REAL(rp) :: Zsnap_min,Zsnap_max
+      REAL(rp) :: velsnap_min,velsnap_max
+      
+      CHARACTER(100) :: cscale_zeta
+      CHARACTER(100) :: cscale_hb      
+      CHARACTER(100) :: cscale_vel
+      
+      REAL(rp) :: cscale_zeta_min,cscale_zeta_max
+      REAL(rp) :: cscale_hb_min,cscale_hb_max      
+      REAL(rp) :: cscale_vel_min,cscale_vel_max
+      
+      CHARACTER(4) :: snap_char     
+      CHARACTER(3) :: start_num
+      CHARACTER(3) :: nframes      
       
       CONTAINS
       

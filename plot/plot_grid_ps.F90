@@ -10,13 +10,13 @@
       USE grid_file_mod
       USE basis, ONLY: element_nodes,element_basis
       USE read_write_output, ONLY: read_solution_full
-      USE read_dginp, ONLY: read_input,out_direc,p,ctp,hbp, &
+      USE read_dginp, ONLY: read_input,out_direc,p,ctp,hbp,tf, &
                             grid_file,curve_file,cb_file_exists
       USE plot_mod, ONLY: read_colormap,write_psheader,close_ps, &
                           scale_coordinates,zoom_box, &
                           evaluate_depth_solution,evaluate_velocity_solution, &
                           plot_contours,plot_mesh, &
-                          write_xyaxis_labels,write_caxis_labels,close_tex
+                          write_xyaxis_labels,write_caxis_labels,close_tex,convert_ps
       USE triangulation, ONLY: reference_element_delaunay
       USE edge_connectivity_mod
       USE curvilinear_nodes_mod
@@ -40,7 +40,7 @@
       
       CALL sizes()
 
-      PRINT*, grid_file
+      PRINT("(A)"), grid_file
       CALL read_header(0,grid_file,grid_name,ne,nn)        
       CALL read_coords(nn,xy,depth)
       CALL read_connectivity(ne,ect,el_type) 
@@ -58,7 +58,7 @@
       nred = 0
       CALL print_connect_info(mnepn,ned,nied,nobed,nfbed,nnfbed,nred)
 
-      PRINT*, "Calculating curved boundary information..."
+      PRINT("(A)"), "Calculating curved boundary information..."
       CALL shape_functions_linear_at_ctp(nel_type,np,psiv)                   
       CALL eval_coordinates_curved(ctp,nnds,nverts,el_type,xy,ect,fbseg,fbnds, &
                                    nnfbed,nfbedn,nfbednn,ged2el,ged2led, &
@@ -66,7 +66,7 @@
       
 !       CALL find_element_init(nel_type,nverts,np,nnds,nn,xy,nepn,epn)      
       
-      PRINT*, "Calculating additional ploting point coordinates..."
+      PRINT("(A)"), "Calculating additional ploting point coordinates..."
       ALLOCATE(r(mnpp),s(mnpp))      
       ALLOCATE(psic(mnnds,mnpp,nel_type))
       DO et = 1,nel_type     
@@ -87,7 +87,7 @@
       ENDDO       
              
       
-      PRINT*, "Evaluating reference element coordinate information..."
+      PRINT("(A)"), "Evaluating reference element coordinate information..."
       ALLOCATE(phi(mndof,mnpp,nel_type))
       ALLOCATE(phi_hb(mndof,mnpp,nel_type))      
       ALLOCATE(rect(3,3*mnpp,nel_type))
@@ -106,11 +106,11 @@
 
 
       
-      PRINT*, "Finding zoom box..."
+      PRINT("(A)"), "Finding zoom box..."
       CALL zoom_box(ne,el_type,nplt,xyplt,xbox_min,xbox_max,ybox_min,ybox_max, &
                                                      xmin,xmax,ymin,ymax,el_in)
 
-      PRINT*, "Scaling coordinates..."
+      PRINT("(A)"), "Scaling coordinates..."
       CALL scale_coordinates(ne,nn,el_type,nverts,nplt,figure_width,xmin,xmax,ymin,ymax,xyplt,xy)
 
       
@@ -126,45 +126,54 @@
       nsnap_Z = snap_end
       nsnap_Qx = snap_end
       nsnap_Qy = snap_end
+      nsnap_hb = 1
+      
+      t_start = 0d0
+      t_end = tf*86400d0      
+      
+          
         
       IF (plot_zeta_option == 1 .or. plot_vel_option == 1) THEN
-        PRINT*, "Reading zeta solution..."          
+        PRINT("(A)"), "Reading zeta solution..."          
         CALL read_solution_full(out_direc,"Z.sol","N",t,Z,nsnap_Z) 
       ENDIF
       IF (plot_vel_option == 1) THEN
-        PRINT*, "Reading Qx and Qy solutions..."       
+        PRINT("(A)"), "Reading Qx and Qy solutions..."       
         CALL read_solution_full(out_direc,"Qx.sol","N",t,Qx,nsnap_Qx)        
         CALL read_solution_full(out_direc,"Qy.sol","N",t,Qy,nsnap_Qy)  
-      ENDIF
+      ENDIF  
       IF (plot_bathy_option == 1 .or. plot_vel_option == 1) THEN
-        PRINT*, "Reading bathymetry solution..."          
+        PRINT("(A)"), "Reading bathymetry solution..."          
         CALL read_solution_full(out_direc,"hb.sol","N",t,hb,nsnap_hb)  
-      ENDIF   
+      ENDIF  
       
+
       
       
       IF (plot_bathy_option == 1 .or. plot_vel_option == 1) THEN
-        PRINT*, "Evaluating bathymetry at additional plotting points..."
-        CALL evaluate_depth_solution(ne,el_type,el_in,nplt,ndof_hb,phi_hb,1,hb,hb_val)
+        PRINT("(A)"), "Evaluating bathymetry at additional plotting points..."
+        CALL evaluate_depth_solution(ne,el_type,el_in,nplt,ndof_hb,phi_hb,1,hb,hb_val,hb_min,hb_max)
       ENDIF      
       
       
       
       IF (plot_bathy_option == 1) THEN
-        PRINT*, "Writing bathymetry PostScript file..."
-        CALL plot_contours("bathy.ps",hb_unit,nplt,ntri,rect,ne,el_type,el_in,xyplt,hb_val,"bathymetry")     
+        PRINT("(A)"), "Writing bathymetry PostScript file..."
+        CALL plot_contours("bathy.ps",hb_unit,nplt,ntri,rect,ne,el_type,el_in,xyplt,hb_val,hb_min,hb_max,"bathymetry")     
         IF (plot_mesh_option == 1) THEN
           CALL plot_mesh(hb_unit,ne,nverts,el_type,el_in,xy,ect)   
         ENDIF
-        CALL close_ps(hb_unit)
+        CALL close_ps("bathy",hb_unit)
+        CALL convert_ps("bathy",frmt,density,rm_ps)
       ENDIF
       
       IF (plot_mesh_option == 1 .and. plot_zeta_option == 0 .and. &
           plot_bathy_option == 0 .and. plot_vel_option == 0 ) THEN          
-        PRINT*, "Writing mesh PostScript file..."   
+        PRINT("(A)"), "Writing mesh PostScript file..."   
         CALL write_psheader("mesh.ps",mesh_unit)            
         CALL plot_mesh(mesh_unit,ne,nverts,el_type,el_in,xy,ect)      
-        CALL close_ps(mesh_unit)                      
+        CALL close_ps("mesh",mesh_unit)         
+        CALL convert_ps("mesh",frmt,density,rm_ps)
       ENDIF
       
       IF (plot_zeta_option == 0 .and. plot_vel_option == 0) THEN
@@ -184,43 +193,135 @@
       
       
       
+
+      Z_max = -1d10
+      Z_min = 1d10
+      vel_max = -1d10
+      vel_min = 1d10
+        
+      DO snap = snap_start,snap_end
+      
+        IF ((plot_zeta_option == 1 .AND. cscale_zeta == "auto-all") .OR.  &
+            (plot_vel_option == 1 .AND. cscale_vel == "auto-all")) THEN
+              
+          CALL evaluate_depth_solution(ne,el_type,el_in,nplt,ndof,phi,snap,Z,Z_val,Zsnap_min,Zsnap_max)
+        
+          IF (Zsnap_min < Z_min) THEN
+            Z_min = Zsnap_min
+          ENDIF
+          
+          IF (Zsnap_max > Z_max) THEN
+            Z_max = Zsnap_max
+          ENDIF
+        ENDIF
+          
+
+        IF (plot_vel_option == 1 .AND. cscale_vel == "auto-all") THEN
+          CALL evaluate_velocity_solution(ne,el_type,el_in,nplt,ndof,phi,snap,Qx,Qy,Z_val,hb_val,vel_val,velsnap_min,velsnap_max)
+        
+          IF (velsnap_min < vel_min) THEN
+            vel_min = velsnap_min          
+          ENDIF
+         
+          IF (velsnap_max > vel_max) THEN
+            vel_max = velsnap_max
+          ENDIF
+        ENDIF
+      ENDDO
+      
+
+
+      
+      PRINT("(A)"), " "
+      
+      
+      
+      
       snap_char = "0000"
       
       DO snap = snap_start,snap_end
       
-        PRINT*, "Time snap: ", snap-1        
+        
+        t_snap = t(snap)      
+        PRINT("(A)"), "---------------------------------------------"
+        PRINT("(A,I5,F20.5)"), "Time snap: ", snap-1, t_snap        
         WRITE(snap_char,"(I4.4)") snap-1
 
+
         IF (plot_zeta_option == 1 .or. plot_vel_option == 1) THEN
-          PRINT*, "  Evaluating zeta at additional plotting points..."
-          CALL evaluate_depth_solution(ne,el_type,el_in,nplt,ndof,phi,snap,Z,Z_val)
+          PRINT("(A)"), "  Evaluating zeta at additional plotting points..."
+          CALL evaluate_depth_solution(ne,el_type,el_in,nplt,ndof,phi,snap,Z,Z_val,Zsnap_min,Zsnap_max)
         ENDIF
         
         IF (plot_zeta_option == 1) THEN        
-          PRINT*, "  Writing zeta PostScript file..."                  
-          CALL plot_contours("zeta_"//snap_char//".ps",Z_unit,nplt,ntri,rect,ne,el_type,el_in,xyplt,Z_val,"surface elevation")      
+          PRINT("(A)"), "  Writing zeta PostScript file..."   
+          IF (cscale_zeta == "auto-snap") THEN
+            Z_min = Zsnap_min
+            Z_max = Zsnap_max            
+          ELSE IF (cscale_zeta == "auto-all") THEN
+            
+          ELSE
+            Z_min = cscale_zeta_min
+            Z_max = cscale_zeta_max
+          ENDIF
+          PRINT("(2(A,F10.5))"), "  Z_min = ", Z_min, "  Z_max = ", Z_max
+          
+          CALL plot_contours("zeta_"//snap_char//".ps",Z_unit,nplt,ntri,rect,ne,el_type,el_in,xyplt,Z_val,Z_min,Z_max,"surface elevation",t_snap,t_start,t_end)      
           IF (plot_mesh_option == 1) THEN
             CALL plot_mesh(Z_unit,ne,nverts,el_type,el_in,xy,ect)
           ENDIF      
-          CALL close_ps(Z_unit)        
+          CALL close_ps("zeta_"//snap_char,Z_unit)
+          CALL convert_ps("zeta_"//snap_char,frmt,density,rm_ps)
         ENDIF        
       
+      
+      
+        PRINT("(A)"), " "
+        
+      
+      
+      
         IF (plot_vel_option == 1) THEN
-          PRINT*, "  Evaluating velocity at additional plotting points..."
-          CALL evaluate_velocity_solution(ne,el_type,el_in,nplt,ndof,phi,snap,Qx,Qy,Z_val,hb_val,vel_val)
+          PRINT("(A)"), "  Evaluating velocity at additional plotting points..."
+          CALL evaluate_velocity_solution(ne,el_type,el_in,nplt,ndof,phi,snap,Qx,Qy,Z_val,hb_val,vel_val,velsnap_min,velsnap_max)
         ENDIF       
         
-        IF (plot_vel_option == 1) THEN       
-          PRINT*, "  Writing velocity PostScript file..."              
-          CALL plot_contours("vel_"//snap_char//".ps",vel_unit,nplt,ntri,rect,ne,el_type,el_in,xyplt,vel_val,"velocity")      
+        IF (plot_vel_option == 1) THEN    
+        
+          PRINT("(A)"), "  Writing velocity PostScript file..."   
+          IF (cscale_vel == "auto-snap") THEN
+            vel_min = velsnap_min
+            vel_max = velsnap_max            
+          ELSE IF (cscale_vel == "auto-all") THEN
+            
+          ELSE
+            vel_min = cscale_vel_min
+            vel_max = cscale_vel_max
+          ENDIF
+          PRINT("(2(A,F10.5))"), "  vel_min = ", vel_min, "  vel_max = ", vel_max
+                    
+          CALL plot_contours("vel_"//snap_char//".ps",vel_unit,nplt,ntri,rect,ne,el_type,el_in,xyplt,vel_val,vel_min,vel_max,"velocity",t_snap,t_start,t_end)      
           IF (plot_mesh_option == 1) THEN
             CALL plot_mesh(vel_unit,ne,nverts,el_type,el_in,xy,ect)
           ENDIF      
-          CALL close_ps(vel_unit)   
-
+          CALL close_ps("vel_"//snap_char,vel_unit)   
+          CALL convert_ps("vel_"//snap_char,frmt,density,rm_ps)
         ENDIF
             
       ENDDO
+      
+!       WRITE(start_num,"(I3)") snap_start
+!       WRITE(nframes,"(I3)") snap_end-snap_start + 1
+      
+      IF (plot_zeta_option == 1 .and. make_movie == 1) THEN
+        CALL SYSTEM("ffmpeg -i zeta_%04d."//frmt//" -y zeta.mp4")
+      ENDIF          
+      
+      IF (plot_vel_option == 1 .and. make_movie == 1) THEN
+       CALL SYSTEM("ffmpeg -i vel_%04d."//frmt//" -y vel.mp4")
+      ENDIF
+      
+  
 
       END PROGRAM plot_grid_ps
       

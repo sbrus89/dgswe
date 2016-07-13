@@ -1,16 +1,24 @@
       SUBROUTINE read_plot_input()
 
-      USE plot_globals, ONLY: input_path,cmap_file,zbox,ps,pc, &
+      USE plot_globals, ONLY: rp,input_path,cmap_file,ps,pc,frmt,density,rm_ps,make_movie, &
                               xbox_min,xbox_max,ybox_min,ybox_max,figure_width, &
                               plot_mesh_option,plot_zeta_option,plot_vel_option,plot_bathy_option, &
-                              snap_start,snap_end
+                              snap_start,snap_end, &
+                              cscale_zeta,cscale_zeta_min,cscale_zeta_max, &
+                              cscale_vel,cscale_vel_min,cscale_vel_max
+      USE plot_mod, ONLY: fontsize,nxtick,nytick,nctick, &
+                          nxdec,nydec,ncdec,ntdec                              
 
       IMPLICIT NONE
       
-      INTEGER, PARAMETER :: ninp = 11
+      INTEGER, PARAMETER :: ninp = 24
       INTEGER :: i,n
       INTEGER :: inp_read,skipped
       CHARACTER(100) :: temp      
+      CHARACTER(100) :: zbox  
+      CHARACTER(100) :: ytick   
+      CHARACTER(100) :: cscale 
+      REAL(rp) :: tmp
       LOGICAL :: file_exists      
       
       INQUIRE(file='plot.inp',exist=file_exists)
@@ -78,15 +86,60 @@
             CASE (11)
               cmap_file = TRIM(ADJUSTL(temp))
               PRINT("(A,A)"), "color map file = ", cmap_file                
-!             CASE ()
-!               cscale = TRIM(ADJUSTL(temp) 
-!               IF (cscale = "auto") THEN
-!                 PRINT("(A,A)"), "color scale = ", cscale  
-!               ELSE
-!                 READ(temp,*) cscale_min,cscale_max
-!                 PRINT("(A,2(e10.3))"), "color scale = " cscale_min,cscale_max
-!               ENDIF
-
+            CASE (12)
+              cscale_zeta = TRIM(ADJUSTL(temp)) 
+              IF (TRIM(ADJUSTL(cscale_zeta)) == "auto-snap" .OR. TRIM(ADJUSTL(cscale_zeta)) == "auto-all") THEN
+              
+              ELSE
+                READ(temp,*) cscale_zeta_min,cscale_zeta_max
+              ENDIF
+              PRINT("(A,A)"), "zeta color scale = ", cscale_zeta      
+            CASE (13)
+              cscale_vel = TRIM(ADJUSTL(temp)) 
+              IF (TRIM(ADJUSTL(cscale_vel)) == "auto-snap" .OR. TRIM(ADJUSTL(cscale_vel)) == "auto-all") THEN
+              
+              ELSE
+                READ(temp,*) cscale_vel_min,cscale_vel_max
+              ENDIF
+              PRINT("(A,A)"), "velocity color scale = ", cscale_vel                  
+            CASE (14)
+              READ(temp,*) fontsize
+              PRINT("(A,I3)"), "font size = ", fontsize 
+            CASE (15)  
+              READ(temp,*) nxtick
+              PRINT("(A,I3)"), "number of x ticks = ", nxtick
+            CASE (16)
+              READ(temp,*) ytick
+              IF (TRIM(ADJUSTL(ytick)) == 'auto') THEN
+                nytick = 10000
+              ELSE
+                READ(temp,*) nytick
+              ENDIF
+              PRINT("(A,A)"), "number of y ticks = ", ytick
+            CASE (17)
+              READ(temp,*) nctick
+              PRINT("(A,I3)"), "number of c ticks = ", nctick
+            CASE (18)
+              READ(temp,*) nxdec
+              PRINT("(A,I3)"), "number of x decimals = ", nxdec
+            CASE (19)
+              READ(temp,*) nydec
+              PRINT("(A,I3)"), "number of y decimals = ", nydec
+            CASE (20) 
+              READ(temp,*) ncdec
+              PRINT("(A,I3)"), "number of c decimals = ", ncdec
+            CASE (21)
+              READ(temp,*) ntdec
+              PRINT("(A,I3)"), "number of t decimals = ", ntdec
+            CASE (22)
+              READ(temp,*) frmt,rm_ps
+              PRINT("(A,A)"), "additional file format = ", frmt
+            CASE (23)
+              READ(temp,*) density
+              PRINT("(A,A)"), "density of raster format = ", density     
+            CASE (24)
+              READ(temp,*) make_movie
+              PRINT("(A,A)"), "movie flag = ", make_movie                 
           END SELECT
             
         ENDIF
@@ -98,6 +151,21 @@
       PRINT("(A,I5)"), "Lines skipped: ", skipped
       PRINT*, " "  
       
+      IF (cscale_zeta_max < cscale_zeta_min) THEN
+        tmp = cscale_zeta_min
+        cscale_zeta_min = cscale_zeta_max
+        cscale_zeta_max = tmp
+        PRINT("(A)"), "Warning: zeta color scale max and min have been switched"        
+      ENDIF         
+      
+      IF (cscale_vel_max < cscale_vel_min) THEN
+        tmp = cscale_vel_min
+        cscale_vel_min = cscale_vel_max
+        cscale_vel_max = tmp
+        PRINT("(A)"), "Warning: velocity color scale max and min have been switched"
+      ENDIF
+      
+   
 
       CLOSE(15)
       

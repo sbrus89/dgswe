@@ -121,7 +121,7 @@ $(ODIR)vandermonde.o : ../src/vandermonde.F90                     $(ODIR)globals
 $(ODIR)system.o : ../src/system.F90                                
 	$(FC) $(FFLAGS) -c $< -o $@	
 	
-$(ODIR)read_plot_input.o : read_plot_input.F90               $(ODIR)plot_globals.o               
+$(ODIR)read_plot_input.o : read_plot_input.F90               $(ODIR)plot_globals.o $(ODIR)plot_mod.o              
 	$(FC) $(FFLAGS) -c $< -o $@		
 
 $(ODIR)convert.o: convert2cartesian.F90                      $(ODIR)globals.o $(ODIR)grid_file_mod.o $(ODIR)spherical_mod.o
