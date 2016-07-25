@@ -1,4 +1,4 @@
-      PROGRAM plot_grid_ps
+      PROGRAM plot_dg
       
       USE plot_globals
       USE globals, ONLY: ne,nn,nverts,ndof,mndof,np,mnp,nnds,mnnds,nel_type,ect,xy,depth, &
@@ -393,5 +393,5 @@
       
   
 
-      END PROGRAM plot_grid_ps
+      END PROGRAM plot_dg
       

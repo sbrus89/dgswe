@@ -1,5 +1,5 @@
 FC = ifort
-FFLAGS = -I$(ODIR) -traceback -g -C
+FFLAGS = -I$(ODIR) #-traceback -g -C
 
 ODIR = odir/
 
@@ -134,5 +134,5 @@ $(ODIR)plot_mod.o: plot_mod.F90                              $(ODIR)globals.o
 	$(FC) $(FFLAGS) -c $< -o $@ 	
 	mv plot_mod.mod $(ODIR)
 	
-$(ODIR)plot.o: plot_grid_ps.F90                              $(ODIR)plot_globals.o $(ODIR)globals.o $(ODIR)grid_file_mod.o $(ODIR)plot_mod.o $(ODIR)basis.o $(ODIR)read_write_output.o $(ODIR)read_input.o
-	$(FC) $(FFLAGS) -c $< -o $@     
+$(ODIR)plot.o: plot_dg.F90                                   $(ODIR)plot_globals.o $(ODIR)globals.o $(ODIR)grid_file_mod.o $(ODIR)plot_mod.o $(ODIR)basis.o $(ODIR)read_write_output.o $(ODIR)read_input.o
+	$(FC) $(FFLAGS) -c $< -o $@       
