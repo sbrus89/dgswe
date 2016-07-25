@@ -25,6 +25,8 @@
       
       IMPLICIT NONE
       
+      INTEGER :: start_snap,end_snap
+      
       space = 0  
       
       CALL read_plot_input()
@@ -109,6 +111,8 @@
       PRINT("(A)"), "Finding zoom box..."
       CALL zoom_box(ne,el_type,nplt,xyplt,xbox_min,xbox_max,ybox_min,ybox_max, &
                                                      xmin,xmax,ymin,ymax,el_in)
+                                                     
+!       PRINT*, xmin,xmax,ymin,ymax                                                     
 
       PRINT("(A)"), "Scaling coordinates..."
       CALL scale_coordinates(ne,nn,el_type,nverts,nplt,figure_width,xmin,xmax,ymin,ymax,xyplt,xy)
@@ -162,7 +166,7 @@
         CALL latex_all_labels(hb_min,hb_max,"bathymetry")         
         CALL write_psheader("bathy.ps",hb_unit)              
         CALL plot_contours(hb_unit,nplt,ntri,rect,ne,el_type,el_in,xyplt,hb_val,hb_min,hb_max)     
-        IF (plot_mesh_option == 1) THEN
+        IF (plot_bathy_mesh == 1) THEN
           CALL plot_mesh(hb_unit,ne,nverts,el_type,el_in,xy,ect)   
         ENDIF
         CALL write_all_axes(hb_unit)             
@@ -170,13 +174,14 @@
         CALL convert_ps("bathy",frmt,density,rm_ps)
       ENDIF
       
-      IF (plot_mesh_option == 1 .and. plot_zeta_option == 0 .and. &
-          plot_bathy_option == 0 .and. plot_vel_option == 0 ) THEN          
+      IF (plot_mesh_option == 1) THEN          
         PRINT("(A)"), "Writing mesh PostScript file..."   
+        CALL latex_all_labels()            
         CALL write_psheader("mesh.ps",mesh_unit)            
-        CALL plot_mesh(mesh_unit,ne,nverts,el_type,el_in,xy,ect)      
+        CALL plot_mesh(mesh_unit,ne,nverts,el_type,el_in,xy,ect)   
+        CALL write_all_axes(mesh_unit)          
         CALL close_ps("mesh",mesh_unit)         
-        CALL convert_ps("mesh",frmt,density,rm_ps)
+        CALL convert_ps("mesh",frmt,density,0)
       ENDIF
       
       IF (plot_zeta_option == 0 .and. plot_vel_option == 0) THEN
@@ -232,12 +237,40 @@
         ENDIF
       ENDDO
       
+      
+      IF (cscale_zeta == "file") THEN
+        READ(cscale_zeta_unit,*) start_snap,end_snap
+        num_cscale_zeta_vals = end_snap - start_snap + 1
+        ALLOCATE(cscale_zeta_vals(num_cscale_zeta_vals,3))
+        DO i = 1,num_cscale_zeta_vals
+          READ(cscale_zeta_unit,*) cscale_zeta_vals(i,1),cscale_zeta_vals(i,2),cscale_zeta_vals(i,3)
+        ENDDO
+        CLOSE(cscale_zeta_unit)
+      ENDIF
+      
+      IF (cscale_vel == "file") THEN
+        READ(cscale_vel_unit,*) start_snap,end_snap
+        num_cscale_vel_vals = end_snap - start_snap + 1
+        ALLOCATE(cscale_vel_vals(num_cscale_vel_vals,3))
+        DO i = 1,num_cscale_vel_vals
+          READ(cscale_vel_unit,*) cscale_vel_vals(i,1),cscale_vel_vals(i,2),cscale_vel_vals(i,3)
+        ENDDO
+        CLOSE(cscale_vel_unit)
+      ENDIF
 
 
       
       PRINT("(A)"), " "
       
       
+      IF (plot_zeta_option == 1) THEN   
+        OPEN(unit=cscale_zeta_unit,file="zeta.cscale.out")  
+        WRITE(cscale_zeta_unit,"(2I5)") snap_start-1,snap_end-1
+      ENDIF
+      IF (plot_vel_option == 1) THEN     
+        OPEN(unit=cscale_vel_unit,file="vel.cscale.out") 
+        WRITE(cscale_vel_unit,"(2I5)") snap_start-1,snap_end-1
+      ENDIF
       
       
       snap_char = "0000"
@@ -247,7 +280,7 @@
         
         t_snap = t(snap)      
         PRINT("(A)"), "---------------------------------------------"
-        PRINT("(A,I5,F20.5)"), "Time snap: ", snap-1, t_snap        
+        PRINT("(A,I5,A,I5,A,F20.5)"), "Time snap: ", snap-1,"/",snap_end," t = ", t_snap        
         WRITE(snap_char,"(I4.4)") snap-1
 
 
@@ -262,17 +295,31 @@
             Z_min = Zsnap_min
             Z_max = Zsnap_max            
           ELSE IF (cscale_zeta == "auto-all") THEN
-            
+            ! use existing values
+          ELSE IF (cscale_zeta == "file") THEN
+!             DO i = 1,num_cscale_zeta_vals
+!               IF (ABS(cscale_zeta_vals(i,1)-t_snap) < 1d-8) THEN
+!                 Z_min = cscale_zeta_vals(i,2)
+!                 Z_max = cscale_zeta_vals(i,3)              
+!                 EXIT
+!               ENDIF
+!             ENDDO            
+
+            Z_min = cscale_zeta_vals(snap-1,2)
+            Z_max = cscale_zeta_vals(snap-1,3)              
+              
           ELSE
             Z_min = cscale_zeta_min
             Z_max = cscale_zeta_max
           ENDIF
+          
           PRINT("(2(A,F10.5))"), "  Z_min = ", Z_min, "  Z_max = ", Z_max
+          WRITE(cscale_zeta_unit,"(3(e24.17,1x))") t_snap,Z_min,Z_max
           
           CALL latex_all_labels(Z_min,Z_max,"surface elevation",t_snap,t_start,t_end)          
           CALL write_psheader("zeta_"//snap_char//".ps",Z_unit)            
           CALL plot_contours(Z_unit,nplt,ntri,rect,ne,el_type,el_in,xyplt,Z_val,Z_min,Z_max)      
-          IF (plot_mesh_option == 1) THEN
+          IF (plot_zeta_mesh == 1) THEN
             CALL plot_mesh(Z_unit,ne,nverts,el_type,el_in,xy,ect)
           ENDIF      
           CALL write_all_axes(Z_unit,t_snap,t_start,t_end)               
@@ -299,17 +346,31 @@
             vel_min = velsnap_min
             vel_max = velsnap_max            
           ELSE IF (cscale_vel == "auto-all") THEN
+            ! use existing values
+          ELSE IF (cscale_vel == "file") THEN
+!             DO i = 1,num_cscale_vel_vals
+!               IF (ABS(cscale_vel_vals(i,1)-t_snap) < 1d-8) THEN
+!                 vel_min = cscale_vel_vals(i,2)
+!                 vel_max = cscale_vel_vals(i,3)              
+!                 EXIT
+!               ENDIF
+!             ENDDO        
+
+           vel_min = cscale_vel_vals(snap-1,2)
+           vel_max = cscale_vel_vals(snap-1,3)
             
           ELSE
             vel_min = cscale_vel_min
             vel_max = cscale_vel_max
           ENDIF
+          
           PRINT("(2(A,F10.5))"), "  vel_min = ", vel_min, "  vel_max = ", vel_max
-                 
+          WRITE(cscale_vel_unit,"(3(e24.17,1x))") t_snap,vel_min,vel_max      
+          
           CALL latex_all_labels(vel_min,vel_max,"velocity",t_snap,t_start,t_end)                 
           CALL write_psheader("vel_"//snap_char//".ps",vel_unit)        
           CALL plot_contours(vel_unit,nplt,ntri,rect,ne,el_type,el_in,xyplt,vel_val,vel_min,vel_max)      
-          IF (plot_mesh_option == 1) THEN
+          IF (plot_vel_mesh == 1) THEN
             CALL plot_mesh(vel_unit,ne,nverts,el_type,el_in,xy,ect)
           ENDIF      
           CALL write_all_axes(vel_unit,t_snap,t_start,t_end)          

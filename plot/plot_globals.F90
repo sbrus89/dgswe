@@ -59,6 +59,10 @@
       INTEGER :: plot_zeta_option
       INTEGER :: plot_bathy_option
       
+      INTEGER :: plot_zeta_mesh
+      INTEGER :: plot_vel_mesh
+      INTEGER :: plot_bathy_mesh
+      
       INTEGER :: snap_start
       INTEGER :: snap_end
       
@@ -72,6 +76,15 @@
       INTEGER :: vel_unit
       INTEGER :: mesh_unit
       INTEGER :: tex_unit   
+      
+      INTEGER :: cscale_zeta_unit
+      INTEGER :: cscale_vel_unit
+      
+      INTEGER :: num_cscale_zeta_vals
+      INTEGER :: num_cscale_vel_vals
+      
+      REAL(rp), DIMENSION(:,:), ALLOCATABLE :: cscale_zeta_vals
+      REAL(rp), DIMENSION(:,:), ALLOCATABLE :: cscale_vel_vals
       
       REAL(rp) :: Z_min,Z_max
       REAL(rp) :: hb_min,hb_max

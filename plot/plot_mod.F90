@@ -204,6 +204,11 @@
       
       smax_axes = ay*ymax + by
       
+      IF (smax_axes > smax_page) THEN
+        PRINT*, "Error: Equal axis scaling puts y axis off page"
+        STOP
+      ENDIF
+      
       rmin_tbar = rmax_axes + cscale_width
       rmax_tbar = rmin_tbar + clabel_pad
       smin_tbar = smax_axes - 2d0*cscale_width
@@ -746,7 +751,8 @@ tail: DO
       rmax_cbar = rmin_cbar + cscale_width
       smin_cbar = smin_axes
       IF (time_bar == 1) THEN      
-        smax_cbar = .75d0*smax_axes           
+!         smax_cbar = .75d0*smax_axes     
+        smax_cbar = smin_tbar - 2d0*cscale_width            
       ELSE 
         smax_cbar = smax_axes 
       ENDIF     
@@ -1086,30 +1092,41 @@ tail: DO
       
       IMPLICIT NONE
       
-      REAL(rp), INTENT(IN) :: sol_min
-      REAL(rp), INTENT(IN) :: sol_max
-      CHARACTER(*), INTENT(IN) :: sol_label
+      REAL(rp), INTENT(IN), OPTIONAL :: sol_min
+      REAL(rp), INTENT(IN), OPTIONAL :: sol_max
+      CHARACTER(*), INTENT(IN), OPTIONAL :: sol_label
       REAL(rp), INTENT(IN), OPTIONAL :: t_snap
       REAL(rp), INTENT(IN), OPTIONAL :: t_start
       REAL(rp), INTENT(IN), OPTIONAL :: t_end 
       
       INTEGER :: time_bar
+      INTEGER :: color_bar
       INTEGER :: tex_unit  
+      
+      color_bar = 0
+      IF (PRESENT(sol_min) .AND. PRESENT(sol_max) .AND. PRESENT(sol_label)) THEN
+        color_bar = 1
+      ENDIF          
       
       time_bar = 0
       IF (PRESENT(t_snap) .AND. PRESENT(t_start) .AND. PRESENT(t_end)) THEN
         time_bar = 1
       ENDIF            
       
-      CALL write_xyaxis_labels("axes.tex",tex_unit)     
-      CALL write_caxis_labels(tex_unit,time_bar,sol_min,sol_max,sol_label)
+      CALL write_xyaxis_labels("axes.tex",tex_unit)  
+      IF (color_bar == 1) THEN      
+        CALL write_caxis_labels(tex_unit,time_bar,sol_min,sol_max,sol_label)
+      ENDIF
       IF (time_bar == 1) THEN
         CALL write_tbar_labels(tex_unit,t_snap)
       ENDIF      
       CALL close_tex(tex_unit)
       
+!       CALL SYSTEM("latex axes.tex")
+!       CALL SYSTEM("dvips -o axes.ps axes.dvi")
+      
       CALL SYSTEM("latex axes.tex >/dev/null")
-      CALL SYSTEM("dvips -q -o axes.ps axes.dvi")
+      CALL SYSTEM("dvips -q -o axes.ps axes.dvi")      
       
           
       
@@ -1201,10 +1218,16 @@ tail: DO
             sol_lev = sol_lev + dc
           ENDDO levels
           
-          IF (sol_val(nd,el) <= sol_min) THEN
+         IF (sol_val(nd,el) <= sol_min) THEN
            lev = 1
+           color_val(1) = colors(lev,1)
+           color_val(2) = colors(lev,2)
+           color_val(3) = colors(lev,3)
          ELSE IF (sol_val(nd,el) > sol_max) THEN
            lev = nlev
+           color_val(1) = colors(lev,1)
+           color_val(2) = colors(lev,2)
+           color_val(3) = colors(lev,3)           
          ENDIF          
 
           WRITE(file_unit,"(A,5(F9.5,1x),A)") "[",xy(nd,el,1),xy(nd,el,2),color_val(1),color_val(2),color_val(3),"]"  
