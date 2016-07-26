@@ -238,6 +238,8 @@
       
       OPEN(UNIT=file_unit,FILE=file_name)      
       WRITE(file_unit,"(A)") "%!PS-Adobe-3.0"
+!       WRITE(file_unit,"(A)") "%!PS-Adobe-3.0 EPSF-3.0"      
+!       WRITE(file_unit,"(A,4(F9.5,1x))") "%%BoundingBox: ",rmin_axes,smin_axes,rmax_axes,smax_axes                
       
       WRITE(file_unit,"(A)") "/draw-element {"
       WRITE(file_unit,"(A)") "newpath"        
@@ -384,6 +386,8 @@
       
       OPEN(UNIT=tex_output_unit, FILE="axes.ps")
       WRITE(file_unit,"(A)") "%!PS-Adobe-3.0"      
+!       WRITE(file_unit,"(A)") "%!PS-Adobe-3.0 EPSF-3.0"
+!       WRITE(file_unit,"(A,4(F9.5,1x))") "%%BoundingBox: ",rmin_axes,smin_axes,rmax_axes,smax_axes           
       nline_texfile = 0
 head: DO
         READ(tex_output_unit,"(A)",IOSTAT=read_stat) line
@@ -456,7 +460,7 @@ head: DO
       INTEGER :: read_stat   
       
 tail: DO
-        READ(10,"(A)",IOSTAT=read_stat) line
+        READ(tex_output_unit,"(A)",IOSTAT=read_stat) line
         nline_texfile = nline_texfile + 1        
         IF (read_stat < 0 ) THEN
           EXIT tail                
@@ -483,7 +487,7 @@ tail: DO
       
       IMPLICIT NONE
       
-      INTEGER, INTENT(INOUT) :: unit_number      
+      INTEGER, INTENT(IN) :: unit_number      
       
       WRITE(unit_number,"(A)") "\end{document}"
       CLOSE(unit_number)
@@ -792,12 +796,11 @@ tail: DO
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-      SUBROUTINE write_xyaxis_labels(file_name,file_unit)
+      SUBROUTINE write_xyaxis_labels(file_unit)
       
       IMPLICIT NONE
-            
-      CHARACTER(*), INTENT(IN) :: file_name      
-      INTEGER, INTENT(INOUT) :: file_unit
+               
+      INTEGER, INTENT(IN) :: file_unit
 
       INTEGER :: i
       INTEGER :: expnt
@@ -805,8 +808,7 @@ tail: DO
       REAL(rp) :: xval,yval
     
       CHARACTER(20) :: xchar,ychar     
-      
-      CALL write_texheader(file_name,file_unit)      
+          
       
 
       dr_xlabel = (rmax_axes-rmin_axes)/(real(nxtick,rp)-1d0)
@@ -1088,10 +1090,11 @@ tail: DO
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
 
-      SUBROUTINE latex_all_labels(sol_min,sol_max,sol_label,t_snap,t_start,t_end)
+      SUBROUTINE latex_axes_labels(tex_unit,sol_min,sol_max,sol_label,t_snap,t_start,t_end)
       
       IMPLICIT NONE
       
+      INTEGER, INTENT(OUT) :: tex_unit
       REAL(rp), INTENT(IN), OPTIONAL :: sol_min
       REAL(rp), INTENT(IN), OPTIONAL :: sol_max
       CHARACTER(*), INTENT(IN), OPTIONAL :: sol_label
@@ -1099,9 +1102,9 @@ tail: DO
       REAL(rp), INTENT(IN), OPTIONAL :: t_start
       REAL(rp), INTENT(IN), OPTIONAL :: t_end 
       
+      
       INTEGER :: time_bar
       INTEGER :: color_bar
-      INTEGER :: tex_unit  
       
       color_bar = 0
       IF (PRESENT(sol_min) .AND. PRESENT(sol_max) .AND. PRESENT(sol_label)) THEN
@@ -1113,47 +1116,71 @@ tail: DO
         time_bar = 1
       ENDIF            
       
-      CALL write_xyaxis_labels("axes.tex",tex_unit)  
+      CALL write_texheader("axes.tex",tex_unit)        
+      
+      CALL write_xyaxis_labels(tex_unit)  
       IF (color_bar == 1) THEN      
         CALL write_caxis_labels(tex_unit,time_bar,sol_min,sol_max,sol_label)
       ENDIF
       IF (time_bar == 1) THEN
         CALL write_tbar_labels(tex_unit,t_snap)
-      ENDIF      
+      ENDIF                
+          
+      
+      RETURN
+      END SUBROUTINE latex_axes_labels
+      
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
+
+      SUBROUTINE run_latex(tex_unit)
+      
+      IMPLICIT NONE
+      
+      INTEGER, INTENT(IN) :: tex_unit
+      
       CALL close_tex(tex_unit)
       
 !       CALL SYSTEM("latex axes.tex")
 !       CALL SYSTEM("dvips -o axes.ps axes.dvi")
       
       CALL SYSTEM("latex axes.tex >/dev/null")
-      CALL SYSTEM("dvips -q -o axes.ps axes.dvi")      
-      
-          
+      CALL SYSTEM("dvips -q -o axes.ps axes.dvi")        
       
       RETURN
-      END SUBROUTINE latex_all_labels
+      END SUBROUTINE run_latex
       
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
 
-      SUBROUTINE write_all_axes(file_unit,t_snap,t_start,t_end)
+      SUBROUTINE write_all_axes(file_unit,sol_label,t_snap,t_start,t_end)
       
       IMPLICIT NONE
       
-      INTEGER, INTENT(IN) :: file_unit      
+      INTEGER, INTENT(IN) :: file_unit    
+      CHARACTER(*), OPTIONAL :: sol_label
       REAL(rp), OPTIONAL :: t_snap
       REAL(rp), OPTIONAL :: t_start
       REAL(rp), OPTIONAL :: t_end 
       
+      INTEGER :: color_bar
       INTEGER :: time_bar
       
+      color_bar = 0
+      IF (PRESENT(sol_label)) THEN
+        color_bar = 1
+      ENDIF
+            
       time_bar = 0
       IF (PRESENT(t_snap) .AND. PRESENT(t_start) .AND. PRESENT(t_end)) THEN
         time_bar = 1
       ENDIF            
       
-      CALL write_xyaxis(file_unit)        
-      CALL write_colorscale(file_unit)
+      CALL write_xyaxis(file_unit)   
+      
+      IF (color_bar) THEN
+        CALL write_colorscale(file_unit)
+      ENDIF
       IF (time_bar == 1) THEN
         CALL write_tbar(file_unit,t_snap,t_start,t_end)
       ENDIF            
@@ -1274,6 +1301,223 @@ tail: DO
       END SUBROUTINE plot_mesh
       
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+      SUBROUTINE latex_element_labels(file_unit,ne,label_option,el_type,el_in,nverts,xy,ect,nnfbed,nfbedn,ged2el)
+      
+      IMPLICIT NONE
+      
+      INTEGER, INTENT(IN) :: file_unit
+      INTEGER, INTENT(IN) :: ne
+      CHARACTER(*), INTENT(IN) :: label_option 
+      INTEGER, DIMENSION(:), INTENT(IN) :: el_type
+      INTEGER, DIMENSION(:), INTENT(IN) :: el_in      
+      INTEGER, DIMENSION(:), INTENT(IN) :: nverts
+      REAL(rp), DIMENSION(:,:), INTENT(IN) :: xy
+      INTEGER, DIMENSION(:,:), INTENT(IN) :: ect
+      INTEGER, INTENT(IN) :: nnfbed
+      INTEGER, DIMENSION(:), INTENT(IN) :: nfbedn
+      INTEGER, DIMENSION(:,:), INTENT(IN) :: ged2el
+      
+      INTEGER :: i
+      INTEGER :: el,nd
+      INTEGER :: et,nv 
+      INTEGER :: ed,ged
+      INTEGER :: label_unit = 20
+      INTEGER :: ne_list
+      INTEGER, DIMENSION(:), ALLOCATABLE :: el_list
+      INTEGER, DIMENSION(:), ALLOCATABLE :: el_flag
+      REAL(rp) :: xsum,ysum
+      REAL(rp) :: rpos,spos      
+      CHARACTER(20) :: elchar
+      LOGICAL :: file_exists
+      
+      IF (TRIM(ADJUSTL(label_option)) == "off") THEN
+      
+        RETURN
+        
+      ELSE IF (TRIM(ADJUSTL(label_option)) == "file") THEN
+      
+        INQUIRE(file="element.label",exist=file_exists)
+        IF (file_exists) THEN
+          OPEN(unit=label_unit,file="element.label")
+          READ(label_unit,*) ne_list 
+          ALLOCATE(el_list(ne_list))
+          DO i = 1,ne_list
+            READ(label_unit,*) el_list(i)
+          ENDDO          
+        ELSE
+          PRINT("(A)"), "Error: Mesh plot element label file not found"
+        ENDIF
+        
+      ELSE IF (TRIM(ADJUSTL(label_option)) == "all") THEN
+      
+        ne_list = ne
+        ALLOCATE(el_list(ne_list))
+        DO i = 1,ne_list
+          el_list(i) = i
+        ENDDO
+        
+      ELSE IF (TRIM(ADJUSTL(label_option)) == "bou") THEN
+      
+        ALLOCATE(el_list(ne))
+        ALLOCATE(el_flag(ne))
+        el_flag = 0
+        ne_list = 0
+        DO ed = 1,nnfbed
+          ged = nfbedn(ed)
+          el = ged2el(1,ged)
+          
+          IF (el_flag(el) == 0) THEN
+            ne_list = ne_list + 1
+            el_list(ne_list) = el
+            el_flag(el) = 1
+          ENDIF
+        ENDDO
+        
+      ELSE
+      
+        PRINT("(A)"), "Error: Mesh plot element label option not recognized"
+        STOP
+        
+      ENDIF    
+
+      IF (ne_list > 20000) THEN 
+        PRINT("(A)"), "Warning: number of element labels is too large" 
+        PRINT("(A)"), "         skipping to prevent exceeding latex memory"
+        RETURN
+      ENDIF
+
+ elem:DO i = 1,ne_list
+        el = el_list(i)
+        
+        IF (el_in(el) == 0) THEN
+          CYCLE elem
+        ENDIF
+        
+        et = el_type(el)
+        nv = nverts(et)
+        
+        xsum = 0d0
+        ysum = 0d0
+        DO nd = 1,nv
+          xsum = xsum + xy(1,ect(nd,el))
+          ysum = ysum + xy(2,ect(nd,el))
+        ENDDO
+        
+        rpos = xsum/real(nv,rp)
+        spos = ysum/real(nv,rp)
+        
+        
+        WRITE(elchar,"(I20)") el     
+        WRITE(file_unit,"(A,F9.5,A,F9.5,A)") "\begin{textblock}{400}[0,0](",rpos,",",smax_page-spos,")"
+        WRITE(file_unit,"(A)") "{\color{red} \tiny "//TRIM(ADJUSTL(elchar))//"}"
+        WRITE(file_unit,"(A)") "\end{textblock}"        
+      ENDDO elem
+      
+      
+      RETURN
+      END SUBROUTINE latex_element_labels
+      
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!   
+
+      SUBROUTINE latex_node_labels(file_unit,nn,label_option,xy,nbou,fbseg,fbnds)
+      
+      IMPLICIT NONE
+      
+      INTEGER, INTENT(IN) :: file_unit
+      INTEGER, INTENT(IN) :: nn
+      CHARACTER(*), INTENT(IN) :: label_option 
+      REAL(rp), DIMENSION(:,:), INTENT(IN) :: xy
+      INTEGER, INTENT(IN) :: nbou
+      INTEGER, DIMENSION(:,:), INTENT(IN) :: fbseg
+      INTEGER, DIMENSION(:,:), INTENT(IN) :: fbnds
+      
+      INTEGER :: i
+      INTEGER :: nd,bou
+      INTEGER :: label_unit = 21
+      INTEGER :: nn_list
+      INTEGER, DIMENSION(:), ALLOCATABLE :: nd_list
+      REAL(rp) rpt,spt
+      CHARACTER(20) :: ndchar   
+      LOGICAL :: file_exists
+      
+      IF (TRIM(ADJUSTL(label_option)) == "off") THEN
+      
+        RETURN
+        
+      ELSE IF (TRIM(ADJUSTL(label_option)) == "file") THEN
+      
+        INQUIRE(file="node.label",exist=file_exists)
+        IF (file_exists) THEN
+          OPEN(unit=label_unit,file="node.label")
+          READ(label_unit,*) nn_list 
+          ALLOCATE(nd_list(nn_list))
+          DO i = 1,nn_list
+            READ(label_unit,*) nd_list(i)
+          ENDDO          
+        ELSE
+          PRINT("(A)"), "Error: Mesh plot node label file not found"
+        ENDIF
+        
+      ELSE IF (TRIM(ADJUSTL(label_option)) == "all") THEN
+      
+        nn_list = nn
+        ALLOCATE(nd_list(nn_list))
+        DO i = 1,nn_list
+          nd_list(i) = i
+        ENDDO
+        
+      ELSE IF (TRIM(ADJUSTL(label_option)) == "bou") THEN
+      
+        ALLOCATE(nd_list(nn))
+        nn_list = 0
+        DO bou = 1,nbou
+          DO nd = 1,fbseg(1,bou)          
+            nn_list = nn_list + 1
+            nd_list(nn_list) = fbnds(nd,bou)          
+          ENDDO
+        ENDDO
+        
+      ELSE
+      
+        PRINT("(A)"), "Error: Mesh plot node label option not recognized"
+        STOP
+        
+      ENDIF
+      
+      
+      IF (nn_list > 20000) THEN 
+        PRINT("(A)"), "Warning: number of node labels is too large" 
+        PRINT("(A)"), "         skipping to prevent exceeding latex memory"
+        RETURN
+      ENDIF      
+      
+      
+      DO i = 1,nn_list
+        nd = nd_list(i)
+
+        rpt = xy(1,nd)
+        spt = xy(2,nd)
+        
+        IF ((rpt > rmin_axes .and. rpt < rmax_axes) .and. &
+            (spt > smin_axes .and. spt < smax_axes) ) THEN
+            
+          WRITE(ndchar,"(I20)") nd     
+          WRITE(file_unit,"(A,F9.5,A,F9.5,A)") "\begin{textblock}{400}[0,0](",rpt,",",smax_page-spt,")"
+          WRITE(file_unit,"(A)") "{\color{blue} \tiny "//TRIM(ADJUSTL(ndchar))//"}"
+          WRITE(file_unit,"(A)") "\end{textblock}"              
+            
+        ENDIF
+
+      ENDDO 
+      
+      
+      RETURN
+      END SUBROUTINE latex_node_labels
+      
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!   
 
       SUBROUTINE interp_colors(lev,sol_lev,dc,colors,sol_val,color_val)
@@ -1355,6 +1599,7 @@ tail: DO
       IF (TRIM(ADJUSTL(frmt)) == "png" .or. TRIM(ADJUSTL(frmt)) == "jpg" .or. TRIM(ADJUSTL(frmt)) == "tif") THEN
         command = "convert -trim -density "//density//" "//filename//".ps "//filename//"."//frmt
         PRINT("(A)"), "  Converting to "//frmt//" format..."
+!         PRINT*, command
         CALL SYSTEM(command)
         IF (rm_ps == 1) THEN
           PRINT("(A)"), "  Removing PostScript file..."

@@ -1,11 +1,13 @@
 ../work/                                                                                               ! input file path
-1                                                                                                      ! zeta plot option 
-1                                                                                                      ! velocity plot option1
-1                                                                                                      ! bathymetry plot option
+0,0                                                                                                    ! zeta plot option 
+0,0                                                                                                    ! velocity plot option1
+0,0                                                                                                    ! bathymetry plot option
 1                                                                                                      ! mesh plot option
+file                                                                                                    ! mesh plot element labels
+file                                                                                                   ! mesh plot node labels
 16                                                                                                     ! order of nodal set for plotting straight elements
 16                                                                                                     ! order of nodal set for plotting curved elements
--1250,1250,-750,750                                                                                    ! zoom box
+all                                                                                                    ! zoom box
 7                                                                                                      ! figure width
 1,100                                                                                                  ! timesnap range
 /home/sbrus/Codes/dgswe/plot/jet.cmap                                                                  ! colormap path
@@ -25,5 +27,4 @@ jpg,1                                                                           
 
 
 
-!3.2e5,3.4e5,3.24e6,3.26e6                                                                             ! zoom box
 !-1250,1250,-750,750                                                                                   ! zoom box

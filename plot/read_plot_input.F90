@@ -7,14 +7,15 @@
                               snap_start,snap_end, &
                               cscale_zeta,cscale_zeta_min,cscale_zeta_max, &
                               cscale_vel,cscale_vel_min,cscale_vel_max, &
-                              cscale_zeta_unit,cscale_vel_unit
+                              cscale_zeta_unit,cscale_vel_unit, &
+                              mesh_el_label,mesh_nd_label
                               
       USE plot_mod, ONLY: fontsize,nxtick,nytick,nctick, &
                           nxdec,nydec,ncdec,ntdec                              
 
       IMPLICIT NONE
       
-      INTEGER, PARAMETER :: ninp = 24
+      INTEGER, PARAMETER :: ninp = 26
       INTEGER :: i,n
       INTEGER :: inp_read,skipped
       CHARACTER(100) :: temp      
@@ -75,14 +76,22 @@
               PRINT("(A,I3)"), "mesh plot option = ", plot_mesh_option  
               
             CASE (6)
+              mesh_el_label = TRIM(ADJUSTL(temp)) 
+              PRINT("(A,A)"), "mesh plot element labels = ", mesh_el_label              
+              
+            CASE (7)
+              mesh_nd_label = TRIM(ADJUSTL(temp)) 
+              PRINT("(A,A)"), "mesh plot node labels = ", mesh_nd_label             
+              
+            CASE (8)
               READ(temp,*) ps
               PRINT("(A,I3)"), "straight element plot nodes order = ", ps 
               
-            CASE (7)
+            CASE (9)
               READ(temp,*) pc
               PRINT("(A,I3)"), "curved element plot nodes order = ", pc 
               
-            CASE (8)
+            CASE (10)
               zbox = TRIM(ADJUSTL(temp))
               IF (zbox == "all") THEN
                 xbox_min = -1d10
@@ -94,21 +103,21 @@
               ENDIF
               PRINT("(A,A)"), "zoom box = ", zbox    
               
-            CASE (9)
+            CASE (11)
               READ(temp,*) figure_width
               figure_width = figure_width*72d0  
               PRINT("(A,F9.5)"), "figure width = ", figure_width
               
-            CASE (10)
+            CASE (12)
               READ(temp,*) snap_start,snap_end
               PRINT("(A,I5)"), "start snap = ", snap_start
               PRINT("(A,I5)"), "snap_end = ", snap_end
               
-            CASE (11)
+            CASE (13)
               cmap_file = TRIM(ADJUSTL(temp))
               PRINT("(A,A)"), "color map file = ", cmap_file     
               
-            CASE (12)
+            CASE (14)
               cscale_zeta = TRIM(ADJUSTL(temp)) 
               IF (TRIM(ADJUSTL(cscale_zeta)) == "auto-snap" .OR. TRIM(ADJUSTL(cscale_zeta)) == "auto-all") THEN
               
@@ -124,7 +133,7 @@
               ENDIF
               PRINT("(A,A)"), "zeta color scale = ", cscale_zeta   
               
-            CASE (13)
+            CASE (15)
               cscale_vel = TRIM(ADJUSTL(temp)) 
               IF (TRIM(ADJUSTL(cscale_vel)) == "auto-snap" .OR. TRIM(ADJUSTL(cscale_vel)) == "auto-all") THEN
               
@@ -141,15 +150,15 @@
               ENDIF
               PRINT("(A,A)"), "velocity color scale = ", cscale_vel   
               
-            CASE (14)
+            CASE (16)
               READ(temp,*) fontsize
               PRINT("(A,I3)"), "font size = ", fontsize 
               
-            CASE (15)  
+            CASE (17)  
               READ(temp,*) nxtick
               PRINT("(A,I3)"), "number of x ticks = ", nxtick
               
-            CASE (16)
+            CASE (18)
               READ(temp,*) ytick
               IF (TRIM(ADJUSTL(ytick)) == 'auto') THEN
                 nytick = 10000
@@ -158,35 +167,35 @@
               ENDIF
               PRINT("(A,A)"), "number of y ticks = ", ytick
               
-            CASE (17)
+            CASE (19)
               READ(temp,*) nctick
               PRINT("(A,I3)"), "number of c ticks = ", nctick
               
-            CASE (18)
+            CASE (20)
               READ(temp,*) nxdec
               PRINT("(A,I3)"), "number of x decimals = ", nxdec
               
-            CASE (19)
+            CASE (21)
               READ(temp,*) nydec
               PRINT("(A,I3)"), "number of y decimals = ", nydec
               
-            CASE (20) 
+            CASE (22) 
               READ(temp,*) ncdec
               PRINT("(A,I3)"), "number of c decimals = ", ncdec
               
-            CASE (21)
+            CASE (23)
               READ(temp,*) ntdec
               PRINT("(A,I3)"), "number of t decimals = ", ntdec
               
-            CASE (22)
+            CASE (24)
               READ(temp,*) frmt,rm_ps
               PRINT("(A,A)"), "additional file format = ", frmt
               
-            CASE (23)
+            CASE (25)
               READ(temp,*) density
               PRINT("(A,A)"), "density of raster format = ", density 
               
-            CASE (24)
+            CASE (26)
               READ(temp,*) make_movie
               PRINT("(A,I5)"), "movie flag = ", make_movie     
               
