@@ -7591,11 +7591,11 @@ subroutine trplot ( lun, pltsiz, wx1, wx2, wy1, wy2, ncc, lcc, &
     write (lun,280,err=13) wx1, wx2
     y0 = y0 - 2.0D+00 * t
     write (lun,290,err=13) x0, y0, wy1, wy2
-  280   format ('(window:   wx1 = ',e9.3,',   wx2 = ',e9.3, &
+  280   format ('(window:   wx1 = ',e11.3,',   wx2 = ',e11.3, &
             ') show')
   290   format ('(window:  ) stringwidth pop ',f12.6,' add', &
             f12.6,' moveto'/ &
-            '( wy1 = ',e9.3,',   wy2 = ',e9.3,') show')
+            '( wy1 = ',e11.3,',   wy2 = ',e11.3,') show')
   end if
 !
 !  Paint the path and output the showpage command and
