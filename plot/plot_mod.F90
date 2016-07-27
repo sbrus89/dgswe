@@ -5,10 +5,10 @@
       IMPLICIT NONE
       
       INTEGER :: unit_count = 99
-      INTEGER :: tex_output_unit = 10
       INTEGER :: nlev        
       REAL(rp), DIMENSION(:,:), ALLOCATABLE :: colors     
       INTEGER :: nline_texfile      
+      INTEGER :: tex_output_unit = 11      
       
       REAL(rp) :: lr_margin 
       REAL(rp) :: cscale_width
@@ -384,7 +384,7 @@
       
       
       
-      OPEN(UNIT=tex_output_unit, FILE="axes.ps")
+      OPEN(UNIT=tex_output_unit, FILE="labels.ps")
       WRITE(file_unit,"(A)") "%!PS-Adobe-3.0"      
 !       WRITE(file_unit,"(A)") "%!PS-Adobe-3.0 EPSF-3.0"
 !       WRITE(file_unit,"(A,4(F9.5,1x))") "%%BoundingBox: ",rmin_axes,smin_axes,rmax_axes,smax_axes           
@@ -416,36 +416,7 @@ head: DO
       RETURN
       END SUBROUTINE write_psheader
       
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
 
-      SUBROUTINE write_texheader(file_name,unit_number)
-      
-      IMPLICIT NONE
-      
-      CHARACTER(*), INTENT(IN) :: file_name      
-      INTEGER, INTENT(INOUT) :: unit_number 
-      
-      unit_count = unit_count + 1
-      unit_number = unit_count      
-      
-      OPEN(UNIT=unit_number,FILE=file_name)           
-      WRITE(unit_number,"(A,I2,A)") "\documentclass[",fontsize,"pt]{article}"
-      WRITE(unit_number,"(A)") "\pagestyle{empty}"
-!       WRITE(unit_number,"(A)") "\usepackage[absolute,showboxes]{textpos}"
-      WRITE(unit_number,"(A)") "\usepackage[absolute]{textpos}"       
-      WRITE(unit_number,"(A)") "\usepackage{graphicx}"  
-      WRITE(unit_number,"(A)") "\usepackage{xcolor}"      
-      WRITE(unit_number,"(A)") "\setlength{\TPHorizModule}{1pt}"  
-      WRITE(unit_number,"(A)") "\setlength{\TPVertModule}{1pt}"
-      WRITE(unit_number,"(A)") "\textblockorigin{0pt}{0pt}"
-      WRITE(unit_number,"(A)") "\setlength{\parindent}{0pt}"      
-      WRITE(unit_number,"(A)") "\begin{document}"
-       
-      
-      RETURN
-      END SUBROUTINE write_texheader
-      
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!              
       
@@ -479,21 +450,7 @@ tail: DO
       
       RETURN
       END SUBROUTINE close_ps           
-      
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
-
-      SUBROUTINE close_tex(unit_number)
-      
-      IMPLICIT NONE
-      
-      INTEGER, INTENT(IN) :: unit_number      
-      
-      WRITE(unit_number,"(A)") "\end{document}"
-      CLOSE(unit_number)
-      
-      RETURN
-      END SUBROUTINE close_tex      
+    
       
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
@@ -625,569 +582,7 @@ tail: DO
       RETURN
       END SUBROUTINE evaluate_velocity_solution      
       
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-      SUBROUTINE read_colormap(cmap_file)
-      
-      IMPLICIT NONE
-      
-      CHARACTER(*), INTENT(IN) :: cmap_file
-      
-      INTEGER :: j,lev
-      REAL(rp) :: cmax      
-      LOGICAL :: file_exists
-      
-      INQUIRE(file=TRIM(ADJUSTL(cmap_file)),exist=file_exists)
-      IF (file_exists == .FALSE.) THEN
-        PRINT*, "colormap file does not exist"
-        STOP
-      ENDIF
-      
-      OPEN(UNIT=101,FILE=TRIM(ADJUSTL(cmap_file)))
-      READ(101,*) nlev
-      ALLOCATE(colors(nlev,3))
-      DO lev = 1,nlev
-        READ(101,*) (colors(lev,j), j=1,3)
-      ENDDO
-      CLOSE(101)
-      
-      cmax = MAXVAL(colors)
-      IF (cmax > 1d0+1d-12) THEN
-        colors = colors/255d0
-      ENDIF      
-      
-      RETURN
-      END SUBROUTINE read_colormap
-
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-      SUBROUTINE write_colorscale(file_unit)
-      
-      IMPLICIT NONE
-      
-      INTEGER, INTENT(IN) :: file_unit
-
-      
-      INTEGER :: lev
-      INTEGER :: tick         
-      REAL(rp) :: r0,r1,s0,s1
-      REAL(rp) :: ds
-      REAL(rp) :: cval
-      REAL(rp) :: dc   
-      CHARACTER(20) :: cchar
-      
-
-      
-      r0 = rmax_axes
-      s0 = smin_axes
-      r1 = rmax_axes            
-
-      
-      ds = (smax_cbar-smin_cbar)/(nlev-1)
-      DO lev = 1,nlev-1
-      
-        s1 = s0 + ds
-      
-        WRITE(file_unit,"(A,3(F9.5,1x),A)") "[",colors(lev+1,1),colors(lev+1,2),colors(lev+1,3),"]"       
-        WRITE(file_unit,"(A,3(F9.5,1x),A)") "[",colors(lev,1),colors(lev,2),colors(lev,3),"]"  
-        WRITE(file_unit,"(A,4(F9.5,1x),A)") "[",r0,s0,r1,s1,"]" 
-        WRITE(file_unit,"(A,4(F9.5,1x),A)") "[",rmin_cbar,s0,rmax_cbar,s1,"]"         
-        WRITE(file_unit,"(A)") "recfill" 
-        
-        s0 = s1
-        
-      ENDDO
-                     
-      WRITE(file_unit,"(2(F9.5,1x))") rmin_cbar,s1
-      WRITE(file_unit,"(2(F9.5,1x))") rmax_cbar,s1
-      WRITE(file_unit,"(2(F9.5,1x))") rmax_cbar,smin_axes
-      WRITE(file_unit,"(2(F9.5,1x))") rmin_cbar,smin_axes      
-      WRITE(file_unit,"(A)") "draw-box"       
-      
-
-      
-      s0 = smin_axes 
-      ds = (smax_cbar-smin_cbar)/(nctick-1)      
-      DO tick = 1,nctick
-              
-        WRITE(file_unit,"(2(F9.5,1x))") rmin_cbar,s0 
-        WRITE(file_unit,"(2(F9.5,1x))") rmin_cbar+dash,s0     
-        WRITE(file_unit,"(A)") "draw-line" 
-        
-        WRITE(file_unit,"(2(F9.5,1x))") rmax_cbar,s0
-        WRITE(file_unit,"(2(F9.5,1x))") rmax_cbar-dash,s0     
-        WRITE(file_unit,"(A)") "draw-line"  
-
-        s0 = s0 + ds
-      ENDDO       
-           
-      
-      RETURN
-      END SUBROUTINE write_colorscale
-      
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-      SUBROUTINE write_caxis_labels(file_unit,time_bar,sol_min,sol_max,sol_label)
-      
-      IMPLICIT NONE
-      
-      INTEGER, INTENT(IN) :: file_unit
-      INTEGER, INTENT(IN) :: time_bar
-      REAL(rp), INTENT(IN) :: sol_min
-      REAL(rp), INTENT(IN) :: sol_max
-      CHARACTER(*), INTENT(IN) :: sol_label
-
-      
-      INTEGER :: lev
-      INTEGER :: tick         
-      REAL(rp) :: r0,r1,s0,s1
-      REAL(rp) :: ds
-      REAL(rp) :: dash
-      REAL(rp) :: cval
-      REAL(rp) :: dc   
-      CHARACTER(20) :: cchar
-      
-      rmin_cbar = rmax_axes + cscale_width
-      rmax_cbar = rmin_cbar + cscale_width
-      smin_cbar = smin_axes
-      IF (time_bar == 1) THEN      
-!         smax_cbar = .75d0*smax_axes     
-        smax_cbar = smin_tbar - 2d0*cscale_width            
-      ELSE 
-        smax_cbar = smax_axes 
-      ENDIF     
-            
-
-      r0 = rmax_axes
-      s0 = smin_axes
-      r1 = rmax_axes            
-      
-      cval = sol_min
-      dc = (sol_max-sol_min)/(nctick-1)
-      ds = (smax_cbar-smin_cbar)/(nctick-1)      
-      DO tick = 1,nctick               
-        
-        CALL format_number(ncdec,cval,0,cchar)         
-!         WRITE(file_unit,"(A,2(1x,F9.5))")  "("//TRIM(ADJUSTL(cchar))//")",rmax_cbar+cticklabel_pad,s0       
-!         WRITE(file_unit,"(A)") "caxis-tick-labels"
-        
-        WRITE(file_unit,"(A,F9.5,A,F9.5,A)") "\begin{textblock}{400}[0,0.5](",rmax_cbar+cticklabel_pad,",",smax_page-s0,")"
-        WRITE(file_unit,"(A)") TRIM(ADJUSTL(cchar))        
-        WRITE(file_unit,"(A)") "\end{textblock}"                 
-        
-        cval = cval + dc
-        s0 = s0 + ds
-      ENDDO       
-      
-!         WRITE(file_unit,"(A,2(1x,F9.5))")  "("//TRIM(ADJUSTL(sol_label))//")",rmax_cbar+clabel_pad,(smin_axes+smax_axes)/2d0       
-!         WRITE(file_unit,"(A)") "caxis-labels"     
-        
-      WRITE(file_unit,"(A,F9.5,A,F9.5,A)") "\begin{textblock}{50}[0,0.5](",-50+rmax_cbar+clabel_pad,",",smax_page-(smax_cbar+smin_cbar)/2d0,")"
-      WRITE(file_unit,"(A)") "\hfill \rotatebox[origin=c]{90}{"//TRIM(ADJUSTL(sol_label))//"}\vskip-\TPboxrulesize"       
-      WRITE(file_unit,"(A)") "\end{textblock}"         
-      
-      RETURN
-      END SUBROUTINE write_caxis_labels     
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-      SUBROUTINE write_xyaxis_labels(file_unit)
-      
-      IMPLICIT NONE
-               
-      INTEGER, INTENT(IN) :: file_unit
-
-      INTEGER :: i
-      INTEGER :: expnt
-      REAL(rp) :: r0,r1,s0,s1
-      REAL(rp) :: xval,yval
-    
-      CHARACTER(20) :: xchar,ychar     
-          
-      
-
-      dr_xlabel = (rmax_axes-rmin_axes)/(real(nxtick,rp)-1d0)
-      
-
-      r0 = rmin_axes
-      
-      xval = (r0-bx)/ax
-      expnt = INT(LOG10(xval))
-      IF (expnt <= 3) THEN
-        expnt = 0
-      ENDIF
-      
-      
-      DO i = 1,nxtick             
-        
-        xval = (r0-bx)/ax
-        
-        CALL format_number(nxdec,xval,expnt,xchar)        
-      
-                  
-        WRITE(file_unit,"(A,F9.5,A,F9.5,A)") "\begin{textblock}{400}[0.5,0](",r0,",",smax_page-smin_axes+xticklabel_pad,")"
-        WRITE(file_unit,"(A)") "\centerline{"//TRIM(ADJUSTL(xchar))//"}"
-        WRITE(file_unit,"(A)") "\end{textblock}"        
-        
-!         WRITE(file_unit,"(A,2(1x,F9.5))")  "("//TRIM(ADJUSTL(xchar))//")",r0,smin_axes-xticklabel_pad    
-!         WRITE(file_unit,"(A)") "xaxis-labels"           
-        
-        r0 = r0 + dr_xlabel
-      ENDDO
-      
-      
-      WRITE(file_unit,"(A,F9.5,A,F9.5,A)") "\begin{textblock}{400}[0.5,0](",(rmax_axes+rmin_axes)/2d0,",",smax_page-smin_axes+xlabel_pad,")"
-      WRITE(file_unit,"(A)") "\centerline{$x$}"        
-      WRITE(file_unit,"(A)") "\end{textblock}"  
-      
-!       WRITE(file_unit,"(A)") TRIM(ADJUSTL(math_font))//" choosefont"         
-!       WRITE(file_unit,"(A,2(1x,F9.5))")  "(x)",(rmax_axes+rmin_axes)/2d0,smin_axes-xlabel_pad    
-!       WRITE(file_unit,"(A)") "xaxis-labels"      
-!       WRITE(file_unit,"(A)") TRIM(ADJUSTL(main_font))//" choosefont"        
- 
-      
-      IF (expnt /= 0) THEN      
-        WRITE(file_unit,"(A,F9.5,A,F9.5,A)") "\begin{textblock}{400}[0,0](",rmin_axes+(nxtick-1)*dr_xlabel,",",smax_page-smin_axes+xticklabel_pad+xlabel_pad/2d0,")"
-        WRITE(file_unit,"(A,I2,A)") "$\times10^{",expnt,"}$"        
-        WRITE(file_unit,"(A)") "\end{textblock}"         
-      ENDIF
-      
-      
-      
-      
-      
-      
-      IF (nytick >= 10000) THEN
-        ds_ylabel = dr_xlabel      
-      ELSE
-        ds_ylabel = (smax_axes-smin_axes)/(real(nytick,rp)-1d0)      
-      ENDIF
-      
-      
-      s0 = smin_axes      
-      
-      yval = (s0-by)/ay
-      expnt = INT(LOG10(yval))
-      IF (expnt <= 3) THEN
-        expnt = 0
-      ENDIF      
-          
-      
-      DO i = 1,nytick
-      
-        IF (s0 > smax_axes) THEN
-          EXIT        
-        ENDIF
-        
-        yval = (s0-by)/ay
-        
-        CALL format_number(nydec,yval,expnt,ychar) 
-        
-        WRITE(file_unit,"(A,F9.5,A,F9.5,A)") "\begin{textblock}{400}[1,0.5](",rmin_axes-yticklabel_pad,",",smax_page-s0,")"
-        WRITE(file_unit,"(A)") "\hfill "//TRIM(ADJUSTL(ychar))        
-        WRITE(file_unit,"(A)") "\end{textblock}"  
-        
-!         WRITE(file_unit,"(A,2(1x,F9.5))")  "("//TRIM(ADJUSTL(ychar))//")",rmin_axes-yticklabel_pad,s0        
-!         WRITE(file_unit,"(A)") "yaxis-tick-labels"       
-
-        s0 = s0 + ds_ylabel        
-      
-      ENDDO         
-      
-      WRITE(file_unit,"(A,F9.5,A,F9.5,A)") "\begin{textblock}{50}[0,0.5](",rmin_axes-ylabel_pad,",",smax_page-(smax_axes+smin_axes)/2d0,")"
-      WRITE(file_unit,"(A)") "\rotatebox[origin=c]{90}{$y$}\vskip-\TPboxrulesize"        
-      WRITE(file_unit,"(A)") "\end{textblock}"  
-      
-      
-!       WRITE(file_unit,"(A)") TRIM(ADJUSTL(math_font))//" choosefont"        
-!       WRITE(file_unit,"(A,2(1x,F9.5))")  "(y)",rmin_axes-ylabel_pad,(smax_axes+smin_axes)/2d0    
-!       WRITE(file_unit,"(A)") "yaxis-labels"  
-!       WRITE(file_unit,"(A)") TRIM(ADJUSTL(main_font))//" choosefont"        
-      
-      IF (expnt /= 0) THEN      
-        WRITE(file_unit,"(A,F9.5,A,F9.5,A)") "\begin{textblock}{400}[0,1](",rmin_axes,",",smax_page-(smax_axes + yticklabel_pad),")"
-        WRITE(file_unit,"(A,I2,A)") "$\times10^{",expnt,"}$"        
-        WRITE(file_unit,"(A)") "\end{textblock}"         
-      ENDIF
-      
-      RETURN
-      END SUBROUTINE write_xyaxis_labels
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-      SUBROUTINE write_xyaxis(file_unit)
-      
-      IMPLICIT NONE
-            
-      INTEGER, INTENT(IN) :: file_unit
-      
-      INTEGER :: i
-      INTEGER :: expnt
-      REAL(rp) :: dr,ds
-      REAL(rp) :: r0,r1,s0,s1
-      REAL(rp) :: xval,yval
-    
-      CHARACTER(20) :: xchar,ychar
-      
-      WRITE(file_unit,"(A)")  "newpath"     
-      WRITE(file_unit,"(2(F9.5,1x),A)") rmin_page,smin_page," moveto"
-      WRITE(file_unit,"(2(F9.5,1x),A)") rmax_page,smin_page," lineto"
-      WRITE(file_unit,"(2(F9.5,1x),A)") rmax_page,smax_page," lineto"  
-      WRITE(file_unit,"(2(F9.5,1x),A)") rmin_page,smax_page," lineto"    
-      WRITE(file_unit,"(2(F9.5,1x),A)") rmin_page,smin_page," lineto"        
-      WRITE(file_unit,"(2(F9.5,1x),A)") rmin_axes,smin_axes," moveto"   
-      WRITE(file_unit,"(2(F9.5,1x),A)") rmin_axes,smax_axes," lineto"  
-      WRITE(file_unit,"(2(F9.5,1x),A)") rmax_axes,smax_axes," lineto"
-      WRITE(file_unit,"(2(F9.5,1x),A)") rmax_axes,smin_axes," lineto"
-      WRITE(file_unit,"(2(F9.5,1x),A)") rmin_axes,smin_axes," lineto"     
-      WRITE(file_unit,"(A)") "gsave 1 1 1 setrgbcolor fill grestore"      
-      WRITE(file_unit,"(A)") "clear"      
-      
-      
-      WRITE(file_unit,"(2(F9.5,1x))") rmin_axes,smin_axes
-      WRITE(file_unit,"(2(F9.5,1x))") rmax_axes,smin_axes
-      WRITE(file_unit,"(2(F9.5,1x))") rmax_axes,smax_axes
-      WRITE(file_unit,"(2(F9.5,1x))") rmin_axes,smax_axes      
-      WRITE(file_unit,"(A)") "draw-box"  
-      
-!       ! x-axis line
-!       WRITE(file_unit,"(2(F9.5,1x))") rmin_axes,smin_axes
-!       WRITE(file_unit,"(2(F9.5,1x))") rmax_axes,smin_axes     
-!       WRITE(file_unit,"(A)") "draw-line"  
-!       
-!       ! y-axis line
-!       WRITE(file_unit,"(2(F9.5,1x))") rmin_axes,smin_axes
-!       WRITE(file_unit,"(2(F9.5,1x))") rmin_axes,smax_axes     
-!       WRITE(file_unit,"(A)") "draw-line"        
-
-      
-      dr = (rmax_axes-rmin_axes)/(real(nxtick,rp)-1d0)
-      
-
-      r0 = rmin_axes
-      
-      xval = (r0-bx)/ax
-      expnt = INT(LOG10(xval))
-      IF (expnt <= 3) THEN
-        expnt = 0
-      ENDIF
-      
-      DO i = 1,nxtick        
-        WRITE(file_unit,"(2(F9.5,1x))") r0,smin_axes+dash
-        WRITE(file_unit,"(2(F9.5,1x))") r0,smin_axes
-        WRITE(file_unit,"(A)") "draw-line" 
-        
-        WRITE(file_unit,"(2(F9.5,1x))") r0,smax_axes
-        WRITE(file_unit,"(2(F9.5,1x))") r0,smax_axes-dash
-        WRITE(file_unit,"(A)") "draw-line"         
-
-        r0 = r0 + dr
-      ENDDO
-      
-      
-      
-      
-      
-      IF (nytick >= 10000) THEN
-        ds = dr   
-      ELSE
-        ds = (smax_axes-smin_axes)/(real(nytick,rp)-1d0)      
-      ENDIF      
-
-      s0 = smin_axes      
-      
-      yval = (s0-by)/ay
-      expnt = INT(LOG10(yval))
-      IF (expnt <= 3) THEN
-        expnt = 0
-      ENDIF      
-      
-      DO i = 1,nytick
-      
-        IF (s0 > smax_axes) THEN
-          EXIT        
-        ENDIF
-        
-        WRITE(file_unit,"(2(F9.5,1x))") rmin_axes,s0
-        WRITE(file_unit,"(2(F9.5,1x))") rmin_axes+dash,s0
-        WRITE(file_unit,"(A)") "draw-line" 
-        
-        WRITE(file_unit,"(2(F9.5,1x))") rmax_axes,s0
-        WRITE(file_unit,"(2(F9.5,1x))") rmax_axes-dash,s0
-        WRITE(file_unit,"(A)") "draw-line"         
- 
-        s0 = s0 + ds        
-      
-      ENDDO 
-      
-      
-      RETURN
-      END SUBROUTINE write_xyaxis
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-      SUBROUTINE write_tbar_labels(file_unit,t_snap)
-      
-      IMPLICIT NONE
-      
-      INTEGER, INTENT(IN) :: file_unit
-      REAL(rp), INTENT(IN) :: t_snap
-      
-      REAL(rp) :: tday
-      CHARACTER(20) :: tchar
-      
-      tday = t_snap/86400d0
-      
-      CALL format_number(ntdec,tday,0,tchar)       
-      
-      WRITE(file_unit,"(A,F9.5,A,F9.5,A)") "\begin{textblock}{400}[0.5,0](",(rmin_tbar+rmax_tbar)/2d0,",",smax_page-(smax_axes),")"
-      WRITE(file_unit,"(A,F9.2,A)") "\centerline{$t="//TRIM(ADJUSTL(tchar))//"$ days}"        
-      WRITE(file_unit,"(A)") "\end{textblock}"      
-      
-      RETURN
-      END SUBROUTINE write_tbar_labels
-      
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-      SUBROUTINE write_tbar(file_unit,t_snap,t_start,t_end)
-      
-      IMPLICIT NONE
-      
-      INTEGER, INTENT(IN) :: file_unit      
-      REAL(rp), INTENT(IN) :: t_snap
-      REAL(rp), INTENT(IN) :: t_start
-      REAL(rp), INTENT(IN) :: t_end
-      
-      REAL(rp) ::  rmax_snap
-      
-      WRITE(file_unit,"(2(F9.5,1x))") rmin_tbar,smin_tbar
-      WRITE(file_unit,"(2(F9.5,1x))") rmax_tbar,smin_tbar
-      WRITE(file_unit,"(2(F9.5,1x))") rmax_tbar,smax_tbar
-      WRITE(file_unit,"(2(F9.5,1x))") rmin_tbar,smax_tbar      
-      WRITE(file_unit,"(A)") "draw-box"  
-      
-      rmax_snap = (t_snap-t_end)/(t_start-t_end)*rmin_tbar + (t_snap-t_start)/(t_end-t_start)*rmax_tbar
-      
-      WRITE(file_unit,"(A)")  "newpath"     
-      WRITE(file_unit,"(2(F9.5,1x),A)") rmin_tbar,smin_tbar," moveto"
-      WRITE(file_unit,"(2(F9.5,1x),A)") rmax_snap,smin_tbar," lineto"
-      WRITE(file_unit,"(2(F9.5,1x),A)") rmax_snap,smax_tbar," lineto"  
-      WRITE(file_unit,"(2(F9.5,1x),A)") rmin_tbar,smax_tbar," lineto"    
-      WRITE(file_unit,"(A)") "closepath"            
-      WRITE(file_unit,"(A)") "gsave 0 0 0 setrgbcolor fill grestore"        
-      
-      RETURN
-      END SUBROUTINE write_tbar      
-      
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
-
-      SUBROUTINE latex_axes_labels(tex_unit,sol_min,sol_max,sol_label,t_snap,t_start,t_end)
-      
-      IMPLICIT NONE
-      
-      INTEGER, INTENT(OUT) :: tex_unit
-      REAL(rp), INTENT(IN), OPTIONAL :: sol_min
-      REAL(rp), INTENT(IN), OPTIONAL :: sol_max
-      CHARACTER(*), INTENT(IN), OPTIONAL :: sol_label
-      REAL(rp), INTENT(IN), OPTIONAL :: t_snap
-      REAL(rp), INTENT(IN), OPTIONAL :: t_start
-      REAL(rp), INTENT(IN), OPTIONAL :: t_end 
-      
-      
-      INTEGER :: time_bar
-      INTEGER :: color_bar
-      
-      color_bar = 0
-      IF (PRESENT(sol_min) .AND. PRESENT(sol_max) .AND. PRESENT(sol_label)) THEN
-        color_bar = 1
-      ENDIF          
-      
-      time_bar = 0
-      IF (PRESENT(t_snap) .AND. PRESENT(t_start) .AND. PRESENT(t_end)) THEN
-        time_bar = 1
-      ENDIF            
-      
-      CALL write_texheader("axes.tex",tex_unit)        
-      
-      CALL write_xyaxis_labels(tex_unit)  
-      IF (color_bar == 1) THEN      
-        CALL write_caxis_labels(tex_unit,time_bar,sol_min,sol_max,sol_label)
-      ENDIF
-      IF (time_bar == 1) THEN
-        CALL write_tbar_labels(tex_unit,t_snap)
-      ENDIF                
-          
-      
-      RETURN
-      END SUBROUTINE latex_axes_labels
-      
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
-
-      SUBROUTINE run_latex(tex_unit)
-      
-      IMPLICIT NONE
-      
-      INTEGER, INTENT(IN) :: tex_unit
-      
-      CALL close_tex(tex_unit)
-      
-!       CALL SYSTEM("latex axes.tex")
-!       CALL SYSTEM("dvips -o axes.ps axes.dvi")
-      
-      CALL SYSTEM("latex axes.tex >/dev/null")
-      CALL SYSTEM("dvips -q -o axes.ps axes.dvi")        
-      
-      RETURN
-      END SUBROUTINE run_latex
-      
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
-
-      SUBROUTINE write_all_axes(file_unit,sol_label,t_snap,t_start,t_end)
-      
-      IMPLICIT NONE
-      
-      INTEGER, INTENT(IN) :: file_unit    
-      CHARACTER(*), OPTIONAL :: sol_label
-      REAL(rp), OPTIONAL :: t_snap
-      REAL(rp), OPTIONAL :: t_start
-      REAL(rp), OPTIONAL :: t_end 
-      
-      INTEGER :: color_bar
-      INTEGER :: time_bar
-      
-      color_bar = 0
-      IF (PRESENT(sol_label)) THEN
-        color_bar = 1
-      ENDIF
-            
-      time_bar = 0
-      IF (PRESENT(t_snap) .AND. PRESENT(t_start) .AND. PRESENT(t_end)) THEN
-        time_bar = 1
-      ENDIF            
-      
-      CALL write_xyaxis(file_unit)   
-      
-      IF (color_bar) THEN
-        CALL write_colorscale(file_unit)
-      ENDIF
-      IF (time_bar == 1) THEN
-        CALL write_tbar(file_unit,t_snap,t_start,t_end)
-      ENDIF            
-      
-      RETURN
-      END SUBROUTINE write_all_axes
-      
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -1299,223 +694,7 @@ tail: DO
       ENDDO elem
 
       END SUBROUTINE plot_mesh
-      
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-      SUBROUTINE latex_element_labels(file_unit,ne,label_option,el_type,el_in,nverts,xy,ect,nnfbed,nfbedn,ged2el)
-      
-      IMPLICIT NONE
-      
-      INTEGER, INTENT(IN) :: file_unit
-      INTEGER, INTENT(IN) :: ne
-      CHARACTER(*), INTENT(IN) :: label_option 
-      INTEGER, DIMENSION(:), INTENT(IN) :: el_type
-      INTEGER, DIMENSION(:), INTENT(IN) :: el_in      
-      INTEGER, DIMENSION(:), INTENT(IN) :: nverts
-      REAL(rp), DIMENSION(:,:), INTENT(IN) :: xy
-      INTEGER, DIMENSION(:,:), INTENT(IN) :: ect
-      INTEGER, INTENT(IN) :: nnfbed
-      INTEGER, DIMENSION(:), INTENT(IN) :: nfbedn
-      INTEGER, DIMENSION(:,:), INTENT(IN) :: ged2el
-      
-      INTEGER :: i
-      INTEGER :: el,nd
-      INTEGER :: et,nv 
-      INTEGER :: ed,ged
-      INTEGER :: label_unit = 20
-      INTEGER :: ne_list
-      INTEGER, DIMENSION(:), ALLOCATABLE :: el_list
-      INTEGER, DIMENSION(:), ALLOCATABLE :: el_flag
-      REAL(rp) :: xsum,ysum
-      REAL(rp) :: rpos,spos      
-      CHARACTER(20) :: elchar
-      LOGICAL :: file_exists
-      
-      IF (TRIM(ADJUSTL(label_option)) == "off") THEN
-      
-        RETURN
-        
-      ELSE IF (TRIM(ADJUSTL(label_option)) == "file") THEN
-      
-        INQUIRE(file="element.label",exist=file_exists)
-        IF (file_exists) THEN
-          OPEN(unit=label_unit,file="element.label")
-          READ(label_unit,*) ne_list 
-          ALLOCATE(el_list(ne_list))
-          DO i = 1,ne_list
-            READ(label_unit,*) el_list(i)
-          ENDDO          
-        ELSE
-          PRINT("(A)"), "Error: Mesh plot element label file not found"
-        ENDIF
-        
-      ELSE IF (TRIM(ADJUSTL(label_option)) == "all") THEN
-      
-        ne_list = ne
-        ALLOCATE(el_list(ne_list))
-        DO i = 1,ne_list
-          el_list(i) = i
-        ENDDO
-        
-      ELSE IF (TRIM(ADJUSTL(label_option)) == "bou") THEN
-      
-        ALLOCATE(el_list(ne))
-        ALLOCATE(el_flag(ne))
-        el_flag = 0
-        ne_list = 0
-        DO ed = 1,nnfbed
-          ged = nfbedn(ed)
-          el = ged2el(1,ged)
-          
-          IF (el_flag(el) == 0) THEN
-            ne_list = ne_list + 1
-            el_list(ne_list) = el
-            el_flag(el) = 1
-          ENDIF
-        ENDDO
-        
-      ELSE
-      
-        PRINT("(A)"), "Error: Mesh plot element label option not recognized"
-        STOP
-        
-      ENDIF    
-
-      IF (ne_list > 20000) THEN 
-        PRINT("(A)"), "Warning: number of element labels is too large" 
-        PRINT("(A)"), "         skipping to prevent exceeding latex memory"
-        RETURN
-      ENDIF
-
- elem:DO i = 1,ne_list
-        el = el_list(i)
-        
-        IF (el_in(el) == 0) THEN
-          CYCLE elem
-        ENDIF
-        
-        et = el_type(el)
-        nv = nverts(et)
-        
-        xsum = 0d0
-        ysum = 0d0
-        DO nd = 1,nv
-          xsum = xsum + xy(1,ect(nd,el))
-          ysum = ysum + xy(2,ect(nd,el))
-        ENDDO
-        
-        rpos = xsum/real(nv,rp)
-        spos = ysum/real(nv,rp)
-        
-        
-        WRITE(elchar,"(I20)") el     
-        WRITE(file_unit,"(A,F9.5,A,F9.5,A)") "\begin{textblock}{400}[0,0](",rpos,",",smax_page-spos,")"
-        WRITE(file_unit,"(A)") "{\color{red} \tiny "//TRIM(ADJUSTL(elchar))//"}"
-        WRITE(file_unit,"(A)") "\end{textblock}"        
-      ENDDO elem
-      
-      
-      RETURN
-      END SUBROUTINE latex_element_labels
-      
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!   
-
-      SUBROUTINE latex_node_labels(file_unit,nn,label_option,xy,nbou,fbseg,fbnds)
-      
-      IMPLICIT NONE
-      
-      INTEGER, INTENT(IN) :: file_unit
-      INTEGER, INTENT(IN) :: nn
-      CHARACTER(*), INTENT(IN) :: label_option 
-      REAL(rp), DIMENSION(:,:), INTENT(IN) :: xy
-      INTEGER, INTENT(IN) :: nbou
-      INTEGER, DIMENSION(:,:), INTENT(IN) :: fbseg
-      INTEGER, DIMENSION(:,:), INTENT(IN) :: fbnds
-      
-      INTEGER :: i
-      INTEGER :: nd,bou
-      INTEGER :: label_unit = 21
-      INTEGER :: nn_list
-      INTEGER, DIMENSION(:), ALLOCATABLE :: nd_list
-      REAL(rp) rpt,spt
-      CHARACTER(20) :: ndchar   
-      LOGICAL :: file_exists
-      
-      IF (TRIM(ADJUSTL(label_option)) == "off") THEN
-      
-        RETURN
-        
-      ELSE IF (TRIM(ADJUSTL(label_option)) == "file") THEN
-      
-        INQUIRE(file="node.label",exist=file_exists)
-        IF (file_exists) THEN
-          OPEN(unit=label_unit,file="node.label")
-          READ(label_unit,*) nn_list 
-          ALLOCATE(nd_list(nn_list))
-          DO i = 1,nn_list
-            READ(label_unit,*) nd_list(i)
-          ENDDO          
-        ELSE
-          PRINT("(A)"), "Error: Mesh plot node label file not found"
-        ENDIF
-        
-      ELSE IF (TRIM(ADJUSTL(label_option)) == "all") THEN
-      
-        nn_list = nn
-        ALLOCATE(nd_list(nn_list))
-        DO i = 1,nn_list
-          nd_list(i) = i
-        ENDDO
-        
-      ELSE IF (TRIM(ADJUSTL(label_option)) == "bou") THEN
-      
-        ALLOCATE(nd_list(nn))
-        nn_list = 0
-        DO bou = 1,nbou
-          DO nd = 1,fbseg(1,bou)          
-            nn_list = nn_list + 1
-            nd_list(nn_list) = fbnds(nd,bou)          
-          ENDDO
-        ENDDO
-        
-      ELSE
-      
-        PRINT("(A)"), "Error: Mesh plot node label option not recognized"
-        STOP
-        
-      ENDIF
-      
-      
-      IF (nn_list > 20000) THEN 
-        PRINT("(A)"), "Warning: number of node labels is too large" 
-        PRINT("(A)"), "         skipping to prevent exceeding latex memory"
-        RETURN
-      ENDIF      
-      
-      
-      DO i = 1,nn_list
-        nd = nd_list(i)
-
-        rpt = xy(1,nd)
-        spt = xy(2,nd)
-        
-        IF ((rpt > rmin_axes .and. rpt < rmax_axes) .and. &
-            (spt > smin_axes .and. spt < smax_axes) ) THEN
-            
-          WRITE(ndchar,"(I20)") nd     
-          WRITE(file_unit,"(A,F9.5,A,F9.5,A)") "\begin{textblock}{400}[0,0](",rpt,",",smax_page-spt,")"
-          WRITE(file_unit,"(A)") "{\color{blue} \tiny "//TRIM(ADJUSTL(ndchar))//"}"
-          WRITE(file_unit,"(A)") "\end{textblock}"              
-            
-        ENDIF
-
-      ENDDO 
-      
-      
-      RETURN
-      END SUBROUTINE latex_node_labels
       
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!   
@@ -1548,39 +727,43 @@ tail: DO
 !       
       RETURN
       END SUBROUTINE interp_colors
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       
-      SUBROUTINE format_number(ndec,val,expnt,val_char)
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!       
+      
+      SUBROUTINE read_colormap(cmap_file)
       
       IMPLICIT NONE
       
-      INTEGER, INTENT(IN) :: ndec
-      REAL(rp), INTENT(IN) :: val
-      INTEGER, INTENT(IN) :: expnt
-      CHARACTER(*), INTENT(OUT) :: val_char
+      CHARACTER(*), INTENT(IN) :: cmap_file
       
-      CHARACTER(:), ALLOCATABLE :: frmt   
-      CHARACTER(1) :: ndec_char
+      INTEGER :: j,lev
+      REAL(rp) :: cmax      
+      LOGICAL :: file_exists
       
-      IF (ndec > 0) THEN             
-        WRITE(ndec_char,"(I1)") ndec      
-        frmt = "(F20."//ndec_char//")"      
-      ELSE
-        frmt = "(I20)"
-      ENDIF      
-
-      IF (ndec > 0) THEN
-        WRITE(val_char,frmt) val/(10d0**expnt)      
-      ELSE
-        WRITE(val_char,frmt) NINT(val/(10d0**expnt))
+      INQUIRE(file=TRIM(ADJUSTL(cmap_file)),exist=file_exists)
+      IF (file_exists == .FALSE.) THEN
+        PRINT*, "colormap file does not exist"
+        STOP
+      ENDIF
+      
+      OPEN(UNIT=101,FILE=TRIM(ADJUSTL(cmap_file)))
+      READ(101,*) nlev
+      ALLOCATE(colors(nlev,3))
+      DO lev = 1,nlev
+        READ(101,*) (colors(lev,j), j=1,3)
+      ENDDO
+      CLOSE(101)
+      
+      cmax = MAXVAL(colors)
+      IF (cmax > 1d0+1d-12) THEN
+        colors = colors/255d0
       ENDIF      
       
       RETURN
-      END SUBROUTINE format_number
-      
-      
+      END SUBROUTINE read_colormap      
+
+            
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!   
 

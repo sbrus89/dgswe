@@ -93,7 +93,7 @@
               
             CASE (10)
               zbox = TRIM(ADJUSTL(temp))
-              IF (zbox == "all") THEN
+              IF (TRIM(ADJUSTL(zbox)) == "all") THEN
                 xbox_min = -1d10
                 xbox_max = 1d10
                 ybox_min = -1d10

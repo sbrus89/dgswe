@@ -108,6 +108,11 @@
       CHARACTER(100) :: mesh_el_label    
       CHARACTER(100) :: mesh_nd_label       
       
+!       TYPE :: properties
+!       
+!       
+!       END TYPE
+      
       CONTAINS
       
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

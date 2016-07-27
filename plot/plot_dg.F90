@@ -12,12 +12,14 @@
       USE read_write_output, ONLY: read_solution_full
       USE read_dginp, ONLY: read_input,out_direc,p,ctp,hbp,tf, &
                             grid_file,curve_file,cb_file_exists
-      USE plot_mod, ONLY: read_colormap,write_psheader,close_ps, &
+      USE plot_mod, ONLY: read_colormap,write_psheader,close_ps,convert_ps, &
                           scale_coordinates,zoom_box, &
                           evaluate_depth_solution,evaluate_velocity_solution, &
-                          plot_contours,plot_mesh, &
-                          latex_axes_labels,run_latex,close_tex,convert_ps, &
-                          write_all_axes,latex_element_labels,latex_node_labels
+                          plot_contours,plot_mesh
+      USE labels_mod, ONLY: latex_axes_labels,run_latex,close_tex, &
+                            latex_element_labels,latex_node_labels  
+      USE axes_mod, ONLY: write_all_axes                            
+                          
       USE triangulation, ONLY: reference_element_delaunay
       USE edge_connectivity_mod
       USE curvilinear_nodes_mod
@@ -109,6 +111,10 @@
 
 
       
+      CALL read_colormap(cmap_file)
+      
+      
+      
       PRINT("(A)"), "Finding zoom box..."
       CALL zoom_box(ne,el_type,nplt,xyplt,xbox_min,xbox_max,ybox_min,ybox_max, &
                                                      xmin,xmax,ymin,ymax,el_in)
@@ -119,8 +125,7 @@
       CALL scale_coordinates(ne,nn,el_type,nverts,nplt,figure_width,xmin,xmax,ymin,ymax,xyplt,xy)
 
       
-      
-      CALL read_colormap(cmap_file)
+    
 
       
       
@@ -164,8 +169,8 @@
       
       IF (plot_bathy_option == 1) THEN
         PRINT("(A)"), "Writing bathymetry PostScript file..."
-        CALL latex_axes_labels(tex_unit,hb_min,hb_max,"bathymetry") 
-        CALL run_latex(tex_unit)
+        CALL latex_axes_labels(hb_min,hb_max,"bathymetry") 
+        CALL run_latex()
         CALL write_psheader("bathy.ps",hb_unit)              
         CALL plot_contours(hb_unit,nplt,ntri,rect,ne,el_type,el_in,xyplt,hb_val,hb_min,hb_max)     
         IF (plot_bathy_mesh == 1) THEN
@@ -180,10 +185,10 @@
       
       IF (plot_mesh_option == 1) THEN          
         PRINT("(A)"), "Writing mesh PostScript file..."   
-        CALL latex_axes_labels(tex_unit)  
-        CALL latex_element_labels(tex_unit,ne,mesh_el_label,el_type,el_in,nverts,xy,ect,nnfbed,nfbedn,ged2el)
-        CALL latex_node_labels(tex_unit,nn,mesh_nd_label,xy,nbou,fbseg,fbnds)        
-        CALL run_latex(tex_unit)        
+        CALL latex_axes_labels()  
+        CALL latex_element_labels(ne,mesh_el_label,el_type,el_in,nverts,xy,ect,nnfbed,nfbedn,ged2el)
+        CALL latex_node_labels(nn,mesh_nd_label,xy,nbou,fbseg,fbnds)        
+        CALL run_latex()        
         CALL write_psheader("mesh.ps",mesh_unit)            
         CALL plot_mesh(mesh_unit,ne,nverts,el_type,el_in,xy,ect)   
         CALL write_all_axes(mesh_unit)          
@@ -243,6 +248,8 @@
           ENDIF
         ENDIF
       ENDDO
+      
+      
       
       
       IF (cscale_zeta == "file") THEN
@@ -323,8 +330,8 @@
           PRINT("(2(A,F10.5))"), "  Z_min = ", Z_min, "  Z_max = ", Z_max
           WRITE(cscale_zeta_unit,"(3(e24.17,1x))") t_snap,Z_min,Z_max
           
-          CALL latex_axes_labels(tex_unit,Z_min,Z_max,"surface elevation",t_snap,t_start,t_end)  
-          CALL run_latex(tex_unit)          
+          CALL latex_axes_labels(Z_min,Z_max,"surface elevation",t_snap,t_start,t_end)  
+          CALL run_latex()          
           CALL write_psheader("zeta_"//snap_char//".ps",Z_unit)            
           CALL plot_contours(Z_unit,nplt,ntri,rect,ne,el_type,el_in,xyplt,Z_val,Z_min,Z_max)      
           IF (plot_zeta_mesh == 1) THEN
@@ -375,8 +382,8 @@
           PRINT("(2(A,F10.5))"), "  vel_min = ", vel_min, "  vel_max = ", vel_max
           WRITE(cscale_vel_unit,"(3(e24.17,1x))") t_snap,vel_min,vel_max      
           
-          CALL latex_axes_labels(tex_unit,vel_min,vel_max,"velocity",t_snap,t_start,t_end) 
-          CALL run_latex(tex_unit)          
+          CALL latex_axes_labels(vel_min,vel_max,"velocity",t_snap,t_start,t_end) 
+          CALL run_latex()          
           CALL write_psheader("vel_"//snap_char//".ps",vel_unit)        
           CALL plot_contours(vel_unit,nplt,ntri,rect,ne,el_type,el_in,xyplt,vel_val,vel_min,vel_max)      
           IF (plot_vel_mesh == 1) THEN
