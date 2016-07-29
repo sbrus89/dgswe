@@ -1,16 +1,16 @@
       MODULE labels_mod
 
       USE globals, ONLY: rp
-      USE plot_mod, ONLY: cscale_width,fontsize,ax,bx,ay,by, &
-                          rmin_page,rmax_page,smin_page,smax_page, &
-                          rmin_axes,rmax_axes,smin_axes,smax_axes, &
-                          rmin_cbar,rmax_cbar,smin_cbar,smax_cbar, &
-                          rmin_tbar,rmax_tbar,smin_tbar,smax_tbar, &
-                          xticklabel_pad,yticklabel_pad,cticklabel_pad, &
-                          xlabel_pad,ylabel_pad,clabel_pad, &
-                          nxtick,nytick,nctick, &
-                          nxdec,nydec,ncdec,ntdec, &
-                          dr_xlabel,ds_ylabel,ds_clabel
+      USE plot_globals, ONLY: cscale_width,fontsize,ax,bx,ay,by, &
+                              rmin_page,rmax_page,smin_page,smax_page, &
+                              rmin_axes,rmax_axes,smin_axes,smax_axes, &
+                              rmin_cbar,rmax_cbar,smin_cbar,smax_cbar, &
+                              rmin_tbar,rmax_tbar,smin_tbar,smax_tbar, &
+                              xticklabel_pad,yticklabel_pad,cticklabel_pad, &
+                              xlabel_pad,ylabel_pad,clabel_pad, &
+                              nxtick,nytick,nctick, &
+                              nxdec,nydec,ncdec,ntdec, &
+                              dr_xlabel,ds_ylabel,ds_clabel
 
       IMPLICIT NONE
       

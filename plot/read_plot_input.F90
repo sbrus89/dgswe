@@ -2,16 +2,10 @@
 
       USE plot_globals, ONLY: rp,input_path,cmap_file,ps,pc,frmt,density,rm_ps,make_movie, &
                               xbox_min,xbox_max,ybox_min,ybox_max,figure_width, &
-                              plot_mesh_option,plot_zeta_option,plot_vel_option,plot_bathy_option, &
-                              plot_zeta_mesh,plot_vel_mesh,plot_bathy_mesh, &
                               snap_start,snap_end, &
-                              cscale_zeta,cscale_zeta_min,cscale_zeta_max, &
-                              cscale_vel,cscale_vel_min,cscale_vel_max, &
-                              cscale_zeta_unit,cscale_vel_unit, &
-                              mesh_el_label,mesh_nd_label
-                              
-      USE plot_mod, ONLY: fontsize,nxtick,nytick,nctick, &
-                          nxdec,nydec,ncdec,ntdec                              
+                              zeta,bathy,vel,mesh, &
+                              fontsize,nxtick,nytick,nctick, &
+                              nxdec,nydec,ncdec,ntdec                              
 
       IMPLICIT NONE
       
@@ -24,9 +18,10 @@
       CHARACTER(100) :: cscale 
       REAL(rp) :: tmp
       LOGICAL :: file_exists      
+
       
-      cscale_zeta_unit = 20      
-      cscale_vel_unit = 21      
+      zeta%cscale_unit = 20
+      vel%cscale_unit = 21
       
       INQUIRE(file='plot.inp',exist=file_exists)
       IF (file_exists == .FALSE.) THEN
@@ -57,31 +52,31 @@
               PRINT("(A,A)"), "input file path = ", input_path 
               
             CASE (2)
-              READ(temp,*) plot_zeta_option, plot_zeta_mesh
-              PRINT("(A,I3)"), "zeta plot option = ", plot_zeta_option 
-              PRINT("(A,I3)"), "plot zeta mesh = ", plot_zeta_option 
+              READ(temp,*) zeta%plot_sol_option, zeta%plot_mesh_option 
+              PRINT("(A,I3)"), "zeta plot option = ", zeta%plot_sol_option 
+              PRINT("(A,I3)"), "plot zeta mesh = ", zeta%plot_mesh_option  
               
             CASE (3)
-              READ(temp,*) plot_vel_option, plot_vel_mesh
-              PRINT("(A,I3)"), "velocity plot option = ", plot_vel_option
-              PRINT("(A,I3)"), "plot velocity mesh = ", plot_vel_mesh
+              READ(temp,*) vel%plot_sol_option, vel%plot_mesh_option
+              PRINT("(A,I3)"), "velocity plot option = ", vel%plot_sol_option
+              PRINT("(A,I3)"), "plot velocity mesh = ", vel%plot_mesh_option
               
             CASE (4)
-              READ(temp,*) plot_bathy_option, plot_bathy_mesh
-              PRINT("(A,I3)"), "bathymetry plot option = ", plot_bathy_option 
-              PRINT("(A,I3)"), "plot bathymetry mesh = ", plot_bathy_mesh 
+              READ(temp,*) bathy%plot_sol_option, bathy%plot_mesh_option
+              PRINT("(A,I3)"), "bathymetry plot option = ", bathy%plot_sol_option 
+              PRINT("(A,I3)"), "plot bathymetry mesh = ", bathy%plot_mesh_option
               
             CASE (5)
-              READ(temp,*) plot_mesh_option
-              PRINT("(A,I3)"), "mesh plot option = ", plot_mesh_option  
+              READ(temp,*) mesh%plot_mesh_option
+              PRINT("(A,I3)"), "mesh plot option = ", mesh%plot_mesh_option  
               
             CASE (6)
-              mesh_el_label = TRIM(ADJUSTL(temp)) 
-              PRINT("(A,A)"), "mesh plot element labels = ", mesh_el_label              
+              mesh%el_label_option = TRIM(ADJUSTL(temp)) 
+              PRINT("(A,A)"), "mesh plot element labels = ", mesh%el_label_option              
               
             CASE (7)
-              mesh_nd_label = TRIM(ADJUSTL(temp)) 
-              PRINT("(A,A)"), "mesh plot node labels = ", mesh_nd_label             
+              mesh%nd_label_option = TRIM(ADJUSTL(temp)) 
+              PRINT("(A,A)"), "mesh plot node labels = ", mesh%nd_label_option             
               
             CASE (8)
               READ(temp,*) ps
@@ -118,37 +113,37 @@
               PRINT("(A,A)"), "color map file = ", cmap_file     
               
             CASE (14)
-              cscale_zeta = TRIM(ADJUSTL(temp)) 
-              IF (TRIM(ADJUSTL(cscale_zeta)) == "auto-snap" .OR. TRIM(ADJUSTL(cscale_zeta)) == "auto-all") THEN
+              zeta%cscale_option = TRIM(ADJUSTL(temp)) 
+              IF (TRIM(ADJUSTL(zeta%cscale_option)) == "auto-snap" .OR. TRIM(ADJUSTL(zeta%cscale_option)) == "auto-all") THEN
               
-              ELSEIF (TRIM(ADJUSTL(cscale_zeta)) == "file") THEN
+              ELSEIF (TRIM(ADJUSTL(zeta%cscale_option)) == "file") THEN
                 INQUIRE(file='zeta.cscale',exist=file_exists)
                 IF(file_exists) THEN
-                  OPEN(unit=cscale_zeta_unit,file="zeta.cscale")
+                  OPEN(unit=zeta%cscale_unit,file="zeta.cscale")
                 ELSE
                   PRINT("(A)"), "Error: zeta color scale file not found"
                 ENDIF
               ELSE
-                READ(temp,*) cscale_zeta_min,cscale_zeta_max
+                READ(temp,*) zeta%cscale_min,zeta%cscale_max
               ENDIF
-              PRINT("(A,A)"), "zeta color scale = ", cscale_zeta   
+              PRINT("(A,A)"), "zeta color scale = ", zeta%cscale_option   
               
             CASE (15)
-              cscale_vel = TRIM(ADJUSTL(temp)) 
-              IF (TRIM(ADJUSTL(cscale_vel)) == "auto-snap" .OR. TRIM(ADJUSTL(cscale_vel)) == "auto-all") THEN
+              vel%cscale_option = TRIM(ADJUSTL(temp)) 
+              IF (TRIM(ADJUSTL(vel%cscale_option)) == "auto-snap" .OR. TRIM(ADJUSTL(vel%cscale_option)) == "auto-all") THEN
               
-              ELSEIF (TRIM(ADJUSTL(cscale_vel)) == "file") THEN
+              ELSEIF (TRIM(ADJUSTL(vel%cscale_option)) == "file") THEN
                 INQUIRE(file='vel.cscale',exist=file_exists)
                 IF(file_exists) THEN                     
-                  OPEN(unit=cscale_vel_unit,file="vel.cscale")
+                  OPEN(unit=vel%cscale_unit,file="vel.cscale")
                 ELSE
                   PRINT("(A)"), "Error: velocity color scale file not found"
                   STOP
                 ENDIF
               ELSE
-                READ(temp,*) cscale_vel_min,cscale_vel_max
+                READ(temp,*) vel%cscale_min,vel%cscale_max
               ENDIF
-              PRINT("(A,A)"), "velocity color scale = ", cscale_vel   
+              PRINT("(A,A)"), "velocity color scale = ", vel%cscale_option   
               
             CASE (16)
               READ(temp,*) fontsize
@@ -210,17 +205,17 @@
       PRINT("(A,I5)"), "Lines skipped: ", skipped
       PRINT*, " "  
       
-      IF (cscale_zeta_max < cscale_zeta_min) THEN
-        tmp = cscale_zeta_min
-        cscale_zeta_min = cscale_zeta_max
-        cscale_zeta_max = tmp
+      IF (zeta%cscale_max < zeta%cscale_min) THEN
+        tmp = zeta%cscale_min
+        zeta%cscale_min = zeta%cscale_max
+        zeta%cscale_max = tmp
         PRINT("(A)"), "Warning: zeta color scale max and min have been switched"        
       ENDIF         
       
-      IF (cscale_vel_max < cscale_vel_min) THEN
-        tmp = cscale_vel_min
-        cscale_vel_min = cscale_vel_max
-        cscale_vel_max = tmp
+      IF (vel%cscale_max < vel%cscale_min) THEN
+        tmp = vel%cscale_min
+        vel%cscale_min = vel%cscale_max
+        vel%cscale_max = tmp
         PRINT("(A)"), "Warning: velocity color scale max and min have been switched"
       ENDIF
       

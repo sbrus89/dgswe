@@ -1,13 +1,13 @@
       MODULE axes_mod
 
       USE globals, ONLY: rp
-      USE plot_mod, ONLY: cscale_width,dash,fontsize,ax,bx,ay,by, &
-                          rmin_page,rmax_page,smin_page,smax_page, &
-                          rmin_axes,rmax_axes,smin_axes,smax_axes, &
-                          rmin_cbar,rmax_cbar,smin_cbar,smax_cbar, &
-                          rmin_tbar,rmax_tbar,smin_tbar,smax_tbar, &
-                          nxtick,nytick,nctick, &
-                          nlev,colors
+      USE plot_globals, ONLY: cscale_width,dash,fontsize,ax,bx,ay,by, &
+                              rmin_page,rmax_page,smin_page,smax_page, &
+                              rmin_axes,rmax_axes,smin_axes,smax_axes, &
+                              rmin_cbar,rmax_cbar,smin_cbar,smax_cbar, &
+                              rmin_tbar,rmax_tbar,smin_tbar,smax_tbar, &
+                              nxtick,nytick,nctick, &
+                              ncolors,colors
 
       IMPLICIT NONE
 
@@ -78,8 +78,8 @@
       r1 = rmax_axes            
 
       
-      ds = (smax_cbar-smin_cbar)/(nlev-1)
-      DO lev = 1,nlev-1
+      ds = (smax_cbar-smin_cbar)/(ncolors-1)
+      DO lev = 1,ncolors-1
       
         s1 = s0 + ds
       

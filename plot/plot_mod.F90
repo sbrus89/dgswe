@@ -1,54 +1,120 @@
       MODULE plot_mod
       
       USE globals, ONLY: rp
+      USE plot_globals, ONLY: plot_type,cscale_width,lr_margin,dash,fontsize, &
+                              ax,bx,ay,by,axes_width, &
+                              rmin_page,rmax_page,smin_page,smax_page, &
+                              rmin_axes,rmax_axes,smin_axes,smax_axes, &
+                              rmin_cbar,rmax_cbar,smin_cbar,smax_cbar, &
+                              rmin_tbar,rmax_tbar,smin_tbar,smax_tbar, &
+                              xticklabel_pad,yticklabel_pad,cticklabel_pad, &
+                              xlabel_pad,ylabel_pad,clabel_pad, &
+                              nxtick,nytick,nctick, &
+                              nxdec,nydec,ncdec,ntdec, &
+                              dr_xlabel,ds_ylabel,ds_clabel,main_font, &
+                              ncolors,colors                              
       
       IMPLICIT NONE
       
-      INTEGER :: unit_count = 99
-      INTEGER :: nlev        
-      REAL(rp), DIMENSION(:,:), ALLOCATABLE :: colors     
+      INTEGER :: unit_count = 99   
       INTEGER :: nline_texfile      
-      INTEGER :: tex_output_unit = 11      
-      
-      REAL(rp) :: lr_margin 
-      REAL(rp) :: cscale_width
-      REAL(rp) :: axes_width
-      REAL(rp) :: rmin_axes,rmax_axes
-      REAL(rp) :: smin_axes,smax_axes    
-      REAL(rp) :: rmin_cbar,rmax_cbar
-      REAL(rp) :: smin_cbar,smax_cbar   
-      REAL(rp) :: rmin_tbar,rmax_tbar
-      REAL(rp) :: smin_tbar,smax_tbar        
-      REAL(rp) :: ax,bx  
-      REAL(rp) :: ay,by      
-      
-      REAL(rp) :: dash      
-      REAL(rp) :: xticklabel_pad,yticklabel_pad
-      REAL(rp) :: xlabel_pad,ylabel_pad  
-      REAL(rp) :: cticklabel_pad
-      REAL(rp) :: clabel_pad     
-      REAL(rp) :: dr_xlabel,ds_ylabel,ds_clabel
-      
-      REAL(rp) :: rmin_page = 0d0
-      REAL(rp) :: rmax_page = 612d0
-      REAL(rp) :: smin_page = 0d0
-      REAL(rp) :: smax_page = 792d0      
-      
-      INTEGER :: nxtick
-      INTEGER :: nytick
-      INTEGER :: nctick
-      
-      INTEGER :: nxdec
-      INTEGER :: nydec
-      INTEGER :: ncdec
-      INTEGER :: ntdec
-      
-      CHARACTER(100) :: main_font = "/Times-Roman"
-      CHARACTER(100) :: math_font = "/Times-Italic"    
-!       CHARACTER(100) :: main_font = "(/usr/share/fonts/type1/gsfonts/cmr10.pfb)"
-      INTEGER :: fontsize     
+      INTEGER :: tex_output_unit = 11             
       
       CONTAINS
+      
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+      SUBROUTINE make_plot(snap,t_snap,fig,H1,H2,Qx,Qy)
+            
+      USE globals, ONLY: ne,nverts,el_type,xy,ect      
+      USE plot_globals, ONLY: el_in,t_start,t_end,xyplt, &
+                              frmt,density,rm_ps
+      USE evaluate_mod, ONLY: evaluate_depth_solution,evaluate_velocity_solution  
+      USE labels_mod, ONLY: latex_axes_labels,run_latex
+      USE axes_mod, ONLY: write_all_axes
+            
+      IMPLICIT NONE
+
+      INTEGER, INTENT(IN) :: snap
+      REAL(rp), INTENT(IN) :: t_snap
+      TYPE(plot_type), INTENT(INOUT) :: fig      
+      REAL(rp), DIMENSION(:,:), INTENT(INOUT) :: H1           
+      REAL(rp), DIMENSION(:,:), INTENT(INOUT), OPTIONAL :: H2      
+      REAL(rp), DIMENSION(:,:), INTENT(INOUT), OPTIONAL :: Qx     
+      REAL(rp), DIMENSION(:,:), INTENT(INOUT), OPTIONAL :: Qy
+      
+      CHARACTER(:), ALLOCATABLE :: filename
+      CHARACTER(4) :: snap_char
+      
+  
+      
+      
+      IF ((fig%type_flag == 2 .and. fig%plot_sol_option == 1) .or. fig%type_flag == 3) THEN
+        PRINT("(A)"), "  Evaluating depth solution at additional plotting points..."
+        CALL evaluate_depth_solution(ne,el_type,el_in,H1,fig)
+        PRINT("(2(A,F10.5))"), "  min value = ", fig%snap_min, "  max value = ", fig%snap_max        
+      ENDIF            
+      
+      IF (fig%plot_sol_option /= 1) THEN
+        RETURN
+      ENDIF     
+      
+      IF (fig%type_flag == 4) THEN
+        PRINT("(A)"), "  Evaluating velocity solution at additional plotting points..."
+        CALL evaluate_velocity_solution(ne,el_type,el_in,Qx,Qy,H1,H2,fig)
+      ENDIF             
+      
+      
+      IF (fig%cscale_option == "auto-snap") THEN      
+        fig%sol_min = fig%snap_min
+        fig%sol_max = fig%snap_max                 
+      ELSE IF (fig%cscale_option == "auto-all") THEN      
+        ! use existing values        
+      ELSE IF (fig%cscale_option == "file") THEN      
+!         DO i = 1,num_cscale_zeta_vals
+!           IF (ABS(cscale_zeta_vals(i,1)-t_snap) < 1d-8) THEN
+!             Z_min = cscale_zeta_vals(i,2)
+!             Z_max = cscale_zeta_vals(i,3)              
+!             EXIT
+!          ENDIF
+!        ENDDO            
+
+        fig%sol_min = fig%cscale_vals(snap-1,2)
+        fig%sol_max = fig%cscale_vals(snap-1,3)                                      
+      ELSE     
+        fig%sol_min = fig%cscale_min
+        fig%sol_max = fig%cscale_max        
+      ENDIF
+      
+      
+          
+      PRINT("(2(A,F10.5))"), "  min value = ", fig%sol_min, "  max value = ", fig%sol_max
+      WRITE(fig%cscale_unit,"(3(e24.17,1x))") t_snap,fig%sol_min,fig%sol_max
+       
+      IF (snap > 0) THEN 
+        WRITE(snap_char,"(I4.4)") snap-1           
+        filename = TRIM(ADJUSTL(fig%name))//"_"//snap_char
+      ELSE
+        filename = TRIM(ADJUSTL(fig%name))
+      ENDIF
+      
+      
+          
+      CALL latex_axes_labels(fig%sol_min,fig%sol_max,fig%sol_label,t_snap,t_start,t_end)  
+      CALL run_latex()          
+      CALL write_psheader(filename//".ps",fig%ps_unit)            
+      CALL plot_contours(fig%ps_unit,ne,el_type,el_in,xyplt,fig)      
+      IF (fig%plot_mesh_option == 1) THEN
+        CALL plot_mesh(fig%ps_unit,ne,nverts,el_type,el_in,xy,ect)
+      ENDIF      
+      CALL write_all_axes(fig%ps_unit,fig%name,t_snap,t_start,t_end)               
+      CALL close_ps(filename,fig%ps_unit)
+      CALL convert_ps(filename,frmt,density,rm_ps)      
+      
+      RETURN
+      END SUBROUTINE make_plot
+
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
@@ -452,155 +518,20 @@ tail: DO
       END SUBROUTINE close_ps           
     
       
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
-
-      SUBROUTINE evaluate_depth_solution(ne,el_type,el_in,nplt,ndof,phi,snap,H,H_val,H_min,H_max)
-      
-      IMPLICIT NONE
-      
-      INTEGER, INTENT(IN) :: ne
-      INTEGER, DIMENSION(:), INTENT(IN) :: el_type
-      INTEGER, DIMENSION(:), INTENT(IN) :: el_in
-      INTEGER, DIMENSION(:), INTENT(IN) :: nplt
-      INTEGER, DIMENSION(:), INTENT(IN) :: ndof
-      REAL(rp), DIMENSION(:,:,:), INTENT(IN) :: phi
-      INTEGER, INTENT(IN) :: snap
-      REAL(rp), DIMENSION(:,:,:), INTENT(IN) :: H
-      REAL(rp), DIMENSION(:,:), ALLOCATABLE, INTENT(INOUT) :: H_val
-      REAL(rp), INTENT(OUT) :: H_min
-      REAL(rp), INTENT(OUT) :: H_max
-      
-      INTEGER :: el,nd,dof
-      INTEGER :: et,npts,ndf
-      INTEGER :: mnpp
-      
-      IF ( .NOT. ALLOCATED(H_val)) THEN
-        mnpp = MAXVAL(nplt)
-        ALLOCATE(H_val(mnpp,ne)) 
-      ENDIF
-      
-      H_min = 1d10
-      H_max = -1d10
-
- elem:DO el = 1,ne
- 
-        IF(el_in(el) == 0) THEN
-          CYCLE elem
-        ENDIF
-        
-        et = el_type(el)
-        npts = nplt(et)
-        ndf = ndof(et)
-        DO nd = 1,npts
-          H_val(nd,el) = 0d0
-          DO dof = 1,ndf
-            H_val(nd,el) = H_val(nd,el) + H(dof,el,snap)*phi(dof,nd,et)           
-          ENDDO    
-          
-          IF (H_val(nd,el) < H_min) THEN
-            H_min = H_val(nd,el)
-          ENDIF
-          
-          IF (H_val(nd,el) > H_max) THEN
-            H_max = H_val(nd,el)
-          ENDIF
-        ENDDO
-        
-      ENDDO elem      
-      
-      
-      RETURN
-      END SUBROUTINE evaluate_depth_solution      
-      
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-      SUBROUTINE evaluate_velocity_solution(ne,el_type,el_in,nplt,ndof,phi,snap,Qx,Qy,Z_val,hb_val,vel_val,vel_min,vel_max)
-      
-      IMPLICIT NONE
-      
-      INTEGER, INTENT(IN) :: ne
-      INTEGER, DIMENSION(:), INTENT(IN) :: el_type
-      INTEGER, DIMENSION(:), INTENT(IN) :: el_in
-      INTEGER, DIMENSION(:), INTENT(IN) :: nplt
-      INTEGER, DIMENSION(:), INTENT(IN) :: ndof
-      REAL(rp), DIMENSION(:,:,:), INTENT(IN) :: phi
-      INTEGER, INTENT(IN) :: snap
-      REAL(rp), DIMENSION(:,:,:), INTENT(IN) :: Qx
-      REAL(rp), DIMENSION(:,:,:), INTENT(IN) :: Qy      
-      REAL(rp), DIMENSION(:,:), INTENT(IN) :: Z_val
-      REAL(rp), DIMENSION(:,:), INTENT(IN) :: hb_val  
-      REAL(rp), DIMENSION(:,:), ALLOCATABLE, INTENT(INOUT) :: vel_val      
-      REAL(rp), INTENT(OUT) :: vel_min
-      REAL(rp), INTENT(OUT) :: vel_max
-      
-      REAL(rp) :: Qx_val,Qy_val,H_val
-      INTEGER :: el,nd,dof
-      INTEGER :: et,npts,ndf
-      INTEGER :: mnpp
-      
-      IF ( .NOT. ALLOCATED(vel_val)) THEN
-        mnpp = MAXVAL(nplt)
-        ALLOCATE(vel_val(mnpp,ne)) 
-      ENDIF
-      
-      vel_min = 1d10
-      vel_max = -1d10
-
- elem:DO el = 1,ne
- 
-        IF(el_in(el) == 0) THEN
-          CYCLE elem
-        ENDIF
-        
-        et = el_type(el)
-        npts = nplt(et)
-        ndf = ndof(et)
-        DO nd = 1,npts
-          Qx_val = 0d0
-          Qy_val = 0d0
-          DO dof = 1,ndf
-            Qx_val = Qx_val + Qx(dof,el,snap)*phi(dof,nd,et)
-            Qy_val = Qy_val + Qy(dof,el,snap)*phi(dof,nd,et)            
-          ENDDO            
-          H_val = Z_val(nd,el) + hb_val(nd,el)
-          vel_val(nd,el) = sqrt((Qx_val/H_val)**2 + (Qy_val/H_val)**2)   
-          
-          IF(vel_val(nd,el) < vel_min) THEN
-            vel_min = vel_val(nd,el)
-          ENDIF
-          
-          IF (vel_val(nd,el) > vel_max) THEN
-            vel_max = vel_val(nd,el)
-          ENDIF
-        ENDDO
-        
-      ENDDO elem      
-      
-      
-      RETURN
-      END SUBROUTINE evaluate_velocity_solution      
-      
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-      SUBROUTINE plot_contours(file_unit,nplt,ntri,rect,ne,el_type,el_in,xy,sol_val,sol_min,sol_max)
+      SUBROUTINE plot_contours(file_unit,ne,el_type,el_in,xy,fig)
       
       IMPLICIT NONE
       
       INTEGER, INTENT(IN) :: file_unit
-      INTEGER, DIMENSION(:), INTENT(IN) :: nplt
-      INTEGER, DIMENSION(:), INTENT(IN) :: ntri
-      INTEGER, DIMENSION(:,:,:), INTENT(IN) :: rect
       INTEGER, INTENT(IN) :: ne
       INTEGER, DIMENSION(:), INTENT(IN) :: el_type
       INTEGER, DIMENSION(:), INTENT(IN) :: el_in
       REAL(rp), DIMENSION(:,:,:), INTENT(IN) :: xy  
-      REAL(rp), DIMENSION(:,:), INTENT(IN) :: sol_val
-      REAL(rp), INTENT(IN) :: sol_min
-      REAL(rp), INTENT(IN) :: sol_max
+      TYPE(plot_type), INTENT(IN) :: fig
 
       
       INTEGER :: i,j,v
@@ -614,7 +545,7 @@ tail: DO
 
       
       
-      dc = (sol_max-sol_min)/real(nlev-1,rp)      
+      dc = (fig%sol_max-fig%sol_min)/real(ncolors-1,rp)      
             
       
  elem:DO el = 1,ne
@@ -623,30 +554,30 @@ tail: DO
           CYCLE elem
         ENDIF
         
-        DO tri = 1,ntri(et)
+        DO tri = 1,fig%nptri(et)
 
         DO v = 1,3  
    
-          nd = rect(v,tri,et)
+          nd = fig%rect(v,tri,et)
           
-          sol_lev = sol_min
-          lev = nlev
-  levels: DO i = 1,nlev-1
-            IF ((sol_val(nd,el) >= sol_lev) .and. (sol_val(nd,el) < sol_lev+dc)) THEN
+          sol_lev = fig%sol_min
+          lev = ncolors
+  levels: DO i = 1,ncolors-1
+            IF ((fig%sol_val(nd,el) >= sol_lev) .and. (fig%sol_val(nd,el) < sol_lev+dc)) THEN
               lev = i
-              CALL interp_colors(lev,sol_lev,dc,colors,sol_val(nd,el),color_val)
+              CALL interp_colors(lev,sol_lev,dc,colors,fig%sol_val(nd,el),color_val)
               EXIT levels
             ENDIF
             sol_lev = sol_lev + dc
           ENDDO levels
           
-         IF (sol_val(nd,el) <= sol_min) THEN
+         IF (fig%sol_val(nd,el) <= fig%sol_min) THEN
            lev = 1
            color_val(1) = colors(lev,1)
            color_val(2) = colors(lev,2)
            color_val(3) = colors(lev,3)
-         ELSE IF (sol_val(nd,el) > sol_max) THEN
-           lev = nlev
+         ELSE IF (fig%sol_val(nd,el) > fig%sol_max) THEN
+           lev = ncolors
            color_val(1) = colors(lev,1)
            color_val(2) = colors(lev,2)
            color_val(3) = colors(lev,3)           
@@ -748,9 +679,9 @@ tail: DO
       ENDIF
       
       OPEN(UNIT=101,FILE=TRIM(ADJUSTL(cmap_file)))
-      READ(101,*) nlev
-      ALLOCATE(colors(nlev,3))
-      DO lev = 1,nlev
+      READ(101,*) ncolors
+      ALLOCATE(colors(ncolors,3))
+      DO lev = 1,ncolors
         READ(101,*) (colors(lev,j), j=1,3)
       ENDDO
       CLOSE(101)

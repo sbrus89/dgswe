@@ -17,19 +17,58 @@
       REAL(rp) :: rmin,rmax
       REAL(rp) :: smin,smax
       
+      REAL(rp) :: lr_margin 
+      REAL(rp) :: cscale_width
+      REAL(rp) :: axes_width
+      REAL(rp) :: rmin_axes,rmax_axes
+      REAL(rp) :: smin_axes,smax_axes    
+      REAL(rp) :: rmin_cbar,rmax_cbar
+      REAL(rp) :: smin_cbar,smax_cbar   
+      REAL(rp) :: rmin_tbar,rmax_tbar
+      REAL(rp) :: smin_tbar,smax_tbar        
+      REAL(rp) :: ax,bx  
+      REAL(rp) :: ay,by      
+      
+      INTEGER :: ncolors      
+      REAL(rp), DIMENSION(:,:), ALLOCATABLE :: colors        
+      
+      REAL(rp) :: dash      
+      REAL(rp) :: xticklabel_pad,yticklabel_pad
+      REAL(rp) :: xlabel_pad,ylabel_pad  
+      REAL(rp) :: cticklabel_pad
+      REAL(rp) :: clabel_pad     
+      REAL(rp) :: dr_xlabel,ds_ylabel,ds_clabel
+      
+      REAL(rp) :: rmin_page = 0d0
+      REAL(rp) :: rmax_page = 612d0
+      REAL(rp) :: smin_page = 0d0
+      REAL(rp) :: smax_page = 792d0      
+      
+      INTEGER :: nxtick
+      INTEGER :: nytick
+      INTEGER :: nctick
+      
+      INTEGER :: nxdec
+      INTEGER :: nydec
+      INTEGER :: ncdec
+      INTEGER :: ntdec
+      
+      CHARACTER(100) :: main_font = "/Times-Roman"
+      CHARACTER(100) :: math_font = "/Times-Italic"    
+!       CHARACTER(100) :: main_font = "(/usr/share/fonts/type1/gsfonts/cmr10.pfb)"
+      INTEGER :: fontsize          
+      
       INTEGER :: el,nd,pt
       INTEGER :: et,nv
-      REAL(rp) :: ax,bx
-      REAL(rp) :: ay,by
+
       
       INTEGER :: ps
       INTEGER :: pc
       INTEGER :: pplt(4)
       INTEGER :: nplt(4)
       INTEGER :: mnpp
-      INTEGER :: ntri(4)
       INTEGER :: nred 
-      INTEGER, ALLOCATABLE, DIMENSION(:,:,:) :: rect
+
       INTEGER :: ndof_hb(4)
       
       INTEGER :: i,j
@@ -38,30 +77,16 @@
       INTEGER :: space
       INTEGER :: n,ndf,npts,nnd,dof
       REAL(rp) :: xpt,ypt
-      REAL(rp) :: t_start,t_end,t_snap
+      REAL(rp), TARGET :: t_snap
+      REAL(rp) :: t_start,t_end
       REAL(rp), ALLOCATABLE, DIMENSION(:) :: t      
-      REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: Z,Qx,Qy,hb 
-      REAL(rp), ALLOCATABLE, DIMENSION(:) :: r,s
-      REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: phi 
-      REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: phi_hb        
+      REAL(rp), ALLOCATABLE, DIMENSION(:) :: r,s      
       REAL(rp), DIMENSION(:,:,:), ALLOCATABLE :: xyplt   
-      REAL(rp), DIMENSION(:,:), ALLOCATABLE :: Z_val 
-      REAL(rp), DIMENSION(:,:), ALLOCATABLE :: hb_val           
-      REAL(rp), DIMENSION(:,:), ALLOCATABLE :: vel_val   
-      REAL(rp) :: Qx_val,Qy_val,H_val
       INTEGER :: outside
       INTEGER, DIMENSION(:), ALLOCATABLE :: el_in
       REAL(rp) :: xbox_min,xbox_max,ybox_min,ybox_max
       REAL(rp) :: figure_width
       
-      INTEGER :: plot_mesh_option
-      INTEGER :: plot_vel_option
-      INTEGER :: plot_zeta_option
-      INTEGER :: plot_bathy_option
-      
-      INTEGER :: plot_zeta_mesh
-      INTEGER :: plot_vel_mesh
-      INTEGER :: plot_bathy_mesh
       
       INTEGER :: snap_start
       INTEGER :: snap_end
@@ -71,47 +96,65 @@
       INTEGER :: nsnap_Qy
       INTEGER :: nsnap_hb
       
-      INTEGER :: Z_unit
-      INTEGER :: hb_unit
-      INTEGER :: vel_unit
-      INTEGER :: mesh_unit
       INTEGER :: tex_unit   
-      
-      INTEGER :: cscale_zeta_unit
-      INTEGER :: cscale_vel_unit
-      
-      INTEGER :: num_cscale_zeta_vals
-      INTEGER :: num_cscale_vel_vals
-      
-      REAL(rp), DIMENSION(:,:), ALLOCATABLE :: cscale_zeta_vals
-      REAL(rp), DIMENSION(:,:), ALLOCATABLE :: cscale_vel_vals
-      
-      REAL(rp) :: Z_min,Z_max
-      REAL(rp) :: hb_min,hb_max
-      REAL(rp) :: vel_min,vel_max
-      
-      REAL(rp) :: Zsnap_min,Zsnap_max
-      REAL(rp) :: velsnap_min,velsnap_max
-      
-      CHARACTER(100) :: cscale_zeta
-      CHARACTER(100) :: cscale_hb      
-      CHARACTER(100) :: cscale_vel
-      
-      REAL(rp) :: cscale_zeta_min,cscale_zeta_max
-      REAL(rp) :: cscale_hb_min,cscale_hb_max      
-      REAL(rp) :: cscale_vel_min,cscale_vel_max
-      
+           
       CHARACTER(4) :: snap_char     
       CHARACTER(3) :: start_num
-      CHARACTER(3) :: nframes       
+      CHARACTER(3) :: nframes
       
-      CHARACTER(100) :: mesh_el_label    
-      CHARACTER(100) :: mesh_nd_label       
+
       
-!       TYPE :: properties
-!       
-!       
-!       END TYPE
+      REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: Z
+      REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: hb
+      REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: Qx
+      REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: Qy
+            
+      
+      TYPE :: plot_type
+      
+        INTEGER :: plot_sol_option
+        INTEGER :: plot_mesh_option
+        
+        INTEGER :: cbar_flag
+        INTEGER :: tbar_flag
+        
+        CHARACTER(100) :: sol_label
+        CHARACTER(100) :: name
+        
+        INTEGER :: ps_unit
+        REAL(rp) :: sol_min,sol_max
+        REAL(rp) :: snap_min,snap_max
+        INTEGER :: nsnap
+        REAL(rp), DIMENSION(:,:), ALLOCATABLE :: sol_val
+        REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: phi
+        INTEGER, ALLOCATABLE, DIMENSION(:,:,:) :: rect   
+        INTEGER :: ndof(4)        
+        INTEGER :: nptri(4)
+        INTEGER :: npnd(4)        
+      
+        INTEGER :: cscale_unit
+        CHARACTER(100) :: cscale_option
+        INTEGER :: num_cscale_vals
+        REAL(rp), DIMENSION(:,:), ALLOCATABLE :: cscale_vals
+        REAL(rp) :: cscale_min,cscale_max
+        
+        CHARACTER(100) :: el_label_option    
+        CHARACTER(100) :: nd_label_option 
+        
+        INTEGER :: type_flag 
+        
+        REAL(rp), POINTER :: t_snap
+
+      
+      END TYPE
+      
+      TYPE(plot_type) :: zeta
+      TYPE(plot_type) :: vel
+      TYPE(plot_type) :: bathy
+      TYPE(plot_type) :: mesh  
+      
+
+      
       
       CONTAINS
       
@@ -168,5 +211,40 @@
       
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
+
+      SUBROUTINE setup_plot_types()
+      
+      IMPLICIT NONE
+      
+      mesh%type_flag = 1     
+      bathy%type_flag = 2    
+      zeta%type_flag = 3     
+      vel%type_flag = 4
+      
+      
+      zeta%sol_label = "surface elevation"
+      zeta%name = "zeta"
+      
+      vel%sol_label = "velocity"
+      vel%name = "vel"
+      
+      bathy%sol_label = "bathymetry"
+      bathy%name = "bathy"
+      
+      mesh%t_snap => t_snap
+      bathy%t_snap => t_snap
+      zeta%t_snap => t_snap
+      vel%t_snap => t_snap    
+      
+      bathy%cscale_option = "auto-snap"
+      
+      zeta%cscale_unit = 30
+      bathy%cscale_unit = 31
+      vel%cscale_unit = 32
+      
+      END SUBROUTINE setup_plot_types
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       
       END MODULE plot_globals
