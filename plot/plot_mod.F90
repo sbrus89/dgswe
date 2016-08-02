@@ -27,11 +27,14 @@
 
       SUBROUTINE make_plot(snap,t_snap,fig,H1,H2,Qx,Qy)
             
-      USE globals, ONLY: ne,nverts,el_type,xy,ect      
+      USE globals, ONLY: ne,nn,nverts,el_type,xy,ect, &
+                         nbou,fbseg,fbnds, &
+                         nnfbed,nfbedn,ged2el      
       USE plot_globals, ONLY: el_in,t_start,t_end,xyplt, &
-                              frmt,density,rm_ps
+                              frmt,density
       USE evaluate_mod, ONLY: evaluate_depth_solution,evaluate_velocity_solution  
-      USE labels_mod, ONLY: latex_axes_labels,run_latex
+      USE labels_mod, ONLY: latex_axes_labels,run_latex, & 
+                            latex_element_labels,latex_node_labels
       USE axes_mod, ONLY: write_all_axes
             
       IMPLICIT NONE
@@ -39,7 +42,7 @@
       INTEGER, INTENT(IN) :: snap
       REAL(rp), INTENT(IN) :: t_snap
       TYPE(plot_type), INTENT(INOUT) :: fig      
-      REAL(rp), DIMENSION(:,:), INTENT(INOUT) :: H1           
+      REAL(rp), DIMENSION(:,:), INTENT(INOUT), OPTIONAL :: H1           
       REAL(rp), DIMENSION(:,:), INTENT(INOUT), OPTIONAL :: H2      
       REAL(rp), DIMENSION(:,:), INTENT(INOUT), OPTIONAL :: Qx     
       REAL(rp), DIMENSION(:,:), INTENT(INOUT), OPTIONAL :: Qy
@@ -52,8 +55,7 @@
       
       IF ((fig%type_flag == 2 .and. fig%plot_sol_option == 1) .or. fig%type_flag == 3) THEN
         PRINT("(A)"), "  Evaluating depth solution at additional plotting points..."
-        CALL evaluate_depth_solution(ne,el_type,el_in,H1,fig)
-        PRINT("(2(A,F10.5))"), "  min value = ", fig%snap_min, "  max value = ", fig%snap_max        
+        CALL evaluate_depth_solution(ne,el_type,el_in,H1,fig)       
       ENDIF            
       
       IF (fig%plot_sol_option /= 1) THEN
@@ -101,16 +103,26 @@
       
       
           
-      CALL latex_axes_labels(fig%sol_min,fig%sol_max,fig%sol_label,t_snap,t_start,t_end)  
-      CALL run_latex()          
-      CALL write_psheader(filename//".ps",fig%ps_unit)            
-      CALL plot_contours(fig%ps_unit,ne,el_type,el_in,xyplt,fig)      
+      CALL latex_axes_labels(fig,t_snap,t_start,t_end)  
+      IF (fig%el_label_option /= "off") THEN
+        CALL latex_element_labels(ne,fig%el_label_option,el_type,el_in,nverts,xy,ect,nnfbed,nfbedn,ged2el)
+      ENDIF
+      IF (fig%nd_label_option /= "off") THEN
+        CALL latex_node_labels(nn,fig%nd_label_option,xy,nbou,fbseg,fbnds)
+      ENDIF
+      CALL run_latex()    
+      
+      CALL write_psheader(filename//".ps",fig%ps_unit)          
+      IF (fig%cbar_flag == 1) THEN
+        CALL plot_contours(fig%ps_unit,ne,el_type,el_in,xyplt,fig)      
+      ENDIF
       IF (fig%plot_mesh_option == 1) THEN
         CALL plot_mesh(fig%ps_unit,ne,nverts,el_type,el_in,xy,ect)
-      ENDIF      
-      CALL write_all_axes(fig%ps_unit,fig%name,t_snap,t_start,t_end)               
+      ENDIF 
+      
+      CALL write_all_axes(fig%ps_unit,fig%cbar_flag,fig%tbar_flag,t_snap,t_start,t_end)               
       CALL close_ps(filename,fig%ps_unit)
-      CALL convert_ps(filename,frmt,density,rm_ps)      
+      CALL convert_ps(filename,frmt,density,fig%rm_ps)      
       
       RETURN
       END SUBROUTINE make_plot
@@ -694,6 +706,41 @@ tail: DO
       RETURN
       END SUBROUTINE read_colormap      
 
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
+
+      SUBROUTINE setup_cbounds(fig,snap_start,snap_end)
+      
+      IMPLICIT NONE
+      
+      TYPE(plot_type), INTENT(INOUT) :: fig
+      INTEGER, INTENT(IN)  :: snap_start,snap_end         
+      
+      INTEGER :: i  
+      INTEGER :: start_snap,end_snap
+      CHARACTER(:), ALLOCATABLE :: filename
+      
+      filename = TRIM(ADJUSTL(fig%name))//".cscale"      
+      
+      IF (fig%plot_sol_option == 1) THEN   
+        OPEN(unit=fig%cscale_unit,file=filename//".out")  
+        WRITE(fig%cscale_unit,"(2I5)") snap_start-1,snap_end-1
+      ENDIF      
+      
+      IF (fig%cscale_option == "file") THEN
+        OPEN(unit=fig%cscale_unit,file=filename)
+        READ(fig%cscale_unit,*) start_snap,end_snap
+        fig%num_cscale_vals = end_snap - start_snap + 1
+        ALLOCATE(fig%cscale_vals(fig%num_cscale_vals,3))
+        DO i = 1,fig%num_cscale_vals
+          READ(fig%cscale_unit,*) fig%cscale_vals(i,1),fig%cscale_vals(i,2),fig%cscale_vals(i,3)
+        ENDDO
+        CLOSE(fig%cscale_unit)
+      ENDIF      
+      
+      RETURN
+      END SUBROUTINE setup_cbounds
+      
             
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!   
@@ -708,7 +755,7 @@ tail: DO
       INTEGER, INTENT(IN) :: rm_ps
       
       CHARACTER(:), ALLOCATABLE :: command
-
+      
       
       IF (TRIM(ADJUSTL(frmt)) == "png" .or. TRIM(ADJUSTL(frmt)) == "jpg" .or. TRIM(ADJUSTL(frmt)) == "tif") THEN
         command = "convert -trim -density "//density//" "//filename//".ps "//filename//"."//frmt
@@ -725,6 +772,24 @@ tail: DO
       RETURN
       END SUBROUTINE convert_ps
       
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+       SUBROUTINE make_movie(fig,frmt)
+       
+       IMPLICIT NONE
+       
+       TYPE(plot_type), INTENT(IN) :: fig
+       CHARACTER(*), INTENT(IN) :: frmt
+       
+        IF (fig%plot_sol_option == 1 .and. fig%movie_flag == 1) THEN
+          CALL SYSTEM("ffmpeg -i "//TRIM(ADJUSTL(fig%name))//"_%04d."//frmt//" -y "//TRIM(ADJUSTL(fig%name))//".mp4")
+        ENDIF          
+       
+       
+       RETURN
+       END SUBROUTINE make_movie
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
 

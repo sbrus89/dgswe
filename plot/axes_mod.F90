@@ -17,32 +17,21 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
       
-      SUBROUTINE write_all_axes(file_unit,sol_label,t_snap,t_start,t_end)
+      SUBROUTINE write_all_axes(file_unit,color_bar,time_bar,t_snap,t_start,t_end)
       
       IMPLICIT NONE
       
       INTEGER, INTENT(IN) :: file_unit    
-      CHARACTER(*), OPTIONAL :: sol_label
-      REAL(rp), OPTIONAL :: t_snap
-      REAL(rp), OPTIONAL :: t_start
-      REAL(rp), OPTIONAL :: t_end 
+      INTEGER, INTENT(IN) :: color_bar
+      INTEGER, INTENT(IN) :: time_bar      
+      REAL(rp), INTENT(IN) :: t_snap
+      REAL(rp), INTENT(IN) :: t_start
+      REAL(rp), INTENT(IN) :: t_end 
       
-      INTEGER :: color_bar
-      INTEGER :: time_bar
-      
-      color_bar = 0
-      IF (PRESENT(sol_label)) THEN
-        color_bar = 1
-      ENDIF
-            
-      time_bar = 0
-      IF (PRESENT(t_snap) .AND. PRESENT(t_start) .AND. PRESENT(t_end)) THEN
-        time_bar = 1
-      ENDIF            
-      
+
       CALL write_xyaxis(file_unit)   
       
-      IF (color_bar) THEN
+      IF (color_bar == 1) THEN
         CALL write_colorscale(file_unit)
       ENDIF
       IF (time_bar == 1) THEN

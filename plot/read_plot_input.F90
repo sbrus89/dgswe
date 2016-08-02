@@ -1,6 +1,6 @@
       SUBROUTINE read_plot_input()
 
-      USE plot_globals, ONLY: rp,input_path,cmap_file,ps,pc,frmt,density,rm_ps,make_movie, &
+      USE plot_globals, ONLY: rp,input_path,cmap_file,ps,pc,frmt,density, &
                               xbox_min,xbox_max,ybox_min,ybox_max,figure_width, &
                               snap_start,snap_end, &
                               zeta,bathy,vel,mesh, &
@@ -12,6 +12,7 @@
       INTEGER, PARAMETER :: ninp = 26
       INTEGER :: i,n
       INTEGER :: inp_read,skipped
+      INTEGER :: rm_ps
       CHARACTER(100) :: temp      
       CHARACTER(100) :: zbox  
       CHARACTER(100) :: ytick   
@@ -68,6 +69,7 @@
               
             CASE (5)
               READ(temp,*) mesh%plot_mesh_option
+              mesh%plot_sol_option = mesh%plot_mesh_option
               PRINT("(A,I3)"), "mesh plot option = ", mesh%plot_mesh_option  
               
             CASE (6)
@@ -118,10 +120,9 @@
               
               ELSEIF (TRIM(ADJUSTL(zeta%cscale_option)) == "file") THEN
                 INQUIRE(file='zeta.cscale',exist=file_exists)
-                IF(file_exists) THEN
-                  OPEN(unit=zeta%cscale_unit,file="zeta.cscale")
-                ELSE
+                IF(file_exists /= .true.) THEN
                   PRINT("(A)"), "Error: zeta color scale file not found"
+                  STOP
                 ENDIF
               ELSE
                 READ(temp,*) zeta%cscale_min,zeta%cscale_max
@@ -134,9 +135,7 @@
               
               ELSEIF (TRIM(ADJUSTL(vel%cscale_option)) == "file") THEN
                 INQUIRE(file='vel.cscale',exist=file_exists)
-                IF(file_exists) THEN                     
-                  OPEN(unit=vel%cscale_unit,file="vel.cscale")
-                ELSE
+                IF(file_exists /= .true.) THEN                     
                   PRINT("(A)"), "Error: velocity color scale file not found"
                   STOP
                 ENDIF
@@ -185,14 +184,19 @@
             CASE (24)
               READ(temp,*) frmt,rm_ps
               PRINT("(A,A)"), "additional file format = ", frmt
-              
+              PRINT("(A,I3)"), "remove PostScript files = ", rm_ps
+              mesh%rm_ps = 0
+              bathy%rm_ps = rm_ps
+              zeta%rm_ps = rm_ps
+              vel%rm_ps = rm_ps
             CASE (25)
               READ(temp,*) density
               PRINT("(A,A)"), "density of raster format = ", density 
               
             CASE (26)
-              READ(temp,*) make_movie
-              PRINT("(A,I5)"), "movie flag = ", make_movie     
+              READ(temp,*) zeta%movie_flag
+              vel%movie_flag = zeta%movie_flag
+              PRINT("(A,I5)"), "movie flag = ", zeta%movie_flag
               
           END SELECT
             

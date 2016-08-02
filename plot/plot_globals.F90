@@ -7,8 +7,7 @@
       CHARACTER(100) :: tsnap_spec
       CHARACTER(3) :: frmt
       CHARACTER(3) :: density
-      INTEGER :: rm_ps
-      INTEGER :: make_movie
+
 
       INTEGER :: coord_sys
       REAL(rp) :: slam0,sphi0      
@@ -118,6 +117,9 @@
         INTEGER :: cbar_flag
         INTEGER :: tbar_flag
         
+        INTEGER :: rm_ps
+        INTEGER :: movie_flag        
+        
         CHARACTER(100) :: sol_label
         CHARACTER(100) :: name
         
@@ -221,15 +223,30 @@
       zeta%type_flag = 3     
       vel%type_flag = 4
       
+      mesh%cbar_flag = 0
+      mesh%tbar_flag = 0
+      bathy%cbar_flag = 1
+      bathy%tbar_flag = 0
+      zeta%cbar_flag = 1
+      zeta%tbar_flag = 1
+      vel%cbar_flag = 1
+      vel%tbar_flag = 1
       
+      bathy%el_label_option = "off"
+      bathy%nd_label_option = "off"
+      zeta%el_label_option = "off"
+      zeta%nd_label_option = "off"
+      vel%el_label_option = "off"
+      vel%nd_label_option = "off"
+      
+      mesh%sol_label = "mesh"
+      mesh%name = "mesh"
       zeta%sol_label = "surface elevation"
-      zeta%name = "zeta"
-      
+      zeta%name = "zeta"      
       vel%sol_label = "velocity"
-      vel%name = "vel"
-      
+      vel%name = "vel"      
       bathy%sol_label = "bathymetry"
-      bathy%name = "bathy"
+      bathy%name = "bathy"           
       
       mesh%t_snap => t_snap
       bathy%t_snap => t_snap

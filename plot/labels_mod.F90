@@ -10,7 +10,8 @@
                               xlabel_pad,ylabel_pad,clabel_pad, &
                               nxtick,nytick,nctick, &
                               nxdec,nydec,ncdec,ntdec, &
-                              dr_xlabel,ds_ylabel,ds_clabel
+                              dr_xlabel,ds_ylabel,ds_clabel, &
+                              plot_type
 
       IMPLICIT NONE
       
@@ -78,38 +79,24 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
 
-      SUBROUTINE latex_axes_labels(sol_min,sol_max,sol_label,t_snap,t_start,t_end)
+      SUBROUTINE latex_axes_labels(fig,t_snap,t_start,t_end)
       
       IMPLICIT NONE
       
-      REAL(rp), INTENT(IN), OPTIONAL :: sol_min
-      REAL(rp), INTENT(IN), OPTIONAL :: sol_max
-      CHARACTER(*), INTENT(IN), OPTIONAL :: sol_label
-      REAL(rp), INTENT(IN), OPTIONAL :: t_snap
-      REAL(rp), INTENT(IN), OPTIONAL :: t_start
-      REAL(rp), INTENT(IN), OPTIONAL :: t_end 
+      TYPE(plot_type), INTENT(IN) :: fig
+      REAL(rp), INTENT(IN) :: t_snap
+      REAL(rp), INTENT(IN) :: t_start
+      REAL(rp), INTENT(IN) :: t_end 
       
-      
-      INTEGER :: time_bar
-      INTEGER :: color_bar
-      
-      color_bar = 0
-      IF (PRESENT(sol_min) .AND. PRESENT(sol_max) .AND. PRESENT(sol_label)) THEN
-        color_bar = 1
-      ENDIF          
-      
-      time_bar = 0
-      IF (PRESENT(t_snap) .AND. PRESENT(t_start) .AND. PRESENT(t_end)) THEN
-        time_bar = 1
-      ENDIF            
+                  
       
       CALL write_texheader()        
       
       CALL write_xyaxis_labels()  
-      IF (color_bar == 1) THEN      
-        CALL write_caxis_labels(time_bar,sol_min,sol_max,sol_label)
+      IF (fig%cbar_flag == 1) THEN      
+        CALL write_caxis_labels(fig%tbar_flag,fig%sol_min,fig%sol_max,fig%sol_label)
       ENDIF
-      IF (time_bar == 1) THEN
+      IF (fig%tbar_flag == 1) THEN
         CALL write_tbar_labels(t_snap)
       ENDIF                
           
