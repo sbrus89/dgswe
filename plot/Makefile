@@ -13,7 +13,7 @@ plot_objects =  plot_globals.o globals.o quit.o basis.o version.o read_input.o \
            read_plot_input.o grid_file_mod.o read_write_output.o system.o tripack.o \
            edge_connectivity_mod.o curvilinear_nodes_mod.o bathymetry_interp_mod.o \
            vandermonde.o transformation.o shape_functions_mod.o triangulation.o \
-           plot_mod.o axes_mod.o labels_mod.o plot.o 
+           plot_mod.o evaluate_mod.o axes_mod.o labels_mod.o plot.o 
           
 plot_obj := $(patsubst %.o, $(ODIR)%.o,$(plot_objects))
 
@@ -131,11 +131,15 @@ $(ODIR)convert.o: convert2cartesian.F90                      $(ODIR)globals.o $(
 $(ODIR)adjust.o: adjust_channel_boundaries.f90               $(ODIR)globals.o $(ODIR)grid_file_mod.o 
 	$(FC) $(FFLAGS) -c $< -o $@        
 
-$(ODIR)plot_mod.o: plot_mod.F90                              $(ODIR)globals.o
+$(ODIR)plot_mod.o: plot_mod.F90                              $(ODIR)globals.o $(ODIR)plot_globals.o $(ODIR)evaluate_mod.o $(ODIR)labels_mod.o $(ODIR)axes_mod.o
 	$(FC) $(FFLAGS) -c $< -o $@ 	
 	mv plot_mod.mod $(ODIR)
 	
-$(ODIR)labels_mod.o: labels_mod.F90                          $(ODIR)globals.o $(ODIR)plot_mod.o
+$(ODIR)evaluate_mod.o: evaluate_mod.F90                      $(ODIR)globals.o $(ODIR)triangulation.o  $(ODIR)basis.o 
+	$(FC) $(FFLAGS) -c $< -o $@ 	
+	mv evaluate_mod.mod $(ODIR)	
+	
+$(ODIR)labels_mod.o: labels_mod.F90                          $(ODIR)globals.o $(ODIR)plot_globals.o
 	$(FC) $(FFLAGS) -c $< -o $@ 	
 	mv labels_mod.mod $(ODIR)
 	
@@ -143,5 +147,5 @@ $(ODIR)axes_mod.o: axes_mod.F90                              $(ODIR)globals.o $(
 	$(FC) $(FFLAGS) -c $< -o $@ 	
 	mv axes_mod.mod $(ODIR)	
 	
-$(ODIR)plot.o: plot_dg.F90                                   $(ODIR)plot_globals.o $(ODIR)globals.o $(ODIR)grid_file_mod.o $(ODIR)plot_mod.o $(ODIR)labels_mod.o $(ODIR)basis.o $(ODIR)read_write_output.o $(ODIR)read_input.o
+$(ODIR)plot.o: plot_dg.F90                                   $(ODIR)plot_globals.o $(ODIR)globals.o $(ODIR)grid_file_mod.o $(ODIR)plot_mod.o $(ODIR)evaluate_mod.o $(ODIR)labels_mod.o $(ODIR)basis.o $(ODIR)read_write_output.o $(ODIR)read_input.o
 	$(FC) $(FFLAGS) -c $< -o $@       
