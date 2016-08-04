@@ -465,18 +465,23 @@
         READ(14,*) nbou_check
         READ(14,*) nmax,ctp_check
         
-        IF (nbou_check /= nbou .or. ctp_check /= ctp) THEN
+        IF (ctp_check /= ctp) THEN
           PRINT*, "incorrect curved boundary file"
           CALL abort()
         ENDIF
         
-        ALLOCATE(bndxy(2,ctp+1,nmax,nbou), STAT = alloc_status)
+!         IF (nbou_check /= nbou) THEN
+!           PRINT*, "incorrect curved boundary file"
+!           CALL abort()
+!         ENDIF        
+        
+        ALLOCATE(bndxy(2,ctp+1,nmax,nbou_check), STAT = alloc_status)
         IF (alloc_status /= 0) THEN
           PRINT*, "Allocation error"
           CALL abort()
         ENDIF          
         
-        DO i = 1,nbou
+        DO i = 1,nbou_check
           READ(14,*) nbseg,btype  
           IF(nbseg > 0) THEN
             DO j = 1,nbseg-1
