@@ -299,11 +299,15 @@
 
         CALL read_solution_snap(file_unit,nrow,ncol,trnspse,map,read_stat,ttemp,solution(:,:,tstep))
         
-        IF(read_stat < 0 .or. tstep == nsnap_read) THEN
+        IF(read_stat < 0) THEN                  
           EXIT 
-        ELSE  
-          t(tstep) = ttemp
-        ENDIF  
+        ENDIF
+        
+        t(tstep) = ttemp
+        
+        IF (tstep == nsnap_read) THEN        
+          EXIT
+        ENDIF
                 
       ENDDO                   
       CLOSE(file_unit)
