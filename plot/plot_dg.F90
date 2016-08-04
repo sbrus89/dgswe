@@ -12,9 +12,8 @@
       USE read_write_output, ONLY: read_solution_full
       USE read_dginp, ONLY: read_input,out_direc,p,ctp,hbp,tf, &
                             grid_file,curve_file,cb_file_exists
-      USE plot_mod, ONLY: read_colormap,write_psheader,close_ps,convert_ps, &
-                          scale_coordinates,zoom_box,make_plot,make_movie, &                          
-                          plot_contours,plot_mesh,setup_cbounds                          
+      USE plot_mod, ONLY: read_colormap,setup_cbounds, &
+                          scale_coordinates,zoom_box,make_plot,make_movie                                                                           
       USE evaluate_mod, ONLY: evaluate_depth_solution,evaluate_velocity_solution, &
                               evaluate_basis,find_solution_minmax
       USE labels_mod, ONLY: latex_axes_labels,run_latex,close_tex, &
