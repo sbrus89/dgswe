@@ -12,7 +12,8 @@
                               nxtick,nytick,nctick, &
                               nxdec,nydec,ncdec,ntdec, &
                               dr_xlabel,ds_ylabel,ds_clabel,main_font, &
-                              ncolors,colors                              
+                              ncolors,colors, &
+                              mnpp
       
       IMPLICIT NONE
       
@@ -114,7 +115,8 @@
       
       CALL write_psheader(filename//".ps",fig%ps_unit)          
       IF (fig%cbar_flag == 1) THEN
-        CALL plot_contours(fig%ps_unit,ne,el_type,el_in,xyplt,fig)      
+        CALL plot_filled_contours(fig%ps_unit,ne,el_type,el_in,xyplt,fig)      
+!         CALL plot_line_contours(fig%ps_unit,ne,el_type,el_in,xyplt,fig)          
       ENDIF
       IF (fig%plot_mesh_option == 1) THEN
         CALL plot_mesh(fig%ps_unit,ne,nverts,el_type,el_in,xy,ect)
@@ -344,7 +346,7 @@
       WRITE(file_unit,"(A)") "newpath"      
       WRITE(file_unit,"(A)") "moveto"
       WRITE(file_unit,"(A)") "lineto"
-      WRITE(file_unit,"(A)") ".5 setlinewidth"
+      WRITE(file_unit,"(A)") ".5 setlinewidth 2 setlinejoin"
       WRITE(file_unit,"(A)") "stroke"      
       WRITE(file_unit,"(A)") "} def"       
       
@@ -534,7 +536,7 @@ tail: DO
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-      SUBROUTINE plot_contours(file_unit,ne,el_type,el_in,xy,fig)
+      SUBROUTINE plot_filled_contours(file_unit,ne,el_type,el_in,xy,fig)
       
       IMPLICIT NONE
       
@@ -604,10 +606,113 @@ tail: DO
       ENDDO elem
 
 
-      END SUBROUTINE plot_contours
+      END SUBROUTINE plot_filled_contours
       
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!   
+
+      SUBROUTINE plot_line_contours(file_unit,ne,el_type,el_in,xy,fig)
+      
+      IMPLICIT NONE
+      
+      INTEGER, INTENT(IN) :: file_unit
+      INTEGER, INTENT(IN) :: ne
+      INTEGER, DIMENSION(:), INTENT(IN) :: el_type
+      INTEGER, DIMENSION(:), INTENT(IN) :: el_in
+      REAL(rp), DIMENSION(:,:,:), INTENT(IN) :: xy  
+      TYPE(plot_type), INTENT(IN) :: fig
+
+      
+      INTEGER :: i,j,v
+      INTEGER :: el,nd,dof,lev,tri
+      INTEGER :: et,nv    
+      REAL(rp) :: sol_lev
+      REAL(rp) :: dc
+      INTEGER :: above(3)
+      INTEGER :: n1,n2
+      INTEGER :: nd1,nd2
+      REAL(rp) :: x(2),y(2)
+      INTEGER :: nct(2,mnpp)
+      INTEGER :: ncn(mnpp)
+
+
+      
+       dc = (fig%sol_max-fig%sol_min)/real(nctick-1,rp)                  
+       sol_lev = fig%sol_min      
+       
+levels:DO lev = 1,nctick
+      
+    elem:DO el = 1,ne
+           et = el_type(el)
+           IF (el_in(el) == 0) THEN
+             CYCLE elem
+           ENDIF
+           
+           nct = 0
+           ncn = 0           
+        
+    subtri:DO tri = 1,fig%nptri(et)
+
+             DO v = 1,3  
+   
+               nd = fig%rect(v,tri,et)
+          
+               IF (fig%sol_val(nd,el) >= sol_lev) THEN
+                 above(v) = 1
+               ELSE
+                 above(v) = 0
+               ENDIF
+                
+             ENDDO        
+ 
+ 
+             IF (above(1) == 1 .and. above(2) == 1 .and. above(3) == 1) THEN
+               CYCLE subtri
+             ENDIF
+             
+             IF (above(1) == 0 .and. above(2) == 0 .and. above(3) == 0) THEN
+               CYCLE subtri
+             ENDIF       
+             
+             
+             i = 0 
+             DO v = 1,3
+               n1 = mod(v+0,3)+1
+               n2 = mod(v+1,3)+1
+               
+               IF ((above(n1) == 1 .and. above(n2) == 0) .or. &
+                   (above(n1) == 0 .and. above(n2) == 1)) THEN
+                   
+                 nd1 = fig%rect(n1,tri,et)
+                 nd2 = fig%rect(n2,tri,et)
+                 
+                 i = i + 1
+                 x(i) = 0.5d0*(xy(nd1,el,1) + xy(nd2,el,1))
+                 y(i) = 0.5d0*(xy(nd1,el,2) + xy(nd2,el,2))    
+                 
+                 ncn(nd1) = ncn(nd1) + 1
+                 
+               ENDIF
+             ENDDO
+
+!              IF (i > 2) THEN
+!                PRINT*, "Error: "
+!              ENDIF 
+!              
+             
+             WRITE(file_unit,"(2(F9.5,1x))") x(1),y(1)
+             WRITE(file_unit,"(2(F9.5,1x))") x(2),y(2)     
+             WRITE(file_unit,"(A)") "draw-line"  
+        
+           ENDDO subtri
+         ENDDO elem
+         sol_lev = sol_lev + dc
+      ENDDO levels
+
+      END SUBROUTINE plot_line_contours
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
 
       SUBROUTINE plot_mesh(file_unit,ne,nverts,el_type,el_in,xy,ect)
       
