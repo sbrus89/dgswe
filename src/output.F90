@@ -86,7 +86,7 @@
                          Hwrite,Zwrite,Qxwrite,Qywrite,hbm, &
                          Zout,Qxout,Qyout, &
                          Zsol_unit,Qxsol_unit,Qysol_unit
-      USE read_dginp, ONLY: tf,dt,sol_opt,sol_snap                         
+      USE read_dginp, ONLY: tf,dt,sol_opt,sol_snap,hbp                         
 
       IMPLICIT NONE
 
@@ -94,6 +94,7 @@
       LOGICAL :: init
       INTEGER :: nout_hb
       INTEGER :: hb_unit
+      INTEGER :: ndof_hb
       INTEGER, DIMENSION(3) :: var_start,var_end
       REAL(rp), DIMENSION(1) :: t_tmp
      
@@ -115,8 +116,9 @@
         CALL file_init(out_direc,"Qx.sol",mndof,ne,nout_sol+1,Qxsol_unit)
         CALL file_init(out_direc,"Qy.sol",mndof,ne,nout_sol+1,Qysol_unit) 
         
-        CALL file_init(out_direc,"hb.sol",mnnds,ne,nout_hb,hb_unit)
-        CALL write_solution_snap(hb_unit,mnnds,ne,"N",t,hbm)         
+        ndof_hb = (hbp+1)**2
+        CALL file_init(out_direc,"hb.sol",ndof_hb,ne,nout_hb,hb_unit)
+        CALL write_solution_snap(hb_unit,ndof_hb,ne,"N",t,hbm)         
         CLOSE(hb_unit)
         
         ! Set up netcdf output files

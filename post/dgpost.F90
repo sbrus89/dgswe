@@ -74,7 +74,7 @@
           ALLOCATE(Z_global(tne,ndof,nout_sol+1))
           ALLOCATE(Qx_global(tne,ndof,nout_sol+1))
           ALLOCATE(Qy_global(tne,ndof,nout_sol+1))
-          ALLOCATE(hb_global(tne,ndof,1))
+          ALLOCATE(hb_global(tne,ndof_hb,1))
         ENDIF  
         
         nsnap_sol = 9999
