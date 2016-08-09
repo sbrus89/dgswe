@@ -53,19 +53,21 @@
               PRINT("(A,A)"), "input file path = ", input_path 
               
             CASE (2)
-              READ(temp,*) zeta%plot_sol_option, zeta%plot_mesh_option 
+              READ(temp,*) zeta%plot_sol_option, zeta%plot_mesh_option, zeta%plot_lines_option 
               PRINT("(A,I3)"), "zeta plot option = ", zeta%plot_sol_option 
               PRINT("(A,I3)"), "plot zeta mesh = ", zeta%plot_mesh_option  
+              PRINT("(A,I3)"), "plot zeta contour lines = ", zeta%plot_lines_option               
               
             CASE (3)
-              READ(temp,*) vel%plot_sol_option, vel%plot_mesh_option
+              READ(temp,*) vel%plot_sol_option, vel%plot_mesh_option, vel%plot_lines_option
               PRINT("(A,I3)"), "velocity plot option = ", vel%plot_sol_option
               PRINT("(A,I3)"), "plot velocity mesh = ", vel%plot_mesh_option
-              
+              PRINT("(A,I3)"), "plot velocity contour lines = ", vel%plot_lines_option              
             CASE (4)
-              READ(temp,*) bathy%plot_sol_option, bathy%plot_mesh_option
+              READ(temp,*) bathy%plot_sol_option, bathy%plot_mesh_option, bathy%plot_lines_option
               PRINT("(A,I3)"), "bathymetry plot option = ", bathy%plot_sol_option 
               PRINT("(A,I3)"), "plot bathymetry mesh = ", bathy%plot_mesh_option
+              PRINT("(A,I3)"), "plot bathymetry contour lines = ", bathy%plot_lines_option              
               
             CASE (5)
               READ(temp,*) mesh%plot_mesh_option

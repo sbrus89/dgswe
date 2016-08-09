@@ -1,18 +1,18 @@
 ../work/                                                                                               ! input file path
-1,1                                                                                                    ! zeta plot option 
-1,1                                                                                                    ! velocity plot option1
-1,1                                                                                                    ! bathymetry plot option
+1,1,1                                                                                                    ! zeta plot option 
+1,1,1                                                                                                    ! velocity plot option1
+1,1,1                                                                                                    ! bathymetry plot option
 1                                                                                                      ! mesh plot option
 file                                                                                                   ! mesh plot element labels
-file                                                                                                   ! mesh plot node labels
+all                                                                                                    ! mesh plot node labels
 16                                                                                                     ! order of nodal set for plotting straight elements
 16                                                                                                     ! order of nodal set for plotting curved elements
--1250,1250,-750,750                                                                                    ! zoom box
+all                                                                                                    ! zoom box
 7                                                                                                      ! figure width
-78,78                                                                                                  ! timesnap range
+50,100                                                                                                  ! timesnap range
 /home/sbrus/Codes/dgswe/plot/jet.cmap                                                                  ! colormap path
-auto-snap                                                                                              ! zeta colorscale limits
-auto-all                                                                                               ! velocity colorscale limits
+file                                                                                                   ! zeta colorscale limits
+file                                                                                                   ! velocity colorscale limits
 11                                                                                                     ! font size
 10                                                                                                     ! number of x ticks
 5                                                                                                      ! number of y ticks

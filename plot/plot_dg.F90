@@ -107,7 +107,7 @@
       CALL zoom_box(ne,el_type,nplt,xyplt,xbox_min,xbox_max,ybox_min,ybox_max, &
                                                      xmin,xmax,ymin,ymax,el_in)
       PRINT("(A)"), "Scaling coordinates..."
-      CALL scale_coordinates(ne,nn,el_type,nverts,nplt,figure_width,xmin,xmax,ymin,ymax,xyplt,xy)
+      CALL scale_coordinates(ne,nn,el_type,nverts,nnds,nplt,figure_width,xmin,xmax,ymin,ymax,xyplt,xy,elxy)
 
       
     

@@ -1,5 +1,5 @@
 FC = ifort
-FFLAGS = -I$(ODIR) -traceback -g -C
+FFLAGS = -I$(ODIR) #-traceback -g -C
 
 ODIR = odir/
 
@@ -131,7 +131,7 @@ $(ODIR)convert.o: convert2cartesian.F90                      $(ODIR)globals.o $(
 $(ODIR)adjust.o: adjust_channel_boundaries.f90               $(ODIR)globals.o $(ODIR)grid_file_mod.o 
 	$(FC) $(FFLAGS) -c $< -o $@        
 
-$(ODIR)plot_mod.o: plot_mod.F90                              $(ODIR)globals.o $(ODIR)plot_globals.o $(ODIR)evaluate_mod.o $(ODIR)labels_mod.o $(ODIR)axes_mod.o
+$(ODIR)plot_mod.o: plot_mod.F90                              $(ODIR)globals.o $(ODIR)plot_globals.o $(ODIR)evaluate_mod.o $(ODIR)labels_mod.o $(ODIR)axes_mod.o  $(ODIR)read_input.o $(ODIR)basis.o  $(ODIR)transformation.o
 	$(FC) $(FFLAGS) -c $< -o $@ 	
 	mv plot_mod.mod $(ODIR)
 	
@@ -143,7 +143,7 @@ $(ODIR)labels_mod.o: labels_mod.F90                          $(ODIR)globals.o $(
 	$(FC) $(FFLAGS) -c $< -o $@ 	
 	mv labels_mod.mod $(ODIR)
 	
-$(ODIR)axes_mod.o: axes_mod.F90                              $(ODIR)globals.o $(ODIR)plot_mod.o
+$(ODIR)axes_mod.o: axes_mod.F90                              $(ODIR)globals.o $(ODIR)plot_globals.o
 	$(FC) $(FFLAGS) -c $< -o $@ 	
 	mv axes_mod.mod $(ODIR)	
 	

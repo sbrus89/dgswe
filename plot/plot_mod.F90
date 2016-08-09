@@ -115,8 +115,10 @@
       
       CALL write_psheader(filename//".ps",fig%ps_unit)          
       IF (fig%cbar_flag == 1) THEN
-        CALL plot_filled_contours(fig%ps_unit,ne,el_type,el_in,xyplt,fig)      
-!         CALL plot_line_contours(fig%ps_unit,ne,el_type,el_in,xyplt,fig)          
+        CALL plot_filled_contours(fig%ps_unit,ne,el_type,el_in,xyplt,fig)             
+      ENDIF
+      IF (fig%plot_lines_option == 1) THEN
+        CALL plot_line_contours(fig%ps_unit,ne,el_type,el_in,xyplt,snap,fig)          
       ENDIF
       IF (fig%plot_mesh_option == 1) THEN
         CALL plot_mesh(fig%ps_unit,ne,nverts,el_type,el_in,xy,ect)
@@ -217,7 +219,7 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
 
-      SUBROUTINE scale_coordinates(ne,nn,el_type,nverts,nplt,figure_width,xmin,xmax,ymin,ymax,xyplt,xy)
+      SUBROUTINE scale_coordinates(ne,nn,el_type,nverts,nnds,nplt,figure_width,xmin,xmax,ymin,ymax,xyplt,xy,elxy)
       
       IMPLICIT NONE
       
@@ -225,6 +227,7 @@
       INTEGER, INTENT(IN) :: nn
       INTEGER, DIMENSION(:), INTENT(IN) :: el_type
       INTEGER, DIMENSION(:), INTENT(IN) :: nverts
+      INTEGER, DIMENSION(:), INTENT(IN) :: nnds
       INTEGER, DIMENSION(:), INTENT(IN) :: nplt
       REAL(rp), INTENT(IN) :: figure_width
       REAL(rp), INTENT(IN) :: xmin
@@ -233,9 +236,10 @@
       REAL(rp), INTENT(IN) :: ymax
       REAL(rp), DIMENSION(:,:,:), INTENT(INOUT) :: xyplt
       REAL(rp), DIMENSION(:,:), INTENT(INOUT) :: xy
+      REAL(rp), DIMENSION(:,:,:), INTENT(INOUT) :: elxy      
       
       INTEGER :: el,nd
-      INTEGER :: et,npts,nv
+      INTEGER :: et,npts,nv,nnd
                
       lr_margin =(612d0 - figure_width)/2d0 
       axes_width = figure_width/1.37d0
@@ -271,9 +275,16 @@
         et = el_type(el)
         npts = nplt(et)
         nv = nverts(et)
+        nnd = nnds(et)
+        
         DO nd = 1,npts
           xyplt(nd,el,1) = ax*xyplt(nd,el,1) + bx
           xyplt(nd,el,2) = ay*xyplt(nd,el,2) + by                       
+        ENDDO
+        
+        DO nd = 1,nnd
+          elxy(nd,el,1) = ax*elxy(nd,el,1) + bx
+          elxy(nd,el,2) = ay*elxy(nd,el,2) + by
         ENDDO
       ENDDO
       
@@ -611,7 +622,13 @@ tail: DO
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!   
 
-      SUBROUTINE plot_line_contours(file_unit,ne,el_type,el_in,xy,fig)
+      SUBROUTINE plot_line_contours(file_unit,ne,el_type,el_in,xyplt,snap,fig)
+      
+      USE globals, ONLY: mndof,elxy,xy,ect
+      USE plot_globals, ONLY: Z,hb,Qx,Qy
+      USE read_dginp, ONLY: p,hbp,ctp
+      USE basis, ONLY: tri_basis
+      USE transformation, ONLY: xy2rs,init_vandermonde
       
       IMPLICIT NONE
       
@@ -619,23 +636,41 @@ tail: DO
       INTEGER, INTENT(IN) :: ne
       INTEGER, DIMENSION(:), INTENT(IN) :: el_type
       INTEGER, DIMENSION(:), INTENT(IN) :: el_in
-      REAL(rp), DIMENSION(:,:,:), INTENT(IN) :: xy  
+      REAL(rp), DIMENSION(:,:,:), INTENT(IN) :: xyplt  
+      INTEGER, INTENT(IN) :: snap
       TYPE(plot_type), INTENT(IN) :: fig
 
       
-      INTEGER :: i,j,v
-      INTEGER :: el,nd,dof,lev,tri
-      INTEGER :: et,nv    
+      INTEGER :: i,j,v,it
+      INTEGER :: el,nd,dof,lev,tri,ig
+      INTEGER :: et,nv,ndf,ntry    
       REAL(rp) :: sol_lev
       REAL(rp) :: dc
       INTEGER :: above(3)
+      INTEGER, DIMENSION(:,:), ALLOCATABLE :: el_below
       INTEGER :: n1,n2
       INTEGER :: nd1,nd2
       REAL(rp) :: x(2),y(2)
+      REAL(rp) :: r,s,re(1),se(1)
+      REAL(rp) :: r1,r2,s1,s2
+      REAL(rp) :: t,f,dfdr,dfds,dfdt,dt,t0
       INTEGER :: nct(2,mnpp)
       INTEGER :: ncn(mnpp)
+      INTEGER :: fail_flag(2)
+      REAL(rp) :: phi(mndof,1),dpdr(mndof,1),dpds(mndof,1)
+      REAL(rp) :: xv(3),yv(3)
+      REAL(rp) :: rv(3),sv(3)
+      REAL(rp) :: zeta,bathy,xmom,ymom,H
+      REAL(rp) :: dzdr,dzds,dbdr,dbds,dHdr,dHds
+      REAL(rp) :: dxmdr,dxmds,dymdr,dymds
+      REAL(rp) :: uvel,vvel
+      REAL(rp) :: tol
+      
+      tol = 1d-8
+      ntry = 10
 
-
+      ALLOCATE(el_below(fig%nptri(4),ne))
+      el_below = 0
       
        dc = (fig%sol_max-fig%sol_min)/real(nctick-1,rp)                  
        sol_lev = fig%sol_min      
@@ -652,7 +687,13 @@ levels:DO lev = 1,nctick
            ncn = 0           
         
     subtri:DO tri = 1,fig%nptri(et)
+    
+             IF (el_below(tri,el) == 1) THEN
+               CYCLE subtri
+             ENDIF 
 
+!              PRINT("(3(A,I9))"), "lev = ", lev, " el = ", el, " tri = ",tri
+             
              DO v = 1,3  
    
                nd = fig%rect(v,tri,et)
@@ -671,39 +712,159 @@ levels:DO lev = 1,nctick
              ENDIF
              
              IF (above(1) == 0 .and. above(2) == 0 .and. above(3) == 0) THEN
+               el_below(tri,el) = 1             
                CYCLE subtri
              ENDIF       
              
              
+             DO i = 1,3
+               nd = fig%rect(i,tri,et)
+               xv(i) = xyplt(nd,el,1)
+               yv(i) = xyplt(nd,el,2)
+             ENDDO
+             
+             CALL xy2rs(et,ctp,elxy(:,el,1),elxy(:,el,2),3,xv,yv,rv,sv)
+             
              i = 0 
-             DO v = 1,3
+             fail_flag = 0
+             
+       edge: DO v = 1,3
                n1 = mod(v+0,3)+1
                n2 = mod(v+1,3)+1
-               
+                              
                IF ((above(n1) == 1 .and. above(n2) == 0) .or. &
                    (above(n1) == 0 .and. above(n2) == 1)) THEN
                    
-                 nd1 = fig%rect(n1,tri,et)
-                 nd2 = fig%rect(n2,tri,et)
+                 r1 = rv(n1)
+                 r2 = rv(n2)
+                 s1 = sv(n1)
+                 s2 = sv(n2)   
+                 
+                 dt = 2d0/real(ntry,rp)
+                 t0 = -1d0
+        guesses: DO ig = 1,ntry
+                   
+                 t = t0                 
+                 it = 0
+         newton: DO 
+                   r = .5d0*((1d0-t)*r1 + (1d0+t)*r2)
+                   s = .5d0*((1d0-t)*s1 + (1d0+t)*s2)
+                   re(1) = r
+                   se(1) = s            
+                   
+                   IF (fig%type_flag == 2 .or. fig%type_flag == 4) THEN
+                     CALL tri_basis(hbp,ndf,1,re,se,phi,dpdr,dpds)                          
+                     bathy = 0d0
+                     dbdr = 0d0
+                     dbds = 0d0
+                     DO dof = 1,ndf
+                       bathy = bathy + phi(dof,1)*hb(dof,el,1)
+                       dbdr = dbdr + dpdr(dof,1)*hb(dof,el,1)
+                       dbds = dbds + dpds(dof,1)*hb(dof,el,1)
+                     ENDDO
+                     IF (fig%type_flag == 2) THEN
+                       f = bathy - sol_lev
+                       dfdr = dbdr
+                       dfds = dbds
+                     ENDIF
+                   ENDIF
+                   
+                   IF (fig%type_flag == 3 .or. fig%type_flag == 4) THEN
+                     CALL tri_basis(p,ndf,1,re,se,phi,dpdr,dpds)                          
+                     zeta = 0d0
+                     dzdr = 0d0
+                     dzds = 0d0
+                     DO dof = 1,ndf
+                       zeta = zeta + phi(dof,1)*Z(dof,el,snap)
+                       dzdr = dzdr + dpdr(dof,1)*Z(dof,el,snap)
+                       dzds = dzds + dpds(dof,1)*Z(dof,el,snap)
+                     ENDDO
+                     IF (fig%type_flag == 3) THEN
+                       f = zeta - sol_lev
+                       dfdr = dzdr
+                       dfds = dzds
+                     ENDIF
+                   ENDIF    
+                   
+                   IF (fig%type_flag == 4) THEN
+                     xmom = 0d0
+                     ymom = 0d0
+                     dxmdr = 0d0
+                     dxmds = 0d0
+                     dymdr = 0d0
+                     dymds = 0d0
+                     DO dof = 1,ndf
+                       xmom = xmom + phi(dof,1)*Qx(dof,el,snap)
+                       ymom = ymom + phi(dof,1)*Qy(dof,el,snap)
+                       dxmdr = dxmdr + dpdr(dof,1)*Qx(dof,el,snap)
+                       dxmds = dxmds + dpds(dof,1)*Qx(dof,el,snap)
+                       dymdr = dymdr + dpdr(dof,1)*Qy(dof,el,snap)
+                       dymds = dymds + dpds(dof,1)*Qy(dof,el,snap)
+                     ENDDO
+                     H = zeta + bathy          
+                     dHdr = dzdr + dbdr
+                     dHds = dzds + dbds
+                     uvel = xmom/H
+                     vvel = ymom/H
+                     f = uvel**2 + vvel**2 - sol_lev**2
+                     dfdr = 2d0*(uvel*(dxmdr*H-dHdr*xmom)/H**2 + vvel*(dymdr*H-dHdr*ymom)/H**2)
+                     dfds = 2d0*(uvel*(dxmds*H-dHds*xmom)/H**2 + vvel*(dymds*H-dHds*ymom)/H**2)
+                   ENDIF
+                   
+                   
+                   dfdt = .5d0*(dfdr*(r2-r1) + dfds*(s2-s1))
+                   
+                   t = t - f/dfdt
+                   it = it + 1
+                   
+                   IF (abs(f/dfdt) < tol) THEN
+!                      PRINT*, it
+                     r = .5d0*((1d0-t)*r1 + (1d0+t)*r2)
+                     s = .5d0*((1d0-t)*s1 + (1d0+t)*s2)
+                     IF ((r <= 1d0+tol  .and. r >= -1d0-tol) .and. (s-tol <= -r .and. s >= -1d0-tol)) THEN
+!                        PRINT*, "  Point outside element"
+                       EXIT guesses
+                     ELSE
+                       EXIT newton
+                     ENDIF
+                   ENDIF
+                   
+                   IF (it > 1000) THEN
+!                      PRINT*, "  Max iterations exceeded"
+!                      PRINT*, "r = ",r, " s = ",s
+                     fail_flag(i+1) = 1
+                     EXIT newton
+                   ENDIF
+                   
+                 ENDDO newton
+                 
+                 t0 = t0 + dt
+                 ENDDO guesses
                  
                  i = i + 1
-                 x(i) = 0.5d0*(xy(nd1,el,1) + xy(nd2,el,1))
-                 y(i) = 0.5d0*(xy(nd1,el,2) + xy(nd2,el,2))    
+                 x(i) = .5d0*(-(r+s)*xy(1,ect(1,el)) + (1d0+r)*xy(1,ect(2,el)) + (1d0+s)*xy(1,ect(3,el)))
+                 y(i) = .5d0*(-(r+s)*xy(2,ect(1,el)) + (1d0+r)*xy(2,ect(2,el)) + (1d0+s)*xy(2,ect(3,el)))
                  
-                 ncn(nd1) = ncn(nd1) + 1
+!                  i = i + 1
+!                  nd1 = fig%rect(n1,tri,et)
+!                  nd2 = fig%rect(n2,tri,et)                 
+!                  x(i) = 0.5d0*(xyplt(nd1,el,1) + xyplt(nd2,el,1))
+!                  y(i) = 0.5d0*(xyplt(nd1,el,2) + xyplt(nd2,el,2))    
+                 
                  
                ENDIF
-             ENDDO
+             ENDDO edge
 
 !              IF (i > 2) THEN
 !                PRINT*, "Error: "
 !              ENDIF 
 !              
+             IF (fail_flag(1) == 0 .and. fail_flag(2) == 0) THEN
+               WRITE(file_unit,"(2(F9.5,1x))") x(1),y(1)
+               WRITE(file_unit,"(2(F9.5,1x))") x(2),y(2)     
+               WRITE(file_unit,"(A)") "draw-line"  
+             ENDIF
              
-             WRITE(file_unit,"(2(F9.5,1x))") x(1),y(1)
-             WRITE(file_unit,"(2(F9.5,1x))") x(2),y(2)     
-             WRITE(file_unit,"(A)") "draw-line"  
-        
            ENDDO subtri
          ENDDO elem
          sol_lev = sol_lev + dc
