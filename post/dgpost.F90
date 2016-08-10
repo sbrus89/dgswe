@@ -77,8 +77,9 @@
           ALLOCATE(hb_global(tne,ndof_hb,1))
         ENDIF  
         
-        nsnap_sol = 9999
+        nsnap_sol = 1
         CALL read_solution_full(pe_direc,'hb.sol',"T",t_sol,hb_global,nsnap_sol,lel2gel)
+        nsnap_sol = 9999
         CALL read_solution_full(pe_direc,'Z.sol',"T",t_sol,Z_global,nsnap_sol,lel2gel)       
         CALL read_solution_full(pe_direc,'Qx.sol',"T",t_sol,Qx_global,nsnap_sol,lel2gel)           
         CALL read_solution_full(pe_direc,'Qy.sol',"T",t_sol,Qy_global,nsnap_sol,lel2gel)        
@@ -115,8 +116,9 @@
           ALLOCATE(hbsta_global(nsta,1,1))
         ENDIF
         
-        nsnap_sta = 9999
+        nsnap_sta = 1
         CALL read_solution_full(pe_direc,'hb.sta',"N",t_sta,hbsta_global,nsnap_sta,sta_l2g)
+        nsnap_sta = 9999
         CALL read_solution_full(pe_direc,'Z.sta',"N",t_sta,Zsta_global,nsnap_sta,sta_l2g) 
         CALL read_solution_full(pe_direc,'Qx.sta',"N",t_sta,Qxsta_global,nsnap_sta,sta_l2g) 
         CALL read_solution_full(pe_direc,'Qy.sta',"N",t_sta,Qysta_global,nsnap_sta,sta_l2g)      
