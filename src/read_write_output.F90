@@ -299,7 +299,8 @@
 
         CALL read_solution_snap(file_unit,nrow,ncol,trnspse,map,read_stat,ttemp,solution(:,:,tstep))
         
-        IF(read_stat < 0) THEN                  
+        IF(read_stat < 0) THEN  
+          tstep = tstep - 1
           EXIT 
         ENDIF
         
