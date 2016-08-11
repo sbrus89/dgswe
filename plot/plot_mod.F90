@@ -32,7 +32,7 @@
                          nbou,fbseg,fbnds, &
                          nnfbed,nfbedn,ged2el      
       USE plot_globals, ONLY: el_in,t_start,t_end,xyplt, &
-                              frmt,density
+                              frmt,density,pc
       USE evaluate_mod, ONLY: evaluate_depth_solution,evaluate_velocity_solution  
       USE labels_mod, ONLY: latex_axes_labels,run_latex, & 
                             latex_element_labels,latex_node_labels
@@ -121,7 +121,7 @@
         CALL plot_line_contours(fig%ps_unit,ne,el_type,el_in,xyplt,snap,fig)          
       ENDIF
       IF (fig%plot_mesh_option == 1) THEN
-        CALL plot_mesh(fig%ps_unit,ne,nverts,el_type,el_in,xy,ect)
+        CALL plot_mesh(fig%ps_unit,ne,nverts,pc,el_type,el_in,xy,ect,xyplt)
       ENDIF 
       
       CALL write_all_axes(fig%ps_unit,fig%cbar_flag,fig%tbar_flag,t_snap,t_start,t_end)               
@@ -624,11 +624,12 @@ tail: DO
 
       SUBROUTINE plot_line_contours(file_unit,ne,el_type,el_in,xyplt,snap,fig)
       
-      USE globals, ONLY: mndof,elxy,xy,ect
+      USE globals, ONLY: mndof,elxy,xy,ect,np,mnnds
       USE plot_globals, ONLY: Z,hb,Qx,Qy
-      USE read_dginp, ONLY: p,hbp,ctp
+      USE read_dginp, ONLY: p,hbp
       USE basis, ONLY: tri_basis
-      USE transformation, ONLY: xy2rs,init_vandermonde
+      USE transformation, ONLY: xy2rs,init_vandermonde,element_transformation
+      USE shape_functions_mod, ONLY: shape_functions_area_eval, shape_functions_edge_eval
       
       IMPLICIT NONE
       
@@ -641,9 +642,9 @@ tail: DO
       TYPE(plot_type), INTENT(IN) :: fig
 
       
-      INTEGER :: i,j,v,it
+      INTEGER :: i,j,vrt,it
       INTEGER :: el,nd,dof,lev,tri,ig
-      INTEGER :: et,nv,ndf,ntry    
+      INTEGER :: et,nv,ndf,ntry,nnd    
       REAL(rp) :: sol_lev
       REAL(rp) :: dc
       INTEGER :: above(3)
@@ -651,13 +652,13 @@ tail: DO
       INTEGER :: n1,n2
       INTEGER :: nd1,nd2
       REAL(rp) :: x(2),y(2)
-      REAL(rp) :: r,s,re(1),se(1)
+      REAL(rp) :: r,s,re(2),se(2)
       REAL(rp) :: r1,r2,s1,s2
       REAL(rp) :: t,f,dfdr,dfds,dfdt,dt,t0
-      INTEGER :: nct(2,mnpp)
-      INTEGER :: ncn(mnpp)
-      INTEGER :: fail_flag(2)
-      REAL(rp) :: phi(mndof,1),dpdr(mndof,1),dpds(mndof,1)
+      INTEGER :: max_it
+      INTEGER :: fail_flag
+      REAL(rp) :: phi(mndof,2),dpdr(mndof,1),dpds(mndof,1)
+      REAL(rp) :: l(mnnds,1)
       REAL(rp) :: xv(3),yv(3)
       REAL(rp) :: rv(3),sv(3)
       REAL(rp) :: zeta,bathy,xmom,ymom,H
@@ -665,9 +666,14 @@ tail: DO
       REAL(rp) :: dxmdr,dxmds,dymdr,dymds
       REAL(rp) :: uvel,vvel
       REAL(rp) :: tol
+      REAL(rp) :: hbe(2),Ze(2),ve(2),fe(2)
+      REAL(rp) :: e,a,b,c,w,u,v
       
       tol = 1d-8
       ntry = 10
+      max_it = 1000
+      
+
 
       ALLOCATE(el_below(fig%nptri(4),ne))
       el_below = 0
@@ -682,9 +688,7 @@ levels:DO lev = 1,nctick
            IF (el_in(el) == 0) THEN
              CYCLE elem
            ENDIF
-           
-           nct = 0
-           ncn = 0           
+     
         
     subtri:DO tri = 1,fig%nptri(et)
     
@@ -694,14 +698,14 @@ levels:DO lev = 1,nctick
 
 !              PRINT("(3(A,I9))"), "lev = ", lev, " el = ", el, " tri = ",tri
              
-             DO v = 1,3  
+             DO vrt = 1,3  
    
-               nd = fig%rect(v,tri,et)
+               nd = fig%rect(vrt,tri,et)
           
                IF (fig%sol_val(nd,el) >= sol_lev) THEN
-                 above(v) = 1
+                 above(vrt) = 1
                ELSE
-                 above(v) = 0
+                 above(vrt) = 0
                ENDIF
                 
              ENDDO        
@@ -723,17 +727,16 @@ levels:DO lev = 1,nctick
                yv(i) = xyplt(nd,el,2)
              ENDDO
              
-             CALL xy2rs(et,ctp,elxy(:,el,1),elxy(:,el,2),3,xv,yv,rv,sv)
+             CALL xy2rs(et,np(et),elxy(:,el,1),elxy(:,el,2),3,xv,yv,rv,sv)
              
-             i = 0 
-             fail_flag = 0
+             i = 0             
              
-       edge: DO v = 1,3
-               n1 = mod(v+0,3)+1
-               n2 = mod(v+1,3)+1
+       edge: DO vrt = 1,3
+               n1 = mod(vrt+0,3)+1
+               n2 = mod(vrt+1,3)+1
                               
                IF ((above(n1) == 1 .and. above(n2) == 0) .or. &
-                   (above(n1) == 0 .and. above(n2) == 1)) THEN
+                   (above(n1) == 0 .and. above(n2) == 1)) THEN                   
                    
                  r1 = rv(n1)
                  r2 = rv(n2)
@@ -742,11 +745,13 @@ levels:DO lev = 1,nctick
                  
                  dt = 2d0/real(ntry,rp)
                  t0 = -1d0
+                 fail_flag = 1
         guesses: DO ig = 1,ntry
                    
                  t = t0                 
                  it = 0
          newton: DO 
+         
                    r = .5d0*((1d0-t)*r1 + (1d0+t)*r2)
                    s = .5d0*((1d0-t)*s1 + (1d0+t)*s2)
                    re(1) = r
@@ -817,23 +822,30 @@ levels:DO lev = 1,nctick
                    t = t - f/dfdt
                    it = it + 1
                    
-                   IF (abs(f/dfdt) < tol) THEN
+                   IF (abs(f) < tol) THEN
 !                      PRINT*, it
                      r = .5d0*((1d0-t)*r1 + (1d0+t)*r2)
                      s = .5d0*((1d0-t)*s1 + (1d0+t)*s2)
                      IF ((r <= 1d0+tol  .and. r >= -1d0-tol) .and. (s-tol <= -r .and. s >= -1d0-tol)) THEN
-!                        PRINT*, "  Point outside element"
+                       fail_flag = 0
                        EXIT guesses
                      ELSE
+!                        PRINT*, "  Point outside element"                     
                        EXIT newton
                      ENDIF
                    ENDIF
                    
-                   IF (it > 1000) THEN
-!                      PRINT*, "  Max iterations exceeded"
-!                      PRINT*, "r = ",r, " s = ",s
-                     fail_flag(i+1) = 1
-                     EXIT newton
+                   IF (it > max_it) THEN
+                     r = .5d0*((1d0-t)*r1 + (1d0+t)*r2)
+                     s = .5d0*((1d0-t)*s1 + (1d0+t)*s2)
+                     IF ((r <= 1d0+tol  .and. r >= -1d0-tol) .and. (s-tol <= -r .and. s >= -1d0-tol)) THEN
+                       fail_flag = 0
+                       EXIT guesses
+                     ELSE                   
+!                        PRINT*, "  Max iterations exceeded"
+!                        PRINT*, "r = ",r, " s = ",s
+                       EXIT newton
+                     ENDIF
                    ENDIF
                    
                  ENDDO newton
@@ -842,15 +854,38 @@ levels:DO lev = 1,nctick
                  ENDDO guesses
                  
                  i = i + 1
-                 x(i) = .5d0*(-(r+s)*xy(1,ect(1,el)) + (1d0+r)*xy(1,ect(2,el)) + (1d0+s)*xy(1,ect(3,el)))
-                 y(i) = .5d0*(-(r+s)*xy(2,ect(1,el)) + (1d0+r)*xy(2,ect(2,el)) + (1d0+s)*xy(2,ect(3,el)))
+!                  IF (fail_flag == 0) THEN
+
+                 re(1) = r
+                 se(1) = s
+                 CALL shape_functions_area_eval(et,np(et),nnd,1,re,se,l)
+                 CALL element_transformation(nnd,elxy(:,el,1),elxy(:,el,2),l(:,1),x(i),y(i))
                  
+!                    x(i) = .5d0*(-(r+s)*xy(1,ect(1,el)) + (1d0+r)*xy(1,ect(2,el)) + (1d0+s)*xy(1,ect(3,el)))
+!                    y(i) = .5d0*(-(r+s)*xy(2,ect(1,el)) + (1d0+r)*xy(2,ect(2,el)) + (1d0+s)*xy(2,ect(3,el)))
+!                  ELSE                 
+!                    nd1 = fig%rect(n1,tri,et)
+!                    nd2 = fig%rect(n2,tri,et)                 
+!                    x(i) = 0.5d0*(xyplt(nd1,el,1) + xyplt(nd2,el,1))
+!                    y(i) = 0.5d0*(xyplt(nd1,el,2) + xyplt(nd2,el,2))  
+!                  ENDIF
+                  
+                  IF (fail_flag == 1) THEN
+!                     PRINT*, "  iteration failed ", "r = ",r, " s = ",s    
+!                     PRINT*, rv(1),rv(2),rv(3)
+!                     PRINT*, sv(1),sv(2),sv(3)                    
+                  ELSE 
+!                     PRINT*, "  iteration suceeded ", "r = ",r, " s = ",s  
+                  ENDIF
+                 
+                 
+ 
+               !!!! Edge midpoint !!!!
 !                  i = i + 1
 !                  nd1 = fig%rect(n1,tri,et)
 !                  nd2 = fig%rect(n2,tri,et)                 
 !                  x(i) = 0.5d0*(xyplt(nd1,el,1) + xyplt(nd2,el,1))
-!                  y(i) = 0.5d0*(xyplt(nd1,el,2) + xyplt(nd2,el,2))    
-                 
+!                  y(i) = 0.5d0*(xyplt(nd1,el,2) + xyplt(nd2,el,2))                   
                  
                ENDIF
              ENDDO edge
@@ -859,11 +894,11 @@ levels:DO lev = 1,nctick
 !                PRINT*, "Error: "
 !              ENDIF 
 !              
-             IF (fail_flag(1) == 0 .and. fail_flag(2) == 0) THEN
-               WRITE(file_unit,"(2(F9.5,1x))") x(1),y(1)
-               WRITE(file_unit,"(2(F9.5,1x))") x(2),y(2)     
-               WRITE(file_unit,"(A)") "draw-line"  
-             ENDIF
+
+             WRITE(file_unit,"(2(F9.5,1x))") x(1),y(1)
+             WRITE(file_unit,"(2(F9.5,1x))") x(2),y(2)     
+             WRITE(file_unit,"(A)") "draw-line"  
+
              
            ENDDO subtri
          ENDDO elem
@@ -875,17 +910,19 @@ levels:DO lev = 1,nctick
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
 
-      SUBROUTINE plot_mesh(file_unit,ne,nverts,el_type,el_in,xy,ect)
+      SUBROUTINE plot_mesh(file_unit,ne,nverts,ctp,el_type,el_in,xy,ect,xyplt)
       
       IMPLICIT NONE
       
       INTEGER, INTENT(IN) :: file_unit
       INTEGER, INTENT(IN) :: ne
       INTEGER, DIMENSION(:), INTENT(IN) :: nverts
+      INTEGER, INTENT(IN) :: ctp
       INTEGER, DIMENSION(:), INTENT(IN) :: el_type
       INTEGER, DIMENSION(:), INTENT(IN) :: el_in      
       REAL(rp), DIMENSION(:,:), INTENT(IN) :: xy
       INTEGER, DIMENSION(:,:), INTENT(IN) :: ect
+      REAL(rp), DIMENSION(:,:,:), INTENT(IN) :: xyplt
 
       INTEGER :: el,nd
       INTEGER :: et
@@ -895,11 +932,22 @@ levels:DO lev = 1,nctick
         IF (el_in(el) == 0) THEN
           CYCLE elem
         ENDIF
-        DO nd = 1,nverts(et)
-          WRITE(file_unit,"(2(F9.5,1x))") xy(1,ect(nd,el)),xy(2,ect(nd,el))    
-        ENDDO        
-
-        WRITE(file_unit,"(A)") "draw-element"
+        
+        IF (et <= 2) THEN
+          DO nd = 1,nverts(et)
+            WRITE(file_unit,"(2(F9.5,1x))") xy(1,ect(nd,el)),xy(2,ect(nd,el))    
+          ENDDO                
+          WRITE(file_unit,"(A)") "draw-element"
+        ELSE
+          WRITE(file_unit,"(A)") "newpath"
+          WRITE(file_unit,"(2(F9.5,1x),A)") xyplt(1,el,1),xyplt(1,el,2),"moveto" 
+          DO nd = 2,nverts(et)*ctp
+            WRITE(file_unit,"(2(F9.5,1x),A)") xyplt(nd,el,1),xyplt(nd,el,2), "lineto"
+          ENDDO
+          WRITE(file_unit,"(A)") "closepath"
+          WRITE(file_unit,"(A)") ".5 setlinewidth 2 setlinejoin"
+          WRITE(file_unit,"(A)") "stroke"          
+        ENDIF
       ENDDO elem
 
       END SUBROUTINE plot_mesh
