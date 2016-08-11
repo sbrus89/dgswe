@@ -732,14 +732,60 @@
         xi(p+1) = 1d0
       ENDIF
       
-      m = 1
+!       m = 1
+!       DO i = 1,p+1
+!         DO j = 1,p+1
+!           r(m) = xi(i)
+!           s(m) = xi(j)
+!           m = m+1
+!         ENDDO
+!       ENDDO
+      
+      m = 1         
+      ! Edge 4
       DO i = 1,p+1
-        DO j = 1,p+1
+        j = 1
+        r(m) = xi(i)
+        s(m) = xi(j)
+          
+        m = m+1
+      ENDDO
+        
+      ! Edge 1
+      DO j = 2,p+1
+        i = p+1
+        r(m) = xi(i)
+        s(m) = xi(j)
+          
+        m = m+1
+      ENDDO
+
+      ! Edge 2
+      DO i = p,1,-1
+        j = p+1
+        r(m) = xi(i)
+        s(m) = xi(j)
+          
+        m = m+1      
+      ENDDO
+
+      ! Edge 3
+      DO j = p,2,-1
+        i = 1
+        r(m) = xi(i)
+        s(m) = xi(j)
+        
+        m = m+1
+      ENDDO     
+
+      ! Interior nodes
+      DO i = 2,p
+        DO j = 2,p
           r(m) = xi(i)
           s(m) = xi(j)
           m = m+1
         ENDDO
-      ENDDO
+      ENDDO      
         
 !       ! Do tensor product, ordering the nodes counter-clockwise
 ! 
