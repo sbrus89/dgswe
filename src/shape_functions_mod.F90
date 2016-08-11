@@ -76,7 +76,7 @@
       INTEGER, INTENT(IN) :: npts
       REAL(rp), DIMENSION(:), INTENT(IN) :: xi
       REAL(rp), DIMENSION(:,:), INTENT(OUT) :: psi
-      REAL(rp), DIMENSION(:,:), INTENT(OUT) :: dpdxi
+      REAL(rp), DIMENSION(:,:), OPTIONAL, INTENT(OUT) :: dpdxi
       
       
       
@@ -86,6 +86,13 @@
       REAL(rp) :: phi(npts),dphi(npts)  
       INTEGER :: ipiv(p+1)
       REAL(rp) :: V(p+1,p+1)
+      INTEGER :: calc_derv
+      
+      IF (PRESENT(dpdxi)) THEN
+        calc_derv = 1
+      ELSE 
+        calc_derv = 0
+      ENDIF
        
       ldp = SIZE(psi,1)
       
@@ -94,18 +101,30 @@
       DO i = 0,p
       
         CALL jacobi(0,0,i,xi,npts,phi)
-        CALL djacobi(0,0,i,xi,npts,dphi)
         
         DO pt = 1,npts          
           psi(i+1,pt) = phi(pt)
-          dpdxi(i+1,pt) = dphi(pt)
         ENDDO
       
       ENDDO
 
-      CALL DGESV(n,npts,V,n,ipiv,psi,ldp,info)     
-      CALL DGETRS("N",n,npts,V,n,ipiv,dpdxi,ldp,info)
- 
+      CALL DGESV(n,npts,V,n,ipiv,psi,ldp,info)  
+      
+      
+      
+      IF (calc_derv == 1) THEN
+        DO i = 0,p
+      
+          CALL djacobi(0,0,i,xi,npts,dphi)
+        
+          DO pt = 1,npts          
+            dpdxi(i+1,pt) = dphi(pt)
+          ENDDO
+      
+        ENDDO      
+        
+        CALL DGETRS("N",n,npts,V,n,ipiv,dpdxi,ldp,info)
+      ENDIF 
 
       RETURN
       END SUBROUTINE shape_functions_edge_eval      
