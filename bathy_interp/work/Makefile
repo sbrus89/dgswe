@@ -45,7 +45,7 @@ endif
 
 objects = globals.o kdtree2.o allocation.o basis.o  \
           connect.o curvilinear.o evaluate.o find_element_mod.o sort_mod.o \
-          read_input.o read_grid.o write_results.o \
+          read_input.o read_grid.o write_results.o system.o \
           bathy_interp.o bathymetry_interp_mod.o lapack_interfaces.o interp_check.o \
           grid_file_mod.o shape_functions_mod.o curvilinear_nodes_mod.o  \
           transformation.o vandermonde.o edge_connectivity_mod.o quit.o version.o
@@ -90,6 +90,9 @@ $(ODIR)kdtree2.o: ../../src/kdtree2.F
 $(ODIR)version.o: ../../src/version.F90
 	$(FC) $(FFLAGS) -c $< -o $@
 	mv version.mod $(ODIR)
+
+$(ODIR)system.o: ../../src/system.F90
+	$(FC) $(FFLAGS) -c $< -o $@
 
 $(ODIR)lapack_interfaces.o : ../../src/lapack_interfaces.F90
 	$(FC) $(FFLAGS) -c $< -o $@
