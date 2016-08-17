@@ -155,14 +155,19 @@
       
       INTEGER :: el,pt
       INTEGER :: et,npts
-      INTEGER :: outside
-      REAL(rp) :: xpt,ypt
+      INTEGER :: mnpts
+      INTEGER, DIMENSION(:), ALLOCATABLE :: outside
+      INTEGER :: in_flag
+      REAL(rp) :: xpt,ypt     
       
       
       xmax = -1d10
       ymax = -1d10
       xmin = 1d10
       ymin = 1d10      
+      
+      mnpts = maxval(nplt)
+      ALLOCATE(outside(mnpts))
       
       ALLOCATE(el_in(ne))
       el_in = 1
@@ -193,19 +198,27 @@
           ENDIF          
           
           IF (xpt < xbox_min .or. xpt > xbox_max) THEN
-            outside = outside + 1
+            outside(pt) = 1
             xmin = xbox_min
             xmax = xbox_max
           ENDIF
           
           IF (ypt < ybox_min .or. ypt > ybox_max) THEN
-            outside = outside + 1
+            outside(pt) = 1
             ymin = ybox_min
             ymax = ybox_max
           ENDIF
 
         ENDDO
-        IF (outside >= npts) THEN
+        
+        in_flag = 0
+        DO pt = 1,npts
+          IF (outside(pt) == 0) THEN
+            in_flag = 1
+          ENDIF
+        ENDDO
+        
+        IF (in_flag == 0) THEN
           el_in(el) = 0
         ENDIF
       ENDDO    
