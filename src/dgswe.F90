@@ -117,7 +117,9 @@
         PRINT "(A)", " "
       ENDIF           
       
-      
+#ifdef CMPI      
+      CALL MPI_BARRIER(MPI_COMM_WORLD,ierr)     
+#endif      
 
       DO it = 1,tstep
 
@@ -142,8 +144,7 @@
       
       CALL end_time(t_start,nproc)
       
-      
-
+     
 
       
 !       OPEN(UNIT=101, FILE='CPUtime.log', STATUS='OLD', POSITION='APPEND')
