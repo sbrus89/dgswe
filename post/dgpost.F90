@@ -135,7 +135,7 @@
       
       
       PRINT*, "Writing solutions"
-      CALL write_solution_full(out_direc,'hb.sol',ndof,tne,1,"T",t_sol,hb_global,post)      
+      CALL write_solution_full(out_direc,'hb.sol',ndof_hb,tne,1,"T",t_sol,hb_global,post)      
       CALL write_solution_full(out_direc,'Z.sol',ndof,tne,nsnap_sol,"T",t_sol,Z_global,post)
       CALL write_solution_full(out_direc,'Qx.sol',ndof,tne,nsnap_sol,"T",t_sol,Qx_global,post)      
       CALL write_solution_full(out_direc,'Qy.sol',ndof,tne,nsnap_sol,"T",t_sol,Qy_global,post) 
