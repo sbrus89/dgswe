@@ -683,7 +683,7 @@ tail: DO
       REAL(rp) :: e,a,b,c,w,u,v
       
       tol = 1d-8
-      ntry = 10
+      ntry = 20
       max_it = 1000
       
 
@@ -756,10 +756,10 @@ levels:DO lev = 1,nctick
                  s1 = sv(n1)
                  s2 = sv(n2)   
                  
-                 dt = 2d0/real(ntry,rp)
-                 t0 = -1d0
+                 dt = 1d0/real(ntry,rp)
+                 t0 = 0d0
                  fail_flag = 1
-        guesses: DO ig = 1,ntry
+        guesses: DO ig = 1,2*ntry+1
                    
                  t = t0                 
                  it = 0
@@ -835,62 +835,56 @@ levels:DO lev = 1,nctick
                    t = t - f/dfdt
                    it = it + 1
                    
-                   IF (abs(f) < tol) THEN
+                   IF (abs(f/dfdt) < tol .or. abs(f) < tol) THEN
 !                      PRINT*, it
-                     r = .5d0*((1d0-t)*r1 + (1d0+t)*r2)
-                     s = .5d0*((1d0-t)*s1 + (1d0+t)*s2)
-                     IF ((r <= 1d0+tol  .and. r >= -1d0-tol) .and. (s-tol <= -r .and. s >= -1d0-tol)) THEN
+!                      r = .5d0*((1d0-t)*r1 + (1d0+t)*r2)
+!                      s = .5d0*((1d0-t)*s1 + (1d0+t)*s2)
+!                      IF ((r <= 1d0+tol  .and. r >= -1d0-tol) .and. (s-tol <= -r .and. s >= -1d0-tol)) THEN
+!                        fail_flag = 0
+!                        PRINT*, "t = ", t
+!                        EXIT guesses
+!                       ELSE
+!                        PRINT*, "  Point outside element ", "t = ", t, "r = ",r, " s = ",s                         
+!                        EXIT newton
+!                      ENDIF
+
+                     IF (t <= 1d0+tol .and. t >= -1d0-tol) THEN
+                       r = .5d0*((1d0-t)*r1 + (1d0+t)*r2)
+                       s = .5d0*((1d0-t)*s1 + (1d0+t)*s2)                   
                        fail_flag = 0
                        EXIT guesses
-                     ELSE
-!                        PRINT*, "  Point outside element"                     
+                     ELSE 
+                       PRINT*, "  Point outside edge ", "t = ", t
                        EXIT newton
                      ENDIF
                    ENDIF
                    
-                   IF (it > max_it) THEN
-                     r = .5d0*((1d0-t)*r1 + (1d0+t)*r2)
-                     s = .5d0*((1d0-t)*s1 + (1d0+t)*s2)
-                     IF ((r <= 1d0+tol  .and. r >= -1d0-tol) .and. (s-tol <= -r .and. s >= -1d0-tol)) THEN
-                       fail_flag = 0
-                       EXIT guesses
-                     ELSE                   
-!                        PRINT*, "  Max iterations exceeded"
-!                        PRINT*, "r = ",r, " s = ",s
-                       EXIT newton
-                     ENDIF
+                   IF (it > max_it) THEN     
+!                    PRINT*, "  Max iterations exceeded"
+                     EXIT newton
                    ENDIF
                    
                  ENDDO newton
                  
-                 t0 = t0 + dt
+                 t0 = t0*-1d0                 
+                 IF (mod(ig,2) == 1) THEN
+                   t0 = t0 + dt
+                 ENDIF
+                 
                  ENDDO guesses
                  
                  i = i + 1
-!                  IF (fail_flag == 0) THEN
-
-                 re(1) = r
-                 se(1) = s
+                 IF (fail_flag == 0) THEN
+                   re(1) = r
+                   se(1) = s
+                 ELSE                
+                   PRINT*, "  iteration failed ", "r = ",r, " s = ",s 
+                   re(1) = .5d0*(r1+r2)
+                   se(1) = .5d0*(s1+s2)
+                 ENDIF
+ 
                  CALL shape_functions_area_eval(et,np(et),nnd,1,re,se,l)
-                 CALL element_transformation(nnd,elxy(:,el,1),elxy(:,el,2),l(:,1),x(i),y(i))
-                 
-!                    x(i) = .5d0*(-(r+s)*xy(1,ect(1,el)) + (1d0+r)*xy(1,ect(2,el)) + (1d0+s)*xy(1,ect(3,el)))
-!                    y(i) = .5d0*(-(r+s)*xy(2,ect(1,el)) + (1d0+r)*xy(2,ect(2,el)) + (1d0+s)*xy(2,ect(3,el)))
-!                  ELSE                 
-!                    nd1 = fig%rect(n1,tri,et)
-!                    nd2 = fig%rect(n2,tri,et)                 
-!                    x(i) = 0.5d0*(xyplt(nd1,el,1) + xyplt(nd2,el,1))
-!                    y(i) = 0.5d0*(xyplt(nd1,el,2) + xyplt(nd2,el,2))  
-!                  ENDIF
-                  
-                  IF (fail_flag == 1) THEN
-!                     PRINT*, "  iteration failed ", "r = ",r, " s = ",s    
-!                     PRINT*, rv(1),rv(2),rv(3)
-!                     PRINT*, sv(1),sv(2),sv(3)                    
-                  ELSE 
-!                     PRINT*, "  iteration suceeded ", "r = ",r, " s = ",s  
-                  ENDIF
-                 
+                 CALL element_transformation(nnd,elxy(:,el,1),elxy(:,el,2),l(:,1),x(i),y(i))   
                  
  
                !!!! Edge midpoint !!!!
