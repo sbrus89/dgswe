@@ -7,8 +7,11 @@
       CHARACTER(100) :: tsnap_spec
       CHARACTER(3) :: frmt
       CHARACTER(3) :: density
-
-
+      
+      INTEGER :: substitute_path
+      CHARACTER(100) :: replace_path
+      CHARACTER(100) :: sub_path
+      
       INTEGER :: coord_sys
       REAL(rp) :: slam0,sphi0      
       REAL(rp) :: xmin,xmax

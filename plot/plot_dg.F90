@@ -41,6 +41,10 @@
       ENDIF    
       
       CALL read_input(0,input_path)
+      IF (substitute_path == 1) THEN
+        CALL substitute_partial_path(grid_file,replace_path,sub_path)
+        CALL substitute_partial_path(curve_file,replace_path,sub_path)    
+      ENDIF
       
       CALL sizes()
       CALL setup_plot_types()
