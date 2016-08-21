@@ -1,5 +1,5 @@
 FC = ifort
-FFLAGS = -I$(ODIR) #-traceback -g -C
+FFLAGS = -I$(ODIR) #-O0 # -traceback -g -C # -fp-model strict
 
 ODIR = odir/
 
@@ -135,7 +135,7 @@ $(ODIR)plot_mod.o: plot_mod.F90                              $(ODIR)globals.o $(
 	$(FC) $(FFLAGS) -c $< -o $@ 	
 	mv plot_mod.mod $(ODIR)
 	
-$(ODIR)evaluate_mod.o: evaluate_mod.F90                      $(ODIR)globals.o $(ODIR)triangulation.o  $(ODIR)basis.o 
+$(ODIR)evaluate_mod.o: evaluate_mod.F90                      $(ODIR)globals.o $(ODIR)basis.o  $(ODIR)triangulation.o
 	$(FC) $(FFLAGS) -c $< -o $@ 	
 	mv evaluate_mod.mod $(ODIR)	
 	
@@ -147,5 +147,5 @@ $(ODIR)axes_mod.o: axes_mod.F90                              $(ODIR)globals.o $(
 	$(FC) $(FFLAGS) -c $< -o $@ 	
 	mv axes_mod.mod $(ODIR)	
 	
-$(ODIR)plot.o: plot_dg.F90                                   $(ODIR)plot_globals.o $(ODIR)globals.o $(ODIR)grid_file_mod.o $(ODIR)plot_mod.o $(ODIR)evaluate_mod.o $(ODIR)labels_mod.o $(ODIR)basis.o $(ODIR)read_write_output.o $(ODIR)read_input.o
+$(ODIR)plot.o: plot_dg.F90                                   $(ODIR)plot_globals.o $(ODIR)globals.o $(ODIR)grid_file_mod.o $(ODIR)plot_mod.o $(ODIR)evaluate_mod.o $(ODIR)labels_mod.o $(ODIR)basis.o $(ODIR)read_write_output.o $(ODIR)read_input.o 
 	$(FC) $(FFLAGS) -c $< -o $@       

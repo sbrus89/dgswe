@@ -29,7 +29,7 @@
       
       INTEGER :: start_snap,end_snap
       
-      space = 0  
+      space = 1  
       
       CALL read_plot_input()
       
@@ -76,11 +76,11 @@
 !       CALL find_element_init(nel_type,nverts,np,nnds,nn,xy,nepn,epn)      
       
       PRINT("(A)"), "Calculating additional ploting point coordinates..."
-      ALLOCATE(r(mnpp),s(mnpp))      
+      ALLOCATE(r(mnpp,nel_type),s(mnpp,nel_type))      
       ALLOCATE(psic(mnnds,mnpp,nel_type))
       DO et = 1,nel_type     
-        CALL element_nodes(et,space,pplt(et),npts,r,s)                  
-        CALL shape_functions_area_eval(et,np(et),nnd,npts,r,s,psic(:,:,et))     
+        CALL element_nodes(et,space,pplt(et),npts,r(:,et),s(:,et))                  
+        CALL shape_functions_area_eval(et,np(et),nnd,npts,r(:,et),s(:,et),psic(:,:,et))     
       ENDDO                                    
            
       ALLOCATE(xyplt(mnpp,ne,2))

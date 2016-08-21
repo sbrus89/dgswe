@@ -31,7 +31,7 @@
       USE globals, ONLY: ne,nn,nverts,el_type,xy,ect, &
                          nbou,fbseg,fbnds, &
                          nnfbed,nfbedn,ged2el      
-      USE plot_globals, ONLY: el_in,t_start,t_end,xyplt, &
+      USE plot_globals, ONLY: el_in,t_start,t_end,xyplt,r,s, &
                               frmt,density,pc
       USE evaluate_mod, ONLY: evaluate_depth_solution,evaluate_velocity_solution  
       USE labels_mod, ONLY: latex_axes_labels,run_latex, & 
@@ -118,7 +118,7 @@
         CALL plot_filled_contours(fig%ps_unit,ne,el_type,el_in,xyplt,fig)             
       ENDIF
       IF (fig%plot_lines_option == 1) THEN
-        CALL plot_line_contours(fig%ps_unit,ne,el_type,el_in,xyplt,snap,fig)          
+        CALL plot_line_contours(fig%ps_unit,ne,el_type,el_in,xyplt,r,s,snap,fig)          
       ENDIF
       IF (fig%plot_mesh_option == 1) THEN
         CALL plot_mesh(fig%ps_unit,ne,nverts,pc,el_type,el_in,xy,ect,xyplt)
@@ -635,7 +635,7 @@ tail: DO
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!   
 
-      SUBROUTINE plot_line_contours(file_unit,ne,el_type,el_in,xyplt,snap,fig)
+      SUBROUTINE plot_line_contours(file_unit,ne,el_type,el_in,xyplt,rre,sre,snap,fig)
       
       USE globals, ONLY: mndof,elxy,xy,ect,np,mnnds
       USE plot_globals, ONLY: Z,hb,Qx,Qy
@@ -651,6 +651,8 @@ tail: DO
       INTEGER, DIMENSION(:), INTENT(IN) :: el_type
       INTEGER, DIMENSION(:), INTENT(IN) :: el_in
       REAL(rp), DIMENSION(:,:,:), INTENT(IN) :: xyplt  
+      REAL(rp), DIMENSION(:,:), INTENT(IN) :: rre
+      REAL(rp), DIMENSION(:,:), INTENT(IN) :: sre
       INTEGER, INTENT(IN) :: snap
       TYPE(plot_type), INTENT(IN) :: fig
 
@@ -715,7 +717,7 @@ levels:DO lev = 1,nctick
    
                nd = fig%rect(vrt,tri,et)
           
-               IF (fig%sol_val(nd,el) >= sol_lev) THEN
+               IF (fig%sol_val(nd,el) > sol_lev) THEN
                  above(vrt) = 1
                ELSE
                  above(vrt) = 0
@@ -736,11 +738,13 @@ levels:DO lev = 1,nctick
              
              DO i = 1,3
                nd = fig%rect(i,tri,et)
-               xv(i) = xyplt(nd,el,1)
-               yv(i) = xyplt(nd,el,2)
+!                xv(i) = xyplt(nd,el,1)
+!                yv(i) = xyplt(nd,el,2)
+                 rv(i) = rre(nd,et)
+                 sv(i) = sre(nd,et)
              ENDDO
              
-             CALL xy2rs(et,np(et),elxy(:,el,1),elxy(:,el,2),3,xv,yv,rv,sv)
+!              CALL xy2rs(et,np(et),elxy(:,el,1),elxy(:,el,2),3,xv,yv,rv,sv)
              
              i = 0             
              
@@ -750,6 +754,10 @@ levels:DO lev = 1,nctick
                               
                IF ((above(n1) == 1 .and. above(n2) == 0) .or. &
                    (above(n1) == 0 .and. above(n2) == 1)) THEN                   
+                   
+                  IF (snap == 6 .and. el == 3691) THEN
+                    PRINT*, tri,vrt
+                  ENDIF
                    
                  r1 = rv(n1)
                  r2 = rv(n2)
@@ -835,26 +843,20 @@ levels:DO lev = 1,nctick
                    t = t - f/dfdt
                    it = it + 1
                    
-                   IF (abs(f/dfdt) < tol .or. abs(f) < tol) THEN
-!                      PRINT*, it
-!                      r = .5d0*((1d0-t)*r1 + (1d0+t)*r2)
-!                      s = .5d0*((1d0-t)*s1 + (1d0+t)*s2)
-!                      IF ((r <= 1d0+tol  .and. r >= -1d0-tol) .and. (s-tol <= -r .and. s >= -1d0-tol)) THEN
-!                        fail_flag = 0
-!                        PRINT*, "t = ", t
-!                        EXIT guesses
-!                       ELSE
-!                        PRINT*, "  Point outside element ", "t = ", t, "r = ",r, " s = ",s                         
-!                        EXIT newton
-!                      ENDIF
+                   
+                   IF (abs(f) < tol) THEN
 
-                     IF (t <= 1d0+tol .and. t >= -1d0-tol) THEN
+
+                     IF (t <= 1d0+tol .and. t >= -(1d0+tol)) THEN
                        r = .5d0*((1d0-t)*r1 + (1d0+t)*r2)
                        s = .5d0*((1d0-t)*s1 + (1d0+t)*s2)                   
-                       fail_flag = 0
+                       fail_flag = 0           
+!                        PRINT*, "Iteration successful"
                        EXIT guesses
-                     ELSE 
-                       PRINT*, "  Point outside edge ", "t = ", t
+                     ELSE                 
+!                        PRINT("(4(A,I9))"), "  Point outside edge     lev = ", lev, " el = ", el, " tri = ",tri, " vrt = ",vrt
+!                        PRINT("(A,F12.6,A,I5,A,E24.17,A,E24.17)"), "      t0 = ", t0, "  it = ", it,"  t = ", t, "  f = ", f
+!                        PRINT*, ""     
                        EXIT newton
                      ENDIF
                    ENDIF
@@ -897,10 +899,11 @@ levels:DO lev = 1,nctick
                ENDIF
              ENDDO edge
 
-!              IF (i > 2) THEN
-!                PRINT*, "Error: "
-!              ENDIF 
-!              
+             IF (i > 2) THEN
+               PRINT*, "Error: "
+               STOP
+             ENDIF 
+             
 
              WRITE(file_unit,"(2(F9.5,1x))") x(1),y(1)
              WRITE(file_unit,"(2(F9.5,1x))") x(2),y(2)     

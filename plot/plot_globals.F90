@@ -82,7 +82,7 @@
       REAL(rp), TARGET :: t_snap
       REAL(rp) :: t_start,t_end
       REAL(rp), ALLOCATABLE, DIMENSION(:) :: t      
-      REAL(rp), ALLOCATABLE, DIMENSION(:) :: r,s      
+      REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: r,s      
       REAL(rp), DIMENSION(:,:,:), ALLOCATABLE :: xyplt   
       INTEGER :: outside
       INTEGER, DIMENSION(:), ALLOCATABLE :: el_in
