@@ -11,13 +11,14 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
 
-      SUBROUTINE evaluate_depth_solution(ne,el_type,el_in,H,fig)
+      SUBROUTINE evaluate_depth_solution(ne,el_type,el_in,npplt,H,fig)
       
       IMPLICIT NONE
       
       INTEGER, INTENT(IN) :: ne
       INTEGER, DIMENSION(:), INTENT(IN) :: el_type
       INTEGER, DIMENSION(:), INTENT(IN) :: el_in
+      INTEGER, DIMENSION(:), INTENT(IN) :: npplt
       REAL(rp), DIMENSION(:,:), INTENT(IN) :: H
       TYPE(plot_type), INTENT(INOUT) :: fig
       
@@ -26,7 +27,7 @@
       INTEGER :: mnpp
       
       IF ( .NOT. ALLOCATED(fig%sol_val)) THEN
-        mnpp = MAXVAL(fig%npnd)
+        mnpp = MAXVAL(npplt)
         ALLOCATE(fig%sol_val(mnpp,ne)) 
       ENDIF
       
@@ -40,7 +41,7 @@
         ENDIF
         
         et = el_type(el)
-        npts = fig%npnd(et)
+        npts = npplt(et)
         ndf = fig%ndof(et)
 
         
@@ -67,13 +68,14 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-      SUBROUTINE evaluate_velocity_solution(ne,el_type,el_in,Qx,Qy,Z_val,hb_val,vel)
+      SUBROUTINE evaluate_velocity_solution(ne,el_type,el_in,npplt,Qx,Qy,Z_val,hb_val,vel)
       
       IMPLICIT NONE
       
       INTEGER, INTENT(IN) :: ne
       INTEGER, DIMENSION(:), INTENT(IN) :: el_type
       INTEGER, DIMENSION(:), INTENT(IN) :: el_in
+      INTEGER, DIMENSION(:), INTENT(IN) :: npplt
       REAL(rp), DIMENSION(:,:), INTENT(IN) :: Qx
       REAL(rp), DIMENSION(:,:), INTENT(IN) :: Qy      
       REAL(rp), DIMENSION(:,:), INTENT(IN) :: Z_val
@@ -86,7 +88,7 @@
       INTEGER :: mnpp
       
       IF ( .NOT. ALLOCATED(vel%sol_val)) THEN
-        mnpp = MAXVAL(vel%npnd)
+        mnpp = MAXVAL(npplt)
         ALLOCATE(vel%sol_val(mnpp,ne)) 
       ENDIF
       
@@ -100,7 +102,7 @@
         ENDIF
         
         et = el_type(el)
-        npts = vel%npnd(et)
+        npts = npplt(et)
         ndf = vel%ndof(et)
         
         DO nd = 1,npts
@@ -131,41 +133,31 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-      SUBROUTINE evaluate_basis(p,space,mnpp,mndof,nel_type,pplt,sol)
+      SUBROUTINE evaluate_basis(p,mnpp,mndof,nel_type,npplt,r,s,sol)
       
-      USE basis, ONLY: element_nodes,element_basis      
-      USE triangulation, ONLY: reference_element_delaunay      
+      USE basis, ONLY: element_nodes,element_basis          
       
       IMPLICIT NONE
       
       INTEGER, INTENT(IN) :: p
-      INTEGER, INTENT(IN) :: space
       INTEGER, INTENT(IN) :: mnpp
       INTEGER, INTENT(IN) :: mndof
       INTEGER, INTENT(IN) :: nel_type
-      INTEGER, DIMENSION(:), INTENT(IN) :: pplt
+      INTEGER, DIMENSION(:), INTENT(IN) :: npplt
+      REAL(rp), DIMENSION(:,:), INTENT(IN) :: r
+      REAL(rp), DIMENSION(:,:), INTENT(IN) :: s
       TYPE(plot_type), INTENT(INOUT) :: sol
       
       INTEGER :: i,j
       INTEGER :: et
       INTEGER :: n
-      REAL(rp), DIMENSION(:), ALLOCATABLE :: r,s
-      
-      
-      ALLOCATE(r(mnpp),s(mnpp))
-      ALLOCATE(sol%phi(mndof,mnpp,nel_type))    
-      ALLOCATE(sol%rect(3,3*mnpp,nel_type))
-      DO et = 1,nel_type
-        CALL element_nodes(et,space,pplt(et),n,r,s)
-        CALL element_basis(et,p,sol%ndof(et),n,r,s,sol%phi(:,:,et))       
-        CALL reference_element_delaunay(n,r,s,sol%nptri(et),sol%rect(:,:,et))
-        sol%npnd(et) = n
-!         DO i = 1,3
-!           PRINT "(*(I5))", (rect(i,j,et), j = 1,nptri(et))
-!         ENDDO    
-!         PRINT*, ""
 
-        PRINT("(4(A,I4))"), "  number of additional nodes/sub-triangles: ", n,"/",sol%nptri(et)
+      
+      ALLOCATE(sol%phi(mndof,mnpp,nel_type))    
+
+      DO et = 1,nel_type
+
+        CALL element_basis(et,p,sol%ndof(et),npplt(et),r(:,et),s(:,et),sol%phi(:,:,et))       
 
       ENDDO           
       
@@ -175,13 +167,14 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-      SUBROUTINE find_solution_minmax(ne,el_type,el_in,fig,Z,hb,Qx,Qy)
+      SUBROUTINE find_solution_minmax(ne,el_type,el_in,npplt,fig,Z,hb,Qx,Qy)
       
       IMPLICIT NONE
       
       INTEGER, INTENT(IN) :: ne
       INTEGER, DIMENSION(:), INTENT(IN) :: el_type
       INTEGER, DIMENSION(:), INTENT(IN) :: el_in
+      INTEGER, DIMENSION(:), INTENT(IN) :: npplt      
       TYPE(plot_type), INTENT(INOUT) :: fig
       REAL(rp), DIMENSION(:,:), INTENT(INOUT) :: Z           
       REAL(rp), DIMENSION(:,:), INTENT(INOUT), OPTIONAL :: hb      
@@ -192,7 +185,7 @@
       
       
       IF (fig%type_flag == 3) THEN       
-        CALL evaluate_depth_solution(ne,el_type,el_in,Z,fig)      
+        CALL evaluate_depth_solution(ne,el_type,el_in,npplt,Z,fig)      
       ENDIF
       
       IF (fig%plot_sol_option /= 1) THEN
@@ -200,7 +193,7 @@
       ENDIF
 
       IF (fig%type_flag == 4 .AND. fig%cscale_option == "auto-all") THEN      
-        CALL evaluate_velocity_solution(ne,el_type,el_in,Qx,Qy,Z,hb,fig)
+        CALL evaluate_velocity_solution(ne,el_type,el_in,npplt,Qx,Qy,Z,hb,fig)
       ENDIF      
       
       

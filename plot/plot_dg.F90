@@ -20,6 +20,7 @@
                             latex_element_labels,latex_node_labels  
       USE axes_mod, ONLY: write_all_axes                            
                           
+      USE triangulation, ONLY: reference_element_delaunay                            
       USE edge_connectivity_mod
       USE curvilinear_nodes_mod
       USE transformation
@@ -78,16 +79,26 @@
       PRINT("(A)"), "Calculating additional ploting point coordinates..."
       ALLOCATE(r(mnpp,nel_type),s(mnpp,nel_type))      
       ALLOCATE(psic(mnnds,mnpp,nel_type))
+      ALLOCATE(rect(3,3*mnpp,nel_type))      
       DO et = 1,nel_type     
         CALL element_nodes(et,space,pplt(et),npts,r(:,et),s(:,et))                  
-        CALL shape_functions_area_eval(et,np(et),nnd,npts,r(:,et),s(:,et),psic(:,:,et))     
+        CALL shape_functions_area_eval(et,np(et),nnd,npts,r(:,et),s(:,et),psic(:,:,et))  
+        CALL reference_element_delaunay(npts,r(:,et),s(:,et),nptri(et),rect(:,:,et))        
+        
+!         DO i = 1,3
+!           PRINT "(*(I5))", (rect(i,j,et), j = 1,nptri(et))
+!         ENDDO    
+!         PRINT*, ""
+
+        PRINT("(4(A,I4))"), "  number of additional nodes/sub-triangles: ", n,"/",nptri(et)
+        
       ENDDO                                    
            
       ALLOCATE(xyplt(mnpp,ne,2))
       DO el = 1,ne      
         et = el_type(el)                          
         nnd = nnds(et)
-        npts = nplt(et)
+        npts = npplt(et)
         DO pt = 1,npts              
           CALL element_transformation(nnd,elxy(:,el,1),elxy(:,el,2),psic(:,pt,et),xpt,ypt)           
           xyplt(pt,el,1) = xpt
@@ -97,9 +108,9 @@
              
       
       PRINT("(A)"), "Evaluating reference element coordinate information..."
-      CALL evaluate_basis(p,space,mnpp,mndof,nel_type,pplt,zeta)
-      CALL evaluate_basis(hbp,space,mnpp,mndof,nel_type,pplt,bathy)
-      CALL evaluate_basis(p,space,mnpp,mndof,nel_type,pplt,vel)
+      CALL evaluate_basis(p,mnpp,mndof,nel_type,npplt,r,s,zeta)
+      CALL evaluate_basis(hbp,mnpp,mndof,nel_type,npplt,r,s,bathy)
+      CALL evaluate_basis(p,mnpp,mndof,nel_type,npplt,r,s,vel)
       
       
       
@@ -108,10 +119,10 @@
       
       
       PRINT("(A)"), "Finding zoom box..."
-      CALL zoom_box(ne,el_type,nplt,xyplt,xbox_min,xbox_max,ybox_min,ybox_max, &
+      CALL zoom_box(ne,el_type,npplt,xyplt,xbox_min,xbox_max,ybox_min,ybox_max, &
                                                      xmin,xmax,ymin,ymax,el_in)
       PRINT("(A)"), "Scaling coordinates..."
-      CALL scale_coordinates(ne,nn,el_type,nverts,nnds,nplt,figure_width,xmin,xmax,ymin,ymax,xyplt,xy,elxy)
+      CALL scale_coordinates(ne,nn,el_type,nverts,nnds,npplt,figure_width,xmin,xmax,ymin,ymax,xyplt,xy,elxy)
 
       
     
@@ -186,9 +197,9 @@
       IF (zeta%cscale_option == "auto-all" .or. vel%cscale_option == "auto-all") THEN
         DO snap = snap_start,snap_end
         
-          CALL find_solution_minmax(ne,el_type,el_in,zeta,Z(:,:,snap))
+          CALL find_solution_minmax(ne,el_type,el_in,npplt,zeta,Z(:,:,snap))
         
-          CALL find_solution_minmax(ne,el_type,el_in,vel,zeta%sol_val,bathy%sol_val,Qx(:,:,snap),Qy(:,:,snap))
+          CALL find_solution_minmax(ne,el_type,el_in,npplt,vel,zeta%sol_val,bathy%sol_val,Qx(:,:,snap),Qy(:,:,snap))
         
         ENDDO
       ENDIF

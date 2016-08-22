@@ -67,10 +67,11 @@
       INTEGER :: ps
       INTEGER :: pc
       INTEGER :: pplt(4)
-      INTEGER :: nplt(4)
+      INTEGER :: npplt(4)
+      INTEGER :: nptri(4)
       INTEGER :: mnpp
       INTEGER :: nred 
-
+      
       INTEGER :: ndof_hb(4)
       
       INTEGER :: i,j
@@ -82,7 +83,8 @@
       REAL(rp), TARGET :: t_snap
       REAL(rp) :: t_start,t_end
       REAL(rp), ALLOCATABLE, DIMENSION(:) :: t      
-      REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: r,s      
+      REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: r,s   
+      INTEGER, ALLOCATABLE, DIMENSION(:,:,:) :: rect        
       REAL(rp), DIMENSION(:,:,:), ALLOCATABLE :: xyplt   
       INTEGER :: outside
       INTEGER, DIMENSION(:), ALLOCATABLE :: el_in
@@ -132,11 +134,8 @@
         REAL(rp) :: snap_min,snap_max
         INTEGER :: nsnap
         REAL(rp), DIMENSION(:,:), ALLOCATABLE :: sol_val
-        REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: phi
-        INTEGER, ALLOCATABLE, DIMENSION(:,:,:) :: rect   
-        INTEGER :: ndof(4)        
-        INTEGER :: nptri(4)
-        INTEGER :: npnd(4)        
+        REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: phi 
+        INTEGER :: ndof(4)         
       
         INTEGER :: cscale_unit
         CHARACTER(100) :: cscale_option
@@ -207,11 +206,11 @@
       pplt(3) = pc
       pplt(4) = pc
 
-      nplt(1) = (ps+1)*(ps+2)/2
-      nplt(2) = (ps+1)*(ps+1)
-      nplt(3) = (pc+1)*(pc+2)/2
-      nplt(4) = (pc+1)*(pc+1)
-      mnpp = maxval(nplt)      
+      npplt(1) = (ps+1)*(ps+2)/2
+      npplt(2) = (ps+1)*(ps+1)
+      npplt(3) = (pc+1)*(pc+2)/2
+      npplt(4) = (pc+1)*(pc+1)
+      mnpp = maxval(npplt)      
       
       END SUBROUTINE sizes
       

@@ -31,7 +31,7 @@
       USE globals, ONLY: ne,nn,nverts,el_type,xy,ect, &
                          nbou,fbseg,fbnds, &
                          nnfbed,nfbedn,ged2el      
-      USE plot_globals, ONLY: el_in,t_start,t_end,xyplt,r,s, &
+      USE plot_globals, ONLY: el_in,t_start,t_end,xyplt,npplt,nptri,rect,r,s, &
                               frmt,density,pc
       USE evaluate_mod, ONLY: evaluate_depth_solution,evaluate_velocity_solution  
       USE labels_mod, ONLY: latex_axes_labels,run_latex, & 
@@ -56,7 +56,7 @@
       
       IF ((fig%type_flag == 2 .and. fig%plot_sol_option == 1) .or. fig%type_flag == 3) THEN
         PRINT("(A)"), "  Evaluating depth solution at additional plotting points..."
-        CALL evaluate_depth_solution(ne,el_type,el_in,H1,fig)       
+        CALL evaluate_depth_solution(ne,el_type,el_in,npplt,H1,fig)       
       ENDIF            
       
       IF (fig%plot_sol_option /= 1) THEN
@@ -65,7 +65,7 @@
       
       IF (fig%type_flag == 4) THEN
         PRINT("(A)"), "  Evaluating velocity solution at additional plotting points..."
-        CALL evaluate_velocity_solution(ne,el_type,el_in,Qx,Qy,H1,H2,fig)
+        CALL evaluate_velocity_solution(ne,el_type,el_in,npplt,Qx,Qy,H1,H2,fig)
       ENDIF             
       
       
@@ -115,10 +115,10 @@
       
       CALL write_psheader(filename//".ps",fig%ps_unit)          
       IF (fig%cbar_flag == 1) THEN
-        CALL plot_filled_contours(fig%ps_unit,ne,el_type,el_in,xyplt,fig)             
+        CALL plot_filled_contours(fig%ps_unit,ne,el_type,el_in,nptri,rect,xyplt,fig)             
       ENDIF
       IF (fig%plot_lines_option == 1) THEN
-        CALL plot_line_contours(fig%ps_unit,ne,el_type,el_in,xyplt,r,s,snap,fig)          
+        CALL plot_line_contours(fig%ps_unit,ne,el_type,el_in,nptri,rect,xyplt,r,s,snap,fig)          
       ENDIF
       IF (fig%plot_mesh_option == 1) THEN
         CALL plot_mesh(fig%ps_unit,ne,nverts,pc,el_type,el_in,xy,ect,xyplt)
@@ -135,13 +135,13 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
 
-      SUBROUTINE zoom_box(ne,el_type,nplt,xyplt,xbox_min,xbox_max,ybox_min,ybox_max,xmin,xmax,ymin,ymax,el_in)
+      SUBROUTINE zoom_box(ne,el_type,npplt,xyplt,xbox_min,xbox_max,ybox_min,ybox_max,xmin,xmax,ymin,ymax,el_in)
       
       IMPLICIT NONE
       
       INTEGER, INTENT(IN) :: ne
       INTEGER, DIMENSION(:), INTENT(IN) :: el_type
-      INTEGER, DIMENSION(:), INTENT(IN) :: nplt
+      INTEGER, DIMENSION(:), INTENT(IN) :: npplt
       REAL(rp), DIMENSION(:,:,:), INTENT(IN) :: xyplt
       REAL(rp), INTENT(IN) :: xbox_min
       REAL(rp), INTENT(IN) :: xbox_max
@@ -166,7 +166,7 @@
       xmin = 1d10
       ymin = 1d10      
       
-      mnpts = maxval(nplt)
+      mnpts = maxval(npplt)
       ALLOCATE(outside(mnpts))
       
       ALLOCATE(el_in(ne))
@@ -174,7 +174,7 @@
       
       DO el = 1,ne      
         et = el_type(el)                          
-        npts = nplt(et)
+        npts = npplt(et)
         outside = 0
         DO pt = 1,npts  
         
@@ -232,7 +232,7 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
 
-      SUBROUTINE scale_coordinates(ne,nn,el_type,nverts,nnds,nplt,figure_width,xmin,xmax,ymin,ymax,xyplt,xy,elxy)
+      SUBROUTINE scale_coordinates(ne,nn,el_type,nverts,nnds,npplt,figure_width,xmin,xmax,ymin,ymax,xyplt,xy,elxy)
       
       IMPLICIT NONE
       
@@ -241,7 +241,7 @@
       INTEGER, DIMENSION(:), INTENT(IN) :: el_type
       INTEGER, DIMENSION(:), INTENT(IN) :: nverts
       INTEGER, DIMENSION(:), INTENT(IN) :: nnds
-      INTEGER, DIMENSION(:), INTENT(IN) :: nplt
+      INTEGER, DIMENSION(:), INTENT(IN) :: npplt
       REAL(rp), INTENT(IN) :: figure_width
       REAL(rp), INTENT(IN) :: xmin
       REAL(rp), INTENT(IN) :: xmax
@@ -286,7 +286,7 @@
       
       DO el = 1,ne
         et = el_type(el)
-        npts = nplt(et)
+        npts = npplt(et)
         nv = nverts(et)
         nnd = nnds(et)
         
@@ -560,7 +560,7 @@ tail: DO
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-      SUBROUTINE plot_filled_contours(file_unit,ne,el_type,el_in,xy,fig)
+      SUBROUTINE plot_filled_contours(file_unit,ne,el_type,el_in,nptri,rect,xy,fig)
       
       IMPLICIT NONE
       
@@ -568,6 +568,8 @@ tail: DO
       INTEGER, INTENT(IN) :: ne
       INTEGER, DIMENSION(:), INTENT(IN) :: el_type
       INTEGER, DIMENSION(:), INTENT(IN) :: el_in
+      INTEGER, DIMENSION(:), INTENT(IN) :: nptri
+      INTEGER, DIMENSION(:,:,:), INTENT(IN) :: rect 
       REAL(rp), DIMENSION(:,:,:), INTENT(IN) :: xy  
       TYPE(plot_type), INTENT(IN) :: fig
 
@@ -592,11 +594,11 @@ tail: DO
           CYCLE elem
         ENDIF
         
-        DO tri = 1,fig%nptri(et)
+        DO tri = 1,nptri(et)
 
         DO v = 1,3  
    
-          nd = fig%rect(v,tri,et)
+          nd = rect(v,tri,et)
           
           sol_lev = fig%sol_min
           lev = ncolors
@@ -635,13 +637,13 @@ tail: DO
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!   
 
-      SUBROUTINE plot_line_contours(file_unit,ne,el_type,el_in,xyplt,rre,sre,snap,fig)
+      SUBROUTINE plot_line_contours(file_unit,ne,el_type,el_in,nptri,rect,xyplt,rre,sre,snap,fig)
       
       USE globals, ONLY: mndof,elxy,xy,ect,np,mnnds
       USE plot_globals, ONLY: Z,hb,Qx,Qy
       USE read_dginp, ONLY: p,hbp
       USE basis, ONLY: tri_basis
-      USE transformation, ONLY: xy2rs,init_vandermonde,element_transformation
+      USE transformation, ONLY: element_transformation
       USE shape_functions_mod, ONLY: shape_functions_area_eval, shape_functions_edge_eval
       
       IMPLICIT NONE
@@ -650,6 +652,8 @@ tail: DO
       INTEGER, INTENT(IN) :: ne
       INTEGER, DIMENSION(:), INTENT(IN) :: el_type
       INTEGER, DIMENSION(:), INTENT(IN) :: el_in
+      INTEGER, DIMENSION(:), INTENT(IN) :: nptri
+      INTEGER, DIMENSION(:,:,:), INTENT(IN) :: rect
       REAL(rp), DIMENSION(:,:,:), INTENT(IN) :: xyplt  
       REAL(rp), DIMENSION(:,:), INTENT(IN) :: rre
       REAL(rp), DIMENSION(:,:), INTENT(IN) :: sre
@@ -690,7 +694,7 @@ tail: DO
       
 
 
-      ALLOCATE(el_below(fig%nptri(4),ne))
+      ALLOCATE(el_below(nptri(4),ne))
       el_below = 0
       
        dc = (fig%sol_max-fig%sol_min)/real(nctick-1,rp)                  
@@ -705,7 +709,7 @@ levels:DO lev = 1,nctick
            ENDIF
      
         
-    subtri:DO tri = 1,fig%nptri(et)
+    subtri:DO tri = 1,nptri(et)
     
              IF (el_below(tri,el) == 1) THEN
                CYCLE subtri
@@ -715,9 +719,9 @@ levels:DO lev = 1,nctick
              
              DO vrt = 1,3  
    
-               nd = fig%rect(vrt,tri,et)
+               nd = rect(vrt,tri,et)
           
-               IF (fig%sol_val(nd,el) > sol_lev) THEN
+               IF (fig%sol_val(nd,el) >= sol_lev) THEN
                  above(vrt) = 1
                ELSE
                  above(vrt) = 0
@@ -737,14 +741,11 @@ levels:DO lev = 1,nctick
              
              
              DO i = 1,3
-               nd = fig%rect(i,tri,et)
-!                xv(i) = xyplt(nd,el,1)
-!                yv(i) = xyplt(nd,el,2)
-                 rv(i) = rre(nd,et)
-                 sv(i) = sre(nd,et)
+               nd = rect(i,tri,et)
+               rv(i) = rre(nd,et)
+               sv(i) = sre(nd,et)
              ENDDO
-             
-!              CALL xy2rs(et,np(et),elxy(:,el,1),elxy(:,el,2),3,xv,yv,rv,sv)
+
              
              i = 0             
              
@@ -753,11 +754,7 @@ levels:DO lev = 1,nctick
                n2 = mod(vrt+1,3)+1
                               
                IF ((above(n1) == 1 .and. above(n2) == 0) .or. &
-                   (above(n1) == 0 .and. above(n2) == 1)) THEN                   
-                   
-                  IF (snap == 6 .and. el == 3691) THEN
-                    PRINT*, tri,vrt
-                  ENDIF
+                   (above(n1) == 0 .and. above(n2) == 1)) THEN                                      
                    
                  r1 = rv(n1)
                  r2 = rv(n2)
@@ -891,8 +888,8 @@ levels:DO lev = 1,nctick
  
                !!!! Edge midpoint !!!!
 !                  i = i + 1
-!                  nd1 = fig%rect(n1,tri,et)
-!                  nd2 = fig%rect(n2,tri,et)                 
+!                  nd1 = rect(n1,tri,et)
+!                  nd2 = rect(n2,tri,et)                 
 !                  x(i) = 0.5d0*(xyplt(nd1,el,1) + xyplt(nd2,el,1))
 !                  y(i) = 0.5d0*(xyplt(nd1,el,2) + xyplt(nd2,el,2))                   
                  
