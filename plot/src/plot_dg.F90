@@ -25,12 +25,15 @@
       USE curvilinear_nodes_mod
       USE transformation
       USE shape_functions_mod
+      USE version
       
       IMPLICIT NONE
       
       INTEGER :: start_snap,end_snap
       
       space = 1  
+      
+      CALL version_information(6)
       
       CALL read_plot_input()
       
