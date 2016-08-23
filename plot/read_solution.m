@@ -1,4 +1,4 @@
-function [sol,t] = read_solution(direc,fname,nsnap_read)
+function [sol,t,nsnap_max] = read_solution(direc,fname,nsnap_read)
 
 fid = fopen([direc,fname]);
 
@@ -34,5 +34,7 @@ end
 if snap < nsnap_read
    disp('warning: fewer time snaps read in than expected') 
 end
+
+nsnap_max = snap;
 end
 
