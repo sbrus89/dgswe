@@ -14,6 +14,9 @@ elems = [1:Nel];
 nodes = [1:NN];
 
 
+
+
+
 h = findobj ;
 if ( findobj == 0 )
     figure ;
