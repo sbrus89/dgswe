@@ -5,16 +5,16 @@ clc
 
 format = 'ascii';
 
-% grd_direc = '~/Codes/dgswe/grids/';
-% % sol_direc = '~/Codes/dgswe/work/';
+grd_direc = '~/Codes/dgswe/grids/';
+sol_direc = '~/Codes/dgswe/work/';
 % sol_direc = '/home/sbrus/data-drive/converge_serial_mpi/4b31566d/np2/';
 % % sol_direc = '~/data-drive/converge_quad/mesh1/P2/CTP2/';
 % % sol_direc = '/home/sbrus/data-drive/dgswe_converge_curve_bath/converge3/p3/ctp3/hbp3/';
-% % grd_name = 'inlet1.grd';
+grd_name = 'inlet1.grd';
 % % grd_name = 'converge3.grd';
 % grd_name = 'converge1_dble.grd';
 % % grd_name = 'beaufort_hb+2.grd';
-% plot_folder = 'velplot';
+plot_folder = 'velplot';
 
 
 % grd_direc = '~/Codes/dgswe/work/PE0000/';
@@ -64,15 +64,21 @@ format = 'ascii';
 % grd_name = 'galveston_tri_spline.grd';
 % plot_folder = 'velplot_scale';
 
-grd_direc = '/home/sbrus/data-drive/galveston_spline/grids/';
-sol_direc = '/home/sbrus/Codes/dgswe/work/';
-grd_name = 'galveston_tri.grd';
-plot_folder = 'velplot_scale';
+% grd_direc = '/home/sbrus/data-drive/galveston_spline/grids/';
+% sol_direc = '/home/sbrus/Codes/dgswe/work/';
+% grd_name = 'galveston_tri.grd';
+% plot_folder = 'velplot_scale';
+
+% grd_direc = '/home/sbrus/data-drive/galveston_spline_oob/grids/';
+% sol_direc = '/home/sbrus/data-drive/galveston_spline_oob/galveston_tri_x64/p3/ctp3/hbp3/';
+% grd_name = 'galveston_tri_x64.grd';
+% plot_folder = 'velplot_scale';
+
 
 
 ctp = 2;
 
-nsnap = 2;
+nsnap = 48;
 
 grid_on = 0;
 
@@ -140,10 +146,10 @@ if strcmp(format,'nc')
     Qy = ncread([sol_direc,'solution.nc'],'Qy',[1,1,1],[ne,N,nsnap])';
 elseif strcmp(format,'ascii')
 
-    [Z,t] = read_solution(sol_direc,'Z.sol',nsnap);
-    [Qx,~] = read_solution(sol_direc,'Qx.sol',nsnap);
-    [Qy,~] = read_solution(sol_direc,'Qy.sol',nsnap);
-    [hbm,~] = read_solution(sol_direc,'hb.sol',nsnap);
+    [Z,t,nsnap_max] = read_solution(sol_direc,'Z.sol',nsnap);
+    [Qx,~,~] = read_solution(sol_direc,'Qx.sol',nsnap);
+    [Qy,~,~] = read_solution(sol_direc,'Qy.sol',nsnap);
+    [hbm,~,~] = read_solution(sol_direc,'hb.sol',nsnap);
 
 end
 
@@ -250,7 +256,7 @@ end
     
 figure
 
-for tsnap = 1:snap
+for tsnap = 45
     
 %     figure('visible','off')
 %     figure
@@ -315,45 +321,45 @@ for tsnap = 1:snap
 %         print('-depsc',sprintf('%s/vel%04d_zoom%02d',FramesFolder,tsnap,zoom)) ;
 %     end
     
-%         figure
+        figure
+    
+        axis equal
+    
+        disp(['Time snap: ',num2str(tsnap),'/',num2str(snap)])
+        [day,hr,minute,sec] = s2dhms(t(tsnap));
+    
+        hold on
+        
+        for el = 1:ne
+            
+            n = nelnds(el);
+            et = el_type(el);             
+            
+            if n == 9
+                n = n-1;
+            end
+            
+            if grid_on == 0
+                fill(VX(EToV(el,1:n),1),VX(EToV(el,1:n),2),Zv(1:n,el,tsnap),'EdgeColor','none')
+%                fill(VX(EToV(el,1:n),1),VX(EToV(el,1:n),2),hbnodes(el,1:n),'EdgeColor','none')
+            else
+                fill(VX(EToV(el,1:n),1),VX(EToV(el,1:n),2),Zv(1:n,el,tsnap))
+%                fill(VX(EToV(el,1:n),1),VX(EToV(el,1:n),2),hbnodes(el,1:n))
+            end
+        end
+        
+        
+        hold off
 %     
-%         axis equal
-%     
-%         disp(['Time snap: ',num2str(tsnap),'/',num2str(snap)])
-%         [day,hr,minute,sec] = s2dhms(t(tsnap));
-%     
-%         hold on
-%         
-%         for el = 1:ne
-%             
-%             n = nelnds(el);
-%             et = el_type(el);             
-%             
-%             if n == 9
-%                 n = n-1;
-%             end
-%             
-%             if grid_on == 0
-%                 fill(VX(EToV(el,1:n),1),VX(EToV(el,1:n),2),Zv(1:n,el,tsnap),'EdgeColor','none')
-% %                fill(VX(EToV(el,1:n),1),VX(EToV(el,1:n),2),hbnodes(el,1:n),'EdgeColor','none')
-%             else
-%                 fill(VX(EToV(el,1:n),1),VX(EToV(el,1:n),2),Zv(1:n,el,tsnap))
-% %                fill(VX(EToV(el,1:n),1),VX(EToV(el,1:n),2),hbnodes(el,1:n))
-%             end
-%         end
-%         
-%         
-%         hold off
-%     
-%         ttext = ['Surface solution: t = ',num2str(t(tsnap)),' (Day:  ',num2str(day),', Hour:  ',num2str(hr),', Minute:  ',num2str(minute),', Second:  ',num2str(sec),')'] ;
-%         title(ttext)
-%         xlabel('x')
-%         ylabel('y')
-%         zmin = min(min(Zv(:,:,tsnap)));
-%         zmax = max(max(Zv(:,:,tsnap)));
-% %         caxis([Zmin Zmax])        
-%         colorbar
-%         axis image
+        ttext = ['Surface solution: t = ',num2str(t(tsnap)),' (Day:  ',num2str(day),', Hour:  ',num2str(hr),', Minute:  ',num2str(minute),', Second:  ',num2str(sec),')'] ;
+        title(ttext)
+        xlabel('x')
+        ylabel('y')
+        zmin = min(min(Zv(:,:,tsnap)));
+        zmax = max(max(Zv(:,:,tsnap)));
+%         caxis([Zmin Zmax])        
+        colorbar
+        axis image
 %         
 %         drawnow
 %     
