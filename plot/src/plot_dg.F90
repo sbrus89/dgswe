@@ -93,7 +93,7 @@
 !         ENDDO    
 !         PRINT*, ""
 
-        PRINT("(4(A,I4))"), "  number of additional nodes/sub-triangles: ", n,"/",nptri(et)
+        PRINT("(4(A,I4))"), "  number of additional nodes/sub-triangles: ", npts,"/",nptri(et)
         
       ENDDO                                    
            
