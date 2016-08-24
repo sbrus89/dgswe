@@ -345,7 +345,7 @@
 !       WRITE(file_unit,"(A)") "%!PS-Adobe-3.0 EPSF-3.0"      
 !       WRITE(file_unit,"(A,4(F9.5,1x))") "%%BoundingBox: ",rmin_axes,smin_axes,rmax_axes,smax_axes                
       
-      WRITE(file_unit,"(A)") "/draw-element {"
+      WRITE(file_unit,"(A)") "/draw-tri-element {"
       WRITE(file_unit,"(A)") "newpath"        
       WRITE(file_unit,"(A)") "moveto"
       WRITE(file_unit,"(A)") "lineto"
@@ -354,6 +354,17 @@
       WRITE(file_unit,"(A)") ".5 setlinewidth 2 setlinejoin"
       WRITE(file_unit,"(A)") "stroke"      
       WRITE(file_unit,"(A)") "} def" 
+      
+      WRITE(file_unit,"(A)") "/draw-quad-element {"
+      WRITE(file_unit,"(A)") "newpath"        
+      WRITE(file_unit,"(A)") "moveto"
+      WRITE(file_unit,"(A)") "lineto"
+      WRITE(file_unit,"(A)") "lineto"
+      WRITE(file_unit,"(A)") "lineto"      
+      WRITE(file_unit,"(A)") "closepath"
+      WRITE(file_unit,"(A)") ".5 setlinewidth 2 setlinejoin"
+      WRITE(file_unit,"(A)") "stroke"      
+      WRITE(file_unit,"(A)") "} def"       
       
       WRITE(file_unit,"(A)") "/draw-box {"
       WRITE(file_unit,"(A)") "newpath"        
@@ -940,11 +951,16 @@ levels:DO lev = 1,nctick
           CYCLE elem
         ENDIF
         
-        IF (et <= 2) THEN
+        IF (et == 1) THEN
           DO nd = 1,nverts(et)
             WRITE(file_unit,"(2(F9.5,1x))") xy(1,ect(nd,el)),xy(2,ect(nd,el))    
           ENDDO                
-          WRITE(file_unit,"(A)") "draw-element"
+          WRITE(file_unit,"(A)") "draw-tri-element"
+        ELSE IF (et == 2) THEN
+          DO nd = 1,nverts(et)
+            WRITE(file_unit,"(2(F9.5,1x))") xy(1,ect(nd,el)),xy(2,ect(nd,el))    
+          ENDDO                
+          WRITE(file_unit,"(A)") "draw-quad-element"          
         ELSE
           WRITE(file_unit,"(A)") "newpath"
           WRITE(file_unit,"(2(F9.5,1x),A)") xyplt(1,el,1),xyplt(1,el,2),"moveto" 
