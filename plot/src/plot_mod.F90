@@ -653,7 +653,7 @@ tail: DO
       USE globals, ONLY: mndof,elxy,xy,ect,np,mnnds
       USE plot_globals, ONLY: Z,hb,Qx,Qy
       USE read_dginp, ONLY: p,hbp
-      USE basis, ONLY: tri_basis
+      USE basis, ONLY: element_basis
       USE transformation, ONLY: element_transformation
       USE shape_functions_mod, ONLY: shape_functions_area_eval, shape_functions_edge_eval
       
@@ -787,7 +787,7 @@ levels:DO lev = 1,nctick
                    se(1) = s            
                    
                    IF (fig%type_flag == 2 .or. fig%type_flag == 4) THEN
-                     CALL tri_basis(hbp,ndf,1,re,se,phi,dpdr,dpds)                          
+                     CALL element_basis(et,hbp,ndf,1,re,se,phi,dpdr,dpds)                          
                      bathy = 0d0
                      dbdr = 0d0
                      dbds = 0d0
@@ -804,7 +804,7 @@ levels:DO lev = 1,nctick
                    ENDIF
                    
                    IF (fig%type_flag == 3 .or. fig%type_flag == 4) THEN
-                     CALL tri_basis(p,ndf,1,re,se,phi,dpdr,dpds)                          
+                     CALL element_basis(et,p,ndf,1,re,se,phi,dpdr,dpds)                          
                      zeta = 0d0
                      dzdr = 0d0
                      dzds = 0d0
