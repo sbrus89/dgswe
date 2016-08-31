@@ -3,7 +3,8 @@
       USE globals, ONLY: rp,neta,nvel,nope,nbou,obseg,fbseg, &
                          nobfr,obtag,obtag2,obfreq,obnfact,obeq,obamp,obph, &
                          nfbfr,fbtag,fbtag2,fbfreq,fbnfact,fbeq,fbamp,fbph, &
-                         fbper,obper,pi,deg2rad
+                         fbper,obper,pi,deg2rad, &
+                         nfbsfr,fbsper,fbsbgn,fbsamp,fbstag,fbstag2
                          
       USE allocation, ONLY: alloc_forcing_arrays   
       USE messenger2, ONLY: myrank
@@ -25,9 +26,9 @@
       
       OPEN(UNIT=15, FILE=forcing_file)
 
-      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-      ! Read in open boundary forcing data
-      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      ! Read in open boundary periodic forcing data
+      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
       READ(15,*) nobfr
 
@@ -47,9 +48,9 @@
         ENDDO
       ENDDO
 
-      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-      ! Read in flow boundary forcing data
-      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      ! Read in flow boundary periodic forcing data
+      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       
       any_nfb = .false. ! determine if there are normal flow boundaries
       DO seg = 1,nbou
@@ -83,9 +84,41 @@
           ENDDO
         ENDDO
         
+      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      ! Read in flow boundary surge forcing data
+      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!        
+        
+        READ(15,*) nfbsfr
+        
+        CALL alloc_forcing_arrays(3)
+        
+        DO bfr = 1,nfbsfr
+          READ(15,*) fbstag(bfr)
+          READ(15,*) fbsper(bfr),fbsbgn(bfr)
+        ENDDO
+        
+        DO bfr = 1,nfbsfr
+          READ(15,*) fbstag2(bfr)
+          DO seg = 1,nbou
+            segtype = fbseg(2,seg)
+            IF(segtype == 2 .OR. segtype == 12 .OR. segtype == 22)THEN
+              DO nd = 1,fbseg(1,seg)
+                READ(15,*) fbsamp(nd,seg,bfr)
+              ENDDO
+            ENDIF          
+          ENDDO
+        ENDDO
+        
+        
       ENDIF
       
       CLOSE(15)
+      
+      
+      
+      
+      
+      
       
       IF (myrank == 0) THEN
         PRINT "(A,I5)", 'Number of open boundary forcings',nobfr  
@@ -100,6 +133,12 @@
             PRINT "(A,A)", "  ",fbtag(bfr)        
           ENDDO      
         ENDIF
+        PRINT "(A,I5)", 'Number of flow boundary surge forcings',nfbsfr      
+        IF (nfbfr > 0) THEN
+          DO bfr = 1,nfbsfr
+            PRINT "(A,A)", "  ",fbstag(bfr)        
+          ENDDO      
+        ENDIF        
       ENDIF
 
 

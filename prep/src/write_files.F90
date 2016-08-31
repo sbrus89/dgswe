@@ -4,6 +4,7 @@
                          lnope,lneta,lobseg,lobnds,lnbou,lnvel,lfbseg,lfbnds,lbndxy, &
                          nobfr,obtag,obtag2,obfreq,obnfact,obeq,lobamp,lobph, &
                          nfbfr,fbtag,fbtag2,fbfreq,fbnfact,fbeq,lfbamp,lfbph,lnbouf, &
+                         nfbsfr,fbstag,fbstag2,fbsper,fbsbgn,lfbsamp, &
                          nsred,el_l2g,el_g2l,mndof, &
                          el_type,elhb,nnds,order, &
                          nsta,nlsta,sta_l2g,xysta
@@ -174,6 +175,23 @@
               ENDIF
             ENDDO
           ENDDO
+          
+          WRITE(15,*) nfbsfr
+          DO bfr = 1,nfbsfr
+            WRITE(15,*) fbstag(bfr)
+            WRITE(15,"(3(D24.17,1x))") fbsper(bfr),fbsbgn(bfr)
+          ENDDO
+          DO bfr = 1,nfbsfr
+            WRITE(15,*) fbstag2(bfr)
+            DO seg = 1,lnbou(pe)
+              segtype = lfbseg(2,seg,pe)
+              IF(segtype == 2 .OR. segtype == 12 .OR. segtype == 22)THEN
+                DO nd = 1,lfbseg(1,seg,pe)
+                  WRITE(15,"(2(D24.17,1x))") lfbsamp(nd,seg,bfr,pe)
+                ENDDO
+              ENDIF
+            ENDDO
+          ENDDO          
         ENDIF
            
         CLOSE(15)

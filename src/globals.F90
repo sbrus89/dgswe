@@ -114,6 +114,13 @@
       REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: fbamp_qpt ! flow boundary amplitude interpolated to edge quadrature points
       REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: fbph ! flow boundary node phase
       REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: fbph_qpt ! flow boundary phase interpolated to edge quadrature points
+      
+      INTEGER :: nfbsfr ! number of surge forcings on flow boundaries
+      CHARACTER(10), ALLOCATABLE, DIMENSION(:) :: fbstag,fbstag2 ! surge name      
+      REAL(rp), ALLOCATABLE, DIMENSION(:) :: fbsper ! flow boundary surge frequency
+      REAL(rp), ALLOCATABLE, DIMENSION(:) :: fbsbgn  ! flow boundary surge beginning time
+      REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: fbsamp ! flow boundary nodal surge amplitude 
+      REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: fbsamp_qpt ! flow boundary nodal surge amplitude interpolated to edge quadrature points
 
       REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: Va,Ve
       INTEGER, ALLOCATABLE, DIMENSION(:,:) :: ipive
@@ -287,6 +294,7 @@
 
       REAL(rp), ALLOCATABLE, DIMENSION(:,:,:,:) :: lfbamp
       REAL(rp), ALLOCATABLE, DIMENSION(:,:,:,:) :: lfbph 
+      REAL(rp), ALLOCATABLE, DIMENSION(:,:,:,:) :: lfbsamp
       INTEGER, ALLOCATABLE, DIMENSION(:) :: lnbouf  
       
       INTEGER, ALLOCATABLE, DIMENSION(:) :: nlsta

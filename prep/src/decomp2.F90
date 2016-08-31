@@ -10,8 +10,10 @@
                          nbou,nvel,fbseg,fbnds, &
                          lnope,lneta,lobseg,lobnds, &
                          lnbou,lnvel,lfbseg,lfbnds, &
-                         nobfr,obamp,obph,lobamp,lobph, &
-                         nfbfr,fbamp,fbph,lfbamp,lfbph,lnbouf, &
+                         nobfr,obamp,obph, &
+                         lobamp,lobph, &
+                         nfbfr,nfbsfr,fbamp,fbph,fbsamp, &
+                         lfbamp,lfbph,lnbouf,lfbsamp, &
                          nx_pt,ny_pt,detJe, &
                          hbqpted,nqpte,mnqpte,elhb, &
                          lbndxy,bndxy, &
@@ -384,6 +386,9 @@
                 DO bfr = 1,nfbfr              ! keep track of forcings
                   lfbamp(nlbnds,lbou,bfr,pe) = fbamp(j,bnd,bfr)
                   lfbph(nlbnds,lbou,bfr,pe) = fbph(j,bnd,bfr) 
+                ENDDO
+                DO bfr = 1,nfbsfr
+                  lfbsamp(nlbnds,lbou,bfr,pe) = fbsamp(j,bnd,bfr)                  
                 ENDDO
               ENDIF              
               

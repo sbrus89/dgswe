@@ -4,7 +4,7 @@
                          mndof,mnqpte,mnqpta,mnepn,mnnds,mnp, &
                          ned,nied,nobed,nnfbed,nfbed, &
                          nope,neta,nbou,nvel, &
-                         nobfr,nfbfr
+                         nobfr,nfbfr,nfbsfr
       USE messenger2, ONLY: mnelred,mnired,nred,nthreads      
       USE read_dginp, ONLY: npart      
 
@@ -122,12 +122,15 @@
       USE globals, ONLY: obtag,obfreq,obnfact,obeq,obper,obtag2,obamp,obph, &
                          fbtag,fbfreq,fbnfact,fbeq,fbper,fbtag2,fbamp,fbph, &
                          obamp_qpt,obph_qpt,obdepth_qpt, &
-                         fbamp_qpt,fbph_qpt
+                         fbamp_qpt,fbph_qpt, &
+                         fbstag,fbstag2,fbsper,fbsbgn,fbsamp, &
+                         fbsamp_qpt
+                         
       
       IMPLICIT NONE
       INTEGER :: stage
       INTEGER :: n,i
-      INTEGER :: alloc_status(2)
+      INTEGER :: alloc_status(3)
       
       alloc_status(:) = 0      
       
@@ -143,9 +146,14 @@
         ALLOCATE(fbtag2(nfbfr),fbamp(nvel,nbou,nfbfr),fbph(nvel,nbou,nfbfr),STAT = alloc_status(2))
       ELSE IF (stage == 3) THEN
         n = 2
+        ALLOCATE(fbstag(nfbsfr),fbstag2(nfbsfr),fbsper(nfbsfr),fbsbgn(nfbsfr),STAT = alloc_status(1))
+        ALLOCATE(fbsamp(nvel,nbou,nfbsfr),STAT = alloc_status(2))
+      ELSE IF (stage == 4) THEN
+        n = 3
         ! Boundary information interpolated to quadrature points
         ALLOCATE(obamp_qpt(nobfr,mnqpte,nobed),obph_qpt(nobfr,mnqpte,nobed),obdepth_qpt(nobed,mnqpte),STAT=alloc_status(1))
-        ALLOCATE(fbamp_qpt(nfbfr,mnqpte,nfbed),fbph_qpt(nfbfr,mnqpte,nfbed),STAT=alloc_status(2))
+        ALLOCATE(fbamp_qpt(nfbfr,mnqpte,nfbed),fbph_qpt(nfbfr,mnqpte,nfbed),STAT=alloc_status(2))      
+        ALLOCATE(fbsamp_qpt(nfbsfr,mnqpte,nfbed) ,STAT=alloc_status(3))
       ENDIF
       
       

@@ -7,7 +7,9 @@
                          obfreq,obper,fbfreq,fbper, &
                          obamp_qpt,obph_qpt,obdepth_qpt,fbamp_qpt,fbph_qpt, &
                          depth,obnds, &
-                         deg2rad,pi
+                         deg2rad,pi, &
+                         nfbsfr,fbsamp,fbsamp_qpt,fbsper,fbsbgn
+                         
       USE allocation, ONLY: alloc_forcing_arrays 
       USE messenger2, ONLY: myrank        
 
@@ -72,13 +74,18 @@
           ENDDO
         ENDDO
         
+        DO bfr = 1,nfbsfr
+          fbsper(bfr) = 2d0*fbsper(bfr)*86400d0
+          fbsbgn(bfr) = fbsbgn(bfr)*86400d0
+        ENDDO        
+        
       ENDIF
              
 
       ! Interpolate boundary forcing data 
       ! qpte(1:nqpte,2,1) are the 1-D edge quadrature points 
       
-      CALL alloc_forcing_arrays(3)
+      CALL alloc_forcing_arrays(4)
 
       DO pt = 1,nqpte(1)
         xi = qpte(pt,2,1)
@@ -114,7 +121,22 @@
             ENDIF
           ENDDO
         ENDDO
+        
+        DO bfr = 1,nfbsfr
+          ed = 1
+          DO seg = 1,nbou
+            segtype = fbseg(2,seg)
+            IF(segtype == 2 .OR. segtype == 12 .OR. segtype == 22)THEN
+              DO nd = 1,fbseg(1,seg)-1
+                fbsamp_qpt(bfr,pt,ed) = fbsamp(nd,seg,bfr)*l1 + fbsamp(nd+1,seg,bfr)*l2
+                ed = ed + 1
+              ENDDO
+            ENDIF
+          ENDDO
+        ENDDO        
       ENDDO
+      
+    
 
       RETURN
       END SUBROUTINE

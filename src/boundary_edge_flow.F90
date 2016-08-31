@@ -1,6 +1,6 @@
       SUBROUTINE boundary_edge_flow()
 
-      USE globals, ONLY: rp,el_type,ndof,nqpte, &
+      USE globals, ONLY: rp,el_type,ndof,nqpte,pi, &
                          nfbed,fbedn,nfbfr, &
                          tstage,ramp, &
                          fbfreq,fbper,fbeq, &
@@ -8,7 +8,8 @@
                          ged2led,ged2el,gel2ael, &
                          nx_pt,ny_pt,Spe,detJe,hbqpted, &
                          Zqpt,Qxqpt,Qyqpt, &
-                         Zflux,Qxflux,Qyflux
+                         Zflux,Qxflux,Qyflux, &
+                         nfbsfr,fbsamp_qpt,fbsbgn,fbsper
 
       IMPLICIT NONE
 
@@ -57,6 +58,12 @@
           ENDDO
 
           Qn = -Qn
+          
+          DO bfr = 1,nfbsfr
+            IF (tstage >= fbsbgn(bfr) .and. tstage <= fbsbgn(bfr)+0.5d0*fbsper(bfr)) THEN            
+              Qn = Qn + fbsamp_qpt(bfr,pt,ed)*COS(2d0*pi/fbsper(bfr)*tstage - pi) + fbsamp_qpt(bfr,pt,ed)
+            ENDIF
+          ENDDO
 
           Qx_ex = ( ty*Qn - ny*Qt)/(nx*ty-ny*tx)
           Qy_ex = (-tx*Qn + nx*Qt)/(nx*ty-ny*tx)
