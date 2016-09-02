@@ -80,7 +80,7 @@ subroutine addcst ( ncc, lcc, n, x, y, lwk, iwk, list, lptr, lend, ier )
 !    Input, integer ( kind = 4 ) N, the number of nodes in the triangulation, 
 !    including constraint nodes.  3 <= N.
 !
-!    Input, real ( kind = 8 ) X(N), Y(N), the coordinates of the nodes with
+!    Input, real ( kind(1d0) ) X(N), Y(N), the coordinates of the nodes with
 !    non-constraint nodes in the first LCC(1)-1 locations, followed by NCC
 !    sequences of constraint nodes.  Only one of these sequences may be
 !    specified in clockwise order to represent an exterior constraint curve (a 
@@ -140,8 +140,8 @@ subroutine addcst ( ncc, lcc, n, x, y, lwk, iwk, list, lptr, lend, ier )
   integer ( kind = 4 ) n1
   integer ( kind = 4 ) n2
   integer ( kind = 4 ) ncc
-  real ( kind = 8 ) x(n)
-  real ( kind = 8 ) y(n)
+  real ( kind(1d0) ) x(n)
+  real ( kind(1d0) ) y(n)
 
   lwd2 = lwk / 2
 !
@@ -378,7 +378,7 @@ subroutine addnod ( k, xk, yk, ist, ncc, lcc, n, x, y, list, lptr, lend, lnew, &
 !    Input, integer ( kind = 4 ) K, the nodal index (index for X, Y, and LEND)
 !    of the new node to be added.  1 <= K <= LCC(1).  (K <= N+1 if NCC=0).
 !
-!    Input, real ( kind = 8 ) XK, YK, the coordinates of the new node (to be
+!    Input, real ( kind(1d0) ) XK, YK, the coordinates of the new node (to be
 !    stored in X(K) and Y(K)).  The node must not lie in a constraint region.
 !
 !    Input, integer ( kind = 4 ) IST, the index of a node at which TRFIND 
@@ -397,7 +397,7 @@ subroutine addnod ( k, xk, yk, ist, ncc, lcc, n, x, y, list, lptr, lend, lnew, &
 !    triangulation.  3 <= N.  Note that N will be incremented following the 
 !    addition of node K.
 !
-!    Input, real ( kind = 8 ) X(N+1), real Y(N+1), containing the coordinates 
+!    Input, real ( kind(1d0) ) X(N+1), real Y(N+1), containing the coordinates 
 !    of the nodes in the first N positions with non-constraint nodes
 !    in the first LCC(1)-1 locations if 0 < NCC.  On output, updated with
 !    the insertion of XK and YK in the K-th positions (node I+1 was node 
@@ -450,10 +450,10 @@ subroutine addnod ( k, xk, yk, ist, ncc, lcc, n, x, y, list, lptr, lend, lnew, &
   integer ( kind = 4 ) ncc
   integer ( kind = 4 ) nm1
   logical swptst
-  real ( kind = 8 ) x(*)
-  real ( kind = 8 ) xk
-  real ( kind = 8 ) y(*)
-  real ( kind = 8 ) yk
+  real ( kind(1d0) ) x(*)
+  real ( kind(1d0) ) xk
+  real ( kind(1d0) ) y(*)
+  real ( kind(1d0) ) yk
 
   kk = k
 !
@@ -693,7 +693,7 @@ function areap ( x, y, nb, nodes )
 !
 !  Parameters:
 !
-!    Input, real ( kind = 8 ) X(*), Y(*), the Cartesian coordinates of a set 
+!    Input, real ( kind(1d0) ) X(*), Y(*), the Cartesian coordinates of a set 
 !    of points.
 !
 !    Input, integer ( kind = 4 ) NB, the number of points in the curve.
@@ -701,20 +701,20 @@ function areap ( x, y, nb, nodes )
 !    Input, integer ( kind = 4 ) NODES(NB), the indices of the points that
 !    make up the closed curve.
 !
-!    Output, real ( kind = 8 ) AREAP, the signed area bounded by the curve.
+!    Output, real ( kind(1d0) ) AREAP, the signed area bounded by the curve.
 !
   implicit none
 
   integer ( kind = 4 ) nb
 
-  real ( kind = 8 ) a
-  real ( kind = 8 ) areap
+  real ( kind(1d0) ) a
+  real ( kind(1d0) ) areap
   integer ( kind = 4 ) i
   integer ( kind = 4 ) nd1
   integer ( kind = 4 ) nd2
   integer ( kind = 4 ) nodes(nb)
-  real ( kind = 8 ) x(*)
-  real ( kind = 8 ) y(*)
+  real ( kind(1d0) ) x(*)
+  real ( kind(1d0) ) y(*)
 
   a = 0.0D+00
 
@@ -1020,49 +1020,49 @@ subroutine circum ( x1, y1, x2, y2, x3, y3, ratio, xc, yc, cr, sa, ar )
 !
 !  Parameters:
 !
-!    Input, real ( kind = 8 ) X1, Y1, X2, Y2, X3, Y3, the coordinates of
+!    Input, real ( kind(1d0) ) X1, Y1, X2, Y2, X3, Y3, the coordinates of
 !    the vertices.
 !
 !    Input, logical RATIO, is TRUE if and only if the aspect ratio is 
 !    to be computed.
 !
-!    Output, real ( kind = 8 ) XC, YC, coordinates of the circumcenter (center
+!    Output, real ( kind(1d0) ) XC, YC, coordinates of the circumcenter (center
 !    of the circle defined by the three points) unless SA = 0, in which XC 
 !    and YC are not altered.
 !
-!    Output, real ( kind = 8 ) CR, the circumradius (radius of the circle
+!    Output, real ( kind(1d0) ) CR, the circumradius (radius of the circle
 !    defined by the three points) unless SA = 0 (infinite radius), in which
 !    case CR is not altered.
 !
-!    Output, real ( kind = 8 ) SA, the signed triangle area with positive value
+!    Output, real ( kind(1d0) ) SA, the signed triangle area with positive value
 !    if and only if the vertices are specified in counterclockwise order:  
 !    (X3,Y3) is strictly to the left of the directed line from (X1,Y1)
 !    toward (X2,Y2).
 !
-!    Output, real ( kind = 8 ) AR, the aspect ratio r/CR, where r is the 
+!    Output, real ( kind(1d0) ) AR, the aspect ratio r/CR, where r is the 
 !    radius of the inscribed circle, unless RATIO = FALSE, in which case AR
 !    is not altered.  AR is in the range 0 to 0.5, with value 0 iff SA = 0 and
 !    value 0.5 iff the vertices define an equilateral triangle.
 !
   implicit none
 
-  real ( kind = 8 ) ar
-  real ( kind = 8 ) cr
-  real ( kind = 8 ) ds(3)
-  real ( kind = 8 ) fx
-  real ( kind = 8 ) fy
+  real ( kind(1d0) ) ar
+  real ( kind(1d0) ) cr
+  real ( kind(1d0) ) ds(3)
+  real ( kind(1d0) ) fx
+  real ( kind(1d0) ) fy
   logical ratio
-  real ( kind = 8 ) sa
-  real ( kind = 8 ) u(3)
-  real ( kind = 8 ) v(3)
-  real ( kind = 8 ) x1
-  real ( kind = 8 ) x2
-  real ( kind = 8 ) x3
-  real ( kind = 8 ) xc
-  real ( kind = 8 ) y1
-  real ( kind = 8 ) y2
-  real ( kind = 8 ) y3
-  real ( kind = 8 ) yc
+  real ( kind(1d0) ) sa
+  real ( kind(1d0) ) u(3)
+  real ( kind(1d0) ) v(3)
+  real ( kind(1d0) ) x1
+  real ( kind(1d0) ) x2
+  real ( kind(1d0) ) x3
+  real ( kind(1d0) ) xc
+  real ( kind(1d0) ) y1
+  real ( kind(1d0) ) y2
+  real ( kind(1d0) ) y3
+  real ( kind(1d0) ) yc
 !
 !  Set U(K) and V(K) to the x and y components, respectively,
 !  of the directed edge opposite vertex K.
@@ -1590,7 +1590,7 @@ subroutine delnod ( k, ncc, lcc, n, x, y, list, lptr, lend, lnew, lwk, iwk, &
 !    triangulation.  4 <= N.  Note that N will be decremented following the 
 !    deletion.
 !
-!    Input/output, real ( kind = 8 ) X(N), Y(N), the coordinates of the nodes
+!    Input/output, real ( kind(1d0) ) X(N), Y(N), the coordinates of the nodes
 !    with non-constraint nodes in the first LCC(1)-1 locations if 0 < NCC.
 !    On output, updated arrays of length N-1 containing nodal coordinates 
 !    (with elements K+1,...,N shifted a position and thus overwriting 
@@ -1664,16 +1664,16 @@ subroutine delnod ( k, ncc, lcc, n, x, y, list, lptr, lend, lnew, lwk, iwk, &
   integer ( kind = 4 ) nn
   integer ( kind = 4 ) nnb
   integer ( kind = 4 ) nr
-  real ( kind = 8 ) x(*)
-  real ( kind = 8 ) x1
-  real ( kind = 8 ) x2
-  real ( kind = 8 ) xl
-  real ( kind = 8 ) xr
-  real ( kind = 8 ) y(*)
-  real ( kind = 8 ) y1
-  real ( kind = 8 ) y2
-  real ( kind = 8 ) yl
-  real ( kind = 8 ) yr
+  real ( kind(1d0) ) x(*)
+  real ( kind(1d0) ) x1
+  real ( kind(1d0) ) x2
+  real ( kind(1d0) ) xl
+  real ( kind(1d0) ) xr
+  real ( kind(1d0) ) y(*)
+  real ( kind(1d0) ) y1
+  real ( kind(1d0) ) y2
+  real ( kind(1d0) ) yl
+  real ( kind(1d0) ) yr
 !
 !  Set N1 to K and NNB to the number of neighbors of N1 (plus
 !  one if N1 is a boundary node), and test for errors.  LPF
@@ -2060,7 +2060,7 @@ subroutine edge ( in1, in2, x, y, lwk, iwk, list, lptr, lend, ier )
 !    Input, integer ( kind = 4 ) IN1, IN2, indexes (of X and Y) in the range
 !    1 to N defining a pair of nodes to be connected by an arc.
 !
-!    Input, real ( kind = 8 ) X(N), Y(N), the coordinates of the nodes.
+!    Input, real ( kind(1d0) ) X(N), Y(N), the coordinates of the nodes.
 !
 !    Input/output, integer ( kind = 4 ) LWK.  On input, the number of columns 
 !    reserved for IWK.  This must be at least NI, the number of arcs which 
@@ -2124,8 +2124,8 @@ subroutine edge ( in1, in2, x, y, lwk, iwk, list, lptr, lend, ier )
 !
   implicit none
 
-  real ( kind = 8 ) dx
-  real ( kind = 8 ) dy
+  real ( kind(1d0) ) dx
+  real ( kind(1d0) ) dy
   integer ( kind = 4 ) i
   integer ( kind = 4 ) ier
   integer ( kind = 4 ) ierr
@@ -2155,14 +2155,14 @@ subroutine edge ( in1, in2, x, y, lwk, iwk, list, lptr, lend, ier )
   integer ( kind = 4 ) nit
   integer ( kind = 4 ) nl
   integer ( kind = 4 ) nr
-  real ( kind = 8 ) x(*)
-  real ( kind = 8 ) x0
-  real ( kind = 8 ) x1
-  real ( kind = 8 ) x2
-  real ( kind = 8 ) y(*)
-  real ( kind = 8 ) y0
-  real ( kind = 8 ) y1
-  real ( kind = 8 ) y2
+  real ( kind(1d0) ) x(*)
+  real ( kind(1d0) ) x0
+  real ( kind(1d0) ) x1
+  real ( kind(1d0) ) x2
+  real ( kind(1d0) ) y(*)
+  real ( kind(1d0) ) y0
+  real ( kind(1d0) ) y1
+  real ( kind(1d0) ) y2
 !
 !  Store IN1, IN2, and LWK in local variables and test for errors.
 !
@@ -2717,7 +2717,7 @@ subroutine getnp ( ncc, lcc, n, x, y, list, lptr, lend, l, npts, ds, ier )
 !    Input, integer ( kind = 4 ) N, the number of nodes in the triangulation.  
 !    N >= 3.
 !
-!    Input, real ( kind = 8 ) X(N), Y(N), the coordinates of the nodes with 
+!    Input, real ( kind(1d0) ) X(N), Y(N), the coordinates of the nodes with 
 !    non-constraint nodes in the first LCC(1)-1 locations if NCC > 0.
 !
 !    Input, integer ( kind = 4 ) LIST(*), LPTR(*), LEND(N), the triangulation 
@@ -2731,7 +2731,7 @@ subroutine getnp ( ncc, lcc, n, x, y, list, lptr, lend, l, npts, ds, ier )
 !    updated with the index of the L-th closest node to NPTS(1) in position L 
 !    unless IER /= 0.
 !
-!    Input/output, real ( kind = 8 ) DS(L), the distance (defined above) 
+!    Input/output, real ( kind(1d0) ) DS(L), the distance (defined above) 
 !    between NPTS(1) and NPTS(I) in the I-th position for I = 1,...,L-1.  
 !    Thus, DS(1) = 0.  On output, updated with the distance between NPTS(1) 
 !    and NPTS(L) in position L unless IER /= 0.
@@ -2746,9 +2746,9 @@ subroutine getnp ( ncc, lcc, n, x, y, list, lptr, lend, l, npts, ds, ier )
   integer ( kind = 4 ) l
   integer ( kind = 4 ) n
 
-  real ( kind = 8 ) dc
-  real ( kind = 8 ) dl
-  real ( kind = 8 ) ds(l)
+  real ( kind(1d0) ) dc
+  real ( kind(1d0) ) dl
+  real ( kind(1d0) ) ds(l)
   integer ( kind = 4 ) i
   integer ( kind = 4 ) ier
   integer ( kind = 4 ) ifrst
@@ -2788,16 +2788,16 @@ subroutine getnp ( ncc, lcc, n, x, y, list, lptr, lend, l, npts, ds, ier )
   logical skip
   logical sksav
   logical vis
-  real ( kind = 8 ) x(n)
-  real ( kind = 8 ) x1
-  real ( kind = 8 ) xc
-  real ( kind = 8 ) xj
-  real ( kind = 8 ) xk
-  real ( kind = 8 ) y(n)
-  real ( kind = 8 ) y1
-  real ( kind = 8 ) yc
-  real ( kind = 8 ) yj
-  real ( kind = 8 ) yk
+  real ( kind(1d0) ) x(n)
+  real ( kind(1d0) ) x1
+  real ( kind(1d0) ) xc
+  real ( kind(1d0) ) xj
+  real ( kind(1d0) ) xk
+  real ( kind(1d0) ) y(n)
+  real ( kind(1d0) ) y1
+  real ( kind(1d0) ) yc
+  real ( kind(1d0) ) yj
+  real ( kind(1d0) ) yk
 !
 !  Store parameters in local variables and test for errors.
 !  LCC1 indexes the first constraint node.
@@ -3481,36 +3481,36 @@ function intsec ( x1, y1, x2, y2, x3, y3, x4, y4 )
 !
 !  Parameters:
 !
-!    Input, real ( kind = 8 ) X1, Y1 = Coordinates of P1.
+!    Input, real ( kind(1d0) ) X1, Y1 = Coordinates of P1.
 !
-!    Input, real ( kind = 8 ) X2, Y2 = Coordinates of P2.
+!    Input, real ( kind(1d0) ) X2, Y2 = Coordinates of P2.
 !
-!    Input, real ( kind = 8 ) X3, Y3 = Coordinates of P3.
+!    Input, real ( kind(1d0) ) X3, Y3 = Coordinates of P3.
 !
-!    Input, real ( kind = 8 ) X4, Y4 = Coordinates of P4.
+!    Input, real ( kind(1d0) ) X4, Y4 = Coordinates of P4.
 !
 !    Output, logical INTSEC, the logical value defined above.
 !
   implicit none
 
-  real ( kind = 8 ) a
-  real ( kind = 8 ) b
-  real ( kind = 8 ) d
-  real ( kind = 8 ) dx12
-  real ( kind = 8 ) dx31
-  real ( kind = 8 ) dx34
-  real ( kind = 8 ) dy12
-  real ( kind = 8 ) dy31
-  real ( kind = 8 ) dy34
+  real ( kind(1d0) ) a
+  real ( kind(1d0) ) b
+  real ( kind(1d0) ) d
+  real ( kind(1d0) ) dx12
+  real ( kind(1d0) ) dx31
+  real ( kind(1d0) ) dx34
+  real ( kind(1d0) ) dy12
+  real ( kind(1d0) ) dy31
+  real ( kind(1d0) ) dy34
   logical intsec
-  real ( kind = 8 ) x1
-  real ( kind = 8 ) x2
-  real ( kind = 8 ) x3
-  real ( kind = 8 ) x4
-  real ( kind = 8 ) y1
-  real ( kind = 8 ) y2
-  real ( kind = 8 ) y3
-  real ( kind = 8 ) y4
+  real ( kind(1d0) ) x1
+  real ( kind(1d0) ) x2
+  real ( kind(1d0) ) x3
+  real ( kind(1d0) ) x4
+  real ( kind(1d0) ) y1
+  real ( kind(1d0) ) y2
+  real ( kind(1d0) ) y3
+  real ( kind(1d0) ) y4
 !
 !  Test for overlap between the smallest rectangles that
 !  contain the line segments and have sides parallel to
@@ -3604,19 +3604,19 @@ function jrand ( n, ix, iy, iz )
   integer ( kind = 4 ) iz
   integer ( kind = 4 ) jrand
   integer ( kind = 4 ) n
-  real ( kind = 8 ) u
-  real ( kind = 8 ) x
+  real ( kind(1d0) ) u
+  real ( kind(1d0) ) x
 
   ix = mod ( 171 * ix, 30269 )
   iy = mod ( 172 * iy, 30307 )
   iz = mod ( 170 * iz, 30323 )
 
-  x = ( real ( ix, kind = 8 ) / 30269.0D+00 ) &
-    + ( real ( iy, kind = 8 ) / 30307.0D+00 ) &
-    + ( real ( iz, kind = 8 ) / 30323.0D+00 )
+  x = ( real ( ix, kind(1d0) ) / 30269.0D+00 ) &
+    + ( real ( iy, kind(1d0) ) / 30307.0D+00 ) &
+    + ( real ( iz, kind(1d0) ) / 30323.0D+00 )
  
   u = x - int ( x )
-  jrand = real ( n, kind = 8 ) * u + 1.0D+00
+  jrand = real ( n, kind(1d0) ) * u + 1.0D+00
 
   return
 end
@@ -3653,11 +3653,11 @@ function left ( x1, y1, x2, y2, x0, y0 )
 !
 !  Parameters:
 !
-!    Input, real ( kind = 8 ) X1, Y1, coordinates of N1.
+!    Input, real ( kind(1d0) ) X1, Y1, coordinates of N1.
 !
-!    Input, real ( kind = 8 ) X2, Y2, coordinates of N2.
+!    Input, real ( kind(1d0) ) X2, Y2, coordinates of N2.
 !
-!    Input, real ( kind = 8 ) X0, Y0, coordinates of N0.
+!    Input, real ( kind(1d0) ) X0, Y0, coordinates of N0.
 !
 !    Output, logical LEFT, is .TRUE. if and only if (X0,Y0) is on or 
 !    to the left of the directed line N1->N2.
@@ -3669,17 +3669,17 @@ function left ( x1, y1, x2, y2, x0, y0 )
 !
   implicit none
 
-  real ( kind = 8 ) dx1
-  real ( kind = 8 ) dx2
-  real ( kind = 8 ) dy1
-  real ( kind = 8 ) dy2
+  real ( kind(1d0) ) dx1
+  real ( kind(1d0) ) dx2
+  real ( kind(1d0) ) dy1
+  real ( kind(1d0) ) dy2
   logical left
-  real ( kind = 8 ) x0
-  real ( kind = 8 ) x1
-  real ( kind = 8 ) x2
-  real ( kind = 8 ) y0
-  real ( kind = 8 ) y1
-  real ( kind = 8 ) y2
+  real ( kind(1d0) ) x0
+  real ( kind(1d0) ) x1
+  real ( kind(1d0) ) x2
+  real ( kind(1d0) ) y0
+  real ( kind(1d0) ) y1
+  real ( kind(1d0) ) y2
 
   dx1 = x2 - x1
   dy1 = y2 - y1
@@ -3879,7 +3879,7 @@ function nearnd ( xp, yp, ist, n, x, y, list, lptr, lend, dsq )
 !
 !  Parameters:
 !
-!    Input, real ( kind = 8 ) XP, YP, the coordinates of the point P.
+!    Input, real ( kind(1d0) ) XP, YP, the coordinates of the point P.
 !
 !    Input, integer ( kind = 4 ) IST, the index of a node at which TRFIND begins 
 !    the search.  Search time depends on the proximity
@@ -3887,12 +3887,12 @@ function nearnd ( xp, yp, ist, n, x, y, list, lptr, lend, dsq )
 !
 !    Input, integer ( kind = 4 ) N, the number of nodes in the triangulation.
 !
-!    Input, real ( kind = 8 ) X(N), Y(N), the coordinates of the nodes.
+!    Input, real ( kind(1d0) ) X(N), Y(N), the coordinates of the nodes.
 !
 !    Input, integer ( kind = 4 ) LIST(*), LPTR(*), LEND(N), a data structure 
 !    defining the triangulation.  Refer to TRMESH.
 !
-!    Output, real ( kind = 8 ) DSQ, the square of the distance between P and
+!    Output, real ( kind(1d0) ) DSQ, the square of the distance between P and
 !    node NEARND.
 !
 !    Output, integer ( kind = 4 ) NEARND, the index of the nearest node to P, 
@@ -3903,19 +3903,19 @@ function nearnd ( xp, yp, ist, n, x, y, list, lptr, lend, dsq )
   integer ( kind = 4 ), parameter :: lmax = 25
   integer ( kind = 4 ) n
 
-  real ( kind = 8 ) cos1
-  real ( kind = 8 ) cos2
-  real ( kind = 8 ) ds1
-  real ( kind = 8 ) dsq
-  real ( kind = 8 ) dsr
-  real ( kind = 8 ) dx11
-  real ( kind = 8 ) dx12
-  real ( kind = 8 ) dx21
-  real ( kind = 8 ) dx22
-  real ( kind = 8 ) dy11
-  real ( kind = 8 ) dy12
-  real ( kind = 8 ) dy21
-  real ( kind = 8 ) dy22
+  real ( kind(1d0) ) cos1
+  real ( kind(1d0) ) cos2
+  real ( kind(1d0) ) ds1
+  real ( kind(1d0) ) dsq
+  real ( kind(1d0) ) dsr
+  real ( kind(1d0) ) dx11
+  real ( kind(1d0) ) dx12
+  real ( kind(1d0) ) dx21
+  real ( kind(1d0) ) dx22
+  real ( kind(1d0) ) dy11
+  real ( kind(1d0) ) dy12
+  real ( kind(1d0) ) dy21
+  real ( kind(1d0) ) dy22
   integer ( kind = 4 ) i1
   integer ( kind = 4 ) i2
   integer ( kind = 4 ) i3
@@ -3937,12 +3937,12 @@ function nearnd ( xp, yp, ist, n, x, y, list, lptr, lend, dsq )
   integer ( kind = 4 ) nearnd
   integer ( kind = 4 ) nr
   integer ( kind = 4 ) nst
-  real ( kind = 8 ) sin1
-  real ( kind = 8 ) sin2
-  real ( kind = 8 ) x(n)
-  real ( kind = 8 ) xp
-  real ( kind = 8 ) y(n)
-  real ( kind = 8 ) yp
+  real ( kind(1d0) ) sin1
+  real ( kind(1d0) ) sin2
+  real ( kind(1d0) ) x(n)
+  real ( kind(1d0) ) xp
+  real ( kind(1d0) ) y(n)
+  real ( kind(1d0) ) yp
 !
 !  Store local parameters and test for N invalid.
 !
@@ -4179,7 +4179,7 @@ subroutine optim ( x, y, na, list, lptr, lend, nit, iwk, ier )
 !
 !  Parameters:
 !
-!    Input, real ( kind = 8 ) X(*), Y(*), the nodal coordinates.
+!    Input, real ( kind(1d0) ) X(*), Y(*), the nodal coordinates.
 !
 !    Input, integer ( kind = 4 ) NA, the number of arcs in the set.  0 <= NA.
 !
@@ -4243,8 +4243,8 @@ subroutine optim ( x, y, na, list, lptr, lend, nit, iwk, ier )
   integer ( kind = 4 ) nna
   logical swp
   logical swptst
-  real ( kind = 8 ) x(*)
-  real ( kind = 8 ) y(*)
+  real ( kind(1d0) ) x(*)
+  real ( kind(1d0) ) y(*)
 
   nna = na
   maxit = nit
@@ -4410,16 +4410,16 @@ function store ( x )
 !
 !  Parameters:
 !
-!    Input, real ( kind = 8 ) X, the value to be stored.
+!    Input, real ( kind(1d0) ) X, the value to be stored.
 !
-!    Output, real ( kind = 8 ) STORE, the value of X after it has been stored
+!    Output, real ( kind(1d0) ) STORE, the value of X after it has been stored
 !    and possibly truncated or rounded to the single precision word length.
 !
   implicit none
 
-  real ( kind = 8 ) store
-  real ( kind = 8 ) x
-  real ( kind = 8 ) y
+  real ( kind(1d0) ) store
+  real ( kind(1d0) ) x
+  real ( kind(1d0) ) y
 
   common /stcom/ y
 
@@ -4603,7 +4603,7 @@ function swptst ( in1, in2, io1, io2, x, y )
 !    triples (IO1,IO2,IN1) and (IO2,IO1,IN2) must define triangles (be
 !    in counterclockwise order) on input.
 !
-!    Input, real ( kind = 8 ) X(*), Y(*), the nodal coordinates.
+!    Input, real ( kind(1d0) ) X(*), Y(*), the nodal coordinates.
 !
 !    Output, logical SWPTST, .TRUE. if and only if the arc connecting
 !    IO1 and IO2 is to be replaced.
@@ -4628,27 +4628,27 @@ function swptst ( in1, in2, io1, io2, x, y )
 !
   implicit none
 
-  real ( kind = 8 ) cos1
-  real ( kind = 8 ) cos2
-  real ( kind = 8 ) dx11
-  real ( kind = 8 ) dx12
-  real ( kind = 8 ) dx21
-  real ( kind = 8 ) dx22
-  real ( kind = 8 ) dy11
-  real ( kind = 8 ) dy12
-  real ( kind = 8 ) dy21
-  real ( kind = 8 ) dy22
+  real ( kind(1d0) ) cos1
+  real ( kind(1d0) ) cos2
+  real ( kind(1d0) ) dx11
+  real ( kind(1d0) ) dx12
+  real ( kind(1d0) ) dx21
+  real ( kind(1d0) ) dx22
+  real ( kind(1d0) ) dy11
+  real ( kind(1d0) ) dy12
+  real ( kind(1d0) ) dy21
+  real ( kind(1d0) ) dy22
   integer ( kind = 4 ) in1
   integer ( kind = 4 ) in2
   integer ( kind = 4 ) io1
   integer ( kind = 4 ) io2
-  real ( kind = 8 ) sin1
-  real ( kind = 8 ) sin12
-  real ( kind = 8 ) sin2
+  real ( kind(1d0) ) sin1
+  real ( kind(1d0) ) sin12
+  real ( kind(1d0) ) sin2
   logical swptst
-  real ( kind = 8 ) swtol
-  real ( kind = 8 ) x(*)
-  real ( kind = 8 ) y(*)
+  real ( kind(1d0) ) swtol
+  real ( kind(1d0) ) x(*)
+  real ( kind(1d0) ) y(*)
 !
 !  Tolerance stored by TRMESH or TRMSHR.
 !
@@ -4817,13 +4817,13 @@ subroutine trfind ( nst, px, py, n, x, y, list, lptr, lend, i1, i2, i3 )
 !    Input, integer ( kind = 4 ) NST, the index of a node at which TRFIND begins
 !    the search.  Search time depends on the proximity of this node to P.
 !
-!    Input, real ( kind = 8 ) PX, PY, the coordinates of the point P to be
+!    Input, real ( kind(1d0) ) PX, PY, the coordinates of the point P to be
 !    located.
 !
 !    Input, integer ( kind = 4 ) N, the number of nodes in the triangulation.  
 !    3 <= N.
 !
-!    Input, real ( kind = 8 ) X(N), Y(N), the coordinates of the nodes in
+!    Input, real ( kind(1d0) ) X(N), Y(N), the coordinates of the nodes in
 !    the triangulation.
 !
 !    Input, integer ( kind = 4 ) LIST(*), LPTR(*), LEND(N), the data structure 
@@ -4863,8 +4863,8 @@ subroutine trfind ( nst, px, py, n, x, y, list, lptr, lend, i1, i2, i3 )
 
   integer ( kind = 4 ) n
 
-  real ( kind = 8 ) b1
-  real ( kind = 8 ) b2
+  real ( kind(1d0) ) b1
+  real ( kind(1d0) ) b2
   logical frwrd
   integer ( kind = 4 ) i1
   integer ( kind = 4 ) i2
@@ -4892,19 +4892,19 @@ subroutine trfind ( nst, px, py, n, x, y, list, lptr, lend, i1, i2, i3 )
   integer ( kind = 4 ) np
   integer ( kind = 4 ) npp
   integer ( kind = 4 ) nst
-  real ( kind = 8 ) px
-  real ( kind = 8 ) py
-  real ( kind = 8 ) store
-  real ( kind = 8 ) x(n)
-  real ( kind = 8 ) xa
-  real ( kind = 8 ) xb
-  real ( kind = 8 ) xc
-  real ( kind = 8 ) xp
-  real ( kind = 8 ) y(n)
-  real ( kind = 8 ) ya
-  real ( kind = 8 ) yb
-  real ( kind = 8 ) yc
-  real ( kind = 8 ) yp
+  real ( kind(1d0) ) px
+  real ( kind(1d0) ) py
+  real ( kind(1d0) ) store
+  real ( kind(1d0) ) x(n)
+  real ( kind(1d0) ) xa
+  real ( kind(1d0) ) xb
+  real ( kind(1d0) ) xc
+  real ( kind(1d0) ) xp
+  real ( kind(1d0) ) y(n)
+  real ( kind(1d0) ) ya
+  real ( kind(1d0) ) yb
+  real ( kind(1d0) ) yc
+  real ( kind(1d0) ) yp
 !
 !  Statement function:
 !
@@ -5654,7 +5654,7 @@ subroutine trlprt ( ncc, lct, n, x, y, nrow, nt, ltri, prntx )
 !    Input, integer ( kind = 4 ) N, the number of nodes in the triangulation.
 !    3 <= N <= 9999.
 !
-!    Input, real ( kind = 8 ) X(N), Y(N), the coordinates of the nodes in the 
+!    Input, real ( kind(1d0) ) X(N), Y(N), the coordinates of the nodes in the 
 !    triangulation; not used unless PRNTX = TRUE.
 !
 !    Input, integer ( kind = 4 ) NROW, the number of rows (entries per triangle) 
@@ -5700,8 +5700,8 @@ subroutine trlprt ( ncc, lct, n, x, y, nrow, nt, ltri, prntx )
   integer ( kind = 4 ), parameter :: nmax = 9999
   integer ( kind = 4 ) ncc
   logical prntx
-  real ( kind = 8 ) x(n)
-  real ( kind = 8 ) y(n)
+  real ( kind(1d0) ) x(n)
+  real ( kind(1d0) ) y(n)
 !
 !  Print a heading and test for invalid input.
 !
@@ -5947,7 +5947,7 @@ subroutine trmesh ( n, x, y, list, lptr, lend, lnew, near, next, dist, ier )
 !    Input, integer ( kind = 4 ) N, the number of nodes in the triangulation.  
 !    N >= 3.
 !
-!    Input, real ( kind = 8 ) X(N), Y(N), the coordinates of the nodes. 
+!    Input, real ( kind(1d0) ) X(N), Y(N), the coordinates of the nodes. 
 !    (X(K),Y(K)) is referred to as node K, and K is referred to as a nodal
 !    index.  The first three nodes must not be collinear.
 !
@@ -6009,12 +6009,12 @@ subroutine trmesh ( n, x, y, list, lptr, lend, lnew, near, next, dist, ier )
 
   integer ( kind = 4 ) n
 
-  real ( kind = 8 ) d
-  real ( kind = 8 ) d1
-  real ( kind = 8 ) d2
-  real ( kind = 8 ) d3
-  real ( kind = 8 ) dist(n)
-  real ( kind = 8 ) eps
+  real ( kind(1d0) ) d
+  real ( kind(1d0) ) d1
+  real ( kind(1d0) ) d2
+  real ( kind(1d0) ) d3
+  real ( kind(1d0) ) dist(n)
+  real ( kind(1d0) ) eps
   integer ( kind = 4 ) i
   integer ( kind = 4 ) i0
   integer ( kind = 4 ) ier
@@ -6034,9 +6034,9 @@ subroutine trmesh ( n, x, y, list, lptr, lend, lnew, near, next, dist, ier )
   integer ( kind = 4 ) next(n)
   integer ( kind = 4 ) nexti
   integer ( kind = 4 ) nn
-  real ( kind = 8 ) swtol
-  real ( kind = 8 ) x(n)
-  real ( kind = 8 ) y(n)
+  real ( kind(1d0) ) swtol
+  real ( kind(1d0) ) x(n)
+  real ( kind(1d0) ) y(n)
 
   common /swpcom/ swtol
 
@@ -6357,7 +6357,7 @@ subroutine trmshr ( n, nx, x, y, nit, list, lptr, lend, lnew, ier )
 !    Input, integer ( kind = 4 ) NX, the number of grid points in the x-direction.
 !    NX >= 2.
 !
-!    Input, real ( kind = 8 ) X(N), Y(N), the coordinates of the nodes with 
+!    Input, real ( kind(1d0) ) X(N), Y(N), the coordinates of the nodes with 
 !    the ordering and distribution defined in the header comments above.
 !    (X(K),Y(K)) is referred to as node K.
 !
@@ -6383,7 +6383,7 @@ subroutine trmshr ( n, nx, x, y, nit, list, lptr, lend, lnew, ier )
 
   integer ( kind = 4 ) n
 
-  real ( kind = 8 ) eps
+  real ( kind(1d0) ) eps
   integer ( kind = 4 ) i
   integer ( kind = 4 ) ier
   integer ( kind = 4 ) iter
@@ -6420,10 +6420,10 @@ subroutine trmshr ( n, nx, x, y, nit, list, lptr, lend, lnew, ier )
   integer ( kind = 4 ) nnb
   integer ( kind = 4 ) nx
   logical swptst
-  real ( kind = 8 ) swtol
+  real ( kind(1d0) ) swtol
   logical tst
-  real ( kind = 8 ) x(n)
-  real ( kind = 8 ) y(n)
+  real ( kind(1d0) ) x(n)
+  real ( kind(1d0) ) y(n)
 
   common /swpcom/ swtol
 !
@@ -6832,12 +6832,12 @@ subroutine trmtst ( n, x, y, list, lptr, lend, lnew, tol, armax, ier )
 !
 !    Input, integer ( kind = 4 ) N, the number of nodes.  N .GE. 3.
 !
-!    Input, real ( kind = 8 ) X(N), Y(N), the nodal coordinates.
+!    Input, real ( kind(1d0) ) X(N), Y(N), the nodal coordinates.
 !
 !    Input, integer ( kind = 4 ) LIST(*), LPTR(*), LEND(N), the data structure 
 !    containing the triangulation.  Refer to subroutine TRMESH.
 !
-!    Input, real ( kind = 8 ) TOL, nonnegative tolerance to allow for
+!    Input, real ( kind(1d0) ) TOL, nonnegative tolerance to allow for
 !    floating-point errors in the circumcircle test.  An error situation
 !    is defined as 
 !      (R**2 - D**2) / R**2 > TOL, 
@@ -6847,7 +6847,7 @@ subroutine trmtst ( n, x, y, list, lptr, lend, lnew, tol, armax, ier )
 !    bypassed by making TOL large.  If TOL < 0, the tolerance is taken 
 !    to be 0.
 !
-!    Output, real ( kind = 8 ) ARMAX, maximum aspect ratio (radius of inscribed
+!    Output, real ( kind(1d0) ) ARMAX, maximum aspect ratio (radius of inscribed
 !    circle divided by circumradius) of a triangle in the triangulation 
 !    unless 0 < IER.
 !
@@ -6867,11 +6867,11 @@ subroutine trmtst ( n, x, y, list, lptr, lend, lnew, tol, armax, ier )
 
   integer ( kind = 4 ) n
 
-  real ( kind = 8 ) ar
-  real ( kind = 8 ) armax
-  real ( kind = 8 ) cr
-  real ( kind = 8 ) cx
-  real ( kind = 8 ) cy
+  real ( kind(1d0) ) ar
+  real ( kind(1d0) ) armax
+  real ( kind(1d0) ) cr
+  real ( kind(1d0) ) cx
+  real ( kind(1d0) ) cy
   integer ( kind = 4 ) ier
   integer ( kind = 4 ) k
   integer ( kind = 4 ) lend(n)
@@ -6893,12 +6893,12 @@ subroutine trmtst ( n, x, y, list, lptr, lend, lnew, tol, armax, ier )
   integer ( kind = 4 ) nt
   integer ( kind = 4 ) null
   logical ratio
-  real ( kind = 8 ) rs
-  real ( kind = 8 ) rtol
-  real ( kind = 8 ) sa
-  real ( kind = 8 ) tol
-  real ( kind = 8 ) x(n)
-  real ( kind = 8 ) y(n)
+  real ( kind(1d0) ) rs
+  real ( kind(1d0) ) rtol
+  real ( kind(1d0) ) sa
+  real ( kind(1d0) ) tol
+  real ( kind(1d0) ) x(n)
+  real ( kind(1d0) ) y(n)
 !
 !  Store local variables, test for errors in input, and
 !  initialize counts.
@@ -7132,13 +7132,13 @@ subroutine trplot ( lun, pltsiz, wx1, wx2, wy1, wy2, ncc, lcc, &
 !    0 to 99.  The unit should be opened with an appropriate
 !    file name before the call to this routine.
 !
-!    Input, real ( kind = 8 ) PLTSIZ, the plot size in inches.  The window is
+!    Input, real ( kind(1d0) ) PLTSIZ, the plot size in inches.  The window is
 !    mapped, with aspect ratio preserved, to a rectangular viewport with maximum
 !    side-length equal to .88*PLTSIZ (leaving room for labels outside 
 !    the viewport).  The viewport is centered on the 8.5 by 11 inch page, 
 !    and its boundary is drawn.  1.0 <= PLTSIZ <= 8.5.
 !
-!    Input, real ( kind = 8 ) WX1, WX2, WY1, WY2, parameters defining a
+!    Input, real ( kind(1d0) ) WX1, WX2, WY1, WY2, parameters defining a
 !    rectangular window against which the triangulation is clipped.  (Only the
 !    portion of the triangulation that lies in the window is drawn.)
 !    (WX1,WY1) and (WX2,WY2) are the lower left and upper right 
@@ -7154,7 +7154,7 @@ subroutine trplot ( lun, pltsiz, wx1, wx2, wy1, wy2, ncc, lcc, &
 !    Input, integer ( kind = 4 ) N, the number of nodes in the triangulation.  
 !    3 <= N.
 !
-!    Input, real ( kind = 8 ) X(N), Y(N), the coordinates of the nodes with
+!    Input, real ( kind(1d0) ) X(N), Y(N), the coordinates of the nodes with
 !    non-constraint nodes in the first LCC(1)-1 locations.
 !
 !    Input, integer ( kind = 4 ) LIST(*), LPTR(*), LEND(N), data structure 
@@ -7225,11 +7225,11 @@ subroutine trplot ( lun, pltsiz, wx1, wx2, wy1, wy2, ncc, lcc, &
 
   logical, parameter :: annot = .true.
   logical cnstr
-  real ( kind = 8 ), parameter :: dashl = 4.0D+00
-  real ( kind = 8 ) dx
-  real ( kind = 8 ) dy
-  real ( kind = 8 ), parameter :: fsizn = 10.0D+00
-  real ( kind = 8 ), parameter :: fsizt = 16.0D+00
+  real ( kind(1d0) ), parameter :: dashl = 4.0D+00
+  real ( kind(1d0) ) dx
+  real ( kind(1d0) ) dy
+  real ( kind(1d0) ), parameter :: fsizn = 10.0D+00
+  real ( kind(1d0) ), parameter :: fsizt = 16.0D+00
   integer ( kind = 4 ) i
   integer ( kind = 4 ) ier
   integer ( kind = 4 ) ifrst
@@ -7255,22 +7255,22 @@ subroutine trplot ( lun, pltsiz, wx1, wx2, wy1, wy2, ncc, lcc, &
   integer ( kind = 4 ) nls
   logical numbr
   logical pass1
-  real ( kind = 8 ) pltsiz
-  real ( kind = 8 ) r
-  real ( kind = 8 ) sfx
-  real ( kind = 8 ) sfy
-  real ( kind = 8 ) t
+  real ( kind(1d0) ) pltsiz
+  real ( kind(1d0) ) r
+  real ( kind(1d0) ) sfx
+  real ( kind(1d0) ) sfy
+  real ( kind(1d0) ) t
   character ( len = * ) title
-  real ( kind = 8 ) tx
-  real ( kind = 8 ) ty
-  real ( kind = 8 ) wx1
-  real ( kind = 8 ) wx2
-  real ( kind = 8 ) wy1
-  real ( kind = 8 ) wy2
-  real ( kind = 8 ) x(n)
-  real ( kind = 8 ) x0
-  real ( kind = 8 ) y(n)
-  real ( kind = 8 ) y0
+  real ( kind(1d0) ) tx
+  real ( kind(1d0) ) ty
+  real ( kind(1d0) ) wx1
+  real ( kind(1d0) ) wx2
+  real ( kind(1d0) ) wy1
+  real ( kind(1d0) ) wy2
+  real ( kind(1d0) ) x(n)
+  real ( kind(1d0) ) x0
+  real ( kind(1d0) ) y(n)
+  real ( kind(1d0) ) y0
 !
 !  Test for error 1.
 !
@@ -7337,8 +7337,8 @@ subroutine trplot ( lun, pltsiz, wx1, wx2, wy1, wy2, ncc, lcc, &
 !  of a viewport obtained by shrinking the bounding box by
 !  12% in each dimension.
 !
-  iw = nint ( 0.88D+00 * real ( ipx2 - ipx1, kind = 8 ) )
-  ih = nint ( 0.88D+00 * real ( ipy2 - ipy1, kind = 8 ) )
+  iw = nint ( 0.88D+00 * real ( ipx2 - ipx1, kind(1d0) ) )
+  ih = nint ( 0.88D+00 * real ( ipy2 - ipy1, kind(1d0) ) )
   ipx1 = 306 - iw/2
   ipx2 = 306 + iw/2
   ipy1 = 396 - ih/2
@@ -7362,8 +7362,8 @@ subroutine trplot ( lun, pltsiz, wx1, wx2, wy1, wy2, ncc, lcc, &
 !
 !  Set up a mapping from the window to the viewport.
 !
-  sfx = real ( iw, kind = 8 ) / dx
-  sfy = real ( ih, kind = 8 ) / dy
+  sfx = real ( iw, kind(1d0) ) / dx
+  sfy = real ( ih, kind(1d0) ) / dy
   tx = ipx1 - sfx*wx1
   ty = ipy1 - sfy*wy1
   write (lun,160,err=13) tx, ty, sfx, sfy
@@ -7666,7 +7666,7 @@ subroutine trprnt ( ncc, lcc, n, x, y, list, lptr, lend, prntx )
 !    Input, integer ( kind = 4 ) N, the number of nodes in the triangulation.
 !    3 <= N <= 9999.
 !
-!    Input, real ( kind = 8 ) X(N), Y(N), the coordinates of the nodes in the 
+!    Input, real ( kind(1d0) ) X(N), Y(N), the coordinates of the nodes in the 
 !    triangulation; not used unless PRNTX = TRUE.
 !
 !    Input, integer ( kind = 4 ) LIST(*), LPTR(*), LEND(N), data structure 
@@ -7699,8 +7699,8 @@ subroutine trprnt ( ncc, lcc, n, x, y, list, lptr, lend, prntx )
   integer ( kind = 4 ) node
   integer ( kind = 4 ) nt
   logical prntx
-  real ( kind = 8 ) x(n)
-  real ( kind = 8 ) y(n)
+  real ( kind(1d0) ) x(n)
+  real ( kind(1d0) ) y(n)
 
   nn = n
 !
