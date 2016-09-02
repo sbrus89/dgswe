@@ -168,8 +168,9 @@ search: DO srch = 1,srchdp
                       
               el_found = eln        
               found = 1                        
-
-              EXIT search            
+              IF (.NOT. PRESENT(closest_els)) THEN ! exit when found unless collecting all closest elements
+                EXIT search            
+              ENDIF
             ENDIF    
             
 !             PRINT*, " "  
