@@ -320,21 +320,26 @@
                                ay,by,cy,dy, &
                                x,y,error_flag)           
             IF (abs(r)-1d0 < it_tol .and. error_flag == 0) THEN
+              
+            ELSE 
               PRINT "(A,F24.17)", "WARNING: R VALUE NOT FOUND IN INTERVAL, R = ", r                
             ENDIF                               
       ENDIF
               
       IF (error_flag) THEN
         ntry = 20
-        r0 = -1d0
-        dr = 2d0/(real(ntry,rp)-1d0)
-try_loop: DO try = 1,ntry
-            PRINT "(A)", "  trying another r0 value..."        
+        r0 = 0d0
+        dr = 1d0/(real(ntry,rp)-1d0)
+try_loop: DO try = 1,2*ntry+1
+            PRINT "(A,F24.17)", "  trying another r0 value...",r0        
             r = r0
             CALL newton(r,dt,ti,xr,ax,bx,cx,dx, &
                                    ay,by,cy,dy, &
                                    x,y,error_flag)                   
-            r0 = r0+dr
+            r0 = r0*-1d0
+            IF (mod(try,2) == 1) THEN
+              r0 = r0+dr
+            ENDIF
             IF (abs(r)-1d0 < it_tol .and. error_flag == 0) THEN
               EXIT try_loop
             ELSE 

@@ -43,7 +43,7 @@
       
       
       ALLOCATE(mesh%elxy_spline((mesh%ctp+1)**2,mesh%ne,2))
-      mesh%elxy_spline = mesh%elxy_spline
+      mesh%elxy_spline = mesh%elxy
       
       ALLOCATE(mesh%el_type_spline(mesh%ne))
       mesh%el_type_spline = mesh%el_type

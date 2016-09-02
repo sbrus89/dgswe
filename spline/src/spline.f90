@@ -11,7 +11,7 @@
       USE check, ONLY: check_angle,check_deformation,check_transformations, &
                        l2_project,quad_interp
       USE find_element, ONLY: in_element,check_elem,find_element_init,sub_element 
-      USE curvilinear_nodes_mod, ONLY: shape_functions_linear_at_ctp
+      USE curvilinear_nodes_mod, ONLY: shape_functions_linear_at_ctp,eval_coordinates_curved
       USE version, ONLY: version_information
 
       IMPLICIT NONE
@@ -34,7 +34,7 @@
       INTEGER :: eds(4)
       CHARACTER(100) :: name
       CHARACTER(1) :: ctp_char
-      REAL(rp), PARAMETER :: it_tol = 1d-4
+      REAL(rp), PARAMETER :: it_tol = 1d-3
 
       
 
@@ -167,7 +167,11 @@
       
       
       
-      ALLOCATE(x(eval%ctp+1),y(eval%ctp+1))      
+      ALLOCATE(x(eval%ctp+1),y(eval%ctp+1)) 
+      ALLOCATE(eval%bndxy(2,eval%ctp+1,eval%nvel,eval%nbou))
+      
+      CALL shape_functions_at_qpts(eval)
+      CALL shape_functions_linear_at_ctp(nel_type,eval%np,eval%psiv)          
       
       
       eind = INDEX(ADJUSTL(TRIM(eval%grid_file)),".",.false.)   
@@ -312,7 +316,10 @@
                 eval%xy(2,n1) = y(j+1)
               ELSE IF (j == eval%ctp) THEN  
                 eval%xy(1,n2) = x(j+1)
-                eval%xy(2,n2) = y(j+1)              
+                eval%xy(2,n2) = y(j+1)            
+              ELSE 
+                eval%bndxy(1,j,i,ebou) = x(j+1)
+                eval%bndxy(2,j,i,ebou) = y(j+1)                
               ENDIF              
               
                        
@@ -356,7 +363,12 @@
       CLOSE(60)
       
       
+      CALL eval_coordinates_curved(eval%ctp,eval%nnds,nverts,eval%el_type_spline,eval%xy,eval%ect,eval%fbseg,eval%fbnds, &
+                                   eval%nnfbed,eval%nfbedn,eval%nfbednn,eval%ged2el,eval%ged2led, &
+                                   eval%psiv,eval%bndxy,eval%elxy_spline) 
+                                   
       
+      CALL check_transformations(eval,nverts)        
       
       CALL write_grid(eval,base%grid_file)
 

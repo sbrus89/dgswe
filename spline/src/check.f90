@@ -379,8 +379,9 @@
 !       REAL(rp), INTENT(IN) :: ti
 !       REAL(rp), INTENT(INOUT) :: ax,bx,cx,dx,ay,by,cy,dy 
             
-      INTEGER :: pt,el,i
-      INTEGER :: et,nv
+      INTEGER :: pt,el,i,ed,led
+      INTEGER :: et,nv,nnd
+      INTEGER :: nqa,nqe
       INTEGER :: detected
       REAL(rp) :: xpt,ypt
       REAL(rp) :: drdx,drdy,dsdx,dsdy,detJ
@@ -389,20 +390,46 @@
       DO el = 1,mesh%ne
       
         et = mesh%el_type_spline(el)
-        nv = nverts(et)        
+        nnd = mesh%nnds(et)
         
-        DO pt = 1,mesh%nqpta(et)+nv*mesh%nqpte(et)
+        DO pt = 1,mesh%nqpta(et)
             
-            CALL element_transformation(mesh%nnds(et),mesh%elxy_spline(:,el,1),mesh%elxy_spline(:,el,2),mesh%psi(:,pt,et),xpt,ypt, &
+            CALL element_transformation(nnd,mesh%elxy_spline(:,el,1),mesh%elxy_spline(:,el,2),mesh%psi(:,pt,et),xpt,ypt, &
                                         mesh%dpdr(:,pt,et),mesh%dpds(:,pt,et),drdx,drdy,dsdx,dsdy,detJ)
                                         
             IF (detJ < 0d0) THEN
-              PRINT*, "Negative Jacobian determinant detected, el = ",el          
+              PRINT*, "Negative Jacobian determinant for area quadrature point detected, el = ",el          
               PRINT*, detJ
               detected = 1
             ENDIF
         ENDDO   
       ENDDO
+      
+      DO ed = 1,mesh%ned
+      
+        el = mesh%ged2el(1,ed)
+        led = mesh%ged2led(1,ed)
+        
+        et = mesh%el_type_spline(el)
+        nv = nverts(et)        
+        nnd = mesh%nnds(et)
+        nqa = mesh%nqpta(et)
+        nqe = mesh%nqpte(et)
+        
+        
+        DO i = 1,nqe
+          pt = nqa + (led-1)*nqe+i
+            
+          CALL element_transformation(nnd,mesh%elxy_spline(:,el,1),mesh%elxy_spline(:,el,2),mesh%psi(:,pt,et),xpt,ypt, &
+                                        mesh%dpdr(:,pt,et),mesh%dpds(:,pt,et),drdx,drdy,dsdx,dsdy,detJ)
+                                        
+          IF (detJ < 0d0) THEN
+            PRINT*, "Negative Jacobian determinant for edge quadrature point detected, el = ",el          
+            PRINT*, detJ
+            detected = 1
+          ENDIF
+        ENDDO   
+      ENDDO      
       
       IF (detected == 1) THEN
         STOP

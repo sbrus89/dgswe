@@ -55,6 +55,7 @@
         REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: elxy,elxy_spline        
         REAL(rp), ALLOCATABLE, DIMENSION(:) :: depth ! depth at each node      
         REAL(rp), ALLOCATABLE, DIMENSION(:) :: h
+        REAL(rp), ALLOCATABLE, DIMENSION(:,:,:,:) :: bndxy
         INTEGER, ALLOCATABLE, DIMENSION(:,:) :: bnd_flag 
 
         INTEGER :: nope ! number of open boundaries
