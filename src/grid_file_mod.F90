@@ -437,7 +437,8 @@
       INTEGER :: nmax
       INTEGER :: nbseg,btype      
       INTEGER :: alloc_status   
-      LOGICAL :: file_exists        
+      LOGICAL :: file_exists    
+      CHARACTER(10) :: flag      
       CHARACTER(200) :: tmp        
       
       IF (ctp == 1) THEN
@@ -461,7 +462,13 @@
       
         OPEN(UNIT=14, FILE=curve_file)
         
-        READ(14,*) tmp    !read in the header info
+    pre:DO                                !read in the header info
+          READ(14,*) flag
+          IF (flag == "!!!!!!!!!!") THEN
+            EXIT pre
+          ENDIF
+        ENDDO pre  
+        
         READ(14,*) nbou_check
         READ(14,*) nmax,ctp_check
         

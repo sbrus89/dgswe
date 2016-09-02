@@ -30,10 +30,7 @@
       REAL(rp) :: theta1,theta2
       REAL(rp) :: diff
       REAL(rp), ALLOCATABLE, DIMENSION(:) :: x,y
-      INTEGER :: eind
       INTEGER :: eds(4)
-      CHARACTER(100) :: name
-      CHARACTER(1) :: ctp_char
       REAL(rp), PARAMETER :: it_tol = 1d-3
 
       
@@ -174,17 +171,9 @@
       CALL shape_functions_linear_at_ctp(nel_type,eval%np,eval%psiv)          
       
       
-      eind = INDEX(ADJUSTL(TRIM(eval%grid_file)),".",.false.)   
-      name = ADJUSTL(TRIM(eval%grid_file(1:eind-1)))
-      WRITE(ctp_char,"(I1)") eval%ctp      
+     
       
       OPEN(unit=60,file='eval_nodes.out')       
-      OPEN(unit=40,file=ADJUSTL(TRIM(name)) // "_ctp" // ctp_char // ".cb")    
-      
-      WRITE(40,"(A)") "base grid file: " // base%grid_file 
-      WRITE(40,"(I8,19x,A)") eval%nbou, "! total number of normal flow boundaries"
-      WRITE(40,"(2(I8),19x,A)") eval%nvel,eval%ctp, "! max number of normal flow nodes, ctp order"  
-      
       WRITE(60,*) eval%nbou      
           
       DO ebou = 1,eval%nbou
@@ -197,7 +186,7 @@
         IF( btype == 0 .OR. btype == 10 .OR. btype == 20  .OR. &   ! land boundaries
              btype == 1 .OR. btype == 11 .OR. btype == 21 ) THEN    ! island boundaries          
           
-          WRITE(40,"(2(I8),19x,A)") neval,btype, "! number of nodes in boundary, boundary type"            
+          
           WRITE(60,*) eval%ctp*(neval-1) + 1
 
           DO i = 1,neval-1  
@@ -351,7 +340,7 @@
 
         ELSE
         
-          WRITE(40,"(2(I8),19x,A)") 0,btype, "! Flow-specified normal flow boundary"
+
           WRITE(60,*) 0
               
         ENDIF 
@@ -359,8 +348,10 @@
 
       ENDDO
       CLOSE(30)
-      CLOSE(40)
       CLOSE(60)
+      
+      CALL write_grid(eval,base%grid_file)
+      CALL write_cb_file(eval)      
       
       
       CALL eval_coordinates_curved(eval%ctp,eval%nnds,nverts,eval%el_type_spline,eval%xy,eval%ect,eval%fbseg,eval%fbnds, &
@@ -369,8 +360,7 @@
                                    
       
       CALL check_transformations(eval,nverts)        
-      
-      CALL write_grid(eval,base%grid_file)
+     
 
       END PROGRAM spline
       

@@ -74,3 +74,34 @@
       
 
       END SUBROUTINE  read_input
+      
+      
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!      
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
+
+      SUBROUTINE write_input(file_unit)
+      
+      USE globals, ONLY: base,eval,out_direc,theta_tol,deform_tol,sig      
+      
+      IMPLICIT NONE      
+      
+      INTEGER :: file_unit
+      CHARACTER(40) :: sha1      
+
+      WRITE(file_unit,"(A)") ""      
+      WRITE(file_unit,"(A,A)") "base%grid_file = ", base%grid_file
+      WRITE(file_unit,"(A,A)") "eval%grid_file = ", eval%grid_file
+      WRITE(file_unit,"(A,I5)") "ctp = ", eval%ctp
+      WRITE(file_unit,"(A,F11.3)") "sig = ", sig
+      WRITE(file_unit,"(A,F11.3)") "theta_tol = ", theta_tol          
+      WRITE(file_unit,"(A,F11.3)") "deform_tol = ", deform_tol                        
+      WRITE(file_unit,"(A,A)") "out_direc = ", out_direc
+      WRITE(file_unit,"(A)") ""
+      
+      WRITE(file_unit,"(A)") "base grid file SHA: "//sha1(base%grid_file,"./")
+      WRITE(file_unit,"(A)") "eval grid file SHA: "//sha1(eval%grid_file,"./")             
+      
+      WRITE(file_unit,"(A)") ""      
+      
+      RETURN
+      END SUBROUTINE
