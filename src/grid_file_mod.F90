@@ -4,8 +4,8 @@
       USE quit, ONLY: abort    
    
       
-
-      
+      IMPLICIT NONE
+         
 
       CONTAINS
       
@@ -263,6 +263,79 @@
       
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!      
+
+      SUBROUTINE copy_footer(grid_file_from,grid_file_to)
+      
+      IMPLICIT NONE
+      
+      CHARACTER(*), INTENT(IN) :: grid_file_from
+      CHARACTER(*), INTENT(IN) :: grid_file_to           
+      
+      CHARACTER(500) :: line
+      CHARACTER(10) :: flag
+      LOGICAL :: file_exists
+      INTEGER :: read_stat
+      
+      
+      INQUIRE(FILE=grid_file_from, EXIST=file_exists)
+      IF(file_exists == .FALSE.) THEN
+        PRINT*, "grid file does not exist"
+        CALL abort()        
+      ENDIF   
+      
+      OPEN(UNIT=141, FILE=grid_file_from)  
+      
+      DO 
+      
+        READ(141,*,IOSTAT=read_stat) flag
+        IF (flag == "!!!!!!!!!!") THEN
+          EXIT
+        ELSE IF (read_stat < 0) THEN
+          PRINT*, "exiting from"
+          RETURN
+        ENDIF
+        
+      ENDDO
+      
+      INQUIRE(FILE=grid_file_to, EXIST=file_exists)
+      IF(file_exists == .FALSE.) THEN
+        PRINT*, "grid file does not exist"
+        CALL abort()        
+      ENDIF        
+      
+      OPEN(UNIT=142, FILE=grid_file_to) 
+      
+      DO 
+      
+        READ(142,*,IOSTAT=read_stat) flag
+        IF (flag == "!!!!!!!!!!") THEN
+          EXIT
+        ELSE IF (read_stat < 0) THEN
+          PRINT*, "exiting to"
+          RETURN
+        ENDIF
+        
+      ENDDO      
+           
+      DO 
+      
+        READ(141,"(A)",IOSTAT=read_stat) line
+        IF (read_stat < 0) THEN
+          EXIT
+        ENDIF
+      
+        WRITE(142,"(A)") line
+
+      ENDDO      
+      
+      CLOSE(141)
+      CLOSE(142)
+      
+      RETURN
+      END SUBROUTINE copy_footer
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!    
       
       SUBROUTINE init_element_coordinates(ne,ctp,el_type,nverts,xy,ect,elxy)
       
@@ -363,6 +436,7 @@
       LOGICAL :: file_exists  
       INTEGER :: alloc_status   
       CHARACTER(200) :: tmp      
+      CHARACTER(10) :: flag      
               
       mnnds = (hbp+1)**2
       
@@ -385,7 +459,14 @@
         IF (myrank == 0 ) PRINT "(A)", "Reading in high order bathymetry file"  
         
         OPEN(UNIT = 14, FILE = bathy_file)
-        READ(14,*) tmp !read in the header info
+        
+    pre:DO                                !read in the header info
+          READ(14,*) flag
+          IF (flag == "!!!!!!!!!!") THEN
+            EXIT pre
+          ENDIF
+        ENDDO pre  
+        
         READ(14,*) ne_check, hbp_check
         IF (ne_check /= ne .or. hbp_check /= hbp) THEN
           IF (myrank == 0) PRINT*, "incorrect high order bathymetry file"
@@ -726,8 +807,8 @@
 
       IMPLICIT NONE
       
-      CHARACTER(100), INTENT(IN)  :: grid_file
-      CHARACTER(100), INTENT(IN) :: grid_name      
+      CHARACTER(*), INTENT(IN)  :: grid_file
+      CHARACTER(*), INTENT(IN) :: grid_name      
       INTEGER, INTENT(IN) :: ne
       INTEGER, INTENT(IN) :: nn   
       
@@ -854,6 +935,9 @@
           WRITE(14,"(I8)"), fbnds(j,i)  ! read in normal flow boundary node numbers
         ENDDO
       ENDDO
+
+      WRITE(14,"(A)") " "
+      WRITE(14,"(A)") "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
       
       CLOSE(14)        
 
