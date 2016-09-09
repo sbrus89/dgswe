@@ -169,7 +169,7 @@ $(ODIR)group_coordinates.o: group_coordinates.f90               $(ODIR)globals.o
 	$(FC) $(FFLAGS) -c $< -o $@
 	mv group_coordinates.mod $(ODIR) 
 
-$(ODIR)write_results.o: write_results.f90                       $(ODIR)globals.o $(ODIR)version.o
+$(ODIR)write_results.o: write_results.f90                       $(ODIR)globals.o $(ODIR)version.o $(ODIR)grid_file_mod.o
 	$(FC) $(FFLAGS) -c $< -o $@
 	mv write_results.mod $(ODIR)
 
