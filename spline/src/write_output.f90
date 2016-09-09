@@ -21,7 +21,7 @@
         
       ENDDO      
       
-      CALL write_header("fort.14_spline","spline output nodes based on "//base_name,mesh%ne,mesh%nn)  
+      CALL write_header("fort.14_spline",mesh%grid_name,mesh%ne,mesh%nn)  
       
       CALL write_coords(mesh%nn,mesh%xy,mesh%depth)
       
