@@ -249,15 +249,15 @@ base_ycenters_plot = base_centers(in,2);
 % break
 
 % Plot of base grid bathymetry nodes
-% figure(3)
-% ect2 = delaunay(base_nds(:,1),base_nds(:,2));
-% nodes = [base_nds(:,1),base_nds(:,2)];
-% pdeplot( nodes', [], ect2', 'xydata',base_nds(:,3), 'zdata',base_nds(:,3),'colormap', 'jet', 'mesh','on') ;
-% xlabel('longitude')
-% ylabel('latitude')
-% zlabel('bathymetry (m)')
-% title('base grid bathymetry')
-% grid on
+figure(3)
+ect2 = delaunay(base_nds(:,1),base_nds(:,2));
+nodes = [base_nds(:,1),base_nds(:,2)];
+pdeplot( nodes', [], ect2', 'xydata',base_nds(:,3), 'zdata',base_nds(:,3),'colormap', 'jet', 'mesh','on') ;
+xlabel('longitude')
+ylabel('latitude')
+zlabel('bathymetry (m)')
+title('base grid bathymetry')
+grid on
 
 %%
 % Plot of linearly interpolated nodes

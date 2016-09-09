@@ -202,6 +202,9 @@ search:DO i = 1,nlist
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
       SUBROUTINE rewrite_fort14(mesh)
+      
+      USE grid_file_mod    
+      USE version, ONLY: version_information
 
       IMPLICIT NONE
       
@@ -212,48 +215,77 @@ search:DO i = 1,nlist
       
       PRINT "(A)", "Writing fort.14 with rimls nodes..."       
       
-      OPEN(UNIT = 14, FILE = TRIM(out_direc) // "fort.14_rimls")
-      
-      
-      WRITE(14,"(A)") mesh%grid_name      
-      WRITE(14,*) mesh%ne,mesh%nn         
-      
-      DO i = 1,mesh%nn
-        WRITE(14,"(I7,1x,3(e24.17,1x))") i, mesh%xy(1,i), mesh%xy(2,i), mesh%xyh_vertex(1,i,3)  ! write new rimls x,y, depth coordinates
-      ENDDO
-      
-      DO i = 1,mesh%ne
-        et = mesh%el_type(i)
-        nv = nverts(et)
-        WRITE(14,*) i, nv, (mesh%ect(j,i), j = 1,nv)               
-      ENDDO
-      
-      WRITE(14,"(I9,A)") mesh%nope, "   = Number of open boundaries"
-      WRITE(14,"(I9,A)") mesh%neta, "   = Total number of open boundary nodes"
-      DO bnd = 1,mesh%nope
-        WRITE(14,"(I9)") mesh%obseg(bnd)
-        DO nd = 1,mesh%obseg(bnd)
-          WRITE(14,"(I9)") mesh%obnds(nd,bnd)
-        ENDDO
-      ENDDO
-      
-      WRITE(14,"(I9,A)") mesh%nbou, "   = Number of land boundaries"
-      WRITE(14,"(I9,A)") mesh%nvel, "   = Total number of land boundary nodes"
       DO bnd = 1,mesh%nbou
         btype = mesh%fbseg(2,bnd)
-        nbseg = mesh%fbseg(1,bnd)
         
         IF (btype == 1 .OR. btype == 11 .OR. btype == 21) THEN
-          nbseg = nbseg - 1
+          mesh%fbseg(1,bnd) = mesh%fbseg(1,bnd) - 1
         ENDIF        
         
-        WRITE(14,"(2(I9))") nbseg, btype
-        DO nd = 1,nbseg
-          WRITE(14,"(I9)") mesh%fbnds(nd,bnd)
-        ENDDO   
-      ENDDO
+      ENDDO      
       
-      CLOSE(14)
+      CALL write_header(TRIM(out_direc)//"fort.14_rimls",mesh%grid_name,mesh%ne,mesh%nn)  
+      
+      CALL write_coords(mesh%nn,mesh%xy,mesh%xyh_vertex(1,:,3))
+      
+      CALL write_connectivity(mesh%ne,mesh%ect,mesh%el_type,nverts)
+      
+      CALL write_open_boundaries(mesh%nope,mesh%neta,mesh%obseg,mesh%obnds)
+      
+      CALL write_flow_boundaries(mesh%nbou,mesh%nvel,mesh%fbseg,mesh%fbnds)
+      
+      CALL copy_footer(mesh%grid_file,TRIM(out_direc)//"fort.14_rimls")         
+      
+      OPEN(UNIT=40, FILE=TRIM(out_direc)//"fort.14_rimls", POSITION="APPEND")
+      CALL version_information(40)
+      
+      WRITE(40,"(A)") "-----------------------------------------------------------------------"           
+      
+      CALL write_input(40)         
+      CLOSE(40)      
+      
+!       OPEN(UNIT = 14, FILE = TRIM(out_direc) // "fort.14_rimls")
+!       
+!       
+!       WRITE(14,"(A)") mesh%grid_name      
+!       WRITE(14,*) mesh%ne,mesh%nn         
+!       
+!       DO i = 1,mesh%nn
+!         WRITE(14,"(I7,1x,3(e24.17,1x))") i, mesh%xy(1,i), mesh%xy(2,i), mesh%xyh_vertex(1,i,3)  ! write new rimls x,y, depth coordinates
+!       ENDDO
+!       
+!       DO i = 1,mesh%ne
+!         et = mesh%el_type(i)
+!         nv = nverts(et)
+!         WRITE(14,*) i, nv, (mesh%ect(j,i), j = 1,nv)               
+!       ENDDO
+!       
+!       WRITE(14,"(I9,A)") mesh%nope, "   = Number of open boundaries"
+!       WRITE(14,"(I9,A)") mesh%neta, "   = Total number of open boundary nodes"
+!       DO bnd = 1,mesh%nope
+!         WRITE(14,"(I9)") mesh%obseg(bnd)
+!         DO nd = 1,mesh%obseg(bnd)
+!           WRITE(14,"(I9)") mesh%obnds(nd,bnd)
+!         ENDDO
+!       ENDDO
+!       
+!       WRITE(14,"(I9,A)") mesh%nbou, "   = Number of land boundaries"
+!       WRITE(14,"(I9,A)") mesh%nvel, "   = Total number of land boundary nodes"
+!       DO bnd = 1,mesh%nbou
+!         btype = mesh%fbseg(2,bnd)
+!         nbseg = mesh%fbseg(1,bnd)
+!         
+!         IF (btype == 1 .OR. btype == 11 .OR. btype == 21) THEN
+!           nbseg = nbseg - 1
+!         ENDIF        
+!         
+!         WRITE(14,"(2(I9))") nbseg, btype
+!         DO nd = 1,nbseg
+!           WRITE(14,"(I9)") mesh%fbnds(nd,bnd)
+!         ENDDO   
+!       ENDDO
+!       
+!       CLOSE(14)
       
       
 
@@ -272,31 +304,12 @@ search:DO i = 1,nlist
       IMPLICIT NONE
       
       INTEGER :: el,et,i,nnd
-      INTEGER :: sind,eind
-      CHARACTER(100) :: name
-      CHARACTER(1) :: hbp_char
       TYPE(grid) :: eval,base
 
       
       PRINT "(A)", "Writing rimls element nodes..."  
       PRINT*, ""     
 
-      
-      sind = INDEX(ADJUSTL(TRIM(eval%grid_file)),"/",.true.)
-      eind = INDEX(ADJUSTL(TRIM(eval%grid_file)),".",.false.)
-      
-!       name = ADJUSTL(TRIM(eval%grid_file(sind+1:eind-1)))     
-!       OPEN(UNIT = 13, FILE = TRIM(out_direc) // ADJUSTL(TRIM(name)) // ".hb")    
-
-      WRITE(hbp_char,"(I1)") eval%hbp
-      
-      name = ADJUSTL(TRIM(eval%grid_file(1:eind-1)))     
-      OPEN(UNIT = 13, FILE = ADJUSTL(TRIM(name)) // "_hbp" // hbp_char // "_rimls.hb") 
-      WRITE(13,"(A,I9,A,I5)") " base grid: " // ADJUSTL(TRIM(base%grid_file)) // "   number of base grid points: ", &
-                               base%tpts_interior, "   base hbp: ", base%hbp 
-
-      WRITE(13,"(2(I7,1x),A,I8)") eval%ne,eval%hbp
-      
       OPEN(UNIT = 14, FILE = TRIM(out_direc) // "elem_nodes.d")      
       WRITE(14,"(2(I7,1x))") eval%ne,eval%hbp
       
@@ -314,8 +327,7 @@ search:DO i = 1,nlist
         ELSE IF (mod(et,2) == 0) THEN
           nnd = eval%nnds(6)          
         ENDIF    
-
-        WRITE(13,"(2(I7),1x,60(e24.17,1x))") el,nnd,(eval%elhb(i,el), i = 1,nnd)        
+     
         WRITE(14,"(2(I7),1x,60(e24.17,1x))") el,nnd,(eval%elhb(i,el), i = 1,nnd)
         WRITE(15,"(2(I7),1x,60(e24.17,1x))") el,nnd,(eval%elxyh(i,el,1), i = 1,nnd)
         WRITE(16,"(2(I7),1x,60(e24.17,1x))") el,nnd,(eval%elxyh(i,el,2), i = 1,nnd)
@@ -328,6 +340,56 @@ search:DO i = 1,nlist
 
       RETURN
       END SUBROUTINE write_elem_nodes
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+      SUBROUTINE write_hb_file(mesh)
+      
+      USE version, ONLY: version_information
+      
+      IMPLICIT NONE
+      
+      TYPE(grid) :: mesh
+      INTEGER :: el,et,i,nnd
+      INTEGER :: sind,eind
+      CHARACTER(100) :: name
+      CHARACTER(1) :: hbp_char      
+      
+      
+      eind = INDEX(ADJUSTL(TRIM(mesh%grid_file)),".",.false.)
+      name = ADJUSTL(TRIM(mesh%grid_file(1:eind-1)))           
+      WRITE(hbp_char,"(I1)") mesh%hbp
+      
+      OPEN(UNIT = 13, FILE = ADJUSTL(TRIM(name)) // "_hbp" // hbp_char // "_rimls.hb") 
+      
+      CALL version_information(13)
+      
+      WRITE(13,"(A)") "-----------------------------------------------------------------------"           
+      
+      CALL write_input(13)           
+      
+      WRITE(13,"(A)") "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"         
+
+      WRITE(13,"(2(I7,1x),A,I8)") mesh%ne,mesh%hbp      
+      
+      DO el = 1,mesh%ne
+        et = mesh%el_type(el)
+        
+        IF (mod(et,2) == 1) THEN   
+          nnd = mesh%nnds(5)
+        ELSE IF (mod(et,2) == 0) THEN
+          nnd = mesh%nnds(6)          
+        ENDIF    
+
+        WRITE(13,"(2(I7),1x,60(e24.17,1x))") el,nnd,(mesh%elhb(i,el), i = 1,nnd)        
+      ENDDO      
+      
+      CLOSE(13)
+      
+      RETURN
+      END SUBROUTINE write_hb_file
+
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
