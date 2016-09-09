@@ -200,7 +200,7 @@ $(ODIR)find_edge.o : find_edge.f90                            $(ODIR)globals.o
 $(ODIR)shape_functions_eval.o : shape_functions_eval.f90      $(ODIR)globals.o  $(ODIR)shape_functions_mod.o  $(ODIR)edge_qpts_mod.o $(ODIR)area_qpts_mod.o
 	$(FC) $(FFLAGS) -c $< -o $@		
 
-$(ODIR)write_output.o : write_output.f90                      $(ODIR)globals.o $(ODIR)version.o
+$(ODIR)write_output.o : write_output.f90                      $(ODIR)globals.o $(ODIR)version.o $(ODIR)grid_file_mod.o
 	$(FC) $(FFLAGS) -c $< -o $@
 	
 

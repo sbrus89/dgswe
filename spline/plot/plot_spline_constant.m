@@ -2,7 +2,10 @@
 clear all
 clc
 
-file = fopen('../work/spline.out');
+out_direc = '../work/';
+% out_direc = '/home/sbrus/data-drive/galveston_spline_oob/grids/spline/';
+
+file = fopen([out_direc,'spline.out']);
 
 figure(1)
 
@@ -89,7 +92,7 @@ fclose(file);
 
 hold on
 
-file = fopen('../work/eval_nodes.out');
+file = fopen([out_direc,'eval_nodes.out']);
 
 n = textscan(file,'%d',1);
 n_seg = n{1};
@@ -113,7 +116,7 @@ fclose(file);
 
 hold on
 
-file = fopen('../work/max_deform.out');
+file = fopen([out_direc,'max_deform.out']);
 
 n_seg = fscanf(file,'%d \n',1);
 
@@ -142,7 +145,7 @@ fclose(file);
 
 % hold on
 % 
-% fid = fopen('../work/nodes.out') ;
+% fid = fopen([out_direc,'fort.14_spline']) ;
 % 
 % agrid = fgetl(fid) ;
 % disp(agrid) ;

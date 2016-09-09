@@ -3,6 +3,8 @@
       SUBROUTINE write_grid(mesh,base_name)
 
       USE globals, ONLY: grid,nverts
+      USE grid_file_mod
+      USE version, ONLY: version_information      
 
       IMPLICIT NONE
           
@@ -10,44 +12,35 @@
       TYPE(grid) :: mesh
       CHARACTER(100) :: base_name
       
-      OPEN(UNIT=14,FILE='nodes.out')
-      WRITE(14,"(A)") "spline output nodes based on "//base_name
-      WRITE(14,*) mesh%ne,mesh%nn
-      DO nd = 1,mesh%nn
-        WRITE(14,"(I7,3(e24.16))") nd,mesh%xy(1,nd),mesh%xy(2,nd),mesh%depth(nd)
-      ENDDO
-      DO el = 1,mesh%ne
-        et = mesh%el_type(el)
-        nv = nverts(et)
-        WRITE(14,"(20(I9))") el,nv, (mesh%ect(nd,el),nd=1,nv)
-      ENDDO
-      
-      WRITE(14,"(I9,A)") mesh%nope, "   = Number of open boundaries"
-      WRITE(14,"(I9,A)") mesh%neta, "   = Total number of open boundary nodes"
-      DO bnd = 1,mesh%nope
-        WRITE(14,"(I9)") mesh%obseg(bnd)
-        DO nd = 1,mesh%obseg(bnd)
-          WRITE(14,"(I9)") mesh%obnds(nd,bnd)
-        ENDDO
-      ENDDO
-      
-      WRITE(14,"(I9,A)") mesh%nbou, "   = Number of land boundaries"
-      WRITE(14,"(I9,A)") mesh%nvel, "   = Total number of land boundary nodes"
       DO bnd = 1,mesh%nbou
         btype = mesh%fbseg(2,bnd)
-        nbseg = mesh%fbseg(1,bnd)
         
         IF (btype == 1 .OR. btype == 11 .OR. btype == 21) THEN
-          nbseg = nbseg - 1
+          mesh%fbseg(1,bnd) = mesh%fbseg(1,bnd) - 1
         ENDIF        
         
-        WRITE(14,"(2(I9))") nbseg, btype
-        DO nd = 1,nbseg
-          WRITE(14,"(I9)") mesh%fbnds(nd,bnd)
-        ENDDO        
-      ENDDO
+      ENDDO      
       
-      CLOSE(14)
+      CALL write_header("fort.14_spline","spline output nodes based on "//base_name,mesh%ne,mesh%nn)  
+      
+      CALL write_coords(mesh%nn,mesh%xy,mesh%depth)
+      
+      CALL write_connectivity(mesh%ne,mesh%ect,mesh%el_type,nverts)
+      
+      CALL write_open_boundaries(mesh%nope,mesh%neta,mesh%obseg,mesh%obnds)
+      
+      CALL write_flow_boundaries(mesh%nbou,mesh%nvel,mesh%fbseg,mesh%fbnds)
+      
+      CALL copy_footer(mesh%grid_file,"fort.14_spline")      
+      
+      
+      OPEN(UNIT=40, FILE="fort.14_spline", POSITION="APPEND")
+      CALL version_information(40)
+      
+      WRITE(40,"(A)") "-----------------------------------------------------------------------"           
+      
+      CALL write_input(40)         
+      CLOSE(40)
 
       RETURN
       END SUBROUTINE write_grid

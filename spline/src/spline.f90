@@ -350,16 +350,20 @@
       CLOSE(30)
       CLOSE(60)
       
-      CALL write_grid(eval,base%grid_file)
-      CALL write_cb_file(eval)      
       
       
+      PRINT*, "Checking coordniate transformations"
       CALL eval_coordinates_curved(eval%ctp,eval%nnds,nverts,eval%el_type_spline,eval%xy,eval%ect,eval%fbseg,eval%fbnds, &
                                    eval%nnfbed,eval%nfbedn,eval%nfbednn,eval%ged2el,eval%ged2led, &
                                    eval%psiv,eval%bndxy,eval%elxy_spline) 
                                    
       
-      CALL check_transformations(eval,nverts)        
+      CALL check_transformations(eval,nverts)  
+      
+      
+      PRINT*, "Writing output files"
+      CALL write_grid(eval,base%grid_file)
+      CALL write_cb_file(eval)            
      
 
       END PROGRAM spline
