@@ -8,16 +8,30 @@ import curses
 interactive(True)
 
 frmt = 'jpg'
-sol = 'zeta'
+sol = 'vel'
 
 direc_ls = [
             #'/home/sbrus/data-drive/galveston_spline_flux/galveston_tri_x64/p3/ctp3/hbp3/plots/upper/',
             #'/home/sbrus/data-drive/galveston_spline_flux/galveston_tri/p3/ctp3/hbp3/plots/upper/',
             #'/home/sbrus/data-drive/galveston_spline_flux/galveston_tri/p3/ctp1/hbp1/plots/upper/',
+            #'/home/sbrus/data-drive/galveston_spline_flux/galveston_quad/p3/ctp3/hbp3/plots/upper/',  
+            #'/home/sbrus/data-drive/galveston_spline_flux/galveston_quad/p3/ctp1/hbp1/plots/upper/',        
             
-            '/home/sbrus/data-drive/galveston_spline_flux/galveston_tri_x64/p3/ctp3/hbp3/plots/inlet/',
-            '/home/sbrus/data-drive/galveston_spline_flux/galveston_tri/p3/ctp3/hbp3/plots/inlet/',
-            '/home/sbrus/data-drive/galveston_spline_flux/galveston_tri/p3/ctp1/hbp1/plots/inlet/',
+            '/home/sbrus/data-drive/galveston_spline_flux/galveston_tri_x64/p3/ctp3/hbp3/plots/upper/',
+            '/home/sbrus/data-drive/galveston_spline_flux/galveston_tri/p3/ctp3/hbp3/plots/upper/',
+            '/home/sbrus/data-drive/galveston_spline_flux/galveston_tri/p2/ctp2/hbp2/plots/upper/',
+            '/home/sbrus/data-drive/galveston_spline_flux/galveston_tri/p1/ctp2/hbp1/plots/upper/',  
+            '/home/sbrus/data-drive/galveston_spline_flux/galveston_tri_x4/p3/ctp3/hbp3/plots/upper/',
+            '/home/sbrus/data-drive/galveston_spline_flux/galveston_tri_x4/p2/ctp2/hbp2/plots/upper/',
+            '/home/sbrus/data-drive/galveston_spline_flux/galveston_tri_x4/p1/ctp2/hbp1/plots/upper/',            
+            
+            #'/home/sbrus/data-drive/galveston_spline_flux/galveston_tri_x64/p3/ctp3/hbp3/plots/inlet/',
+            #'/home/sbrus/data-drive/galveston_spline_flux/galveston_tri_x4/p3/ctp3/hbp3/plots/inlet/',
+            #'/home/sbrus/data-drive/galveston_spline_flux/galveston_tri/p3/ctp3/hbp3/plots/inlet/',                      
+            
+            #'/home/sbrus/data-drive/galveston_spline_flux/galveston_tri_x64/p3/ctp3/hbp3/plots/inlet/',
+            #'/home/sbrus/data-drive/galveston_spline_flux/galveston_tri/p3/ctp3/hbp3/plots/inlet/',
+            #'/home/sbrus/data-drive/galveston_spline_flux/galveston_tri/p3/ctp1/hbp1/plots/inlet/',
             
             #'/home/sbrus/data-drive/galveston_spline_flux/galveston_tri_x64/p3/ctp3/hbp3/plots/left_inlet/',
             #'/home/sbrus/data-drive/galveston_spline_flux/galveston_tri/p3/ctp3/hbp3/plots/left_inlet/',

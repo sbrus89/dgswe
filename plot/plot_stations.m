@@ -4,34 +4,37 @@ clear all
 
 adc_sta_direc = {
 %                 '/home/sbrus/data-drive/galveston_spline_flux/galveston_tri/adcirc/ESL0_orig/';
-                '/home/sbrus/data-drive/galveston_spline_flux_x10/galveston_tri/adcirc/ESL0/';
-                '/home/sbrus/data-drive/galveston_spline_flux_x10/galveston_tri_x64/adcirc/ESL0/';
+%                 '/home/sbrus/data-drive/galveston_spline_flux/galveston_tri/adcirc/ESL0/';
+%                 '/home/sbrus/data-drive/galveston_spline_flux/galveston_tri_x64/adcirc/ESL0/';
                 };         
 
 dg_sta_direc = {
-               '/home/sbrus/data-drive/galveston_spline_flux_x10/galveston_tri_x64/p3/ctp3/hbp3/';
-               '/home/sbrus/data-drive/galveston_spline_flux_x10/galveston_tri/p3/ctp3/hbp3/';
-%                '/home/sbrus/data-drive/galveston_spline_flux_x10/galveston_tri/p3/ctp1/hbp1/'               
+               '/home/sbrus/data-drive/galveston_spline_flux/galveston_tri_x64/p3/ctp3/hbp3/';
+               '/home/sbrus/data-drive/galveston_spline_flux/galveston_tri_x16/p3/ctp3/hbp3/';
+               '/home/sbrus/data-drive/galveston_spline_flux/galveston_tri_x4/p3/ctp3/hbp3/';              
+               '/home/sbrus/data-drive/galveston_spline_flux/galveston_tri/p3/ctp3/hbp3/';
+%                '/home/sbrus/data-drive/galveston_spline_flux/galveston_quad/p3/ctp3/hbp3/';               
+%                '/home/sbrus/data-drive/galveston_spline_flux/galveston_tri/p3/ctp1/hbp1/'               
                };         
          
         
 % grid_name = '/home/sbrus/data-drive/galveston/dgswe/quad2_spline_channel/p1/galveston2_plot.grd';
 
-grid_name = '/home/sbrus/data-drive/galveston_spline_flux_x10/grids/galveston_tri.grd';
-stations_file = '/home/sbrus/data-drive/galveston_spline_flux_x10/grids/stations.d';
-save_dir = '/home/sbrus/data-drive/galveston_spline_flux_x10/';         
+grid_name = '/home/sbrus/data-drive/galveston_spline_flux/grids/galveston_tri.grd';
+stations_file = '/home/sbrus/data-drive/galveston_spline_flux/grids/stations.d';
+save_dir = '/home/sbrus/data-drive/galveston_spline_flux/';         
          
 cmap = colormap(lines);          
 
-labels = {'adcirc';
-          'adcirc x64';
+labels = {
+%           'adcirc';
+%           'adcirc x64';
           'DG x64 p3 tri h.o.';
-          %'DG p2 tri';
-          'DG p3 tri h.o.'
-          %'DG p3 tri lin'
-          %'DG p1 quad';
-          %'DG p2 quad'
-          %'DG p3 quad'
+          'DG x16 p3 tri h.o.';
+          'DG x4 p3 tri h.o.';
+          'DG p3 tri h.o.';
+%           'DG p3 tri lin'
+%           'DG p3 quad h.o.'          
           }; 
 colors = [cmap(1,:)
           cmap(2,:)
@@ -149,6 +152,7 @@ for snap = xs_snap_vec
     end
     for run = 1:nruns_dg
         plot(z_dg(sta_vec,snap,run),'Color',colors(i,:))
+        hold on
         i = i+1;
     end
     set(gcf, 'units', 'inches', 'pos', fig_size);
@@ -170,6 +174,7 @@ for snap = xs_snap_vec
     end
     for run = 1:nruns_dg
         plot(vel_dg(sta_vec,snap,run),'Color',colors(i,:))
+        hold on
         i = i+1;        
     end
     set(gcf, 'units', 'inches', 'pos', fig_size)
@@ -201,6 +206,7 @@ for sta = ts_sta_vec
     end
     for run = 1:nruns_dg
         plot(t,z_dg(sta,:,run),'Color',colors(i,:))
+        hold on
         i = i+1;        
     end
     set(gcf, 'units', 'inches', 'pos', fig_size);
@@ -226,6 +232,7 @@ for sta = ts_sta_vec
     end
     for run = 1:nruns_dg
         plot(t,vel_dg(sta,:,run),'Color',colors(i,:))
+        hold on
         i = i+1;        
     end
     set(gcf, 'units', 'inches', 'pos', fig_size)

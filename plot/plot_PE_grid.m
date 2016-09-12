@@ -4,7 +4,8 @@ clc
 restoredefaultpath
 
 % direc = '/home/sbrus/Codes/dgswe/work/';
-direc = '/home/sbrus/data-drive/galveston_spline/tri/p3/ctp3/hbp3/test/';
+% direc = '/home/sbrus/data-drive/galveston_spline/tri/p3/ctp3/hbp3/test/';
+direc = '/home/sbrus/data-drive/galveston_spline_flux/galveston_tri_x4/p3/ctp3/hbp3/';
 % direc = '/home/sbrus/data-drive/galveston_spline/tri_x64/p3/ctp3/hbp3/';
 % direc = '/home/sbrus/data-drive/EC2001/dgswe/';
 

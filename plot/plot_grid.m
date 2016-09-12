@@ -12,15 +12,15 @@ node = 'on';
 
 p = 1 ;
 
-grd_direc = '/home/sbrus/Codes/dgswe/grids/';
+% grd_direc = '/home/sbrus/Codes/dgswe/grids/';
 % grd_name = 'converge5_dble.grd';
-grd_name = 'inlet1.grd';
+% grd_name = 'inlet1.grd';
 
 % grd_direc = '/home/sbrus/data-drive/galveston_spline/grids/';
 % grd_name = 'galveston_tri_x64.grd';
 
-% grd_direc = '/home/sbrus/data-drive/galveston_spline/grids/';
-% grd_name = 'galveston_tri_x64.grd';
+grd_direc = '/home/sbrus/data-drive/galveston_spline_flux/grids/';
+grd_name = 'galveston_tri_x64.grd';
 
 % grd_direc = '/home/sbrus/data-drive/galveston_spline_oob/grids/unmodified_refinements/';
 % grd_name = 'galveston_tri_x4.grd';
@@ -48,8 +48,8 @@ grd_name = 'inlet1.grd';
 DEToV = zeros(length(EToV(:,1)),nc+1) ;
 DEToV(:,1) = nelnds ;
 DEToV(:,2:nc+1) = EToV ;
-% drawNGonMesh4_bou( VX, DEToV,boudat.nbvv, lcolor, 'ElNum', elem, elcolor, 'NodeNum', node, ndcolor )
-drawNGonMesh4( VX, DEToV, lcolor, 'ElNum', elem, elcolor, 'NodeNum', node, ndcolor )
+drawNGonMesh4_bou( VX, DEToV,boudat.nbvv, lcolor, 'ElNum', elem, elcolor, 'NodeNum', node, ndcolor )
+% drawNGonMesh4( VX, DEToV, lcolor, 'ElNum', elem, elcolor, 'NodeNum', node, ndcolor )
 axis equal
 
 % x1 = 2000.00000000000;
