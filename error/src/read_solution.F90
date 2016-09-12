@@ -1,42 +1,49 @@
       SUBROUTINE read_solution(sol,t)
 
       USE globals, ONLY:rp,solution,lines
+      USE read_write_output, ONLY: read_solution_full
 
       IMPLICIT NONE
       
       TYPE(solution) :: sol
       
       INTEGER :: i,dof,el,line,et,n
+      INTEGER :: nsnap_read
       REAL(rp) :: t,hb
       
       PRINT("(A)"), TRIM(sol%sol_name) // " solution"
       
 #ifndef adcirc      
       
-      OPEN(UNIT=11, FILE=trim(sol%out_direc) //"solution_H.d")
-      OPEN(UNIT=12, FILE=trim(sol%out_direc) //"solution_Qx.d")     
-      OPEN(UNIT=13, FILE=trim(sol%out_direc) //"solution_Qy.d")      
+!       OPEN(UNIT=11, FILE=trim(sol%out_direc) //"solution_H.d")
+!       OPEN(UNIT=12, FILE=trim(sol%out_direc) //"solution_Qx.d")     
+!       OPEN(UNIT=13, FILE=trim(sol%out_direc) //"solution_Qy.d")      
+!       
+!       READ(11,*) 
+!       READ(12,*)
+!       READ(13,*)
+!       
+!       DO line = 1,lines+1
+!         READ(11,*) t
+!         READ(12,*) t
+!         READ(13,*) t 
+!         
+!         DO dof = 1,sol%mndof
+!           READ(11,*) (sol%H(el,dof), el = 1,sol%ne)
+!           READ(12,*) (sol%Qx(el,dof), el = 1,sol%ne)
+!           READ(13,*) (sol%Qy(el,dof), el = 1,sol%ne)
+!         ENDDO    
+!         
+!       ENDDO
+!       
+!       CLOSE(11)
+!       CLOSE(12)
+!       CLOSE(13)     
       
-      READ(11,*) 
-      READ(12,*)
-      READ(13,*)
-      
-      DO line = 1,lines+1
-        READ(11,*) t
-        READ(12,*) t
-        READ(13,*) t 
-        
-        DO dof = 1,sol%mndof
-          READ(11,*) (sol%H(el,dof), el = 1,sol%ne)
-          READ(12,*) (sol%Qx(el,dof), el = 1,sol%ne)
-          READ(13,*) (sol%Qy(el,dof), el = 1,sol%ne)
-        ENDDO    
-        
-      ENDDO
-      
-      CLOSE(11)
-      CLOSE(12)
-      CLOSE(13)     
+      nsnap_read = lines+1
+      CALL read_solution_full(sol%out_direc,'Z.sol',"T",t_sol,sol%H,nsnap_read)       
+      CALL read_solution_full(sol%out_direc,'Qx.sol',"T",t_sol,sol%Qx,nsnap_read)           
+      CALL read_solution_full(sol%out_direc,'Qy.sol',"T",t_sol,sol%Qy,nsnap_read)         
       
 #else      
       
