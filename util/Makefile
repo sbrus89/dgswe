@@ -21,6 +21,12 @@ adjust_objects =  globals.o  quit.o \
           
 adjust_obj := $(patsubst %.o, $(ODIR)%.o,$(adjust_objects))
 
+convert_bou_objects =  globals.o  quit.o \
+           grid_file_mod.o \
+           convert_open_bou.o 
+          
+convert_bou_obj := $(patsubst %.o, $(ODIR)%.o,$(convert_bou_objects))
+
 
 ########################################################################
 #                          Executable Targets                          #
@@ -33,7 +39,11 @@ convert:  $(ODIR) $(convert_obj)
 	
 adjust:  $(ODIR) $(adjust_obj)
 	@echo "\n\n"
-	$(FC) $(FFLAGS) -o adjust $(adjust_obj) 	
+	$(FC) $(FFLAGS) -o adjust $(adjust_obj)
+	
+convert_bou: $(ODIR) $(convert_bou_obj)
+	@echo "\n\n"
+	$(FC) $(FFLAGS) -o convert_bou $(convert_bou_obj)
         
 ########################################################################
 #                      Premilinary Targets                             #
@@ -76,5 +86,8 @@ $(ODIR)convert.o: convert2cartesian.F90                      $(ODIR)globals.o $(
 	$(FC) $(FFLAGS) -c $< -o $@
         
 $(ODIR)adjust.o: adjust_channel_boundaries.f90               $(ODIR)globals.o $(ODIR)grid_file_mod.o 
-	$(FC) $(FFLAGS) -c $< -o $@        
+	$(FC) $(FFLAGS) -c $< -o $@       
+	
+$(ODIR)convert_open_bou.o: convert_open_boundaries.F90            $(ODIR)globals.o $(ODIR)grid_file_mod.o
+	$(FC) $(FFLAGS) -c $< -o $@	
 

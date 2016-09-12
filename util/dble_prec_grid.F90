@@ -29,11 +29,11 @@
 
 
 
-      grid_file_input = "converge.grd"
-      forcing_file_input = "converge.bfr"
+      grid_file_input = "/home/sbrus/data-drive/galveston_spline_oob/grids/galveston_tri.grd"
+      forcing_file_input = "/home/sbrus/data-drive/galveston_spline_oob/grids/galveston.bfr"
       
-      grid_file_output = "converge1_dble.grd"
-      forcing_file_output = "converge1_dble.bfr"
+      grid_file_output = "/home/sbrus/data-drive/galveston_spline_oob/grids/galveston_tri_dble.grd"
+      forcing_file_output = "/home/sbrus/data-drive/galveston_spline_oob/grids/galveston_dble.bfr"
 
       
       
