@@ -45,7 +45,7 @@
       CALL separate_coordinates(eval)            
       CALL init_vandermonde(nel_type,base%np)
       
-      CALL write_normals()
+!       CALL write_normals()
       CALL write_linear_nodes(eval)  
       CALL write_curved_coordinates(eval)      
       
