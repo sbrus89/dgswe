@@ -362,8 +362,8 @@
       
       
       PRINT*, "Writing output files"
-      CALL write_grid(eval,base%grid_file)
-      CALL write_cb_file(eval)            
+      CALL write_cb_file(eval)       
+      CALL write_grid(eval,base%grid_file)           
      
 
       END PROGRAM spline
