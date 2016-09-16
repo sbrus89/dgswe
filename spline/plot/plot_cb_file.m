@@ -1,11 +1,18 @@
-% close all
+close all
 clear all
 clc
 
-file = '/home/sbrus/data-drive/galveston_spline_flux/grids/galveston_tri_x4_ctp3.cb';
+file = '/home/sbrus/data-drive/galveston_spline_flux_fix/grids/galveston_tri_ctp3.cb';
 % file = '/home/sbrus/data-drive/galveston_spline_flux/galveston_tri_x4/p3/ctp3/hbp3/decomp48/PE0009/fort.cb';
 fid = fopen(file);
-header = fgetl(fid);
+header = 1;
+while header == 1
+    line = fgetl(fid);
+    disp(line)
+    if length(line) > 10 && strcmp(line(1:10),'!!!!!!!!!!');
+        header = 0;
+    end
+end
 
 nbou = fscanf(fid,'%d', 1); fgetl(fid);
 n = fscanf(fid,'%d %d', 2); fgetl(fid);
@@ -23,7 +30,7 @@ for bou = 1:nbou
     btype = n(2);
     
     if nnds <= 0
-        break
+        continue
     end
     
     if ctp == 2
