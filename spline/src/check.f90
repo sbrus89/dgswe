@@ -432,7 +432,18 @@
       ENDDO      
       
       IF (detected == 1) THEN
+      
+        OPEN(UNIT=100,FILE="error.out",STATUS="replace")
+        WRITE(100,"(A)") "Negative Jacobian detected"
+        CLOSE(100)
         STOP
+        
+      ELSE
+      
+        OPEN(UNIT=100,FILE="error.out",STATUS="replace")
+        WRITE(100,"(A)") ""
+        CLOSE(100)        
+        
       ENDIF
       
       RETURN
