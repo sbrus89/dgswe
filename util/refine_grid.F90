@@ -30,6 +30,8 @@
       INTEGER :: fed,nfed
       INTEGER :: nnr,ner,netar,nvelr
       INTEGER :: segtype
+      INTEGER :: ninp
+      INTEGER :: inp_read,skipped
       INTEGER, DIMENSION(:,:), ALLOCATABLE :: el2ged
       INTEGER, DIMENSION(:,:), ALLOCATABLE :: ect_refine
       INTEGER, DIMENSION(:), ALLOCATABLE :: el_type_refine
@@ -40,8 +42,11 @@
       INTEGER, DIMENSION(:), ALLOCATABLE :: fbnodes    
       REAL(rp), DIMENSION(:,:), ALLOCATABLE :: xy_refine
       REAL(rp), DIMENSION(:), ALLOCATABLE :: depth_refine
+      LOGICAL :: file_exists
       
       CHARACTER(100) :: grid_file
+      CHARACTER(100) :: out_file      
+      CHARACTER(100) :: temp
       CHARACTER(40) :: sha1      
       
       nverts(1) = 3
@@ -49,9 +54,41 @@
       nverts(3) = 3
       nverts(4) = 4      
       
+
+      ninp = 2
       
-      grid_file = '/home/sbrus/data-drive/galveston_spline_flux_fix/grids/galveston_quad.grd'
+      INQUIRE(file='refine.inp',exist=file_exists)
+      IF (file_exists == .FALSE.) THEN
+        PRINT*, "refine.inp file does not exist"
+        STOP
+      ENDIF 
+            
+      OPEN(UNIT=15,FILE='refine.inp')
       
+      inp_read = 0
+      skipped = 0
+      DO WHILE (inp_read < ninp)
+      
+        READ(15,"(A100)") temp
+                    
+        IF ( INDEX(temp,"!") == 1 .or. INDEX(temp,"          ") == 1) THEN
+            skipped = skipped + 1
+        ELSE
+          inp_read = inp_read + 1
+          SELECT CASE (inp_read)
+            CASE (1)
+              grid_file = TRIM(ADJUSTL(temp))
+              PRINT*, "grid file = ", grid_file   
+            CASE (2)
+              out_file = TRIM(ADJUSTL(temp))
+              PRINT*, "out file = ", out_file            
+          END SELECT
+            
+        ENDIF
+      
+      ENDDO      
+      
+      CLOSE(15)
       
       
       
@@ -257,7 +294,7 @@
       
       
       
-      CALL write_header('fort.14_refine',grid_name,ner,nnr)
+      CALL write_header(out_file,grid_name,ner,nnr)
       
       CALL write_coords(nnr,xy_refine,depth_refine)
       
@@ -268,7 +305,7 @@
       CALL write_flow_boundaries(nbou,nvelr,fbseg,fbnds_refine)
       
       
-      OPEN(UNIT=14, FILE="fort.14_refine", POSITION="APPEND")
+      OPEN(UNIT=14, FILE=out_file, POSITION="APPEND")
       WRITE(14,"(A)") "4x refinement of base grid "//grid_file
       WRITE(14,"(A)") "base grid SHA "//sha1(grid_file,"./")
       WRITE(14,"(A)") ""
