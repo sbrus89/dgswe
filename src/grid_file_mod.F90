@@ -291,7 +291,7 @@
         IF (flag == "!!!!!!!!!!") THEN
           EXIT
         ELSE IF (read_stat < 0) THEN
-          PRINT*, "exiting from"
+          PRINT*, "footer does not exist"
           RETURN
         ENDIF
         
