@@ -169,10 +169,13 @@
       
       
 
+      CALL make_plot(-1,0d0,mesh)      
       
-      CALL make_plot(-1,t_snap,bathy,hb(:,:,1))                    
+      IF (zeta%plot_sol_option == 0 .and. vel%plot_sol_option == 0 .and. bathy%plot_sol_option == 0) THEN
+        STOP
+      ENDIF      
       
-      CALL make_plot(-1,0d0,mesh)
+      CALL make_plot(-1,t_snap,bathy,hb(:,:,1))                         
       
       IF (zeta%plot_sol_option == 0 .and. vel%plot_sol_option == 0) THEN
         STOP
