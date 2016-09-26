@@ -117,8 +117,9 @@
       
       INTEGER :: nfbsfr ! number of surge forcings on flow boundaries
       CHARACTER(10), ALLOCATABLE, DIMENSION(:) :: fbstag,fbstag2 ! surge name      
-      REAL(rp), ALLOCATABLE, DIMENSION(:) :: fbsper ! flow boundary surge frequency
-      REAL(rp), ALLOCATABLE, DIMENSION(:) :: fbsbgn  ! flow boundary surge beginning time
+      REAL(rp), ALLOCATABLE, DIMENSION(:) :: fbsbgn ! flow boundary surge beginning time
+      REAL(rp), ALLOCATABLE, DIMENSION(:) :: fbsend ! flow boundary surge ending time
+      REAL(rp), ALLOCATABLE, DIMENSION(:) :: fbssig ! flow boundary surge rise/fall parameter
       REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: fbsamp ! flow boundary nodal surge amplitude 
       REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: fbsamp_qpt ! flow boundary nodal surge amplitude interpolated to edge quadrature points
 
@@ -300,7 +301,41 @@
       INTEGER, ALLOCATABLE, DIMENSION(:) :: nlsta
       INTEGER, ALLOCATABLE, DIMENSION(:,:) :: sta_l2g
       
+      
+      
+      TYPE :: grid
+      
+        CHARACTER(100) :: grid_name ! name of the grid
+        CHARACTER(100) :: grid_file ! name of fort.14 file 
+        
+        INTEGER :: ne ! number of elements
+        INTEGER :: nn ! number of nodes                
+      
+        INTEGER, ALLOCATABLE, DIMENSION(:) :: el_type      
+      
+        INTEGER, ALLOCATABLE, DIMENSION(:,:) :: ect ! element connectivity table
+        REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: xy ! x,y coordinates of nodes
+        REAL(rp), ALLOCATABLE, DIMENSION(:) :: depth ! depth at each node
+ 
+        INTEGER :: nope ! number of open boundary segents
+        INTEGER, ALLOCATABLE, DIMENSION(:) :: obseg ! number of nodes in each open boundary segment
+        INTEGER :: neta ! total elevation specified boundary nodes
+        INTEGER, ALLOCATABLE, DIMENSION(:,:) :: obnds ! open boundary nodes
 
+        INTEGER :: nbou  ! number of normal flow boundary segments
+        INTEGER, ALLOCATABLE, DIMENSION(:,:) :: fbseg ! number of nodes and type of each normal flow boundary segment
+        INTEGER :: nvel  ! total number of normal flow boundary nodes
+        INTEGER, ALLOCATABLE, DIMENSION(:,:) :: fbnds ! normal flow boundary nodes
+      
+        INTEGER :: mnepn
+        INTEGER, ALLOCATABLE, DIMENSION(:) :: nepn ! number of elements per node
+        INTEGER, ALLOCATABLE, DIMENSION(:,:) :: epn ! elements per node                      
+
+      END TYPE
+         
+      
+      TYPE(grid) :: base
+      TYPE(grid) :: eval
       
 #ifdef ALIGN16      
 !DIR$ ATTRIBUTES ALIGN:16 :: rhsH,rhsQx,rhsQy

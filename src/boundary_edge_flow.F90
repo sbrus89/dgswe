@@ -9,7 +9,7 @@
                          nx_pt,ny_pt,Spe,detJe,hbqpted, &
                          Zqpt,Qxqpt,Qyqpt, &
                          Zflux,Qxflux,Qyflux, &
-                         nfbsfr,fbsamp_qpt,fbsbgn,fbsper
+                         nfbsfr,fbsamp_qpt,fbsbgn,fbsend,fbssig
 
       IMPLICIT NONE
 
@@ -56,15 +56,14 @@
             arg = fbfreq(bfr)*(tstage - real(INT(tstage/fbper(bfr)),rp)*fbper(bfr)) + fbeq(bfr)
             Qn = Qn + fbamp_qpt(bfr,pt,ed)*fbnfact(bfr)*ramp*COS(arg-fbph_qpt(bfr,pt,ed))
           ENDDO
+          
+          DO bfr = 1,nfbsfr
+              Qn = Qn + .5d0*(fbsamp_qpt(bfr,pt,ed)*exp(-((tstage-fbsbgn(bfr))/fbssig(bfr))**2) &
+                             -fbsamp_qpt(bfr,pt,ed)*exp(-((tstage-fbsend(bfr))/fbssig(bfr))**2))
+          ENDDO          
 
           Qn = -Qn
           
-          DO bfr = 1,nfbsfr
-            IF (tstage >= fbsbgn(bfr) .and. tstage <= fbsbgn(bfr)+0.5d0*fbsper(bfr)) THEN            
-              Qn = Qn + fbsamp_qpt(bfr,pt,ed)*COS(2d0*pi/fbsper(bfr)*tstage - pi) + fbsamp_qpt(bfr,pt,ed)
-            ENDIF
-          ENDDO
-
           Qx_ex = ( ty*Qn - ny*Qt)/(nx*ty-ny*tx)
           Qy_ex = (-tx*Qn + nx*Qt)/(nx*ty-ny*tx)
  

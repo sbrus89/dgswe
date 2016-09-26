@@ -123,7 +123,7 @@
                          fbtag,fbfreq,fbnfact,fbeq,fbper,fbtag2,fbamp,fbph, &
                          obamp_qpt,obph_qpt,obdepth_qpt, &
                          fbamp_qpt,fbph_qpt, &
-                         fbstag,fbstag2,fbsper,fbsbgn,fbsamp, &
+                         fbstag,fbstag2,fbsbgn,fbsend,fbssig,fbsamp, &
                          fbsamp_qpt
                          
       
@@ -146,7 +146,8 @@
         ALLOCATE(fbtag2(nfbfr),fbamp(nvel,nbou,nfbfr),fbph(nvel,nbou,nfbfr),STAT = alloc_status(2))
       ELSE IF (stage == 3) THEN
         n = 2
-        ALLOCATE(fbstag(nfbsfr),fbstag2(nfbsfr),fbsper(nfbsfr),fbsbgn(nfbsfr),STAT = alloc_status(1))
+        ! Flow boundary surge arrays
+        ALLOCATE(fbstag(nfbsfr),fbstag2(nfbsfr),fbsbgn(nfbsfr),fbsend(nfbsfr),fbssig(nfbsfr),STAT = alloc_status(1))
         ALLOCATE(fbsamp(nvel,nbou,nfbsfr),STAT = alloc_status(2))
       ELSE IF (stage == 4) THEN
         n = 3

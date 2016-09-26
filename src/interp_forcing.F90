@@ -8,7 +8,7 @@
                          obamp_qpt,obph_qpt,obdepth_qpt,fbamp_qpt,fbph_qpt, &
                          depth,obnds, &
                          deg2rad,pi, &
-                         nfbsfr,fbsamp,fbsamp_qpt,fbsper,fbsbgn
+                         nfbsfr,fbsamp,fbsamp_qpt,fbsbgn,fbsend,fbssig
                          
       USE allocation, ONLY: alloc_forcing_arrays 
       USE messenger2, ONLY: myrank        
@@ -75,8 +75,9 @@
         ENDDO
         
         DO bfr = 1,nfbsfr
-          fbsper(bfr) = 2d0*fbsper(bfr)*86400d0
-          fbsbgn(bfr) = fbsbgn(bfr)*86400d0
+          fbssig(bfr) = fbssig(bfr)*86400d0
+          fbsbgn(bfr) = fbsbgn(bfr)*86400d0 + 3d0*fbssig(bfr)
+          fbsend(bfr) = fbsend(bfr)*86400d0 - 3d0*fbssig(bfr)
         ENDDO        
         
       ENDIF

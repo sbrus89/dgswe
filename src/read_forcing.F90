@@ -4,7 +4,7 @@
                          nobfr,obtag,obtag2,obfreq,obnfact,obeq,obamp,obph, &
                          nfbfr,fbtag,fbtag2,fbfreq,fbnfact,fbeq,fbamp,fbph, &
                          fbper,obper,pi,deg2rad, &
-                         nfbsfr,fbsper,fbsbgn,fbsamp,fbstag,fbstag2
+                         nfbsfr,fbsbgn,fbsend,fbssig,fbsamp,fbstag,fbstag2
                          
       USE allocation, ONLY: alloc_forcing_arrays   
       USE messenger2, ONLY: myrank
@@ -94,7 +94,7 @@
         
         DO bfr = 1,nfbsfr
           READ(15,*) fbstag(bfr)
-          READ(15,*) fbsper(bfr),fbsbgn(bfr)
+          READ(15,*) fbsbgn(bfr),fbsend(bfr),fbssig(bfr)
         ENDDO
         
         DO bfr = 1,nfbsfr
