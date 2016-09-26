@@ -42,7 +42,12 @@ refine_objects = globals.o quit.o \
                  grid_file_mod.o edge_connectivity_mod.o \
                  version.o system.o refine.o
                  
-refine_obj := $(patsubst %.o, $(ODIR)%.o,$(refine_objects))                 
+refine_obj := $(patsubst %.o, $(ODIR)%.o,$(refine_objects))   
+
+copy_objects = globals.o quit.o kdtree2.o\
+               grid_file_mod.o copy_nodes.o
+               
+copy_obj := $(patsubst %.o, $(ODIR)%.o,$(copy_objects))                
 
 ########################################################################
 #                          Executable Targets                          #
@@ -64,6 +69,10 @@ convert_bou: $(ODIR) $(convert_bou_obj)
 refine: $(ODIR) $(refine_obj)	
 	@echo "\n\n"
 	$(FC) $(FFLAGS) -o refine $(refine_obj)
+	
+copy: $(ODIR) $(copy_obj)	
+	@echo "\n\n"
+	$(FC) $(FFLAGS) -o copy $(copy_obj)	
         
 ########################################################################
 #                      Premilinary Targets                             #
@@ -87,7 +96,7 @@ version :
 .PHONY : clean
 
 clean : 
-	rm -r convert adjust odir refine       
+	rm -r convert adjust odir refine copy      
         
 ########################################################################
 #                            File Targets                              #
@@ -95,7 +104,7 @@ clean :
 
 $(ODIR)globals.o: ../src/globals.F90                                   
 	$(FC) $(FFLAGS) -c $< -o $@
-	mv globals.mod $(ODIR)         
+	mv globals.mod $(ODIR)         	  	
 	
 $(ODIR)version.o : ../src/version.F90                                
 	$(FC) $(FFLAGS) -c $< -o $@
@@ -103,6 +112,12 @@ $(ODIR)version.o : ../src/version.F90
 	
 $(ODIR)system.o : ../src/system.F90                                
 	$(FC) $(FFLAGS) -c $< -o $@	
+	
+$(ODIR)kdtree2.o: ../src/kdtree2.F
+	$(FC) $(FFLAGS) -132 -c $< -o $@
+	mv kdtree2_precision_module.mod $(ODIR)
+	mv kdtree2_module.mod $(ODIR)
+	mv kdtree2_priority_queue_module.mod $(ODIR)	
 
 $(ODIR)grid_file_mod.o : ../src/grid_file_mod.F90            $(ODIR)globals.o $(ODIR)quit.o $(ODIR)spherical_mod.o
 	$(FC) $(FFLAGS) -c $< -o $@
@@ -130,4 +145,7 @@ $(ODIR)convert_open_bou.o: convert_open_boundaries.F90       $(ODIR)globals.o $(
 	$(FC) $(FFLAGS) -c $< -o $@
 
 $(ODIR)refine.o: refine_grid.F90                             $(ODIR)globals.o $(ODIR)grid_file_mod.o $(ODIR)edge_connectivity_mod.o $(ODIR)version.o
+	$(FC) $(FFLAGS) -c $< -o $@
+	
+$(ODIR)copy_nodes.o: copy_nodes.F90                          $(ODIR)globals.o $(ODIR)grid_file_mod.o $(ODIR)kdtree2.o
 	$(FC) $(FFLAGS) -c $< -o $@
