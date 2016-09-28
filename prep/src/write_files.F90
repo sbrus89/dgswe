@@ -4,7 +4,7 @@
                          lnope,lneta,lobseg,lobnds,lnbou,lnvel,lfbseg,lfbnds,lbndxy, &
                          nobfr,obtag,obtag2,obfreq,obnfact,obeq,lobamp,lobph, &
                          nfbfr,fbtag,fbtag2,fbfreq,fbnfact,fbeq,lfbamp,lfbph,lnbouf, &
-                         nfbsfr,fbstag,fbstag2,fbsper,fbsbgn,lfbsamp, &
+                         nfbsfr,fbstag,fbstag2,fbsbgn,fbsend,fbssig,lfbsamp, &
                          nsred,el_l2g,el_g2l,mndof, &
                          el_type,elhb,nnds,order, &
                          nsta,nlsta,sta_l2g,xysta
@@ -179,7 +179,7 @@
           WRITE(15,*) nfbsfr
           DO bfr = 1,nfbsfr
             WRITE(15,*) fbstag(bfr)
-            WRITE(15,"(3(D24.17,1x))") fbsper(bfr),fbsbgn(bfr)
+            WRITE(15,"(3(D24.17,1x))") fbsbgn(bfr),fbsend(bfr),fbssig(bfr)
           ENDDO
           DO bfr = 1,nfbsfr
             WRITE(15,*) fbstag2(bfr)
