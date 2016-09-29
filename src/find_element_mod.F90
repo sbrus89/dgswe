@@ -9,7 +9,7 @@
       
       SAVE
       
-      INTEGER, PARAMETER :: srchdp = 20
+      INTEGER :: srchdp 
       REAL(rp), DIMENSION(:,:,:), ALLOCATABLE :: rsre          
       TYPE(kdtree2), POINTER :: tree_xy      
       TYPE(kdtree2_result), ALLOCATABLE, DIMENSION(:) :: closest   
@@ -49,6 +49,11 @@
       
       ! initialize module varibles to increase flexibility and decrease number
       ! of subroutine calling arguments
+      
+      srchdp = 20
+      IF (nn < srchdp) THEN
+        srchdp = nn
+      ENDIF
       
       tree_xy => kdtree2_create(xy(1:2,1:nn), rearrange=.true., sort=.true.)
       ALLOCATE(closest(nn))      
