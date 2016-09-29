@@ -56,7 +56,7 @@
       ENDIF
       
       tree_xy => kdtree2_create(xy(1:2,1:nn), rearrange=.true., sort=.true.)
-      ALLOCATE(closest(nn))      
+      ALLOCATE(closest(MAX(nn,srchdp)))      
             
             
       CALL ref_elem_coords(nel_type,rsre)
