@@ -2,6 +2,7 @@
       
       USE globals, ONLY: rp
       USE quit, ONLY: abort
+      USE messenger2, ONLY: myrank
       
       IMPLICIT NONE
       
@@ -449,7 +450,7 @@
           ENDDO edges2
           
           IF (found == 0) THEN
-            PRINT*, seg, nd, fbseg(1,seg), segtype          
+            PRINT*, seg, nd, fbseg(1,seg), segtype,myrank          
             PRINT "(A)", "  edge not found"
           ENDIF
           
