@@ -1,7 +1,7 @@
       SUBROUTINE decomp2()
       
       USE globals, ONLY: rp,nn,ne,ned,part,ect,nverts,lect,lnelnds,mnnds, &
-                         ged2el,ged2led,el_type, &
+                         ged2el,ged2led,ged2nn,el_type, &
                          nsred,sredn, &
                          nresel,el_g2l,el_l2g, &
                          mned_sr, &
@@ -21,7 +21,8 @@
                          nlsta,sta_l2g, &
                          elxy
                          
-                         
+      USE edge_connectivity_mod, ONLY: nbed,bedn
+ 
       USE read_dginp, ONLY: hbp,ctp                           
                          
       USE messenger2, ONLY: nproc,nqpte_sr,hb_sr,nx_sr,ny_sr,detJe_sr, &
@@ -31,7 +32,7 @@
 
       INTEGER :: el,pe,nd,ed,i,j,k,bnd,eln,bfr,pt,sta
       INTEGER :: ged,lnd,nv
-      INTEGER :: lled,gled,ln1,ln2,gn1,gn2,n1,n2
+      INTEGER :: lled,gled,ln1,ln2,gn1,gn2,n1,n2,nd1,nd2
       INTEGER :: el1,el2
       INTEGER :: pe1,pe2
       INTEGER :: led1,led2
@@ -41,7 +42,7 @@
       INTEGER :: mnepe
       INTEGER :: mnobnds,mnfbnds
       INTEGER :: segtype
-      INTEGER :: bnd_flag,stop_flag
+      INTEGER :: bnd_flag,stop_flag,el_flag
       INTEGER :: lbou,mlbou
       
       INTEGER, ALLOCATABLE, DIMENSION(:) :: ndflag 
@@ -340,8 +341,33 @@
           bfnd = 0                 !     boundary segments, meaning there may be more than one local boundary per global boundary          
           bnd_flag = 0             !   - when this happens the island boundaries need to be changed to land boundaries because they are no
      nds: DO j = 1,fbseg(1,bnd)    !     longer closed.
-            nd = fbnds(j,bnd)
-            lnd = nd_g2l(nd)
+            nd1 = fbnds(j,bnd)
+            lnd = nd_g2l(nd1)
+            
+           
+            el_flag = 1                                ! Find if element edge is in this subdomain, 
+            IF (j <= fbseg(1,bnd)-1) THEN              ! to determine if this breaks up a boundary. 
+              nd2 = fbnds(j+1,bnd)                     ! (Assume el_flag=1 to start to account for when j==fbseg(1,bnd))
+                                                       ! This is an issue when both nodes belong to this subdomain, but the              
+       edges: DO ed = 1,nbed                           ! edge between them belongs to an element from another.
+                ged = bedn(ed)
+                n1 = ged2nn(1,ged)
+                n2 = ged2nn(2,ged)
+                
+                IF(((nd1 == n1).AND.(nd2 == n2)).OR. &
+                   ((nd1 == n2).AND.(nd2 == n1))) THEN
+                   
+                  el = ged2el(1,ged)                  
+                  EXIT edges
+                ENDIF
+              ENDDO edges
+              
+              IF (el_g2l(1,el) /= pe) THEN
+                el_flag = 0
+              ENDIF
+            ENDIF
+            
+            
             IF(lnd == 0) THEN
             
               ! node is not in this subdomain
@@ -359,10 +385,10 @@
             
               IF (bnd_flag == 0) THEN ! if the boundary was broken, start a new local boundary
               
-                IF (j == fbseg(1,bnd)) THEN ! unless it's the last node in the global boundary
-                  EXIT nds                  ! (this node has already been included earlier)
-                ENDIF              
-
+                IF (j == fbseg(1,bnd)) THEN ! unless it's the "last" node in the global boundary
+                  EXIT nds                  ! (island boundaries are closed, i.e. they begin and end with same node,
+                ENDIF                       !  so this is really the first node has already been included earlier)
+                             
                 lnbou(pe) = lnbou(pe) + 1   ! start a new local boundary
                 lbou = lnbou(pe)
                 bou_l2g(lbou,pe) = bnd      ! keep track of what global boundary each local segement is from
@@ -375,6 +401,15 @@
               lfbseg(1,lbou,pe) = lfbseg(1,lbou,pe) + 1   ! inrement # of segment boundary nodes
               nlbnds = lfbseg(1,lbou,pe) 
               lfbnds(nlbnds,lbou,pe) = lnd                ! keep track of local boundary node numbers
+              
+              IF (el_flag == 0) THEN
+                bnd_flag = 0                     ! break boundary if element edge is not in domain
+                
+                IF (lfbseg(1,lbou,pe) == 1) THEN ! boundary might break after one node
+                  lnbou(pe) = lnbou(pe) - 1      ! if so, don't count it
+                  lfbseg(1,lbou,pe) = 0          ! (that node will be included at the end of the global boundary)
+                ENDIF                
+              ENDIF
               
               DO k = 1,ctp-1
                 lbndxy(1,k,nlbnds,lbou,pe) = bndxy(1,k,j,bnd)

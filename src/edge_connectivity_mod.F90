@@ -457,7 +457,7 @@
       ENDDO
       
       ALLOCATE(nfbedn(nnfbed),nfbednn(nnfbed,3),fbedn(nfbed), STAT=alloc_status)
-      DEALLOCATE(bedn, STAT=alloc_status)
+!       DEALLOCATE(bedn, STAT=alloc_status)
       
       
       nfbedn(1:nnfbed) = nfbedn_temp(1:nnfbed)

@@ -548,7 +548,7 @@ $(ODIR)dgswe.o : dgswe.F90                                     $(ODIR)globals.o 
 
 # prep file targets
 
-$(ODIR)decomp2.o : ../prep/src/decomp2.F90                     $(ODIR)globals.o $(ODIR)read_input.o $(ODIR)messenger2.o 
+$(ODIR)decomp2.o : ../prep/src/decomp2.F90                     $(ODIR)globals.o $(ODIR)read_input.o $(ODIR)messenger2.o $(ODIR)edge_connectivity_mod.o
 	$(FC) $(FFLAGS) -c $< -o $@
 
 $(ODIR)write_files.o : ../prep/src/write_files.F90             $(ODIR)globals.o $(ODIR)read_input.o $(ODIR)messenger2.o $(ODIR)output.o
