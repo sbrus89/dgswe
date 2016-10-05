@@ -214,6 +214,7 @@
       ALLOCATE(lnbou(nproc))
       ALLOCATE(lfbamp(mnfbnds,mlbou,nfbfr,nproc))
       ALLOCATE(lfbph(mnfbnds,mlbou,nfbfr,nproc))
+      ALLOCATE(lfbsamp(mnfbnds,mlbou,nfbfr,nproc))      
       ALLOCATE(lnbouf(nproc))
       ALLOCATE(bou_l2g(mlbou,nproc))
       
