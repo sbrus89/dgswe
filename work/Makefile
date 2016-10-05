@@ -232,6 +232,7 @@ else
 FC_VERSION := $(shell $(FC) -v 2>&1 | head -2)
 DATE := $(shell date)
 
+GIT_CHK := $(shell git checkout -- ../src/version.F90)
 # GIT_SHA := $(shell git rev-parse --short HEAD)
 GIT_SHA := $(shell git rev-parse HEAD)
 GIT_BRANCH := $(shell git rev-parse --abbrev-ref HEAD )
