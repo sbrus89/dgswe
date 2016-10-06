@@ -356,4 +356,146 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
 
+      SUBROUTINE read_fort63(out_direc,t,eta,nsnap_read)
+      
+      IMPLICIT NONE            
+      
+      CHARACTER(*), INTENT(IN) :: out_direc
+      REAL(rp), DIMENSION(:), ALLOCATABLE, INTENT(INOUT) :: t
+      REAL(rp), DIMENSION(:,:), ALLOCATABLE, INTENT(INOUT) :: eta      
+      INTEGER, INTENT(INOUT) :: nsnap_read
+      
+      INTEGER :: read_stat
+      INTEGER :: k,nd,it,tstep
+      INTEGER :: nsnap,nn,nskip,var_type
+      REAL(rp) :: tf
+      REAL(rp) :: ttemp
+      CHARACTER(200) :: line      
+      
+      OPEN(UNIT=63,file=TRIM(ADJUSTL(out_direc)) // 'fort.63')      
+      
+      READ(63,*) line
+      READ(63,*) nsnap,nn,tf,nskip,var_type
+      
+      
+      IF (.not. ALLOCATED(eta)) THEN
+        ALLOCATE(eta(nn,nsnap))
+      ENDIF      
+      
+      IF (.not. ALLOCATED(t)) THEN
+        ALLOCATE(t(nsnap))
+      ENDIF      
+      
+      
+      tstep = 0
+      DO             
+      
+        READ(63,*,IOSTAT=read_stat) ttemp,it 
+              
+        IF(read_stat < 0) THEN  
+          EXIT 
+        ENDIF
+        
+        tstep = tstep + 1        
+        t(tstep) = ttemp
+                   
+              
+        DO nd = 1,nn        
+          READ(63,*) k,eta(k,tstep)        
+        ENDDO
+        
+        IF (tstep == nsnap_read) THEN        
+          EXIT
+        ENDIF           
+            
+      ENDDO
+      
+      CLOSE(63)
+      
+      IF (tstep < nsnap) THEN
+        PRINT "(A)", "Number of solution snaps less than expected value"
+      ENDIF
+      
+      nsnap_read = tstep      
+      
+      RETURN
+      END SUBROUTINE read_fort63
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
+
+      SUBROUTINE read_fort64(out_direc,t,u,v,nsnap_read)
+      
+      IMPLICIT NONE
+      
+      CHARACTER(*), INTENT(IN) :: out_direc
+      REAL(rp), DIMENSION(:), ALLOCATABLE, INTENT(INOUT) :: t
+      REAL(rp), DIMENSION(:,:), ALLOCATABLE, INTENT(INOUT) :: u
+      REAL(rp), DIMENSION(:,:), ALLOCATABLE, INTENT(INOUT) :: v         
+      INTEGER, INTENT(INOUT) :: nsnap_read      
+      
+      INTEGER :: read_stat
+      INTEGER :: k,nd,it,tstep
+      INTEGER :: nsnap,nn,nskip,var_type
+      REAL(rp) :: tf
+      REAL(rp) :: ttemp
+      CHARACTER(200) :: line    
+      
+      OPEN(UNIT=64,file=TRIM(ADJUSTL(out_direc)) // 'fort.64')      
+      
+      READ(64,*) line
+      READ(64,*) nsnap,nn,tf,nskip,var_type      
+      
+      
+      
+      IF (.not. ALLOCATED(u)) THEN
+        ALLOCATE(u(nn,nsnap))
+      ENDIF      
+      
+      IF (.not. ALLOCATED(v)) THEN
+        ALLOCATE(v(nn,nsnap))
+      ENDIF        
+      
+      IF (.not. ALLOCATED(t)) THEN
+        ALLOCATE(t(nsnap))
+      ENDIF      
+      
+      
+      tstep = 0
+      DO             
+      
+        READ(64,*,IOSTAT=read_stat) ttemp,it 
+              
+        IF(read_stat < 0) THEN  
+          EXIT 
+        ENDIF
+        
+        tstep = tstep + 1        
+        t(tstep) = ttemp
+                   
+              
+        DO nd = 1,nn        
+          READ(64,*) k,u(k,tstep),v(k,tstep)
+        ENDDO
+        
+        IF (tstep == nsnap_read) THEN        
+          EXIT
+        ENDIF           
+            
+      ENDDO      
+      
+
+      CLOSE(64)
+      
+      IF (tstep < nsnap) THEN
+        PRINT "(A)", "Number of solution snaps less than expected value"
+      ENDIF
+      
+      nsnap_read = tstep            
+      RETURN
+      END SUBROUTINE read_fort64
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
+
       END MODULE read_write_output
