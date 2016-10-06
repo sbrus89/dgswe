@@ -2,7 +2,7 @@
 
       USE globals, ONLY: rp,nel_type,np,nnds,mnnds,ndof,mndof,order,m2n, &
                          nqpta,mnqpta,qpta,wpta,phia,phil,ml2,mml
-      USE basis, ONLY: element_basis,element_nodes,linear
+      USE basis, ONLY: element_basis,element_nodes,linear_basis
       USE read_dginp, ONLY: out_direc,p,hbp
 
       IMPLICIT NONE
@@ -72,7 +72,7 @@
       
         
       ! Calculate linear nodal basis functions
-      CALL linear(nqpta(1),qpta(:,1,1),qpta(:,2,1),phil(:,:,1))
+      CALL linear_basis(nqpta(1),qpta(:,1,1),qpta(:,2,1),phil(:,:,1))
 
       ! Compute RHS L2 projection matrix
       DO i = 1,3

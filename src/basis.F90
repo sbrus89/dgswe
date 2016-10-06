@@ -409,21 +409,40 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-      SUBROUTINE linear(n,r,s,phil)     
+      SUBROUTINE linear_basis(n,r,s,phil,dpdr,dpds)     
 
         IMPLICIT NONE
         INTEGER :: n
-        REAL(rp), DIMENSION(:,:), INTENT(OUT) :: phil
         REAL(rp), DIMENSION(:), INTENT(IN) :: r,s
+        REAL(rp), DIMENSION(:,:), INTENT(OUT) :: phil        
+        REAL(rp), DIMENSION(:,:), OPTIONAL, INTENT(OUT) :: dpdr,dpds
+        
         
         INTEGER :: pt
+        INTEGER :: calc_deriv        
 
+        IF (PRESENT(dpdr) .AND. PRESENT(dpds)) THEN
+          calc_deriv = 1
+        ELSE
+          calc_deriv = 0
+        ENDIF        
         
         DO pt = 1,n
 
           phil(1,pt) = -.5d0*(r(pt)+s(pt))
           phil(2,pt) = .5d0*(r(pt)+1d0)
-          phil(3,pt) = .5d0*(s(pt)+1d0)  
+          phil(3,pt) = .5d0*(s(pt)+1d0)
+          
+          IF (calc_deriv == 1) THEN
+          
+            dpdr(1,pt) = -.5d0
+            dpdr(2,pt) = .5d0
+            dpdr(3,pt) = 0d0
+          
+            dpds(1,pt) = -.5d0
+            dpds(2,pt) = 0d0
+            dpds(3,pt) = .5d0
+          ENDIF
           
         ENDDO
 
