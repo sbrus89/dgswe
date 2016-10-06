@@ -9,7 +9,7 @@
                          psic,psiv
       USE grid_file_mod
       USE basis, ONLY: element_nodes,element_basis
-      USE read_write_output, ONLY: read_solution_full
+      USE read_write_output, ONLY: read_solution_full,read_fort63,read_fort64
       USE read_dginp, ONLY: read_input,out_direc,p,ctp,hbp,tf, &
                             grid_file,curve_file,cb_file_exists
       USE plot_mod, ONLY: read_colormap,setup_cbounds, &
@@ -30,6 +30,7 @@
       IMPLICIT NONE
       
       INTEGER :: start_snap,end_snap
+      REAL(rp) :: H
       
       space = 1  
       
@@ -148,7 +149,7 @@
       snap_char = "0000"      
       
           
-        
+#ifndef adcirc        
       IF (zeta%plot_sol_option == 1 .or. vel%plot_sol_option == 1) THEN
         PRINT("(A)"), "Reading zeta solution..."          
         CALL read_solution_full(out_direc,"Z.sol","N",t,Z,nsnap_Z) 
@@ -164,6 +165,46 @@
         PRINT("(A)"), "Reading bathymetry solution..."          
         CALL read_solution_full(out_direc,"hb.sol","N",t,hb,nsnap_hb)  
       ENDIF  
+#else
+      IF (zeta%plot_sol_option == 1 .or. vel%plot_sol_option == 1) THEN
+        PRINT("(A)"), "Reading zeta solution..."          
+        CALL read_fort63(out_direc,t,eta,nsnap_Z) 
+        ALLOCATE(Z(3,ne,nsnap_Z))
+        DO snap = 1,nsnap_Z
+          DO el = 1,ne
+            DO nd = 1,3
+              Z(nd,el,snap) = eta(ect(nd,el),snap)
+            ENDDO
+          ENDDO
+        ENDDO
+      ENDIF
+      IF (bathy%plot_sol_option == 1 .or. vel%plot_sol_option == 1) THEN
+        PRINT("(A)"), "Reading bathymetry solution..."       
+        ALLOCATE(hb(3,ne,1))
+        DO el = 1,ne
+          DO nd = 1,3
+            hb(nd,el,1) = depth(ect(nd,el))
+          ENDDO
+        ENDDO
+      ENDIF        
+      IF (vel%plot_sol_option == 1) THEN
+        PRINT("(A)"), "Reading u and v solutions..."       
+        CALL read_fort64(out_direc,t,uu2,vv2,nsnap_Qx)
+        ALLOCATE(Qx(3,ne,nsnap_Qx))
+        ALLOCATE(Qy(3,ne,nsnap_Qx))        
+        DO snap = 1,nsnap_Qx
+          DO el = 1,ne
+            DO nd = 1,3
+              H = Z(nd,el,snap)+hb(nd,el,1)
+              Qx(nd,el,snap) = uu2(ect(nd,el),snap)*H
+              Qy(nd,el,snap) = vv2(ect(nd,el),snap)*H
+            ENDDO
+          ENDDO
+        ENDDO                
+      ELSE 
+        ALLOCATE(Qx(1,1,1),Qy(1,1,1))
+      ENDIF        
+#endif
       
 
       

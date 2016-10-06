@@ -135,7 +135,7 @@
 
       SUBROUTINE evaluate_basis(p,mnpp,mndof,nel_type,npplt,r,s,sol)
       
-      USE basis, ONLY: element_nodes,element_basis          
+      USE basis, ONLY: element_nodes,element_basis,linear_basis          
       
       IMPLICIT NONE
       
@@ -157,8 +157,13 @@
 
       DO et = 1,nel_type
 
+#ifndef adcirc      
         CALL element_basis(et,p,sol%ndof(et),npplt(et),r(:,et),s(:,et),sol%phi(:,:,et))       
-
+#else        
+        CALL linear_basis(npplt(et),r(:,et),s(:,et),sol%phi(:,:,et))
+        sol%ndof(et) = 3
+#endif
+        
       ENDDO           
       
       RETURN

@@ -1,7 +1,7 @@
 SHELL = /bin/sh
 
 FC = ifort
-FFLAGS = -I$(ODIR)  #-traceback -g -C # -fp-model strict
+FFLAGS = -I$(ODIR) -Dadcirc -traceback -g -C # -fp-model strict
 
 VPATH := ../src/
 ODIR = odir/
@@ -22,7 +22,7 @@ GIT_MFILES := $(strip $(shell git ls-files ../* -m))
 ########################################################################
 
 
-plot_objects =  plot_globals.o globals.o quit.o basis.o read_input.o \
+plot_objects =  plot_globals.o globals.o quit.o basis.o read_input.o messenger2.o \
            read_plot_input.o grid_file_mod.o read_write_output.o system.o tripack.o \
            edge_connectivity_mod.o curvilinear_nodes_mod.o bathymetry_interp_mod.o \
            vandermonde.o transformation.o shape_functions_mod.o triangulation.o \
@@ -78,6 +78,10 @@ $(ODIR)globals.o: ../../src/globals.F90
 	$(FC) $(FFLAGS) -c $< -o $@
 	mv globals.mod $(ODIR)          
 	
+$(ODIR)messenger2.o : ../../src/messenger2.F90                 $(ODIR)globals.o $(ODIR)quit.o $(ODIR)version.o
+	$(FC) $(FFLAGS) -c $< -o $@
+	mv messenger2.mod $(ODIR)	
+	
 $(ODIR)lapack_interfaces.o : ../../src/lapack_interfaces.F90
 	$(FC) $(FFLAGS) -c $< -o $@
 	mv lapack_interfaces.mod $(ODIR)	
@@ -117,7 +121,7 @@ $(ODIR)triangulation.o : ../../src/triangulation.F90
 $(ODIR)tripack.o : ../../tripack/Src/Fortran77/Sp/src.f90                                
 	$(FC) $(FFLAGS) -c $< -o $@
 	
-$(ODIR)edge_connectivity_mod.o : ../../src/edge_connectivity_mod.F90 $(ODIR)globals.o $(ODIR)quit.o
+$(ODIR)edge_connectivity_mod.o : ../../src/edge_connectivity_mod.F90 $(ODIR)globals.o $(ODIR)quit.o $(ODIR)messenger2.o
 	$(FC) $(FFLAGS) -c $< -o $@
 	mv edge_connectivity_mod.mod $(ODIR)
 	

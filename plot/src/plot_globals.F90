@@ -113,6 +113,9 @@
       REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: Qx
       REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: Qy
             
+      REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: eta
+      REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: uu2
+      REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: vv2
       
       TYPE :: plot_type
       
