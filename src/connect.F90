@@ -3,13 +3,16 @@
       USE globals, ONLY: rp,nn,ne,ned,ect,el_type,nverts, &
                          mnepn,epn,nepn, &
                          ged2nn,ged2el,ged2led, &
-                         nied,iedn,nobed,obedn,nfbed,fbedn,nnfbed,nfbedn,nfbednn, &
+                         nbed,bedn,nied,iedn, &
+                         nobed,obedn,nfbed,fbedn,nnfbed,nfbedn,nfbednn, &
                          nope,obseg,obnds,nbou,fbseg,fbnds, &
                          ed_type,recv_edge                      
                          
       USE messenger2, ONLY: dirname,lname,myrank,nred,redn      
       USE read_dginp, ONLY: out_direc
-      USE edge_connectivity_mod
+      USE edge_connectivity_mod, ONLY: elements_per_node,find_edge_pairs,find_interior_edges, &
+                                       find_open_edges,find_flow_edges,find_recieve_edges, &
+                                       print_connect_info
                          
 
       IMPLICIT NONE
@@ -20,7 +23,7 @@
       
       CALL find_edge_pairs(ne,nverts,el_type,ect,nepn,epn,ned,ged2el,ged2nn,ged2led)
       
-      CALL find_interior_edges(ned,ged2el,nied,iedn,ed_type,recv_edge)
+      CALL find_interior_edges(ned,ged2el,nied,iedn,ed_type,recv_edge,nbed,bedn)
       
       CALL find_open_edges(nope,obseg,obnds,ged2nn,nobed,obedn,ed_type,recv_edge)      
       

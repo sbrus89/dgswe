@@ -3,6 +3,7 @@
       USE globals, ONLY: rp,nn,ne,ned,part,ect,nverts,lect,lnelnds,mnnds, &
                          ged2el,ged2led,ged2nn,el_type, &
                          nsred,sredn, &
+                         nbed,bedn, &
                          nresel,el_g2l,el_l2g, &
                          mned_sr, &
                          nresnd,nd_g2l,nd_l2g, &
@@ -19,9 +20,7 @@
                          lbndxy,bndxy, &
                          nsta,elsta,xysta, &
                          nlsta,sta_l2g, &
-                         elxy
-                         
-      USE edge_connectivity_mod, ONLY: nbed,bedn
+                         elxy                         
  
       USE read_dginp, ONLY: hbp,ctp                           
                          

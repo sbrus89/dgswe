@@ -151,6 +151,8 @@
       
       INTEGER :: nied ! total number of interior edges
       INTEGER, ALLOCATABLE, DIMENSION(:) :: iedn ! array of interior edge numbers
+      INTEGER :: nbed
+      INTEGER, ALLOCATABLE, DIMENSION(:) :: bedn
       INTEGER :: nobed ! total number of open boundary edges
       INTEGER, ALLOCATABLE, DIMENSION(:) :: obedn ! array of open boundary edge numbers   
       INTEGER :: nfbed ! total number of flow boundary edges

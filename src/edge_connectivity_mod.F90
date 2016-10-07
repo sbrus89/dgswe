@@ -2,7 +2,7 @@
       
       USE globals, ONLY: rp
       USE quit, ONLY: abort
-      USE messenger2, ONLY: myrank
+!       USE messenger2, ONLY: myrank
       
       IMPLICIT NONE
       
@@ -213,7 +213,7 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
 
 
-      SUBROUTINE find_interior_edges(ned,ged2el,nied,iedn,ed_type,recv_edge)
+      SUBROUTINE find_interior_edges(ned,ged2el,nied,iedn,ed_type,recv_edge,nbou_edges,bou_edges)
       
       IMPLICIT NONE
       
@@ -223,11 +223,13 @@
       INTEGER, DIMENSION(:), ALLOCATABLE, INTENT(OUT) :: iedn
       INTEGER, DIMENSION(:), ALLOCATABLE, INTENT(OUT) :: ed_type
       INTEGER, DIMENSION(:), ALLOCATABLE, INTENT(OUT) :: recv_edge
+      INTEGER, INTENT(OUT), OPTIONAL :: nbou_edges
+      INTEGER, DIMENSION(:), ALLOCATABLE, INTENT(OUT), OPTIONAL :: bou_edges
 
       INTEGER :: el
       INTEGER :: nd
       INTEGER :: alloc_status      
-      INTEGER :: ged
+      INTEGER :: ged,ed
       INTEGER :: el1,el2
       INTEGER, DIMENSION(:), ALLOCATABLE :: iedn_temp
       
@@ -276,6 +278,14 @@
       !           no normal flow edges = 10
       !           specified flow edges = 12
       !           recieve edges        = -1
+      
+      IF (PRESENT(nbou_edges).AND.PRESENT(bou_edges)) THEN      
+        ALLOCATE(bou_edges(nbed))
+        DO ed = 1,nbed
+          bou_edges(ed) = bedn(ed)
+        ENDDO      
+        nbou_edges = nbed
+      ENDIF
       
       RETURN
       END SUBROUTINE find_interior_edges
@@ -450,7 +460,8 @@
           ENDDO edges2
           
           IF (found == 0) THEN
-            PRINT*, seg, nd, fbseg(1,seg), segtype,myrank          
+!             PRINT*, seg, nd, fbseg(1,seg), segtype,myrank    
+            PRINT*, seg, nd, fbseg(1,seg), segtype            
             PRINT "(A)", "  edge not found"
           ENDIF
           
@@ -458,7 +469,7 @@
       ENDDO
       
       ALLOCATE(nfbedn(nnfbed),nfbednn(nnfbed,3),fbedn(nfbed), STAT=alloc_status)
-!       DEALLOCATE(bedn, STAT=alloc_status)
+      DEALLOCATE(bedn, STAT=alloc_status)
       
       
       nfbedn(1:nnfbed) = nfbedn_temp(1:nnfbed)
