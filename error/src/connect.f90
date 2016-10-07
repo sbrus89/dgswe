@@ -1,7 +1,9 @@
       SUBROUTINE connect(mesh)
 
-      USE globals, ONLY: rp,nverts,solution,exclude_bndel
-      USE edge_connectivity_mod
+      USE globals, ONLY: rp,nverts,nel_type,solution,exclude_bndel
+      USE edge_connectivity_mod, ONLY: elements_per_node,find_edge_pairs,find_interior_edges, &
+                                       find_open_edges,find_flow_edges,print_connect_info
+      USE curvilinear_nodes_mod, ONLY: shape_functions_linear_at_ctp,eval_coordinates_curved   
                          
 
       IMPLICIT NONE
@@ -35,8 +37,15 @@
         
       mesh%nred = 0
       CALL print_connect_info(mesh%mnepn,mesh%ned,mesh%nied,mesh%nobed,mesh%nfbed,mesh%nnfbed,mesh%nred)
-          
-          
+
+      
+      
+      CALL shape_functions_linear_at_ctp(nel_type,mesh%np,mesh%psiv)                   
+      CALL eval_coordinates_curved(mesh%ctp,mesh%nnds,nverts,mesh%el_type,mesh%xy,mesh%ect,mesh%fbseg,mesh%fbnds, &
+                                   mesh%nnfbed,mesh%nfbedn,mesh%nfbednn,mesh%ged2el,mesh%ged2led, &
+                                   mesh%psiv,mesh%bndxy,mesh%elxy)       
+      
+      
           
       ALLOCATE(mesh%bndel(mesh%ne))
       mesh%bndel = 0          
@@ -52,6 +61,8 @@
         
         ENDDO
       ENDIF
+      
+      
           
           
       RETURN

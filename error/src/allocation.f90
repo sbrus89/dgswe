@@ -80,14 +80,14 @@
       mndof = coarse%mndof
       ne = coarse%ne
       
-      ALLOCATE(coarse%H(ne,mndof),coarse%Qx(ne,mndof),coarse%Qy(ne,mndof))
+!       ALLOCATE(coarse%H(ne,mndof,1),coarse%Qx(ne,mndof,1),coarse%Qy(ne,mndof,1))
       ALLOCATE(coarse%phi(mndof,mnqpta,1))
       ALLOCATE(phi(mndof*mnqpta))
  
       mndof = fine%mndof
       ne = fine%ne
       
-      ALLOCATE(fine%H(ne,mndof),fine%Qx(ne,mndof),fine%Qy(ne,mndof)) 
+!       ALLOCATE(fine%H(ne,mndof,1),fine%Qx(ne,mndof,1),fine%Qy(ne,mndof,1)) 
       
       ALLOCATE(Hc(mnqpta),Qxc(mnqpta),Qyc(mnqpta))
       ALLOCATE(Hf(mnqpta),Qxf(mnqpta),Qyf(mnqpta))    

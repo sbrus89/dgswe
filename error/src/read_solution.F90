@@ -10,6 +10,7 @@
       INTEGER :: i,dof,el,line,et,n
       INTEGER :: nsnap_read
       REAL(rp) :: t,hb
+      REAL(rp), DIMENSION(:), ALLOCATABLE :: t_sol
       
       PRINT("(A)"), TRIM(sol%sol_name) // " solution"
       
@@ -41,9 +42,9 @@
 !       CLOSE(13)     
       
       nsnap_read = lines+1
-      CALL read_solution_full(sol%out_direc,'Z.sol',"T",t_sol,sol%H,nsnap_read)       
-      CALL read_solution_full(sol%out_direc,'Qx.sol',"T",t_sol,sol%Qx,nsnap_read)           
-      CALL read_solution_full(sol%out_direc,'Qy.sol',"T",t_sol,sol%Qy,nsnap_read)         
+      CALL read_solution_full(sol%out_direc,'Z.sol',"T",t_sol,sol%H,nsnap_read,last_snap="T")       
+      CALL read_solution_full(sol%out_direc,'Qx.sol',"T",t_sol,sol%Qx,nsnap_read,last_snap="T")           
+      CALL read_solution_full(sol%out_direc,'Qy.sol',"T",t_sol,sol%Qy,nsnap_read,last_snap="T")         
       
 #else      
       

@@ -52,12 +52,13 @@
       INTEGER :: coord_sys
       REAL(rp) :: h0
       INTEGER :: alloc_status   
-      TYPE(solution) :: mesh      
+      TYPE(solution) :: mesh   
+      LOGICAL :: cb_file_exists
       
       coord_sys = 1
       h0 = 0d0
       
-      CALL read_header(mesh%grid_file,mesh%grid_name,mesh%ne,mesh%nn)
+      CALL read_header(0,mesh%grid_file,mesh%grid_name,mesh%ne,mesh%nn)
       
       CALL read_coords(mesh%nn,mesh%xy,mesh%depth,h0)  
       
@@ -70,6 +71,8 @@
       CALL read_open_boundaries(mesh%nope,mesh%neta,mesh%obseg,mesh%obnds) 
 
       CALL read_flow_boundaries(mesh%nbou,mesh%nvel,mesh%fbseg,mesh%fbnds) 
+      
+      CALL read_curve_file(0,mesh%curve_file,mesh%ctp,mesh%nbou,mesh%xy,mesh%bndxy,cb_file_exists)       
       
       CALL print_grid_info(mesh%grid_file,mesh%grid_name,mesh%ne,mesh%nn)      
       

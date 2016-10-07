@@ -1,10 +1,10 @@
-      SUBROUTINE read_input()
+      SUBROUTINE read_error_input()
 
       USE globals, ONLY: coarse,fine,base,lines,tf,exclude_bndel
 
       IMPLICIT NONE
       
-      INTEGER, PARAMETER :: ninp = 14
+      INTEGER, PARAMETER :: ninp = 17
       INTEGER :: inp_read,skipped
       CHARACTER(100) :: temp      
       LOGICAL :: file_exists      
@@ -45,40 +45,49 @@
             CASE (4)
               READ(temp,*) coarse%ctp
               PRINT("(A,I3)"), "coarse ctp = ", coarse%ctp
-            CASE (5)
+            CASE (5) 
+              coarse%curve_file = TRIM(temp)
+              PRINT("(A,A)"), "coarse curved boundary file = ", coarse%curve_file
+            CASE (6)
               READ(temp,*) coarse%dt
               PRINT("(A,F15.7)"), "coarse dt = ", coarse%dt
               PRINT*, " " 
-            CASE (6)
+            CASE (7)
               fine%grid_file = TRIM(temp)
               PRINT("(A,A)"), "fine grid_file = ", fine%grid_file
-            CASE (7)
+            CASE (8)
               fine%out_direc = TRIM(temp)
               PRINT("(A,A)"), "fine output directory = ", fine%out_direc
-            CASE (8)
+            CASE (9)
               READ(temp,*) fine%p
               PRINT("(A,I3)"), "fine p = ", fine%p           
-            CASE (9)
+            CASE (10)
               READ(temp,*) fine%ctp
               PRINT("(A,I3)"), "fine ctp = ", fine%ctp
-            CASE (10)
+            CASE (11)
+              fine%curve_file = TRIM(temp)
+              PRINT("(A,A)"), "fine curved boundary file = ", fine%curve_file
+            CASE (12)
               READ(temp,*) fine%dt
               PRINT("(A,F15.7)"), "fine dt = ", fine%dt 
               PRINT*, " " 
-            CASE (11)
+            CASE (13)
               READ(temp,*) tf
               tf = tf*86400d0
               PRINT("(A,F15.7)"), "tf = ", tf     
-            CASE (12)
+            CASE (14)
               READ(temp,*) lines
               PRINT("(A,I5)"), "lines = ", lines  
               PRINT*, " " 
-            CASE (13)
+            CASE (15)
               base%grid_file = TRIM(temp)
               PRINT("(A,A)"), "base grid directory = ", base%grid_file    
-            CASE (14)
+            CASE (16)
               READ(temp,*) base%ctp
               PRINT("(A,I3)"), "base ctp = ", base%ctp                        
+            CASE (17)
+              base%curve_file = TRIM(temp)
+              PRINT("(A,A)"), "base curved boundary file = ", base%curve_file
           END SELECT
             
         ENDIF
@@ -105,4 +114,4 @@
         exclude_bndel = .true.
       ENDIF
 
-      END SUBROUTINE  read_input
+      END SUBROUTINE  read_error_input

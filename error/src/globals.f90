@@ -29,6 +29,7 @@
         CHARACTER(100) :: grid_file ! name of fort.14 file
         CHARACTER(100) :: grid_name ! name of the grid
         CHARACTER(100) :: out_direc ! name of output directory
+        CHARACTER(100) :: curve_file        
         INTEGER :: p ! polynomial order
         INTEGER :: ctp 
         REAL(rp) :: dt ! time step        
@@ -48,6 +49,7 @@
         REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: elxy    
         REAL(rp), ALLOCATABLE, DIMENSION(:) :: depth ! depth at each node
         REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: elhb   
+        REAL(rp), ALLOCATABLE, DIMENSION(:,:,:,:) :: bndxy        
         
         INTEGER :: nope ! number of open boundary segents
         INTEGER, ALLOCATABLE, DIMENSION(:) :: obseg ! number of nodes in each open boundary segment
@@ -89,11 +91,12 @@
         
         REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: l,dldr,dlds
         REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: phi
+        REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: psiv       
         REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: detJ      
         
-        REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: H
-        REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: Qx
-        REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: Qy             
+        REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: H
+        REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: Qx
+        REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: Qy             
         
       END TYPE
       

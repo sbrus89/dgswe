@@ -28,7 +28,7 @@
 
       CALL version_information(unit=6) ! print out current git branch/SHA
       
-      CALL read_input()  ! read error.inp file
+      CALL read_error_input()  ! read error.inp file
       
       rfac = 2d0
       order = real(coarse%p,rp) + 1d0
@@ -129,9 +129,9 @@ elemf:DO elf = 1,fine%ne  ! Calculate error integral in the fine grid elements
         Qyc = 0d0
         DO pt = 1,npts
           DO dof = 1,coarse%ndof(etc)
-            Hc(pt) = Hc(pt) + coarse%H(elc,dof)*coarse%phi(dof,pt,1)
-            Qxc(pt) = Qxc(pt) + coarse%Qx(elc,dof)*coarse%phi(dof,pt,1)            
-            Qyc(pt) = Qyc(pt) + coarse%Qy(elc,dof)*coarse%phi(dof,pt,1)
+            Hc(pt) = Hc(pt) + coarse%H(elc,dof,1)*coarse%phi(dof,pt,1)
+            Qxc(pt) = Qxc(pt) + coarse%Qx(elc,dof,1)*coarse%phi(dof,pt,1)            
+            Qyc(pt) = Qyc(pt) + coarse%Qy(elc,dof,1)*coarse%phi(dof,pt,1)
           ENDDO                
         ENDDO
         
@@ -141,9 +141,9 @@ elemf:DO elf = 1,fine%ne  ! Calculate error integral in the fine grid elements
         Qyf = 0d0
         DO pt = 1,npts
           DO dof = 1,fine%ndof(etf)
-            Hf(pt) = Hf(pt) + fine%H(elf,dof)*fine%phi(dof,pt,etf)
-            Qxf(pt) = Qxf(pt) + fine%Qx(elf,dof)*fine%phi(dof,pt,etf)            
-            Qyf(pt) = Qyf(pt) + fine%Qy(elf,dof)*fine%phi(dof,pt,etf)
+            Hf(pt) = Hf(pt) + fine%H(elf,dof,1)*fine%phi(dof,pt,etf)
+            Qxf(pt) = Qxf(pt) + fine%Qx(elf,dof,1)*fine%phi(dof,pt,etf)            
+            Qyf(pt) = Qyf(pt) + fine%Qy(elf,dof,1)*fine%phi(dof,pt,etf)
           ENDDO                
         ENDDO       
         
@@ -211,7 +211,7 @@ elemf:DO elf = 1,fine%ne  ! Calculate error integral in the fine grid elements
         
           DO dof = 1,coarse%ndof(et)
           
-            Hdiff =  abs(coarse%H(el,dof)-fine%H(el,dof))  
+            Hdiff =  abs(coarse%H(el,dof,1)-fine%H(el,dof,1))  
             IF (Hdiff > Hmax) THEN 
               Hmax = Hdiff
             ENDIF 
@@ -219,7 +219,7 @@ elemf:DO elf = 1,fine%ne  ! Calculate error integral in the fine grid elements
               Hel(el) = Hdiff
             ENDIF
             
-            Qxdiff = abs(coarse%Qx(el,dof)-fine%Qx(el,dof))          
+            Qxdiff = abs(coarse%Qx(el,dof,1)-fine%Qx(el,dof,1))          
             IF (Qxdiff > Qxmax) THEN
               Qxmax = Qxdiff
             ENDIF
@@ -227,7 +227,7 @@ elemf:DO elf = 1,fine%ne  ! Calculate error integral in the fine grid elements
               Qxel(el) = Qxdiff
             ENDIF
             
-            Qydiff = abs(coarse%Qy(el,dof)-fine%Qy(el,dof))  
+            Qydiff = abs(coarse%Qy(el,dof,1)-fine%Qy(el,dof,1))  
             IF (Qydiff > Qymax) THEN
               Qymax = Qydiff
             ENDIF
