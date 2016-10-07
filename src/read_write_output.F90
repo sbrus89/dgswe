@@ -240,7 +240,7 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
       
-      SUBROUTINE read_solution_full(out_direc,file_name,trnspse,t,solution,nsnap_read,lel2gel)
+      SUBROUTINE read_solution_full(out_direc,file_name,trnspse,t,solution,nsnap_read,lel2gel,last_snap)
 
       IMPLICIT NONE
       
@@ -251,6 +251,7 @@
       REAL(rp), DIMENSION(:,:,:), ALLOCATABLE, INTENT(INOUT) :: solution
       INTEGER, INTENT(INOUT) :: nsnap_read
       INTEGER, DIMENSION(:), INTENT(IN), OPTIONAL :: lel2gel
+      CHARACTER(1), INTENT(IN), OPTIONAL :: last_snap
       
       
       INTEGER :: el,n1,n2
@@ -259,7 +260,8 @@
       INTEGER :: nrow,ncol,nsnap
       INTEGER :: file_unit
       REAL(rp) :: ttemp
-      INTEGER, DIMENSION(:), ALLOCATABLE :: map                 
+      INTEGER, DIMENSION(:), ALLOCATABLE :: map               
+      CHARACTER(1) :: last_only
       
       CALL read_solution_header(out_direc,file_name,nrow,ncol,nsnap,file_unit)      
       
@@ -271,8 +273,19 @@
         n2 = ncol
       ENDIF
       
+      IF (PRESENT(last_snap)) THEN
+        last_only = last_snap
+      ELSE
+        last_only = "F"
+      ENDIF
+      
+      
       IF (.not. ALLOCATED(solution)) THEN
-        ALLOCATE(solution(n1,n2,nsnap))
+        IF (last_only == "F") THEN
+          ALLOCATE(solution(n1,n2,nsnap))
+        ELSE
+          ALLOCATE(solution(n1,n2,1))
+        ENDIF
       ENDIF      
       
       IF (.not. ALLOCATED(t)) THEN
@@ -297,7 +310,12 @@
       
         tstep = tstep + 1   
 
-        CALL read_solution_snap(file_unit,nrow,ncol,trnspse,map,read_stat,ttemp,solution(:,:,tstep))
+        
+        IF (last_only == "F") THEN
+          CALL read_solution_snap(file_unit,nrow,ncol,trnspse,map,read_stat,ttemp,solution(:,:,tstep))
+        ELSE
+          CALL read_solution_snap(file_unit,nrow,ncol,trnspse,map,read_stat,ttemp,solution(:,:,1))
+        ENDIF
         
         IF(read_stat < 0) THEN  
           tstep = tstep - 1
