@@ -50,7 +50,7 @@
       name = ADJUSTL(TRIM(eval%grid_file(1:eind-1)))           
       WRITE(hbp_char,"(I1)") eval%hbp
       
-      OPEN(UNIT = 13, FILE = ADJUSTL(TRIM(name)) // "_hbp" // hbp_char // "_rimls.hb") 
+      OPEN(UNIT = 13, FILE = ADJUSTL(TRIM(name)) // "_hbp" // hbp_char // "_interp.hb") 
       
       CALL version_information(13)
       
