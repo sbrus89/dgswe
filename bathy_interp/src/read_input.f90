@@ -83,3 +83,42 @@
       
 
       END SUBROUTINE  read_input
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+      SUBROUTINE write_input(file_unit)
+      
+      USE globals, ONLY: base,eval     
+      
+      IMPLICIT NONE
+      
+      INTEGER :: file_unit
+      CHARACTER(40) :: sha1         
+      
+      WRITE(file_unit,"(A)") "" 
+      WRITE(file_unit,"(A,A)")     "base grid file = ", base%grid_file
+      WRITE(file_unit,"(A,I5)")    "base ctp = ", base%ctp              
+      WRITE(file_unit,"(A,A)")     "base curve file = ", base%curve_file              
+      WRITE(file_unit,"(A,I5)")    "base hbp = ", base%hbp
+      WRITE(file_unit,"(A,A)")     "base bathy file = ", base%bathy_file              
+      WRITE(file_unit,"(A,A)")     "eval grid file = ", eval%grid_file
+      WRITE(file_unit,"(A,I5)")    "eval ctp = ", eval%ctp              
+      WRITE(file_unit,"(A,A)")     "eval curve file = ", eval%curve_file              
+      WRITE(file_unit,"(A,I5)")    "eval hbp = ", eval%hbp   
+      WRITE(file_unit,"(A,A)")     "output directory = ", eval%out_direc  
+      
+      WRITE(file_unit,"(A)") ""       
+      
+      WRITE(file_unit,"(A)") "base grid file SHA: "//sha1(base%grid_file,"./")
+      WRITE(file_unit,"(A)") "base curve file SHA: "//sha1(base%curve_file,"./")
+      WRITE(file_unit,"(A)") "base bathy file SHA: "//sha1(base%bathy_file,"./")
+      WRITE(file_unit,"(A)") "eval grid file SHA: "//sha1(eval%grid_file,"./")  
+      WRITE(file_unit,"(A)") "eval curve file SHA: "//sha1(eval%curve_file,"./")   
+                  
+      WRITE(file_unit,"(A)") ""                 
+      
+      RETURN
+      END SUBROUTINE write_input

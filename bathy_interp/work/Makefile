@@ -161,7 +161,7 @@ $(ODIR)sort_mod.o : ../../src/sort_mod.F90                      $(ODIR)globals.o
 $(ODIR)read_input.o: read_input.f90                             $(ODIR)globals.o
 	$(FC) $(FFLAGS) -c $< -o $@
 	
-$(ODIR)write_results.o: write_results.f90                       $(ODIR)globals.o
+$(ODIR)write_results.o: write_results.f90                       $(ODIR)globals.o  $(ODIR)version.o
 	$(FC) $(FFLAGS) -c $< -o $@
 
 $(ODIR)connect.o: connect.f90                                   $(ODIR)globals.o  $(ODIR)edge_connectivity_mod.o
