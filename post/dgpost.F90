@@ -87,41 +87,42 @@
 
         
         
+        IF (sta_opt > 0) THEN
+          OPEN(UNIT=82,FILE=dirname(1:lname)//'/'//'fort.82')        
+          READ(82,*) 
+          READ(82,*) nsta
+          READ(82,*) mnlsta
+          READ(82,*) nlsta
+          READ(82,*) nout_sta
         
-        OPEN(UNIT=82,FILE=dirname(1:lname)//'/'//'fort.82')        
-        READ(82,*) 
-        READ(82,*) nsta
-        READ(82,*) mnlsta
-        READ(82,*) nlsta
-        READ(82,*) nout_sta
+          IF (.not. ALLOCATED(sta_l2g)) THEN
+            ALLOCATE(sta_l2g(nsta))
+          ENDIF
         
-        IF (.not. ALLOCATED(sta_l2g)) THEN
-          ALLOCATE(sta_l2g(nsta))
-        ENDIF
-        
-        DO sta = 1,nlsta
-          READ(82,*) sta_l2g(sta)
-        ENDDO
-        CLOSE(82)
+          DO sta = 1,nlsta
+            READ(82,*) sta_l2g(sta)
+          ENDDO
+          CLOSE(82)
         
         
         
 
         
-        IF (.not. ALLOCATED(Zsta_global)) THEN
-          ALLOCATE(t_sta(nout_sta+1))
-          ALLOCATE(Zsta_global(nsta,1,nout_sta+1))
-          ALLOCATE(Qxsta_global(nsta,1,nout_sta+1))
-          ALLOCATE(Qysta_global(nsta,1,nout_sta+1))
-          ALLOCATE(hbsta_global(nsta,1,1))
-        ENDIF
+          IF (.not. ALLOCATED(Zsta_global)) THEN
+            ALLOCATE(t_sta(nout_sta+1))
+            ALLOCATE(Zsta_global(nsta,1,nout_sta+1))
+            ALLOCATE(Qxsta_global(nsta,1,nout_sta+1))
+            ALLOCATE(Qysta_global(nsta,1,nout_sta+1))
+            ALLOCATE(hbsta_global(nsta,1,1))
+          ENDIF
         
-        nsnap_sta = 1
-        CALL read_solution_full(pe_direc,'hb.sta',"N",t_sta,hbsta_global,nsnap_sta,sta_l2g)
-        nsnap_sta = 9999
-        CALL read_solution_full(pe_direc,'Z.sta',"N",t_sta,Zsta_global,nsnap_sta,sta_l2g) 
-        CALL read_solution_full(pe_direc,'Qx.sta',"N",t_sta,Qxsta_global,nsnap_sta,sta_l2g) 
-        CALL read_solution_full(pe_direc,'Qy.sta',"N",t_sta,Qysta_global,nsnap_sta,sta_l2g)      
+          nsnap_sta = 1
+          CALL read_solution_full(pe_direc,'hb.sta',"N",t_sta,hbsta_global,nsnap_sta,sta_l2g)
+          nsnap_sta = 9999
+          CALL read_solution_full(pe_direc,'Z.sta',"N",t_sta,Zsta_global,nsnap_sta,sta_l2g) 
+          CALL read_solution_full(pe_direc,'Qx.sta',"N",t_sta,Qxsta_global,nsnap_sta,sta_l2g) 
+          CALL read_solution_full(pe_direc,'Qy.sta',"N",t_sta,Qysta_global,nsnap_sta,sta_l2g)
+        ENDIF
         
         
         
@@ -141,13 +142,14 @@
       CALL write_solution_full(out_direc,'Qy.sol',ndof,tne,nsnap_sol,"T",t_sol,Qy_global,post) 
       PRINT*, "  done"
 
-      
-      PRINT*, "Writing stations"
-      CALL write_solution_full(out_direc,'hb.sta',nsta,1,1,"N",t_sta,hbsta_global,post)      
-      CALL write_solution_full(out_direc,'Z.sta',nsta,1,nsnap_sta,"N",t_sta,Zsta_global,post)
-      CALL write_solution_full(out_direc,'Qx.sta',nsta,1,nsnap_sta,"N",t_sta,Qxsta_global,post)
-      CALL write_solution_full(out_direc,'Qy.sta',nsta,1,nsnap_sta,"N",t_sta,Qysta_global,post)      
-      PRINT*, "  done"
+      IF (sta_opt > 0) THEN
+        PRINT*, "Writing stations"
+        CALL write_solution_full(out_direc,'hb.sta',nsta,1,1,"N",t_sta,hbsta_global,post)      
+        CALL write_solution_full(out_direc,'Z.sta',nsta,1,nsnap_sta,"N",t_sta,Zsta_global,post)
+        CALL write_solution_full(out_direc,'Qx.sta',nsta,1,nsnap_sta,"N",t_sta,Qxsta_global,post)
+        CALL write_solution_full(out_direc,'Qy.sta',nsta,1,nsnap_sta,"N",t_sta,Qysta_global,post)      
+        PRINT*, "  done"
+      ENDIF
 
       
       CALL system('cp PE0000/modal2nodal.d .')
