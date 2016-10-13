@@ -374,7 +374,7 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
 
-      SUBROUTINE read_fort63(out_direc,t,eta,nsnap_read)
+      SUBROUTINE read_fort63(out_direc,t,eta,nsnap_read,last_snap)
       
       IMPLICIT NONE            
       
@@ -382,22 +382,34 @@
       REAL(rp), DIMENSION(:), ALLOCATABLE, INTENT(INOUT) :: t
       REAL(rp), DIMENSION(:,:), ALLOCATABLE, INTENT(INOUT) :: eta      
       INTEGER, INTENT(INOUT) :: nsnap_read
+      CHARACTER(1), INTENT(IN), OPTIONAL :: last_snap      
       
       INTEGER :: read_stat
       INTEGER :: k,nd,it,tstep
       INTEGER :: nsnap,nn,nskip,var_type
       REAL(rp) :: tf
       REAL(rp) :: ttemp
-      CHARACTER(200) :: line      
+      CHARACTER(200) :: line 
+      CHARACTER(1) :: last_only      
       
       OPEN(UNIT=63,file=TRIM(ADJUSTL(out_direc)) // 'fort.63')      
       
       READ(63,*) line
       READ(63,*) nsnap,nn,tf,nskip,var_type
       
+      IF (PRESENT(last_snap)) THEN
+        last_only = last_snap
+      ELSE
+        last_only = "F"
+      ENDIF      
+      
       
       IF (.not. ALLOCATED(eta)) THEN
-        ALLOCATE(eta(nn,nsnap))
+        IF (last_only == "F") THEN
+          ALLOCATE(eta(nn,nsnap))
+        ELSE
+          ALLOCATE(eta(nn,1))
+        ENDIF
       ENDIF      
       
       IF (.not. ALLOCATED(t)) THEN
@@ -417,10 +429,15 @@
         tstep = tstep + 1        
         t(tstep) = ttemp
                    
-              
-        DO nd = 1,nn        
-          READ(63,*) k,eta(k,tstep)        
-        ENDDO
+        IF (last_only == "F") THEN      
+          DO nd = 1,nn        
+            READ(63,*) k,eta(k,tstep)        
+          ENDDO
+        ELSE
+          DO nd = 1,nn        
+            READ(63,*) k,eta(k,1)        
+          ENDDO        
+        ENDIF
         
         IF (tstep == nsnap_read) THEN        
           EXIT
@@ -442,7 +459,7 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
 
-      SUBROUTINE read_fort64(out_direc,t,u,v,nsnap_read)
+      SUBROUTINE read_fort64(out_direc,t,u,v,nsnap_read,last_snap)
       
       IMPLICIT NONE
       
@@ -451,27 +468,41 @@
       REAL(rp), DIMENSION(:,:), ALLOCATABLE, INTENT(INOUT) :: u
       REAL(rp), DIMENSION(:,:), ALLOCATABLE, INTENT(INOUT) :: v         
       INTEGER, INTENT(INOUT) :: nsnap_read      
+      CHARACTER(1), INTENT(IN), OPTIONAL :: last_snap      
       
       INTEGER :: read_stat
       INTEGER :: k,nd,it,tstep
       INTEGER :: nsnap,nn,nskip,var_type
       REAL(rp) :: tf
       REAL(rp) :: ttemp
-      CHARACTER(200) :: line    
+      CHARACTER(200) :: line   
+      CHARACTER(1) :: last_only
       
       OPEN(UNIT=64,file=TRIM(ADJUSTL(out_direc)) // 'fort.64')      
       
       READ(64,*) line
       READ(64,*) nsnap,nn,tf,nskip,var_type      
       
-      
+      IF (PRESENT(last_snap)) THEN
+        last_only = last_snap
+      ELSE
+        last_only = "F"
+      ENDIF      
       
       IF (.not. ALLOCATED(u)) THEN
-        ALLOCATE(u(nn,nsnap))
+        IF (last_only == "F") THEN
+          ALLOCATE(u(nn,nsnap))
+        ELSE
+          ALLOCATE(u(nn,1))
+        ENDIF        
       ENDIF      
       
       IF (.not. ALLOCATED(v)) THEN
-        ALLOCATE(v(nn,nsnap))
+        IF (last_only == "F") THEN
+          ALLOCATE(v(nn,nsnap))
+        ELSE
+          ALLOCATE(v(nn,1))
+        ENDIF          
       ENDIF        
       
       IF (.not. ALLOCATED(t)) THEN
@@ -491,10 +522,15 @@
         tstep = tstep + 1        
         t(tstep) = ttemp
                    
-              
-        DO nd = 1,nn        
-          READ(64,*) k,u(k,tstep),v(k,tstep)
-        ENDDO
+        IF (last_only == "F") THEN              
+          DO nd = 1,nn        
+            READ(64,*) k,u(k,tstep),v(k,tstep)
+          ENDDO
+        ELSE 
+          DO nd = 1,nn        
+            READ(64,*) k,u(k,1),v(k,1)
+          ENDDO        
+        ENDIF
         
         IF (tstep == nsnap_read) THEN        
           EXIT
