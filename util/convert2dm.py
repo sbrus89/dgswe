@@ -21,8 +21,8 @@ import pprint
 #fort14name = "/home/sbrus/data-drive/converge_quad/converge_quad4.grd"
 #grid_name = "converge_quad4"
 
-filename = "/home/sbrus/data-drive/galveston_spline_flux/grids/galveston_straight_quad_oob.2dm"
-fort14name = "/home/sbrus/data-drive/galveston_spline_flux/grids/galveston_quad_flux.grd"
+filename = "/home/sbrus/data-drive/galveston_spline_flux_fix/grids/galveston_straight_quad_oob.2dm"
+fort14name = "/home/sbrus/data-drive/galveston_spline_flux_fix/grids/galveston_quad.grd"
 grid_name = "galveston_quad_flux"
 
 f = open(filename)

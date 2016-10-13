@@ -3,7 +3,7 @@ clear all
 clc
 
 out_direc = '../work/';
-% out_direc = '/home/sbrus/data-drive/galveston_spline_oob/grids/spline/';
+% out_direc = '/home/sbrus/data-drive/galveston_spline_flux_fix/grids/';
 
 file = fopen([out_direc,'spline.out']);
 

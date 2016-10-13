@@ -3,11 +3,11 @@
       IMPLICIT NONE
       
       CHARACTER(:), ALLOCATABLE, PARAMETER :: gitBranch = "master" 
-      CHARACTER(:), ALLOCATABLE, PARAMETER :: gitSHA = "198b073bb862652bbd923489e7cc9bd9039731b1 +" 
+      CHARACTER(:), ALLOCATABLE, PARAMETER :: gitSHA = "9c1b3b4413e50d3d3b266598a11cd7c93d9bf68a +" 
       CHARACTER(:), ALLOCATABLE, PARAMETER :: compiler_version = "ifort version 14.0.0" 
-      CHARACTER(:), ALLOCATABLE, PARAMETER :: compiler_flags = "-O3 -xHost -Iodir_dgprep/" 
-      CHARACTER(:), ALLOCATABLE, PARAMETER :: modified_files = "../plot/plot_PE_grid.m ../plot/plot_grid.m ../plot/read_solution.m ../post/dgpost.F90 ../rimls/work/rimls.inp ../src/output.F90 ../src/read_input.F90 ../src/read_write_output.F90 ../src/system.F90 ../src/version.F90 ../stations/plot/plot_adcirc_stations.m ../stations/plot/plot_grid.m ../stations/plot/plot_stations.m ../stations/src/stations.f90 ../util/Makefile ../util/adjust Makefile dgswe.inp" 
-      CHARACTER(:), ALLOCATABLE, PARAMETER :: compile_date = "Thu Jun 16 16:40:18 EDT 2016" 
+      CHARACTER(:), ALLOCATABLE, PARAMETER :: compiler_flags = "-Iodir/ -Dadcirc -traceback -g -C " 
+      CHARACTER(:), ALLOCATABLE, PARAMETER :: modified_files = "../plot_PE_grid.m ../plot_adcirc_stations.m ../plot_grid.m ../plot_stations.m ../read_adcirc_stations.m ../src/labels_mod.F90 ../src/read_plot_input.F90 create_zoom_plots.py show_plots.py" 
+      CHARACTER(:), ALLOCATABLE, PARAMETER :: compile_date = "Thu Oct 13 10:34:12 EDT 2016" 
       CHARACTER(:), ALLOCATABLE, PARAMETER :: host = "chl-tilos" 
             
       CONTAINS      

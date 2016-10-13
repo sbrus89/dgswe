@@ -19,8 +19,8 @@ p = 1 ;
 % grd_direc = '/home/sbrus/data-drive/galveston_spline/grids/';
 % grd_name = 'galveston_tri_x64.grd';
 
-grd_direc = '/home/sbrus/data-drive/galveston_spline_flux/grids/';
-grd_name = 'galveston_tri_x64.grd';
+% grd_direc = '/home/sbrus/data-drive/galveston_spline_flux_fix/grids/';
+% grd_name = 'fort.14_refine';
 
 % grd_direc = '/home/sbrus/data-drive/galveston_spline_oob/grids/unmodified_refinements/';
 % grd_name = 'galveston_tri_x4.grd';
@@ -40,6 +40,9 @@ grd_name = 'galveston_tri_x64.grd';
 % grd_direc = '/home/sbrus/Codes/dgswe/spline/work/';
 % grd_name = 'nodes.out';
 
+grd_direc = '/home/sbrus/Codes/dgswe/work/PE0182/';
+grd_name = 'fort.14';
+
 [EToV,VX,HB,nelnds,opedat,boudat,title] = readfort14([grd_direc,grd_name]);
 [ne,nc] = size(EToV);
 [nn,~] = size(VX);
@@ -48,8 +51,8 @@ grd_name = 'galveston_tri_x64.grd';
 DEToV = zeros(length(EToV(:,1)),nc+1) ;
 DEToV(:,1) = nelnds ;
 DEToV(:,2:nc+1) = EToV ;
-drawNGonMesh4_bou( VX, DEToV,boudat.nbvv, lcolor, 'ElNum', elem, elcolor, 'NodeNum', node, ndcolor )
-% drawNGonMesh4( VX, DEToV, lcolor, 'ElNum', elem, elcolor, 'NodeNum', node, ndcolor )
+% drawNGonMesh4_bou( VX, DEToV,boudat.nbvv, lcolor, 'ElNum', elem, elcolor, 'NodeNum', node, ndcolor )
+drawNGonMesh4( VX, DEToV, lcolor, 'ElNum', elem, elcolor, 'NodeNum', node, ndcolor )
 axis equal
 
 % x1 = 2000.00000000000;

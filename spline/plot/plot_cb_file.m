@@ -2,7 +2,7 @@ close all
 clear all
 clc
 
-file = '/home/sbrus/data-drive/galveston_spline_flux_fix/grids/galveston_tri_ctp3.cb';
+file = '/home/sbrus/data-drive/galveston_spline_flux_fix/grids/galveston_quad_x4_ctp3.cb';
 % file = '/home/sbrus/data-drive/galveston_spline_flux/galveston_tri_x4/p3/ctp3/hbp3/decomp48/PE0009/fort.cb';
 fid = fopen(file);
 header = 1;

@@ -19,14 +19,15 @@ def write_file(name,content):
     
 
 plot_exe_direc = '/home/sbrus/Codes/dgswe/plot/work/'
-plotting_direc = '/home/sbrus/data-drive/galveston_spline_flux/galveston_tri_x16/p3/ctp3/hbp3/'
+plotting_direc = '/home/sbrus/data-drive/galveston_spline_flux_fix/galveston_tri_x4/adcirc/ESL0/'
 
-zoom_list = [['3.2e5,3.4e5,3.24e6,3.26e6','inlet'],
-             ['2.84e5,3.00e5,3.21e6,3.233e6','left inlet'],
-             ['2.95e5,3.12e5,3.283e6,3.298e6','upper']
+zoom_list = [
+             ['2.95e5,3.12e5,3.283e6,3.298e6','upper'],  
+             ['3.2e5,3.4e5,3.24e6,3.26e6','inlet'],
+             ['2.84e5,3.00e5,3.21e6,3.233e6','left inlet']
              ]
              
-plot_order = '8'             
+plot_order = '15'             
              
              
 
@@ -44,7 +45,7 @@ for zoom in zoom_list :
     os.makedirs(save_direc)
   
   
-  base_cscale_direc = '/home/sbrus/data-drive/galveston_spline_flux/galveston_tri_x64/p3/ctp3/hbp3/plots/'+zoom_name_+'/'
+  base_cscale_direc = '/home/sbrus/data-drive/galveston_spline_flux_fix/galveston_tri_x64/p3/ctp3/hbp3/plots/'+zoom_name_+'/'
   shutil.copy(base_cscale_direc+'vel.cscale',plotting_direc)
   shutil.copy(base_cscale_direc+'zeta.cscale',plotting_direc)
 
@@ -73,7 +74,7 @@ for zoom in zoom_list :
                 {'value':'3'                                              , 'comment':'!'+'number of c decimal places \n'},  
                 {'value':'3'                                              , 'comment':'!'+'number of t decimal places \n'},      
                 {'value':'jpg,1'                                          , 'comment':'!'+'additional file format, remove ps file option \n'},  
-                {'value':'200'                                            , 'comment':'!'+'raster density \n'},   
+                {'value':'250'                                            , 'comment':'!'+'raster density \n'},   
                 {'value':'0'                                              , 'comment':'!'+'movie flag \n'}        
                 ] 
                 

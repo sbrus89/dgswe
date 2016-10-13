@@ -29,19 +29,15 @@
 !out_direc = ./
 !npart = 1
 
-! grid_file = /home/sbrus/data-drive/galveston_spline/grids/galveston_tri_x64.grd
-! forcing_file = /home/sbrus/data-drive/galveston_spline/grids/galveston_x64.bfr
-! bathy_file = /home/sbrus/data-drive/galveston_spline/grids/galveston_tri_x64_hbp3_rimls.hb
-! curve_file = /home/sbrus/data-drive/galveston_spline/grids/galveston_tri_x64_ctp3.cb
-grid_file = /home/sbrus/data-drive/galveston_spline/grids/galveston_tri.grd
-forcing_file = /home/sbrus/data-drive/galveston_spline/grids/galveston.bfr
-!bathy_file = /home/sbrus/data-drive/galveston_spline/grids/galveston_tri_hbp3_rimls.hb
-!curve_file = /home/sbrus/data-drive/galveston_spline/grids/galveston_tri_ctp3.cb
+grid_file = /home/sbrus/data-drive/galveston_spline_flux_fix/grids/galveston_tri.grd
+forcing_file = /home/sbrus/data-drive/galveston_spline_flux_fix/grids/galveston_tri.bfr
+bathy_file = /home/sbrus/data-drive/galveston_spline_flux_fix/grids/galveston_tri_hbp1_rimls.hb
+curve_file = /home/sbrus/data-drive/galveston_spline_flux_fix/grids/galveston_tri_ctp2.cb
 p = 1
-ctp = 1
+ctp = 2
 hbp = 1
 rk = 22
-dt = 2d0
+dt = 1.5d0
 tf = 4d0
 dramp = 0.5d0
 cf = .003d0
@@ -50,7 +46,7 @@ sol_opt = 1
 sol_snap = 48d0
 sta_opt = 1
 sta_snap = 576d0
-sta_file = /home/sbrus/data-drive/galveston_spline/grids/stations.d
+sta_file = /home/sbrus/data-drive/galveston_spline_flux_fix/grids/stations.d
 out_direc = ./
 npart = 1
 
