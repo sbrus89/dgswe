@@ -320,7 +320,7 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-      SUBROUTINE adcirc_basis(p,ndof,npts,rv,sv,phi)
+      SUBROUTINE dgswem_basis(p,ndof,npts,rv,sv,phi)
       
       IMPLICIT NONE
       

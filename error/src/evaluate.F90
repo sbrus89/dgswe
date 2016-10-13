@@ -13,7 +13,7 @@
       SUBROUTINE function_eval()
       
       USE globals, ONLY: rp,nel_type,nqpta,qpta,mnqpta,fine
-      USE basis, ONLY: tri_basis,quad_basis,adcirc_basis
+      USE basis, ONLY: tri_basis,quad_basis,dgswem_basis,linear_basis
       USE shape_functions_mod, ONLY: shape_functions_area_eval
       
       IMPLICIT NONE
@@ -62,10 +62,12 @@
         ENDDO
         
         IF (mod(et,2) == 1) THEN
-#ifndef adcirc        
-          CALL tri_basis(p,n,npt,r,s,fine%phi(:,:,et))
+#ifdef dgswem
+          CALL dgswem_basis(p,n,npt,r,s,fine%phi(:,:,et))
+#elif adcirc           
+          CALL linear_basis(npt,r,s,fine%phi(:,:,et))   
 #else
-          CALL adcirc_basis(p,n,npt,r,s,fine%phi(:,:,et))
+          CALL tri_basis(p,n,npt,r,s,fine%phi(:,:,et))          
 #endif          
         ELSE IF (mod(et,2) == 0) THEN
           CALL quad_basis(p,n,npt,r,s,fine%phi(:,:,et))

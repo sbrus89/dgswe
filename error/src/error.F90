@@ -112,10 +112,12 @@ elemf:DO elf = 1,fine%ne  ! Calculate error integral in the fine grid elements
                
         ! evalute coarse element basis functions at fine element quadrautre points               
         IF (mod(etc,2) == 1) THEN 
-#ifndef adcirc        
-          CALL tri_basis(coarse%p,coarse%ndof(etc),npts,r,s,coarse%phi(:,:,1))  
+#ifdef dgswem  
+          CALL dgswem_basis(coarse%p,coarse%ndof(etc),npts,r,s,coarse%phi(:,:,1))  
+#elif adcirc         
+          CALL linear_basis(npts,r,s,coarse%phi(:,:,1))     
 #else          
-          CALL adcirc_basis(coarse%p,coarse%ndof(etc),npts,r,s,coarse%phi(:,:,1))      
+          CALL tri_basis(coarse%p,coarse%ndof(etc),npts,r,s,coarse%phi(:,:,1))            
 #endif
         ELSE IF (mod(etc,2) == 0) THEN
           CALL quad_basis(coarse%p,coarse%ndof(etc),npts,r,s,coarse%phi(:,:,1))

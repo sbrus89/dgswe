@@ -4,7 +4,7 @@ VPATH := ../src/
 ODIR = odir/
 
 FC = ifort
-FFLAGS = -O3 -132 -I$(ODIR) #-Dadcirc
+FFLAGS = -O3 -132 -I$(ODIR) -Dadcirc
 # FFLAGS = -132 -C -g -traceback -I$(ODIR) #-Dadcirc -fp-model strict
 
 FULLNAME := $(shell hostname)
