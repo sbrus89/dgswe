@@ -75,7 +75,8 @@
               READ(temp,*) vel%plot_sol_option, vel%plot_mesh_option, vel%plot_lines_option
               PRINT("(A,I3)"), "velocity plot option = ", vel%plot_sol_option
               PRINT("(A,I3)"), "plot velocity mesh = ", vel%plot_mesh_option
-              PRINT("(A,I3)"), "plot velocity contour lines = ", vel%plot_lines_option              
+              PRINT("(A,I3)"), "plot velocity contour lines = ", vel%plot_lines_option     
+              
             CASE (5)
               READ(temp,*) bathy%plot_sol_option, bathy%plot_mesh_option, bathy%plot_lines_option
               PRINT("(A,I3)"), "bathymetry plot option = ", bathy%plot_sol_option 
@@ -89,11 +90,25 @@
               
             CASE (7)
               mesh%el_label_option = TRIM(ADJUSTL(temp)) 
-              PRINT("(A,A)"), "mesh plot element labels = ", mesh%el_label_option              
+              PRINT("(A,A)"), "mesh plot element labels = ", mesh%el_label_option     
+              IF (mesh%el_label_option == "file") THEN
+                INQUIRE(file="element.label",exist=file_exists)
+                IF (file_exists /= .true.) THEN
+                  PRINT("(A)"), "Error: Mesh plot element label file not found"
+                  STOP
+                ENDIF              
+              ENDIF
               
             CASE (8)
               mesh%nd_label_option = TRIM(ADJUSTL(temp)) 
-              PRINT("(A,A)"), "mesh plot node labels = ", mesh%nd_label_option             
+              PRINT("(A,A)"), "mesh plot node labels = ", mesh%nd_label_option   
+              IF (mesh%nd_label_option == "file") THEN
+                INQUIRE(file="node.label",exist=file_exists)
+                IF (file_exists /= .true.) THEN
+                  PRINT("(A)"), "Error: Mesh plot node label file not found"
+                  STOP
+                ENDIF              
+              ENDIF
               
             CASE (9)
               READ(temp,*) ps
@@ -239,6 +254,15 @@
       ENDIF
       
    
+      IF (xbox_min >= xbox_max) THEN
+        PRINT("(A)"), "Error: the order of x-values in zoom box is incorrect"
+        STOP
+      ENDIF
+      
+      IF (ybox_min >= ybox_max) THEN
+        PRINT("(A)"), "Error: the order of -values in zoom box is incorrect"
+        STOP
+      ENDIF
 
       CLOSE(15)
       

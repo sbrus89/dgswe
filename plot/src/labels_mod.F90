@@ -350,17 +350,12 @@
         
       ELSE IF (TRIM(ADJUSTL(label_option)) == "file") THEN
       
-        INQUIRE(file="element.label",exist=file_exists)
-        IF (file_exists) THEN
-          OPEN(unit=label_unit,file="element.label")
-          READ(label_unit,*) ne_list 
-          ALLOCATE(el_list(ne_list))
-          DO i = 1,ne_list
-            READ(label_unit,*) el_list(i)
-          ENDDO          
-        ELSE
-          PRINT("(A)"), "Error: Mesh plot element label file not found"
-        ENDIF
+        OPEN(unit=label_unit,file="element.label")
+        READ(label_unit,*) ne_list 
+        ALLOCATE(el_list(ne_list))
+        DO i = 1,ne_list
+          READ(label_unit,*) el_list(i)
+        ENDDO          
         
       ELSE IF (TRIM(ADJUSTL(label_option)) == "all") THEN
       
@@ -459,18 +454,13 @@
         RETURN
         
       ELSE IF (TRIM(ADJUSTL(label_option)) == "file") THEN
-      
-        INQUIRE(file="node.label",exist=file_exists)
-        IF (file_exists) THEN
-          OPEN(unit=label_unit,file="node.label")
-          READ(label_unit,*) nn_list 
-          ALLOCATE(nd_list(nn_list))
-          DO i = 1,nn_list
-            READ(label_unit,*) nd_list(i)
-          ENDDO          
-        ELSE
-          PRINT("(A)"), "Error: Mesh plot node label file not found"
-        ENDIF
+
+        OPEN(unit=label_unit,file="node.label")
+        READ(label_unit,*) nn_list 
+        ALLOCATE(nd_list(nn_list))
+        DO i = 1,nn_list
+          READ(label_unit,*) nd_list(i)
+        ENDDO          
         
       ELSE IF (TRIM(ADJUSTL(label_option)) == "all") THEN
       
