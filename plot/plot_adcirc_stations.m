@@ -17,7 +17,9 @@ nsnap = n(1,1);
 nsta = n(2,1);
 
 z = zeros(nsta,nsnap);
-for snap = 1:nsnap
+snap = 0;
+while ~feof(f61) && snap < nsnap
+   snap = snap + 1;
    t = fscanf(f61,'%f %d \n',2);
    time = t(1);
    
