@@ -17,13 +17,13 @@ direc_ls = [
             #'/home/sbrus/data-drive/galveston_spline_flux/galveston_quad/p3/ctp3/hbp3/plots/upper/',  
             #'/home/sbrus/data-drive/galveston_spline_flux/galveston_quad/p3/ctp1/hbp1/plots/upper/',        
             
-            '/home/sbrus/data-drive/galveston_spline_flux/galveston_tri_x64/p3/ctp3/hbp3/plots/upper/',
-            '/home/sbrus/data-drive/galveston_spline_flux/galveston_tri/p3/ctp3/hbp3/plots/upper/',
-            '/home/sbrus/data-drive/galveston_spline_flux/galveston_tri/p2/ctp2/hbp2/plots/upper/',
-            '/home/sbrus/data-drive/galveston_spline_flux/galveston_tri/p1/ctp2/hbp1/plots/upper/',  
-            '/home/sbrus/data-drive/galveston_spline_flux/galveston_tri_x4/p3/ctp3/hbp3/plots/upper/',
-            '/home/sbrus/data-drive/galveston_spline_flux/galveston_tri_x4/p2/ctp2/hbp2/plots/upper/',
-            '/home/sbrus/data-drive/galveston_spline_flux/galveston_tri_x4/p1/ctp2/hbp1/plots/upper/',            
+            #'/home/sbrus/data-drive/galveston_spline_flux/galveston_tri_x64/p3/ctp3/hbp3/plots/upper/',
+            #'/home/sbrus/data-drive/galveston_spline_flux/galveston_tri/p3/ctp3/hbp3/plots/upper/',
+            #'/home/sbrus/data-drive/galveston_spline_flux/galveston_tri/p2/ctp2/hbp2/plots/upper/',
+            #'/home/sbrus/data-drive/galveston_spline_flux/galveston_tri/p1/ctp2/hbp1/plots/upper/',  
+            #'/home/sbrus/data-drive/galveston_spline_flux/galveston_tri_x4/p3/ctp3/hbp3/plots/upper/',
+            #'/home/sbrus/data-drive/galveston_spline_flux/galveston_tri_x4/p2/ctp2/hbp2/plots/upper/',
+            #'/home/sbrus/data-drive/galveston_spline_flux/galveston_tri_x4/p1/ctp2/hbp1/plots/upper/',            
             
             #'/home/sbrus/data-drive/galveston_spline_flux/galveston_tri_x64/p3/ctp3/hbp3/plots/inlet/',
             #'/home/sbrus/data-drive/galveston_spline_flux/galveston_tri_x4/p3/ctp3/hbp3/plots/inlet/',
@@ -31,22 +31,46 @@ direc_ls = [
             
             #'/home/sbrus/data-drive/galveston_spline_flux/galveston_tri_x64/p3/ctp3/hbp3/plots/inlet/',
             #'/home/sbrus/data-drive/galveston_spline_flux/galveston_tri/p3/ctp3/hbp3/plots/inlet/',
-            #'/home/sbrus/data-drive/galveston_spline_flux/galveston_tri/p3/ctp1/hbp1/plots/inlet/',
+            #'/home/sbrus/data-drive/galveston_spline_flux/galveston_tri/p3/ctp1/hbp1/plots/inlet/',            
             
             #'/home/sbrus/data-drive/galveston_spline_flux/galveston_tri_x64/p3/ctp3/hbp3/plots/left_inlet/',
             #'/home/sbrus/data-drive/galveston_spline_flux/galveston_tri/p3/ctp3/hbp3/plots/left_inlet/',
-            #'/home/sbrus/data-drive/galveston_spline_flux/galveston_tri/p3/ctp1/hbp1/plots/left_inlet/'            
+            #'/home/sbrus/data-drive/galveston_spline_flux/galveston_tri/p3/ctp1/hbp1/plots/left_inlet/'      
             
+            #'/home/sbrus/data-drive/galveston_spline_flux_fix/galveston_tri_x64/p3/ctp3/hbp3/plots/upper/',
+            #'/home/sbrus/data-drive/galveston_spline_flux_fix/galveston_tri_x16/p3/ctp3/hbp3/plots/upper/',
+            #'/home/sbrus/data-drive/galveston_spline_flux_fix/galveston_tri_x4/p3/ctp3/hbp3/plots/upper/',
+            #'/home/sbrus/data-drive/galveston_spline_flux_fix/galveston_tri/p3/ctp3/hbp3/plots/upper/',  
+            #'/home/sbrus/data-drive/galveston_spline_flux_fix/galveston_quad_x64/p3/ctp3/hbp3/plots/upper/',
+            #'/home/sbrus/data-drive/galveston_spline_flux_fix/galveston_quad_x16/p3/ctp3/hbp3/plots/upper/',
+            #'/home/sbrus/data-drive/galveston_spline_flux_fix/galveston_quad_x4/p3/ctp3/hbp3/plots/upper/',
+            #'/home/sbrus/data-drive/galveston_spline_flux_fix/galveston_quad/p3/ctp3/hbp3/plots/upper/',          
+            
+            #'/home/sbrus/data-drive/galveston_spline_flux_fix/galveston_tri_x64/adcirc/ESL0/plots/upper/',
+            #'/home/sbrus/data-drive/galveston_spline_flux_fix/galveston_tri_x64/p3/ctp3/hbp3/plots/upper/',
+            #'/home/sbrus/data-drive/galveston_spline_flux_fix/galveston_quad_x64/p3/ctp3/hbp3/plots/upper/',       
+            
+            #'/home/sbrus/data-drive/galveston_spline_flux_fix/galveston_tri_x64/adcirc/ESL0/plots/inlet/',
+            #'/home/sbrus/data-drive/galveston_spline_flux_fix/galveston_tri_x64/p3/ctp3/hbp3/plots/inlet/',
+            #'/home/sbrus/data-drive/galveston_spline_flux_fix/galveston_quad_x64/p3/ctp3/hbp3/plots/inlet/',    
+            
+            '/home/sbrus/data-drive/galveston_spline_flux_fix/galveston_quad_x64/p3/ctp3/hbp3/plots/inlet/',  
+            '/home/sbrus/data-drive/galveston_spline_flux_fix/galveston_tri/p3/ctp3/hbp3/plots/inlet/',   
+            '/home/sbrus/data-drive/galveston_spline_flux_fix/galveston_tri/p2/ctp2/hbp2/plots/inlet/',              
+            '/home/sbrus/data-drive/galveston_spline_flux_fix/galveston_tri/p1/ctp2/hbp1/plots/inlet/',             
+            '/home/sbrus/data-drive/galveston_spline_flux_fix/galveston_tri/adcirc/ESL0/plots/inlet/',            
             ]         
-
+            
+#offset = [0,0,0]         
+offset = [1,1,1,1,0] #account for adcirc not writing the initial condition
          
 keep_going = True  
 snap = 1
 while keep_going:          
-
-  snap_str = "%04d" % snap
   
   for i,direc in enumerate(direc_ls):         
+  
+    snap_str = "%04d" % (snap+offset[i])  
 
     im_file = direc + sol + '_' + snap_str + '.' + frmt 
     if not os.path.isfile(im_file):
