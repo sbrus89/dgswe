@@ -461,7 +461,7 @@
           
           IF (found == 0) THEN
 !             PRINT*, seg, nd, fbseg(1,seg), segtype,myrank    
-            PRINT*, seg, nd, fbseg(1,seg), segtype            
+            PRINT "(4(A,I9))", "seg = ",seg, " nd = ",nd, " #nds in seg = ",fbseg(1,seg), " type = ",segtype            
             PRINT "(A)", "  edge not found"
           ENDIF
           
