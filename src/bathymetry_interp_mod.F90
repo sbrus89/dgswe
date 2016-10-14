@@ -205,10 +205,10 @@
               CALL bathymetry_interp_eval(nnd_interp,hbvert,psic(:,pt,et_linear),hb)
             ENDIF 
             
-!            elhb(pt,el) = hb   
-             elhb(pt,el) = 10d0
-             ypt = 500d0/(f2(xpt)-f1(xpt))*ypt - 500d0/(f2(xpt)-f1(xpt))*f1(xpt)
-             elhb(pt,el) = 10d0 - 5d0*cos(2d0*pi/500d0*ypt) 
+           elhb(pt,el) = hb   
+!              elhb(pt,el) = 10d0
+!              ypt = 500d0/(f2(xpt)-f1(xpt))*ypt - 500d0/(f2(xpt)-f1(xpt))*f1(xpt)
+!              elhb(pt,el) = 10d0 - 5d0*cos(2d0*pi/500d0*ypt) 
 
           
             IF (calc_norm) THEN
