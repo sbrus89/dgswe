@@ -240,6 +240,9 @@
               xyh_eval(pt,i,3) = xyh_eval(pt,i,3) + b(m)*phi(m,1)
           ENDDO    
               
+          IF (xyh_eval(pt,i,3) < hmin) THEN
+            xyh_eval(pt,i,3) = hmin
+          ENDIF
           
         ENDDO
       
