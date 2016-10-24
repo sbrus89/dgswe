@@ -112,6 +112,7 @@
       REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: hb
       REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: Qx
       REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: Qy
+      REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: hbm
             
       REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: eta
       REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: uu2

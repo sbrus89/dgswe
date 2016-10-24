@@ -58,7 +58,11 @@
           IF (fig%sol_val(nd,el) > fig%snap_max) THEN
             fig%snap_max = fig%sol_val(nd,el)
           ENDIF
-        ENDDO
+          
+          IF (fig%type_flag == 2 .and. fig%sol_val(nd,el) < 0d0) THEN
+            PRINT*, "Negative batymetry in element: ", el          
+          ENDIF          
+        ENDDO       
         
       ENDDO elem      
       

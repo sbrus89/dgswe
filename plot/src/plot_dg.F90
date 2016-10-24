@@ -11,7 +11,7 @@
       USE basis, ONLY: element_nodes,element_basis
       USE read_write_output, ONLY: read_solution_full,read_fort63,read_fort64
       USE read_dginp, ONLY: read_input,out_direc,p,ctp,hbp,tf, &
-                            grid_file,curve_file,cb_file_exists
+                            grid_file,curve_file,cb_file_exists,bathy_file,hb_file_exists
       USE plot_mod, ONLY: read_colormap,setup_cbounds, &
                           scale_coordinates,zoom_box,make_plot,make_movie                                                                           
       USE evaluate_mod, ONLY: evaluate_depth_solution,evaluate_velocity_solution, &
@@ -26,11 +26,13 @@
       USE transformation
       USE shape_functions_mod
       USE version
+      USE bathymetry_interp_mod, ONLY: bathymetry_nodal2modal
       
       IMPLICIT NONE
       
       INTEGER :: start_snap,end_snap
       REAL(rp) :: H
+      LOGICAL :: file_exists
       
       space = 1  
       
@@ -162,8 +164,16 @@
         ALLOCATE(Qx(1,1,1),Qy(1,1,1))
       ENDIF  
       IF (bathy%plot_sol_option == 1 .or. vel%plot_sol_option == 1) THEN
-        PRINT("(A)"), "Reading bathymetry solution..."          
-        CALL read_solution_full(out_direc,"hb.sol","N",t,hb,nsnap_hb)  
+        INQUIRE(file="hb.sol",exist=file_exists)
+        IF (file_exists == .true.) THEN
+          PRINT("(A)"), "Reading bathymetry solution..."          
+          CALL read_solution_full(out_direc,"hb.sol","N",t,hb,nsnap_hb)  
+        ELSE
+          CALL read_bathy_file(0,bathy_file,hbp,ne,el_type,nverts,depth,ect,elhb,hb_file_exists)
+          ALLOCATE(hb(ndof_hb(4),ne,1))
+          CALL bathymetry_nodal2modal(hbp,ndof_hb(4),ne,el_type,elhb,hbm)
+          hb(:,:,1) = hbm(:,:)
+        ENDIF
       ENDIF  
 #else
       IF (zeta%plot_sol_option == 1 .or. vel%plot_sol_option == 1) THEN
