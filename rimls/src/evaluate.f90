@@ -118,9 +118,9 @@
       
       DO i = 1,n
       
-!         IF (mod(i,1000) == 0) THEN       
+        IF (mod(i,1000) == 0) THEN       
           PRINT*,i,"/",n
-!         ENDIF   
+        ENDIF   
         
         DO pt = 1,npts(i) 
         
