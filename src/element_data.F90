@@ -6,12 +6,14 @@
                          area,edlen,edlen_area,normal,ged2nn,ged2el,ged2led, &
                          dhbdx_init,dhbdy_init, &
                          detJa,detJe, &
-                         nx_pt,ny_pt
+                         nx_pt,ny_pt, &
+                         elhb,hbm
                          
       USE basis, ONLY:       
       USE allocation, ONLY: alloc_trans_arrays
-      USE read_dginp, ONLY: p,ctp
+      USE read_dginp, ONLY: p,ctp,hbp
       USE messenger2, ONLY: myrank        
+      USE bathymetry_interp_mod, ONLY: bathymetry_nodal2modal
 
       IMPLICIT NONE
       INTEGER :: el,ed,led,dof,pt,i,nd
@@ -51,8 +53,8 @@
       IF (myrank == 0) PRINT "(A)", "Interpolating bathymety onto edge quadrature points..."      
       CALL bathymetry_interp_edge_qpts()
       
-      IF (myrank == 0) PRINT "(A)", "Computing modal bathymetry..."      
-      CALL bathymetry_nodal2modal()
+      IF (myrank == 0) PRINT "(A)", "Computing modal bathymetry..."           
+      CALL bathymetry_nodal2modal(hbp,mnnds,ne,el_type,elhb,hbm)
       
       !!!!!!!!!!!!!!!!!!!!!!!!!!
       ! Calculate element area 

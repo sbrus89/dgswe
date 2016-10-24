@@ -6,10 +6,9 @@
       
       CONTAINS
 
-      
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!      
-       
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!         
       
       
       SUBROUTINE shape_functions_eltypes_at_hbp(space,nel_type,np,psi,dpdr,dpds,ext,nnds)
@@ -278,6 +277,63 @@
       
       RETURN
       END SUBROUTINE bathymetry_interp_eval
+      
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!      
+
+      SUBROUTINE bathymetry_nodal2modal(hbp,mnnds,ne,el_type,elhb,hbm)
+      
+      USE vandermonde, ONLY: vandermonde_area
+      USE lapack_interfaces
+      
+      IMPLICIT NONE
+     
+      INTEGER, INTENT(IN) :: hbp
+      INTEGER, INTENT(IN) :: mnnds
+      INTEGER, INTENT(IN) :: ne
+      INTEGER, DIMENSION(:), INTENT(IN) :: el_type
+      REAL(rp), DIMENSION(:,:), INTENT(IN) :: elhb
+      REAL(rp), DIMENSION(:,:), ALLOCATABLE, INTENT(INOUT) :: hbm
+     
+      INTEGER :: et,el,nd,dof
+      INTEGER :: n,nnds(2)
+      INTEGER :: info
+      REAL(rp), DIMENSION(:,:,:), ALLOCATABLE :: V
+      INTEGER, DIMENSION(:,:), ALLOCATABLE :: ipiv     
+     
+     ALLOCATE(V(mnnds,mnnds,2))
+     ALLOCATE(ipiv(mnnds,2))
+     
+      DO et = 1,2
+        CALL vandermonde_area(et,hbp,n,V(:,:,et))
+        CALL DGETRF(n,n,V(1,1,et),mnnds,ipiv(1,et),info)  
+        nnds(et) = n
+      ENDDO
+      
+      
+      ALLOCATE(hbm(mnnds,ne))
+      hbm = 0d0 
+      DO el = 1,ne
+      
+        et = el_type(el)
+        IF (mod(et,2) == 1) THEN
+          et = 1     
+        ELSE IF (mod(et,2) == 0) THEN
+          et = 2
+        ENDIF
+        n = nnds(et)                
+                
+        DO nd = 1,n
+          hbm(nd,el) = elhb(nd,el)
+        ENDDO
+        
+        CALL DGETRS("T",n,1,V(1,1,et),mnnds,ipiv(1,et),hbm(1,el),mnnds,info)                         
+        
+      ENDDO          
+     
+     
+      RETURN
+      END SUBROUTINE bathymetry_nodal2modal      
       
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!      
