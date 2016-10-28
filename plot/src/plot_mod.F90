@@ -30,7 +30,10 @@
             
       USE globals, ONLY: ne,nn,nverts,el_type,xy,ect, &
                          nbou,fbseg,fbnds, &
-                         nnfbed,nfbedn,ged2el      
+                         nnfbed,nfbedn, &
+                         nfbed,fbedn, &
+                         nobed,obedn, &
+                         ged2el,ged2led      
       USE plot_globals, ONLY: el_in,t_start,t_end,xyplt,npplt,nptri,rect,r,s, &
                               frmt,density,pc
       USE evaluate_mod, ONLY: evaluate_depth_solution,evaluate_velocity_solution  
@@ -121,7 +124,11 @@
         CALL plot_line_contours(fig%ps_unit,ne,el_type,el_in,nptri,rect,xyplt,r,s,snap,fig)          
       ENDIF
       IF (fig%plot_mesh_option == 1) THEN
-        CALL plot_mesh(fig%ps_unit,ne,nverts,pc,el_type,el_in,xy,ect,xyplt)
+        CALL fill_elements(fig%ps_unit,ne,nverts,pc,el_type,el_in,xy,ect,xyplt)      
+!         CALL plot_mesh(fig%ps_unit,ne,nverts,pc,el_type,el_in,xy,ect,xyplt)
+        CALL plot_boundaries(fig%ps_unit,nverts,pc,nobed,obedn,ged2el,ged2led,el_type,el_in,ect,xy,xyplt)       
+        CALL plot_boundaries(fig%ps_unit,nverts,pc,nnfbed,nfbedn,ged2el,ged2led,el_type,el_in,ect,xy,xyplt)        
+        CALL plot_boundaries(fig%ps_unit,nverts,pc,nfbed,fbedn,ged2el,ged2led,el_type,el_in,ect,xy,xyplt)          
       ENDIF 
       
       CALL write_all_axes(fig%ps_unit,fig%cbar_flag,fig%tbar_flag,t_snap,t_start,t_end)               
@@ -345,6 +352,14 @@
 !       WRITE(file_unit,"(A)") "%!PS-Adobe-3.0 EPSF-3.0"      
 !       WRITE(file_unit,"(A,4(F9.5,1x))") "%%BoundingBox: ",rmin_axes,smin_axes,rmax_axes,smax_axes                
       
+      WRITE(file_unit,"(A)") "/draw-line {"
+      WRITE(file_unit,"(A)") "newpath"        
+      WRITE(file_unit,"(A)") "moveto"
+      WRITE(file_unit,"(A)") "lineto"
+      WRITE(file_unit,"(A)") ".5 setlinewidth 2 setlinejoin"
+      WRITE(file_unit,"(A)") "stroke"      
+      WRITE(file_unit,"(A)") "} def"       
+      
       WRITE(file_unit,"(A)") "/draw-tri-element {"
       WRITE(file_unit,"(A)") "newpath"        
       WRITE(file_unit,"(A)") "moveto"
@@ -364,6 +379,25 @@
       WRITE(file_unit,"(A)") "closepath"
       WRITE(file_unit,"(A)") ".5 setlinewidth 2 setlinejoin"
       WRITE(file_unit,"(A)") "stroke"      
+      WRITE(file_unit,"(A)") "} def"    
+      
+      WRITE(file_unit,"(A)") "/fill-tri-element {"
+      WRITE(file_unit,"(A)") "newpath"        
+      WRITE(file_unit,"(A)") "moveto"
+      WRITE(file_unit,"(A)") "lineto"
+      WRITE(file_unit,"(A)") "lineto"
+      WRITE(file_unit,"(A)") "closepath"
+      WRITE(file_unit,"(A)") "gsave 0 0 1 setrgbcolor fill grestore"     
+      WRITE(file_unit,"(A)") "} def" 
+      
+      WRITE(file_unit,"(A)") "/fill-quad-element {"
+      WRITE(file_unit,"(A)") "newpath"        
+      WRITE(file_unit,"(A)") "moveto"
+      WRITE(file_unit,"(A)") "lineto"
+      WRITE(file_unit,"(A)") "lineto"
+      WRITE(file_unit,"(A)") "lineto"      
+      WRITE(file_unit,"(A)") "closepath"
+      WRITE(file_unit,"(A)") "gsave 0 0 1 setrgbcolor fill grestore"      
       WRITE(file_unit,"(A)") "} def"       
       
       WRITE(file_unit,"(A)") "/draw-box {"
@@ -954,23 +988,26 @@ levels:DO lev = 1,nctick
 
       INTEGER :: el,nd
       INTEGER :: et
+
       
  elem:DO el = 1,ne
-        et = el_type(el)
+        
         IF (el_in(el) == 0) THEN
           CYCLE elem
         ENDIF
+        
+        et = el_type(el)
         
         IF (et == 1) THEN
           DO nd = 1,nverts(et)
             WRITE(file_unit,"(2(F9.5,1x))") xy(1,ect(nd,el)),xy(2,ect(nd,el))    
           ENDDO                
-          WRITE(file_unit,"(A)") "draw-tri-element"
+          WRITE(file_unit,"(A)") "draw-tri-element"         
         ELSE IF (et == 2) THEN
           DO nd = 1,nverts(et)
             WRITE(file_unit,"(2(F9.5,1x))") xy(1,ect(nd,el)),xy(2,ect(nd,el))    
           ENDDO                
-          WRITE(file_unit,"(A)") "draw-quad-element"          
+          WRITE(file_unit,"(A)") "draw-quad-element"  
         ELSE
           WRITE(file_unit,"(A)") "newpath"
           WRITE(file_unit,"(2(F9.5,1x),A)") xyplt(1,el,1),xyplt(1,el,2),"moveto" 
@@ -978,7 +1015,7 @@ levels:DO lev = 1,nctick
             WRITE(file_unit,"(2(F9.5,1x),A)") xyplt(nd,el,1),xyplt(nd,el,2), "lineto"
           ENDDO
           WRITE(file_unit,"(A)") "closepath"
-          WRITE(file_unit,"(A)") ".5 setlinewidth 2 setlinejoin"
+          WRITE(file_unit,"(A)") ".5 setlinewidth 2 setlinejoin"          
           WRITE(file_unit,"(A)") "stroke"          
         ENDIF
       ENDDO elem
@@ -988,6 +1025,145 @@ levels:DO lev = 1,nctick
       
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!   
+
+     SUBROUTINE plot_boundaries(file_unit,nverts,ctp,nbed,bedn,ged2el,ged2led,el_type,el_in,ect,xy,xyplt)
+     
+     IMPLICIT NONE
+     
+     INTEGER, INTENT(IN) :: file_unit
+     INTEGER, DIMENSION(:), INTENT(IN) :: nverts
+     INTEGER, INTENT(IN) :: ctp
+     INTEGER, INTENT(IN) :: nbed
+     INTEGER, DIMENSION(:), INTENT(IN) :: bedn
+     INTEGER, DIMENSION(:,:), INTENT(IN) :: ged2el
+     INTEGER, DIMENSION(:,:), INTENT(IN) :: ged2led
+     INTEGER, DIMENSION(:), INTENT(IN) :: el_type
+     INTEGER, DIMENSION(:), INTENT(IN) :: el_in
+     INTEGER, DIMENSION(:,:), INTENT(IN) :: ect
+     REAL(rp), DIMENSION(:,:), INTENT(IN) :: xy
+     REAL(rp), DIMENSION(:,:,:), INTENT(IN) :: xyplt
+     
+     INTEGER :: ed,nd
+     INTEGER :: el,et,nv
+     INTEGER :: ged,led
+     INTEGER :: n1,n2
+     
+edge:DO ed = 1,nbed
+       ged = bedn(ed)
+       
+       el = ged2el(1,ged)
+       led = ged2led(1,ged)
+       
+       et = el_type(el)
+       nv = nverts(et)
+       
+       IF (el_in(el) == 0) THEN
+         CYCLE
+       ENDIF
+       
+       IF (et <= 2) THEN
+       
+          n1 = mod(led+0,nv)+1
+          n2 = mod(led+1,nv)+1
+          
+          WRITE(file_unit,"(2(F9.5,1x))") xy(1,ect(n1,el)),xy(2,ect(n1,el))
+          WRITE(file_unit,"(2(F9.5,1x))") xy(1,ect(n2,el)),xy(2,ect(n2,el)) 
+          WRITE(file_unit,"(A)") "draw-line"          
+        ELSE
+          
+          n1 = mod(led,nv)*ctp + 1
+          n2 = n1 + ctp
+          WRITE(file_unit,"(A)") "newpath"
+          WRITE(file_unit,"(2(F9.5,1x),A)") xyplt(n1,el,1),xyplt(n1,el,2),"moveto" 
+          DO nd = n1+1,n2
+            WRITE(file_unit,"(2(F9.5,1x),A)") xyplt(nd,el,1),xyplt(nd,el,2), "lineto"
+          ENDDO
+          WRITE(file_unit,"(A)") ".5 setlinewidth 2 setlinejoin"          
+          WRITE(file_unit,"(A)") "stroke"              
+        ENDIF
+       
+     ENDDO edge
+     
+     END SUBROUTINE plot_boundaries
+     
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
+
+      SUBROUTINE fill_elements(file_unit,ne,nverts,ctp,el_type,el_in,xy,ect,xyplt)
+      
+      IMPLICIT NONE
+      
+      INTEGER, INTENT(IN) :: file_unit
+      INTEGER, INTENT(IN) :: ne
+      INTEGER, DIMENSION(:), INTENT(IN) :: nverts
+      INTEGER, INTENT(IN) :: ctp
+      INTEGER, DIMENSION(:), INTENT(IN) :: el_type
+      INTEGER, DIMENSION(:), INTENT(IN) :: el_in      
+      REAL(rp), DIMENSION(:,:), INTENT(IN) :: xy
+      INTEGER, DIMENSION(:,:), INTENT(IN) :: ect
+      REAL(rp), DIMENSION(:,:,:), INTENT(IN) :: xyplt
+
+      INTEGER :: el,nd
+      INTEGER :: et
+      INTEGER :: i,n
+      INTEGER :: fill
+      INTEGER, ALLOCATABLE, DIMENSION(:) :: fill_list
+      LOGICAL :: file_exists
+      
+      ALLOCATE(fill_list(ne))
+      fill_list = 0
+      INQUIRE(file='element.fill',exist=file_exists)
+      IF (file_exists) THEN
+        OPEN(unit=101,file='element.fill')
+        READ(101,*) n
+        DO i = 1,n
+          READ(101,*) el
+          fill_list(el) = 1
+        ENDDO
+        CLOSE(101)
+      ENDIF
+      
+ elem:DO el = 1,ne
+        
+        IF (el_in(el) == 0) THEN
+          CYCLE elem
+        ENDIF
+        
+        et = el_type(el)
+        fill = fill_list(el)        
+        
+        IF (et == 1) THEN
+          IF (fill == 1) THEN
+            DO nd = 1,nverts(et)
+              WRITE(file_unit,"(2(F9.5,1x))") xy(1,ect(nd,el)),xy(2,ect(nd,el))    
+            ENDDO                
+          WRITE(file_unit,"(A)") "fill-tri-element"            
+          ENDIF
+        ELSE IF (et == 2) THEN
+          IF (fill == 1) THEN
+            DO nd = 1,nverts(et)
+              WRITE(file_unit,"(2(F9.5,1x))") xy(1,ect(nd,el)),xy(2,ect(nd,el))    
+            ENDDO                
+          WRITE(file_unit,"(A)") "fill-quad-element"            
+          ENDIF
+       ELSE
+          IF (fill == 1) THEN       
+            WRITE(file_unit,"(A)") "newpath"
+            WRITE(file_unit,"(2(F9.5,1x),A)") xyplt(1,el,1),xyplt(1,el,2),"moveto" 
+            DO nd = 2,nverts(et)*ctp
+              WRITE(file_unit,"(2(F9.5,1x),A)") xyplt(nd,el,1),xyplt(nd,el,2), "lineto"
+            ENDDO
+            WRITE(file_unit,"(A)") "gsave 0 0 1 setrgbcolor fill grestore"
+          ENDIF        
+        ENDIF
+      ENDDO elem
+
+      END SUBROUTINE fill_elements     
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!   
+
+
 
       SUBROUTINE interp_colors(lev,sol_lev,dc,colors,sol_val,color_val)
       
