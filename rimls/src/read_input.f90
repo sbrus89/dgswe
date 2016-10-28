@@ -1,12 +1,12 @@
       SUBROUTINE read_input()
 
       USE globals, ONLY: base,eval,Erad,lambda0,phi0,deg2rad,basis_opt, &
-                         refinement,r,sigma_n,out_direc,lsp,nrpt,eps,curve_file
+                         refinement,r,sigma_n,out_direc,lsp,nrpt,eps
                          
 
       IMPLICIT NONE
       
-      INTEGER, PARAMETER :: ninp = 16
+      INTEGER, PARAMETER :: ninp = 17
       INTEGER :: inp_read,skipped
       CHARACTER(100) :: temp
       LOGICAL :: file_exists
@@ -44,46 +44,49 @@
               PRINT*, "hbp = ", base%hbp              
             CASE (3)
               READ(temp,*) base%ctp
-              PRINT*, "ctp = ", base%ctp              
+              PRINT*, "ctp = ", base%ctp 
             CASE (4)
+              base%curve_file = TRIM(ADJUSTL(temp))
+              PRINT*, "curve_file = ", base%curve_file              
+            CASE (5)
               eval%grid_file = TRIM(ADJUSTL(temp))
               PRINT*, "eval%grid_file = ", eval%grid_file
-            CASE (5) 
+            CASE (6) 
               READ(temp,*) eval%hbp
               PRINT*, "hbp = ", eval%hbp
-            CASE (6)
+            CASE (7)
               READ(temp,*) eval%ctp
               PRINT*, "ctp = ", eval%ctp              
-            CASE (7)
-              curve_file = TRIM(ADJUSTL(temp))
-              PRINT*, "curve_file = ", curve_file
             CASE (8)
+              eval%curve_file = TRIM(ADJUSTL(temp))
+              PRINT*, "curve_file = ", eval%curve_file
+            CASE (9)
               READ(temp,*) lsp
               PRINT*, "lsp = ", lsp    
-            CASE (9)
+            CASE (10)
               READ(temp,*) basis_opt
               PRINT*, "basis_opt = ", basis_opt               
-            CASE (10) 
+            CASE (11) 
               READ(temp,*) Erad
               PRINT*, "Erad = ", Erad
-            CASE (11)
+            CASE (12)
               READ(temp,*) lambda0,phi0
               PRINT*, "lambda0,phi0 = ", lambda0 , phi0
               lambda0 = lambda0*deg2rad
               phi0 = phi0*deg2rad
-            CASE (12)
+            CASE (13)
               READ(temp,*) r
               PRINT*, "r = ", r
-            CASE (13)
+            CASE (14)
               READ(temp,*) sigma_n
               PRINT*, "sigma_n = ", sigma_n
-            CASE (14)
+            CASE (15)
               out_direc = TRIM(ADJUSTL(temp))
               PRINT*, "out_direc = ", out_direc
-            CASE (15)
+            CASE (16)
               READ(temp,*) nrpt
               PRINT*, "nrpt = ", nrpt
-            CASE (16)
+            CASE (17)
               READ(temp,*) eps
               PRINT*, "eps = ", eps              
           
@@ -118,7 +121,7 @@
       SUBROUTINE write_input(file_unit)
       
       USE globals, ONLY: base,eval,Erad,lambda0,phi0,deg2rad,basis_opt, &
-                         refinement,r,sigma_n,out_direc,lsp,nrpt,eps,curve_file      
+                         refinement,r,sigma_n,out_direc,lsp,nrpt,eps      
       
       IMPLICIT NONE
       
@@ -128,11 +131,12 @@
       WRITE(file_unit,"(A)") "" 
       WRITE(file_unit,"(A,A)")     "base grid file = ", base%grid_file
       WRITE(file_unit,"(A,I5)")    "hbp = ", base%hbp              
-      WRITE(file_unit,"(A,I5)")    "ctp = ", base%ctp              
+      WRITE(file_unit,"(A,I5)")    "ctp = ", base%ctp           
+      WRITE(file_unit,"(A,A)")     "curve file = ", base%curve_file      
       WRITE(file_unit,"(A,A)")     "eval grid file = ", eval%grid_file
       WRITE(file_unit,"(A,I5)")    "hbp = ", eval%hbp
       WRITE(file_unit,"(A,I5)")    "ctp = ", eval%ctp              
-      WRITE(file_unit,"(A,A)")     "curve file = ", curve_file
+      WRITE(file_unit,"(A,A)")     "curve file = ", eval%curve_file
       WRITE(file_unit,"(A,I5)")    "lsp = ", lsp    
       WRITE(file_unit,"(A,I5)")    "basis_opt = ", basis_opt               
       WRITE(file_unit,"(A,F11.3)") "Erad = ", Erad
@@ -146,8 +150,9 @@
       WRITE(file_unit,"(A)") ""       
       
       WRITE(file_unit,"(A)") "base grid file SHA: "//sha1(base%grid_file,"./")
-      WRITE(file_unit,"(A)") "eval grid file SHA: "//sha1(eval%grid_file,"./")    
-      WRITE(file_unit,"(A)") "curve file SHA: "//sha1(curve_file,"./")
+      WRITE(file_unit,"(A)") "eval grid file SHA: "//sha1(eval%grid_file,"./")   
+      WRITE(file_unit,"(A)") "base curve file SHA: "//sha1(base%curve_file,"./")      
+      WRITE(file_unit,"(A)") "eval curve file SHA: "//sha1(eval%curve_file,"./")
                   
       WRITE(file_unit,"(A)") ""                 
       

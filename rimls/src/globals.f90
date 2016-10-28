@@ -5,8 +5,7 @@
       IMPLICIT NONE
 
       INTEGER, PARAMETER :: rp = kind(1d0) ! precision 
-
-      CHARACTER(100) :: curve_file      
+    
       CHARACTER(100) :: out_direc           
       
       INTEGER, PARAMETER :: nel_type = 4 !(type #s: 1 -> triangles, 2 -> quads, 3 -> curved triangles, 4-> curved quads)   
@@ -21,6 +20,7 @@
       
         CHARACTER(100) :: grid_name ! name of the grid
         CHARACTER(100) :: grid_file ! name of fort.14 file 
+        CHARACTER(100) :: curve_file          
         
         INTEGER :: ne ! number of elements
         INTEGER :: nn ! number of nodes        

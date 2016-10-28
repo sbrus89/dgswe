@@ -1,6 +1,6 @@
       PROGRAM rimls
 
-      USE globals, ONLY: nel_type,nverts,curve_file,eval,base
+      USE globals, ONLY: nel_type,nverts,eval,base
       USE allocation, ONLY: sizes
       USE evaluate
       USE write_results
@@ -30,8 +30,10 @@
       CALL connect(eval)       
 
       
-      myrank = 0                 
-      CALL read_curve_file(myrank,curve_file,eval%ctp,eval%nbou,eval%xy,eval%bndxy)       
+      myrank = 0      
+      CALL read_curve_file(myrank,base%curve_file,base%ctp,base%nbou,base%xy,base%bndxy)      
+      CALL read_curve_file(myrank,eval%curve_file,eval%ctp,eval%nbou,eval%xy,eval%bndxy)       
+      CALL curvilinear(base)     
       CALL curvilinear(eval)
 
       CALL bathymetry_eval_nodes(eval)
