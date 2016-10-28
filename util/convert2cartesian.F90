@@ -14,7 +14,7 @@
       REAL(rp) :: slam0,sphi0
       REAL(rp) :: a,b,r
       
-      grid_file = "/home/sbrus/data-drive/galveston_SL18/grid_dev/v4_cart/galveston_SL18.grd"
+      grid_file = "/home/sbrus/data-drive/galveston_SL18/grid_dev/v13/galveston_SL18.grd"
       coord_sys = 2
       slam0 = -94.90d0*deg2rad
       sphi0 = 29.195d0*deg2rad
@@ -48,7 +48,9 @@
       
       
       
-      grid_file = "/home/sbrus/data-drive/galveston_SL18/grid_dev/v4_cart/galveston_SL18_cart2.grd"
+      grid_file = "/home/sbrus/data-drive/galveston_SL18/grid_dev/v13_cart/galveston_SL18_cart.grd"
+      
+!       CALL cpp_inverse(coord_sys,r_earth,slam0,sphi0,nn,xy)      
       
       CALL write_header(grid_file,grid_name,ne,nn)  
       

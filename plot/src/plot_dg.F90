@@ -13,7 +13,7 @@
       USE read_dginp, ONLY: read_input,out_direc,p,ctp,hbp,tf, &
                             grid_file,curve_file,cb_file_exists,bathy_file,hb_file_exists
       USE plot_mod, ONLY: read_colormap,setup_cbounds, &
-                          scale_coordinates,zoom_box,make_plot,make_movie                                                                           
+                          scale_factors,zoom_box,make_plot,make_movie                                                                           
       USE evaluate_mod, ONLY: evaluate_depth_solution,evaluate_velocity_solution, &
                               evaluate_basis,find_solution_minmax
       USE labels_mod, ONLY: latex_axes_labels,run_latex,close_tex, &
@@ -83,20 +83,21 @@
 !       CALL find_element_init(nel_type,nverts,np,nnds,nn,xy,nepn,epn)      
       
       PRINT("(A)"), "Calculating additional ploting point coordinates..."
-      ALLOCATE(r(mnpp,nel_type),s(mnpp,nel_type))      
-      ALLOCATE(psic(mnnds,mnpp,nel_type))
-      ALLOCATE(rect(3,3*mnpp,nel_type))      
-      DO et = 1,nel_type     
-        CALL element_nodes(et,space,pplt(et),npts,r(:,et),s(:,et))                  
-        CALL shape_functions_area_eval(et,np(et),nnd,npts,r(:,et),s(:,et),psic(:,:,et))  
-        CALL reference_element_delaunay(npts,r(:,et),s(:,et),nptri(et),rect(:,:,et))        
-        
-!         DO i = 1,3
-!           PRINT "(*(I5))", (rect(i,j,et), j = 1,nptri(et))
-!         ENDDO    
-!         PRINT*, ""
-
-        PRINT("(4(A,I4))"), "  number of additional nodes/sub-triangles: ", npts,"/",nptri(et)
+      ALLOCATE(r(mnpp,2*ps),s(mnpp,2*ps))      
+      ALLOCATE(psic(mnnds,mnpp,2*ps))
+      ALLOCATE(rect(3,3*mnpp,2*ps))      
+      ALLOCATE(nptri(2*ps),npplt(2*ps),pplot(2*ps))
+      DO et = 1,2     
+      
+        DO ord = 1,ps
+          i = (et-1)*ps+ord
+          pplot(i) = ord
+          CALL element_nodes(et,space,pplot(i),npts,r(:,i),s(:,i))                  
+          CALL shape_functions_area_eval(et,np(et),nnd,npts,r(:,i),s(:,i),psic(:,:,i))  
+          CALL reference_element_delaunay(npts,r(:,i),s(:,i),nptri(i),rect(:,:,i))        
+          
+          PRINT("(4(A,I4))"), "  number of additional nodes/sub-triangles: ", npts,"/",nptri(i)          
+        ENDDO         
         
       ENDDO                                    
            
@@ -128,7 +129,7 @@
       CALL zoom_box(ne,el_type,npplt,xyplt,xbox_min,xbox_max,ybox_min,ybox_max, &
                                                      xmin,xmax,ymin,ymax,el_in)
       PRINT("(A)"), "Scaling coordinates..."
-      CALL scale_coordinates(ne,nn,el_type,nverts,nnds,npplt,figure_width,xmin,xmax,ymin,ymax,xyplt,xy,elxy)
+      CALL scale_factors(ne,nn,el_type,nverts,nnds,npplt,figure_width,xmin,xmax,ymin,ymax,ax,bx,ay,by)
 
       
     

@@ -3,11 +3,11 @@
       IMPLICIT NONE
       
       CHARACTER(:), ALLOCATABLE, PARAMETER :: gitBranch = "master" 
-      CHARACTER(:), ALLOCATABLE, PARAMETER :: gitSHA = "9c1b3b4413e50d3d3b266598a11cd7c93d9bf68a +" 
+      CHARACTER(:), ALLOCATABLE, PARAMETER :: gitSHA = "b37464a44b61af7065759d2b5dfbc4d096669215 +" 
       CHARACTER(:), ALLOCATABLE, PARAMETER :: compiler_version = "ifort version 14.0.0" 
-      CHARACTER(:), ALLOCATABLE, PARAMETER :: compiler_flags = "-Iodir/ -Dadcirc -traceback -g -C " 
-      CHARACTER(:), ALLOCATABLE, PARAMETER :: modified_files = "../plot_PE_grid.m ../plot_adcirc_stations.m ../plot_grid.m ../plot_stations.m ../read_adcirc_stations.m ../src/labels_mod.F90 ../src/read_plot_input.F90 create_zoom_plots.py show_plots.py" 
-      CHARACTER(:), ALLOCATABLE, PARAMETER :: compile_date = "Thu Oct 13 10:34:12 EDT 2016" 
+      CHARACTER(:), ALLOCATABLE, PARAMETER :: compiler_flags = "-132 -heap-arrays -Iodir/ " 
+      CHARACTER(:), ALLOCATABLE, PARAMETER :: modified_files = "../src/evaluate.f90 ../src/globals.f90 ../src/read_input.f90 ../src/rimls.f90" 
+      CHARACTER(:), ALLOCATABLE, PARAMETER :: compile_date = "Fri Oct 28 01:00:19 EDT 2016" 
       CHARACTER(:), ALLOCATABLE, PARAMETER :: host = "chl-tilos" 
             
       CONTAINS      

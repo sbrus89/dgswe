@@ -66,9 +66,9 @@
       
       INTEGER :: ps
       INTEGER :: pc
-      INTEGER :: pplt(4)
-      INTEGER :: npplt(4)
-      INTEGER :: nptri(4)
+      INTEGER, DIMENSION(:), ALLOCATABLE :: pplt
+      INTEGER, DIMENSION(:), ALLOCATABLE :: npplt
+      INTEGER, DIMENSION(:), ALLOCATABLE :: nptri
       INTEGER :: mnpp
       INTEGER :: nred 
       

@@ -2,7 +2,7 @@
       
       USE globals, ONLY: rp
       USE plot_globals, ONLY: plot_type,cscale_width,lr_margin,dash,fontsize, &
-                              ax,bx,ay,by,axes_width, &
+                              axes_width, &
                               rmin_page,rmax_page,smin_page,smax_page, &
                               rmin_axes,rmax_axes,smin_axes,smax_axes, &
                               rmin_cbar,rmax_cbar,smin_cbar,smax_cbar, &
@@ -239,7 +239,7 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
 
-      SUBROUTINE scale_coordinates(ne,nn,el_type,nverts,nnds,npplt,figure_width,xmin,xmax,ymin,ymax,xyplt,xy,elxy)
+      SUBROUTINE scale_factors(ne,nn,el_type,nverts,nnds,npplt,figure_width,xmin,xmax,ymin,ymax,ax,bx,ay,by)
       
       IMPLICIT NONE
       
@@ -254,9 +254,13 @@
       REAL(rp), INTENT(IN) :: xmax
       REAL(rp), INTENT(IN) :: ymin
       REAL(rp), INTENT(IN) :: ymax
-      REAL(rp), DIMENSION(:,:,:), INTENT(INOUT) :: xyplt
-      REAL(rp), DIMENSION(:,:), INTENT(INOUT) :: xy
-      REAL(rp), DIMENSION(:,:,:), INTENT(INOUT) :: elxy      
+      REAL(rp), INTENT(OUT) :: ax
+      REAL(rp), INTENT(OUT) :: bx
+      REAL(rp), INTENT(OUT) :: ay
+      REAL(rp), INTENT(OUT) :: by
+!       REAL(rp), DIMENSION(:,:,:), INTENT(INOUT) :: xyplt
+!       REAL(rp), DIMENSION(:,:), INTENT(INOUT) :: xy
+!       REAL(rp), DIMENSION(:,:,:), INTENT(INOUT) :: elxy      
       
       INTEGER :: el,nd
       INTEGER :: et,npts,nv,nnd
@@ -291,27 +295,27 @@
       ay = ax     ! axis equal
       by = smin_axes-ax*ymin            
       
-      DO el = 1,ne
-        et = el_type(el)
-        npts = npplt(et)
-        nv = nverts(et)
-        nnd = nnds(et)
-        
-        DO nd = 1,npts
-          xyplt(nd,el,1) = ax*xyplt(nd,el,1) + bx
-          xyplt(nd,el,2) = ay*xyplt(nd,el,2) + by                       
-        ENDDO
-        
-        DO nd = 1,nnd
-          elxy(nd,el,1) = ax*elxy(nd,el,1) + bx
-          elxy(nd,el,2) = ay*elxy(nd,el,2) + by
-        ENDDO
-      ENDDO
-      
-      DO nd = 1,nn
-        xy(1,nd) = ax*xy(1,nd) + bx
-        xy(2,nd) = ay*xy(2,nd) + by
-      ENDDO      
+!       DO el = 1,ne
+!         et = el_type(el)
+!         npts = npplt(et)
+!         nv = nverts(et)
+!         nnd = nnds(et)
+!         
+!         DO nd = 1,npts
+!           xyplt(nd,el,1) = ax*xyplt(nd,el,1) + bx
+!           xyplt(nd,el,2) = ay*xyplt(nd,el,2) + by                       
+!         ENDDO
+!         
+!         DO nd = 1,nnd
+!           elxy(nd,el,1) = ax*elxy(nd,el,1) + bx
+!           elxy(nd,el,2) = ay*elxy(nd,el,2) + by
+!         ENDDO
+!       ENDDO
+!       
+!       DO nd = 1,nn
+!         xy(1,nd) = ax*xy(1,nd) + bx
+!         xy(2,nd) = ay*xy(2,nd) + by
+!       ENDDO      
       
       smax_axes = ay*ymax + by
       
