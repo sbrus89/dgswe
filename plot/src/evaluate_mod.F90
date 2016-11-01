@@ -59,8 +59,8 @@
             fig%snap_max = fig%sol_val(nd,el)
           ENDIF
           
-          IF (fig%type_flag == 2 .and. fig%sol_val(nd,el) < 0d0) THEN
-            PRINT*, "Negative batymetry in element: ", el          
+          IF (fig%type_flag == 2 .and. fig%sol_val(nd,el) < fig%h0) THEN
+            PRINT "(A,I7,A,F15.7)", "Element depth is less than tolerance: ", el, " hb = ", fig%sol_val(nd,el)          
           ENDIF          
         ENDDO       
         

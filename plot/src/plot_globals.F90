@@ -140,6 +140,7 @@
         REAL(rp), DIMENSION(:,:), ALLOCATABLE :: sol_val
         REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: phi 
         INTEGER :: ndof(4)         
+        REAL(rp) :: h0
       
         INTEGER :: cscale_unit
         CHARACTER(100) :: cscale_option
@@ -222,6 +223,7 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
 
       SUBROUTINE setup_plot_types()
+      USE read_dginp, ONLY: h0   
       
       IMPLICIT NONE
       
@@ -260,11 +262,13 @@
       zeta%t_snap => t_snap
       vel%t_snap => t_snap    
       
-      bathy%cscale_option = "auto-snap"
+      bathy%cscale_option = "auto-snap"      
       
       zeta%cscale_unit = 30
       bathy%cscale_unit = 31
       vel%cscale_unit = 32
+      
+      bathy%h0 = h0
       
       END SUBROUTINE setup_plot_types
 
