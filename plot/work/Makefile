@@ -19,6 +19,42 @@ GIT_MOD := $(strip $(subst 0,,$(GIT_MOD)))
 GIT_MFILES := $(strip $(shell git ls-files ../* -m))
 
 ########################################################################
+#                  Library Links (Platform Specific)                   #
+########################################################################
+
+NAME := $(strip $(subst ., , $(FULLNAME)))
+ifeq ($(NAME),chl-tilos)
+  LAPACK_LIB = -llapack
+  NC_LIB = -lnetcdf -lnetcdff 
+  NC_INC = -I/usr/local/include
+endif
+
+ifeq ($(NAME),sbrus-laptop)
+  LAPACK_LIB = -llapack
+endif
+
+ifeq ($(filter crc nd edu,$(NAME)),crc nd edu)
+    LAPACK_LIB = -Wl,--start-group $(MKLROOT)/lib/intel64/libmkl_intel_lp64.a $(MKLROOT)/lib/intel64/libmkl_sequential.a  $(MKLROOT)/lib/intel64/libmkl_core.a -Wl,--end-group -lpthread -lm
+#   LAPACK_LIB = -L./ -llapack -lrefblas -ltmglib
+#   NC_LIB = -L/afs/crc.nd.edu/x86_64_linux/netcdf/4.3.2/lib -lnetcdf -lnetcdff
+#   NC_INC = -I/afs/crc.nd.edu/x86_64_linux/netcdf/4.3.2/include
+endif
+
+ifeq ($(filter tacc utexas edu,$(NAME)),tacc utexas edu)
+  LAPACK_LIB =  -Wl,--start-group $(MKLROOT)/lib/intel64/libmkl_intel_lp64.a $(MKLROOT)/lib/intel64/libmkl_core.a $(MKLROOT)/lib/intel64/libmkl_sequential.a -Wl,--end-group -lpthread -lm
+#   NC_LIB = -L${TACC_NETCDF_LIB} -lnetcdf -lnetcdff
+#   NC_INC = -I${TACC_NETCDF_INC}
+endif
+
+ifeq ($(NC_FLAG),true)
+  NETCDF_LIB = $(NC_LIB)
+  NETCDF_INC = $(NC_INC)
+else 
+  NETCDF_LIB = 
+  NETCDF_INC = 
+endif
+
+########################################################################
 #                               Objects                                #
 ########################################################################
 
@@ -39,7 +75,7 @@ plot_obj := $(patsubst %.o, $(ODIR)%.o,$(plot_objects))
 	
 plot:  version $(ODIR) $(plot_obj)
 	@echo "\n\n"
-	$(FC) $(FFLAGS) -o plot $(plot_obj) -llapack
+	$(FC) $(FFLAGS) -o plot $(plot_obj) $(LAPACK_LIB)
 	
 version :
 	@sed -i '5 c \      CHARACTER(:), ALLOCATABLE, PARAMETER :: gitBranch = "$(GIT_BRANCH)" ' ../../src/version.F90
