@@ -40,3 +40,12 @@ fort.*
 *.tex
 *.mp4
 *.label
+bathy_interp/work/bathy
+spline/work/spline
+rimle/work/rimls
+plot/work/plot
+plot/cmr10
+util/bou2sta
+util/convert_bou
+util/copy_nodes
+
