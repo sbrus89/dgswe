@@ -47,7 +47,13 @@ refine_obj := $(patsubst %.o, $(ODIR)%.o,$(refine_objects))
 copy_objects = globals.o quit.o kdtree2.o\
                grid_file_mod.o copy_nodes.o
                
-copy_obj := $(patsubst %.o, $(ODIR)%.o,$(copy_objects))                
+copy_obj := $(patsubst %.o, $(ODIR)%.o,$(copy_objects))  
+
+bou2sta_objects =  globals.o  quit.o \
+           grid_file_mod.o \
+           convert_bou2sta.o 
+          
+bou2sta_obj := $(patsubst %.o, $(ODIR)%.o,$(bou2sta_objects))
 
 ########################################################################
 #                          Executable Targets                          #
@@ -73,6 +79,10 @@ refine: $(ODIR) $(refine_obj)
 copy: $(ODIR) $(copy_obj)	
 	@echo "\n\n"
 	$(FC) $(FFLAGS) -o copy $(copy_obj)	
+	
+bou2sta: $(ODIR) $(bou2sta_obj)	
+	@echo "\n\n"
+	$(FC) $(FFLAGS) -o bou2sta $(bou2sta_obj)		
         
 ########################################################################
 #                      Premilinary Targets                             #
@@ -149,3 +159,6 @@ $(ODIR)refine.o: refine_grid.F90                             $(ODIR)globals.o $(
 	
 $(ODIR)copy_nodes.o: copy_nodes.F90                          $(ODIR)globals.o $(ODIR)grid_file_mod.o $(ODIR)kdtree2.o
 	$(FC) $(FFLAGS) -c $< -o $@
+	
+$(ODIR)convert_bou2sta.o: convert_bou2sta.F90                $(ODIR)globals.o $(ODIR)grid_file_mod.o
+	$(FC) $(FFLAGS) -c $< -o $@	
