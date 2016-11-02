@@ -624,24 +624,121 @@ tail: DO
 
       
       INTEGER :: i,j,v
-      INTEGER :: el,nd,dof,lev,tri
+      INTEGER :: el,nd,dof,lev,tri,ord,pt
       INTEGER :: et,nv    
       REAL(rp) :: sol_lev
       REAL(rp) :: dc
+      REAL(rp) :: qpta(7,2),wpta(7)
+      REAL(rp) :: l(3,7)
+      REAL(rp) :: xpt(7),ypt(7)
+      REAL(rp) :: rpt(7),spt(7)
+      REAL(rp) :: r,s
+      REAL(rp) :: sol_in(7),sol_el(7)
+      REAL(rp) :: x(3),y(3)
 
    
       REAL(rp) :: color_val(3)
+      
+      nqpta = 7          
+      qpta(1,:) = (/ -3.333333333333330d-01,  -3.333333333333330d-01 /) ; 
+      qpta(2,:) = (/ -5.971587178977000d-02,  -5.971587178977000d-02 /) ; 
+      qpta(3,:) = (/ -8.805682564204600d-01,  -5.971587178977000d-02 /) ; 
+      qpta(4,:) = (/ -5.971587178977000d-02,  -8.805682564204600d-01 /) ; 
+      qpta(5,:) = (/ -7.974269853530870d-01,  -7.974269853530870d-01 /) ; 
+      qpta(6,:) = (/ 5.948539707061750d-01,  -7.974269853530870d-01  /) ; 
+      qpta(7,:) = (/ -7.974269853530870d-01,  5.948539707061750d-01  /) ; 
+      
+      wpta(1) = 4.500000000000000d-01 
+      wpta(2) = 2.647883055770120d-01 
+      wpta(3) = 2.647883055770120d-01 
+      wpta(4) = 2.647883055770120d-01 
+      wpta(5) = 2.518783610896540d-01 
+      wpta(6) = 2.518783610896540d-01 
+      wpta(7) = 2.518783610896540d-01      
 
       
       
       dc = (fig%sol_max-fig%sol_min)/real(ncolors-1,rp)      
+      
+      CALL init_vandermonde(nel_type,np)      
             
       
  elem:DO el = 1,ne
-        et = el_type(el)
+
         IF (el_in(el) == 0) THEN
           CYCLE elem
         ENDIF
+        
+        et = el_type(el)
+        nnd = nnds(et)                        
+        
+ order: DO ord = 1,ps
+          DO pt = 1,npplt(ord)              
+            CALL element_transformation(nnd,elxy(:,el,1),elxy(:,el,2),psic(:,pt,ord),xyplt(pt,el,1),xyplt(pt,el,2))           
+          ENDDO       
+          
+          CALL element_basis(et,p,sol%ndof(et),npplt(ord),r(:,ord),s(:,ord),sol%phi(:,:,et))    
+          
+          DO nd = 1,npplt(ord)
+            fig%sol_val(nd,el) = 0d0
+            DO dof = 1,sol%ndof(et)
+              fig%sol_val(nd,el) = fig%sol_val(nd,el) + sol%phi(dof,pt,et)*Z(dof,el)
+            ENDDO
+          ENDDO
+          
+          err = 0d0
+          DO tri = 1,nptri(ord)
+          
+            CALL linear_basis(nqpta,qpta(:,1),qpta(:,2),l)
+            
+            sol_lin= 0d0
+            DO pt = 1,nqpta
+              DO v = 1,3              
+                 nd = rect(v,tri,ord)
+                sol_lin(pt) = sol_lin(pt) + l(v,pt)*fig%sol_val(nd,el)
+              ENDDO
+            ENDDO
+            
+            DO pt = 1,nqpta
+              xpt(pt) = 0d0
+              ypt(pt) = 0d0
+              DO v = 1,3
+                nd = rect(v,tri,ord)
+                
+                xv(v) = xyplt(nd,el,1)
+                yv(v) = xyplt(nd,el,2)
+                
+                xpt(pt) = xpt(pt) + l(v,pt)*xv(v)
+                ypt(pt) = ypt(pt) + l(v,pt)*yv(v)
+              ENDDO
+            ENDDO
+            
+            detJ = .25d0*((xv(2)-xv(1))*(yv(3)-yv(1))-(xv(3)-xv(1))*(yv(2)-yv(1)))
+            
+            CALL xy2rs(et,np(et),elxy(:,el,1),elxy(:,el,2),nqpta,xpt,ypt,rpt,spt)            
+            
+            CALL element_basis(et,p,sol%ndof(et),nqpta,rpt,spt,sol%phi(:,:,et))               
+            
+            DO pt = 1,nqpta     
+              sol_el(pt) = 0d0
+              DO dof = 1,sol%ndof(et)
+                sol_el(pt) = sol_el(pt) + sol%phi(dof,pt,et)*Z(dof,el)
+              ENDDO
+            ENDDO
+            
+            
+            DO pt = 1,nqpta                        
+              err = err + detJ*wpta(pt)*(sol_el(pt)-sol_lin(pt))**2
+            ENDDO
+            
+          ENDDO
+          
+          IF (err < err_tol) THEN
+            EXIT order     
+          ENDIF
+          
+        ENDDO order
+        
         
         DO tri = 1,nptri(et)
 

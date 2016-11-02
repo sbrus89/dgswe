@@ -92,11 +92,11 @@
         DO ord = 1,ps
           i = (et-1)*ps+ord
           pplot(i) = ord
-          CALL element_nodes(et,space,pplot(i),npts,r(:,i),s(:,i))                  
-          CALL shape_functions_area_eval(et,np(et),nnd,npts,r(:,i),s(:,i),psic(:,:,i))  
-          CALL reference_element_delaunay(npts,r(:,i),s(:,i),nptri(i),rect(:,:,i))        
+          CALL element_nodes(et,space,pplot(i),npplt(i),r(:,i),s(:,i))                  
+          CALL shape_functions_area_eval(et,np(et),nnd,npplt(i),r(:,i),s(:,i),psic(:,:,i))  
+          CALL reference_element_delaunay(npplt(i),r(:,i),s(:,i),nptri(i),rect(:,:,i))        
           
-          PRINT("(4(A,I4))"), "  number of additional nodes/sub-triangles: ", npts,"/",nptri(i)          
+          PRINT("(4(A,I4))"), "  number of additional nodes/sub-triangles: ", npplt(i),"/",nptri(i)          
         ENDDO         
         
       ENDDO                                    
