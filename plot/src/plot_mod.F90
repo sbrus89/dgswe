@@ -124,11 +124,11 @@
         CALL plot_line_contours(fig%ps_unit,ne,el_type,el_in,nptri,rect,xyplt,r,s,snap,fig)          
       ENDIF
       IF (fig%plot_mesh_option == 1) THEN
-        CALL fill_elements(fig%ps_unit,ne,nverts,pc,el_type,el_in,xy,ect,xyplt)      
-!         CALL plot_mesh(fig%ps_unit,ne,nverts,pc,el_type,el_in,xy,ect,xyplt)
-        CALL plot_boundaries(fig%ps_unit,nverts,pc,nobed,obedn,ged2el,ged2led,el_type,el_in,ect,xy,xyplt)       
-        CALL plot_boundaries(fig%ps_unit,nverts,pc,nnfbed,nfbedn,ged2el,ged2led,el_type,el_in,ect,xy,xyplt)        
-        CALL plot_boundaries(fig%ps_unit,nverts,pc,nfbed,fbedn,ged2el,ged2led,el_type,el_in,ect,xy,xyplt)          
+!         CALL fill_elements(fig%ps_unit,ne,nverts,pc,el_type,el_in,xy,ect,xyplt)      
+        CALL plot_mesh(fig%ps_unit,ne,nverts,pc,el_type,el_in,xy,ect,xyplt)
+!         CALL plot_boundaries(fig%ps_unit,nverts,pc,nobed,obedn,ged2el,ged2led,el_type,el_in,ect,xy,xyplt)       
+!         CALL plot_boundaries(fig%ps_unit,nverts,pc,nnfbed,nfbedn,ged2el,ged2led,el_type,el_in,ect,xy,xyplt)        
+!         CALL plot_boundaries(fig%ps_unit,nverts,pc,nfbed,fbedn,ged2el,ged2led,el_type,el_in,ect,xy,xyplt)          
       ENDIF 
       
       CALL write_all_axes(fig%ps_unit,fig%cbar_flag,fig%tbar_flag,t_snap,t_start,t_end)               
