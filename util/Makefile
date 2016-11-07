@@ -1,7 +1,7 @@
 SHELL = /bin/sh
 
 FC = ifort
-FFLAGS = -I$(ODIR) -traceback -g -C
+FFLAGS = -I$(ODIR) #-traceback -g -C
 
 ODIR = odir/
 FULLNAME := $(shell hostname)
@@ -52,8 +52,15 @@ copy_obj := $(patsubst %.o, $(ODIR)%.o,$(copy_objects))
 bou2sta_objects =  globals.o  quit.o \
            grid_file_mod.o \
            convert_bou2sta.o 
-          
+                   
 bou2sta_obj := $(patsubst %.o, $(ODIR)%.o,$(bou2sta_objects))
+
+consolidate_objects =  globals.o  quit.o \
+           grid_file_mod.o edge_connectivity_mod.o \
+           triangulation.o tripack.o consolidate.o 
+                   
+consolidate_obj := $(patsubst %.o, $(ODIR)%.o,$(consolidate_objects))
+
 
 ########################################################################
 #                          Executable Targets                          #
@@ -82,7 +89,11 @@ copy: $(ODIR) $(copy_obj)
 	
 bou2sta: $(ODIR) $(bou2sta_obj)	
 	@echo "\n\n"
-	$(FC) $(FFLAGS) -o bou2sta $(bou2sta_obj)		
+	$(FC) $(FFLAGS) -o bou2sta $(bou2sta_obj)
+	
+consolidate: $(ODIR) $(consolidate_obj)
+	@echo "\n\n"
+	$(FC) $(FFLAGS) -o consolidate $(consolidate_obj)
         
 ########################################################################
 #                      Premilinary Targets                             #
@@ -114,7 +125,7 @@ clean :
 
 $(ODIR)globals.o: ../src/globals.F90                                   
 	$(FC) $(FFLAGS) -c $< -o $@
-	mv globals.mod $(ODIR)         	  	
+	mv globals.mod $(ODIR)    
 	
 $(ODIR)version.o : ../src/version.F90                                
 	$(FC) $(FFLAGS) -c $< -o $@
@@ -144,6 +155,13 @@ $(ODIR)spherical_mod.o : ../src/spherical_mod.F90            $(ODIR)globals.o
 $(ODIR)edge_connectivity_mod.o : ../src/edge_connectivity_mod.F90 $(ODIR)globals.o $(ODIR)quit.o
 	$(FC) $(FFLAGS) -c $< -o $@
 	mv edge_connectivity_mod.mod $(ODIR)
+	
+$(ODIR)triangulation.o : ../src/triangulation.F90            $(ODIR)globals.o         
+	$(FC) $(FFLAGS) -c $< -o $@
+	mv triangulation.mod $(ODIR)
+	
+$(ODIR)tripack.o : ../tripack/Src/Fortran77/Sp/src.f90                                
+	$(FC) $(FFLAGS) -c $< -o $@	
 
 $(ODIR)convert.o: convert2cartesian.F90                      $(ODIR)globals.o $(ODIR)grid_file_mod.o $(ODIR)spherical_mod.o
 	$(FC) $(FFLAGS) -c $< -o $@
@@ -162,3 +180,6 @@ $(ODIR)copy_nodes.o: copy_nodes.F90                          $(ODIR)globals.o $(
 	
 $(ODIR)convert_bou2sta.o: convert_bou2sta.F90                $(ODIR)globals.o $(ODIR)grid_file_mod.o
 	$(FC) $(FFLAGS) -c $< -o $@	
+	
+$(ODIR)consolidate.o: consolidate.F90                        $(ODIR)globals.o $(ODIR)grid_file_mod.o $(ODIR)edge_connectivity_mod.o $(ODIR)triangulation.o
+	$(FC) $(FFLAGS) -c $< -o $@

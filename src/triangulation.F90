@@ -6,7 +6,7 @@
       
       CONTAINS
       
-      SUBROUTINE reference_element_delaunay(npt,ri,si,ntri,ect)
+      SUBROUTINE reference_element_delaunay(npt,ri,si,ntri,ect,ra,sa)
 
       IMPLICIT NONE
       
@@ -15,6 +15,8 @@
       REAL(rp), DIMENSION(:), INTENT(IN) :: si
       INTEGER, INTENT(OUT) :: ntri
       INTEGER, DIMENSION(:,:), INTENT(OUT) :: ect
+      REAL(rp), INTENT(IN), OPTIONAL :: ra
+      REAL(rp), INTENT(IN), OPTIONAL :: sa
 
       
       INTEGER :: i,j
@@ -44,14 +46,25 @@
         r(i+1) = ri(i)
         s(i+1) = si(i)
       ENDDO
-      r(1) = -1.1d0
-      s(1) = -2d0
+      IF (PRESENT(ra) .and. PRESENT(sa)) THEN
+        r(1) = ra
+        s(1) = sa
+      ELSE
+        r(1) = -1.1d0
+        s(1) = -2d0
+      ENDIF
       n = n+1      
       
       
       ALLOCATE(list(6*n),lptr(6*n),lend(n))
       ALLOCATE(near(n),next(n),dist(n))
       CALL trmesh(n,r,s,list,lptr,lend,lnew,near,next,dist,ier)
+      
+      IF (ier < 0) THEN
+        PRINT*, "Error in trmesh, ier = ",ier
+        STOP
+      ENDIF
+      
       ncc = 0 
       lcc = 0
       nrow = 6      
