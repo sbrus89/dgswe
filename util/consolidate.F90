@@ -11,9 +11,9 @@
       
       CHARACTER(200) :: grid_file_in      
       
-      INTEGER :: i,j
-      INTEGER :: ed,nd,bou,el
-      INTEGER :: n1,n2
+      INTEGER :: i,j,k,l,m
+      INTEGER :: ed,nd,bou,el,el1,el2
+      INTEGER :: n1,n2,n3
       INTEGER :: nodes_kept
       INTEGER :: nbnds
       INTEGER, ALLOCATABLE, DIMENSION(:) :: nadjnds
@@ -36,8 +36,8 @@
       REAL(rp), ALLOCATABLE, DIMENSION(:) :: fbseg_orient
       INTEGER :: flag(3)
       INTEGER :: found
-      INTEGER :: delete
-      INTEGER :: v1,v2
+      INTEGER, ALLOCATABLE, DIMENSION(:) :: delete_el
+      INTEGER :: v1,v2,v11,v21,v12,v22
       REAL(rp) :: xa,ya,xc,yc,x1,y1,x2,y2    
       REAL(rp) :: cross_product
       REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: xy_coarse   
@@ -63,8 +63,10 @@
       CALL elements_per_node(ne,nn,nverts,el_type,ect,nepn,mnepn,epn)       
       CALL find_edge_pairs(ne,nverts,el_type,ect,nepn,epn,ned,ged2el,ged2nn,ged2led)           
       
-      
+      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       ! Find the nodes adjacent each node
+      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!       
+      
       ALLOCATE(nadjnds(nn))
       ALLOCATE(adjnds(mnepn,nn))
       nadjnds = 0
@@ -81,14 +83,17 @@
       ENDDO
       
       
+      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      ! Eliminate node from input (fine) mesh
+      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!           
+      
       ALLOCATE(keep_node(nn))
       ALLOCATE(bou_node(nn))
       ALLOCATE(fbseg_orient(nbou))
       keep_node = -1
       nodes_kept = 0    
-      bou_node = 0
-      
-      
+      bou_node = 0       
+            
       ! Open ocean boundaries
       
       DO bou = 1,nope
@@ -158,8 +163,8 @@
             keep_node(nd) = 1
             DO i = 1,nadjnds(nd)
               IF (bou_node(adjnds(i,nd)) == 1) THEN
-                IF (adjnds(i,nd) == fbnds(j-1,bou) .or. adjnds(i,nd) == fbnds(j+1,bou)) THEN
-                  keep_node(adjnds(i,nd)) = 0
+                IF (adjnds(i,nd) == fbnds(j-1,bou) .or. adjnds(i,nd) == fbnds(j+1,bou)) THEN ! needed for very narrow channels, so that nodes on the other                 
+                  keep_node(adjnds(i,nd)) = 0                                                ! side aren't eliminated
                 ENDIF
               ELSE
                 keep_node(adjnds(i,nd)) = 0
@@ -203,9 +208,9 @@
                cross_product = (x2-x1)*(yc-y1) - (y2-y1)*(xc-x1)
                
                IF (cross_product < 0d0) THEN
-                 fbseg_orient(bou) = -1d0
+                 fbseg_orient(bou) = -1d0    ! CCW
                ELSE 
-                 fbseg_orient(bou) = 1d0
+                 fbseg_orient(bou) = 1d0     ! CW
                ENDIF
               
               EXIT  
@@ -226,18 +231,11 @@
           ENDDO
           nodes_kept = nodes_kept + 1                  
         ENDIF
-      ENDDO
+      ENDDO           
       
-      
-      xa = 0d0
-      ya = 0d0      
-      DO i = 1,3
-        xa = xa + xy(1,ect(i,1))
-        ya = ya + xy(2,ect(i,1))
-      ENDDO
-      xa = xa/3d0
-      ya = ya/3d0
-      
+      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      ! Keep track of node infromation for coarse mesh
+      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!           
       
       ALLOCATE(xy_coarse(2,nodes_kept))
       ALLOCATE(depth_coarse(nodes_kept))
@@ -288,12 +286,38 @@
         fbseg_coarse(2,bou) = fbseg(2,bou)
       ENDDO
       
+      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      ! Triangulate remaining nodes
+      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!                
+      
+      xa = 0d0
+      ya = 0d0      
+      DO i = 1,3
+        xa = xa + xy(1,ect(i,1))
+        ya = ya + xy(2,ect(i,1))
+      ENDDO
+      xa = xa/3d0
+      ya = ya/3d0
+            
       
       ALLOCATE(tri(3,3*nn_coarse))
       ALLOCATE(ect_coarse(3,3*nn_coarse))
       CALL reference_element_delaunay(nn_coarse,xy_coarse(1,:),xy_coarse(2,:),ntri,tri,xa,ya)      
       
+      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      ! Create coarse element connectity table
+      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!       
       
+      ALLOCATE(et_coarse(ntri))
+      DO el = 1,ntri
+        et_coarse(el) = 1
+      ENDDO      
+      
+      CALL elements_per_node(ntri,nn_coarse,nverts,et_coarse,tri,nepn,mnepn,epn)
+      
+      ! Delete elements that are outside the mesh boundaries
+      ALLOCATE(delete_el(ntri))
+      delete_el = 0
       ne_coarse = 0
       DO el = 1,ntri
         flag = 0 
@@ -307,7 +331,6 @@
         xc = xc/3d0
         yc = yc/3d0
         
-        delete = 0
         IF (flag(1) == 1 .and. flag(2) == 1 .and. flag(3) == 1) THEN                  
            found = 0
    search: DO bou = 1,nbou
@@ -333,34 +356,97 @@
              y2 = xy_coarse(2,n2)
            
              cross_product = fbseg_orient(bou)*((x2-x1)*(yc-y1) - (y2-y1)*(xc-x1))
-!              angle = atan2()
            
              IF (cross_product <= 0d0) THEN
-               delete = 1
+               delete_el(el) = 1
              ENDIF
            ELSE
-             delete = 1
+             delete_el(el) = 1
            ENDIF
         ENDIF
-        
-        IF (delete == 0) THEN
+          
+      ENDDO
+      
+      ! Fix situation where boundary elements do not connect adjacent boundary nodes (because elements extend across narrow islands)
+      DO bou = 1,nbou
+        nbnds = fbseg_coarse(1,bou)
+        DO i = 1,nbnds-1
+          n1 = fbnds_coarse(i,bou)
+          n2 = fbnds_coarse(i+1,bou)
+          found = 0
+ search2: DO j = 1,nepn(n1)
+            el = epn(j,n1)
+            DO k = 1,3
+              v1 = mod(k+0,3) + 1
+              v2 = mod(k+1,3) + 1
+               IF ((tri(v1,el) == n1 .and. tri(v2,el) == n2) .or. &
+                   (tri(v1,el) == n2 .and. tri(v2,el) == n1)) THEN
+                   found = 1
+                   EXIT search2
+               ENDIF
+            ENDDO
+          ENDDO search2
+          
+          IF (found == 0) THEN
+            DO j = 1,nepn(n1)
+              el1 = epn(j,n1)
+              DO k = 1,3
+                v11 = mod(k+0,3) + 1
+                v21 = mod(k+1,3) + 1  
+                DO l = 1,nepn(n2)
+                  el2 = epn(l,n2)
+                  DO m = 1,3
+                    v12 = mod(m+0,3) + 1
+                    v22 = mod(m+1,3) + 1
+                    IF ((tri(v11,el1) == tri(v12,el2) .and. tri(v21,el1) == tri(v22,el2)) .or. &
+                        (tri(v11,el1) == tri(v22,el2) .and. tri(v21,el1) == tri(v12,el2))) THEN
+                        
+                      delete_el(el2) = 1  
+
+                      IF (bou_node_coarse(tri(v11,el1)) == 0) THEN
+                        n3 = tri(v11,el1)
+                      ELSE IF (bou_node_coarse(tri(v21,el1)) == 0) THEN
+                        n3 = tri(v21,el1) 
+                      ENDIF                      
+                      
+                      tri(1,el1) = n1
+                      IF (fbseg_orient(bou) < 0d0) THEN
+                        tri(2,el1) = n3
+                        tri(3,el1) = n2
+                      ELSE
+                        tri(2,el1) = n2
+                        tri(3,el1) = n3
+                      ENDIF
+                                            
+                    ENDIF
+                  ENDDO
+                ENDDO
+              ENDDO
+            ENDDO          
+          ENDIF
+          
+        ENDDO
+      ENDDO 
+    
+      
+      
+      DO el = 1,ntri
+        IF (delete_el(el) == 0) THEN
           ne_coarse = ne_coarse + 1          
           DO i = 1,3
             ect_coarse(i,ne_coarse) = tri(i,el)
           ENDDO
         ENDIF      
       ENDDO
+        
       
       
-      ALLOCATE(et_coarse(ne_coarse))
-      DO el = 1,ne_coarse
-        et_coarse(el) = 1
-      ENDDO
+
       
-      CALL write_header('nodes.out',grid_name,ne_coarse,nn_coarse)
+      CALL write_header('coarse.grd',grid_name,ne_coarse,nn_coarse)
       CALL write_coords(nn_coarse,xy_coarse,depth_coarse)
       CALL write_connectivity(ne_coarse,ect_coarse,et_coarse,nverts)
-!       CALL write_open_boundaries(nope,neta,obseg,obnds)
-!       CALL write_flow_boundaries(nbou_mod,nvel_mod,fbseg_mod,fbnds_mod)
+      CALL write_open_boundaries(nope,neta_coarse,obseg_coarse,obnds_coarse)
+      CALL write_flow_boundaries(nbou,nvel_coarse,fbseg_coarse,fbnds_coarse)
 
       END PROGRAM consolidate

@@ -2,7 +2,7 @@ close all
 clear all
 clc
 
-nodes_file = 'nodes.out';
+nodes_file = 'coarse.grd';
 
 fid = fopen(nodes_file) ;
 agrid = fgetl(fid) ;
@@ -37,7 +37,7 @@ ect_grid = idx(:,3:end);
 
 hold all
 % pdeplot( xy_grid', [], ect_grid','mesh','on') ;
-plot(xy_grid(:,1),xy_grid(:,2),'bo')
+plot(xy_grid(:,1),xy_grid(:,2),'b.')
 pdeplot( xy', [], ect','mesh','on') ;
 plot(xy(:,1),xy(:,2),'r.')
 axis equal
