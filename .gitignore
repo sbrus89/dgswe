@@ -48,4 +48,4 @@ plot/cmr10
 util/bou2sta
 util/convert_bou
 util/copy_nodes
-
+util/consolidate

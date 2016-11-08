@@ -9,7 +9,8 @@
 
       IMPLICIT NONE
       
-      CHARACTER(200) :: grid_file_in      
+      CHARACTER(200) :: grid_file_in     
+      CHARACTER(200) :: grid_file_out        
       
       INTEGER :: i,j,k,l,m
       INTEGER :: ed,nd,bou,el,el1,el2
@@ -45,7 +46,7 @@
       
       
       grid_file_in = "/home/sbrus/data-drive/galveston_SL18/grid_dev/v17_cart/galveston_SL18_cart.grd"
-!       grid_file_out = "/home/sbrus/data-drive/galveston_spline_flux/grids/galveston_tri_x16.grd"
+      grid_file_out = "coarse.grd"
          
       nverts(1) = 3
       nverts(2) = 4
@@ -292,12 +293,6 @@
       
       xa = 0d0
       ya = 0d0      
-      DO i = 1,3
-        xa = xa + xy(1,ect(i,1))
-        ya = ya + xy(2,ect(i,1))
-      ENDDO
-      xa = xa/3d0
-      ya = ya/3d0
             
       
       ALLOCATE(tri(3,3*nn_coarse))
@@ -331,7 +326,7 @@
         xc = xc/3d0
         yc = yc/3d0
         
-        IF (flag(1) == 1 .and. flag(2) == 1 .and. flag(3) == 1) THEN                  
+        IF (flag(1) == 1 .and. flag(2) == 1 .and. flag(3) == 1) THEN      ! elements containing 3 boundary nodes are candidates for deletion            
            found = 0
    search: DO bou = 1,nbou
              DO nd = 1,fbseg_coarse(1,bou)-1
@@ -366,6 +361,41 @@
         ENDIF
           
       ENDDO
+
+      
+      ! Keep elements containing 3 boundary nodes if the are connected to three interior elements
+      DO el1 = 1,ntri
+        IF (delete_el(el1) == 1) THEN
+        
+          flag = 0
+          DO i = 1,3
+            v11 = mod(i+0,3) + 1
+            v21 = mod(i+1,3) + 1
+            DO j = 1,3
+              nd = tri(j,el1)
+              DO k = 1,nepn(nd)
+                el2 = epn(k,nd)
+                DO m = 1,3
+                  v12 = mod(m+0,3) + 1
+                  v22 = mod(m+1,3) + 1                  
+                  IF ((tri(v11,el1) == tri(v12,el2) .and. tri(v21,el1) == tri(v22,el2)) .or. &
+                      (tri(v11,el1) == tri(v22,el2) .and. tri(v21,el1) == tri(v12,el2))) THEN
+                    IF (delete_el(el2) == 0) THEN   
+                      flag(i) = 1
+                    ENDIF
+                  ENDIF
+                ENDDO
+              ENDDO
+            ENDDO                                    
+          ENDDO
+          
+          IF (flag(1) == 1 .and. flag(2) == 1 .and. flag(3) == 1) THEN
+            delete_el(el1) = 0
+          ENDIF      
+          
+        ENDIF
+      ENDDO
+      
       
       ! Fix situation where boundary elements do not connect adjacent boundary nodes (because elements extend across narrow islands)
       DO bou = 1,nbou
@@ -376,6 +406,7 @@
           found = 0
  search2: DO j = 1,nepn(n1)
             el = epn(j,n1)
+
             DO k = 1,3
               v1 = mod(k+0,3) + 1
               v2 = mod(k+1,3) + 1
@@ -388,7 +419,7 @@
           ENDDO search2
           
           IF (found == 0) THEN
-            DO j = 1,nepn(n1)
+ search3:   DO j = 1,nepn(n1)
               el1 = epn(j,n1)
               DO k = 1,3
                 v11 = mod(k+0,3) + 1
@@ -402,7 +433,7 @@
                         (tri(v11,el1) == tri(v22,el2) .and. tri(v21,el1) == tri(v12,el2))) THEN
                         
                       delete_el(el2) = 1  
-
+                      
                       IF (bou_node_coarse(tri(v11,el1)) == 0) THEN
                         n3 = tri(v11,el1)
                       ELSE IF (bou_node_coarse(tri(v21,el1)) == 0) THEN
@@ -417,16 +448,20 @@
                         tri(2,el1) = n2
                         tri(3,el1) = n3
                       ENDIF
+                      
+                      EXIT search3
                                             
                     ENDIF
                   ENDDO
                 ENDDO
               ENDDO
-            ENDDO          
+            ENDDO search3         
           ENDIF
           
         ENDDO
       ENDDO 
+      
+      
     
       
       
@@ -442,8 +477,11 @@
       
       
 
-      
-      CALL write_header('coarse.grd',grid_name,ne_coarse,nn_coarse)
+      CALL print_grid_info(grid_file_out,grid_name,ne_coarse,nn_coarse) 
+      PRINT "(A,F8.5)", "element reduction factor: ", real(ne,rp)/real(ne_coarse,rp)
+      PRINT "(A,F8.5)", "node reduction factor: ", real(nn,rp)/real(nn_coarse,rp)
+      PRINT "(A)", ""
+      CALL write_header(grid_file_out,grid_name,ne_coarse,nn_coarse)
       CALL write_coords(nn_coarse,xy_coarse,depth_coarse)
       CALL write_connectivity(ne_coarse,ect_coarse,et_coarse,nverts)
       CALL write_open_boundaries(nope,neta_coarse,obseg_coarse,obnds_coarse)
