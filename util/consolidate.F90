@@ -363,38 +363,7 @@
       ENDDO
 
       
-      ! Keep elements containing 3 boundary nodes if the are connected to three interior elements
-      DO el1 = 1,ntri
-        IF (delete_el(el1) == 1) THEN
-        
-          flag = 0
-          DO i = 1,3
-            v11 = mod(i+0,3) + 1
-            v21 = mod(i+1,3) + 1
-            DO j = 1,3
-              nd = tri(j,el1)
-              DO k = 1,nepn(nd)
-                el2 = epn(k,nd)
-                DO m = 1,3
-                  v12 = mod(m+0,3) + 1
-                  v22 = mod(m+1,3) + 1                  
-                  IF ((tri(v11,el1) == tri(v12,el2) .and. tri(v21,el1) == tri(v22,el2)) .or. &
-                      (tri(v11,el1) == tri(v22,el2) .and. tri(v21,el1) == tri(v12,el2))) THEN
-                    IF (delete_el(el2) == 0) THEN   
-                      flag(i) = 1
-                    ENDIF
-                  ENDIF
-                ENDDO
-              ENDDO
-            ENDDO                                    
-          ENDDO
-          
-          IF (flag(1) == 1 .and. flag(2) == 1 .and. flag(3) == 1) THEN
-            delete_el(el1) = 0
-          ENDIF      
-          
-        ENDIF
-      ENDDO
+
       
       
       ! Fix situation where boundary elements do not connect adjacent boundary nodes (because elements extend across narrow islands)
@@ -462,7 +431,38 @@
       ENDDO 
       
       
-    
+      ! Keep elements containing 3 boundary nodes if the are connected to three interior elements
+      DO el1 = 1,ntri
+        IF (delete_el(el1) == 1) THEN
+        
+          flag = 0
+          DO i = 1,3
+            v11 = mod(i+0,3) + 1
+            v21 = mod(i+1,3) + 1
+            DO j = 1,3
+              nd = tri(j,el1)
+              DO k = 1,nepn(nd)
+                el2 = epn(k,nd)
+                DO m = 1,3
+                  v12 = mod(m+0,3) + 1
+                  v22 = mod(m+1,3) + 1                  
+                  IF ((tri(v11,el1) == tri(v12,el2) .and. tri(v21,el1) == tri(v22,el2)) .or. &
+                      (tri(v11,el1) == tri(v22,el2) .and. tri(v21,el1) == tri(v12,el2))) THEN
+                    IF (delete_el(el2) == 0) THEN   
+                      flag(i) = 1
+                    ENDIF
+                  ENDIF
+                ENDDO
+              ENDDO
+            ENDDO                                    
+          ENDDO
+          
+          IF (flag(1) == 1 .and. flag(2) == 1 .and. flag(3) == 1) THEN
+            delete_el(el1) = 0
+          ENDIF      
+          
+        ENDIF
+      ENDDO
       
       
       DO el = 1,ntri
