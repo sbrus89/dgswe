@@ -304,7 +304,7 @@
       USE quit, ONLY: finish 
       USE output, ONLY: output_solution,close_output
       USE read_dginp, ONLY: npart     
-      USE messenger2, ONLY: myrank
+      USE messenger2, ONLY: myrank,lel2gel
       
 #ifdef CMPI       
       USE mpi                            
@@ -327,7 +327,7 @@
               DO el = elblk(1,blk,et),elblk(2,blk,et)
                 IF (Z(el,dof) /= Z(el,dof)) THEN
                   nan_error = 1
-                  PRINT*, "NaN detected in Z solution"
+                  PRINT "(2(A,I9))", "NaN detected in Z solution for (global) element : ",lel2gel(el), " on PE: ", myrank
                   PRINT("(A,e15.8)"), 't = ', t                      
                 ENDIF
               ENDDO
@@ -335,7 +335,7 @@
               DO el = elblk(1,blk,et),elblk(2,blk,et)
                 IF (Qx(el,dof) /= Qx(el,dof)) THEN
                   nan_error = 1
-                  PRINT*, "NaN detected in Qx solution"
+                  PRINT "(2(A,I9))", "NaN detected in Qx solution for (global) element : ",lel2gel(el), " on PE: ", myrank
                   PRINT("(A,e15.8)"), 't = ', t
                 ENDIF
               ENDDO
@@ -343,7 +343,7 @@
               DO el = elblk(1,blk,et),elblk(2,blk,et)
                 IF (Qy(el,dof) /= Qy(el,dof)) THEN
                   nan_error = 1
-                  PRINT*, "NaN detected in Qy solution"
+                  PRINT "(2(A,I9))", "NaN detected in Qy solution for (global) element : ",lel2gel(el), " on PE: ", myrank
                   PRINT("(A,e15.8)"), 't = ', t
                 ENDIF
               ENDDO

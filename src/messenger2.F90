@@ -312,6 +312,14 @@
  181  FORMAT(8X,2I8) 
  182  FORMAT(8X,I8) 
  183  FORMAT(8X,4(D24.17,1X))
+#else
+
+      ALLOCATE(lel2gel(ne))
+      
+      DO el = 1,ne
+        lel2gel(el) = el
+      ENDDO
+ 
 #endif   
       RETURN      
       END SUBROUTINE read_message_files
