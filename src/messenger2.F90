@@ -199,13 +199,14 @@
       
       IMPLICIT NONE
       
-#ifdef CMPI      
+   
       INTEGER :: pe,ed,el,j,pt
       LOGICAL :: file_exists
       INTEGER :: npe,tne,mne,ne2,ndof2
       REAL(rp) :: nout2
       INTEGER :: reorder,info
-      
+
+#ifdef CMPI         
       IF (myrank == 0) THEN 
         PRINT "(A)", "Reading message passing files..."
       ENDIF
