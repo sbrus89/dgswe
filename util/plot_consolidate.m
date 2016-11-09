@@ -2,7 +2,8 @@ close all
 clear all
 clc
 
-nodes_file = 'coarse.grd';
+% nodes_file = 'coarse.grd';
+nodes_file = 'coarse_x2.grd';
 
 fid = fopen(nodes_file) ;
 agrid = fgetl(fid) ;
@@ -20,7 +21,8 @@ ect = idx(:,3:end);
 
 
 
-grid_file = '/home/sbrus/data-drive/galveston_SL18/grid_dev/v17_cart/galveston_SL18_cart.grd';
+% grid_file = '/home/sbrus/data-drive/galveston_SL18/grid_dev/v17_cart/galveston_SL18_cart.grd';
+grid_file = 'coarse_relaxed.grd';
 
 fid = fopen(grid_file) ;
 agrid = fgetl(fid) ;

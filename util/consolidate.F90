@@ -45,8 +45,9 @@
       REAL(rp), ALLOCATABLE, DIMENSION(:) :: depth_coarse     
       
       
-      grid_file_in = "/home/sbrus/data-drive/galveston_SL18/grid_dev/v17_cart/galveston_SL18_cart.grd"
-      grid_file_out = "coarse.grd"
+!       grid_file_in = "/home/sbrus/data-drive/galveston_SL18/grid_dev/v17_cart/galveston_SL18_cart.grd"
+      grid_file_in = "coarse_relaxed.grd"
+      grid_file_out = "coarse_x2.grd"
          
       nverts(1) = 3
       nverts(2) = 4
@@ -151,36 +152,49 @@
       DO bou = 1,nbou
         nbnds = fbseg(1,bou)           
         
-        nd = fbnds(1,bou)             ! keep first node
-        keep_node(nd) = 1
-        DO i = 1,nadjnds(nd)
-          keep_node(adjnds(i,nd)) = 0
-        ENDDO 
-        nodes_kept = nodes_kept + 1    
+        IF (nbnds <= 5) THEN
+          DO j = 1,nbnds
+            nd = fbnds(j,bou)
+            IF (keep_node(nd) == -1) THEN
+              keep_node(nd) = 1
+              nodes_kept = nodes_kept + 1
+              PRINT*, "keep node", nd
+            ENDIF
+          ENDDO
+        ELSE
         
-        DO j = 2,nbnds-1
-          nd = fbnds(j,bou)
-          IF (keep_node(nd) == -1) THEN
-            keep_node(nd) = 1
-            DO i = 1,nadjnds(nd)
-              IF (bou_node(adjnds(i,nd)) == 1) THEN
-                IF (adjnds(i,nd) == fbnds(j-1,bou) .or. adjnds(i,nd) == fbnds(j+1,bou)) THEN ! needed for very narrow channels, so that nodes on the other                 
-                  keep_node(adjnds(i,nd)) = 0                                                ! side aren't eliminated
+          nd = fbnds(1,bou)             ! keep first node
+          keep_node(nd) = 1
+          DO i = 1,nadjnds(nd)
+            keep_node(adjnds(i,nd)) = 0
+          ENDDO 
+          nodes_kept = nodes_kept + 1    
+        
+          DO j = 2,nbnds-1
+            nd = fbnds(j,bou)
+            IF (keep_node(nd) == -1) THEN
+              keep_node(nd) = 1
+              DO i = 1,nadjnds(nd)
+                IF (bou_node(adjnds(i,nd)) == 1) THEN
+                  IF (adjnds(i,nd) == fbnds(j-1,bou) .or. adjnds(i,nd) == fbnds(j+1,bou)) THEN ! needed for very narrow channels, so that nodes on the other                 
+                    keep_node(adjnds(i,nd)) = 0                                                ! side aren't eliminated
+                  ENDIF
+                ELSE
+                  keep_node(adjnds(i,nd)) = 0
                 ENDIF
-              ELSE
-                keep_node(adjnds(i,nd)) = 0
-              ENDIF
-            ENDDO
-            nodes_kept = nodes_kept + 1        
-          ENDIF
-        ENDDO
+              ENDDO
+              nodes_kept = nodes_kept + 1        
+            ENDIF
+          ENDDO
         
-        nd = fbnds(nbnds,bou)         ! keep last node
-        keep_node(nd) = 1
-        DO i = 1,nadjnds(nd)
-          keep_node(adjnds(i,nd)) = 0
-        ENDDO 
-        nodes_kept = nodes_kept + 1    
+          nd = fbnds(nbnds,bou)         ! keep last node
+          keep_node(nd) = 1
+          DO i = 1,nadjnds(nd)
+            keep_node(adjnds(i,nd)) = 0
+          ENDDO 
+          nodes_kept = nodes_kept + 1   
+          
+        ENDIF
         
         n1 = fbnds(1,bou)                ! find boundary orientation
         n2 = fbnds(2,bou)
@@ -218,7 +232,7 @@
             ENDIF
           ENDDO
         ENDDO        
-      ENDDO
+      ENDDO 
       
       nvel_coarse = nodes_kept - neta_coarse
       
@@ -228,7 +242,9 @@
         IF (keep_node(nd) == -1) THEN
           keep_node(nd) = 1
           DO i = 1,nadjnds(nd)
-            keep_node(adjnds(i,nd)) = 0            
+            IF (keep_node(adjnds(i,nd)) /= 1) THEN
+              keep_node(adjnds(i,nd)) = 0          
+            ENDIF
           ENDDO
           nodes_kept = nodes_kept + 1                  
         ENDIF
