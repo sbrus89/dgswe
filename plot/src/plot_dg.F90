@@ -30,6 +30,7 @@
       
       IMPLICIT NONE
       
+      INTEGER :: ord
       INTEGER :: start_snap,end_snap
       REAL(rp) :: H
       LOGICAL :: file_exists
@@ -83,16 +84,16 @@
 !       CALL find_element_init(nel_type,nverts,np,nnds,nn,xy,nepn,epn)      
       
       PRINT("(A)"), "Calculating additional ploting point coordinates..."
-      ALLOCATE(r(mnpp,2*ps),s(mnpp,2*ps))      
-      ALLOCATE(psic(mnnds,mnpp,2*ps))
-      ALLOCATE(rect(3,3*mnpp,2*ps))      
-      ALLOCATE(nptri(2*ps),npplt(2*ps),pplot(2*ps))
-      DO et = 1,2     
+      ALLOCATE(r(mnpp,nel_type*ps),s(mnpp,nel_type*ps))      
+      ALLOCATE(psic(mnnds,mnpp,nel_type*ps))
+      ALLOCATE(rect(3,3*mnpp,nel_type*ps))      
+      ALLOCATE(nptri(nel_type*ps),npplt(nel_type*ps),pplt(nel_type*ps))
+      DO et = 1,nel_type 
       
         DO ord = 1,ps
           i = (et-1)*ps+ord
-          pplot(i) = ord
-          CALL element_nodes(et,space,pplot(i),npplt(i),r(:,i),s(:,i))                  
+          pplt(i) = ord
+          CALL element_nodes(et,space,pplt(i),npplt(i),r(:,i),s(:,i))                  
           CALL shape_functions_area_eval(et,np(et),nnd,npplt(i),r(:,i),s(:,i),psic(:,:,i))  
           CALL reference_element_delaunay(npplt(i),r(:,i),s(:,i),nptri(i),rect(:,:,i))        
           
@@ -102,16 +103,16 @@
       ENDDO                                    
            
       ALLOCATE(xyplt(mnpp,ne,2))
-      DO el = 1,ne      
-        et = el_type(el)                          
-        nnd = nnds(et)
-        npts = npplt(et)
-        DO pt = 1,npts              
-          CALL element_transformation(nnd,elxy(:,el,1),elxy(:,el,2),psic(:,pt,et),xpt,ypt)           
-          xyplt(pt,el,1) = xpt
-          xyplt(pt,el,2) = ypt
-        ENDDO
-      ENDDO       
+!       DO el = 1,ne      
+!         et = el_type(el)                          
+!         nnd = nnds(et)
+!         npts = npplt(et)
+!         DO pt = 1,npts              
+!           CALL element_transformation(nnd,elxy(:,el,1),elxy(:,el,2),psic(:,pt,et),xpt,ypt)           
+!           xyplt(pt,el,1) = xpt
+!           xyplt(pt,el,2) = ypt
+!         ENDDO
+!       ENDDO       
              
       
       PRINT("(A)"), "Evaluating reference element coordinate information..."
@@ -126,8 +127,10 @@
       
       
       PRINT("(A)"), "Finding zoom box..."
-      CALL zoom_box(ne,el_type,npplt,xyplt,xbox_min,xbox_max,ybox_min,ybox_max, &
+      CALL zoom_box(ne,el_type,elxy,xbox_min,xbox_max,ybox_min,ybox_max, &
                                                      xmin,xmax,ymin,ymax,el_in)
+
+                                                     
       PRINT("(A)"), "Scaling coordinates..."
       CALL scale_factors(ne,nn,el_type,nverts,nnds,npplt,figure_width,xmin,xmax,ymin,ymax,ax,bx,ay,by)
 
@@ -221,13 +224,14 @@
       
       
 
-      CALL make_plot(-1,0d0,mesh)      
+!       CALL make_plot(-1,0d0,mesh)      
       
       IF (zeta%plot_sol_option == 0 .and. vel%plot_sol_option == 0 .and. bathy%plot_sol_option == 0) THEN
         STOP
       ENDIF      
       
       CALL make_plot(-1,t_snap,bathy,hb(:,:,1))                         
+      
       
       IF (zeta%plot_sol_option == 0 .and. vel%plot_sol_option == 0) THEN
         STOP
@@ -287,6 +291,13 @@
         
       ENDDO
       
+      
+      ALLOCATE(mesh%el_plt(ne))
+      DO el = 1,ne
+        mesh%el_plt(el) = zeta%el_plt(el)
+      ENDDO
+      
+      CALL make_plot(-1,0d0,mesh)        
       
       CALL make_movie(zeta,frmt)
       CALL make_movie(vel,frmt)

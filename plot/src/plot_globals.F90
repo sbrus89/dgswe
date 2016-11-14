@@ -137,6 +137,7 @@
         REAL(rp) :: sol_min,sol_max
         REAL(rp) :: snap_min,snap_max
         INTEGER :: nsnap
+        INTEGER, DIMENSION(:), ALLOCATABLE :: el_plt
         REAL(rp), DIMENSION(:,:), ALLOCATABLE :: sol_val
         REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: phi 
         INTEGER :: ndof(4)         
@@ -205,16 +206,18 @@
       nnds(4) = (ctp+1)*(ctp+1)      
       mnnds = maxval(nnds)   
       
-      pplt(1) = ps
-      pplt(2) = ps
-      pplt(3) = pc
-      pplt(4) = pc
+!       pplt(1) = ps
+!       pplt(2) = ps
+!       pplt(3) = pc
+!       pplt(4) = pc
 
-      npplt(1) = (ps+1)*(ps+2)/2
-      npplt(2) = (ps+1)*(ps+1)
-      npplt(3) = (pc+1)*(pc+2)/2
-      npplt(4) = (pc+1)*(pc+1)
-      mnpp = maxval(npplt)      
+!       npplt(1) = (ps+1)*(ps+2)/2
+!       npplt(2) = (ps+1)*(ps+1)
+!       npplt(3) = (pc+1)*(pc+2)/2
+!       npplt(4) = (pc+1)*(pc+1)
+!       mnpp = maxval(npplt)     
+
+      mnpp = (ps+1)**2
       
       END SUBROUTINE sizes
       
