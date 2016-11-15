@@ -57,7 +57,7 @@
   
       
       
-      IF ((fig%type_flag == 2 .and. fig%plot_sol_option == 1) .or. fig%type_flag == 3) THEN
+      IF (fig%type_flag == 2 .or. fig%type_flag == 3) THEN
         PRINT("(A)"), "  Evaluating depth solution at additional plotting points..."
         CALL evaluate_depth_solution(ne,el_type,el_in,npplt,H1,fig)       
       ENDIF            
