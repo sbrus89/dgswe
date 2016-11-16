@@ -85,7 +85,8 @@
       REAL(rp), ALLOCATABLE, DIMENSION(:) :: t      
       REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: r,s   
       INTEGER, ALLOCATABLE, DIMENSION(:,:,:) :: rect        
-      REAL(rp), DIMENSION(:,:,:), ALLOCATABLE :: xyplt   
+      REAL(rp), DIMENSION(:,:,:), ALLOCATABLE :: xyplt  
+      REAL(rp), DIMENSION(:), ALLOCATABLE :: el_area
       INTEGER :: outside
       INTEGER, DIMENSION(:), ALLOCATABLE :: el_in
       REAL(rp) :: xbox_min,xbox_max,ybox_min,ybox_max
@@ -217,7 +218,7 @@
 !       npplt(4) = (pc+1)*(pc+1)
 !       mnpp = maxval(npplt)     
 
-      mnpp = (ps+1)**2
+      mnpp = (ps*2+1)**2
       
       END SUBROUTINE sizes
       

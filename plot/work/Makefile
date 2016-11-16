@@ -1,7 +1,7 @@
 SHELL = /bin/sh
 
 FC = ifort
-FFLAGS = -I$(ODIR)  #-traceback -g -C #-Dadcirc # -fp-model strict
+FFLAGS = -I$(ODIR) #-traceback -g -C #-Dadcirc # -fp-model strict
 
 VPATH := ../src/
 ODIR = odir/
@@ -92,7 +92,7 @@ $(ODIR)version.o : ../../src/version.F90
 	$(FC) $(FFLAGS) -c $< -o $@	
 	mv version.mod $(ODIR)	
 
-$(ODIR)grid_file_mod.o : ../../src/grid_file_mod.F90            $(ODIR)globals.o $(ODIR)quit.o $(ODIR)spherical_mod.o
+$(ODIR)grid_file_mod.o : ../../src/grid_file_mod.F90            $(ODIR)globals.o $(ODIR)quit.o $(ODIR)spherical_mod.o 
 	$(FC) $(FFLAGS) -c $< -o $@
 	mv grid_file_mod.mod $(ODIR)        
         
@@ -147,7 +147,7 @@ $(ODIR)shape_functions_mod.o : ../../src/shape_functions_mod.F90     $(ODIR)glob
 	$(FC) $(FFLAGS) -c $< -o $@
 	mv shape_functions_mod.mod $(ODIR)	
 	
-$(ODIR)transformation.o : ../../src/transformation.F90               $(ODIR)basis.o $(ODIR)vandermonde.o $(ODIR)lapack_interfaces.o $(ODIR)shape_functions_mod.o
+$(ODIR)transformation.o : ../../src/transformation.F90               $(ODIR)basis.o $(ODIR)vandermonde.o $(ODIR)lapack_interfaces.o $(ODIR)shape_functions_mod.o $(ODIR)area_qpts_mod.o
 	$(FC) $(FFLAGS) -c $< -o $@
 	mv transformation.mod $(ODIR)		
 	

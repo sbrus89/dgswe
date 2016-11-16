@@ -13,7 +13,7 @@
                               nxdec,nydec,ncdec,ntdec, &
                               dr_xlabel,ds_ylabel,ds_clabel,main_font, &
                               ncolors,colors, &
-                              mnpp,ps, &
+                              mnpp,ps,pc, &
                               ax,ay,bx,by
       
       IMPLICIT NONE
@@ -36,8 +36,8 @@
                          nobed,obedn, &
                          ged2el,ged2led 
       USE read_dginp, ONLY: p
-      USE plot_globals, ONLY: el_in,t_start,t_end,xyplt,npplt,nptri,rect,r,s, &
-                              frmt,density,pc
+      USE plot_globals, ONLY: el_in,t_start,t_end,xyplt,pplt,npplt,nptri,rect,r,s, &
+                              frmt,density,pc,el_area
       USE evaluate_mod, ONLY: evaluate_depth_solution,evaluate_velocity_solution  
       USE labels_mod, ONLY: latex_axes_labels,run_latex, & 
                             latex_element_labels,latex_node_labels
@@ -62,7 +62,7 @@
       
       
       
-      IF ((fig%type_flag == 2 .and. fig%plot_sol_option == 1) .or. fig%type_flag == 3) THEN
+      IF (fig%type_flag == 2 .or. fig%type_flag == 3) THEN
         PRINT("(A)"), "  Evaluating depth solution at additional plotting points..."
         CALL evaluate_depth_solution(ne,el_type,el_in,npplt,H1,fig)       
       ENDIF            
@@ -123,7 +123,7 @@
       
       CALL write_psheader(filename//".ps",fig%ps_unit)          
       IF (fig%cbar_flag == 1) THEN
-        CALL plot_filled_contours(fig%ps_unit,ne,el_type,el_in,elxy,xyplt,nptri,npplt,rect,r,s,snap,fig)             
+        CALL plot_filled_contours_adapt(fig%ps_unit,ne,el_type,el_in,el_area,elxy,xyplt,pplt,nptri,npplt,rect,r,s,snap,fig)             
       ENDIF
       IF (fig%plot_lines_option == 1) THEN
         CALL plot_line_contours(fig%ps_unit,ne,el_type,el_in,nptri,rect,xyplt,r,s,snap,fig)          
@@ -614,13 +614,14 @@ tail: DO
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-      SUBROUTINE plot_filled_contours(file_unit,ne,el_type,el_in,elxy,xyplt,nptri,npplt,rect,r,s,snap,fig)
+      SUBROUTINE plot_filled_contours_adapt(file_unit,ne,el_type,el_in,el_area,elxy,xyplt,pplt,nptri,npplt,rect,r,s,snap,fig)
       
       USE transformation, ONLY: init_vandermonde,element_transformation,xy2rs
       USE basis, ONLY: element_basis,linear_basis           
-      USE read_dginp, ONLY: p,hbp   
+      USE read_dginp, ONLY: p,hbp,ctp   
       USE plot_globals, ONLY: Z,hb,Qx,Qy      
-      USE area_qpts_mod, ONLY: tri_cubature
+      USE area_qpts_mod, ONLY: tri_cubature,area_qpts
+      USE shape_functions_mod, ONLY: shape_functions_area_eval
       
       IMPLICIT NONE
       
@@ -628,8 +629,10 @@ tail: DO
       INTEGER, INTENT(IN) :: ne
       INTEGER, DIMENSION(:), INTENT(IN) :: el_type
       INTEGER, DIMENSION(:), INTENT(IN) :: el_in
+      REAL(rp), DIMENSION(:), INTENT(IN) :: el_area
       REAL(rp), DIMENSION(:,:,:), INTENT(IN) :: elxy
-      REAL(rp), DIMENSION(:,:,:), INTENT(INOUT) :: xyplt      
+      REAL(rp), DIMENSION(:,:,:), INTENT(INOUT) :: xyplt 
+      INTEGER, DIMENSION(:), INTENT(IN) :: pplt 
       INTEGER, DIMENSION(:), INTENT(IN) :: nptri
       INTEGER, DIMENSION(:), INTENT(IN) :: npplt      
       INTEGER, DIMENSION(:,:,:), INTENT(IN) :: rect 
@@ -642,50 +645,74 @@ tail: DO
       INTEGER :: i,j,v
       INTEGER :: el,nd,dof,lev,tri,ord,pt
       INTEGER :: et,nv,pl    
-      INTEGER :: nqpta,nnd,ndf
+      INTEGER :: nqpt,nnd,mnnds,mnp,ndf,mnqpta,nqpta(nel_type)
       INTEGER :: qpt_order
       REAL(rp) :: sol_lev
       REAL(rp) :: dc      
-      REAL(rp), DIMENSION(:,:), ALLOCATABLE :: qpta
-      REAL(rp), DIMENSION(:), ALLOCATABLE :: wpta
+      REAL(rp), DIMENSION(:,:), ALLOCATABLE :: qpt
+      REAL(rp), DIMENSION(:), ALLOCATABLE :: wpt
+      REAL(rp), DIMENSION(:,:,:), ALLOCATABLE :: qpta
+      REAL(rp), DIMENSION(:,:), ALLOCATABLE ::  wpta
       REAL(rp), DIMENSION(:,:), ALLOCATABLE :: l
       REAL(rp), DIMENSION(:), ALLOCATABLE :: xpt,ypt
       REAL(rp), DIMENSION(:), ALLOCATABLE :: rpt,spt
       REAL(rp), DIMENSION(:), ALLOCATABLE :: sol_lin,sol_el  
+      REAL(rp), DIMENSION(:,:,:), ALLOCATABLE :: phia
+      REAL(rp), DIMENSION(:,:,:), ALLOCATABLE :: psi,dpsidr,dpsids      
+      REAL(rp) :: xpta,ypta
+      REAL(rp) :: drdx,drdy,dsdx,dsdy      
       REAL(rp) :: qpts(13**2,3)
       REAL(rp) :: xv(3),yv(3)
       REAL(rp) :: detJ
       REAL(rp) :: H,u_vel,v_vel
+      REAL(rp) :: sol_avg
    
       REAL(rp) :: color_val(3)
-      REAL(rp) :: err,err_tol
+      REAL(rp) :: err,err_tol,max_err
       
       REAL(rp), DIMENSION(:), ALLOCATABLE :: hb_val,zeta_val,Qx_val,Qy_val     
       REAL(rp), DIMENSION(:), ALLOCATABLE :: hb_sol,zeta_sol,Qx_sol,Qy_sol    
       
+      CALL area_qpts(1,p,ctp,nel_type,nqpta,mnqpta,wpta,qpta)      
+      ALLOCATE(phia((p+1)**2,mnqpta,nel_type))
+!       DO et = 1,nel_type
+!         CALL element_basis(et,p,ndf,nqpta(et),qpta(:,1,et),qpta(:,2,et),phia(:,:,et))    
+!       ENDDO      
+      
       qpt_order = 5
-      CALL tri_cubature(qpt_order,nqpta,qpts)
+      CALL tri_cubature(qpt_order,nqpt,qpts)
+      
+      mnqpta = max(mnqpta,nqpt)
       
       ALLOCATE(hb_val(mnpp),zeta_val(mnpp),Qx_val(mnpp),Qy_val(mnpp))
-      ALLOCATE(hb_sol(nqpta),zeta_sol(nqpta),Qx_sol(nqpta),Qy_sol(nqpta))      
-      ALLOCATE(qpta(nqpta,2),wpta(nqpta))
-      ALLOCATE(l(3,nqpta))
-      ALLOCATE(xpt(nqpta),ypt(nqpta))
-      ALLOCATE(rpt(nqpta),spt(nqpta))
-      ALLOCATE(sol_lin(nqpta),sol_el(nqpta))
+      ALLOCATE(hb_sol(mnqpta),zeta_sol(mnqpta),Qx_sol(mnqpta),Qy_sol(mnqpta))      
+      ALLOCATE(qpt(mnqpta,2),wpt(mnqpta))
+      ALLOCATE(l(3,mnqpta))
+      ALLOCATE(xpt(mnqpta),ypt(mnqpta))
+      ALLOCATE(rpt(mnqpta),spt(mnqpta))
+      ALLOCATE(sol_lin(mnqpta),sol_el(mnqpta))
       
-      DO pt = 1,nqpta
-        qpta(pt,1) = qpts(pt,1)
-        qpta(pt,2) = qpts(pt,2)
-        wpta(pt) = qpts(pt,3)
+      DO pt = 1,nqpt
+        qpt(pt,1) = qpts(pt,1)
+        qpt(pt,2) = qpts(pt,2)
+        wpt(pt) = qpts(pt,3)
       ENDDO
       
+      
+      mnp = maxval(np)      
+      mnnds = (mnp+1)**2     
+      ALLOCATE(psi(mnnds,mnqpta,nel_type),dpsidr(mnnds,mnqpta,nel_type),dpsids(mnnds,mnqpta,nel_type))
+      
+      DO et = 1,nel_type         
+        CALL shape_functions_area_eval(et,np(et),nnds(et),nqpta(et),qpta(:,1,et),qpta(:,2,et), &
+                                       psi(:,:,et),dpsidr(:,:,et),dpsids(:,:,et))
+      ENDDO      
       
       dc = (fig%sol_max-fig%sol_min)/real(ncolors-1,rp)      
       
       CALL init_vandermonde(nel_type,np)      
             
-      err_tol = 1d-3     
+      err_tol = 1d-1     
       
  elem:DO el = 1,ne
 
@@ -695,37 +722,89 @@ tail: DO
         
         et = el_type(el)       
         nnd = nnds(et)        
-        
-        PRINT*, "ELEMENT: ", el, "    et: ", et        
+          
         
 !         PRINT*, "elxy"
 !         DO nd = 1,nnd
 !           PRINT*, elxy(nd,el,1),elxy(nd,el,2)
 !         ENDDO
         IF (et > 2) THEN
-         pl = 4
+         pl = pc
         ELSE
           pl = 1
         ENDIF
+        
+        ! Find element average value for solution
+        IF (fig%type_flag == 2 .or. fig%type_flag == 4) THEN
+          CALL element_basis(et,hbp,ndf,nqpta(et),qpta(:,1,et),qpta(:,2,et),phia(:,:,et))              
+        
+          DO pt = 1,nqpta(et)
+            hb_sol(pt) = 0d0
+            DO dof = 1,ndf
+               hb_sol(pt) = hb_sol(pt) + phia(dof,pt,et)*hb(dof,el,1)
+            ENDDO            
+          ENDDO
+          
+          IF (fig%type_flag == 2) THEN
+            DO pt = 1,nqpta(et)
+              sol_el(pt) = hb_sol(pt)
+            ENDDO
+          ENDIF
+        ENDIF
+        
+        IF (fig%type_flag == 3 .or. fig%type_flag == 4) THEN
+          CALL element_basis(et,p,ndf,nqpta(et),qpta(:,1,et),qpta(:,2,et),phia(:,:,et))          
+        
+          DO pt = 1,nqpta(et)
+            zeta_sol(pt) = 0d0
+            DO dof = 1,ndf
+               zeta_sol(pt) = zeta_sol(pt) + phia(dof,pt,et)*Z(dof,el,snap)
+            ENDDO            
+          ENDDO   
+          
+          IF (fig%type_flag == 3) THEN
+            DO pt = 1,nqpta(et)
+              sol_el(pt) = zeta_sol(pt)
+            ENDDO
+          ENDIF          
+        ENDIF
+        
+        IF (fig%type_flag == 4) THEN        
+          DO pt = 1,nqpta(et)
+            Qx_sol(pt) = 0d0
+            Qy_sol(pt) = 0d0
+            DO dof = 1,ndf
+               Qx_sol(pt) = Qx_sol(pt) + phia(dof,pt,et)*Qx(dof,el,snap)
+               Qy_sol(pt) = Qy_sol(pt) + phia(dof,pt,et)*Qy(dof,el,snap)               
+            ENDDO            
+          ENDDO    
+          
+          DO pt = 1,nqpta(et)
+            H = zeta_sol(pt) + hb_sol(pt)
+            u_vel = Qx_sol(pt)/H
+            v_vel = Qy_sol(pt)/H                
+            sol_el(pt) = sqrt(u_vel**2 + v_vel**2)
+          ENDDO        
+        ENDIF
+        
+        sol_avg = 0d0
+        DO pt = 1,nqpta(et)
+          CALL element_transformation(nnd,elxy(:,el,1),elxy(:,el,2),psi(:,pt,et),xpta,ypta, &
+                                      dpsidr(:,pt,et),dpsids(:,pt,et),drdx,drdy,dsdx,dsdy,detJ)                
+          sol_avg = sol_avg + wpta(pt,et)*sol_el(pt)*detJ
+        ENDDO
+        sol_avg = sol_avg/el_area(el)
+        
+        
+        PRINT "(A,I9,A,I9,A,F15.7)", "ELEMENT: ", el, "    et: ", et, "    sol_avg = ", sol_avg        
          
  order: DO ord = pl,ps
  
           i = (et-1)*ps+ord
           
-!           PRINT*, "r,s"
-!           DO pt = 1,npplt(i)
-!             PRINT*, r(pt,i),s(pt,i)
-!           ENDDO 
-          
-!           PRINT*, "psic"
-!           DO nd = 1,nnd
-!             PRINT "(100(F15.6))", (psic(nd,pt,i), pt = 1,npplt(i))
-!           ENDDO 
- 
-!           PRINT*, "xyplt"
+
           DO pt = 1,npplt(i)              
             CALL element_transformation(nnd,elxy(:,el,1),elxy(:,el,2),psic(:,pt,i),xyplt(pt,el,1),xyplt(pt,el,2))           
-!             PRINT*, xyplt(pt,el,1),xyplt(pt,el,2)
           ENDDO                  
      
      
@@ -783,21 +862,22 @@ tail: DO
             ENDDO
           ENDIF          
           
-          CALL linear_basis(nqpta,qpta(:,1),qpta(:,2),l)          
+          CALL linear_basis(nqpt,qpt(:,1),qpt(:,2),l)          
           
           err = 0d0
-          DO tri = 1,nptri(i)
+          max_err = 0d0
+  sub_tri:DO tri = 1,nptri(i)
           
             
             sol_lin = 0d0
-            DO pt = 1,nqpta
+            DO pt = 1,nqpt
               DO v = 1,3              
                  nd = rect(v,tri,i)
                 sol_lin(pt) = sol_lin(pt) + l(v,pt)*fig%sol_val(nd,el)
               ENDDO
             ENDDO
             
-            DO pt = 1,nqpta
+            DO pt = 1,nqpt
               xpt(pt) = 0d0
               ypt(pt) = 0d0
               DO v = 1,3
@@ -813,18 +893,18 @@ tail: DO
             
             detJ = .25d0*((xv(2)-xv(1))*(yv(3)-yv(1))-(xv(3)-xv(1))*(yv(2)-yv(1)))
             
-            CALL xy2rs(et,np(et),elxy(:,el,1),elxy(:,el,2),nqpta,xpt,ypt,rpt,spt)   
+            CALL xy2rs(et,np(et),elxy(:,el,1),elxy(:,el,2),nqpt,xpt,ypt,rpt,spt)   
             
-!             PRINT*, nqpta
-!             DO pt = 1,nqpta
+!             PRINT*, nqpt
+!             DO pt = 1,nqpt
 !               PRINT*, rpt(pt),spt(pt)
 !             ENDDO
             
             IF (fig%type_flag == 2 .or. fig%type_flag == 4) THEN
             
-              CALL element_basis(et,hbp,ndf,nqpta,rpt,spt,fig%phi(:,:,et))     
+              CALL element_basis(et,hbp,ndf,nqpt,rpt,spt,fig%phi(:,:,et))     
             
-              DO pt = 1,nqpta
+              DO pt = 1,nqpt
                 hb_sol(pt) = 0d0
                 DO dof = 1,ndf
                   hb_sol(pt) = hb_sol(pt) + fig%phi(dof,pt,et)*hb(dof,el,1)
@@ -832,7 +912,7 @@ tail: DO
               ENDDO
             
               IF (fig%type_flag == 2) THEN
-                DO pt = 1,nqpta
+                DO pt = 1,nqpt
                   sol_el(pt) = hb_sol(pt)
                 ENDDO
               ENDIF
@@ -842,9 +922,9 @@ tail: DO
                      
             IF (fig%type_flag == 3 .or. fig%type_flag == 4) THEN         
             
-              CALL element_basis(et,p,fig%ndof(et),nqpta,rpt,spt,fig%phi(:,:,et))          
+              CALL element_basis(et,p,fig%ndof(et),nqpt,rpt,spt,fig%phi(:,:,et))          
               
-              DO pt = 1,nqpta     
+              DO pt = 1,nqpt    
                 zeta_sol(pt) = 0d0
                 DO dof = 1,fig%ndof(et)
                   zeta_sol(pt) = zeta_sol(pt) + fig%phi(dof,pt,et)*Z(dof,el,snap)
@@ -852,7 +932,7 @@ tail: DO
               ENDDO
               
               IF (fig%type_flag == 3) THEN
-                DO pt = 1,nqpta
+                DO pt = 1,nqpt
                   sol_el(pt) = zeta_sol(pt)
                 ENDDO
               ENDIF   
@@ -861,7 +941,7 @@ tail: DO
             
             
             IF (fig%type_flag == 4) THEN
-              DO pt = 1,nqpta
+              DO pt = 1,nqpt
                 Qx_sol(pt) = 0d0
                 Qy_sol(pt) = 0d0
                 DO dof = 1,fig%ndof(et)
@@ -870,7 +950,7 @@ tail: DO
                 ENDDO
               ENDDO
               
-              DO pt = 1,nqpta
+              DO pt = 1,nqpt
                 H = zeta_sol(pt) + hb_sol(pt)
                 u_vel = Qx_sol(pt)/H
                 v_vel = Qy_sol(pt)/H                
@@ -880,17 +960,32 @@ tail: DO
             ENDIF
             
             
-            DO pt = 1,nqpta                        
-              err = err + detJ*wpta(pt)*(sol_el(pt)-sol_lin(pt))**2
+            DO pt = 1,nqpt                        
+              err = err + detJ*wpt(pt)*(sol_el(pt)-sol_lin(pt))**2
             ENDDO
+ 
+              max_err = sqrt(err)
+
+!             DO pt = 1,nqpt               
+!               err = abs(sol_el(pt)-sol_lin(pt))
+!               IF (err > max_err) THEN
+!                 max_err = err
+!               ENDIF
+!             ENDDO
             
-          ENDDO
+            IF (max_err/sol_avg > err_tol .and. max_err > err_tol) THEN
+              PRINT "(A,I4,A,I4)", "    Early sub_tri exit: ", tri, "/", nptri(i)              
+              EXIT sub_tri
+            ENDIF
+            
+          ENDDO sub_tri
           
           err = sqrt(err)
+!           err = max_err
           
-          PRINT*, "  ORDER: ", ord, " Error = ", err          
+          PRINT "(A,I9,A,F15.7,A,F15.7)", "  ORDER: ", pplt(ord), "  Abs. Error = ", err, "  Rel. Error = ", err/sol_avg         
           
-          IF (err < err_tol) THEN
+          IF (err/sol_avg < err_tol .or. err < err_tol) THEN
             fig%el_plt(el) = i       
             EXIT order     
           ELSE IF (ord >= ps) THEN
@@ -943,10 +1038,12 @@ tail: DO
         WRITE(file_unit,"(A)") "trifill"        
         
         ENDDO
+        
+        PRINT*, ""
       ENDDO elem
 
 
-      END SUBROUTINE plot_filled_contours
+      END SUBROUTINE plot_filled_contours_adapt
       
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!   
@@ -977,7 +1074,7 @@ tail: DO
       
       INTEGER :: i,j,vrt,it
       INTEGER :: el,nd,dof,lev,tri,ig
-      INTEGER :: et,nv,ndf,ntry,nnd    
+      INTEGER :: et,nv,ndf,ntry,nnd,ord    
       REAL(rp) :: sol_lev
       REAL(rp) :: dc
       INTEGER :: above(3)
@@ -1008,7 +1105,7 @@ tail: DO
       
 
 
-      ALLOCATE(el_below(nptri(4),ne))
+      ALLOCATE(el_below(maxval(nptri),ne))
       el_below = 0
       
        dc = (fig%sol_max-fig%sol_min)/real(nctick-1,rp)                  
@@ -1022,8 +1119,9 @@ levels:DO lev = 1,nctick
              CYCLE elem
            ENDIF
      
-        
-    subtri:DO tri = 1,nptri(et)
+           ord = fig%el_plt(el)
+           
+    subtri:DO tri = 1,nptri(ord)
     
              IF (el_below(tri,el) == 1) THEN
                CYCLE subtri
@@ -1033,7 +1131,7 @@ levels:DO lev = 1,nctick
              
              DO vrt = 1,3  
    
-               nd = rect(vrt,tri,et)
+               nd = rect(vrt,tri,ord)
           
                IF (fig%sol_val(nd,el) >= sol_lev) THEN
                  above(vrt) = 1
@@ -1055,9 +1153,9 @@ levels:DO lev = 1,nctick
              
              
              DO i = 1,3
-               nd = rect(i,tri,et)
-               rv(i) = rre(nd,et)
-               sv(i) = sre(nd,et)
+               nd = rect(i,tri,ord)
+               rv(i) = rre(nd,ord)
+               sv(i) = sre(nd,ord)
              ENDDO
 
              
@@ -1226,8 +1324,8 @@ levels:DO lev = 1,nctick
              ENDIF 
              
 
-             WRITE(file_unit,"(2(F9.5,1x))") x(1),y(1)
-             WRITE(file_unit,"(2(F9.5,1x))") x(2),y(2)     
+             WRITE(file_unit,"(2(F9.5,1x))") ax*x(1)+bx,ay*y(1)+by
+             WRITE(file_unit,"(2(F9.5,1x))") ax*x(2)+bx,ay*y(2)+by     
              WRITE(file_unit,"(A)") "draw-line"  
 
              
@@ -1269,19 +1367,19 @@ levels:DO lev = 1,nctick
         
         IF (et == 1) THEN
           DO nd = 1,nverts(et)
-            WRITE(file_unit,"(2(F9.5,1x))") xy(1,ect(nd,el)),xy(2,ect(nd,el))    
+            WRITE(file_unit,"(2(F9.5,1x))") ax*xy(1,ect(nd,el))+bx,ay*xy(2,ect(nd,el))+by    
           ENDDO                
           WRITE(file_unit,"(A)") "draw-tri-element"         
         ELSE IF (et == 2) THEN
           DO nd = 1,nverts(et)
-            WRITE(file_unit,"(2(F9.5,1x))") xy(1,ect(nd,el)),xy(2,ect(nd,el))    
+            WRITE(file_unit,"(2(F9.5,1x))") ax*xy(1,ect(nd,el))+bx,ay*xy(2,ect(nd,el))+by    
           ENDDO                
           WRITE(file_unit,"(A)") "draw-quad-element"  
         ELSE
           WRITE(file_unit,"(A)") "newpath"
-          WRITE(file_unit,"(2(F9.5,1x),A)") xyplt(1,el,1),xyplt(1,el,2),"moveto" 
+          WRITE(file_unit,"(2(F9.5,1x),A)") ax*xyplt(1,el,1)+bx,ay*xyplt(1,el,2)+by,"moveto" 
           DO nd = 2,nverts(et)*ctp
-            WRITE(file_unit,"(2(F9.5,1x),A)") xyplt(nd,el,1),xyplt(nd,el,2), "lineto"
+            WRITE(file_unit,"(2(F9.5,1x),A)") ax*xyplt(nd,el,1)+bx,ay*xyplt(nd,el,2)+by, "lineto"
           ENDDO
           WRITE(file_unit,"(A)") "closepath"
           WRITE(file_unit,"(A)") ".5 setlinewidth 2 setlinejoin"          

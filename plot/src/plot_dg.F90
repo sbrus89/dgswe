@@ -80,7 +80,7 @@
       CALL eval_coordinates_curved(ctp,nnds,nverts,el_type,xy,ect,fbseg,fbnds, &
                                    nnfbed,nfbedn,nfbednn,ged2el,ged2led, &
                                    psiv,bndxy,elxy)     
-      
+      CALL element_area(ne,nel_type,np,el_type,elxy,el_area)
 !       CALL find_element_init(nel_type,nverts,np,nnds,nn,xy,nepn,epn)      
       
       PRINT("(A)"), "Calculating additional ploting point coordinates..."
@@ -92,7 +92,7 @@
       
         DO ord = 1,ps
           i = (et-1)*ps+ord
-          pplt(i) = ord
+          pplt(i) = (ord-1)*2+1
           CALL element_nodes(et,space,pplt(i),npplt(i),r(:,i),s(:,i))                  
           CALL shape_functions_area_eval(et,np(et),nnd,npplt(i),r(:,i),s(:,i),psic(:,:,i))  
           CALL reference_element_delaunay(npplt(i),r(:,i),s(:,i),nptri(i),rect(:,:,i))        
@@ -103,16 +103,17 @@
       ENDDO                                    
            
       ALLOCATE(xyplt(mnpp,ne,2))
-!       DO el = 1,ne      
-!         et = el_type(el)                          
-!         nnd = nnds(et)
-!         npts = npplt(et)
-!         DO pt = 1,npts              
-!           CALL element_transformation(nnd,elxy(:,el,1),elxy(:,el,2),psic(:,pt,et),xpt,ypt)           
-!           xyplt(pt,el,1) = xpt
-!           xyplt(pt,el,2) = ypt
-!         ENDDO
-!       ENDDO       
+      DO el = 1,ne      
+        et = el_type(el)                          
+        nnd = nnds(et)
+        i = (et-1)*ps+ps
+        npts = npplt(i)
+        DO pt = 1,npts              
+          CALL element_transformation(nnd,elxy(:,el,1),elxy(:,el,2),psic(:,pt,i),xpt,ypt)           
+          xyplt(pt,el,1) = xpt
+          xyplt(pt,el,2) = ypt
+        ENDDO
+      ENDDO       
              
       
       PRINT("(A)"), "Evaluating reference element coordinate information..."
@@ -224,7 +225,7 @@
       
       
 
-!       CALL make_plot(-1,0d0,mesh)      
+      CALL make_plot(-1,0d0,mesh)      
       
       IF (zeta%plot_sol_option == 0 .and. vel%plot_sol_option == 0 .and. bathy%plot_sol_option == 0) THEN
         STOP
@@ -291,13 +292,7 @@
         
       ENDDO
       
-      
-      ALLOCATE(mesh%el_plt(ne))
-      DO el = 1,ne
-        mesh%el_plt(el) = zeta%el_plt(el)
-      ENDDO
-      
-      CALL make_plot(-1,0d0,mesh)        
+     
       
       CALL make_movie(zeta,frmt)
       CALL make_movie(vel,frmt)
