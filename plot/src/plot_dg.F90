@@ -89,7 +89,7 @@
       DO et = 1,nel_type     
         CALL element_nodes(et,space,pplt(et),npts,r(:,et),s(:,et))                  
         CALL shape_functions_area_eval(et,np(et),nnd,npts,r(:,et),s(:,et),psic(:,:,et))  
-        CALL reference_element_delaunay(npts,r(:,et),s(:,et),nptri(et),rect(:,:,et))        
+        CALL reference_element_delaunay(et,npts,r(:,et),s(:,et),nptri(et),rect(:,:,et))        
         
 !         DO i = 1,3
 !           PRINT "(*(I5))", (rect(i,j,et), j = 1,nptri(et))
