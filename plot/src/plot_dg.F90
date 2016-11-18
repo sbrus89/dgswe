@@ -35,7 +35,9 @@
       REAL(rp) :: H
       LOGICAL :: file_exists
       
-      space = 1  
+      space = 0  
+      ord_skp = 1
+      
       
       CALL version_information(6)
       
@@ -83,19 +85,19 @@
       CALL element_area(ne,nel_type,np,el_type,elxy,el_area)
 !       CALL find_element_init(nel_type,nverts,np,nnds,nn,xy,nepn,epn)      
       
-      PRINT("(A)"), "Calculating additional ploting point coordinates..."
+      PRINT("(A)"), "Calculating additional ploting point coordinates..."      
       ALLOCATE(r(mnpp,nel_type*ps),s(mnpp,nel_type*ps))      
       ALLOCATE(psic(mnnds,mnpp,nel_type*ps))
       ALLOCATE(rect(3,3*mnpp,nel_type*ps))      
       ALLOCATE(nptri(nel_type*ps),npplt(nel_type*ps),pplt(nel_type*ps))
       DO et = 1,nel_type 
-      
+              
         DO ord = 1,ps
           i = (et-1)*ps+ord
-          pplt(i) = (ord-1)*2+1
+          pplt(i) = (ord-1)*ord_skp+1
           CALL element_nodes(et,space,pplt(i),npplt(i),r(:,i),s(:,i))                  
           CALL shape_functions_area_eval(et,np(et),nnd,npplt(i),r(:,i),s(:,i),psic(:,:,i))  
-          CALL reference_element_delaunay(npplt(i),r(:,i),s(:,i),nptri(i),rect(:,:,i))        
+          CALL reference_element_delaunay(et,npplt(i),r(:,i),s(:,i),nptri(i),rect(:,:,i))        
           
           PRINT("(4(A,I4))"), "  number of additional nodes/sub-triangles: ", npplt(i),"/",nptri(i)          
         ENDDO         

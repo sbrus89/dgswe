@@ -128,6 +128,10 @@
       IF (fig%plot_lines_option == 1) THEN
         CALL plot_line_contours(fig%ps_unit,ne,el_type,el_in,nptri,rect,xyplt,r,s,snap,fig)          
       ENDIF
+      
+      CALL write_all_axes(fig%ps_unit,fig%cbar_flag,fig%tbar_flag,t_snap,t_start,t_end)               
+      CALL SYSTEM("cp "//filename//".ps "//filename//"_nomesh.ps") 
+      CALL convert_ps(filename//"_nomesh",frmt,density,fig%rm_ps)         
       IF (fig%plot_mesh_option == 1) THEN
 !         CALL fill_elements(fig%ps_unit,ne,nverts,pc,el_type,el_in,xy,ect,xyplt)      
 !         CALL plot_mesh(fig%ps_unit,ne,nverts,pc,el_type,el_in,xy,ect,xyplt)
@@ -137,7 +141,7 @@
 !         CALL plot_boundaries(fig%ps_unit,nverts,pc,nfbed,fbedn,ged2el,ged2led,el_type,el_in,ect,xy,xyplt)          
       ENDIF 
       
-      CALL write_all_axes(fig%ps_unit,fig%cbar_flag,fig%tbar_flag,t_snap,t_start,t_end)               
+      
       CALL close_ps(filename,fig%ps_unit)
       CALL convert_ps(filename,frmt,density,fig%rm_ps)      
       
@@ -668,7 +672,7 @@ tail: DO
       REAL(rp) :: sol_avg
    
       REAL(rp) :: color_val(3)
-      REAL(rp) :: err,err_tol,max_err
+      REAL(rp) :: err,rel_tol,abs_tol,max_err
       
       REAL(rp), DIMENSION(:), ALLOCATABLE :: hb_val,zeta_val,Qx_val,Qy_val     
       REAL(rp), DIMENSION(:), ALLOCATABLE :: hb_sol,zeta_sol,Qx_sol,Qy_sol    
@@ -679,7 +683,7 @@ tail: DO
 !         CALL element_basis(et,p,ndf,nqpta(et),qpta(:,1,et),qpta(:,2,et),phia(:,:,et))    
 !       ENDDO      
       
-      qpt_order = 5
+      qpt_order = 2
       CALL tri_cubature(qpt_order,nqpt,qpts)
       
       mnqpta = max(mnqpta,nqpt)
@@ -712,7 +716,8 @@ tail: DO
       
       CALL init_vandermonde(nel_type,np)      
             
-      err_tol = 1d-1     
+      rel_tol = 1d-1  
+      abs_tol = 1d-1
       
  elem:DO el = 1,ne
 
@@ -973,7 +978,7 @@ tail: DO
 !               ENDIF
 !             ENDDO
             
-            IF (max_err/sol_avg > err_tol .and. max_err > err_tol) THEN
+            IF (max_err/sol_avg > rel_tol .and. max_err > abs_tol) THEN
               PRINT "(A,I4,A,I4)", "    Early sub_tri exit: ", tri, "/", nptri(i)              
               EXIT sub_tri
             ENDIF
@@ -985,7 +990,7 @@ tail: DO
           
           PRINT "(A,I9,A,F15.7,A,F15.7)", "  ORDER: ", pplt(ord), "  Abs. Error = ", err, "  Rel. Error = ", err/sol_avg         
           
-          IF (err/sol_avg < err_tol .or. err < err_tol) THEN
+          IF (err/sol_avg < rel_tol .or. err < abs_tol) THEN
             fig%el_plt(el) = i       
             EXIT order     
           ELSE IF (ord >= ps) THEN

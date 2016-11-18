@@ -55,6 +55,8 @@
       INTEGER :: ncdec
       INTEGER :: ntdec
       
+      INTEGER :: ord_skp
+      
       CHARACTER(100) :: main_font = "/Times-Roman"
       CHARACTER(100) :: math_font = "/Times-Italic"    
 !       CHARACTER(100) :: main_font = "(/usr/share/fonts/type1/gsfonts/cmr10.pfb)"
@@ -218,7 +220,7 @@
 !       npplt(4) = (pc+1)*(pc+1)
 !       mnpp = maxval(npplt)     
 
-      mnpp = (ps*2+1)**2
+      mnpp = (ps*ord_skp+1)**2
       
       END SUBROUTINE sizes
       
