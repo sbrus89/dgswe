@@ -5,7 +5,7 @@
                          nepn,mnepn,epn,ned,ged2el,ged2nn,ged2led
       USE grid_file_mod
       USE edge_connectivity_mod      
-      USE triangulation, ONLY: reference_element_delaunay       
+      USE triangulation, ONLY: delaunay_triangulation       
 
       IMPLICIT NONE
       
@@ -313,7 +313,7 @@
       
       ALLOCATE(tri(3,3*nn_coarse))
       ALLOCATE(ect_coarse(3,3*nn_coarse))
-      CALL reference_element_delaunay(nn_coarse,xy_coarse(1,:),xy_coarse(2,:),ntri,tri,xa,ya)      
+      CALL delaunay_triangulation(nn_coarse,xy_coarse(1,:),xy_coarse(2,:),ntri,tri,xa,ya)      
       
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       ! Create coarse element connectity table
