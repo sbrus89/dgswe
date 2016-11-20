@@ -59,22 +59,12 @@
       IF (.not. ALLOCATED(fig%el_plt)) THEN
         ALLOCATE(fig%el_plt(ne))
       ENDIF
-      
-      
-      
-      IF (fig%type_flag == 2 .or. fig%type_flag == 3) THEN
-        PRINT("(A)"), "  Evaluating depth solution at additional plotting points..."
-        CALL evaluate_depth_solution(ne,el_type,el_in,npplt,H1,fig)       
-      ENDIF            
+              
       
       IF (fig%plot_sol_option /= 1) THEN
         RETURN
       ENDIF     
-      
-      IF (fig%type_flag == 4) THEN
-        PRINT("(A)"), "  Evaluating velocity solution at additional plotting points..."
-        CALL evaluate_velocity_solution(ne,el_type,el_in,npplt,Qx,Qy,H1,H2,fig)
-      ENDIF             
+                
       
       
       IF (fig%cscale_option == "auto-snap") THEN      
@@ -740,57 +730,59 @@ tail: DO
         ENDIF
         
         ! Find element average value for solution
-        IF (fig%type_flag == 2 .or. fig%type_flag == 4) THEN
-          CALL element_basis(et,hbp,ndf,nqpta(et),qpta(:,1,et),qpta(:,2,et),phia(:,:,et))              
-        
-          DO pt = 1,nqpta(et)
-            hb_sol(pt) = 0d0
-            DO dof = 1,ndf
-               hb_sol(pt) = hb_sol(pt) + phia(dof,pt,et)*hb(dof,el,1)
-            ENDDO            
-          ENDDO
-          
-          IF (fig%type_flag == 2) THEN
-            DO pt = 1,nqpta(et)
-              sol_el(pt) = hb_sol(pt)
-            ENDDO
-          ENDIF
-        ENDIF
-        
-        IF (fig%type_flag == 3 .or. fig%type_flag == 4) THEN
-          CALL element_basis(et,p,ndf,nqpta(et),qpta(:,1,et),qpta(:,2,et),phia(:,:,et))          
-        
-          DO pt = 1,nqpta(et)
-            zeta_sol(pt) = 0d0
-            DO dof = 1,ndf
-               zeta_sol(pt) = zeta_sol(pt) + phia(dof,pt,et)*Z(dof,el,snap)
-            ENDDO            
-          ENDDO   
-          
-          IF (fig%type_flag == 3) THEN
-            DO pt = 1,nqpta(et)
-              sol_el(pt) = zeta_sol(pt)
-            ENDDO
-          ENDIF          
-        ENDIF
-        
-        IF (fig%type_flag == 4) THEN        
-          DO pt = 1,nqpta(et)
-            Qx_sol(pt) = 0d0
-            Qy_sol(pt) = 0d0
-            DO dof = 1,ndf
-               Qx_sol(pt) = Qx_sol(pt) + phia(dof,pt,et)*Qx(dof,el,snap)
-               Qy_sol(pt) = Qy_sol(pt) + phia(dof,pt,et)*Qy(dof,el,snap)               
-            ENDDO            
-          ENDDO    
-          
-          DO pt = 1,nqpta(et)
-            H = zeta_sol(pt) + hb_sol(pt)
-            u_vel = Qx_sol(pt)/H
-            v_vel = Qy_sol(pt)/H                
-            sol_el(pt) = sqrt(u_vel**2 + v_vel**2)
-          ENDDO        
-        ENDIF
+!         IF (fig%type_flag == 2 .or. fig%type_flag == 4) THEN
+!           CALL element_basis(et,hbp,ndf,nqpta(et),qpta(:,1,et),qpta(:,2,et),phia(:,:,et))              
+!         
+!           DO pt = 1,nqpta(et)
+!             hb_sol(pt) = 0d0
+!             DO dof = 1,ndf
+!                hb_sol(pt) = hb_sol(pt) + phia(dof,pt,et)*hb(dof,el,1)
+!             ENDDO            
+!           ENDDO
+!           
+!           IF (fig%type_flag == 2) THEN
+!             DO pt = 1,nqpta(et)
+!               sol_el(pt) = hb_sol(pt)
+!             ENDDO
+!           ENDIF
+!         ENDIF
+!         
+!         IF (fig%type_flag == 3 .or. fig%type_flag == 4) THEN
+!           CALL element_basis(et,p,ndf,nqpta(et),qpta(:,1,et),qpta(:,2,et),phia(:,:,et))          
+!         
+!           DO pt = 1,nqpta(et)
+!             zeta_sol(pt) = 0d0
+!             DO dof = 1,ndf
+!                zeta_sol(pt) = zeta_sol(pt) + phia(dof,pt,et)*Z(dof,el,snap)
+!             ENDDO            
+!           ENDDO   
+!           
+!           IF (fig%type_flag == 3) THEN
+!             DO pt = 1,nqpta(et)
+!               sol_el(pt) = zeta_sol(pt)
+!             ENDDO
+!           ENDIF          
+!         ENDIF
+!         
+!         IF (fig%type_flag == 4) THEN        
+!           DO pt = 1,nqpta(et)
+!             Qx_sol(pt) = 0d0
+!             Qy_sol(pt) = 0d0
+!             DO dof = 1,ndf
+!                Qx_sol(pt) = Qx_sol(pt) + phia(dof,pt,et)*Qx(dof,el,snap)
+!                Qy_sol(pt) = Qy_sol(pt) + phia(dof,pt,et)*Qy(dof,el,snap)               
+!             ENDDO            
+!           ENDDO    
+!           
+!           DO pt = 1,nqpta(et)
+!             H = zeta_sol(pt) + hb_sol(pt)
+!             u_vel = Qx_sol(pt)/H
+!             v_vel = Qy_sol(pt)/H                
+!             sol_el(pt) = sqrt(u_vel**2 + v_vel**2)
+!           ENDDO        
+!         ENDIF
+
+        CALL evaluate_solution(et,fig%type_flag,nqpta(et),qpta(:,1,et),qpta(:,2,et),snap,sol_el)
         
         sol_avg = 0d0
         DO pt = 1,nqpta(et)
@@ -813,59 +805,62 @@ tail: DO
           ENDDO                  
      
      
-          IF (fig%type_flag == 2 .or. fig%type_flag == 4) THEN
-          
-            CALL element_basis(et,hbp,ndf,npplt(i),r(:,i),s(:,i),fig%phi(:,:,et))            
-          
-            DO nd = 1,npplt(i)
-              hb_val(nd) = 0d0
-              DO dof = 1,ndf
-                hb_val(nd) = hb_val(nd) + fig%phi(dof,nd,et)*hb(dof,el,1)
-              ENDDO
-            ENDDO
-            
-            IF (fig%type_flag == 2) THEN
-              DO nd = 1,npplt(i) 
-                fig%sol_val(nd,el) = hb_val(nd)
-              ENDDO
-            ENDIF
-          ENDIF                         
-     
-          IF (fig%type_flag == 3 .or. fig%type_flag == 4) THEN
-          
-            CALL element_basis(et,p,fig%ndof(et),npplt(i),r(:,i),s(:,i),fig%phi(:,:,et))           
-          
-            DO nd = 1,npplt(i)
-              zeta_val(nd) = 0d0
-              DO dof = 1,fig%ndof(et)
-                zeta_val(nd) = zeta_val(nd) + fig%phi(dof,nd,et)*Z(dof,el,snap)
-              ENDDO
-            ENDDO
-            
-            IF (fig%type_flag == 3) THEN
-              DO nd = 1,npplt(i)
-                fig%sol_val(nd,el) = zeta_val(nd)
-              ENDDO
-            ENDIF
-          ENDIF
-          
-          IF (fig%type_flag == 4) THEN
-            DO nd = 1,npplt(i)
-              Qx_val(nd) = 0d0
-              Qy_val(nd) = 0d0
-              DO dof = 1,fig%ndof(et)
-                Qx_val(nd) = Qx_val(nd) + fig%phi(dof,nd,et)*Qx(dof,el,snap)
-                Qy_val(nd) = Qy_val(nd) + fig%phi(dof,nd,et)*Qy(dof,el,snap)                
-              ENDDO
-            ENDDO
-            
-            DO nd = 1,npplt(i) 
-              H = zeta_val(nd)+hb_val(nd)
-              u_vel = Qx_val(nd)/H
-              v_vel = Qy_val(nd)/H
-              fig%sol_val(nd,el) = sqrt(u_vel**2+v_vel**2)
-            ENDDO
-          ENDIF          
+!           IF (fig%type_flag == 2 .or. fig%type_flag == 4) THEN
+!           
+!             CALL element_basis(et,hbp,ndf,npplt(i),r(:,i),s(:,i),fig%phi(:,:,et))            
+!           
+!             DO nd = 1,npplt(i)
+!               hb_val(nd) = 0d0
+!               DO dof = 1,ndf
+!                 hb_val(nd) = hb_val(nd) + fig%phi(dof,nd,et)*hb(dof,el,1)
+!               ENDDO
+!             ENDDO
+!             
+!             IF (fig%type_flag == 2) THEN
+!               DO nd = 1,npplt(i) 
+!                 fig%sol_val(nd,el) = hb_val(nd)
+!               ENDDO
+!             ENDIF
+!           ENDIF                         
+!      
+!           IF (fig%type_flag == 3 .or. fig%type_flag == 4) THEN
+!           
+!             CALL element_basis(et,p,fig%ndof(et),npplt(i),r(:,i),s(:,i),fig%phi(:,:,et))           
+!           
+!             DO nd = 1,npplt(i)
+!               zeta_val(nd) = 0d0
+!               DO dof = 1,fig%ndof(et)
+!                 zeta_val(nd) = zeta_val(nd) + fig%phi(dof,nd,et)*Z(dof,el,snap)
+!               ENDDO
+!             ENDDO
+!             
+!             IF (fig%type_flag == 3) THEN
+!               DO nd = 1,npplt(i)
+!                 fig%sol_val(nd,el) = zeta_val(nd)
+!               ENDDO
+!             ENDIF
+!           ENDIF
+!           
+!           IF (fig%type_flag == 4) THEN
+!             DO nd = 1,npplt(i)
+!               Qx_val(nd) = 0d0
+!               Qy_val(nd) = 0d0
+!               DO dof = 1,fig%ndof(et)
+!                 Qx_val(nd) = Qx_val(nd) + fig%phi(dof,nd,et)*Qx(dof,el,snap)
+!                 Qy_val(nd) = Qy_val(nd) + fig%phi(dof,nd,et)*Qy(dof,el,snap)                
+!               ENDDO
+!             ENDDO
+!             
+!             DO nd = 1,npplt(i) 
+!               H = zeta_val(nd)+hb_val(nd)
+!               u_vel = Qx_val(nd)/H
+!               v_vel = Qy_val(nd)/H
+!               fig%sol_val(nd,el) = sqrt(u_vel**2+v_vel**2)
+!             ENDDO
+!           ENDIF      
+
+          CALL evaluate_solution(et,fig%type_flag,npplt(i),r(:,i),s(:,i),snap,fig%sol_val(:,el))
+    
           
           CALL linear_basis(nqpt,qpt(:,1),qpt(:,2),l)          
           
@@ -905,64 +900,67 @@ tail: DO
 !               PRINT*, rpt(pt),spt(pt)
 !             ENDDO
             
-            IF (fig%type_flag == 2 .or. fig%type_flag == 4) THEN
-            
-              CALL element_basis(et,hbp,ndf,nqpt,rpt,spt,fig%phi(:,:,et))     
-            
-              DO pt = 1,nqpt
-                hb_sol(pt) = 0d0
-                DO dof = 1,ndf
-                  hb_sol(pt) = hb_sol(pt) + fig%phi(dof,pt,et)*hb(dof,el,1)
-                ENDDO
-              ENDDO
-            
-              IF (fig%type_flag == 2) THEN
-                DO pt = 1,nqpt
-                  sol_el(pt) = hb_sol(pt)
-                ENDDO
-              ENDIF
-            
-            ENDIF
-      
-                     
-            IF (fig%type_flag == 3 .or. fig%type_flag == 4) THEN         
-            
-              CALL element_basis(et,p,fig%ndof(et),nqpt,rpt,spt,fig%phi(:,:,et))          
-              
-              DO pt = 1,nqpt    
-                zeta_sol(pt) = 0d0
-                DO dof = 1,fig%ndof(et)
-                  zeta_sol(pt) = zeta_sol(pt) + fig%phi(dof,pt,et)*Z(dof,el,snap)
-                ENDDO
-              ENDDO
-              
-              IF (fig%type_flag == 3) THEN
-                DO pt = 1,nqpt
-                  sol_el(pt) = zeta_sol(pt)
-                ENDDO
-              ENDIF   
-              
-            ENDIF
-            
-            
-            IF (fig%type_flag == 4) THEN
-              DO pt = 1,nqpt
-                Qx_sol(pt) = 0d0
-                Qy_sol(pt) = 0d0
-                DO dof = 1,fig%ndof(et)
-                  Qx_sol(pt) = Qx_sol(pt) + fig%phi(dof,pt,et)*Qx(dof,el,snap)
-                  Qy_sol(pt) = Qy_sol(pt) + fig%phi(dof,pt,et)*Qy(dof,el,snap)
-                ENDDO
-              ENDDO
-              
-              DO pt = 1,nqpt
-                H = zeta_sol(pt) + hb_sol(pt)
-                u_vel = Qx_sol(pt)/H
-                v_vel = Qy_sol(pt)/H                
-                sol_el(pt) = sqrt(u_vel**2 + v_vel**2)
-              ENDDO
-              
-            ENDIF
+!             IF (fig%type_flag == 2 .or. fig%type_flag == 4) THEN
+!             
+!               CALL element_basis(et,hbp,ndf,nqpt,rpt,spt,fig%phi(:,:,et))     
+!             
+!               DO pt = 1,nqpt
+!                 hb_sol(pt) = 0d0
+!                 DO dof = 1,ndf
+!                   hb_sol(pt) = hb_sol(pt) + fig%phi(dof,pt,et)*hb(dof,el,1)
+!                 ENDDO
+!               ENDDO
+!             
+!               IF (fig%type_flag == 2) THEN
+!                 DO pt = 1,nqpt
+!                   sol_el(pt) = hb_sol(pt)
+!                 ENDDO
+!               ENDIF
+!             
+!             ENDIF
+!       
+!                      
+!             IF (fig%type_flag == 3 .or. fig%type_flag == 4) THEN         
+!             
+!               CALL element_basis(et,p,fig%ndof(et),nqpt,rpt,spt,fig%phi(:,:,et))          
+!               
+!               DO pt = 1,nqpt    
+!                 zeta_sol(pt) = 0d0
+!                 DO dof = 1,fig%ndof(et)
+!                   zeta_sol(pt) = zeta_sol(pt) + fig%phi(dof,pt,et)*Z(dof,el,snap)
+!                 ENDDO
+!               ENDDO
+!               
+!               IF (fig%type_flag == 3) THEN
+!                 DO pt = 1,nqpt
+!                   sol_el(pt) = zeta_sol(pt)
+!                 ENDDO
+!               ENDIF   
+!               
+!             ENDIF
+!             
+!             
+!             IF (fig%type_flag == 4) THEN
+!               DO pt = 1,nqpt
+!                 Qx_sol(pt) = 0d0
+!                 Qy_sol(pt) = 0d0
+!                 DO dof = 1,fig%ndof(et)
+!                   Qx_sol(pt) = Qx_sol(pt) + fig%phi(dof,pt,et)*Qx(dof,el,snap)
+!                   Qy_sol(pt) = Qy_sol(pt) + fig%phi(dof,pt,et)*Qy(dof,el,snap)
+!                 ENDDO
+!               ENDDO
+!               
+!               DO pt = 1,nqpt
+!                 H = zeta_sol(pt) + hb_sol(pt)
+!                 u_vel = Qx_sol(pt)/H
+!                 v_vel = Qy_sol(pt)/H                
+!                 sol_el(pt) = sqrt(u_vel**2 + v_vel**2)
+!               ENDDO
+!               
+!             ENDIF
+
+            CALL evaluate_solution(et,fig%type_flag,nqpt,rpt,spt,snap,sol_el)
+
             
             
             DO pt = 1,nqpt                        
