@@ -233,6 +233,7 @@
       INTEGER :: remove
       INTEGER :: n
       REAL(rp), ALLOCATABLE, DIMENSION(:) :: r,s      
+      REAL(rp), ALLOCATABLE, DIMENSION(:) :: x,y        
       INTEGER, ALLOCATABLE, DIMENSION(:) :: list
       INTEGER, ALLOCATABLE, DIMENSION(:) :: lptr
       INTEGER, ALLOCATABLE, DIMENSION(:) :: lend
@@ -240,16 +241,25 @@
       INTEGER, ALLOCATABLE, DIMENSION(:) :: near
       INTEGER, ALLOCATABLE, DIMENSION(:) :: next
       INTEGER :: ier
+      INTEGER :: nit
+      INTEGER :: nx
+      REAL(rp) :: nx_rp
       REAL(rp), ALLOCATABLE, DIMENSION(:) :: dist
       REAL(rp) :: wx1,wx2,wy1,wy2
       INTEGER :: ncc 
       INTEGER :: lcc(1),lct(1)
       INTEGER :: nrow
       INTEGER :: nt
-      INTEGER, ALLOCATABLE, DIMENSION(:,:) :: ltri      
-      CHARACTER(1) :: nout
+      INTEGER, ALLOCATABLE, DIMENSION(:,:) :: ltri   
+      INTEGER :: lwk
+      INTEGER, DIMENSION(:,:), ALLOCATABLE :: iwk
+      INTEGER, DIMENSION(:), ALLOCATABLE :: tri_flag
+      INTEGER :: n1,n2      
+      REAL(rp) :: rdiff,sdiff,tol
+      CHARACTER(3) :: nout
 
       n = npt
+        
       
       ALLOCATE(r(n+1),s(n+1))
       DO i = n,1,-1    ! add extra node so that first three aren't collinear
@@ -278,21 +288,25 @@
       ncc = 0 
       lcc = 0
       nrow = 6      
+      
+!       lwk = n
+!       ALLOCATE(iwk(2,n))      
+!       call delnod (1,ncc,lcc,n,r,s,list,lptr,lend,lnew,lwk,iwk,ier )      
 
       
-!       wx1 = r(1)
-!       wx2 = wx1
-!       wy1 = s(1)
-!       wy2 = wy1
-!       DO i = 2,N
-!         IF (r(i) .LT. wx1) wx1 = r(i)
-!         IF (r(i) .GT. wx2) wx2 = r(i)
-!         IF (s(i) .LT. wy1) wy1 = s(i)
-!         IF (s(i) .GT. wy2) wy2 = s(i)
-!       ENDDO 
+      wx1 = r(1)
+      wx2 = wx1
+      wy1 = s(1)
+      wy2 = wy1
+      DO i = 2,N
+        IF (r(i) .LT. wx1) wx1 = r(i)
+        IF (r(i) .GT. wx2) wx2 = r(i)
+        IF (s(i) .LT. wy1) wy1 = s(i)
+        IF (s(i) .GT. wy2) wy2 = s(i)
+      ENDDO 
 
 !       ncall = ncall + 1
-!       WRITE(nout,"(I1)") ncall
+!       WRITE(nout,"(I3.3)") ncall
 !       OPEN(UNIT=90,file="tri"//nout//".ps")
 !       CALL trplot(90,7.5d0,wx1,wx2,wy1,wy2,ncc,lcc,n,r,s,list,lptr,lend,"(test)",.true.,ier)
 !       CLOSE(90)    
@@ -318,6 +332,16 @@
           ENDDO
         ENDIF
       ENDDO
+
+
+
+!       ntri = 0
+!       DO i = 1,nt     
+!           ntri = ntri + 1
+!           DO j = 1,3
+!             ect(j,ntri) = ltri(j,i)
+!           ENDDO
+!       ENDDO
 
       RETURN
       END SUBROUTINE delaunay_triangulation      

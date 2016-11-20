@@ -1,7 +1,7 @@
 SHELL = /bin/sh
 
 FC = ifort
-FFLAGS = -I$(ODIR) #-Dadcirc -traceback -g -C # -fp-model strict
+FFLAGS = -I$(ODIR) #-traceback -g -C #-Dadcirc # -fp-model strict
 
 VPATH := ../src/
 ODIR = odir/
@@ -63,6 +63,7 @@ plot_objects =  plot_globals.o globals.o quit.o basis.o read_input.o messenger2.
            read_plot_input.o grid_file_mod.o read_write_output.o system.o tripack.o \
            edge_connectivity_mod.o curvilinear_nodes_mod.o bathymetry_interp_mod.o \
            vandermonde.o transformation.o shape_functions_mod.o triangulation.o \
+           area_qpts_mod.o edge_qpts_mod.o \
            plot_mod.o evaluate_mod.o axes_mod.o labels_mod.o version.o plot.o 
           
 plot_obj := $(patsubst %.o, $(ODIR)%.o,$(plot_objects))
@@ -127,7 +128,7 @@ $(ODIR)version.o : ../../src/version.F90
 	$(FC) $(FFLAGS) -c $< -o $@	
 	mv version.mod $(ODIR)	
 
-$(ODIR)grid_file_mod.o : ../../src/grid_file_mod.F90            $(ODIR)globals.o $(ODIR)quit.o $(ODIR)spherical_mod.o
+$(ODIR)grid_file_mod.o : ../../src/grid_file_mod.F90            $(ODIR)globals.o $(ODIR)quit.o $(ODIR)spherical_mod.o 
 	$(FC) $(FFLAGS) -c $< -o $@
 	mv grid_file_mod.mod $(ODIR)        
         
@@ -155,6 +156,14 @@ $(ODIR)triangulation.o : ../../src/triangulation.F90
 	$(FC) $(FFLAGS) -c $< -o $@
 	mv triangulation.mod $(ODIR)
 	
+$(ODIR)area_qpts_mod.o : ../../src/area_qpts_mod.F90            $(ODIR)globals.o $(ODIR)edge_qpts_mod.o
+	$(FC) $(FFLAGS) -c $< -o $@
+	mv area_qpts_mod.mod $(ODIR)
+
+$(ODIR)edge_qpts_mod.o : ../../src/edge_qpts_mod.F90            $(ODIR)globals.o 
+	$(FC) $(FFLAGS) -c $< -o $@
+	mv edge_qpts_mod.mod $(ODIR)		
+	
 $(ODIR)tripack.o : ../../tripack/Src/Fortran77/Sp/src.f90                                
 	$(FC) $(FFLAGS) -c $< -o $@
 	
@@ -174,7 +183,7 @@ $(ODIR)shape_functions_mod.o : ../../src/shape_functions_mod.F90     $(ODIR)glob
 	$(FC) $(FFLAGS) -c $< -o $@
 	mv shape_functions_mod.mod $(ODIR)	
 	
-$(ODIR)transformation.o : ../../src/transformation.F90               $(ODIR)basis.o $(ODIR)vandermonde.o $(ODIR)lapack_interfaces.o $(ODIR)shape_functions_mod.o
+$(ODIR)transformation.o : ../../src/transformation.F90               $(ODIR)basis.o $(ODIR)vandermonde.o $(ODIR)lapack_interfaces.o $(ODIR)shape_functions_mod.o $(ODIR)area_qpts_mod.o
 	$(FC) $(FFLAGS) -c $< -o $@
 	mv transformation.mod $(ODIR)		
 	
@@ -194,7 +203,7 @@ $(ODIR)convert.o: convert2cartesian.F90                      $(ODIR)globals.o $(
 $(ODIR)adjust.o: adjust_channel_boundaries.f90               $(ODIR)globals.o $(ODIR)grid_file_mod.o 
 	$(FC) $(FFLAGS) -c $< -o $@        
 
-$(ODIR)plot_mod.o: plot_mod.F90                              $(ODIR)globals.o $(ODIR)plot_globals.o $(ODIR)evaluate_mod.o $(ODIR)labels_mod.o $(ODIR)axes_mod.o  $(ODIR)read_input.o $(ODIR)basis.o  $(ODIR)transformation.o $(ODIR)shape_functions_mod.o 
+$(ODIR)plot_mod.o: plot_mod.F90                              $(ODIR)globals.o $(ODIR)plot_globals.o $(ODIR)evaluate_mod.o $(ODIR)labels_mod.o $(ODIR)axes_mod.o  $(ODIR)read_input.o $(ODIR)basis.o  $(ODIR)transformation.o $(ODIR)shape_functions_mod.o $(ODIR)area_qpts_mod.o
 	$(FC) $(FFLAGS) -c $< -o $@ 	
 	mv plot_mod.mod $(ODIR)
 	

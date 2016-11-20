@@ -405,7 +405,7 @@ $(ODIR)shape_functions_mod.o : shape_functions_mod.F90         $(ODIR)globals.o 
 	$(FC) $(FFLAGS) -c $< -o $@
 	mv shape_functions_mod.mod $(ODIR)
 
-$(ODIR)transformation.o : transformation.F90                   $(ODIR)basis.o $(ODIR)vandermonde.o $(ODIR)lapack_interfaces.o $(ODIR)shape_functions_mod.o
+$(ODIR)transformation.o : transformation.F90                   $(ODIR)basis.o $(ODIR)vandermonde.o $(ODIR)lapack_interfaces.o $(ODIR)shape_functions_mod.o $(ODIR)area_qpts_mod.o
 	$(FC) $(FFLAGS) -c $< -o $@
 	mv transformation.mod $(ODIR)
 	

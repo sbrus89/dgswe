@@ -408,8 +408,8 @@
         xsum = 0d0
         ysum = 0d0
         DO nd = 1,nv
-          xsum = xsum + xy(1,ect(nd,el))
-          ysum = ysum + xy(2,ect(nd,el))
+          xsum = xsum + ax*xy(1,ect(nd,el)) + bx
+          ysum = ysum + ay*xy(2,ect(nd,el)) + by
         ENDDO
         
         rpos = xsum/real(nv,rp)

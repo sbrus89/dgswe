@@ -13,7 +13,7 @@
       USE read_dginp, ONLY: read_input,out_direc,p,ctp,hbp,tf, &
                             grid_file,curve_file,cb_file_exists,bathy_file,hb_file_exists
       USE plot_mod, ONLY: read_colormap,setup_cbounds, &
-                          scale_coordinates,zoom_box,make_plot,make_movie                                                                           
+                          scale_factors,zoom_box,make_plot,make_movie                                                                           
       USE evaluate_mod, ONLY: evaluate_depth_solution,evaluate_velocity_solution, &
                               evaluate_basis,find_solution_minmax
       USE labels_mod, ONLY: latex_axes_labels,run_latex,close_tex, &
@@ -30,11 +30,14 @@
       
       IMPLICIT NONE
       
+      INTEGER :: ord
       INTEGER :: start_snap,end_snap
       REAL(rp) :: H
       LOGICAL :: file_exists
       
-      space = 1  
+      space = 0  
+      ord_skp = 1
+      
       
       CALL version_information(6)
       
@@ -79,24 +82,26 @@
       CALL eval_coordinates_curved(ctp,nnds,nverts,el_type,xy,ect,fbseg,fbnds, &
                                    nnfbed,nfbedn,nfbednn,ged2el,ged2led, &
                                    psiv,bndxy,elxy)     
-      
+      CALL element_area(ne,nel_type,np,el_type,elxy,el_area)
 !       CALL find_element_init(nel_type,nverts,np,nnds,nn,xy,nepn,epn)      
       
-      PRINT("(A)"), "Calculating additional ploting point coordinates..."
-      ALLOCATE(r(mnpp,nel_type),s(mnpp,nel_type))      
-      ALLOCATE(psic(mnnds,mnpp,nel_type))
-      ALLOCATE(rect(3,3*mnpp,nel_type))      
-      DO et = 1,nel_type     
-        CALL element_nodes(et,space,pplt(et),npts,r(:,et),s(:,et))                  
-        CALL shape_functions_area_eval(et,np(et),nnd,npts,r(:,et),s(:,et),psic(:,:,et))  
-        CALL reference_element_delaunay(et,npts,r(:,et),s(:,et),nptri(et),rect(:,:,et))        
-        
-!         DO i = 1,3
-!           PRINT "(*(I5))", (rect(i,j,et), j = 1,nptri(et))
-!         ENDDO    
-!         PRINT*, ""
 
-        PRINT("(4(A,I4))"), "  number of additional nodes/sub-triangles: ", npts,"/",nptri(et)
+      PRINT("(A)"), "Calculating additional ploting point coordinates..."      
+      ALLOCATE(r(mnpp,nel_type*ps),s(mnpp,nel_type*ps))      
+      ALLOCATE(psic(mnnds,mnpp,nel_type*ps))
+      ALLOCATE(rect(3,3*mnpp,nel_type*ps))      
+      ALLOCATE(nptri(nel_type*ps),npplt(nel_type*ps),pplt(nel_type*ps))
+      DO et = 1,nel_type 
+              
+        DO ord = 1,ps
+          i = (et-1)*ps+ord
+          pplt(i) = (ord-1)*ord_skp+1
+          CALL element_nodes(et,space,pplt(i),npplt(i),r(:,i),s(:,i))                  
+          CALL shape_functions_area_eval(et,np(et),nnd,npplt(i),r(:,i),s(:,i),psic(:,:,i))  
+          CALL reference_element_delaunay(et,npplt(i),r(:,i),s(:,i),nptri(i),rect(:,:,i))        
+          
+          PRINT("(4(A,I4))"), "  number of additional nodes/sub-triangles: ", npplt(i),"/",nptri(i)          
+        ENDDO         
         
       ENDDO                                    
            
@@ -104,9 +109,10 @@
       DO el = 1,ne      
         et = el_type(el)                          
         nnd = nnds(et)
-        npts = npplt(et)
+        i = (et-1)*ps+ps
+        npts = npplt(i)
         DO pt = 1,npts              
-          CALL element_transformation(nnd,elxy(:,el,1),elxy(:,el,2),psic(:,pt,et),xpt,ypt)           
+          CALL element_transformation(nnd,elxy(:,el,1),elxy(:,el,2),psic(:,pt,i),xpt,ypt)           
           xyplt(pt,el,1) = xpt
           xyplt(pt,el,2) = ypt
         ENDDO
@@ -114,9 +120,9 @@
              
       
       PRINT("(A)"), "Evaluating reference element coordinate information..."
-      CALL evaluate_basis(p,mnpp,mndof,nel_type,npplt,r,s,zeta)
-      CALL evaluate_basis(hbp,mnpp,mndof,nel_type,npplt,r,s,bathy)
-      CALL evaluate_basis(p,mnpp,mndof,nel_type,npplt,r,s,vel)
+      CALL evaluate_basis(mnpp,mndof,nel_type,npplt,r,s,zeta)
+      CALL evaluate_basis(mnpp,mndof,nel_type,npplt,r,s,bathy)
+      CALL evaluate_basis(mnpp,mndof,nel_type,npplt,r,s,vel)
       
       
       
@@ -125,10 +131,12 @@
       
       
       PRINT("(A)"), "Finding zoom box..."
-      CALL zoom_box(ne,el_type,npplt,xyplt,xbox_min,xbox_max,ybox_min,ybox_max, &
+      CALL zoom_box(ne,el_type,elxy,xbox_min,xbox_max,ybox_min,ybox_max, &
                                                      xmin,xmax,ymin,ymax,el_in)
+
+                                                     
       PRINT("(A)"), "Scaling coordinates..."
-      CALL scale_coordinates(ne,nn,el_type,nverts,nnds,npplt,figure_width,xmin,xmax,ymin,ymax,xyplt,xy,elxy)
+      CALL scale_factors(ne,nn,el_type,nverts,nnds,npplt,figure_width,xmin,xmax,ymin,ymax,ax,bx,ay,by)
 
       
     
@@ -228,6 +236,7 @@
       
       CALL make_plot(-1,t_snap,bathy,hb(:,:,1))                         
       
+      
       IF (zeta%plot_sol_option == 0 .and. vel%plot_sol_option == 0) THEN
         STOP
       ENDIF
@@ -286,6 +295,7 @@
         
       ENDDO
       
+     
       
       CALL make_movie(zeta,frmt)
       CALL make_movie(vel,frmt)

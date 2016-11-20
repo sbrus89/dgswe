@@ -262,5 +262,79 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+      SUBROUTINE element_area(ne,nel_type,np,el_type,elxy,area)
+      
+      USE area_qpts_mod, ONLY: area_qpts
+      USE shape_functions_mod, ONLY: shape_functions_area_eval   
+      
+      IMPLICIT NONE
+      
+      INTEGER, INTENT(IN) :: ne
+      INTEGER, INTENT(IN) :: nel_type
+      INTEGER, DIMENSION(:), INTENT(IN) :: np
+      INTEGER, DIMENSION(:), INTENT(IN) :: el_type
+      REAL(rp), DIMENSION(:,:,:), INTENT(IN) :: elxy
+      REAL(rp), DIMENSION(:), ALLOCATABLE, INTENT(OUT) :: area
+      
+      INTEGER :: el,pt
+      INTEGER :: et,nnd
+      INTEGER :: nqpt(nel_type),nnds(nel_type)      
+      INTEGER :: p,mnp,mnqpt,mnnds
+      REAL(rp) :: xpt,ypt
+      REAL(rp) :: drdx,drdy,dsdx,dsdy,detJ
+      REAL(rp) :: x1,x2,x3,y1,y2,y3
+      REAL(rp), DIMENSION(:,:), ALLOCATABLE :: wpt
+      REAL(rp), DIMENSION(:,:,:), ALLOCATABLE :: qpt
+      REAL(rp), DIMENSION(:,:,:), ALLOCATABLE :: psi,dpsidr,dpsids  
+      
+           
+      
+      p = 1
+      mnp = maxval(np)
+      CALL area_qpts(1,p,mnp,nel_type,nqpt,mnqpt,wpt,qpt)    
+      
+      mnnds = (mnp+1)**2     
+      ALLOCATE(psi(mnnds,mnqpt,nel_type),dpsidr(mnnds,mnqpt,nel_type),dpsids(mnnds,mnqpt,nel_type))
+      
+      DO et = 1,nel_type         
+        CALL shape_functions_area_eval(et,np(et),nnds(et),nqpt(et),qpt(:,1,et),qpt(:,2,et), &
+                                       psi(:,:,et),dpsidr(:,:,et),dpsids(:,:,et))
+      ENDDO
+      
+      
+      ALLOCATE(area(ne))      
+      
+      DO el = 1,ne
+      
+        et = el_type(el)
+        nnd = nnds(et)
+        
+        area(el) = 0d0                
+        DO pt = 1,nqpt(et)
+          CALL element_transformation(nnd,elxy(:,el,1),elxy(:,el,2),psi(:,pt,et),xpt,ypt, &
+                                      dpsidr(:,pt,et),dpsids(:,pt,et),drdx,drdy,dsdx,dsdy,detJ)        
+        
+          area(el) = area(el) + wpt(pt,et)*detJ
+        ENDDO
+        
+!         IF (et == 1) THEN
+!           x1 = elxy(1,el,1)
+!           x2 = elxy(2,el,1)
+!           x3 = elxy(3,el,1)
+!           y1 = elxy(1,el,2)
+!           y2 = elxy(2,el,2) 
+!           y3 = elxy(3,el,2) 
+!           
+!           PRINT*, area(el), .5d0*((x2-x1)*(y3-y1)-(x3-x1)*(y2-y1))          
+!         ENDIF
+      ENDDO
+      
+      RETURN
+      END SUBROUTINE element_area
+      
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
 
       END MODULE transformation

@@ -54,16 +54,27 @@ direc_ls = [
             #'/home/sbrus/data-drive/galveston_spline_flux_fix/galveston_tri_x64/p3/ctp3/hbp3/plots/inlet/',
             #'/home/sbrus/data-drive/galveston_spline_flux_fix/galveston_quad_x64/p3/ctp3/hbp3/plots/inlet/',    
             
-            '/home/sbrus/data-drive/galveston_spline_flux_fix/galveston_quad_x64/p3/ctp3/hbp3/plots/inlet/',  
-            '/home/sbrus/data-drive/galveston_spline_flux_fix/galveston_tri/p3/ctp3/hbp3/plots/inlet/',   
-            '/home/sbrus/data-drive/galveston_spline_flux_fix/galveston_tri/p2/ctp2/hbp2/plots/inlet/',              
-            '/home/sbrus/data-drive/galveston_spline_flux_fix/galveston_tri/p1/ctp2/hbp1/plots/inlet/',             
-            '/home/sbrus/data-drive/galveston_spline_flux_fix/galveston_tri/adcirc/ESL0/plots/inlet/',            
+            #'/home/sbrus/data-drive/galveston_spline_flux_fix/galveston_quad_x64/p3/ctp3/hbp3/plots/inlet/',  
+            #'/home/sbrus/data-drive/galveston_spline_flux_fix/galveston_tri/p3/ctp3/hbp3/plots/inlet/',   
+            #'/home/sbrus/data-drive/galveston_spline_flux_fix/galveston_tri/p2/ctp2/hbp2/plots/inlet/',              
+            #'/home/sbrus/data-drive/galveston_spline_flux_fix/galveston_tri/p1/ctp2/hbp1/plots/inlet/',             
+            #'/home/sbrus/data-drive/galveston_spline_flux_fix/galveston_tri/adcirc/ESL0/plots/inlet/',        
+            
+            '/home/sbrus/data-drive/galveston_SL18_tides/galveston_SL18/p1/ctp2/hbp1/',
+            '/home/sbrus/data-drive/galveston_SL18_tides/galveston_SL18/p1/ctp1/hbp1/',
             ]         
             
 #offset = [0,0,0]         
-offset = [1,1,1,1,0] #account for adcirc not writing the initial condition
-         
+#offset = [1,1,1,1,0] #account for adcirc not writing the initial condition
+
+offset = []
+for direc in direc_ls:
+  if 'adcirc' in direc:
+    offset.append(0)
+  else:
+    offset.append(1)
+    
+    
 keep_going = True  
 snap = 1
 while keep_going:          

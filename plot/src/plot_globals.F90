@@ -55,6 +55,8 @@
       INTEGER :: ncdec
       INTEGER :: ntdec
       
+      INTEGER :: ord_skp
+      
       CHARACTER(100) :: main_font = "/Times-Roman"
       CHARACTER(100) :: math_font = "/Times-Italic"    
 !       CHARACTER(100) :: main_font = "(/usr/share/fonts/type1/gsfonts/cmr10.pfb)"
@@ -66,9 +68,9 @@
       
       INTEGER :: ps
       INTEGER :: pc
-      INTEGER :: pplt(4)
-      INTEGER :: npplt(4)
-      INTEGER :: nptri(4)
+      INTEGER, DIMENSION(:), ALLOCATABLE :: pplt
+      INTEGER, DIMENSION(:), ALLOCATABLE :: npplt
+      INTEGER, DIMENSION(:), ALLOCATABLE :: nptri
       INTEGER :: mnpp
       INTEGER :: nred 
       
@@ -85,7 +87,8 @@
       REAL(rp), ALLOCATABLE, DIMENSION(:) :: t      
       REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: r,s   
       INTEGER, ALLOCATABLE, DIMENSION(:,:,:) :: rect        
-      REAL(rp), DIMENSION(:,:,:), ALLOCATABLE :: xyplt   
+      REAL(rp), DIMENSION(:,:,:), ALLOCATABLE :: xyplt  
+      REAL(rp), DIMENSION(:), ALLOCATABLE :: el_area
       INTEGER :: outside
       INTEGER, DIMENSION(:), ALLOCATABLE :: el_in
       REAL(rp) :: xbox_min,xbox_max,ybox_min,ybox_max
@@ -137,6 +140,7 @@
         REAL(rp) :: sol_min,sol_max
         REAL(rp) :: snap_min,snap_max
         INTEGER :: nsnap
+        INTEGER, DIMENSION(:), ALLOCATABLE :: el_plt
         REAL(rp), DIMENSION(:,:), ALLOCATABLE :: sol_val
         REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: phi 
         INTEGER :: ndof(4)         
@@ -206,16 +210,18 @@
       nnds(4) = (ctp+1)*(ctp+1)      
       mnnds = maxval(nnds)   
       
-      pplt(1) = ps
-      pplt(2) = ps
-      pplt(3) = pc
-      pplt(4) = pc
+!       pplt(1) = ps
+!       pplt(2) = ps
+!       pplt(3) = pc
+!       pplt(4) = pc
 
-      npplt(1) = (ps+1)*(ps+2)/2
-      npplt(2) = (ps+1)*(ps+1)
-      npplt(3) = (pc+1)*(pc+2)/2
-      npplt(4) = (pc+1)*(pc+1)
-      mnpp = maxval(npplt)      
+!       npplt(1) = (ps+1)*(ps+2)/2
+!       npplt(2) = (ps+1)*(ps+1)
+!       npplt(3) = (pc+1)*(pc+2)/2
+!       npplt(4) = (pc+1)*(pc+1)
+!       mnpp = maxval(npplt)     
+
+      mnpp = (ps*ord_skp+1)**2
       
       END SUBROUTINE sizes
       
