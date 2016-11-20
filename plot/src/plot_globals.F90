@@ -143,6 +143,7 @@
         INTEGER, DIMENSION(:), ALLOCATABLE :: el_plt
         REAL(rp), DIMENSION(:,:), ALLOCATABLE :: sol_val
         REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: phi 
+        INTEGER :: p
         INTEGER :: ndof(4)         
         REAL(rp) :: h0
       
@@ -229,7 +230,7 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
 
       SUBROUTINE setup_plot_types()
-      USE read_dginp, ONLY: h0   
+      USE read_dginp, ONLY: h0,p,hbp   
       
       IMPLICIT NONE
       
@@ -275,6 +276,10 @@
       vel%cscale_unit = 32
       
       bathy%h0 = h0
+      
+      bathy%p = hbp
+      zeta%p = p
+      vel%p = p
       
       END SUBROUTINE setup_plot_types
 

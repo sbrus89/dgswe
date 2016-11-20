@@ -3,11 +3,11 @@
       IMPLICIT NONE
       
       CHARACTER(:), ALLOCATABLE, PARAMETER :: gitBranch = "master" 
-      CHARACTER(:), ALLOCATABLE, PARAMETER :: gitSHA = "b37464a44b61af7065759d2b5dfbc4d096669215 +" 
+      CHARACTER(:), ALLOCATABLE, PARAMETER :: gitSHA = "8c5856e0d7e0327ff8597f4829e93bf5e2ccfcf7 +" 
       CHARACTER(:), ALLOCATABLE, PARAMETER :: compiler_version = "ifort version 14.0.0" 
-      CHARACTER(:), ALLOCATABLE, PARAMETER :: compiler_flags = "-132 -heap-arrays -Iodir/ " 
-      CHARACTER(:), ALLOCATABLE, PARAMETER :: modified_files = "../src/evaluate.f90 ../src/globals.f90 ../src/read_input.f90 ../src/rimls.f90" 
-      CHARACTER(:), ALLOCATABLE, PARAMETER :: compile_date = "Fri Oct 28 01:00:19 EDT 2016" 
+      CHARACTER(:), ALLOCATABLE, PARAMETER :: compiler_flags = "-Iodir/ " 
+      CHARACTER(:), ALLOCATABLE, PARAMETER :: modified_files = "../src/plot_dg.F90 ../src/plot_dg.F90 ../src/plot_dg.F90 ../src/plot_mod.F90 ../src/plot_mod.F90" 
+      CHARACTER(:), ALLOCATABLE, PARAMETER :: compile_date = "Fri Nov 18 23:17:23 EST 2016" 
       CHARACTER(:), ALLOCATABLE, PARAMETER :: host = "chl-tilos" 
             
       CONTAINS      

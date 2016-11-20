@@ -11,139 +11,91 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
 
-      SUBROUTINE evaluate_depth_solution(ne,el_type,el_in,npplt,H,fig)
+      SUBROUTINE evaluate_solution(npt,r,s,fig)
       
       IMPLICIT NONE
       
-      INTEGER, INTENT(IN) :: ne
-      INTEGER, DIMENSION(:), INTENT(IN) :: el_type
-      INTEGER, DIMENSION(:), INTENT(IN) :: el_in
-      INTEGER, DIMENSION(:), INTENT(IN) :: npplt
-      REAL(rp), DIMENSION(:,:), INTENT(IN) :: H
-      TYPE(plot_type), INTENT(INOUT) :: fig
+
       
-      INTEGER :: el,nd,dof
-      INTEGER :: et,npts,ndf
-      INTEGER :: mnpp
-      
-      IF ( .NOT. ALLOCATED(fig%sol_val)) THEN
-        mnpp = MAXVAL(npplt)
-        ALLOCATE(fig%sol_val(mnpp,ne)) 
-      ENDIF
+
       
       fig%snap_min = 1d10
       fig%snap_max = -1d10
-
- elem:DO el = 1,ne
- 
-        IF(el_in(el) == 0) THEN
-          CYCLE elem
-        ENDIF
-        
-        et = el_type(el)
-        npts = npplt(et)
-        ndf = fig%ndof(et)
-
-        
-        DO nd = 1,npts
-          fig%sol_val(nd,el) = 0d0
-          DO dof = 1,ndf
-            fig%sol_val(nd,el) = fig%sol_val(nd,el) + H(dof,el)*fig%phi(dof,nd,et)           
-          ENDDO    
-                  
-          IF (fig%sol_val(nd,el) < fig%snap_min) THEN
-            fig%snap_min = fig%sol_val(nd,el)
+      
+      
+          IF (fig%type_flag == 2 .or. fig%type_flag == 4) THEN
+          
+            CALL element_basis(et,p,ndf,npplt(i),r(:,i),s(:,i),fig%phi(:,:,et))            
+          
+            DO nd = 1,npplt(i)
+              hb_val(nd) = 0d0
+              DO dof = 1,ndf
+                hb_val(nd) = hb_val(nd) + fig%phi(dof,nd,et)*hb(dof,el,1)
+              ENDDO
+            ENDDO
+            
+            IF (fig%type_flag == 2) THEN
+              DO nd = 1,npplt(i) 
+                fig%sol_val(nd,el) = hb_val(nd)
+              ENDDO
+            ENDIF
+          ENDIF                         
+     
+          IF (fig%type_flag == 3 .or. fig%type_flag == 4) THEN
+          
+            CALL element_basis(et,p,fig%ndof(et),npplt(i),r(:,i),s(:,i),fig%phi(:,:,et))           
+          
+            DO nd = 1,npplt(i)
+              zeta_val(nd) = 0d0
+              DO dof = 1,fig%ndof(et)
+                zeta_val(nd) = zeta_val(nd) + fig%phi(dof,nd,et)*Z(dof,el,snap)
+              ENDDO
+            ENDDO
+            
+            IF (fig%type_flag == 3) THEN
+              DO nd = 1,npplt(i)
+                fig%sol_val(nd,el) = zeta_val(nd)
+              ENDDO
+            ENDIF
           ENDIF
           
-          IF (fig%sol_val(nd,el) > fig%snap_max) THEN
-            fig%snap_max = fig%sol_val(nd,el)
-          ENDIF
-          
-          IF (fig%type_flag == 2 .and. fig%sol_val(nd,el) < fig%h0) THEN
-            PRINT "(A,I7,A,F15.7)", "Element depth is less than tolerance: ", el, " hb = ", fig%sol_val(nd,el)          
-          ENDIF          
-        ENDDO       
-        
-      ENDDO elem      
+          IF (fig%type_flag == 4) THEN
+            DO nd = 1,npplt(i)
+              Qx_val(nd) = 0d0
+              Qy_val(nd) = 0d0
+              DO dof = 1,fig%ndof(et)
+                Qx_val(nd) = Qx_val(nd) + fig%phi(dof,nd,et)*Qx(dof,el,snap)
+                Qy_val(nd) = Qy_val(nd) + fig%phi(dof,nd,et)*Qy(dof,el,snap)                
+              ENDDO
+            ENDDO
+            
+            DO nd = 1,npplt(i) 
+              H = zeta_val(nd)+hb_val(nd)
+              u_vel = Qx_val(nd)/H
+              v_vel = Qy_val(nd)/H
+              fig%sol_val(nd,el) = sqrt(u_vel**2+v_vel**2)
+            ENDDO
+          ENDIF                
+
+  
+      
+!           IF (fig%type_flag == 2 .and. fig%sol_val(nd,el) < fig%h0) THEN
+!             PRINT "(A,I7,A,F15.7)", "Element depth is less than tolerance: ", el, " hb = ", fig%sol_val(nd,el)          
+!           ENDIF           
       
       RETURN
-      END SUBROUTINE evaluate_depth_solution      
+      END SUBROUTINE evaluate_solution      
       
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-      SUBROUTINE evaluate_velocity_solution(ne,el_type,el_in,npplt,Qx,Qy,Z_val,hb_val,vel)
-      
-      IMPLICIT NONE
-      
-      INTEGER, INTENT(IN) :: ne
-      INTEGER, DIMENSION(:), INTENT(IN) :: el_type
-      INTEGER, DIMENSION(:), INTENT(IN) :: el_in
-      INTEGER, DIMENSION(:), INTENT(IN) :: npplt
-      REAL(rp), DIMENSION(:,:), INTENT(IN) :: Qx
-      REAL(rp), DIMENSION(:,:), INTENT(IN) :: Qy      
-      REAL(rp), DIMENSION(:,:), INTENT(IN) :: Z_val
-      REAL(rp), DIMENSION(:,:), INTENT(IN) :: hb_val  
-      TYPE(plot_type), INTENT(INOUT) :: vel      
-      
-      REAL(rp) :: Qx_val,Qy_val,H_val
-      INTEGER :: el,nd,dof
-      INTEGER :: et,npts,ndf
-      INTEGER :: mnpp
-      
-      IF ( .NOT. ALLOCATED(vel%sol_val)) THEN
-        mnpp = MAXVAL(npplt)
-        ALLOCATE(vel%sol_val(mnpp,ne)) 
-      ENDIF
-      
-      vel%snap_min = 1d10
-      vel%snap_max = -1d10
 
- elem:DO el = 1,ne
- 
-        IF(el_in(el) == 0) THEN
-          CYCLE elem
-        ENDIF
-        
-        et = el_type(el)
-        npts = npplt(et)
-        ndf = vel%ndof(et)
-        
-        DO nd = 1,npts
-          Qx_val = 0d0
-          Qy_val = 0d0
-          DO dof = 1,ndf
-            Qx_val = Qx_val + Qx(dof,el)*vel%phi(dof,nd,et)
-            Qy_val = Qy_val + Qy(dof,el)*vel%phi(dof,nd,et)            
-          ENDDO            
-          H_val = Z_val(nd,el) + hb_val(nd,el)
-          vel%sol_val(nd,el) = sqrt((Qx_val/H_val)**2 + (Qy_val/H_val)**2)   
-          
-          IF(vel%sol_val(nd,el) < vel%snap_min) THEN
-            vel%snap_min = vel%sol_val(nd,el)
-          ENDIF
-          
-          IF (vel%sol_val(nd,el) > vel%snap_max) THEN
-            vel%snap_max = vel%sol_val(nd,el)
-          ENDIF
-        ENDDO
-        
-      ENDDO elem      
-      
-      
-      RETURN
-      END SUBROUTINE evaluate_velocity_solution      
-      
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-      SUBROUTINE evaluate_basis(p,mnpp,mndof,nel_type,npplt,r,s,sol)
+      SUBROUTINE evaluate_basis(mnpp,mndof,nel_type,npplt,r,s,sol)
       
       USE basis, ONLY: element_nodes,element_basis,linear_basis          
       
       IMPLICIT NONE
       
-      INTEGER, INTENT(IN) :: p
       INTEGER, INTENT(IN) :: mnpp
       INTEGER, INTENT(IN) :: mndof
       INTEGER, INTENT(IN) :: nel_type
@@ -162,7 +114,7 @@
       DO et = 1,nel_type
 
 #ifndef adcirc      
-        CALL element_basis(et,p,sol%ndof(et),npplt(et),r(:,et),s(:,et),sol%phi(:,:,et))       
+        CALL element_basis(et,sol%p,sol%ndof(et),npplt(et),r(:,et),s(:,et),sol%phi(:,:,et))       
 #else        
         CALL linear_basis(npplt(et),r(:,et),s(:,et),sol%phi(:,:,et))
         sol%ndof(et) = 3
