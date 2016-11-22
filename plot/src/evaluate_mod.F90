@@ -11,40 +11,83 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
 
-      SUBROUTINE evaluate_solution(et,sol_type,npts,r,s,snap,sol_val)
+      SUBROUTINE evaluate_solution(el,et,sol_type,snap,sol_val,npts,r,s,phi_hb,phi_sol)
 
-      USE globals, ONLY: hb,Z,Qx,Qy
+      USE plot_globals, ONLY: hb,Z,Qx,Qy
       USE read_dginp, ONLY: p,hbp
+      USE basis, ONLY: element_basis,linear_basis        
       
       IMPLICIT NONE
       
+      INTEGER, INTENT(IN) :: el
       INTEGER, INTENT(IN) :: et
       INTEGER, INTENT(IN) :: sol_type
-      INTEGER, INTENT(IN) :: npts
-      REAL(rp), DIMENSION(:), INTENT(IN) :: r
-      REAL(rp), DIMENSION(:), INTENT(IN) :: s
       INTEGER, INTENT(IN) :: snap
       REAL(rp), DIMENSION(:), INTENT(OUT) :: sol_val
+      INTEGER, INTENT(IN) :: npts
+      REAL(rp), DIMENSION(:), INTENT(IN), OPTIONAL :: r
+      REAL(rp), DIMENSION(:), INTENT(IN), OPTIONAL :: s   
+      REAL(rp), DIMENSION(:,:), INTENT(IN), OPTIONAL :: phi_hb
+      REAL(rp), DIMENSION(:,:), INTENT(IN), OPTIONAL :: phi_sol         
 
       INTEGER :: pt,dof
       INTEGER :: mndf,ndf
-      REAL(rp) :: H,u_vel,v_val
+      REAL(rp) :: H,u_vel,v_vel
       REAL(rp) :: hb_val(npts),zeta_val(npts)
       REAL(rp) :: Qx_val(npts),Qy_val(npts)
-      REAL(rp), DIMENSION(:,:), ALLOCATABLE :: phi
+      REAL(rp), DIMENSION(:,:), ALLOCATABLE :: phib
+      REAL(rp), DIMENSION(:,:), ALLOCATABLE :: phis
 
       mndf = (p+1)**2
-      ALLOCATE(phi(mndf,npts))
+      
+      IF (PRESENT(r) .and. PRESENT(s)) THEN
+      
+        IF (sol_type == 2 .or. sol_type == 4) THEN   
+          ALLOCATE(phib(mndf,npts))        
+          CALL element_basis(et,hbp,ndf,npts,r,s,phib)        
+        ENDIF
+      
+        IF (sol_type == 3 .or. sol_type == 4) THEN        
+          ALLOCATE(phis(mndf,npts))           
+          CALL element_basis(et,p,ndf,npts,r,s,phis)          
+        ENDIF
+      
+      ENDIF
       
       
-      IF (sol_type == 2 .or. sol_type == 4) THEN
-          
-        CALL element_basis(et,hbp,ndf,npts,r,s,phi)            
+      IF (PRESENT(phi_hb)) THEN
+        
+        IF (sol_type == 2 .or. sol_type == 4) THEN   
+          ALLOCATE(phib(mndf,npts))    
+          DO pt = 1,npts
+            DO dof = 1,mndf
+              phib(dof,pt) = phi_hb(dof,pt)
+            ENDDO
+          ENDDO
+        ENDIF
+         
+      ENDIF
+      
+      IF (PRESENT(phi_sol)) THEN
+      
+        IF (sol_type == 3 .or. sol_type == 4) THEN        
+          ALLOCATE(phis(mndf,npts))  
+          DO pt = 1,npts
+            DO dof = 1,mndf
+              phis(dof,pt) = phi_sol(dof,pt)
+            ENDDO
+          ENDDO          
+        ENDIF      
+      
+      ENDIF
+      
+      
+      IF (sol_type == 2 .or. sol_type == 4) THEN                
           
         DO pt = 1,npts
           hb_val(pt) = 0d0
           DO dof = 1,ndf
-            hb_val(pt) = hb_val(pt) + phi(dof,pt)*hb(dof,el,1)
+            hb_val(pt) = hb_val(pt) + phib(dof,pt)*hb(dof,el,1)
           ENDDO
         ENDDO
             
@@ -55,14 +98,12 @@
         ENDIF
       ENDIF                         
      
-      IF (sol_type == 3 .or. sol_type == 4) THEN
-          
-        CALL element_basis(et,p,ndf,npts,r,s,phi)           
+      IF (sol_type == 3 .or. sol_type == 4) THEN                
           
         DO pt = 1,npts
           zeta_val(pt) = 0d0
           DO dof = 1,ndf
-            zeta_val(pt) = zeta_val(pt) + phi(dof,pt)*Z(dof,el,snap)
+            zeta_val(pt) = zeta_val(pt) + phis(dof,pt)*Z(dof,el,snap)
           ENDDO
         ENDDO
             
@@ -78,8 +119,8 @@
           Qx_val(pt) = 0d0
           Qy_val(pt) = 0d0
           DO dof = 1,ndf
-            Qx_val(pt) = Qx_val(pt) + phi(dof,pt)*Qx(dof,el,snap)
-            Qy_val(pt) = Qy_val(pt) + phi(dof,pt)*Qy(dof,el,snap)                
+            Qx_val(pt) = Qx_val(pt) + phis(dof,pt)*Qx(dof,el,snap)
+            Qy_val(pt) = Qy_val(pt) + phis(dof,pt)*Qy(dof,el,snap)                
           ENDDO
         ENDDO
           
@@ -104,87 +145,50 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 
-      SUBROUTINE evaluate_basis(mnpp,mndof,nel_type,npplt,r,s,sol)
+      SUBROUTINE evaluate_basis(p,nord,mnpp,mndof,nel_type,npplt,r,s,ndof,phi)
       
       USE basis, ONLY: element_nodes,element_basis,linear_basis          
       
       IMPLICIT NONE
       
+      INTEGER, INTENT(IN) :: p
+      INTEGER, INTENT(IN) :: nord
       INTEGER, INTENT(IN) :: mnpp
       INTEGER, INTENT(IN) :: mndof
       INTEGER, INTENT(IN) :: nel_type
       INTEGER, DIMENSION(:), INTENT(IN) :: npplt
       REAL(rp), DIMENSION(:,:), INTENT(IN) :: r
       REAL(rp), DIMENSION(:,:), INTENT(IN) :: s
-      TYPE(plot_type), INTENT(INOUT) :: sol
+      INTEGER, DIMENSION(:), ALLOCATABLE, INTENT(OUT) :: ndof
+      REAL(rp), DIMENSION(:,:,:), ALLOCATABLE, INTENT(OUT) :: phi
       
+      INTEGER :: ord
       INTEGER :: i,j
       INTEGER :: et
       INTEGER :: n
 
       
-      ALLOCATE(sol%phi(mndof,mnpp,nel_type))    
+      ALLOCATE(phi(mndof,mnpp,nel_type*nord))
+      ALLOCATE(ndof(nel_type))
 
-      DO et = 1,nel_type
-
+      DO ord = 1,nord
+        DO et = 1,nel_type
+          i = (et-1)*nord+ord
 #ifndef adcirc      
-        CALL element_basis(et,sol%p,sol%ndof(et),npplt(et),r(:,et),s(:,et),sol%phi(:,:,et))       
+          CALL element_basis(et,p,ndof(et),npplt(i),r(:,i),s(:,i),phi(:,:,i))       
 #else        
-        CALL linear_basis(npplt(et),r(:,et),s(:,et),sol%phi(:,:,et))
-        sol%ndof(et) = 3
+          CALL linear_basis(npplt(i),r(:,i),s(:,i),phi(:,:,i))
+          ndof(et) = 3
 #endif
         
-      ENDDO           
+        ENDDO          
+      ENDDO
       
       RETURN
       END SUBROUTINE evaluate_basis
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-      SUBROUTINE find_solution_minmax(ne,el_type,el_in,npplt,fig,Z,hb,Qx,Qy)
-      
-      IMPLICIT NONE
-      
-      INTEGER, INTENT(IN) :: ne
-      INTEGER, DIMENSION(:), INTENT(IN) :: el_type
-      INTEGER, DIMENSION(:), INTENT(IN) :: el_in
-      INTEGER, DIMENSION(:), INTENT(IN) :: npplt      
-      TYPE(plot_type), INTENT(INOUT) :: fig
-      REAL(rp), DIMENSION(:,:), INTENT(INOUT) :: Z           
-      REAL(rp), DIMENSION(:,:), INTENT(INOUT), OPTIONAL :: hb      
-      REAL(rp), DIMENSION(:,:), INTENT(INOUT), OPTIONAL :: Qx     
-      REAL(rp), DIMENSION(:,:), INTENT(INOUT), OPTIONAL :: Qy      
-      
-      REAL(rp) :: temp_min,temp_max
-      
-      
-      IF (fig%type_flag == 3) THEN       
-        CALL evaluate_depth_solution(ne,el_type,el_in,npplt,Z,fig)      
-      ENDIF
-      
-      IF (fig%plot_sol_option /= 1) THEN
-        RETURN
-      ENDIF
-
-      IF (fig%type_flag == 4 .AND. fig%cscale_option == "auto-all") THEN      
-        CALL evaluate_velocity_solution(ne,el_type,el_in,npplt,Qx,Qy,Z,hb,fig)
-      ENDIF      
-      
-      
-      IF (fig%snap_min < fig%sol_min) THEN
-        fig%sol_min = fig%snap_min
-       ENDIF
-          
-      IF (fig%snap_max > fig%sol_max) THEN
-        fig%sol_max = fig%snap_max
-      ENDIF      
-      
-      RETURN
-      END SUBROUTINE
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
 
 
 

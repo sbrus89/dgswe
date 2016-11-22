@@ -55,7 +55,6 @@
       INTEGER :: ncdec
       INTEGER :: ntdec
       
-      INTEGER :: ord_skp
       
       CHARACTER(100) :: main_font = "/Times-Roman"
       CHARACTER(100) :: math_font = "/Times-Italic"    
@@ -68,13 +67,22 @@
       
       INTEGER :: ps
       INTEGER :: pc
+      INTEGER :: p_low
+      INTEGER :: p_high
+      INTEGER :: p_skip
+      INTEGER :: nord
       INTEGER, DIMENSION(:), ALLOCATABLE :: pplt
       INTEGER, DIMENSION(:), ALLOCATABLE :: npplt
       INTEGER, DIMENSION(:), ALLOCATABLE :: nptri
       INTEGER :: mnpp
       INTEGER :: nred 
       
-      INTEGER :: ndof_hb(4)
+      
+      INTEGER, DIMENSION(:), ALLOCATABLE :: ndof_sol      
+      REAL(rp), DIMENSION(:,:,:), ALLOCATABLE :: phi_sol 
+      INTEGER, DIMENSION(:), ALLOCATABLE :: ndof_hb      
+      REAL(rp), DIMENSION(:,:,:), ALLOCATABLE :: phi_hb
+
       
       INTEGER :: i,j
       INTEGER :: nsnap
@@ -85,7 +93,7 @@
       REAL(rp), TARGET :: t_snap
       REAL(rp) :: t_start,t_end
       REAL(rp), ALLOCATABLE, DIMENSION(:) :: t      
-      REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: r,s   
+      REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: r,s  
       INTEGER, ALLOCATABLE, DIMENSION(:,:,:) :: rect        
       REAL(rp), DIMENSION(:,:,:), ALLOCATABLE :: xyplt  
       REAL(rp), DIMENSION(:), ALLOCATABLE :: el_area
@@ -94,6 +102,18 @@
       REAL(rp) :: xbox_min,xbox_max,ybox_min,ybox_max
       REAL(rp) :: figure_width
       
+!       TYPE :: viz
+!         INTEGER, DIMENSION(:), ALLOCATABLE :: p
+!         INTEGER, DIMENSION(:), ALLOCATABLE :: nnds
+!         REAL(rp), DIMENSION(:,:), ALLOCATABLE :: r,s
+!         INTEGER, DIMENSION(:), ALLOCATABLE :: ntri        
+!         INTEGER, DIMENSION(:,:,:), ALLOCATABLE :: tri
+!         REAL(rp), DIMENSION(:,:,:), ALLOCATABLE :: xy
+!         REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: phi_sol 
+!         REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: phi_hb
+!       END TYPE
+!       
+!       TYPE(viz) :: plt
       
       INTEGER :: snap_start
       INTEGER :: snap_end
@@ -222,7 +242,7 @@
 !       npplt(4) = (pc+1)*(pc+1)
 !       mnpp = maxval(npplt)     
 
-      mnpp = (ps*ord_skp+1)**2
+      mnpp = (p_high+1)**2
       
       END SUBROUTINE sizes
       

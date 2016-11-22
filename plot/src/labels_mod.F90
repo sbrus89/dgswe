@@ -499,8 +499,8 @@
       DO i = 1,nn_list
         nd = nd_list(i)
 
-        rpt = xy(1,nd)
-        spt = xy(2,nd)
+        rpt = ax*xy(1,nd)+bx
+        spt = ay*xy(2,nd)+by
         
         IF ((rpt > rmin_axes .and. rpt < rmax_axes) .and. &
             (spt > smin_axes .and. spt < smax_axes) ) THEN

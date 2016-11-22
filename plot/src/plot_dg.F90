@@ -14,8 +14,7 @@
                             grid_file,curve_file,cb_file_exists,bathy_file,hb_file_exists
       USE plot_mod, ONLY: read_colormap,setup_cbounds, &
                           scale_factors,zoom_box,make_plot,make_movie                                                                           
-      USE evaluate_mod, ONLY: evaluate_depth_solution,evaluate_velocity_solution, &
-                              evaluate_basis,find_solution_minmax
+      USE evaluate_mod, ONLY: evaluate_basis
       USE labels_mod, ONLY: latex_axes_labels,run_latex,close_tex, &
                             latex_element_labels,latex_node_labels  
       USE axes_mod, ONLY: write_all_axes                            
@@ -35,9 +34,7 @@
       REAL(rp) :: H
       LOGICAL :: file_exists
       
-      space = 0  
-      ord_skp = 1
-      
+      space = 0        
       
       CALL version_information(6)
       
@@ -86,16 +83,18 @@
 !       CALL find_element_init(nel_type,nverts,np,nnds,nn,xy,nepn,epn)      
       
 
-      PRINT("(A)"), "Calculating additional ploting point coordinates..."      
-      ALLOCATE(r(mnpp,nel_type*ps),s(mnpp,nel_type*ps))      
-      ALLOCATE(psic(mnnds,mnpp,nel_type*ps))
-      ALLOCATE(rect(3,3*mnpp,nel_type*ps))      
-      ALLOCATE(nptri(nel_type*ps),npplt(nel_type*ps),pplt(nel_type*ps))
+      PRINT("(A)"), "Calculating additional ploting point coordinates..."
+      nord = (p_high-p_low+1)/p_skip
+      
+      ALLOCATE(r(mnpp,nel_type*nord),s(mnpp,nel_type*nord))      
+      ALLOCATE(psic(mnnds,mnpp,nel_type*nord))
+      ALLOCATE(rect(3,3*mnpp,nel_type*nord))      
+      ALLOCATE(nptri(nel_type*nord),npplt(nel_type*nord),pplt(nel_type*nord))
       DO et = 1,nel_type 
               
-        DO ord = 1,ps
-          i = (et-1)*ps+ord
-          pplt(i) = (ord-1)*ord_skp+1
+        DO ord = 1,nord
+          i = (et-1)*nord+ord
+          pplt(i) = (ord-1)*p_skip+p_low
           CALL element_nodes(et,space,pplt(i),npplt(i),r(:,i),s(:,i))                  
           CALL shape_functions_area_eval(et,np(et),nnd,npplt(i),r(:,i),s(:,i),psic(:,:,i))  
           CALL reference_element_delaunay(et,npplt(i),r(:,i),s(:,i),nptri(i),rect(:,:,i))        
@@ -109,7 +108,7 @@
       DO el = 1,ne      
         et = el_type(el)                          
         nnd = nnds(et)
-        i = (et-1)*ps+ps
+        i = (et-1)*nord+nord
         npts = npplt(i)
         DO pt = 1,npts              
           CALL element_transformation(nnd,elxy(:,el,1),elxy(:,el,2),psic(:,pt,i),xpt,ypt)           
@@ -120,9 +119,9 @@
              
       
       PRINT("(A)"), "Evaluating reference element coordinate information..."
-      CALL evaluate_basis(mnpp,mndof,nel_type,npplt,r,s,zeta)
-      CALL evaluate_basis(mnpp,mndof,nel_type,npplt,r,s,bathy)
-      CALL evaluate_basis(mnpp,mndof,nel_type,npplt,r,s,vel)
+      CALL evaluate_basis(hbp,nord,mnpp,mndof,nel_type,npplt,r,s,ndof_hb,phi_hb)
+      CALL evaluate_basis(p,nord,mnpp,mndof,nel_type,npplt,r,s,ndof_sol,phi_sol)
+
       
       
       
@@ -131,7 +130,7 @@
       
       
       PRINT("(A)"), "Finding zoom box..."
-      CALL zoom_box(ne,el_type,elxy,xbox_min,xbox_max,ybox_min,ybox_max, &
+      CALL zoom_box(ne,nord,npplt,el_type,xyplt,xbox_min,xbox_max,ybox_min,ybox_max, &
                                                      xmin,xmax,ymin,ymax,el_in)
 
                                                      
@@ -143,9 +142,10 @@
 
 
       
-
+#ifndef adcirc 
       snap_start = snap_start + 1
       snap_end = snap_end + 1      
+#endif      
       
       nsnap_Z = snap_end
       nsnap_Qx = snap_end
@@ -228,13 +228,13 @@
       
       
 
-      CALL make_plot(-1,0d0,mesh)      
+      CALL make_plot(1,0d0,mesh)      
       
       IF (zeta%plot_sol_option == 0 .and. vel%plot_sol_option == 0 .and. bathy%plot_sol_option == 0) THEN
         STOP
       ENDIF      
       
-      CALL make_plot(-1,t_snap,bathy,hb(:,:,1))                         
+      CALL make_plot(1,t_snap,bathy)                         
       
       
       IF (zeta%plot_sol_option == 0 .and. vel%plot_sol_option == 0) THEN
@@ -255,23 +255,9 @@
       
       
 
-      zeta%sol_max = -1d10
-      zeta%sol_min = 1d10
-      vel%sol_max = -1d10
-      vel%sol_min = 1d10        
-      
-      IF (zeta%cscale_option == "auto-all" .or. vel%cscale_option == "auto-all") THEN
-        DO snap = snap_start,snap_end
-        
-          CALL find_solution_minmax(ne,el_type,el_in,npplt,zeta,Z(:,:,snap))
-        
-          CALL find_solution_minmax(ne,el_type,el_in,npplt,vel,zeta%sol_val,bathy%sol_val,Qx(:,:,snap),Qy(:,:,snap))
-        
-        ENDDO
-      ENDIF
 
-      CALL setup_cbounds(zeta,snap_start,snap_end)
-      CALL setup_cbounds(vel,snap_start,snap_end)
+      CALL setup_cbounds(ne,el_in,el_type,npplt,zeta,snap_start,snap_end)
+      CALL setup_cbounds(ne,el_in,el_type,npplt,vel,snap_start,snap_end)
 
       
       PRINT("(A)"), " "
@@ -287,11 +273,11 @@
         PRINT("(A,I5,A,I5,A,F20.5)"), "Time snap: ", snap-1,"/",snap_end," t = ", t_snap        
      
       
-        CALL make_plot(snap,t_snap,zeta,Z(:,:,snap))
+        CALL make_plot(snap,t_snap,zeta)
               
         PRINT("(A)"), " "        
 
-        CALL make_plot(snap,t_snap,vel,zeta%sol_val,bathy%sol_val,Qx(:,:,snap),Qy(:,:,snap))
+        CALL make_plot(snap,t_snap,vel)
         
       ENDDO
       

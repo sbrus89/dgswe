@@ -1,6 +1,7 @@
       SUBROUTINE read_plot_input()
 
-      USE plot_globals, ONLY: rp,input_path,cmap_file,ps,pc,frmt,density, &
+      USE plot_globals, ONLY: rp,input_path,cmap_file,ps,pc,p_low,p_high,p_skip, &
+                              frmt,density, &
                               xbox_min,xbox_max,ybox_min,ybox_max,figure_width, &
                               snap_start,snap_end, &
                               zeta,bathy,vel,mesh, &
@@ -111,8 +112,8 @@
               ENDIF
               
             CASE (9)
-              READ(temp,*) ps
-              PRINT("(A,I3)"), "straight element plot nodes order = ", ps 
+              READ(temp,*) p_low,p_high,p_skip
+              PRINT("(A,I3)"), "straight element plot nodes order = ", p_low,p_high,p_skip
               
             CASE (10)
               READ(temp,*) pc
@@ -156,8 +157,9 @@
                 ENDIF
               ELSE
                 READ(temp,*) zeta%cscale_min,zeta%cscale_max
+                zeta%cscale_option = "spec"
               ENDIF
-              PRINT("(A,A)"), "zeta color scale = ", zeta%cscale_option   
+              PRINT("(A,2(1x,F15.7))"), "zeta color scale = ", zeta%cscale_min,zeta%cscale_max   
               
             CASE (16)
               vel%cscale_option = TRIM(ADJUSTL(temp)) 
@@ -171,8 +173,9 @@
                 ENDIF
               ELSE
                 READ(temp,*) vel%cscale_min,vel%cscale_max
+                vel%cscale_option = "spec"
               ENDIF
-              PRINT("(A,A)"), "velocity color scale = ", vel%cscale_option   
+              PRINT("(A,2(1x,F15.7))"), "velocity color scale = ", vel%cscale_min,vel%cscale_max  
               
             CASE (17)
               READ(temp,*) fontsize

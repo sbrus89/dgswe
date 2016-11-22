@@ -13,7 +13,8 @@
                               nxdec,nydec,ncdec,ntdec, &
                               dr_xlabel,ds_ylabel,ds_clabel,main_font, &
                               ncolors,colors, &
-                              mnpp,ps,pc, &
+                              mnpp,ps,pc,nord, &
+                              phi_hb,phi_sol, &
                               ax,ay,bx,by
       
       IMPLICIT NONE
@@ -27,7 +28,7 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-      SUBROUTINE make_plot(snap,t_snap,fig,H1,H2,Qx,Qy)
+      SUBROUTINE make_plot(snap,t_snap,fig)
             
       USE globals, ONLY: ne,nn,nverts,el_type,xy,ect,elxy, &
                          nbou,fbseg,fbnds, &
@@ -38,7 +39,6 @@
       USE read_dginp, ONLY: p
       USE plot_globals, ONLY: el_in,t_start,t_end,xyplt,pplt,npplt,nptri,rect,r,s, &
                               frmt,density,pc,el_area
-      USE evaluate_mod, ONLY: evaluate_depth_solution,evaluate_velocity_solution  
       USE labels_mod, ONLY: latex_axes_labels,run_latex, & 
                             latex_element_labels,latex_node_labels
       USE axes_mod, ONLY: write_all_axes
@@ -48,53 +48,31 @@
       INTEGER, INTENT(IN) :: snap
       REAL(rp), INTENT(IN) :: t_snap
       TYPE(plot_type), INTENT(INOUT) :: fig      
-      REAL(rp), DIMENSION(:,:), INTENT(INOUT), OPTIONAL :: H1           
-      REAL(rp), DIMENSION(:,:), INTENT(INOUT), OPTIONAL :: H2      
-      REAL(rp), DIMENSION(:,:), INTENT(INOUT), OPTIONAL :: Qx     
-      REAL(rp), DIMENSION(:,:), INTENT(INOUT), OPTIONAL :: Qy
+
       
       CHARACTER(:), ALLOCATABLE :: filename
       CHARACTER(4) :: snap_char
       
-      IF (.not. ALLOCATED(fig%el_plt)) THEN
-        ALLOCATE(fig%el_plt(ne))
-      ENDIF
-              
+ 
       
       IF (fig%plot_sol_option /= 1) THEN
         RETURN
       ENDIF     
                 
-      
-      
-      IF (fig%cscale_option == "auto-snap") THEN      
-        fig%sol_min = fig%snap_min
-        fig%sol_max = fig%snap_max                 
-      ELSE IF (fig%cscale_option == "auto-all") THEN      
-        ! use existing values        
-      ELSE IF (fig%cscale_option == "file") THEN      
-!         DO i = 1,num_cscale_zeta_vals
-!           IF (ABS(cscale_zeta_vals(i,1)-t_snap) < 1d-8) THEN
-!             Z_min = cscale_zeta_vals(i,2)
-!             Z_max = cscale_zeta_vals(i,3)              
-!             EXIT
-!          ENDIF
-!        ENDDO            
+      IF (.not. ALLOCATED(fig%el_plt)) THEN
+        ALLOCATE(fig%el_plt(ne))
+      ENDIF                   
+              
 
-        fig%sol_min = fig%cscale_vals(snap-1,2)
-        fig%sol_max = fig%cscale_vals(snap-1,3)                                      
-      ELSE     
-        fig%sol_min = fig%cscale_min
-        fig%sol_max = fig%cscale_max        
-      ENDIF
+      fig%sol_min = fig%cscale_vals(snap,2)
+      fig%sol_max = fig%cscale_vals(snap,3)                                      
       
-      
-          
+                
       PRINT("(2(A,F10.5))"), "  min value = ", fig%sol_min, "  max value = ", fig%sol_max
       WRITE(fig%cscale_unit,"(3(e24.17,1x))") t_snap,fig%sol_min,fig%sol_max
        
-      IF (snap > 0) THEN 
-        WRITE(snap_char,"(I4.4)") snap-1           
+      IF (fig%type_flag == 3 .or. fig%type_flag == 4) THEN 
+        WRITE(snap_char,"(I4.4)") snap           
         filename = TRIM(ADJUSTL(fig%name))//"_"//snap_char
       ELSE
         filename = TRIM(ADJUSTL(fig%name))
@@ -142,13 +120,15 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
 
-      SUBROUTINE zoom_box(ne,el_type,elxy,xbox_min,xbox_max,ybox_min,ybox_max,xmin,xmax,ymin,ymax,el_in)
+      SUBROUTINE zoom_box(ne,nord,npplt,el_type,xyplt,xbox_min,xbox_max,ybox_min,ybox_max,xmin,xmax,ymin,ymax,el_in)
       
       IMPLICIT NONE
       
       INTEGER, INTENT(IN) :: ne
+      INTEGER, INTENT(IN) :: nord
+      INTEGER, DIMENSION(:), INTENT(IN) :: npplt      
       INTEGER, DIMENSION(:), INTENT(IN) :: el_type
-      REAL(rp), DIMENSION(:,:,:), INTENT(IN) :: elxy
+      REAL(rp), DIMENSION(:,:,:), INTENT(IN) :: xyplt
       REAL(rp), INTENT(IN) :: xbox_min
       REAL(rp), INTENT(IN) :: xbox_max
       REAL(rp), INTENT(IN) :: ybox_min
@@ -172,20 +152,19 @@
       xmin = 1d10
       ymin = 1d10      
       
-      mnpts = maxval(nnds)
-      ALLOCATE(outside(mnpts))
+      ALLOCATE(outside(maxval(npplt)))
       
       ALLOCATE(el_in(ne))
       el_in = 1
       
       DO el = 1,ne      
         et = el_type(el)                          
-        npts = nnds(et)
+        npts = npplt((et-1)*nord+nord)
         outside = 0
         DO pt = 1,npts  
         
-          xpt = elxy(pt,el,1)
-          ypt = elxy(pt,el,2)
+          xpt = xyplt(pt,el,1)
+          ypt = xyplt(pt,el,2)
         
           IF (xpt > xmax) THEN
             xmax = xpt
@@ -616,6 +595,7 @@ tail: DO
       USE plot_globals, ONLY: Z,hb,Qx,Qy      
       USE area_qpts_mod, ONLY: tri_cubature,area_qpts
       USE shape_functions_mod, ONLY: shape_functions_area_eval
+      USE evaluate_mod, ONLY: evaluate_solution
       
       IMPLICIT NONE
       
@@ -782,7 +762,7 @@ tail: DO
 !           ENDDO        
 !         ENDIF
 
-        CALL evaluate_solution(et,fig%type_flag,nqpta(et),qpta(:,1,et),qpta(:,2,et),snap,sol_el)
+        CALL evaluate_solution(el,et,fig%type_flag,snap,sol_el,nqpta(et),qpta(:,1,et),qpta(:,2,et))
         
         sol_avg = 0d0
         DO pt = 1,nqpta(et)
@@ -795,9 +775,9 @@ tail: DO
         
         PRINT "(A,I9,A,I9,A,F15.7)", "ELEMENT: ", el, "    et: ", et, "    sol_avg = ", sol_avg        
          
- order: DO ord = pl,ps
+ order: DO ord = pl,nord
  
-          i = (et-1)*ps+ord
+          i = (et-1)*nord+ord
           
 
           DO pt = 1,npplt(i)              
@@ -859,7 +839,7 @@ tail: DO
 !             ENDDO
 !           ENDIF      
 
-          CALL evaluate_solution(et,fig%type_flag,npplt(i),r(:,i),s(:,i),snap,fig%sol_val(:,el))
+          CALL evaluate_solution(el,et,fig%type_flag,snap,fig%sol_val(:,el),npplt(i),r(:,i),s(:,i))
     
           
           CALL linear_basis(nqpt,qpt(:,1),qpt(:,2),l)          
@@ -959,7 +939,7 @@ tail: DO
 !               
 !             ENDIF
 
-            CALL evaluate_solution(et,fig%type_flag,nqpt,rpt,spt,snap,sol_el)
+            CALL evaluate_solution(el,et,fig%type_flag,snap,sol_el,nqpt,rpt,spt)
 
             
             
@@ -991,8 +971,8 @@ tail: DO
           IF (err/sol_avg < rel_tol .or. err < abs_tol) THEN
             fig%el_plt(el) = i       
             EXIT order     
-          ELSE IF (ord >= ps) THEN
-            fig%el_plt(el) = (et-1)*ps + ps
+          ELSE IF (ord >= nord) THEN
+            fig%el_plt(el) = (et-1)*nord + nord
           ENDIF          
           
         ENDDO order                 
@@ -1000,10 +980,7 @@ tail: DO
         
         ord = fig%el_plt(el)
         
-        DO nd = 1,npplt(ord)
-          xyplt(nd,el,1) = ax*xyplt(nd,el,1) + bx
-          xyplt(nd,el,2) = ay*xyplt(nd,el,2) + by         
-        ENDDO             
+         
         
         DO tri = 1,nptri(ord)
 
@@ -1035,7 +1012,7 @@ tail: DO
          ENDIF          
 
           
-          WRITE(file_unit,"(A,5(F9.5,1x),A)") "[",xyplt(nd,el,1),xyplt(nd,el,2),color_val(1),color_val(2),color_val(3),"]"  
+          WRITE(file_unit,"(A,5(F9.5,1x),A)") "[",ax*xyplt(nd,el,1)+bx,ay*xyplt(nd,el,2)+by,color_val(1),color_val(2),color_val(3),"]"  
         ENDDO        
 
         WRITE(file_unit,"(A)") "trifill"        
@@ -1476,17 +1453,17 @@ edge:DO ed = 1,nbed
           n1 = mod(led+0,nv)+1
           n2 = mod(led+1,nv)+1
           
-          WRITE(file_unit,"(2(F9.5,1x))") xy(1,ect(n1,el)),xy(2,ect(n1,el))
-          WRITE(file_unit,"(2(F9.5,1x))") xy(1,ect(n2,el)),xy(2,ect(n2,el)) 
+          WRITE(file_unit,"(2(F9.5,1x))") ax*xy(1,ect(n1,el))+bx,ay*xy(2,ect(n1,el))+by
+          WRITE(file_unit,"(2(F9.5,1x))") ax*xy(1,ect(n2,el))+bx,ay*xy(2,ect(n2,el))+by
           WRITE(file_unit,"(A)") "draw-line"          
         ELSE
           
           n1 = mod(led,nv)*ctp + 1
           n2 = n1 + ctp
           WRITE(file_unit,"(A)") "newpath"
-          WRITE(file_unit,"(2(F9.5,1x),A)") xyplt(n1,el,1),xyplt(n1,el,2),"moveto" 
+          WRITE(file_unit,"(2(F9.5,1x),A)") ax*xyplt(n1,el,1)+bx,ay*xyplt(n1,el,2)+by,"moveto" 
           DO nd = n1+1,n2
-            WRITE(file_unit,"(2(F9.5,1x),A)") xyplt(nd,el,1),xyplt(nd,el,2), "lineto"
+            WRITE(file_unit,"(2(F9.5,1x),A)") ax*xyplt(nd,el,1)+bx,ay*xyplt(nd,el,2)+by, "lineto"
           ENDDO
           WRITE(file_unit,"(A)") ".5 setlinewidth 2 setlinejoin"          
           WRITE(file_unit,"(A)") "stroke"              
@@ -1545,23 +1522,23 @@ edge:DO ed = 1,nbed
         IF (et == 1) THEN
           IF (fill == 1) THEN
             DO nd = 1,nverts(et)
-              WRITE(file_unit,"(2(F9.5,1x))") xy(1,ect(nd,el)),xy(2,ect(nd,el))    
+              WRITE(file_unit,"(2(F9.5,1x))") ax*xy(1,ect(nd,el))+bx,ay*xy(2,ect(nd,el))+by
             ENDDO                
           WRITE(file_unit,"(A)") "fill-tri-element"            
           ENDIF
         ELSE IF (et == 2) THEN
           IF (fill == 1) THEN
             DO nd = 1,nverts(et)
-              WRITE(file_unit,"(2(F9.5,1x))") xy(1,ect(nd,el)),xy(2,ect(nd,el))    
+              WRITE(file_unit,"(2(F9.5,1x))") ax*xy(1,ect(nd,el))+bx,ay*xy(2,ect(nd,el))+by
             ENDDO                
           WRITE(file_unit,"(A)") "fill-quad-element"            
           ENDIF
        ELSE
           IF (fill == 1) THEN       
             WRITE(file_unit,"(A)") "newpath"
-            WRITE(file_unit,"(2(F9.5,1x),A)") xyplt(1,el,1),xyplt(1,el,2),"moveto" 
+            WRITE(file_unit,"(2(F9.5,1x),A)") ax*xyplt(1,el,1)+bx,ay*xyplt(1,el,2)+by,"moveto" 
             DO nd = 2,nverts(et)*ctp
-              WRITE(file_unit,"(2(F9.5,1x),A)") xyplt(nd,el,1),xyplt(nd,el,2), "lineto"
+              WRITE(file_unit,"(2(F9.5,1x),A)") ax*xyplt(nd,el,1)+bx,ay*xyplt(nd,el,2)+by, "lineto"
             ENDDO
             WRITE(file_unit,"(A)") "gsave 0 0 1 setrgbcolor fill grestore"
           ENDIF        
@@ -1642,16 +1619,25 @@ edge:DO ed = 1,nbed
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
 
-      SUBROUTINE setup_cbounds(fig,snap_start,snap_end)
+      SUBROUTINE setup_cbounds(ne,el_in,el_type,npplt,fig,snap_start,snap_end)
+      
+      USE evaluate_mod, ONLY: evaluate_solution
       
       IMPLICIT NONE
       
+      INTEGER, INTENT(IN) :: ne
+      INTEGER, DIMENSION(:), INTENT(IN) :: el_in
+      INTEGER, DIMENSION(:), INTENT(IN) :: el_type
+      INTEGER, DIMENSION(:), INTENT(iN) :: npplt
       TYPE(plot_type), INTENT(INOUT) :: fig
-      INTEGER, INTENT(IN)  :: snap_start,snap_end         
+      INTEGER, INTENT(IN) :: snap_start
+      INTEGER, INTENT(IN) :: snap_end         
       
-      INTEGER :: i  
+      INTEGER :: i,snap,el,pt
+      INTEGER :: et,npts
       INTEGER :: start_snap,end_snap
       CHARACTER(:), ALLOCATABLE :: filename
+      REAL(rp), DIMENSION(:), ALLOCATABLE :: sol_val
       
       filename = TRIM(ADJUSTL(fig%name))//".cscale"      
       
@@ -1660,16 +1646,83 @@ edge:DO ed = 1,nbed
         WRITE(fig%cscale_unit,"(2I5)") snap_start-1,snap_end-1
       ENDIF      
       
+      fig%num_cscale_vals = snap_end - snap_start + 1
+      
       IF (fig%cscale_option == "file") THEN
         OPEN(unit=fig%cscale_unit,file=filename)
         READ(fig%cscale_unit,*) start_snap,end_snap
         fig%num_cscale_vals = end_snap - start_snap + 1
-        ALLOCATE(fig%cscale_vals(fig%num_cscale_vals,3))
-        DO i = 1,fig%num_cscale_vals
-          READ(fig%cscale_unit,*) fig%cscale_vals(i,1),fig%cscale_vals(i,2),fig%cscale_vals(i,3)
+        ALLOCATE(fig%cscale_vals(end_snap,3))              
+        DO snap = snap_start,snap_end
+          READ(fig%cscale_unit,*) fig%cscale_vals(snap,1),fig%cscale_vals(snap,2),fig%cscale_vals(snap,3)
         ENDDO
         CLOSE(fig%cscale_unit)
-      ENDIF      
+      ENDIF
+      
+      IF (fig%cscale_option == "spec") THEN
+        ALLOCATE(fig%cscale_vals(snap_end,3))
+        DO snap = 1,snap_end
+          fig%cscale_vals(snap,2) = fig%cscale_min
+          fig%cscale_vals(snap,3) = fig%cscale_max
+        ENDDO        
+      ENDIF
+      
+      IF (fig%cscale_option == "auto-snap" .or. fig%cscale_option == "auto-all") THEN
+      
+        ALLOCATE(fig%cscale_vals(snap_end,3))
+        ALLOCATE(sol_val(mnpp))
+        DO snap = snap_start,snap_end        
+    
+          fig%cscale_min = 1d10
+          fig%cscale_max = -1d10      
+    
+    elem: DO el = 1,ne
+    
+            IF (el_in(el) == 0) THEN
+              CYCLE elem
+            ENDIF
+            
+            et = el_type(el)
+            npts = npplt((et-1)*nord+nord)
+            i = (et-1)*nord+nord            
+            
+            CALL evaluate_solution(el,et,fig%type_flag,snap,sol_val,npts,phi_hb=phi_hb(:,:,i),phi_sol=phi_sol(:,:,i))  
+            
+            DO pt = 1,npts
+              IF (sol_val(pt) > fig%cscale_max) THEN
+                fig%cscale_max = sol_val(pt)
+              ENDIF
+              
+              IF (sol_val(pt) < fig%cscale_min) THEN
+                fig%cscale_min = sol_val(pt)
+              ENDIF
+            ENDDO            
+          
+          ENDDO elem
+                
+          fig%cscale_vals(snap,2) = fig%cscale_min
+          fig%cscale_vals(snap,3) = fig%cscale_max
+        ENDDO            
+      ENDIF
+      
+      IF (fig%cscale_option == "auto-all") THEN
+        fig%cscale_min = 1d10
+        fig%cscale_max = -1d10
+        DO snap = snap_start,snap_end
+          IF (fig%cscale_vals(snap,3) > fig%cscale_max) THEN
+            fig%cscale_max = fig%cscale_vals(snap,3)
+          ENDIF
+          
+          IF (fig%cscale_vals(snap,2) < fig%cscale_min) THEN
+            fig%cscale_min = fig%cscale_vals(snap,2)
+          ENDIF
+        ENDDO
+        
+        DO snap = 1,snap_end
+          fig%cscale_vals(snap,2) = fig%cscale_min
+          fig%cscale_vals(snap,3) = fig%cscale_max          
+        ENDDO
+      ENDIF
       
       RETURN
       END SUBROUTINE setup_cbounds
