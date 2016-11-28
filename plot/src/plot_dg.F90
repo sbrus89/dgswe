@@ -227,13 +227,14 @@
 
       
       
-
+      CALL setup_cbounds(ne,el_in,el_type,npplt,mesh,1,1)     
       CALL make_plot(1,0d0,mesh)      
       
       IF (zeta%plot_sol_option == 0 .and. vel%plot_sol_option == 0 .and. bathy%plot_sol_option == 0) THEN
         STOP
       ENDIF      
       
+      CALL setup_cbounds(ne,el_in,el_type,npplt,bathy,1,1)      
       CALL make_plot(1,t_snap,bathy)                         
       
       

@@ -209,10 +209,6 @@
       ndof(4) = ndof(2)      
       mndof = maxval(ndof)
       
-      ndof_hb(1) = (hbp+1)*(hbp+2)/2
-      ndof_hb(2) = (hbp+1)*(hbp+1)
-      ndof_hb(3) = (hbp+1)*(hbp+2)/2
-      ndof_hb(4) = (hbp+1)*(hbp+1)      
       
       nverts(1) = 3
       nverts(2) = 4

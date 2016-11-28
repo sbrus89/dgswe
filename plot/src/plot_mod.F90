@@ -14,7 +14,7 @@
                               dr_xlabel,ds_ylabel,ds_clabel,main_font, &
                               ncolors,colors, &
                               mnpp,ps,pc,nord, &
-                              phi_hb,phi_sol, &
+                              phi_hb,phi_sol,ndof_hb,ndof_sol, &
                               ax,ay,bx,by
       
       IMPLICIT NONE
@@ -1401,7 +1401,7 @@ levels:DO lev = 1,nctick
         DO tri = 1,nptri(ord)        
           DO v = 1,3        
             nd = rect(v,tri,ord)
-            WRITE(file_unit,"(2(F9.5,1x))") xyplt(nd,el,1),xyplt(nd,el,2)    
+            WRITE(file_unit,"(2(F9.5,1x))") ax*xyplt(nd,el,1)+bx,ay*xyplt(nd,el,2)+by
           ENDDO                
           WRITE(file_unit,"(A)") "draw-tri-element"            
         ENDDO
@@ -1637,13 +1637,18 @@ edge:DO ed = 1,nbed
       INTEGER :: et,npts
       INTEGER :: start_snap,end_snap
       CHARACTER(:), ALLOCATABLE :: filename
-      REAL(rp), DIMENSION(:), ALLOCATABLE :: sol_val
+
       
       filename = TRIM(ADJUSTL(fig%name))//".cscale"      
       
-      IF (fig%plot_sol_option == 1) THEN   
+      ALLOCATE(fig%cscale_vals(snap_end,3)) 
+      ALLOCATE(fig%sol_val(mnpp,ne))      
+      
+      IF (fig%plot_sol_option == 1 .and. fig%type_flag > 1) THEN   
         OPEN(unit=fig%cscale_unit,file=filename//".out")  
         WRITE(fig%cscale_unit,"(2I5)") snap_start-1,snap_end-1
+      ELSE
+        RETURN
       ENDIF      
       
       fig%num_cscale_vals = snap_end - snap_start + 1
@@ -1651,8 +1656,7 @@ edge:DO ed = 1,nbed
       IF (fig%cscale_option == "file") THEN
         OPEN(unit=fig%cscale_unit,file=filename)
         READ(fig%cscale_unit,*) start_snap,end_snap
-        fig%num_cscale_vals = end_snap - start_snap + 1
-        ALLOCATE(fig%cscale_vals(end_snap,3))              
+        fig%num_cscale_vals = end_snap - start_snap + 1           
         DO snap = snap_start,snap_end
           READ(fig%cscale_unit,*) fig%cscale_vals(snap,1),fig%cscale_vals(snap,2),fig%cscale_vals(snap,3)
         ENDDO
@@ -1660,7 +1664,6 @@ edge:DO ed = 1,nbed
       ENDIF
       
       IF (fig%cscale_option == "spec") THEN
-        ALLOCATE(fig%cscale_vals(snap_end,3))
         DO snap = 1,snap_end
           fig%cscale_vals(snap,2) = fig%cscale_min
           fig%cscale_vals(snap,3) = fig%cscale_max
@@ -1669,8 +1672,6 @@ edge:DO ed = 1,nbed
       
       IF (fig%cscale_option == "auto-snap" .or. fig%cscale_option == "auto-all") THEN
       
-        ALLOCATE(fig%cscale_vals(snap_end,3))
-        ALLOCATE(sol_val(mnpp))
         DO snap = snap_start,snap_end        
     
           fig%cscale_min = 1d10
@@ -1683,18 +1684,18 @@ edge:DO ed = 1,nbed
             ENDIF
             
             et = el_type(el)
-            npts = npplt((et-1)*nord+nord)
-            i = (et-1)*nord+nord            
+            i = (et-1)*nord+nord                 
+            npts = npplt(i)       
             
-            CALL evaluate_solution(el,et,fig%type_flag,snap,sol_val,npts,phi_hb=phi_hb(:,:,i),phi_sol=phi_sol(:,:,i))  
+            CALL evaluate_solution(el,et,fig%type_flag,snap,fig%sol_val(:,el),npts,phi_hb=phi_hb(:,:,i),phi_sol=phi_sol(:,:,i),ndf_hb=ndof_hb(et),ndf_sol=ndof_sol(et))  
             
             DO pt = 1,npts
-              IF (sol_val(pt) > fig%cscale_max) THEN
-                fig%cscale_max = sol_val(pt)
+              IF (fig%sol_val(pt,el) > fig%cscale_max) THEN
+                fig%cscale_max = fig%sol_val(pt,el)
               ENDIF
               
-              IF (sol_val(pt) < fig%cscale_min) THEN
-                fig%cscale_min = sol_val(pt)
+              IF (fig%sol_val(pt,el) < fig%cscale_min) THEN
+                fig%cscale_min = fig%sol_val(pt,el)
               ENDIF
             ENDDO            
           

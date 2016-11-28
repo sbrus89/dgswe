@@ -11,7 +11,7 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
 
-      SUBROUTINE evaluate_solution(el,et,sol_type,snap,sol_val,npts,r,s,phi_hb,phi_sol)
+      SUBROUTINE evaluate_solution(el,et,sol_type,snap,sol_val,npts,r,s,phi_hb,phi_sol,ndf_hb,ndf_sol)
 
       USE plot_globals, ONLY: hb,Z,Qx,Qy
       USE read_dginp, ONLY: p,hbp
@@ -28,10 +28,12 @@
       REAL(rp), DIMENSION(:), INTENT(IN), OPTIONAL :: r
       REAL(rp), DIMENSION(:), INTENT(IN), OPTIONAL :: s   
       REAL(rp), DIMENSION(:,:), INTENT(IN), OPTIONAL :: phi_hb
-      REAL(rp), DIMENSION(:,:), INTENT(IN), OPTIONAL :: phi_sol         
+      REAL(rp), DIMENSION(:,:), INTENT(IN), OPTIONAL :: phi_sol   
+      INTEGER, INTENT(IN), OPTIONAL :: ndf_hb
+      INTEGER, INTENT(IN), OPTIONAL :: ndf_sol
 
       INTEGER :: pt,dof
-      INTEGER :: mndf,ndf
+      INTEGER :: mndf,ndfb,ndfs
       REAL(rp) :: H,u_vel,v_vel
       REAL(rp) :: hb_val(npts),zeta_val(npts)
       REAL(rp) :: Qx_val(npts),Qy_val(npts)
@@ -44,12 +46,12 @@
       
         IF (sol_type == 2 .or. sol_type == 4) THEN   
           ALLOCATE(phib(mndf,npts))        
-          CALL element_basis(et,hbp,ndf,npts,r,s,phib)        
+          CALL element_basis(et,hbp,ndfb,npts,r,s,phib)        
         ENDIF
       
         IF (sol_type == 3 .or. sol_type == 4) THEN        
           ALLOCATE(phis(mndf,npts))           
-          CALL element_basis(et,p,ndf,npts,r,s,phis)          
+          CALL element_basis(et,p,ndfs,npts,r,s,phis)          
         ENDIF
       
       ENDIF
@@ -64,6 +66,8 @@
               phib(dof,pt) = phi_hb(dof,pt)
             ENDDO
           ENDDO
+          
+          ndfb = ndf_hb
         ENDIF
          
       ENDIF
@@ -76,7 +80,9 @@
             DO dof = 1,mndf
               phis(dof,pt) = phi_sol(dof,pt)
             ENDDO
-          ENDDO          
+          ENDDO  
+          
+          ndfs = ndf_sol
         ENDIF      
       
       ENDIF
@@ -86,7 +92,7 @@
           
         DO pt = 1,npts
           hb_val(pt) = 0d0
-          DO dof = 1,ndf
+          DO dof = 1,ndfb
             hb_val(pt) = hb_val(pt) + phib(dof,pt)*hb(dof,el,1)
           ENDDO
         ENDDO
@@ -102,7 +108,7 @@
           
         DO pt = 1,npts
           zeta_val(pt) = 0d0
-          DO dof = 1,ndf
+          DO dof = 1,ndfs
             zeta_val(pt) = zeta_val(pt) + phis(dof,pt)*Z(dof,el,snap)
           ENDDO
         ENDDO
@@ -118,7 +124,7 @@
         DO pt = 1,npts
           Qx_val(pt) = 0d0
           Qy_val(pt) = 0d0
-          DO dof = 1,ndf
+          DO dof = 1,ndfs
             Qx_val(pt) = Qx_val(pt) + phis(dof,pt)*Qx(dof,el,snap)
             Qy_val(pt) = Qy_val(pt) + phis(dof,pt)*Qy(dof,el,snap)                
           ENDDO
