@@ -7,11 +7,12 @@
       CONTAINS
       
 
-      SUBROUTINE reference_element_delaunay(et,npt,ri,si,ntri,ect)
+      SUBROUTINE reference_element_delaunay(et,p,npt,ri,si,ntri,ect)
 
       IMPLICIT NONE
       
       INTEGER, INTENT(IN) :: et
+      INTEGER, INTENT(IN) :: p
       INTEGER, INTENT(IN) :: npt
       REAL(rp), DIMENSION(:), INTENT(IN) :: ri
       REAL(rp), DIMENSION(:), INTENT(IN) :: si
@@ -19,7 +20,7 @@
       INTEGER, DIMENSION(:,:), INTENT(OUT) :: ect
 
       
-      INTEGER :: i,j,m,k
+      INTEGER :: i,j,m,k,ed
       INTEGER :: remove
       INTEGER :: n
       REAL(rp), ALLOCATABLE, DIMENSION(:) :: r,s      
@@ -29,7 +30,7 @@
       INTEGER, ALLOCATABLE, DIMENSION(:) :: lend
       INTEGER :: lnew
       INTEGER, ALLOCATABLE, DIMENSION(:) :: near
-      INTEGER, ALLOCATABLE, DIMENSION(:) :: next
+      INTEGER, ALLOCATABLE, DIMENSION(:) :: next    
       INTEGER :: ier
       INTEGER :: nit
       INTEGER :: nx
@@ -40,10 +41,12 @@
       INTEGER :: lcc(1),lct(1)
       INTEGER :: nrow
       INTEGER :: nt
+      INTEGER :: bcnt
       INTEGER, ALLOCATABLE, DIMENSION(:,:) :: ltri   
       INTEGER :: lwk
       INTEGER, DIMENSION(:,:), ALLOCATABLE :: iwk
       INTEGER, DIMENSION(:), ALLOCATABLE :: tri_flag
+      INTEGER, DIMENSION(:), ALLOCATABLE :: k2m
       INTEGER :: n1,n2      
       REAL(rp) :: rdiff,sdiff,tol
       CHARACTER(3) :: nout
@@ -54,7 +57,7 @@
       IF (mod(et,2) == 1) THEN
       
         ALLOCATE(r(n+1),s(n+1),x(n+1),y(n+1))
-        DO i = n,1,-1    ! add extra node so that first three aren't collinear
+        DO i = n,1,-1    ! add dummy node so that first three aren't collinear
           r(i+1) = ri(i)
           s(i+1) = si(i)
         ENDDO
@@ -68,6 +71,7 @@
         ENDDO 
       ELSE
         ALLOCATE(r(n),s(n),x(n),y(n))
+        ALLOCATE(k2m(n))
 
         nx_rp = sqrt(real(n,rp))
         nx = int(nx_rp)    
@@ -82,6 +86,7 @@
         
         r(k) = ri(m)
         s(k) = si(m)
+        k2m(k) = m
           
         m = m+1
       ENDDO     
@@ -94,6 +99,7 @@
         
         r(k) = ri(m)
         s(k) = si(m)
+        k2m(k) = m        
           
         m = m+1
       ENDDO     
@@ -106,6 +112,7 @@
         
         r(k) = ri(m)
         s(k) = si(m)
+        k2m(k) = m        
           
         m = m+1      
       ENDDO      
@@ -118,6 +125,7 @@
         
         r(k) = ri(m)
         s(k) = si(m)
+        k2m(k) = m        
         
         m = m+1
       ENDDO    
@@ -130,6 +138,7 @@
         
           r(k) = ri(m)
           s(k) = si(m)
+          k2m(k) = m          
           
           m = m+1
         ENDDO
@@ -178,37 +187,89 @@
 !       CALL trplot(90,7.5d0,wx1,wx2,wy1,wy2,ncc,lcc,n,r,s,list,lptr,lend,"(test)",.true.,ier)
 !       CLOSE(90)    
 
-      ALLOCATE(ltri(nrow,12*n))
-      CALL trlist ( ncc, lcc, n, list, lptr, lend, nrow, nt, ltri, lct, ier )
+      
 
+      ALLOCATE(ltri(nrow,12*n))
+      CALL trlist (ncc,lcc,n,list,lptr,lend,nrow,nt,ltri,lct,ier)
+
+      
+      IF (mod(et,2) == 0) THEN ! map quad nodes back to original order
+        DO i = 1,nt 
+          DO j = 1,3            
+            ltri(j,i) = k2m(ltri(j,i))
+          ENDDO          
+        ENDDO        
+      ENDIF
+      
       
       ntri = 0
       DO i = 1,nt
-        remove = 0
- nodes: DO j = 1,3
-          IF (ltri(j,i) == 1) THEN
+      
+        remove = 0        
+        
+        IF (mod(et,2) == 1) THEN  
+        
+          bcnt = 0           ! remove triangle if all its nodes are from the hypotenuse
+          DO j = 1,3
+            DO k = 1,p+1
+              m = p+1+k
+              IF (ltri(j,i) == m) THEN
+                bcnt = bcnt + 1
+              ENDIF
+            ENDDO          
+          ENDDO
+          
+          IF (bcnt == 3) THEN
             remove = 1
-            EXIT nodes                        
-          ENDIF 
-        ENDDO nodes
+          ENDIF          
+          
+   nodes: DO j = 1,3        ! remove triangle if it contains the dummy node
+            IF (ltri(j,i) == 1) THEN
+              remove = 1
+              EXIT nodes                        
+            ENDIF 
+          ENDDO nodes     
+          
+        ELSE IF (mod(et,2) == 0) THEN
+        
+          DO ed = 1,4       ! remove triangle if all its nodes are from a single edge
+            bcnt = 0
+            DO j = 1,3
+              DO k = 1,p+1
+                m = (ed-1)*3 + k
+                IF (m == 4*p+1) THEN
+                  m = 1
+                ENDIF
+              
+                IF (ltri(j,i) ==  m)THEN
+                  bcnt = bcnt + 1
+                ENDIF
+              ENDDO          
+            ENDDO     
+            IF (bcnt == 3) THEN
+              remove = 1
+            ENDIF   
+          ENDDO
+          
+        ENDIF
+        
+
+            
         
         IF (remove == 0) THEN
           ntri = ntri + 1
           DO j = 1,3
-            ect(j,ntri) = ltri(j,i)-1    ! -1 to account for extra node
+            IF (mod(et,2) == 1) THEN
+              ect(j,ntri) = ltri(j,i)-1    ! -1 to account for extra node
+            ELSE IF (mod(et,2) == 0) THEN
+              ect(j,ntri) = ltri(j,i)
+            ENDIF
           ENDDO
         ENDIF
+        
       ENDDO
 
 
-
-!       ntri = 0
-!       DO i = 1,nt     
-!           ntri = ntri + 1
-!           DO j = 1,3
-!             ect(j,ntri) = ltri(j,i)
-!           ENDDO
-!       ENDDO
 
       RETURN
       END SUBROUTINE reference_element_delaunay

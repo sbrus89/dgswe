@@ -97,9 +97,14 @@
           pplt(i) = (ord-1)*p_skip+p_low
           CALL element_nodes(et,space,pplt(i),npplt(i),r(:,i),s(:,i))                  
           CALL shape_functions_area_eval(et,np(et),nnd,npplt(i),r(:,i),s(:,i),psic(:,:,i))  
-          CALL reference_element_delaunay(et,npplt(i),r(:,i),s(:,i),nptri(i),rect(:,:,i))        
+          CALL reference_element_delaunay(et,pplt(i),npplt(i),r(:,i),s(:,i),nptri(i),rect(:,:,i))        
           
-          PRINT("(4(A,I4))"), "  number of additional nodes/sub-triangles: ", npplt(i),"/",nptri(i)          
+          PRINT("(4(A,I4))"), "  number of additional nodes/sub-triangles: ", npplt(i),"/",nptri(i) 
+          
+!           DO el = 1,nptri(i)
+!             PRINT "(3(I5))", (rect(nd,el,i), nd=1,3)
+!           ENDDO
+!           PRINT*, "" 
         ENDDO         
         
       ENDDO                                    
