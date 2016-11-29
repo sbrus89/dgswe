@@ -1,7 +1,7 @@
 SHELL = /bin/sh
 
 FC = ifort
-FFLAGS = -I$(ODIR) -traceback -g -C #-Dadcirc # -fp-model strict
+FFLAGS = -I$(ODIR) #-traceback -g -C #-Dadcirc # -fp-model strict
 
 VPATH := ../src/
 ODIR = odir/

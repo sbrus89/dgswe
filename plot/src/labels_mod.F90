@@ -15,7 +15,9 @@
 
       IMPLICIT NONE
       
-      INTEGER :: tex_unit = 10        
+      INTEGER :: tex_unit = 10   
+      INTEGER :: nline_texfile      
+      INTEGER :: tex_output_unit = 11            
 
       CONTAINS
 
@@ -550,7 +552,90 @@
       RETURN
       END SUBROUTINE format_number      
             
+            
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!            
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+      SUBROUTINE write_latex_ps_header(file_unit)
+      
+      IMPLICIT NONE
+      
+      INTEGER, INTENT(IN) :: file_unit
+      
+      CHARACTER(1000) :: line
+      INTEGER :: read_stat        
+      
+      OPEN(UNIT=tex_output_unit, FILE="labels.ps")
+      WRITE(file_unit,"(A)") "%!PS-Adobe-3.0"      
+!       WRITE(file_unit,"(A)") "%!PS-Adobe-3.0 EPSF-3.0"
+!       WRITE(file_unit,"(A,4(F9.5,1x))") "%%BoundingBox: ",rmin_axes,smin_axes,rmax_axes,smax_axes           
+      nline_texfile = 0
+head: DO
+        READ(tex_output_unit,"(A)",IOSTAT=read_stat) line
+        nline_texfile = nline_texfile + 1        
+        IF (read_stat < 0 ) THEN
+          PRINT*, "Error in LaTeX file"
+          STOP
+        ELSEIF (TRIM(ADJUSTL(line)) == "%%EndSetup") THEN
+          WRITE(file_unit,"(A)") line
+          EXIT head
+        ELSEIF (nline_texfile > 1) THEN
+          WRITE(file_unit,"(A)") line                        
+        ENDIF
+                
+      ENDDO head          
+      
+      
+      RETURN
+      END SUBROUTINE write_latex_ps_header
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
+
+
+      SUBROUTINE write_latex_ps_body(file_unit)
+      
+      IMPLICIT NONE
+      
+      INTEGER, INTENT(IN) :: file_unit
+      
+      CHARACTER(1000) :: line
+      INTEGER :: read_stat   
+      
+tail: DO
+        READ(tex_output_unit,"(A)",IOSTAT=read_stat) line
+        nline_texfile = nline_texfile + 1        
+        IF (read_stat < 0 ) THEN
+          EXIT tail                
+        ENDIF
+                
+        WRITE(file_unit,"(A)") line
+                
+      ENDDO tail           
+   
+ 
+      CLOSE(tex_output_unit)      
+
+      
+      RETURN
+      END SUBROUTINE write_latex_ps_body           
+    
+      
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+      SUBROUTINE remove_latex_files()
+      
+      IMPLICIT NONE
+      
+      CALL SYSTEM("rm labels.aux labels.dvi labels.log labels.ps labels.tex")
+      
+      RETURN
+      END SUBROUTINE
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
       END MODULE labels_mod

@@ -65,6 +65,7 @@
       INTEGER :: et,nv
 
       
+      INTEGER :: adapt_option
       INTEGER :: ps
       INTEGER :: pc
       INTEGER :: p_low
@@ -283,9 +284,7 @@
       mesh%t_snap => t_snap
       bathy%t_snap => t_snap
       zeta%t_snap => t_snap
-      vel%t_snap => t_snap    
-      
-      bathy%cscale_option = "auto-snap"      
+      vel%t_snap => t_snap            
       
       zeta%cscale_unit = 30
       bathy%cscale_unit = 31

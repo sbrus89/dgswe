@@ -13,15 +13,14 @@
                               nxdec,nydec,ncdec,ntdec, &
                               dr_xlabel,ds_ylabel,ds_clabel,main_font, &
                               ncolors,colors, &
-                              mnpp,ps,pc,nord, &
+                              mnpp,ps,pc,nord,adapt_option, &
                               phi_hb,phi_sol,ndof_hb,ndof_sol, &
                               ax,ay,bx,by
       
       IMPLICIT NONE
       
       INTEGER :: unit_count = 99   
-      INTEGER :: nline_texfile      
-      INTEGER :: tex_output_unit = 11             
+       
       
       CONTAINS
       
@@ -40,7 +39,8 @@
       USE plot_globals, ONLY: el_in,t_start,t_end,xyplt,pplt,npplt,nptri,rect,r,s, &
                               frmt,density,pc,el_area
       USE labels_mod, ONLY: latex_axes_labels,run_latex, & 
-                            latex_element_labels,latex_node_labels
+                            latex_element_labels,latex_node_labels, &
+                            write_latex_ps_body,remove_latex_files
       USE axes_mod, ONLY: write_all_axes
             
       IMPLICIT NONE
@@ -49,12 +49,11 @@
       REAL(rp), INTENT(IN) :: t_snap
       TYPE(plot_type), INTENT(INOUT) :: fig      
 
-      
+      INTEGER :: el,et
       CHARACTER(:), ALLOCATABLE :: filename
       CHARACTER(4) :: snap_char
       
  
-      
       IF (fig%plot_sol_option /= 1) THEN
         RETURN
       ENDIF     
@@ -63,17 +62,21 @@
         ALLOCATE(fig%el_plt(ne))
       ENDIF                   
               
+      DO el = 1,ne
+        et = el_type(el)
+        fig%el_plt(el) = (et-1)*nord + nord
+      ENDDO              
 
       fig%sol_min = fig%cscale_vals(snap,2)
       fig%sol_max = fig%cscale_vals(snap,3)                                      
       
                 
       PRINT("(2(A,F10.5))"), "  min value = ", fig%sol_min, "  max value = ", fig%sol_max
-      WRITE(fig%cscale_unit,"(3(e24.17,1x))") t_snap,fig%sol_min,fig%sol_max
        
       IF (fig%type_flag == 3 .or. fig%type_flag == 4) THEN 
         WRITE(snap_char,"(I4.4)") snap           
         filename = TRIM(ADJUSTL(fig%name))//"_"//snap_char
+        WRITE(fig%cscale_unit,"(3(e24.17,1x))") t_snap,fig%sol_min,fig%sol_max        
       ELSE
         filename = TRIM(ADJUSTL(fig%name))
       ENDIF
@@ -95,22 +98,28 @@
       ENDIF
       IF (fig%plot_lines_option == 1) THEN
         CALL plot_line_contours(fig%ps_unit,ne,el_type,el_in,nptri,rect,xyplt,r,s,snap,fig)          
-      ENDIF
+      ENDIF      
       
-      CALL write_all_axes(fig%ps_unit,fig%cbar_flag,fig%tbar_flag,t_snap,t_start,t_end)               
-      CALL SYSTEM("cp "//filename//".ps "//filename//"_nomesh.ps") 
-      CALL convert_ps(filename//"_nomesh",frmt,density,fig%rm_ps)         
+      IF (adapt_option == 1) THEN
+        CALL SYSTEM("cp "//filename//".ps "//filename//"_pltmesh.ps")
+        OPEN(UNIT=999,FILE=filename//"_pltmesh.ps",POSITION="APPEND")
+        CALL plot_vis_mesh(999,ne,el_type,el_in,xyplt,nptri,rect,fig)           
+        CALL convert_ps(filename//"_pltmesh",frmt,density,fig%rm_ps)         
+      ENDIF 
+      
       IF (fig%plot_mesh_option == 1) THEN
 !         CALL fill_elements(fig%ps_unit,ne,nverts,pc,el_type,el_in,xy,ect,xyplt)      
-!         CALL plot_mesh(fig%ps_unit,ne,nverts,pc,el_type,el_in,xy,ect,xyplt)
-        CALL plot_vis_mesh(fig%ps_unit,ne,el_type,el_in,xyplt,nptri,rect,fig)        
+        CALL plot_mesh(fig%ps_unit,ne,nverts,fig%el_plt,pplt,el_type,el_in,xy,ect,xyplt)     
 !         CALL plot_boundaries(fig%ps_unit,nverts,pc,nobed,obedn,ged2el,ged2led,el_type,el_in,ect,xy,xyplt)       
 !         CALL plot_boundaries(fig%ps_unit,nverts,pc,nnfbed,nfbedn,ged2el,ged2led,el_type,el_in,ect,xy,xyplt)        
 !         CALL plot_boundaries(fig%ps_unit,nverts,pc,nfbed,fbedn,ged2el,ged2led,el_type,el_in,ect,xy,xyplt)          
       ENDIF 
       
+      CALL write_all_axes(fig%ps_unit,fig%cbar_flag,fig%tbar_flag,t_snap,t_start,t_end) 
+      CALL write_latex_ps_body(fig%ps_unit)
       
       CALL close_ps(filename,fig%ps_unit)
+      CALL remove_latex_files()
       CALL convert_ps(filename,frmt,density,fig%rm_ps)      
       
       RETURN
@@ -316,6 +325,8 @@
       
       SUBROUTINE write_psheader(file_name,file_unit)
       
+      USE labels_mod, ONLY: write_latex_ps_header
+      
       IMPLICIT NONE
       
       CHARACTER(*), INTENT(IN) :: file_name
@@ -513,27 +524,8 @@
 !       WRITE(file_unit,"(A)") "(/usr/share/fonts/type1/gsfonts/n021003l.pfb)     choosefont"    
 !       WRITE(file_unit,"(A)") "(/usr/share/fonts/type1/gsfonts/cmr10.pfb)     choosefont"        
       
-      
-      
-      OPEN(UNIT=tex_output_unit, FILE="labels.ps")
-      WRITE(file_unit,"(A)") "%!PS-Adobe-3.0"      
-!       WRITE(file_unit,"(A)") "%!PS-Adobe-3.0 EPSF-3.0"
-!       WRITE(file_unit,"(A,4(F9.5,1x))") "%%BoundingBox: ",rmin_axes,smin_axes,rmax_axes,smax_axes           
-      nline_texfile = 0
-head: DO
-        READ(tex_output_unit,"(A)",IOSTAT=read_stat) line
-        nline_texfile = nline_texfile + 1        
-        IF (read_stat < 0 ) THEN
-          PRINT*, "Error in LaTeX file"
-          STOP
-        ELSEIF (TRIM(ADJUSTL(line)) == "%%EndSetup") THEN
-          WRITE(file_unit,"(A)") line
-          EXIT head
-        ELSEIF (nline_texfile > 1) THEN
-          WRITE(file_unit,"(A)") line                        
-        ENDIF
-                
-      ENDDO head       
+            
+      CALL write_latex_ps_header(file_unit) 
 
      
       WRITE(file_unit,"(A)") "gsave newpath"        
@@ -556,32 +548,14 @@ head: DO
       IMPLICIT NONE
       
       CHARACTER(*), INTENT(IN) :: filename
-      INTEGER, INTENT(IN) :: unit_number
-      
-      CHARACTER(1000) :: line
-      INTEGER :: read_stat   
-      
-tail: DO
-        READ(tex_output_unit,"(A)",IOSTAT=read_stat) line
-        nline_texfile = nline_texfile + 1        
-        IF (read_stat < 0 ) THEN
-          EXIT tail                
-        ENDIF
-                
-        WRITE(unit_number,"(A)") line
-                
-      ENDDO tail           
-   
- 
-      CLOSE(tex_output_unit)      
-
+      INTEGER, INTENT(IN) :: unit_number                    
+          
 !       WRITE(unit_number,"(A)") "showpage"
       CLOSE(unit_number)            
 !       CALL SYSTEM("ps2eps -B -C < "//filename//".ps > "//filename//".eps")
       
       RETURN
-      END SUBROUTINE close_ps           
-    
+      END SUBROUTINE close_ps                           
       
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -709,71 +683,21 @@ tail: DO
           pl = 1
         ENDIF
         
-        ! Find element average value for solution
-!         IF (fig%type_flag == 2 .or. fig%type_flag == 4) THEN
-!           CALL element_basis(et,hbp,ndf,nqpta(et),qpta(:,1,et),qpta(:,2,et),phia(:,:,et))              
-!         
-!           DO pt = 1,nqpta(et)
-!             hb_sol(pt) = 0d0
-!             DO dof = 1,ndf
-!                hb_sol(pt) = hb_sol(pt) + phia(dof,pt,et)*hb(dof,el,1)
-!             ENDDO            
-!           ENDDO
-!           
-!           IF (fig%type_flag == 2) THEN
-!             DO pt = 1,nqpta(et)
-!               sol_el(pt) = hb_sol(pt)
-!             ENDDO
-!           ENDIF
-!         ENDIF
-!         
-!         IF (fig%type_flag == 3 .or. fig%type_flag == 4) THEN
-!           CALL element_basis(et,p,ndf,nqpta(et),qpta(:,1,et),qpta(:,2,et),phia(:,:,et))          
-!         
-!           DO pt = 1,nqpta(et)
-!             zeta_sol(pt) = 0d0
-!             DO dof = 1,ndf
-!                zeta_sol(pt) = zeta_sol(pt) + phia(dof,pt,et)*Z(dof,el,snap)
-!             ENDDO            
-!           ENDDO   
-!           
-!           IF (fig%type_flag == 3) THEN
-!             DO pt = 1,nqpta(et)
-!               sol_el(pt) = zeta_sol(pt)
-!             ENDDO
-!           ENDIF          
-!         ENDIF
-!         
-!         IF (fig%type_flag == 4) THEN        
-!           DO pt = 1,nqpta(et)
-!             Qx_sol(pt) = 0d0
-!             Qy_sol(pt) = 0d0
-!             DO dof = 1,ndf
-!                Qx_sol(pt) = Qx_sol(pt) + phia(dof,pt,et)*Qx(dof,el,snap)
-!                Qy_sol(pt) = Qy_sol(pt) + phia(dof,pt,et)*Qy(dof,el,snap)               
-!             ENDDO            
-!           ENDDO    
-!           
-!           DO pt = 1,nqpta(et)
-!             H = zeta_sol(pt) + hb_sol(pt)
-!             u_vel = Qx_sol(pt)/H
-!             v_vel = Qy_sol(pt)/H                
-!             sol_el(pt) = sqrt(u_vel**2 + v_vel**2)
-!           ENDDO        
-!         ENDIF
-
-        CALL evaluate_solution(el,et,fig%type_flag,snap,sol_el,nqpta(et),qpta(:,1,et),qpta(:,2,et))
+        IF (adapt_option == 1) THEN           
+          ! Find element average value for solution
+          CALL evaluate_solution(el,et,fig%type_flag,snap,sol_el,nqpta(et),qpta(:,1,et),qpta(:,2,et))
         
-        sol_avg = 0d0
-        DO pt = 1,nqpta(et)
-          CALL element_transformation(nnd,elxy(:,el,1),elxy(:,el,2),psi(:,pt,et),xpta,ypta, &
-                                      dpsidr(:,pt,et),dpsids(:,pt,et),drdx,drdy,dsdx,dsdy,detJ)                
-          sol_avg = sol_avg + wpta(pt,et)*sol_el(pt)*detJ
-        ENDDO
-        sol_avg = sol_avg/el_area(el)
-        
-        
-        PRINT "(A,I9,A,I9,A,F15.7)", "ELEMENT: ", el, "    et: ", et, "    sol_avg = ", sol_avg        
+          sol_avg = 0d0
+          DO pt = 1,nqpta(et)
+            CALL element_transformation(nnd,elxy(:,el,1),elxy(:,el,2),psi(:,pt,et),xpta,ypta, &
+                                        dpsidr(:,pt,et),dpsids(:,pt,et),drdx,drdy,dsdx,dsdy,detJ)                
+            sol_avg = sol_avg + wpta(pt,et)*sol_el(pt)*detJ
+          ENDDO
+          sol_avg = sol_avg/el_area(el)
+             
+          PRINT*, ""        
+          PRINT "(A,I9,A,I9,A,F15.7)", "ELEMENT: ", el, "    et: ", et, "    sol_avg = ", sol_avg        
+        ENDIF
          
  order: DO ord = pl,nord
  
@@ -784,62 +708,13 @@ tail: DO
             CALL element_transformation(nnd,elxy(:,el,1),elxy(:,el,2),psic(:,pt,i),xyplt(pt,el,1),xyplt(pt,el,2))           
           ENDDO                  
      
-     
-!           IF (fig%type_flag == 2 .or. fig%type_flag == 4) THEN
-!           
-!             CALL element_basis(et,hbp,ndf,npplt(i),r(:,i),s(:,i),fig%phi(:,:,et))            
-!           
-!             DO nd = 1,npplt(i)
-!               hb_val(nd) = 0d0
-!               DO dof = 1,ndf
-!                 hb_val(nd) = hb_val(nd) + fig%phi(dof,nd,et)*hb(dof,el,1)
-!               ENDDO
-!             ENDDO
-!             
-!             IF (fig%type_flag == 2) THEN
-!               DO nd = 1,npplt(i) 
-!                 fig%sol_val(nd,el) = hb_val(nd)
-!               ENDDO
-!             ENDIF
-!           ENDIF                         
-!      
-!           IF (fig%type_flag == 3 .or. fig%type_flag == 4) THEN
-!           
-!             CALL element_basis(et,p,fig%ndof(et),npplt(i),r(:,i),s(:,i),fig%phi(:,:,et))           
-!           
-!             DO nd = 1,npplt(i)
-!               zeta_val(nd) = 0d0
-!               DO dof = 1,fig%ndof(et)
-!                 zeta_val(nd) = zeta_val(nd) + fig%phi(dof,nd,et)*Z(dof,el,snap)
-!               ENDDO
-!             ENDDO
-!             
-!             IF (fig%type_flag == 3) THEN
-!               DO nd = 1,npplt(i)
-!                 fig%sol_val(nd,el) = zeta_val(nd)
-!               ENDDO
-!             ENDIF
-!           ENDIF
-!           
-!           IF (fig%type_flag == 4) THEN
-!             DO nd = 1,npplt(i)
-!               Qx_val(nd) = 0d0
-!               Qy_val(nd) = 0d0
-!               DO dof = 1,fig%ndof(et)
-!                 Qx_val(nd) = Qx_val(nd) + fig%phi(dof,nd,et)*Qx(dof,el,snap)
-!                 Qy_val(nd) = Qy_val(nd) + fig%phi(dof,nd,et)*Qy(dof,el,snap)                
-!               ENDDO
-!             ENDDO
-!             
-!             DO nd = 1,npplt(i) 
-!               H = zeta_val(nd)+hb_val(nd)
-!               u_vel = Qx_val(nd)/H
-!               v_vel = Qy_val(nd)/H
-!               fig%sol_val(nd,el) = sqrt(u_vel**2+v_vel**2)
-!             ENDDO
-!           ENDIF      
+          ! Evaluate solution at plotting nodes
+          CALL evaluate_solution(el,et,fig%type_flag,snap,fig%sol_val(:,el),npplt(i),phi_hb=phi_hb(:,:,i),phi_sol=phi_sol(:,:,i),ndf_hb=ndof_hb(et),ndf_sol=ndof_sol(et))          
+!           CALL evaluate_solution(el,et,fig%type_flag,snap,fig%sol_val(:,el),npplt(i),r(:,i),s(:,i))       
 
-          CALL evaluate_solution(el,et,fig%type_flag,snap,fig%sol_val(:,el),npplt(i),r(:,i),s(:,i))
+          IF (adapt_option == 0) THEN
+            EXIT order
+          ENDIF
     
           
           CALL linear_basis(nqpt,qpt(:,1),qpt(:,2),l)          
@@ -848,7 +723,7 @@ tail: DO
           max_err = 0d0
   sub_tri:DO tri = 1,nptri(i)
           
-            
+            ! Evaluate linear solution at plotting element quadrature points  
             sol_lin = 0d0
             DO pt = 1,nqpt
               DO v = 1,3              
@@ -875,70 +750,7 @@ tail: DO
             
             CALL xy2rs(et,np(et),elxy(:,el,1),elxy(:,el,2),nqpt,xpt,ypt,rpt,spt)   
             
-!             PRINT*, nqpt
-!             DO pt = 1,nqpt
-!               PRINT*, rpt(pt),spt(pt)
-!             ENDDO
-            
-!             IF (fig%type_flag == 2 .or. fig%type_flag == 4) THEN
-!             
-!               CALL element_basis(et,hbp,ndf,nqpt,rpt,spt,fig%phi(:,:,et))     
-!             
-!               DO pt = 1,nqpt
-!                 hb_sol(pt) = 0d0
-!                 DO dof = 1,ndf
-!                   hb_sol(pt) = hb_sol(pt) + fig%phi(dof,pt,et)*hb(dof,el,1)
-!                 ENDDO
-!               ENDDO
-!             
-!               IF (fig%type_flag == 2) THEN
-!                 DO pt = 1,nqpt
-!                   sol_el(pt) = hb_sol(pt)
-!                 ENDDO
-!               ENDIF
-!             
-!             ENDIF
-!       
-!                      
-!             IF (fig%type_flag == 3 .or. fig%type_flag == 4) THEN         
-!             
-!               CALL element_basis(et,p,fig%ndof(et),nqpt,rpt,spt,fig%phi(:,:,et))          
-!               
-!               DO pt = 1,nqpt    
-!                 zeta_sol(pt) = 0d0
-!                 DO dof = 1,fig%ndof(et)
-!                   zeta_sol(pt) = zeta_sol(pt) + fig%phi(dof,pt,et)*Z(dof,el,snap)
-!                 ENDDO
-!               ENDDO
-!               
-!               IF (fig%type_flag == 3) THEN
-!                 DO pt = 1,nqpt
-!                   sol_el(pt) = zeta_sol(pt)
-!                 ENDDO
-!               ENDIF   
-!               
-!             ENDIF
-!             
-!             
-!             IF (fig%type_flag == 4) THEN
-!               DO pt = 1,nqpt
-!                 Qx_sol(pt) = 0d0
-!                 Qy_sol(pt) = 0d0
-!                 DO dof = 1,fig%ndof(et)
-!                   Qx_sol(pt) = Qx_sol(pt) + fig%phi(dof,pt,et)*Qx(dof,el,snap)
-!                   Qy_sol(pt) = Qy_sol(pt) + fig%phi(dof,pt,et)*Qy(dof,el,snap)
-!                 ENDDO
-!               ENDDO
-!               
-!               DO pt = 1,nqpt
-!                 H = zeta_sol(pt) + hb_sol(pt)
-!                 u_vel = Qx_sol(pt)/H
-!                 v_vel = Qy_sol(pt)/H                
-!                 sol_el(pt) = sqrt(u_vel**2 + v_vel**2)
-!               ENDDO
-!               
-!             ENDIF
-
+            ! Evaluate DG solution at plotting element quadrature points
             CALL evaluate_solution(el,et,fig%type_flag,snap,sol_el,nqpt,rpt,spt)
 
             
@@ -971,8 +783,6 @@ tail: DO
           IF (err/sol_avg < rel_tol .or. err < abs_tol) THEN
             fig%el_plt(el) = i       
             EXIT order     
-          ELSE IF (ord >= nord) THEN
-            fig%el_plt(el) = (et-1)*nord + nord
           ENDIF          
           
         ENDDO order                 
@@ -1018,8 +828,7 @@ tail: DO
         WRITE(file_unit,"(A)") "trifill"        
         
         ENDDO
-        
-        PRINT*, ""
+
       ENDDO elem
 
 
@@ -1062,7 +871,7 @@ tail: DO
       INTEGER :: n1,n2
       INTEGER :: nd1,nd2
       REAL(rp) :: x(2),y(2)
-      REAL(rp) :: r,s,re(2),se(2)
+      REAL(rp) :: r,s,re(1),se(1)
       REAL(rp) :: r1,r2,s1,s2
       REAL(rp) :: t,f,dfdr,dfds,dfdt,dt,t0
       INTEGER :: max_it
@@ -1285,7 +1094,7 @@ levels:DO lev = 1,nctick
                  ENDIF
  
                  CALL shape_functions_area_eval(et,np(et),nnd,1,re,se,l)
-                 CALL element_transformation(nnd,elxy(:,el,1),elxy(:,el,2),l(:,1),x(i),y(i))   
+                 CALL element_transformation(nnd,elxy(:,el,1),elxy(:,el,2),l(:,1),x(i),y(i))  
                  
  
                !!!! Edge midpoint !!!!
@@ -1303,11 +1112,9 @@ levels:DO lev = 1,nctick
                STOP
              ENDIF 
              
-
              WRITE(file_unit,"(2(F9.5,1x))") ax*x(1)+bx,ay*y(1)+by
              WRITE(file_unit,"(2(F9.5,1x))") ax*x(2)+bx,ay*y(2)+by     
              WRITE(file_unit,"(A)") "draw-line"  
-
              
            ENDDO subtri
          ENDDO elem
@@ -1319,14 +1126,15 @@ levels:DO lev = 1,nctick
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
 
-      SUBROUTINE plot_mesh(file_unit,ne,nverts,ctp,el_type,el_in,xy,ect,xyplt)
+      SUBROUTINE plot_mesh(file_unit,ne,nverts,el_plt,pplt,el_type,el_in,xy,ect,xyplt)
       
       IMPLICIT NONE
       
       INTEGER, INTENT(IN) :: file_unit
       INTEGER, INTENT(IN) :: ne
       INTEGER, DIMENSION(:), INTENT(IN) :: nverts
-      INTEGER, INTENT(IN) :: ctp
+      INTEGER, DIMENSION(:), INTENT(IN) :: el_plt
+      INTEGER, DIMENSION(:), INTENT(IN) :: pplt
       INTEGER, DIMENSION(:), INTENT(IN) :: el_type
       INTEGER, DIMENSION(:), INTENT(IN) :: el_in      
       REAL(rp), DIMENSION(:,:), INTENT(IN) :: xy
@@ -1358,7 +1166,7 @@ levels:DO lev = 1,nctick
         ELSE
           WRITE(file_unit,"(A)") "newpath"
           WRITE(file_unit,"(2(F9.5,1x),A)") ax*xyplt(1,el,1)+bx,ay*xyplt(1,el,2)+by,"moveto" 
-          DO nd = 2,nverts(et)*ctp
+          DO nd = 2,nverts(et)*pplt(el_plt(el))
             WRITE(file_unit,"(2(F9.5,1x),A)") ax*xyplt(nd,el,1)+bx,ay*xyplt(nd,el,2)+by, "lineto"
           ENDDO
           WRITE(file_unit,"(A)") "closepath"
@@ -1644,11 +1452,13 @@ edge:DO ed = 1,nbed
       ALLOCATE(fig%cscale_vals(snap_end,3)) 
       ALLOCATE(fig%sol_val(mnpp,ne))      
       
-      IF (fig%plot_sol_option == 1 .and. fig%type_flag > 1) THEN   
+      IF (fig%plot_sol_option == 0 .or. fig%type_flag == 1) THEN
+        RETURN
+      ENDIF
+      
+      IF (fig%type_flag > 2) THEN   
         OPEN(unit=fig%cscale_unit,file=filename//".out")  
         WRITE(fig%cscale_unit,"(2I5)") snap_start-1,snap_end-1
-      ELSE
-        RETURN
       ENDIF      
       
       fig%num_cscale_vals = snap_end - snap_start + 1

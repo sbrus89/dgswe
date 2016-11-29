@@ -7,11 +7,12 @@
                               zeta,bathy,vel,mesh, &
                               fontsize,nxtick,nytick,nctick, &
                               nxdec,nydec,ncdec,ntdec, &
-                              substitute_path,replace_path,sub_path
+                              substitute_path,replace_path,sub_path, &
+                              adapt_option
 
       IMPLICIT NONE
       
-      INTEGER, PARAMETER :: ninp = 27
+      INTEGER, PARAMETER :: ninp = 29
       INTEGER :: i,n
       INTEGER :: inp_read,skipped
       INTEGER :: rm_ps
@@ -113,13 +114,17 @@
               
             CASE (9)
               READ(temp,*) p_low,p_high,p_skip
-              PRINT("(A,I3)"), "straight element plot nodes order = ", p_low,p_high,p_skip
+              PRINT("(A,3I3)"), "straight element plot nodes order = ", p_low,p_high,p_skip
               
             CASE (10)
               READ(temp,*) pc
               PRINT("(A,I3)"), "curved element plot nodes order = ", pc 
               
             CASE (11)
+              READ(temp,*) adapt_option
+              PRINT("(A,I3)"), "adaptive plotting option = ", adapt_option
+              
+            CASE (12)
               zbox = TRIM(ADJUSTL(temp))
               IF (TRIM(ADJUSTL(zbox)) == "all") THEN
                 xbox_min = -1d10
@@ -131,21 +136,21 @@
               ENDIF
               PRINT("(A,A)"), "zoom box = ", zbox    
               
-            CASE (12)
+            CASE (13)
               READ(temp,*) figure_width
               figure_width = figure_width*72d0  
               PRINT("(A,F9.5)"), "figure width = ", figure_width
               
-            CASE (13)
+            CASE (14)
               READ(temp,*) snap_start,snap_end
               PRINT("(A,I5)"), "start snap = ", snap_start
               PRINT("(A,I5)"), "snap_end = ", snap_end
               
-            CASE (14)
+            CASE (15)
               cmap_file = TRIM(ADJUSTL(temp))
               PRINT("(A,A)"), "color map file = ", cmap_file     
               
-            CASE (15)
+            CASE (16)
               zeta%cscale_option = TRIM(ADJUSTL(temp)) 
               IF (TRIM(ADJUSTL(zeta%cscale_option)) == "auto-snap" .OR. TRIM(ADJUSTL(zeta%cscale_option)) == "auto-all") THEN
               
@@ -161,7 +166,7 @@
               ENDIF
               PRINT("(A,2(1x,F15.7))"), "zeta color scale = ", zeta%cscale_min,zeta%cscale_max   
               
-            CASE (16)
+            CASE (17)
               vel%cscale_option = TRIM(ADJUSTL(temp)) 
               IF (TRIM(ADJUSTL(vel%cscale_option)) == "auto-snap" .OR. TRIM(ADJUSTL(vel%cscale_option)) == "auto-all") THEN
               
@@ -177,15 +182,25 @@
               ENDIF
               PRINT("(A,2(1x,F15.7))"), "velocity color scale = ", vel%cscale_min,vel%cscale_max  
               
-            CASE (17)
+            CASE (18)
+              bathy%cscale_option = TRIM(ADJUSTL(temp)) 
+              IF (TRIM(ADJUSTL(bathy%cscale_option)) == "auto-snap" .OR. TRIM(ADJUSTL(bathy%cscale_option)) == "auto-all") THEN
+              
+              ELSE
+                READ(temp,*) bathy%cscale_min,bathy%cscale_max
+                bathy%cscale_option = "spec"
+              ENDIF
+              PRINT("(A,2(1x,F15.7))"), "bathymetry color scale = ", bathy%cscale_min,bathy%cscale_max                
+              
+            CASE (19)
               READ(temp,*) fontsize
               PRINT("(A,I3)"), "font size = ", fontsize 
               
-            CASE (18)  
+            CASE (20)  
               READ(temp,*) nxtick
               PRINT("(A,I3)"), "number of x ticks = ", nxtick
               
-            CASE (19)
+            CASE (21)
               READ(temp,*) ytick
               IF (TRIM(ADJUSTL(ytick)) == 'auto') THEN
                 nytick = 10000
@@ -194,27 +209,27 @@
               ENDIF
               PRINT("(A,A)"), "number of y ticks = ", ytick
               
-            CASE (20)
+            CASE (22)
               READ(temp,*) nctick
               PRINT("(A,I3)"), "number of c ticks = ", nctick
               
-            CASE (21)
+            CASE (23)
               READ(temp,*) nxdec
               PRINT("(A,I3)"), "number of x decimals = ", nxdec
               
-            CASE (22)
+            CASE (24)
               READ(temp,*) nydec
               PRINT("(A,I3)"), "number of y decimals = ", nydec
               
-            CASE (23) 
+            CASE (25) 
               READ(temp,*) ncdec
               PRINT("(A,I3)"), "number of c decimals = ", ncdec
               
-            CASE (24)
+            CASE (26)
               READ(temp,*) ntdec
               PRINT("(A,I3)"), "number of t decimals = ", ntdec
               
-            CASE (25)
+            CASE (27)
               READ(temp,*) frmt,rm_ps
               PRINT("(A,A)"), "additional file format = ", frmt
               PRINT("(A,I3)"), "remove PostScript files = ", rm_ps
@@ -222,11 +237,11 @@
               bathy%rm_ps = rm_ps
               zeta%rm_ps = rm_ps
               vel%rm_ps = rm_ps
-            CASE (26)
+            CASE (28)
               READ(temp,*) density
               PRINT("(A,A)"), "density of raster format = ", density 
               
-            CASE (27)
+            CASE (29)
               READ(temp,*) zeta%movie_flag
               vel%movie_flag = zeta%movie_flag
               PRINT("(A,I5)"), "movie flag = ", zeta%movie_flag
