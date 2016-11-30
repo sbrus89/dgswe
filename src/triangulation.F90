@@ -236,7 +236,7 @@
             bcnt = 0
             DO j = 1,3
               DO k = 1,p+1
-                m = (ed-1)*3 + k
+                m = mod(ed,4)*p + k
                 IF (m == 4*p+1) THEN
                   m = 1
                 ENDIF

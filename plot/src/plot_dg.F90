@@ -102,7 +102,7 @@
           PRINT("(4(A,I4))"), "  number of additional nodes/sub-triangles: ", npplt(i),"/",nptri(i) 
           
 !           DO el = 1,nptri(i)
-!             PRINT "(3(I5))", (rect(nd,el,i), nd=1,3)
+!             PRINT "(4(I5))", el,(rect(nd,el,i), nd=1,3)
 !           ENDDO
 !           PRINT*, "" 
         ENDDO         
