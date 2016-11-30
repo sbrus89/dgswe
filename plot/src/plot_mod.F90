@@ -616,20 +616,20 @@
       REAL(rp) :: sol_avg
    
       REAL(rp) :: color_val(3)
-      REAL(rp) :: err,rel_tol,abs_tol,max_err
+      REAL(rp) :: err,max_err
+!       REAL(rp) :: rel_tol,abs_tol
       
       REAL(rp), DIMENSION(:), ALLOCATABLE :: hb_val,zeta_val,Qx_val,Qy_val     
       REAL(rp), DIMENSION(:), ALLOCATABLE :: hb_sol,zeta_sol,Qx_sol,Qy_sol    
       
+      
+      ! quadrature points for elemental solution average
       CALL area_qpts(1,p,ctp,nel_type,nqpta,mnqpta,wpta,qpta)      
       ALLOCATE(phia((p+1)**2,mnqpta,nel_type))
-!       DO et = 1,nel_type
-!         CALL element_basis(et,p,ndf,nqpta(et),qpta(:,1,et),qpta(:,2,et),phia(:,:,et))    
-!       ENDDO      
-      
+
+      ! quadrature points for error integral
       qpt_order = 2
-      CALL tri_cubature(qpt_order,nqpt,qpts)
-      
+      CALL tri_cubature(qpt_order,nqpt,qpts)      
       mnqpta = max(mnqpta,nqpt)
       
       ALLOCATE(hb_val(mnpp),zeta_val(mnpp),Qx_val(mnpp),Qy_val(mnpp))
@@ -647,6 +647,7 @@
       ENDDO
       
       
+      ! shape functions for elemental solution average
       mnp = maxval(np)      
       mnnds = (mnp+1)**2     
       ALLOCATE(psi(mnnds,mnqpta,nel_type),dpsidr(mnnds,mnqpta,nel_type),dpsids(mnnds,mnqpta,nel_type))
@@ -656,12 +657,15 @@
                                        psi(:,:,et),dpsidr(:,:,et),dpsids(:,:,et))
       ENDDO      
       
+      
+      
+      
       dc = (fig%sol_max-fig%sol_min)/real(ncolors-1,rp)      
       
       CALL init_vandermonde(nel_type,np)      
             
-      rel_tol = 1d-1  
-      abs_tol = 1d-1
+!       rel_tol = 1d-1  
+!       abs_tol = 1d-1
       
  elem:DO el = 1,ne
 
@@ -672,11 +676,6 @@
         et = el_type(el)       
         nnd = nnds(et)        
           
-        
-!         PRINT*, "elxy"
-!         DO nd = 1,nnd
-!           PRINT*, elxy(nd,el,1),elxy(nd,el,2)
-!         ENDDO
         IF (et > 2) THEN
          pl = pc
         ELSE
@@ -768,7 +767,7 @@
 !               ENDIF
 !             ENDDO
             
-            IF (max_err/sol_avg > rel_tol .and. max_err > abs_tol) THEN
+            IF (abs(max_err/sol_avg) > fig%rel_tol .and. max_err > fig%abs_tol) THEN
               PRINT "(A,I4,A,I4)", "    Early sub_tri exit: ", tri, "/", nptri(i)              
               EXIT sub_tri
             ENDIF
@@ -778,9 +777,9 @@
           err = sqrt(err)
 !           err = max_err
           
-          PRINT "(A,I9,A,F15.7,A,F15.7)", "  ORDER: ", pplt(ord), "  Abs. Error = ", err, "  Rel. Error = ", err/sol_avg         
+          PRINT "(A,I9,A,F15.7,A,F15.7)", "  ORDER: ", pplt(ord), "  Abs. Error = ", err, "  Rel. Error = ", abs(err/sol_avg)         
           
-          IF (err/sol_avg < rel_tol .or. err < abs_tol) THEN
+          IF (abs(err/sol_avg) < fig%rel_tol .or. err < fig%abs_tol) THEN
             fig%el_plt(el) = i       
             EXIT order     
           ENDIF          
@@ -794,38 +793,38 @@
         
         DO tri = 1,nptri(ord)
 
-        DO v = 1,3  
+          DO v = 1,3  
    
-          nd = rect(v,tri,ord)
+            nd = rect(v,tri,ord)
           
-          sol_lev = fig%sol_min
-          lev = ncolors
-  levels: DO i = 1,ncolors-1
-            IF ((fig%sol_val(nd,el) >= sol_lev) .and. (fig%sol_val(nd,el) < sol_lev+dc)) THEN
-              lev = i
-              CALL interp_colors(lev,sol_lev,dc,colors,fig%sol_val(nd,el),color_val)
-              EXIT levels
-            ENDIF
-            sol_lev = sol_lev + dc
-          ENDDO levels
+            sol_lev = fig%sol_min
+            lev = ncolors
+    levels: DO i = 1,ncolors-1
+              IF ((fig%sol_val(nd,el) >= sol_lev) .and. (fig%sol_val(nd,el) < sol_lev+dc)) THEN
+                lev = i
+                CALL interp_colors(lev,sol_lev,dc,colors,fig%sol_val(nd,el),color_val)
+                EXIT levels
+              ENDIF
+              sol_lev = sol_lev + dc
+            ENDDO levels
           
-         IF (fig%sol_val(nd,el) <= fig%sol_min) THEN
-           lev = 1
-           color_val(1) = colors(lev,1)
-           color_val(2) = colors(lev,2)
-           color_val(3) = colors(lev,3)
-         ELSE IF (fig%sol_val(nd,el) > fig%sol_max) THEN
-           lev = ncolors
-           color_val(1) = colors(lev,1)
-           color_val(2) = colors(lev,2)
-           color_val(3) = colors(lev,3)           
-         ENDIF          
+            IF (fig%sol_val(nd,el) <= fig%sol_min) THEN
+              lev = 1
+              color_val(1) = colors(lev,1)
+              color_val(2) = colors(lev,2)
+              color_val(3) = colors(lev,3)
+            ELSE IF (fig%sol_val(nd,el) > fig%sol_max) THEN
+              lev = ncolors
+              color_val(1) = colors(lev,1)
+              color_val(2) = colors(lev,2)
+              color_val(3) = colors(lev,3)           
+            ENDIF          
 
           
-          WRITE(file_unit,"(A,5(F9.5,1x),A)") "[",ax*xyplt(nd,el,1)+bx,ay*xyplt(nd,el,2)+by,color_val(1),color_val(2),color_val(3),"]"  
-        ENDDO        
+            WRITE(file_unit,"(A,5(F9.5,1x),A)") "[",ax*xyplt(nd,el,1)+bx,ay*xyplt(nd,el,2)+by,color_val(1),color_val(2),color_val(3),"]"  
+          ENDDO        
 
-        WRITE(file_unit,"(A)") "trifill"        
+          WRITE(file_unit,"(A)") "trifill"        
         
         ENDDO
 
@@ -954,19 +953,21 @@ levels:DO lev = 1,nctick
                n1 = mod(vrt+0,3)+1
                n2 = mod(vrt+1,3)+1
                               
-               IF ((above(n1) == 1 .and. above(n2) == 0) .or. &
-                   (above(n1) == 0 .and. above(n2) == 1)) THEN                                      
+               IF ((above(n1) == 1 .and. above(n2) == 1) .or. &
+                   (above(n1) == 0 .and. above(n2) == 0)) THEN    
+                   CYCLE edge
+               ENDIF
                    
-                 r1 = rv(n1)
-                 r2 = rv(n2)
-                 s1 = sv(n1)
-                 s2 = sv(n2)   
+               r1 = rv(n1)
+               r2 = rv(n2)
+               s1 = sv(n1)
+               s2 = sv(n2)   
                  
-                 dt = 1d0/real(ntry,rp)
-                 t0 = 0d0
-                 fail_flag = 1
-        guesses: DO ig = 1,2*ntry+1
-                   
+               dt = 1d0/real(ntry,rp)
+               t0 = 0d0
+               fail_flag = 1
+      guesses: DO ig = 1,2*ntry+1
+                 
                  t = t0                 
                  it = 0
          newton: DO 
@@ -1017,9 +1018,9 @@ levels:DO lev = 1,nctick
                        f = zeta - sol_lev
                        dfdr = dzdr
                        dfds = dzds
-                     ENDIF
+                       ENDIF
                    ENDIF    
-                   
+                     
                    IF (fig%type_flag == 4) THEN
                      xmom = 0d0
                      ymom = 0d0
@@ -1047,7 +1048,7 @@ levels:DO lev = 1,nctick
                    
                    
                    dfdt = .5d0*(dfdr*(r2-r1) + dfds*(s2-s1))
-                   
+                 
                    t = t - f/dfdt
                    it = it + 1
                    
@@ -1076,25 +1077,25 @@ levels:DO lev = 1,nctick
                    
                  ENDDO newton
                  
-                 t0 = t0*-1d0                 
-                 IF (mod(ig,2) == 1) THEN
-                   t0 = t0 + dt
-                 ENDIF
+               t0 = t0*-1d0                 
+               IF (mod(ig,2) == 1) THEN
+                 t0 = t0 + dt
+               ENDIF
                  
-                 ENDDO guesses
+               ENDDO guesses
                  
-                 i = i + 1
-                 IF (fail_flag == 0) THEN
-                   re(1) = r
-                   se(1) = s
-                 ELSE                
-                   PRINT*, "  iteration failed ", "r = ",r, " s = ",s 
-                   re(1) = .5d0*(r1+r2)
-                   se(1) = .5d0*(s1+s2)
-                 ENDIF
+               i = i + 1
+               IF (fail_flag == 0) THEN
+                 re(1) = r
+                 se(1) = s
+               ELSE                
+                 PRINT*, "  iteration failed ", "r = ",r, " s = ",s 
+                 re(1) = .5d0*(r1+r2)
+                 se(1) = .5d0*(s1+s2)
+               ENDIF
  
-                 CALL shape_functions_area_eval(et,np(et),nnd,1,re,se,l)
-                 CALL element_transformation(nnd,elxy(:,el,1),elxy(:,el,2),l(:,1),x(i),y(i))  
+               CALL shape_functions_area_eval(et,np(et),nnd,1,re,se,l)
+               CALL element_transformation(nnd,elxy(:,el,1),elxy(:,el,2),l(:,1),x(i),y(i))  
                  
  
                !!!! Edge midpoint !!!!
@@ -1104,7 +1105,6 @@ levels:DO lev = 1,nctick
 !                  x(i) = 0.5d0*(xyplt(nd1,el,1) + xyplt(nd2,el,1))
 !                  y(i) = 0.5d0*(xyplt(nd1,el,2) + xyplt(nd2,el,2))                   
                  
-               ENDIF
              ENDDO edge
 
              IF (i > 2) THEN

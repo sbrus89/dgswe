@@ -167,6 +167,9 @@
         INTEGER :: p
         INTEGER :: ndof(4)         
         REAL(rp) :: h0
+        
+        REAL(rp) :: rel_tol
+        REAL(rp) :: abs_tol
       
         INTEGER :: cscale_unit
         CHARACTER(100) :: cscale_option
