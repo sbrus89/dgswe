@@ -76,73 +76,73 @@
         nx_rp = sqrt(real(n,rp))
         nx = int(nx_rp)    
         
-      ! Put nodes in the order expected by trmshr, left to right starting at top  
-      m = 1         
-      ! Edge 4
-      DO i = 1,nx
-        j = 1
+        ! Put nodes in the order expected by trmshr, left to right starting at top  
+        m = 1         
+        ! Edge 4
+        DO i = 1,nx
+          j = 1
         
-        k = (nx-j)*nx + i
-        
-        r(k) = ri(m)
-        s(k) = si(m)
-        k2m(k) = m
-          
-        m = m+1
-      ENDDO     
-      
-      ! Edge 1
-      DO j = 2,nx
-        i = nx
-        
-        k = (nx-j)*nx + i
-        
-        r(k) = ri(m)
-        s(k) = si(m)
-        k2m(k) = m        
-          
-        m = m+1
-      ENDDO     
-      
-      ! Edge 2
-      DO i = nx-1,1,-1
-        j = nx
-        
-        k = (nx-j)*nx + i        
-        
-        r(k) = ri(m)
-        s(k) = si(m)
-        k2m(k) = m        
-          
-        m = m+1      
-      ENDDO      
-      
-      ! Edge 3
-      DO j = nx-1,2,-1
-        i = 1
-        
-        k = (nx-j)*nx + i         
-        
-        r(k) = ri(m)
-        s(k) = si(m)
-        k2m(k) = m        
-        
-        m = m+1
-      ENDDO    
-      
-      ! Interior nodes
-      DO i = 2,nx-1
-        DO j = 2,nx-1
-        
-          k = (nx-j)*nx + i              
+          k = (nx-j)*nx + i
         
           r(k) = ri(m)
           s(k) = si(m)
-          k2m(k) = m          
+          k2m(k) = m
+           
+          m = m+1
+        ENDDO     
+      
+        ! Edge 1
+        DO j = 2,nx
+          i = nx
+        
+          k = (nx-j)*nx + i
+        
+          r(k) = ri(m)
+          s(k) = si(m)
+          k2m(k) = m        
           
           m = m+1
-        ENDDO
-      ENDDO       
+        ENDDO     
+      
+        ! Edge 2
+        DO i = nx-1,1,-1
+          j = nx
+        
+          k = (nx-j)*nx + i        
+        
+          r(k) = ri(m)
+          s(k) = si(m)
+          k2m(k) = m        
+          
+          m = m+1      
+        ENDDO      
+      
+        ! Edge 3
+        DO j = nx-1,2,-1
+          i = 1
+        
+          k = (nx-j)*nx + i         
+        
+          r(k) = ri(m)
+          s(k) = si(m)
+          k2m(k) = m        
+        
+          m = m+1
+        ENDDO    
+      
+        ! Interior nodes
+        DO i = 2,nx-1
+          DO j = 2,nx-1
+        
+            k = (nx-j)*nx + i              
+        
+            r(k) = ri(m)
+            s(k) = si(m)
+            k2m(k) = m          
+          
+            m = m+1
+          ENDDO
+        ENDDO       
         
         DO i = 1,n       ! transform to equilateral triangle for better triangluation results
           y(i) = (6d0*s(i) + 2d0)/(4d0*sqrt(3d0))
@@ -268,7 +268,7 @@
         ENDIF
         
       ENDDO
-
+      
 
 
       RETURN
