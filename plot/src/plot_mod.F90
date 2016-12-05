@@ -30,12 +30,12 @@
       SUBROUTINE make_plot(snap,t_snap,fig)
             
       USE globals, ONLY: ne,nn,nverts,el_type,xy,ect,elxy, &
-                         nbou,fbseg,fbnds, &
+                         nbou,fbseg,fbnds,bndxy, &
                          nnfbed,nfbedn, &
                          nfbed,fbedn, &
                          nobed,obedn, &
                          ged2el,ged2led 
-      USE read_dginp, ONLY: p
+      USE read_dginp, ONLY: p,ctp
       USE plot_globals, ONLY: el_in,t_start,t_end,xyplt,pplt,npplt,nptri,rect,r,s, &
                               frmt,density,pc,el_area
       USE labels_mod, ONLY: latex_axes_labels,run_latex, & 
@@ -99,7 +99,8 @@
       IF (fig%plot_lines_option == 1) THEN
         CALL plot_line_contours(fig%ps_unit,ne,el_type,el_in,nptri,rect,xyplt,r,s,snap,fig)          
       ENDIF      
-      
+!         CALL plot_cb_nodes(fig%ps_unit,ctp,nbou,fbseg,fbnds,xy,bndxy)
+        CALL plot_elxy_nodes(fig%ps_unit,ne,el_type,nnds,elxy)
       IF (adapt_option == 1) THEN
         CALL SYSTEM("cp "//filename//".ps "//filename//"_pltmesh.ps")
         OPEN(UNIT=999,FILE=filename//"_pltmesh.ps",POSITION="APPEND")
@@ -109,7 +110,8 @@
       
       IF (fig%plot_mesh_option == 1) THEN
 !         CALL fill_elements(fig%ps_unit,ne,nverts,pc,el_type,el_in,xy,ect,xyplt)      
-        CALL plot_mesh(fig%ps_unit,ne,nverts,fig%el_plt,pplt,el_type,el_in,xy,ect,xyplt)     
+        CALL plot_mesh(fig%ps_unit,ne,nverts,fig%el_plt,pplt,el_type,el_in,xy,ect,xyplt)  
+
 !         CALL plot_boundaries(fig%ps_unit,nverts,pc,nobed,obedn,ged2el,ged2led,el_type,el_in,ect,xy,xyplt)       
 !         CALL plot_boundaries(fig%ps_unit,nverts,pc,nnfbed,nfbedn,ged2el,ged2led,el_type,el_in,ect,xy,xyplt)        
 !         CALL plot_boundaries(fig%ps_unit,nverts,pc,nfbed,fbedn,ged2el,ged2led,el_type,el_in,ect,xy,xyplt)          
@@ -276,33 +278,11 @@
       
     
             
-      ax = (rmin_axes/(xmin-xmax)+rmax_axes/(xmax-xmin))
-      bx = -(rmin_axes*xmax/(xmin-xmax)+rmax_axes*xmin/(xmax-xmin))
+      ax = ((rmax_axes-rmin_axes)/(xmax-xmin))
+      bx = (rmin_axes*xmax-rmax_axes*xmin)/(xmax-xmin)
       
       ay = ax     ! axis equal
-      by = smin_axes-ax*ymin            
-      
-!       DO el = 1,ne
-!         et = el_type(el)
-!         npts = npplt(et)
-!         nv = nverts(et)
-!         nnd = nnds(et)
-!         
-!         DO nd = 1,npts
-!           xyplt(nd,el,1) = ax*xyplt(nd,el,1) + bx
-!           xyplt(nd,el,2) = ay*xyplt(nd,el,2) + by                       
-!         ENDDO
-!         
-!         DO nd = 1,nnd
-!           elxy(nd,el,1) = ax*elxy(nd,el,1) + bx
-!           elxy(nd,el,2) = ay*elxy(nd,el,2) + by
-!         ENDDO
-!       ENDDO
-!       
-!       DO nd = 1,nn
-!         xy(1,nd) = ax*xy(1,nd) + bx
-!         xy(2,nd) = ay*xy(2,nd) + by
-!       ENDDO      
+      by = smin_axes-ax*ymin                  
       
       smax_axes = ay*ymax + by
       
@@ -410,7 +390,14 @@
       WRITE(file_unit,"(A)") "lineto"
       WRITE(file_unit,"(A)") ".5 setlinewidth 2 setlinejoin"
       WRITE(file_unit,"(A)") "stroke"      
-      WRITE(file_unit,"(A)") "} def"       
+      WRITE(file_unit,"(A)") "} def"      
+      
+      WRITE(file_unit,"(A)") "/draw-dot {"
+      WRITE(file_unit,"(A)") "newpath"      
+      WRITE(file_unit,"(A)") " 3 0 360 arc closepath"
+!       WRITE(file_unit,"(A)") "stroke"
+      WRITE(file_unit,"(A)") "gsave 0 0 0 setrgbcolor fill grestore"
+      WRITE(file_unit,"(A)") "} def"
       
       WRITE(file_unit,"(A)") "/trifill {"
       WRITE(file_unit,"(A)") "/A exch def"
@@ -1284,6 +1271,87 @@ edge:DO ed = 1,nbed
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
 
+      SUBROUTINE plot_cb_nodes(file_unit,ctp,nbou,fbseg,fbnds,xy,bndxy)
+      
+      IMPLICIT NONE
+      
+      INTEGER, INTENT(IN) :: file_unit
+      INTEGER, INTENT(IN) :: ctp
+      INTEGER, INTENT(IN) :: nbou
+      INTEGER, DIMENSION(:,:), INTENT(IN) :: fbseg
+      INTEGER, DIMENSION(:,:), INTENT(IN) :: fbnds
+      REAL(rp), DIMENSION(:,:), INTENT(IN) :: xy
+      REAL(rp), DIMENSION(:,:,:,:), INTENT(IN) :: bndxy
+      
+      INTEGER :: i,j,k
+      INTEGER :: nd
+      INTEGER :: nbnds
+      INTEGER :: btype
+      
+      DO i = 1,nbou
+        nbnds = fbseg(1,i)
+        btype = fbseg(2,i)
+        
+        IF( btype == 0 .OR. btype == 10 .OR. btype == 20  .OR. &   ! land boundaries
+            btype == 1 .OR. btype == 11 .OR. btype == 21 ) THEN    ! island boundaries
+            
+          DO j = 1,nbnds-1
+            
+            nd = fbnds(j,i)            
+            WRITE(file_unit,"(2(F9.5,1x))") ax*xy(1,nd)+bx, ay*xy(2,nd)+by
+            WRITE(file_unit,"(A)") "draw-dot"
+            
+            DO k = 1,ctp-1
+              WRITE(file_unit,"(2(F9.5,1x))") ax*bndxy(1,k,j,i)+bx, ay*bndxy(2,k,j,i)+by
+              WRITE(file_unit,"(A)") "draw-dot"              
+            ENDDO
+          
+          ENDDO
+          
+          WRITE(file_unit,"(2(F9.5,1x))") ax*xy(1,nbnds)+bx, ay*xy(2,nbnds)+by
+          WRITE(file_unit,"(A)") "draw-dot"         
+            
+        ENDIF    
+      ENDDO
+      
+      RETURN
+      END SUBROUTINE plot_cb_nodes
+      
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
+
+      SUBROUTINE plot_elxy_nodes(file_unit,ne,el_type,nnds,elxy)
+      
+      IMPLICIT NONE
+      
+      INTEGER, INTENT(IN) :: file_unit    
+      INTEGER, INTENT(IN) :: ne
+      INTEGER, DIMENSION(:), INTENT(IN) :: el_type
+      INTEGER, DIMENSION(:), INTENT(IN) :: nnds
+      REAL(rp), DIMENSION(:,:,:), INTENT(IN) :: elxy
+      
+      INTEGER :: el,nd
+      INTEGER :: et
+      INTEGER :: nnd
+
+      DO el = 1,ne
+        et = el_type(el)
+        nnd = nnds(et)
+        
+        DO nd = 1,nnd
+          WRITE(file_unit,"(2(F9.5,1x))") ax*elxy(nd,el,1)+bx, ay*elxy(nd,el,2)+by
+          WRITE(file_unit,"(A)") "draw-dot"         
+        ENDDO
+      ENDDO
+
+      
+      RETURN
+      END SUBROUTINE plot_elxy_nodes      
+      
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
+
       SUBROUTINE fill_elements(file_unit,ne,nverts,ctp,el_type,el_in,xy,ect,xyplt)
       
       IMPLICIT NONE
@@ -1589,5 +1657,96 @@ edge:DO ed = 1,nbed
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
+
+      SUBROUTINE plot_ref_el(filename,figure_width,et,ctp,ntri,ect,r,s)
+      
+      USE basis, ONLY: element_nodes
+      USE axes_mod, ONLY: write_xyaxis    
+      USE labels_mod, ONLY: write_xyaxis_labels,write_texheader,run_latex, & 
+                            write_latex_ps_body,remove_latex_files      
+      
+      IMPLICIT NONE
+      
+      CHARACTER(*), INTENT(IN) :: filename
+      REAL(rp), INTENT(IN) :: figure_width
+      INTEGER, INTENT(IN) :: et
+      INTEGER, INTENT(IN) :: ctp
+      INTEGER, INTENT(IN) :: ntri
+      INTEGER, DIMENSION(:,:), INTENT(IN) :: ect
+      REAL(rp), DIMENSION(:), INTENT(IN) :: r
+      REAL(rp), DIMENSION(:), INTENT(IN) :: s
+      
+      INTEGER :: el,nd
+      INTEGER :: file_unit
+      INTEGER :: nnd
+      REAL(rp) :: r_min,r_max,s_min,s_max
+      REAL(rp) :: a_x,b_x,a_y,b_y
+      REAL(rp), DIMENSION(:), ALLOCATABLE :: rc,sc
+      
+      file_unit = 90
+      
+      r_max = 1d0
+      r_min = -1d0
+      s_max = 1d0
+      s_min = -1d0
+      
+      lr_margin =(612d0 - figure_width)/2d0 
+      axes_width = figure_width/1.37d0      
+      cscale_width = axes_width*.05d0      
+      dash = 0.2d0*cscale_width
+      xticklabel_pad = 2d0*dash
+      yticklabel_pad = 2d0*dash
+      xlabel_pad = 10d0*dash
+      ylabel_pad = 15d0*dash        
+      cticklabel_pad = 2d0*dash
+      clabel_pad = 15d0*dash 
+      
+      rmin_axes = rmin_page + lr_margin + ylabel_pad
+      rmax_axes = rmax_page - lr_margin - 2d0*cscale_width - clabel_pad
+      smin_axes = smin_page + lr_margin
+      smax_axes = smax_page     
+            
+      ax = ((rmax_axes-rmin_axes)/(r_max-r_min))
+      bx = (rmin_axes*r_max-rmax_axes*r_min)/(r_max-r_min)
+      
+      ay = ax    
+      by = smin_axes-ax*s_min     
+      
+      smax_axes = ay*s_max + by      
+
+      CALL write_texheader()              
+      CALL write_xyaxis_labels("rs")  
+      CALL run_latex()         
+
+      CALL write_psheader(TRIM(filename),file_unit)     
+      
+      DO el = 1,ntri
+        DO nd = 1,3
+          WRITE(file_unit,"(2(F9.5,1x))") ax*r(ect(nd,el))+bx,ay*s(ect(nd,el))+by                       
+        ENDDO
+        WRITE(file_unit,"(A)") "draw-tri-element"           
+      ENDDO
+      
+      ALLOCATE(rc((ctp+1)**2),sc((ctp+1)**2))
+      CALL element_nodes(et,1,ctp,nnd,rc,sc)          
+    
+      CALL write_xyaxis(file_unit)  
+      
+      DO nd = 1,nnd
+        WRITE(file_unit,"(2(F9.5,1x))") ax*rc(nd)+bx,ay*sc(nd)+by
+        WRITE(file_unit,"(A)") "draw-dot"            
+      ENDDO         
+      
+      CALL write_latex_ps_body(file_unit)      
+    
+      WRITE(file_unit,"(A)") "showpage"           
+      CLOSE(file_unit)   
+      
+      CALL remove_latex_files()      
+
+      END SUBROUTINE plot_ref_el
+      
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
       END MODULE plot_mod

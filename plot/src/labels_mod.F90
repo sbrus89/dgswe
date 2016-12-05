@@ -94,7 +94,7 @@
       
       CALL write_texheader()        
       
-      CALL write_xyaxis_labels()  
+      CALL write_xyaxis_labels("xy")  
       IF (fig%cbar_flag == 1) THEN      
         CALL write_caxis_labels(fig%tbar_flag,fig%sol_min,fig%sol_max,fig%sol_label)
       ENDIF
@@ -172,17 +172,27 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-      SUBROUTINE write_xyaxis_labels()
+      SUBROUTINE write_xyaxis_labels(axis_label_option)
       
       IMPLICIT NONE
 
+      CHARACTER(2), INTENT(IN) :: axis_label_option
+      
       INTEGER :: i
       INTEGER :: expnt
       REAL(rp) :: r0,r1,s0,s1
       REAL(rp) :: xval,yval
     
       CHARACTER(20) :: xchar,ychar     
-          
+      CHARACTER(1) :: xlabel,ylabel
+      
+      IF (axis_label_option == "xy") THEN
+        xlabel = "x"
+        ylabel = "y"
+      ELSE IF (axis_label_option == "rs") THEN
+        xlabel = "r"
+        ylabel = "s"
+      ENDIF
       
 
       dr_xlabel = (rmax_axes-rmin_axes)/(real(nxtick,rp)-1d0)
@@ -216,7 +226,7 @@
       
       
       WRITE(tex_unit,"(A,F9.5,A,F9.5,A)") "\begin{textblock}{400}[0.5,0](",(rmax_axes+rmin_axes)/2d0,",",smax_page-smin_axes+xlabel_pad,")"
-      WRITE(tex_unit,"(A)") "\centerline{$x$}"        
+      WRITE(tex_unit,"(A)") "\centerline{$"//xlabel//"$}"        
       WRITE(tex_unit,"(A)") "\end{textblock}"  
       
 !       WRITE(tex_unit,"(A)") TRIM(ADJUSTL(math_font))//" choosefont"         
@@ -274,7 +284,7 @@
       ENDDO         
       
       WRITE(tex_unit,"(A,F9.5,A,F9.5,A)") "\begin{textblock}{50}[0,0.5](",rmin_axes-ylabel_pad,",",smax_page-(smax_axes+smin_axes)/2d0,")"
-      WRITE(tex_unit,"(A)") "\rotatebox[origin=c]{90}{$y$}\vskip-\TPboxrulesize"        
+      WRITE(tex_unit,"(A)") "\rotatebox[origin=c]{90}{$"//ylabel//"$}\vskip-\TPboxrulesize"        
       WRITE(tex_unit,"(A)") "\end{textblock}"  
       
       

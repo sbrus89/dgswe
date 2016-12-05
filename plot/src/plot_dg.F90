@@ -12,7 +12,7 @@
       USE read_write_output, ONLY: read_solution_full,read_fort63,read_fort64
       USE read_dginp, ONLY: read_input,out_direc,p,ctp,hbp,tf, &
                             grid_file,curve_file,cb_file_exists,bathy_file,hb_file_exists
-      USE plot_mod, ONLY: read_colormap,setup_cbounds, &
+      USE plot_mod, ONLY: read_colormap,setup_cbounds,plot_ref_el, &
                           scale_factors,zoom_box,make_plot,make_movie                                                                           
       USE evaluate_mod, ONLY: evaluate_basis
       USE labels_mod, ONLY: latex_axes_labels,run_latex,close_tex, &
@@ -31,6 +31,9 @@
       
       INTEGER :: ord
       INTEGER :: start_snap,end_snap
+      INTEGER :: ncall
+      CHARACTER(3) :: nout
+      CHARACTER(25) :: fname
       REAL(rp) :: H
       LOGICAL :: file_exists
       
@@ -90,6 +93,7 @@
       ALLOCATE(psic(mnnds,mnpp,nel_type*nord))
       ALLOCATE(rect(3,3*mnpp,nel_type*nord))      
       ALLOCATE(nptri(nel_type*nord),npplt(nel_type*nord),pplt(nel_type*nord))
+      ncall = 0 
       DO et = 1,nel_type 
               
         DO ord = 1,nord
@@ -100,6 +104,11 @@
           CALL reference_element_delaunay(et,pplt(i),npplt(i),r(:,i),s(:,i),nptri(i),rect(:,:,i))        
           
           PRINT("(4(A,I4))"), "  number of additional nodes/sub-triangles: ", npplt(i),"/",nptri(i) 
+          
+          ncall = ncall + 1
+          WRITE(nout,"(I3.3)") ncall 
+          fname = "ref_el_"//nout//".ps"
+          CALL plot_ref_el(fname,figure_width,et,np(et),nptri(i),rect(:,:,i),r(:,i),s(:,i))
           
 !           DO el = 1,nptri(i)
 !             PRINT "(4(I5))", el,(rect(nd,el,i), nd=1,3)
