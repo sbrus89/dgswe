@@ -394,7 +394,7 @@
       
       WRITE(file_unit,"(A)") "/draw-dot {"
       WRITE(file_unit,"(A)") "newpath"      
-      WRITE(file_unit,"(A)") " 3 0 360 arc closepath"
+      WRITE(file_unit,"(A)") " 2 0 360 arc closepath"
 !       WRITE(file_unit,"(A)") "stroke"
       WRITE(file_unit,"(A)") "gsave 0 0 0 setrgbcolor fill grestore"
       WRITE(file_unit,"(A)") "} def"
