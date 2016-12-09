@@ -99,8 +99,8 @@
       IF (fig%plot_lines_option == 1) THEN
         CALL plot_line_contours(fig%ps_unit,ne,el_type,el_in,nptri,rect,xyplt,r,s,snap,fig)          
       ENDIF      
-      
-        
+!         CALL plot_cb_nodes(fig%ps_unit,ctp,nbou,fbseg,fbnds,xy,bndxy)
+        CALL plot_elxy_nodes(fig%ps_unit,ne,el_type,nnds,elxy)
       IF (adapt_option == 1) THEN
         CALL SYSTEM("cp "//filename//".ps "//filename//"_pltmesh.ps")
         OPEN(UNIT=999,FILE=filename//"_pltmesh.ps",POSITION="APPEND")
@@ -110,20 +110,15 @@
       
       IF (fig%plot_mesh_option == 1) THEN
 !         CALL fill_elements(fig%ps_unit,ne,nverts,pc,el_type,el_in,xy,ect,xyplt)      
-!         CALL plot_mesh(fig%ps_unit,ne,nverts,fig%el_plt,pplt,el_type,el_in,xy,ect,xyplt)  
-!         CALL plot_vis_mesh(fig%ps_unit,ne,el_type,el_in,xyplt,nptri,rect,fig) 
+        CALL plot_mesh(fig%ps_unit,ne,nverts,fig%el_plt,pplt,el_type,el_in,xy,ect,xyplt)  
+
 !         CALL plot_boundaries(fig%ps_unit,nverts,pc,nobed,obedn,ged2el,ged2led,el_type,el_in,ect,xy,xyplt)       
 !         CALL plot_boundaries(fig%ps_unit,nverts,pc,nnfbed,nfbedn,ged2el,ged2led,el_type,el_in,ect,xy,xyplt)        
 !         CALL plot_boundaries(fig%ps_unit,nverts,pc,nfbed,fbedn,ged2el,ged2led,el_type,el_in,ect,xy,xyplt)          
       ENDIF 
       
-      CALL plot_vis_mesh(fig%ps_unit,ne,el_type,el_in,xyplt,nptri,rect,fig)       
       CALL write_all_axes(fig%ps_unit,fig%cbar_flag,fig%tbar_flag,t_snap,t_start,t_end) 
-
-!       CALL plot_cb_nodes(fig%ps_unit,ctp,nbou,fbseg,fbnds,xy,bndxy)
-      CALL plot_elxy_nodes(fig%ps_unit,ne,el_type,nnds,elxy)          
-      
-      CALL write_latex_ps_body(fig%ps_unit)       
+      CALL write_latex_ps_body(fig%ps_unit)
       
       CALL close_ps(filename,fig%ps_unit)
       CALL remove_latex_files()
@@ -519,15 +514,14 @@
             
       CALL write_latex_ps_header(file_unit) 
 
-      
+     
       WRITE(file_unit,"(A)") "gsave newpath"        
       WRITE(file_unit,"(2(F9.5,1x),A)") rmin_axes,smin_axes,"moveto"
       WRITE(file_unit,"(2(F9.5,1x),A)") rmax_axes,smin_axes,"lineto"
       WRITE(file_unit,"(2(F9.5,1x),A)") rmax_axes,smax_axes,"lineto"      
       WRITE(file_unit,"(2(F9.5,1x),A)") rmin_axes,smax_axes,"lineto"      
       WRITE(file_unit,"(A)") "closepath"     
-!       WRITE(file_unit,"(A)") ".75 .75 .75 setrgbcolor fill grestore"      
-      WRITE(file_unit,"(A)") "1 1 1 setrgbcolor fill grestore"       
+      WRITE(file_unit,"(A)") ".75 .75 .75 setrgbcolor fill grestore"      
   
       RETURN
       END SUBROUTINE write_psheader

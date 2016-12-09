@@ -32,10 +32,10 @@
       CALL write_xyaxis(file_unit)   
       
       IF (color_bar == 1) THEN
-!         CALL write_colorscale(file_unit)
+        CALL write_colorscale(file_unit)
       ENDIF
       IF (time_bar == 1) THEN
-!         CALL write_tbar(file_unit,t_snap,t_start,t_end)
+        CALL write_tbar(file_unit,t_snap,t_start,t_end)
       ENDIF            
       
       RETURN
