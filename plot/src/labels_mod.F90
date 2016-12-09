@@ -264,7 +264,7 @@
       
       DO i = 1,nytick
       
-        IF (s0 > smax_axes) THEN
+        IF (s0 > smax_axes+1d-12) THEN
           EXIT        
         ENDIF
         
