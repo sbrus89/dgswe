@@ -94,12 +94,12 @@
       
       CALL write_texheader()        
       
-      CALL write_xyaxis_labels("xy")  
+      CALL write_xyaxis_labels("rs")  
       IF (fig%cbar_flag == 1) THEN      
-        CALL write_caxis_labels(fig%tbar_flag,fig%sol_min,fig%sol_max,fig%sol_label)
+!         CALL write_caxis_labels(fig%tbar_flag,fig%sol_min,fig%sol_max,fig%sol_label)
       ENDIF
       IF (fig%tbar_flag == 1) THEN
-        CALL write_tbar_labels(t_snap)
+!         CALL write_tbar_labels(t_snap)
       ENDIF                
           
       
