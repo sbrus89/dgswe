@@ -130,6 +130,11 @@
       CHARACTER(3) :: start_num
       CHARACTER(3) :: nframes
       
+      TYPE :: char_array
+        CHARACTER(200) :: line
+      END TYPE
+            
+      
 
       
       REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: Z
@@ -184,6 +189,10 @@
         
         REAL(rp), POINTER :: t_snap
 
+        INTEGER :: nline_header
+        TYPE(char_array), DIMENSION(:), ALLOCATABLE :: latex_header
+        INTEGER :: nline_body
+        TYPE(char_array), DIMENSION(:), ALLOCATABLE :: latex_body        
       
       END TYPE
       
@@ -193,7 +202,7 @@
       TYPE(plot_type) :: mesh  
       
 
-      
+
       
       CONTAINS
       
@@ -252,7 +261,7 @@
       SUBROUTINE setup_plot_types()
       USE read_dginp, ONLY: h0,p,hbp   
       
-      IMPLICIT NONE
+      IMPLICIT NONE           
       
       mesh%type_flag = 1     
       bathy%type_flag = 2    

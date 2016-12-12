@@ -105,10 +105,10 @@
           
           PRINT("(4(A,I4))"), "  number of additional nodes/sub-triangles: ", npplt(i),"/",nptri(i) 
           
-          ncall = ncall + 1
-          WRITE(nout,"(I3.3)") ncall 
-          fname = "ref_el_"//nout//".ps"
-          CALL plot_ref_el(fname,figure_width,et,np(et),nptri(i),rect(:,:,i),r(:,i),s(:,i))
+!           ncall = ncall + 1
+!           WRITE(nout,"(I3.3)") ncall 
+!           fname = "ref_el_"//nout//".ps"
+!           CALL plot_ref_el(fname,figure_width,et,np(et),nptri(i),rect(:,:,i),r(:,i),s(:,i))
           
 !           DO el = 1,nptri(i)
 !             PRINT "(4(I5))", el,(rect(nd,el,i), nd=1,3)
@@ -242,8 +242,9 @@
       
       
       CALL setup_cbounds(ne,el_in,el_type,npplt,mesh,1,1)     
-      CALL make_plot(1,0d0,mesh)      
+      CALL make_plot(1,0d0,mesh)  
       
+
       IF (zeta%plot_sol_option == 0 .and. vel%plot_sol_option == 0 .and. bathy%plot_sol_option == 0) THEN
         STOP
       ENDIF      

@@ -11,7 +11,7 @@
                               nxtick,nytick,nctick, &
                               nxdec,nydec,ncdec,ntdec, &
                               dr_xlabel,ds_ylabel,ds_clabel, &
-                              plot_type
+                              plot_type,char_array
 
       IMPLICIT NONE
       
@@ -561,7 +561,69 @@
       
       RETURN
       END SUBROUTINE format_number      
+        
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+      SUBROUTINE read_latex(header_lines,nhead,body_lines,nbody)
+      
+      IMPLICIT NONE
             
+      TYPE(char_array), DIMENSION(:), ALLOCATABLE, INTENT(OUT) :: header_lines
+      INTEGER, INTENT(OUT) :: nhead
+      TYPE(char_array), DIMENSION(:), ALLOCATABLE, INTENT(OUT) :: body_lines      
+      INTEGER, INTENT(OUT) :: nbody
+      
+      INTEGER :: i
+      CHARACTER(1000) :: line
+      INTEGER :: read_stat       
+      
+      OPEN(UNIT=tex_output_unit, FILE="labels.ps")
+      READ(tex_output_unit,"(A)",IOSTAT=read_stat) line    ! discard first line  
+      nhead = 0
+head: DO
+        READ(tex_output_unit,"(A)",IOSTAT=read_stat) line    
+        nhead = nhead + 1         
+        IF (read_stat < 0 ) THEN
+          PRINT*, "Error in LaTeX file"
+          STOP
+        ELSEIF (TRIM(ADJUSTL(line)) == "%%EndSetup") THEN
+          EXIT head   
+        ENDIF
+                
+      ENDDO head  
+      
+      nbody = 0
+body: DO
+        READ(tex_output_unit,"(A)",IOSTAT=read_stat) line       
+        IF (read_stat < 0 ) THEN
+          EXIT body 
+        ELSE 
+          nbody = nbody + 1           
+        ENDIF                
+      ENDDO body              
+ 
+      CLOSE(tex_output_unit)       
+      
+      
+      
+      ALLOCATE(header_lines(nhead))
+      ALLOCATE(body_lines(nbody))
+      OPEN(UNIT=tex_output_unit, FILE="labels.ps",POSITION="REWIND")
+      READ(tex_output_unit,"(A)") line                    ! discard first line
+      DO i = 1,nhead       
+        READ(tex_output_unit,"(A)") header_lines(i)%line      
+!         PRINT "(A200)", header_lines(i)%line
+      ENDDO
+!       PRINT*, "------------------------------------------"
+      DO i = 1,nbody
+        READ(tex_output_unit,"(A)") body_lines(i)%line   
+!         PRINT "(A)", body_lines(i)%line       
+      ENDDO
+      CLOSE(tex_output_unit)   
+      
+      RETURN
+      END SUBROUTINE
             
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -631,6 +693,26 @@ tail: DO
       END SUBROUTINE write_latex_ps_body           
     
       
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+      SUBROUTINE write_char_array(file_unit,nlines,file_lines)
+      
+      IMPLICIT NONE
+      
+      INTEGER, INTENT(IN) :: file_unit
+      INTEGER, INTENT(IN) :: nlines      
+      TYPE(char_array), DIMENSION(:), INTENT(IN) :: file_lines
+      
+      INTEGER :: i
+      
+      DO i = 1,nlines
+        WRITE(file_unit,"(A)") file_lines(i)%line      
+      ENDDO
+      
+      RETURN
+      END SUBROUTINE write_char_array
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

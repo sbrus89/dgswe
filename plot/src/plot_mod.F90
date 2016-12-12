@@ -38,9 +38,10 @@
       USE read_dginp, ONLY: p,ctp
       USE plot_globals, ONLY: el_in,t_start,t_end,xyplt,pplt,npplt,nptri,rect,r,s, &
                               frmt,density,pc,el_area
-      USE labels_mod, ONLY: latex_axes_labels,run_latex, & 
+      USE labels_mod, ONLY: latex_axes_labels,run_latex,read_latex, & 
                             latex_element_labels,latex_node_labels, &
-                            write_latex_ps_body,remove_latex_files
+                            write_latex_ps_body,remove_latex_files, &
+                            write_char_array
       USE axes_mod, ONLY: write_all_axes
             
       IMPLICIT NONE
@@ -92,9 +93,16 @@
       IF (fig%nd_label_option /= "off") THEN
         CALL latex_node_labels(nn,fig%nd_label_option,xy,nbou,fbseg,fbnds)
       ENDIF
-      CALL run_latex()    
+      CALL run_latex()
+      CALL read_latex(fig%latex_header,fig%nline_header,fig%latex_body,fig%nline_body)
+      CALL remove_latex_files()      
       
-      CALL write_psheader(filename//".ps",fig%ps_unit)          
+           
+      CALL write_psheader(filename//".ps",fig%ps_unit)  
+      CALL write_char_array(fig%ps_unit,fig%nline_header,fig%latex_header)  
+      CALL plot_background(fig%ps_unit)
+      
+      
       IF (fig%cbar_flag == 1) THEN
         CALL plot_filled_contours_adapt(fig%ps_unit,ne,el_type,el_in,el_area,elxy,xyplt,pplt,nptri,npplt,rect,r,s,snap,fig)             
       ENDIF
@@ -105,13 +113,17 @@
 !         CALL plot_cb_nodes(fig%ps_unit,ctp,nbou,fbseg,fbnds,xy,bndxy)
 !         CALL plot_elxy_nodes(fig%ps_unit,ne,el_type,nnds,elxy)
 
-      IF (adapt_option == 1) THEN
+      IF (adapt_option == 1 .and. fig%type_flag > 1) THEN
         CALL SYSTEM("cp "//filename//".ps "//filename//"_pltmesh.ps")
         OPEN(UNIT=999,FILE=filename//"_pltmesh.ps",POSITION="APPEND")
-        CALL plot_vis_mesh(999,ne,el_type,el_in,xyplt,nptri,rect,fig)           
+        CALL plot_vis_mesh(999,ne,el_type,el_in,xyplt,nptri,rect,fig)   
+        CALL write_all_axes(999,fig%cbar_flag,fig%tbar_flag,t_snap,t_start,t_end)
+        CALL write_char_array(999,fig%nline_body,fig%latex_body)        
         CALL convert_ps(filename//"_pltmesh",frmt,density,fig%rm_ps)         
       ENDIF 
       
+      
+
       IF (fig%plot_mesh_option == 1) THEN
 !         CALL fill_elements(fig%ps_unit,ne,nverts,pc,el_type,el_in,xy,ect,xyplt)      
         CALL plot_mesh(fig%ps_unit,ne,nverts,fig%el_plt,pplt,el_type,el_in,xy,ect,xyplt)          
@@ -123,11 +135,12 @@
       ENDIF 
               
       
-      CALL write_all_axes(fig%ps_unit,fig%cbar_flag,fig%tbar_flag,t_snap,t_start,t_end) 
-      CALL write_latex_ps_body(fig%ps_unit)
+      CALL write_all_axes(fig%ps_unit,fig%cbar_flag,fig%tbar_flag,t_snap,t_start,t_end)       
+      
+!       CALL write_latex_ps_body(fig%ps_unit)
+      CALL write_char_array(fig%ps_unit,fig%nline_body,fig%latex_body)  
       
       CALL close_ps(filename,fig%ps_unit)
-      CALL remove_latex_files()
       CALL convert_ps(filename,frmt,density,fig%rm_ps)      
       
       RETURN
@@ -518,8 +531,23 @@
 !       WRITE(file_unit,"(A)") "(/usr/share/fonts/type1/gsfonts/cmr10.pfb)     choosefont"        
       
             
-      CALL write_latex_ps_header(file_unit) 
+!       CALL write_latex_ps_header(file_unit) 
 
+     
+ 
+  
+      RETURN
+      END SUBROUTINE write_psheader
+      
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!      
+
+      SUBROUTINE plot_background(file_unit)
+     
+      IMPLICIT NONE
+      
+      INTEGER, INTENT(IN) :: file_unit
      
       WRITE(file_unit,"(A)") "gsave newpath"        
       WRITE(file_unit,"(2(F9.5,1x),A)") rmin_axes,smin_axes,"moveto"
@@ -527,14 +555,14 @@
       WRITE(file_unit,"(2(F9.5,1x),A)") rmax_axes,smax_axes,"lineto"      
       WRITE(file_unit,"(2(F9.5,1x),A)") rmin_axes,smax_axes,"lineto"      
       WRITE(file_unit,"(A)") "closepath"     
-      WRITE(file_unit,"(A)") ".75 .75 .75 setrgbcolor fill grestore"      
-  
+      WRITE(file_unit,"(A)") ".75 .75 .75 setrgbcolor fill grestore"          
+     
       RETURN
-      END SUBROUTINE write_psheader
-      
+      END SUBROUTINE plot_background
+
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!              
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
       
       SUBROUTINE close_ps(filename,unit_number)
       
