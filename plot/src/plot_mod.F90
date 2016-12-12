@@ -50,11 +50,13 @@
       TYPE(plot_type), INTENT(INOUT) :: fig      
 
       INTEGER :: el,et
+      INTEGER :: pe
+      INTEGER, DIMENSION(:), ALLOCATABLE :: el_in_all
       CHARACTER(:), ALLOCATABLE :: filename
       CHARACTER(4) :: snap_char
       
  
-      IF (fig%plot_sol_option /= 1) THEN
+      IF (fig%plot_sol_option < 1) THEN
         RETURN
       ENDIF     
                 
@@ -99,8 +101,10 @@
       IF (fig%plot_lines_option == 1) THEN
         CALL plot_line_contours(fig%ps_unit,ne,el_type,el_in,nptri,rect,xyplt,r,s,snap,fig)          
       ENDIF      
+      
 !         CALL plot_cb_nodes(fig%ps_unit,ctp,nbou,fbseg,fbnds,xy,bndxy)
-        CALL plot_elxy_nodes(fig%ps_unit,ne,el_type,nnds,elxy)
+!         CALL plot_elxy_nodes(fig%ps_unit,ne,el_type,nnds,elxy)
+
       IF (adapt_option == 1) THEN
         CALL SYSTEM("cp "//filename//".ps "//filename//"_pltmesh.ps")
         OPEN(UNIT=999,FILE=filename//"_pltmesh.ps",POSITION="APPEND")
@@ -110,12 +114,14 @@
       
       IF (fig%plot_mesh_option == 1) THEN
 !         CALL fill_elements(fig%ps_unit,ne,nverts,pc,el_type,el_in,xy,ect,xyplt)      
-        CALL plot_mesh(fig%ps_unit,ne,nverts,fig%el_plt,pplt,el_type,el_in,xy,ect,xyplt)  
-
-!         CALL plot_boundaries(fig%ps_unit,nverts,pc,nobed,obedn,ged2el,ged2led,el_type,el_in,ect,xy,xyplt)       
-!         CALL plot_boundaries(fig%ps_unit,nverts,pc,nnfbed,nfbedn,ged2el,ged2led,el_type,el_in,ect,xy,xyplt)        
-!         CALL plot_boundaries(fig%ps_unit,nverts,pc,nfbed,fbedn,ged2el,ged2led,el_type,el_in,ect,xy,xyplt)          
+        CALL plot_mesh(fig%ps_unit,ne,nverts,fig%el_plt,pplt,el_type,el_in,xy,ect,xyplt)          
+      ELSE IF (fig%plot_mesh_option == 2) THEN
+        pe = (et-1)*nord + nord
+        CALL plot_boundaries(fig%ps_unit,nverts,fig%el_plt,pplt,nobed,obedn,ged2el,ged2led,el_type,el_in,ect,xy,xyplt)       
+        CALL plot_boundaries(fig%ps_unit,nverts,fig%el_plt,pplt,nnfbed,nfbedn,ged2el,ged2led,el_type,el_in,ect,xy,xyplt)        
+        CALL plot_boundaries(fig%ps_unit,nverts,fig%el_plt,pplt,nfbed,fbedn,ged2el,ged2led,el_type,el_in,ect,xy,xyplt)          
       ENDIF 
+              
       
       CALL write_all_axes(fig%ps_unit,fig%cbar_flag,fig%tbar_flag,t_snap,t_start,t_end) 
       CALL write_latex_ps_body(fig%ps_unit)
@@ -1208,13 +1214,14 @@ levels:DO lev = 1,nctick
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!   
 
-     SUBROUTINE plot_boundaries(file_unit,nverts,ctp,nbed,bedn,ged2el,ged2led,el_type,el_in,ect,xy,xyplt)
+     SUBROUTINE plot_boundaries(file_unit,nverts,el_plt,pplt,nbed,bedn,ged2el,ged2led,el_type,el_in,ect,xy,xyplt)
      
      IMPLICIT NONE
      
      INTEGER, INTENT(IN) :: file_unit
      INTEGER, DIMENSION(:), INTENT(IN) :: nverts
-     INTEGER, INTENT(IN) :: ctp
+     INTEGER, DIMENSION(:), INTENT(IN) :: el_plt
+     INTEGER, DIMENSION(:), INTENT(IN) :: pplt
      INTEGER, INTENT(IN) :: nbed
      INTEGER, DIMENSION(:), INTENT(IN) :: bedn
      INTEGER, DIMENSION(:,:), INTENT(IN) :: ged2el
@@ -1225,7 +1232,7 @@ levels:DO lev = 1,nctick
      REAL(rp), DIMENSION(:,:), INTENT(IN) :: xy
      REAL(rp), DIMENSION(:,:,:), INTENT(IN) :: xyplt
      
-     INTEGER :: ed,nd
+     INTEGER :: ed,nd,j
      INTEGER :: el,et,nv
      INTEGER :: ged,led
      INTEGER :: n1,n2
@@ -1253,11 +1260,15 @@ edge:DO ed = 1,nbed
           WRITE(file_unit,"(A)") "draw-line"          
         ELSE
           
-          n1 = mod(led,nv)*ctp + 1
-          n2 = n1 + ctp
+          n1 = mod(led,nv)*pplt(el_plt(el)) + 1
+          n2 = n1 + pplt(el_plt(el))
           WRITE(file_unit,"(A)") "newpath"
           WRITE(file_unit,"(2(F9.5,1x),A)") ax*xyplt(n1,el,1)+bx,ay*xyplt(n1,el,2)+by,"moveto" 
-          DO nd = n1+1,n2
+          DO j = 1, pplt(el_plt(el))
+            nd = n1 + j
+            IF (nd == nv*pplt(el_plt(el))+1) THEN
+              nd = 1
+            ENDIF
             WRITE(file_unit,"(2(F9.5,1x),A)") ax*xyplt(nd,el,1)+bx,ay*xyplt(nd,el,2)+by, "lineto"
           ENDDO
           WRITE(file_unit,"(A)") ".5 setlinewidth 2 setlinejoin"          
