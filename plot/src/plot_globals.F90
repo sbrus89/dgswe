@@ -286,11 +286,11 @@
       
       mesh%sol_label = "mesh"
       mesh%name = "mesh"
-      zeta%sol_label = "surface elevation"
+      zeta%sol_label = "surface elevation (m)"
       zeta%name = "zeta"      
-      vel%sol_label = "velocity"
+      vel%sol_label = "velocity (m/s)"
       vel%name = "vel"      
-      bathy%sol_label = "bathymetry"
+      bathy%sol_label = "bathymetry (m)"
       bathy%name = "bathy"           
       
       mesh%t_snap => t_snap
