@@ -469,10 +469,10 @@
       WRITE(file_unit,"(A)") "/ymin exch def"   
       WRITE(file_unit,"(A)") "/xmax exch def"    
       WRITE(file_unit,"(A)") "/xmin exch def" 
-      WRITE(file_unit,"(A,F9.5,A)") "/ax ",ax, " def"     
-      WRITE(file_unit,"(A,F9.5,A)") "/bx ",bx, " def" 
-      WRITE(file_unit,"(A,F9.5,A)") "/ay ",ay, " def"  
-      WRITE(file_unit,"(A,F9.5,A)") "/by ",by, " def"    
+      WRITE(file_unit,"(A,F20.5,A)") "/ax ",ax, " def"     
+      WRITE(file_unit,"(A,F20.5,A)") "/bx ",bx, " def" 
+      WRITE(file_unit,"(A,F20.5,A)") "/ay ",ay, " def"  
+      WRITE(file_unit,"(A,F20.5,A)") "/by ",by, " def"    
       WRITE(file_unit,"(A)") "xmin ax mul bx add" 
       WRITE(file_unit,"(A)") "ymin ay mul by add" 
       WRITE(file_unit,"(A)") "xmax ax mul bx add"    
@@ -487,7 +487,7 @@
       WRITE(file_unit,"(A)") "lineto" 
       WRITE(file_unit,"(A)") "lineto"
       WRITE(file_unit,"(A)") "closepath"   
-      WRITE(file_unit,"(A)") "gsave 3 setlinewidth 2 setlinejoin 1 0 0 setrgbcolor stroke grestore"         
+      WRITE(file_unit,"(A)") "gsave 3 setlinewidth 2 setlinejoin 0 0 0 setrgbcolor stroke grestore"         
       
       WRITE(file_unit,"(A)") "} def"   
         
