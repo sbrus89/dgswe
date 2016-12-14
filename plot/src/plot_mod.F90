@@ -125,7 +125,9 @@
       
 
       IF (fig%plot_mesh_option == 1) THEN
-!         CALL fill_elements(fig%ps_unit,ne,nverts,pc,el_type,el_in,xy,ect,xyplt)      
+        IF (fig%name == "mesh") THEN
+          CALL fill_elements(fig%ps_unit,ne,nverts,fig%el_plt,pplt,el_type,el_in,xy,ect,xyplt)      
+        ENDIF
         CALL plot_mesh(fig%ps_unit,ne,nverts,fig%el_plt,pplt,el_type,el_in,xy,ect,xyplt)          
       ELSE IF (fig%plot_mesh_option == 2) THEN
         pe = (et-1)*nord + nord
@@ -379,7 +381,8 @@
       WRITE(file_unit,"(A)") "lineto"
       WRITE(file_unit,"(A)") "lineto"
       WRITE(file_unit,"(A)") "closepath"
-      WRITE(file_unit,"(A)") "gsave 0 0 1 setrgbcolor fill grestore"     
+!       WRITE(file_unit,"(A)") "gsave 0 0 1 setrgbcolor fill grestore"     
+      WRITE(file_unit,"(A)") "gsave 1 1 1 setrgbcolor fill grestore"         
       WRITE(file_unit,"(A)") "} def" 
       
       WRITE(file_unit,"(A)") "/fill-quad-element {"
@@ -389,7 +392,8 @@
       WRITE(file_unit,"(A)") "lineto"
       WRITE(file_unit,"(A)") "lineto"      
       WRITE(file_unit,"(A)") "closepath"
-      WRITE(file_unit,"(A)") "gsave 0 0 1 setrgbcolor fill grestore"      
+!       WRITE(file_unit,"(A)") "gsave 0 0 1 setrgbcolor fill grestore"  
+      WRITE(file_unit,"(A)") "gsave 1 1 1 setrgbcolor fill grestore"        
       WRITE(file_unit,"(A)") "} def"       
       
       WRITE(file_unit,"(A)") "/draw-box {"
@@ -1419,14 +1423,15 @@ edge:DO ed = 1,nbed
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
 
-      SUBROUTINE fill_elements(file_unit,ne,nverts,ctp,el_type,el_in,xy,ect,xyplt)
+      SUBROUTINE fill_elements(file_unit,ne,nverts,el_plt,pplt,el_type,el_in,xy,ect,xyplt)
       
       IMPLICIT NONE
       
       INTEGER, INTENT(IN) :: file_unit
       INTEGER, INTENT(IN) :: ne
       INTEGER, DIMENSION(:), INTENT(IN) :: nverts
-      INTEGER, INTENT(IN) :: ctp
+      INTEGER, DIMENSION(:), INTENT(IN) :: el_plt
+      INTEGER, DIMENSION(:), INTENT(IN) :: pplt
       INTEGER, DIMENSION(:), INTENT(IN) :: el_type
       INTEGER, DIMENSION(:), INTENT(IN) :: el_in      
       REAL(rp), DIMENSION(:,:), INTENT(IN) :: xy
@@ -1441,17 +1446,20 @@ edge:DO ed = 1,nbed
       LOGICAL :: file_exists
       
       ALLOCATE(fill_list(ne))
-      fill_list = 0
-      INQUIRE(file='element.fill',exist=file_exists)
-      IF (file_exists) THEN
-        OPEN(unit=101,file='element.fill')
-        READ(101,*) n
-        DO i = 1,n
-          READ(101,*) el
-          fill_list(el) = 1
-        ENDDO
-        CLOSE(101)
-      ENDIF
+      
+!       fill_list = 0
+!       INQUIRE(file='element.fill',exist=file_exists)
+!       IF (file_exists) THEN
+!         OPEN(unit=101,file='element.fill')
+!         READ(101,*) n
+!         DO i = 1,n
+!           READ(101,*) el
+!           fill_list(el) = 1
+!         ENDDO
+!         CLOSE(101)
+!       ENDIF
+
+      fill_list = 1
       
  elem:DO el = 1,ne
         
@@ -1480,10 +1488,11 @@ edge:DO ed = 1,nbed
           IF (fill == 1) THEN       
             WRITE(file_unit,"(A)") "newpath"
             WRITE(file_unit,"(2(F9.5,1x),A)") ax*xyplt(1,el,1)+bx,ay*xyplt(1,el,2)+by,"moveto" 
-            DO nd = 2,nverts(et)*ctp
+            DO nd = 2,nverts(et)*pplt(el_plt(el))
               WRITE(file_unit,"(2(F9.5,1x),A)") ax*xyplt(nd,el,1)+bx,ay*xyplt(nd,el,2)+by, "lineto"
             ENDDO
-            WRITE(file_unit,"(A)") "gsave 0 0 1 setrgbcolor fill grestore"
+!             WRITE(file_unit,"(A)") "gsave 0 0 1 setrgbcolor fill grestore"
+            WRITE(file_unit,"(A)") "gsave 1 1 1 setrgbcolor fill grestore"
           ENDIF        
         ENDIF
       ENDDO elem
