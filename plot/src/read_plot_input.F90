@@ -96,7 +96,7 @@
               IF (mesh%el_label_option == "file") THEN
                 INQUIRE(file="element.label",exist=file_exists)
                 IF (file_exists /= .true.) THEN
-                  PRINT("(A)"), "Error: Mesh plot element label file not found"
+                  PRINT("(A)"), "Error: Mesh plot element label file (element.label) not found"
                   STOP
                 ENDIF              
               ENDIF
@@ -107,7 +107,7 @@
               IF (mesh%nd_label_option == "file") THEN
                 INQUIRE(file="node.label",exist=file_exists)
                 IF (file_exists /= .true.) THEN
-                  PRINT("(A)"), "Error: Mesh plot node label file not found"
+                  PRINT("(A)"), "Error: Mesh plot node label file (node.label) not found"
                   STOP
                 ENDIF              
               ENDIF
