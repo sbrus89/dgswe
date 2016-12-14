@@ -648,6 +648,9 @@
       INTEGER :: et,nv,pl    
       INTEGER :: nqpt,nnd,mnnds,mnp,ndf,mnqpta,nqpta(nel_type)
       INTEGER :: qpt_order
+      INTEGER :: nptri_total
+      INTEGER :: ne_total
+      INTEGER :: pplt_max
       REAL(rp) :: sol_lev
       REAL(rp) :: dc      
       REAL(rp), DIMENSION(:,:), ALLOCATABLE :: qpt
@@ -667,6 +670,7 @@
       REAL(rp) :: detJ
       REAL(rp) :: H,u_vel,v_vel
       REAL(rp) :: sol_avg
+      REAL(rp) :: error_total
    
       REAL(rp) :: color_val(3)
       REAL(rp) :: err,max_err
@@ -719,6 +723,13 @@
             
 !       rel_tol = 1d-1  
 !       abs_tol = 1d-1
+      
+      
+
+      nptri_total = 0
+      error_total = 0d0
+      ne_total = 0
+      pplt_max = 0
       
  elem:DO el = 1,ne
 
@@ -839,6 +850,7 @@
           
         ENDDO order                 
           
+                
         
         ord = fig%el_plt(el)
         
@@ -879,10 +891,22 @@
 
           WRITE(file_unit,"(A)") "trifill"        
         
-        ENDDO
+        ENDDO 
+        
+        error_total = error_total + err**2
+        nptri_total = nptri_total + nptri(ord)
+        ne_total = ne_total + 1
+        
+        IF (pplt(ord) > pplt_max) THEN
+          pplt_max = pplt(ord)
+        ENDIF
 
       ENDDO elem
-
+      
+      IF (adapt_option == 1) THEN
+        WRITE(998,"(A25,I25,E24.17,1x,I25,I25,I25)") fig%name, snap, sqrt(error_total), nptri_total, pplt_max, ne_total
+      ENDIF
+              
 
       END SUBROUTINE plot_filled_contours_adapt
       

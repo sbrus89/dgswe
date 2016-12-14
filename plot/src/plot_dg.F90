@@ -247,6 +247,11 @@
 
       IF (zeta%plot_sol_option == 0 .and. vel%plot_sol_option == 0 .and. bathy%plot_sol_option == 0) THEN
         STOP
+      ENDIF     
+      
+      IF (adapt_option == 1) THEN
+        OPEN(UNIT = 998, FILE="error.out", STATUS="REPLACE")
+        WRITE(998,"(A)") "name     snap     error_total     nptri_total     pplt_max     ne_total"
       ENDIF      
       
       CALL setup_cbounds(ne,el_in,el_type,npplt,bathy,1,1)      
@@ -279,8 +284,6 @@
       PRINT("(A)"), " "
       
       
-
-      
       DO snap = snap_start,snap_end
       
         
@@ -297,7 +300,9 @@
         
       ENDDO
       
-     
+      IF (adapt_option == 1) THEN
+        CLOSE(998)
+      ENDIF
       
       CALL make_movie(zeta,frmt)
       CALL make_movie(vel,frmt)
