@@ -131,7 +131,7 @@ $(ODIR)shape_functions_mod.o : ../../src/shape_functions_mod.F90 $(ODIR)globals.
 	$(FC) $(FFLAGS) -c $< -o $@
 	mv shape_functions_mod.mod $(ODIR)	
 
-$(ODIR)transformation.o : ../../src/transformation.F90        $(ODIR)globals.o
+$(ODIR)transformation.o : ../../src/transformation.F90        $(ODIR)globals.o $(ODIR)area_qpts_mod.o
 	$(FC) $(FFLAGS) -c $< -o $@
 	mv transformation.mod $(ODIR)		
 

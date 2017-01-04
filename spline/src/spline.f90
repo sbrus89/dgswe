@@ -3,7 +3,7 @@
       USE globals, ONLY: rp,base,eval,nverts,nel_type, &
                          ax,bx,cx,dx,ay,by,cy,dy,dt, &
                          theta_tol,sig, &
-                         nfbnds,fbnds_xy,nfbnd2el,fbnd2el
+                         nfbnds,fbnds,fbnds_xy,nfbnd2el,fbnd2el
       USE allocation, ONLY: sizes
                          
       USE calc_spline, ONLY: calc_cubic_spline,eval_cubic_spline, &
@@ -16,7 +16,7 @@
 
       IMPLICIT NONE
       INTEGER :: i,j,k,n,bou,num,nmax,qpts,ebou
-      INTEGER :: el,eln,nd,ndn,led,n1ed1,n2ed1,n1bed,n2bed,nvert
+      INTEGER :: el,eln,nd,ndn,led,n1ed1,n2ed1,n1bed,n2bed,nvert,nv
       INTEGER :: el_in,found
       INTEGER :: btype
       INTEGER :: n1,n2
@@ -31,6 +31,7 @@
       REAL(rp) :: diff
       REAL(rp), ALLOCATABLE, DIMENSION(:) :: x,y
       INTEGER :: eds(4)
+      INTEGER :: all_bnd
       REAL(rp), PARAMETER :: it_tol = 1d-3
 
       
@@ -234,6 +235,28 @@
                                                                                         ! but it's needed to update information for elements in the loop                                                                                        
                 CALL find_edge(n1,n2,xa,el_in,eds,base_bou,base_bed,base_led)  ! find base edge (to get correct spline coefficients) 
               
+              
+                ! take care of case where a channel spanned by a single triangluar element           
+                ! meaning all three element nodes that are on spline boundaries             
+                ! this can cause an element to be chosen when its boundary edge is on the other side of the channel     
+                ! particularly when ctp=2 and the eval grid is a derefinement of the base grid  
+                
+                IF (base%el_type(el_in) == 1) THEN                   
+                  all_bnd = 0                                       
+          search: DO k = 1,nfbnds                                    
+                    IF (base%ect(base_led,el_in) == fbnds(k)) THEN   ! check to see if node that is not on the found edge is also on a spline boundary
+                        all_bnd = 1
+                       EXIT search            
+                    ENDIF
+                  ENDDO  search                 
+                    
+                  IF (all_bnd == 1) THEN                               
+                    IF (base_led == eds(3)) THEN                     ! check if this edge is the farthest from the the xa point
+                      CYCLE try_elems                                ! if it is, this element should be skipped 
+                    ENDIF                                            ! because it has a boundary edge on the other side of the channel
+                  ENDIF
+                ENDIF
+              
                 nd = base_bed 
                 bou = base_bou
               
@@ -318,7 +341,7 @@
 !                 STOP
 !               ENDIF            
 
-!                 IF (n1 == 2091) THEN
+!                 IF (n1 == 72326) THEN         
 !                   STOP
 !                 ENDIF    
             
