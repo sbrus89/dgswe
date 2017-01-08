@@ -17,6 +17,10 @@
                     MirhsZ(el,l)  = MirhsZ(el,l)  + mmi(el,1)*rhsZ(el,l) 
                     MirhsQx(el,l) = MirhsQx(el,l) + mmi(el,1)*rhsQx(el,l) 
                     MirhsQy(el,l) = MirhsQy(el,l) + mmi(el,1)*rhsQy(el,l) 
+                    
+                    rhsZ(el,l) = 0d0
+                    rhsQx(el,l) = 0d0
+                    rhsQy(el,l) = 0d0
                   ENDDO
                 ENDDO
  
@@ -28,7 +32,11 @@
                     DO el = sel,eel
                       MirhsZ(el,i)  = MirhsZ(el,i)  + mmi(el,m)*rhsZ(el,j) 
                       MirhsQx(el,i) = MirhsQx(el,i) + mmi(el,m)*rhsQx(el,j) 
-                      MirhsQy(el,i) = MirhsQy(el,i) + mmi(el,m)*rhsQy(el,j) 
+                      MirhsQy(el,i) = MirhsQy(el,i) + mmi(el,m)*rhsQy(el,j)
+                      
+                      rhsZ(el,j) = 0d0
+                      rhsQx(el,j) = 0d0
+                      rhsQy(el,j) = 0d0                      
                     ENDDO
                     m = m + 1
                   ENDDO

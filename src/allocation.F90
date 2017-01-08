@@ -364,12 +364,12 @@
                          Qx,Qxold,Qxinit,rhsQx, &
                          Qy,Qyold,Qyinit,rhsQy, &
                          Hqpt,Zqpt,Qxqpt,Qyqpt,xmom,ymom,xymom, &
-                         Hflux,Zflux,Qxflux,Qyflux,tau,src_x,src_y,recipHa, &
+                         tau,src_x,src_y,recipHa, &
                          MirhsH,MirhsZ,MirhsQx,MirhsQy, &
                          Hwrite,Zwrite,Qxwrite,Qywrite
                          
       IMPLICIT NONE
-      INTEGER, PARAMETER :: n=11
+      INTEGER, PARAMETER :: n=12
       INTEGER :: alloc_status(n)
       INTEGER :: i
           
@@ -397,11 +397,9 @@
       ! Source term arrays
       ALLOCATE(tau(ne),src_x(ne),src_y(ne),STAT = alloc_status(9))
 
-      ! Flux arrays
-      ALLOCATE(Hflux(ne,4*mnqpte),Zflux(ne,4*mnqpte),Qxflux(ne,4*mnqpte),Qyflux(ne,4*mnqpte),STAT = alloc_status(10))
       
       ! Write arrays
-      ALLOCATE(Hwrite(ne,mndof),Zwrite(ne,mndof),Qxwrite(ne,mndof),Qywrite(ne,mndof),STAT = alloc_status(11))
+      ALLOCATE(Hwrite(ne,mndof),Zwrite(ne,mndof),Qxwrite(ne,mndof),Qywrite(ne,mndof),STAT = alloc_status(10))
       
 
 
@@ -412,9 +410,14 @@
         ENDIF
       ENDDO
 
-      Hflux = 0d0
-      Qxflux = 0d0
-      Qyflux = 0d0
+      
+      rhsZ(:,:) = 0d0
+      rhsQx(:,:) = 0d0
+      rhsQy(:,:) = 0d0   
+      
+      MirhsZ(:,:) = 0d0
+      MirhsQx(:,:) = 0d0
+      MirhsQy(:,:) = 0d0          
       
       
       RETURN
@@ -463,7 +466,6 @@
      
      USE globals, ONLY: Hi,He,Zi,Ze,Qxi,Qxe,Qyi,Qye, &
                         xmi,xme,ymi,yme,xymi,xyme, &
-                        Hfi,Hfe,Zfi,Zfe,Qxfi,Qxfe,Qyfi,Qyfe, &
                         inx,iny,icfac,detJe_in,detJe_ex,const, &
                         Hhatv,Zhatv,Qxhatv,Qyhatv
                      
@@ -480,15 +482,12 @@
      ! Solution pointer arrays
      ALLOCATE(Hi(mnired,mnqpte),He(mnired,mnqpte),Zi(mnired,mnqpte),Ze(mnired,mnqpte),Qxi(mnired,mnqpte),Qxe(mnired,mnqpte),Qyi(mnired,mnqpte),Qye(mnired,mnqpte),STAT=alloc_status(1))
      ALLOCATE(xmi(mnired,mnqpte),xme(mnired,mnqpte),ymi(mnired,mnqpte),yme(mnired,mnqpte),xymi(mnired,mnqpte),xyme(mnired,mnqpte),STAT=alloc_status(2))
-
-     ! Flux pointer arrays
-     ALLOCATE(Hfi(mnired,mnqpte),Hfe(mnired,mnqpte),Zfi(mnired,mnqpte),Zfe(mnired,mnqpte),Qxfi(mnired,mnqpte),Qxfe(mnired,mnqpte),Qyfi(mnired,mnqpte),Qyfe(mnired,mnqpte),STAT=alloc_status(3))
        
      ! Edge normals and jacobians
-     ALLOCATE(inx(mnired,mnqpte),iny(mnired,mnqpte),icfac(mnired,mnqpte),detJe_in(mnired,mnqpte),detJe_ex(mnired,mnqpte),STAT=alloc_status(4))      
+     ALLOCATE(inx(mnired,mnqpte),iny(mnired,mnqpte),icfac(mnired,mnqpte),detJe_in(mnired,mnqpte),detJe_ex(mnired,mnqpte),STAT=alloc_status(3))      
 
      ! Temporary storage arrays, LLF constant and fluxes
-     ALLOCATE(const(mnired),Hhatv(mnired),Zhatv(mnired),Qxhatv(mnired),Qyhatv(mnired),STAT=alloc_status(5))
+     ALLOCATE(const(mnired),Hhatv(mnired),Zhatv(mnired),Qxhatv(mnired),Qyhatv(mnired),STAT=alloc_status(4))
      
       DO i = 1,n
         IF (alloc_status(i) /= 0) THEN

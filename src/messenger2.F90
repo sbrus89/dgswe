@@ -55,8 +55,7 @@
       TYPE(edge_ptr_array), ALLOCATABLE, DIMENSION(:,:) :: Qxri,Qxre
       TYPE(edge_ptr_array), ALLOCATABLE, DIMENSION(:,:) :: Qyri,Qyre   
       TYPE(edge_ptr_array), ALLOCATABLE, DIMENSION(:,:) :: xmri,ymri,xymri    
-      TYPE(edge_ptr_array), ALLOCATABLE, DIMENSION(:,:) :: Zfri,Hfri,Qxfri,Qyfri
-      
+
       REAL(rp), ALLOCATABLE, DIMENSION(:) :: xmre,ymre,xymre
       REAL(rp), ALLOCATABLE, DIMENSION(:) :: Hre
       
@@ -333,7 +332,6 @@
       SUBROUTINE message_setup()
       
       USE globals, ONLY: ned,mnqpte,nqpte,detJe,nx_pt,ny_pt,hbqpte, &
-                         Zflux,Hflux,Qxflux,Qyflux, &
                          Zqpt,Hqpt,Qxqpt,Qyqpt, &
                          xmom,ymom,xymom, &
                          ged2el,ged2led,gel2ael, &
@@ -387,7 +385,6 @@
       ALLOCATE(xmre(nred),ymre(nred),xymre(nred))
       ALLOCATE(Hre(nred))      
       ALLOCATE(hbr(nred,mnqpte))
-      ALLOCATE(Zfri(nred,mnqpte),Hfri(nred,mnqpte),Qxfri(nred,mnqpte),Qyfri(nred,mnqpte))      
       
       match_edge = 1
       edcnt = 0     
@@ -435,11 +432,7 @@
             xmri(edcnt,pt)%ptr  => xmom(el_in,gp_in)
             ymri(edcnt,pt)%ptr  => ymom(el_in,gp_in)
             xymri(edcnt,pt)%ptr => xymom(el_in,gp_in)
-            
-            Hfri(edcnt,pt)%ptr  => Hflux(el_in,gp_in)
-            Zfri(edcnt,pt)%ptr  => Zflux(el_in,gp_in)            
-            Qxfri(edcnt,pt)%ptr => Qxflux(el_in,gp_in)
-            Qyfri(edcnt,pt)%ptr => Qyflux(el_in,gp_in)
+
           ENDDO
         ENDDO
       ENDDO

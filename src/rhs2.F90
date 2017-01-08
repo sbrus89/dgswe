@@ -33,20 +33,6 @@
 !     c Area Integrals
 !     ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc  
 
-!!DIR$ VECTOR ALIGNED
-      rhsZ(:,:) = 0d0
-!!DIR$ VECTOR ALIGNED
-      rhsQx(:,:) = 0d0
-!!DIR$ VECTOR ALIGNED
-      rhsQy(:,:) = 0d0   
-      
-!!DIR$ VECTOR ALIGNED
-      MirhsZ(:,:) = 0d0
-!!DIR$ VECTOR ALIGNED
-      MirhsQx(:,:) = 0d0
-!!DIR$ VECTOR ALIGNED
-      MirhsQy(:,:) = 0d0         
-
       
 !$OMP parallel default(none)  &
 !$OMP             private(ind,blk,pt,dof,el,et,ete,l,m,ed,ged,led_in,gp_in,el_in, &

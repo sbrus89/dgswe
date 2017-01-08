@@ -46,16 +46,19 @@
                   DO el = elblk(1,blk,et),elblk(2,blk,et)
 !                     H(el,dof) = .5d0*(Hold(el,dof) + H(el,dof) + dt*MirhsH(el,dof))
                     Z(el,dof) = .5d0*(Zold(el,dof) + Z(el,dof) + dt*MirhsZ(el,dof))
+                    MirhsZ(el,dof) = 0d0
                   ENDDO
 !DIR$ IVDEP                  
 !!DIR$ VECTOR ALIGNED
                   DO el = elblk(1,blk,et),elblk(2,blk,et)
                     Qx(el,dof) = .5d0*(Qxold(el,dof) + Qx(el,dof) + dt*MirhsQx(el,dof))
+                    MirhsQx(el,dof) = 0d0
                   ENDDO
 !DIR$ IVDEP                  
 !!DIR$ VECTOR ALIGNED
                   DO el = elblk(1,blk,et),elblk(2,blk,et)
                     Qy(el,dof) = .5d0*(Qyold(el,dof) + Qy(el,dof) + dt*MirhsQy(el,dof))
+                    MirhsQy(el,dof) = 0d0
                   ENDDO
                 ENDDO
       
@@ -86,16 +89,19 @@
                   DO el = elblk(1,blk,et),elblk(2,blk,et)
 !                     H(el,dof) = .25d0*(3d0*Hold(el,dof) + H(el,dof) + dt*MirhsH(el,dof))
                     Z(el,dof) = .25d0*(3d0*Zold(el,dof) + Z(el,dof) + dt*MirhsZ(el,dof))
+                    MirhsZ(el,dof) = 0d0
                   ENDDO
 !DIR$ IVDEP
 !!DIR$ VECTOR ALIGNED
                   DO el = elblk(1,blk,et),elblk(2,blk,et)
                     Qx(el,dof) = .25d0*(3d0*Qxold(el,dof) + Qx(el,dof) + dt*MirhsQx(el,dof))
+                    MirhsQx(el,dof) = 0d0
                   ENDDO
 !DIR$ IVDEP        
 !!DIR$ VECTOR ALIGNED
                   DO el = elblk(1,blk,et),elblk(2,blk,et)
                     Qy(el,dof) = .25d0*(3d0*Qyold(el,dof) + Qy(el,dof) + dt*MirhsQy(el,dof))
+                    MirhsQy(el,dof) = 0d0
                   ENDDO
                 ENDDO
       
@@ -123,16 +129,19 @@
                   DO el = elblk(1,blk,et),elblk(2,blk,et)
 !                     H(el,dof) = pt3333*(Hold(el,dof) + 2d0*(H(el,dof) + dt*MirhsH(el,dof)))
                     Z(el,dof) = pt3333*(Zold(el,dof) + 2d0*(Z(el,dof) + dt*MirhsZ(el,dof)))
+                    MirhsZ(el,dof) = 0d0
                   ENDDO
 !DIR$ IVDEP        
 !!DIR$ VECTOR ALIGNED
                   DO el = elblk(1,blk,et),elblk(2,blk,et)
                     Qx(el,dof) = pt3333*(Qxold(el,dof) + 2d0*(Qx(el,dof) + dt*MirhsQx(el,dof)))
+                    MirhsQx(el,dof) = 0d0
                   ENDDO
 !DIR$ IVDEP        
 !!DIR$ VECTOR ALIGNED
                   DO el = elblk(1,blk,et),elblk(2,blk,et)
                     Qy(el,dof) = pt3333*(Qyold(el,dof) + 2d0*(Qy(el,dof) + dt*MirhsQy(el,dof)))
+                    MirhsQy(el,dof) = 0d0
                   ENDDO
                 ENDDO
       
@@ -157,16 +166,19 @@
                   DO el = elblk(1,blk,et),elblk(2,blk,et)
                     Zold(el,dof) = ark(stg)*Zold(el,dof) + dt*MirhsZ(el,dof)
                     Z(el,dof) = Z(el,dof) + brk(stg)*Zold(el,dof)
+                    MirhsZ(el,dof) = 0d0
                   ENDDO
 !DIR$ IVDEP
                   DO el = elblk(1,blk,et),elblk(2,blk,et)
                     Qxold(el,dof) = ark(stg)*Qxold(el,dof) + dt*MirhsQx(el,dof)
                     Qx(el,dof) = Qx(el,dof) + brk(stg)*Qxold(el,dof)
+                    MirhsQx(el,dof) = 0d0
                   ENDDO
 !DIR$ IVDEP        
                   DO el = elblk(1,blk,et),elblk(2,blk,et)
                     Qyold(el,dof) = ark(stg)*Qyold(el,dof) + dt*MirhsQy(el,dof)
                     Qy(el,dof) = Qy(el,dof) + brk(stg)*Qyold(el,dof)
+                    MirhsQy(el,dof) = 0d0
                   ENDDO
                 ENDDO
       
@@ -270,16 +282,19 @@
               DO el = elblk(1,blk,et),elblk(2,blk,et)
 !                 H(el,dof) = Hold(el,dof) + dt*MirhsH(el,dof)
                 Z(el,dof) = Zold(el,dof) + dt*MirhsZ(el,dof)
+                MirhsZ(el,dof) = 0d0
               ENDDO
 !DIR$ IVDEP
 !!DIR$ VECTOR ALIGNED
               DO el = elblk(1,blk,et),elblk(2,blk,et)
                 Qx(el,dof) = Qxold(el,dof) + dt*MirhsQx(el,dof)
+                MirhsQx(el,dof) = 0d0
               ENDDO
 !DIR$ IVDEP              
 !!DIR$ VECTOR ALIGNED
               DO el = elblk(1,blk,et),elblk(2,blk,et)
                 Qy(el,dof) = Qyold(el,dof) + dt*MirhsQy(el,dof)
+                MirhsQy(el,dof) = 0d0
               ENDDO
             ENDDO
             

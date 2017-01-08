@@ -207,8 +207,6 @@
 
       REAL(rp), ALLOCATABLE, DIMENSION(:) :: recipHa ! temporary variables for momentum term calculation
 
-      REAL(rp), ALLOCATABLE, TARGET, DIMENSION(:,:) :: Zflux,Hflux,Qxflux,Qyflux ! numerical flux arrays
-
       REAL(rp), ALLOCATABLE, DIMENSION(:) :: const
       REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: inx,iny
       REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: icfac      
@@ -234,10 +232,7 @@
       TYPE(edge_ptr_array), ALLOCATABLE, DIMENSION(:,:) :: Qyi,Qye
       TYPE(edge_ptr_array), ALLOCATABLE, DIMENSION(:,:) :: xmi,xme
       TYPE(edge_ptr_array), ALLOCATABLE, DIMENSION(:,:) :: ymi,yme
-      TYPE(edge_ptr_array), ALLOCATABLE, DIMENSION(:,:) :: xymi,xyme
-      TYPE(edge_ptr_array), ALLOCATABLE, DIMENSION(:,:) :: Zfi,Hfi,Qxfi,Qyfi
-      TYPE(edge_ptr_array), ALLOCATABLE, DIMENSION(:,:) :: Zfe,Hfe,Qxfe,Qyfe
-      TYPE(edge_ptr_array), ALLOCATABLE, DIMENSION(:,:) :: Zf,Hf,Qxf,Qyf      
+      TYPE(edge_ptr_array), ALLOCATABLE, DIMENSION(:,:) :: xymi,xyme   
       
       TYPE(edge_ptr_array), ALLOCATABLE, DIMENSION(:,:) :: Hwrite
       TYPE(edge_ptr_array), ALLOCATABLE, DIMENSION(:,:) :: Zwrite      

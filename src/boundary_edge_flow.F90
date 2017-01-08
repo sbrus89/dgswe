@@ -8,7 +8,6 @@
                          ged2led,ged2el,gel2ael, &
                          nx_pt,ny_pt,Spe,detJe,hbqpted, &
                          Zqpt,Qxqpt,Qyqpt, &
-                         Zflux,Qxflux,Qyflux, &
                          nfbsfr,fbsamp_qpt,fbsbgn,fbsend,fbssig
 
       IMPLICIT NONE
@@ -69,9 +68,9 @@
  
           CALL numerical_flux(Qx_in,Qy_in,Z_in,Qx_ex,Qy_ex,Z_ex,hb,nx,ny,sp,Qxhat,Qyhat,Zhat)
 
-          Zflux(el_in,gp_in) = detJe(ged,pt)*Zhat              
-          Qxflux(el_in,gp_in) = detJe(ged,pt)*Qxhat
-          Qyflux(el_in,gp_in) = detJe(ged,pt)*Qyhat
+          Zqpt(el_in,gp_in) = detJe(ged,pt)*Zhat              
+          Qxqpt(el_in,gp_in) = detJe(ged,pt)*Qxhat
+          Qyqpt(el_in,gp_in) = detJe(ged,pt)*Qyhat
               
         ENDDO
       ENDDO

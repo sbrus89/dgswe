@@ -271,10 +271,8 @@
       USE globals, ONLY: nqpte,ged2led,gel2ael,gel2part, &
                          Hqpt,Zqpt,Qxqpt,Qyqpt, &
                          xmom,ymom,xymom, &
-                         Hflux,Zflux,Qxflux,Qyflux, &
                          Hi,He,Zi,Ze,Qxi,Qxe,Qyi,Qye, &
                          xmi,xme,ymi,yme,xymi,xyme, &
-                         Hfi,Hfe,Zfi,Zfe,Qxfi,Qxfe,Qyfi,Qyfe, &
                          nx_pt,ny_pt,detJe,Spe,cfac, &
                          inx,iny,detJe_in,detJe_ex,icfac
                       
@@ -323,17 +321,6 @@
         xymi(ed,pt)%ptr => xymom(ael_in,gp_in)
         xyme(ed,pt)%ptr => xymom(ael_ex,gp_ex)
 
-        Hfi(ed,pt)%ptr => Hflux(ael_in,gp_in)
-        Hfe(ed,pt)%ptr => Hflux(ael_ex,gp_ex)
-        
-        Zfi(ed,pt)%ptr => Zflux(ael_in,gp_in)
-        Zfe(ed,pt)%ptr => Zflux(ael_ex,gp_ex)        
-
-        Qxfi(ed,pt)%ptr => Qxflux(ael_in,gp_in)
-        Qxfe(ed,pt)%ptr => Qxflux(ael_ex,gp_ex)
-
-        Qyfi(ed,pt)%ptr => Qyflux(ael_in,gp_in)
-        Qyfe(ed,pt)%ptr => Qyflux(ael_ex,gp_ex)
         
 !         gp_in = pt
 !         gp_ex = nqpte(1) - pt + 1        

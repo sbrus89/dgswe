@@ -57,8 +57,7 @@ ed_points: DO pt = 1,tnqpte
                           Zi,Ze,Hi,He,Qxi,Qxe,Qyi,Qye, &
                           xmi,xme,ymi,yme,xymi,xyme, &
                           Zhatv,Qxhatv,Qyhatv, &
-                          detJe_in,detJe_ex, &
-                          Zfe,Zfi,Qxfi,Qxfe,Qyfi,Qyfe  
+                          detJe_in,detJe_ex
    
       IMPLICIT NONE
 
@@ -98,18 +97,18 @@ ed_points: DO pt = 1,nqpte ! Compute numerical fluxes for all edges
               ENDDO
 !DIR$ IVDEP              
               DO ed = sed,eed
-                Zfe(ed,pt)%ptr = -detJe_ex(ed,pt)*Zhatv(ed)
-                Zfi(ed,pt)%ptr =  detJe_in(ed,pt)*Zhatv(ed)                
+                Ze(ed,pt)%ptr = -detJe_ex(ed,pt)*Zhatv(ed)
+                Zi(ed,pt)%ptr =  detJe_in(ed,pt)*Zhatv(ed)                
               ENDDO          
 !DIR$ IVDEP              
               DO ed = sed,eed                             
-                Qxfe(ed,pt)%ptr = -detJe_ex(ed,pt)*Qxhatv(ed)
-                Qxfi(ed,pt)%ptr =  detJe_in(ed,pt)*Qxhatv(ed)
+                Qxe(ed,pt)%ptr = -detJe_ex(ed,pt)*Qxhatv(ed)
+                Qxi(ed,pt)%ptr =  detJe_in(ed,pt)*Qxhatv(ed)
               ENDDO   
 !DIR$ IVDEP              
               DO ed = sed,eed                                    
-                Qyfe(ed,pt)%ptr = -detJe_ex(ed,pt)*Qyhatv(ed)
-                Qyfi(ed,pt)%ptr =  detJe_in(ed,pt)*Qyhatv(ed)
+                Qye(ed,pt)%ptr = -detJe_ex(ed,pt)*Qyhatv(ed)
+                Qyi(ed,pt)%ptr =  detJe_in(ed,pt)*Qyhatv(ed)
               ENDDO               
 
         ENDDO ed_points  
@@ -132,8 +131,7 @@ ed_points: DO pt = 1,nqpte ! Compute numerical fluxes for all edges
          
       USE messenger2, ONLY: Zri,Zre,Hri,Hre,Qxri,Qxre,Qyri,Qyre, &
                             xmri,xmre,ymri,ymre,xymri,xymre, &
-                            detJe_recv,rcfac,hbr,rnx,rny, &
-                            Zfri,Qxfri,Qyfri  
+                            detJe_recv,rcfac,hbr,rnx,rny
    
       IMPLICIT NONE
 
@@ -186,13 +184,13 @@ ed_points: DO pt = 1,nqpte ! Compute numerical fluxes for all edges
         ENDDO
 
         DO ed = 1,nred                                       
-          Zfri(ed,pt)%ptr =  detJe_recv(ed,pt)*Zhatv(ed)          
+          Zri(ed,pt)%ptr =  detJe_recv(ed,pt)*Zhatv(ed)          
         ENDDO   
         DO ed = 1,nred                                         
-          Qxfri(ed,pt)%ptr =  detJe_recv(ed,pt)*Qxhatv(ed)        
+          Qxri(ed,pt)%ptr =  detJe_recv(ed,pt)*Qxhatv(ed)        
         ENDDO        
         DO ed = 1,nred 
-          Qyfri(ed,pt)%ptr =  detJe_recv(ed,pt)*Qyhatv(ed)        
+          Qyri(ed,pt)%ptr =  detJe_recv(ed,pt)*Qyhatv(ed)        
         ENDDO
       ENDDO
 
@@ -207,7 +205,7 @@ ed_points: DO pt = 1,nqpte ! Compute numerical fluxes for all edges
        SUBROUTINE edge_integration(et,sel,eel,ndof,tnqpte)
        
        USE globals, ONLY: rhsZ,rhsQx,rhsQy, &
-                          Zflux,Qxflux,Qyflux, &
+                          Zqpt,Qxqpt,Qyqpt, &
                           phie_int
        
        IMPLICIT NONE
@@ -221,9 +219,9 @@ ed_points: DO pt = 1,nqpte ! Compute numerical fluxes for all edges
          DO l = 1,ndof
 !!DIR$ VECTOR ALIGNED
            DO el = sel,eel
-             rhsZ(el,l) = rhsZ(el,l) - Zflux(el,pt)*phie_int(l,pt,et)
-             rhsQx(el,l) = rhsQx(el,l) - Qxflux(el,pt)*phie_int(l,pt,et)
-             rhsQy(el,l) = rhsQy(el,l) - Qyflux(el,pt)*phie_int(l,pt,et)                   
+             rhsZ(el,l) = rhsZ(el,l) - Zqpt(el,pt)*phie_int(l,pt,et)
+             rhsQx(el,l) = rhsQx(el,l) - Qxqpt(el,pt)*phie_int(l,pt,et)
+             rhsQy(el,l) = rhsQy(el,l) - Qyqpt(el,pt)*phie_int(l,pt,et)                   
            ENDDO
          ENDDO                                    
        ENDDO       
