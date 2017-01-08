@@ -4,7 +4,7 @@ VPATH := ../src/
 ODIR = odir/
 
 FC = ifort
-FFLAGS = -O3 -132 -I$(ODIR) -Dadcirc
+FFLAGS = -O3 -132 -I$(ODIR) #-Dadcirc
 # FFLAGS = -132 -C -g -traceback -I$(ODIR) #-Dadcirc -fp-model strict
 
 FULLNAME := $(shell hostname)
@@ -133,7 +133,7 @@ $(ODIR)curvilinear_nodes_mod.o : ../../src/curvilinear_nodes_mod.F90 $(ODIR)glob
 	$(FC) $(FFLAGS) -c $< -o $@
 	mv curvilinear_nodes_mod.mod $(ODIR)
 	
-$(ODIR)transformation.o : ../../src/transformation.F90               $(ODIR)basis.o $(ODIR)vandermonde.o $(ODIR)lapack_interfaces.o $(ODIR)shape_functions_mod.o
+$(ODIR)transformation.o : ../../src/transformation.F90               $(ODIR)basis.o $(ODIR)vandermonde.o $(ODIR)lapack_interfaces.o $(ODIR)shape_functions_mod.o $(ODIR)area_qpts_mod.o
 	$(FC) $(FFLAGS) -c $< -o $@
 	mv transformation.mod $(ODIR)
 	
