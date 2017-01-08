@@ -271,7 +271,7 @@
       CHARACTER(*), INTENT(IN) :: grid_file_from
       CHARACTER(*), INTENT(IN) :: grid_file_to           
       
-      CHARACTER(500) :: line
+      CHARACTER(200) :: line
       CHARACTER(10) :: flag
       LOGICAL :: file_exists
       INTEGER :: read_stat
