@@ -45,9 +45,10 @@
       REAL(rp), ALLOCATABLE, DIMENSION(:) :: depth_coarse     
       
       
-!       grid_file_in = "/home/sbrus/data-drive/galveston_SL18/grid_dev/v17_cart/galveston_SL18_cart.grd"
-      grid_file_in = "coarse_relaxed.grd"
-      grid_file_out = "coarse_x2.grd"
+!       grid_file_in = "/home/sbrus/data-drive/galveston_SL18/grid_dev/v23_cart/galveston_SL18_cart.grd"
+!       grid_file_out = "/home/sbrus/data-drive/galveston_SL18/grid_dev/v23_cart/coarse.grd"
+      grid_file_in = "/home/sbrus/data-drive/galveston_SL18/grid_dev/v23_cart/coarse/galveston_SL18_cart_coarse.grd"
+      grid_file_out = "/home/sbrus/data-drive/galveston_SL18/grid_dev/v23_cart/coarse/coarse_x2.grd"
          
       nverts(1) = 3
       nverts(2) = 4
@@ -152,7 +153,7 @@
       DO bou = 1,nbou
         nbnds = fbseg(1,bou)           
         
-        IF (nbnds <= 5) THEN
+        IF (nbnds <= 8) THEN
           DO j = 1,nbnds
             nd = fbnds(j,bou)
             IF (keep_node(nd) == -1) THEN
