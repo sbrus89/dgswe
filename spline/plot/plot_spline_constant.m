@@ -2,8 +2,9 @@
 clear all
 clc
 
-out_direc = '../work/';
+% out_direc = '../work/';
 % out_direc = '/home/sbrus/data-drive/galveston_spline_flux_fix/grids/';
+out_direc = '/home/sbrus/data-drive/galveston_SL18/grid_dev/v24_cart/coarse/spline/';
 
 file = fopen([out_direc,'spline.out']);
 
@@ -35,7 +36,7 @@ for j = 1:n_seg
    ti = coef_xy(:,9);
   
  
-   t = linspace(ti(1),ti(n),40*n);
+   t = linspace(ti(1),ti(n),10*n);
    
   
    %%%%%%%%%% Plot boundary polynomials %%%%%%%%%%

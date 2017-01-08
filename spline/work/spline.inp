@@ -14,14 +14,14 @@
 ! .1d0                                                                                                       ! deform_tol - fraction of the minimum edge length the spline is allowed to deviate from the straight edge
 ! ./                                                                                                         ! output directory
                                                                
-/home/sbrus/data-drive/galveston_SL18/grid_dev/v7_cart/galveston_SL18_cart.grd                            ! base grid file
-/home/sbrus/data-drive/galveston_SL18/grid_dev/v7_cart/galveston_SL18_cart.grd                            ! eval grid file
-2                                                                                                         ! ctp - parametric coordinate transformation order
-0d0                                                                                                       ! sig - tension parameter
-45d0                                                                                                      ! theta_tol - corner angle tolerance
-.4d0                                                                                                      ! deform_tol - fraction of the minimum edge length the spline is allowed to deviate from the straight edge
-./                                                                                                        ! output directory
-  
+! /home/sbrus/data-drive/galveston_SL18/grid_dev/v7_cart/galveston_SL18_cart.grd                            ! base grid file
+! /home/sbrus/data-drive/galveston_SL18/grid_dev/v7_cart/galveston_SL18_cart.grd                            ! eval grid file
+! 2                                                                                                         ! ctp - parametric coordinate transformation order
+! 0d0                                                                                                       ! sig - tension parameter
+! 45d0                                                                                                      ! theta_tol - corner angle tolerance
+! .4d0                                                                                                      ! deform_tol - fraction of the minimum edge length the spline is allowed to deviate from the straight edge
+! ./                                                                                                        ! output directory
+!   
 ! /home/sbrus/Codes/dgswe/grids/converge2_dble.grd                                                              ! base grid file  
 ! /home/sbrus/Codes/dgswe/grids/converge1_dble.grd                                                         ! eval grid file 
 ! 3                                                                                                      ! ctp - parametric coordinate transformation order
@@ -30,13 +30,13 @@
 ! .1d0                                                                                                   ! deform_tol - fraction of the minimum edge length the spline is allowed to deviate from the straight edge
 ! ./                                                                                                     ! output directory
 
-! /home/sbrus/Codes/dgswe/grids/inlet3.grd                                                              ! base grid file  
-! /home/sbrus/Codes/dgswe/grids/inlet1_dble.grd                                                         ! eval grid file 
-! 2                                                                                                     ! ctp - parametric coordinate transformation order
-! 0d0                                                                                                   ! sig - tension parameter
-! 30d0                                                                                                  ! theta_tol - corner angle tolerance
-! .1d0                                                                                                  ! deform_tol - fraction of the minimum edge length the spline is allowed to deviate from the straight edge
-! ./                                                                                                    ! output directory
+/home/sbrus/Codes/dgswe/grids/inlet1.grd                                                              ! base grid file  
+/home/sbrus/Codes/dgswe/grids/inlet1.grd                                                              ! eval grid file 
+3                                                                                                     ! ctp - parametric coordinate transformation order
+0d0                                                                                                   ! sig - tension parameter
+30d0                                                                                                  ! theta_tol - corner angle tolerance
+.1d0                                                                                                  ! deform_tol - fraction of the minimum edge length the spline is allowed to deviate from the straight edge
+./                                                                                                    ! output directory
 
 
 !../galveston_tri_curve.grd                                                                            ! base grid file  
