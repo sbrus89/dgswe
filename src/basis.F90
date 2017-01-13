@@ -320,58 +320,207 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-      SUBROUTINE dgswem_basis(p,ndof,npts,rv,sv,phi)
+      SUBROUTINE dgswem_basis(p,ndof,npts,rv,sv,phi,dphidr,dphids)
       
       IMPLICIT NONE
       
-      INTEGER :: pt,dof,i
-      INTEGER :: p,ndof,npts
-      REAL(rp) :: rv(npts),sv(npts),s,r
-      REAL(rp) :: phi(ndof*npts)
+      INTEGER, INTENT(IN) :: p
+      INTEGER, INTENT(OUT) :: ndof
+      INTEGER, INTENT(IN) :: npts
+      REAL(rp), DIMENSION(:), INTENT(IN) :: rv
+      REAL(rp), DIMENSION(:), INTENT(IN) :: sv
+      REAL(rp), DIMENSION(:,:), INTENT(OUT) :: phi
+      REAL(rp), DIMENSION(:,:), OPTIONAL, INTENT(OUT) :: dphidr
+      REAL(rp), DIMENSION(:,:), OPTIONAL, INTENT(OUT) :: dphids
       
-      DO pt = 1,npts
-        r = rv(pt)
-        s = sv(pt)
-        phi(pt) = 1d0
-        phi(npts + pt) = 0.5d0*(1d0+3d0*s)
-        phi(2*npts + pt) = .5d0*(1d0+2d0*r+s)       
-      ENDDO        
-        
-      IF (p > 1) THEN
+      INTEGER :: pt,dof,i
+      INTEGER :: calc_deriv
+      REAL(rp) :: s,r
+      
+      ndof = (p+1)*(p+2)/2
+      
+      IF (PRESENT(dphidr) .AND. PRESENT(dphids)) THEN
+        calc_deriv = 1
+      ELSE
+        calc_deriv = 0
+      ENDIF
+      
+      IF (calc_deriv == 1) THEN
         DO pt = 1,npts
-          r = rv(pt)
-          s = sv(pt)        
-          phi(3*npts + pt) = -.5d0 + s + .5d0*(5d0*s**2)
-          phi(4*npts + pt) = .25d0*(1d0 + 2d0*r + s)*(3d0 + 5d0*s)
-          phi(5*npts + pt) = .25d0*(1d0 + 6d0*r**2 + 4d0*s + s**2 + 6d0*r*(1d0 + s))
+          CALL orthobasis(rv(pt),sv(pt),p,ndof,phi(:,pt),dphidr(:,pt),dphids(:,pt))     
         ENDDO
-      ENDIF
-        
-      IF (p > 2) THEN
-        DO pt = 1,npts 
-          r = rv(pt)
-          s = sv(pt)          
-          phi(6*npts + pt) = .125*(-3d0 - 15d0*s + 15d0*s**2 + 35d0*s**3)
-          phi(7*npts + pt) = .125*(1d0 + 2d0*r + s)*(1d0 + 18d0*s + 21d0*s**2)
-          phi(8*npts + pt) = .125*(5d0 + 7d0*s)*(1d0 + 6d0*r**2 + 4d0*s + s**2 + 6d0*r*(1d0 + s))
-          phi(9*npts + pt) = .125*(1d0 + 20d0*r**3 + 9d0*s + 9d0*s**2 + s**3 + 30d0*r**2*(1d0 + s) + 12d0*r*(1d0 + 3d0*s + s**2))
-        ENDDO
-      ENDIF
-
-      IF (p > 3) THEN
+      ELSE
         DO pt = 1,npts
-          r = rv(pt)
-          s = sv(pt)          
-          phi(10*npts + pt) = (1d0/8d0)*(3d0 - 12d0*s - 42d0*s**2 + 28d0*s**3 + 63d0*s**4)
-          phi(11*npts + pt) = (1d0/4d0)*(1d0 + 2d0*r + s)*(-2d0 + 21d0*s**2 + 21d0*s**3)
-          phi(12*npts + pt) = (1d0/4d0)*(2d0 + 10d0*s + 9d0*s**2)*(1d0 + 6d0*r**2 + 4d0*s + s**2 + 6d0*r*(1d0 + s))
-          phi(13*npts + pt) = (1d0/16d0)*(7d0 + 9d0*s)*(1d0 + 20d0*r**3 + 9d0*s + 9d0*s**2 + s**3 + 30d0*r**2*(1 + s) + 12d0*r*(1d0 + 3d0*s + s**2))
-          phi(14*npts + pt) = (1d0/16d0)*(1d0 + 70d0*r**4 + 16d0*s + 36d0*s**2 + 16d0*s**3 + s**4 + 140d0*r**3*(1d0 + s) + 30d0*r**2*(3d0 + 8d0*s + 3d0*s**2) + 20d0*r*(1d0 + 6d0*s + 6d0*s**2 + s**3))
-        ENDDO
+          CALL orthobasis(rv(pt),sv(pt),p,ndof,phi(:,pt))     
+        ENDDO      
       ENDIF
+      
       
       RETURN
-      END SUBROUTINE      
+      END SUBROUTINE 
+      
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+      SUBROUTINE ORTHOBASIS( X, Y, P, DOF, PHI, DPHIDZ1, DPHIDZ2 )
+      
+      IMPLICIT NONE
+      
+      REAL(rp), INTENT(IN) :: X
+      REAL(rp), INTENT(IN) :: Y
+      INTEGER, INTENT(IN) :: P
+      INTEGER, INTENT(IN) :: DOF
+      REAL(rp), DIMENSION(:), INTENT(OUT) :: PHI
+      REAL(rp), DIMENSION(:), OPTIONAL, INTENT(OUT) :: DPHIDZ1
+      REAL(rp), DIMENSION(:), OPTIONAL, INTENT(OUT) :: DPHIDZ2
+
+      INTEGER A, B, I, J, K      
+      INTEGER calc_deriv
+      REAL(rp) JACOBI(P+1,2*P+3,2)
+      REAL(rp) PHI2(P+1,P+1), DPHIDZ12(P+1,P+1), DPHIDZ22(P+1,P+1)
+      REAL(rp) Z
+      REAL(rp) NUM1, DEN, DEN1, COEFF1, COEFF2, POLY1, POLY2
+      
+        IF (PRESENT(DPHIDZ1) .AND. PRESENT(DPHIDZ2)) THEN
+          calc_deriv = 1
+        ELSE
+          calc_deriv = 0
+        ENDIF       
+
+!.....Check to see if the point is one of the vertices of the element
+
+      IF ( (X.EQ.-1).AND.(Y.EQ.-1) ) THEN
+         DO I = 0,P
+            DO J = 0,P-I
+               PHI2(I+1,J+1) = (-1.D0)**(I+J+2)
+            ENDDO
+         ENDDO
+         GOTO 111
+      ENDIF
+
+      IF ( (X.EQ.1).AND.(Y.EQ.-1) ) THEN
+         DO I = 0,P
+            DO J = 0,P-I
+               PHI2(I+1,J+1) = (-1.D0)**(J+2)
+            ENDDO
+         ENDDO
+         GOTO 111
+      ENDIF
+
+      IF ( (X.EQ.-1).AND.(Y.EQ.1) ) THEN
+         DO I = 0,P
+            DO J = 0,P-I
+               IF ((I+1).EQ.1) THEN
+                  PHI2(I+1,J+1) = J+1.D0
+               ELSE
+                  PHI2(I+1,J+1) = 0.D0
+               ENDIF
+            ENDDO
+         ENDDO
+         GOTO 111
+      ENDIF
+
+!.....If not construct and evaluate the necessary Jacobi polynomials at
+!.....the given point
+
+      DO A = 0,2*P+2
+         DO B = 0,1
+            DO J = 0,P
+
+               IF ((A.EQ.0).OR.((A.EQ.1).AND.(B.EQ.1))) THEN
+                  Z = 2.D0*(1.D0 + X)/(1.D0 - Y) - 1.D0
+               ELSE
+                  Z = Y
+               ENDIF
+
+               IF (J.EQ.0) THEN
+                  JACOBI(J+1,A+1,B+1) = 1.D0
+               ELSEIF (J.EQ.1) THEN
+                  JACOBI(J+1,A+1,B+1) =(2*(A+1) + (A+B+2)*(Z-1.D0))/2.D0
+               ELSEIF (J.GE.2) THEN
+
+                  NUM1 = 1.D0
+                  DO I = 1,2*(J-1)+A+B+2
+                     NUM1 = NUM1*I
+                  ENDDO
+
+                  DEN1 = 1.D0
+                  DO I=1,2*(J-1)+A+B-1
+                     DEN1 = DEN1*I
+                  ENDDO
+
+                  COEFF1 = (2*(J-1)+A+B+1)*(A**2-B**2) + Z*NUM1/DEN1
+                  COEFF2 = -2*(J-1+A)*(J-1+B)*(2*(J-1)+A+B+2)
+                  POLY1  = JACOBI(J,A+1,B+1)
+                  POLY2  = JACOBI(J-1,A+1,B+1)
+                  DEN = 2*(J-1+1)*(J-1+A+B+1)*(2*(J-1)+A+B)
+
+                  JACOBI(J+1,A+1,B+1) = (COEFF1*POLY1 + COEFF2*POLY2)/DEN
+
+               ENDIF
+
+            ENDDO
+         ENDDO
+      ENDDO
+
+!.....Construct and evaluate the orthogonal basis and its derivatives at
+!.....the given point
+
+      DO I = 0,P
+         DO J = 0,P-I
+            PHI2(I+1,J+1) = JACOBI(I+1,1,1)*((1.D0-Y)/2.D0)**I &
+                 *JACOBI(J+1,2*I+2,1)
+            
+            IF (calc_deriv == 1) THEN
+              IF (I.EQ.0) THEN
+                 DPHIDZ12(I+1,J+1) = 0.D0
+              ELSE
+                 DPHIDZ12(I+1,J+1) = 2.D0/(1.D0-Y)*(I+1.D0)/2.D0* &
+                      JACOBI(I,2,2)*((1-Y)/2.D0)**I*JACOBI(J+1,2*I+2,1)
+              ENDIF
+
+              IF ((I.EQ.0).AND.(J.EQ.0)) THEN
+                 DPHIDZ22(I+1,J+1) = 0.D0
+              ELSEIF ((I.EQ.0).AND.(J.GE.1)) THEN
+                 DPHIDZ22(I+1,J+1) = (J+2)/2.D0*JACOBI(J,3,2)
+              ELSEIF ((J.EQ.0).AND.(I.GE.1)) THEN
+                 DPHIDZ22(I+1,J+1) = 2.D0*(1.D0+X)/(1.D0-Y)**2*(I+1)/2.D0* &
+                      JACOBI(I,2,2)*((1.D0-Y)/2.D0)**I* &
+                      JACOBI(J+1,2*I+2,1) + JACOBI(I+1,1,1)*(-I/2.D0* &
+                      ((1.D0-Y)/2.D0)**(I-1))*JACOBI(J+1,2*I+2,1) 
+              ELSE
+                 DPHIDZ22(I+1,J+1) = 2.D0*(1.D0+X)/(1.D0-Y)**2*(I+1)/2.D0* &
+                      JACOBI(I,2,2)*((1.D0-Y)/2.D0)**I* &
+                      JACOBI(J+1,2*I+2,1) + JACOBI(I+1,1,1)*(-I/2.D0* &
+                      ((1.D0-Y)/2.D0)**(I-1))*JACOBI(J+1,2*I+2,1) + &
+                      JACOBI(I+1,1,1)*((1.D0-Y)/2.D0)**I* &
+                      (J+2*I+2)/2.D0*JACOBI(J,2*I+3,2)
+              ENDIF
+            ENDIF
+            
+         ENDDO
+      ENDDO
+
+!.....Re-order the basis functions into hierarchical order
+
+ 111  K = 1
+      DO J = 0,P
+         DO I = 0,J
+            PHI(K) = PHI2(I+1,J-I+1)
+            IF (ABS(PHI(K)).LT.1.0E-15) PHI(K) = 0.D0
+            
+            IF (calc_deriv == 1) THEN
+              DPHIDZ1(K) = DPHIDZ12(I+1,J-I+1)
+              DPHIDZ2(K) = DPHIDZ22(I+1,J-I+1)
+            ENDIF
+            
+            K = K+1
+         ENDDO
+      ENDDO
+
+      RETURN
+      END SUBROUTINE ORTHOBASIS
+
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -409,10 +558,13 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-      SUBROUTINE linear_basis(n,r,s,phil,dpdr,dpds)     
+      SUBROUTINE linear_basis(ndof,n,r,s,phil,dpdr,dpds)     
 
         IMPLICIT NONE
-        INTEGER :: n
+        
+
+        INTEGER, INTENT(OUT) :: ndof
+        INTEGER, INTENT(IN) :: n
         REAL(rp), DIMENSION(:), INTENT(IN) :: r,s
         REAL(rp), DIMENSION(:,:), INTENT(OUT) :: phil        
         REAL(rp), DIMENSION(:,:), OPTIONAL, INTENT(OUT) :: dpdr,dpds
@@ -426,6 +578,8 @@
         ELSE
           calc_deriv = 0
         ENDIF        
+        
+        ndof = 3
         
         DO pt = 1,n
 

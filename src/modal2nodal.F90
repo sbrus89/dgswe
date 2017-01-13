@@ -9,7 +9,7 @@
       
       INTEGER :: i,j,m,dof
       INTEGER :: typ,et,pt
-      INTEGER :: nvert,n,ndf,pp,eo
+      INTEGER :: nvert,n,ndf,pp,eo,ndfl
       INTEGER :: alloc_status
       REAL(rp) :: r(mnnds+mndof),s(mnnds+mndof)
       REAL(rp) :: phi(mnnds+mndof,mnnds+mndof)
@@ -72,7 +72,7 @@
       
         
       ! Calculate linear nodal basis functions
-      CALL linear_basis(nqpta(1),qpta(:,1,1),qpta(:,2,1),phil(:,:,1))
+      CALL linear_basis(ndfl,nqpta(1),qpta(:,1,1),qpta(:,2,1),phil(:,:,1))
 
       ! Compute RHS L2 projection matrix
       DO i = 1,3

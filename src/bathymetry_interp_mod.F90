@@ -336,7 +336,37 @@
       END SUBROUTINE bathymetry_nodal2modal      
       
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!      
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
+
+      SUBROUTINE dgswem_bathymetry_nodal2modal(ne,ect,depth,hbm)
+      
+      IMPLICIT NONE
+      
+      INTEGER, INTENT(IN) :: ne
+      INTEGER, DIMENSION(:,:), INTENT(IN) :: ect
+      REAL(rp), DIMENSION(:), INTENT(IN) :: depth
+      REAL(rp), DIMENSION(:,:), ALLOCATABLE, INTENT(OUT) :: hbm
+      
+      INTEGER :: el
+      INTEGER :: n1,n2,n3      
+      
+      ALLOCATE(hbm(3,ne))
+      
+      DO el = 1,ne
+         n1 = ect(1,el)
+         n2 = ect(2,el)
+         n3 = ect(3,el)
+         
+         hbm(1,el) =  1d0/3d0 * (depth(n1) + depth(n2) + depth(n3))
+         hbm(2,el) = -1d0/6d0 * (depth(n1) + depth(n2)) + 1d0/3d0*depth(n3)
+         hbm(3,el) = -0.5d0*depth(n1) + 0.5d0*depth(n2)
+      ENDDO      
+      
+      RETURN
+      END SUBROUTINE dgswem_bathymetry_nodal2modal      
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       
       FUNCTION f1(x) RESULT(y)
 

@@ -545,9 +545,201 @@
         PRINT "(A)", "Number of solution snaps less than expected value"
       ENDIF
       
-      nsnap_read = tstep            
+      nsnap_read = tstep    
+      
       RETURN
       END SUBROUTINE read_fort64
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+      SUBROUTINE read_DG63(out_direc,ne,t,eta,nsnap_read,last_snap)
+      
+      IMPLICIT NONE
+      
+      CHARACTER(*), INTENT(IN) :: out_direc
+      INTEGER, INTENT(IN) :: ne
+      REAL(rp), DIMENSION(:), ALLOCATABLE, INTENT(INOUT) :: t
+      REAL(rp), DIMENSION(:,:,:), ALLOCATABLE, INTENT(INOUT) :: eta      
+      INTEGER, INTENT(INOUT) :: nsnap_read
+      CHARACTER(1), INTENT(IN), OPTIONAL :: last_snap        
+      
+      
+      INTEGER :: read_stat
+      INTEGER :: k,el,dof,it,tstep
+      INTEGER :: nsnap,ndof,nskip,var_type
+      REAL(rp) :: tskip
+      REAL(rp) :: ttemp
+      CHARACTER(200) :: line 
+      CHARACTER(1) :: last_only      
+      
+      OPEN(UNIT=63,file=TRIM(ADJUSTL(out_direc)) // 'DG.63')      
+      
+      READ(63,*) line
+      READ(63,*) nsnap,ndof,tskip,nskip,var_type
+      
+      IF (PRESENT(last_snap)) THEN
+        last_only = last_snap
+      ELSE
+        last_only = "F"
+      ENDIF      
+      
+      
+      IF (.not. ALLOCATED(eta)) THEN
+        IF (last_only == "F") THEN
+          ALLOCATE(eta(ndof,ne,nsnap))
+        ELSE
+          ALLOCATE(eta(ndof,ne,1))
+        ENDIF
+      ENDIF      
+      
+      IF (.not. ALLOCATED(t)) THEN
+        ALLOCATE(t(nsnap))
+      ENDIF      
+      
+      
+      tstep = 0
+      DO             
+      
+        READ(63,*,IOSTAT=read_stat) ttemp,it 
+              
+        IF(read_stat < 0) THEN  
+          EXIT 
+        ENDIF
+        
+        tstep = tstep + 1        
+        t(tstep) = ttemp
+                   
+        IF (last_only == "F") THEN      
+          DO el = 1,ne      
+            DO dof = 1,ndof
+              READ(63,*) k,eta(dof,k,tstep)                    
+            ENDDO
+          ENDDO
+        ELSE
+          DO el = 1,ne        
+            DO dof = 1,ndof
+              READ(63,*) k,eta(dof,k,1)        
+            ENDDO
+          ENDDO        
+        ENDIF
+        
+        IF (tstep == nsnap_read) THEN        
+          EXIT
+        ENDIF           
+            
+      ENDDO
+      
+      CLOSE(63)
+      
+      IF (tstep < nsnap) THEN
+        PRINT "(A)", "Number of solution snaps less than expected value"
+      ENDIF
+      
+      nsnap_read = tstep     
+      
+      RETURN 
+      END SUBROUTINE read_DG63
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
+
+      SUBROUTINE read_DG64(out_direc,ne,t,Qx,Qy,nsnap_read,last_snap)
+      
+      IMPLICIT NONE
+      
+      CHARACTER(*), INTENT(IN) :: out_direc
+      INTEGER, INTENT(IN) :: ne
+      REAL(rp), DIMENSION(:), ALLOCATABLE, INTENT(INOUT) :: t
+      REAL(rp), DIMENSION(:,:,:), ALLOCATABLE, INTENT(INOUT) :: Qx
+      REAL(rp), DIMENSION(:,:,:), ALLOCATABLE, INTENT(INOUT) :: Qy         
+      INTEGER, INTENT(INOUT) :: nsnap_read      
+      CHARACTER(1), INTENT(IN), OPTIONAL :: last_snap      
+      
+      INTEGER :: read_stat
+      INTEGER :: k,el,dof,it,tstep
+      INTEGER :: nsnap,ndof,nskip,var_type
+      REAL(rp) :: tskip
+      REAL(rp) :: ttemp
+      CHARACTER(200) :: line   
+      CHARACTER(1) :: last_only
+      
+      OPEN(UNIT=64,file=TRIM(ADJUSTL(out_direc)) // 'DG.64')      
+      
+      READ(64,*) line
+      READ(64,*) nsnap,ndof,tskip,nskip,var_type      
+      
+      IF (PRESENT(last_snap)) THEN
+        last_only = last_snap
+      ELSE
+        last_only = "F"
+      ENDIF      
+      
+      IF (.not. ALLOCATED(Qx)) THEN
+        IF (last_only == "F") THEN
+          ALLOCATE(Qx(ndof,ne,nsnap))
+        ELSE
+          ALLOCATE(Qx(ndof,ne,1))
+        ENDIF        
+      ENDIF      
+      
+      IF (.not. ALLOCATED(Qy)) THEN
+        IF (last_only == "F") THEN
+          ALLOCATE(Qy(ndof,ne,nsnap))
+        ELSE
+          ALLOCATE(Qy(ndof,ne,1))
+        ENDIF          
+      ENDIF        
+      
+      IF (.not. ALLOCATED(t)) THEN
+        ALLOCATE(t(nsnap))
+      ENDIF      
+      
+      
+      tstep = 0
+      DO             
+      
+        READ(64,*,IOSTAT=read_stat) ttemp,it 
+              
+        IF(read_stat < 0) THEN  
+          EXIT 
+        ENDIF
+        
+        tstep = tstep + 1        
+        t(tstep) = ttemp
+                   
+        IF (last_only == "F") THEN              
+          DO el = 1,ne 
+            DO dof = 1,ndof
+              READ(64,*) k,Qx(dof,k,tstep),Qy(dof,k,tstep)
+            ENDDO
+          ENDDO
+        ELSE 
+          DO el = 1,ne 
+            DO dof = 1,ndof
+              READ(64,*) k,Qx(dof,k,1),Qy(dof,k,1)
+            ENDDO
+          ENDDO        
+        ENDIF
+        
+        IF (tstep == nsnap_read) THEN        
+          EXIT
+        ENDIF           
+            
+      ENDDO      
+      
+
+      CLOSE(64)
+      
+      IF (tstep < nsnap) THEN
+        PRINT "(A)", "Number of solution snaps less than expected value"
+      ENDIF
+      
+      nsnap_read = tstep          
+      
+      RETURN
+      END SUBROUTINE read_DG64
+
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
