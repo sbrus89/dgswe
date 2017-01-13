@@ -6,12 +6,14 @@
                          el_type,elxy,elhb, &
                          nepn,epn,mnepn,ned,ged2el,ged2el,ged2led,ged2nn,ed_type,recv_edge, &
                          nied,iedn,nobed,obedn,nfbed,fbedn,nnfbed,nfbedn,nfbednn, &
-                         psic,psiv
+                         psic,psiv, &
+                         deg2rad
       USE grid_file_mod
       USE basis, ONLY: element_nodes,element_basis
       USE read_write_output, ONLY: read_solution_full,read_fort63,read_fort64
       USE read_dginp, ONLY: read_input,out_direc,p,ctp,hbp,tf, &
-                            grid_file,curve_file,cb_file_exists,bathy_file,hb_file_exists
+                            grid_file,curve_file,cb_file_exists,bathy_file,hb_file_exists, &
+                            sphi0,slam0
       USE plot_mod, ONLY: read_colormap,setup_cbounds,plot_ref_el, &
                           scale_factors,zoom_box,make_plot,make_movie                                                                           
       USE evaluate_mod, ONLY: evaluate_basis
@@ -55,6 +57,9 @@
         CALL substitute_partial_path(grid_file,replace_path,sub_path)
         CALL substitute_partial_path(curve_file,replace_path,sub_path)    
       ENDIF
+      
+      slam0 = slam0*deg2rad
+      sphi0 = sphi0*deg2rad          
       
       CALL sizes()
       CALL setup_plot_types()

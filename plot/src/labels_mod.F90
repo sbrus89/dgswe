@@ -1,6 +1,6 @@
       MODULE labels_mod
 
-      USE globals, ONLY: rp
+      USE globals, ONLY: rp,r_earth,deg2rad
       USE plot_globals, ONLY: cscale_width,fontsize,ax,bx,ay,by, &
                               rmin_page,rmax_page,smin_page,smax_page, &
                               rmin_axes,rmax_axes,smin_axes,smax_axes, &
@@ -12,6 +12,7 @@
                               nxdec,nydec,ncdec,ntdec, &
                               dr_xlabel,ds_ylabel,ds_clabel, &
                               plot_type,char_array
+      USE read_dginp, ONLY: sphi0,slam0                              
 
       IMPLICIT NONE
       
@@ -184,7 +185,7 @@
       REAL(rp) :: xval,yval
     
       CHARACTER(20) :: xchar,ychar     
-      CHARACTER(1) :: xlabel,ylabel
+      CHARACTER(20) :: xlabel,ylabel
       
       IF (axis_label_option == "xy") THEN
         xlabel = "x"
@@ -192,6 +193,9 @@
       ELSE IF (axis_label_option == "rs") THEN
         xlabel = "r"
         ylabel = "s"
+      ELSE IF (axis_label_option == "ll") THEN
+        xlabel = "\rm longitude"
+        ylabel = "\rm latitude"
       ENDIF
       
 
@@ -207,10 +211,15 @@
       ENDIF
       
       
+      
       DO i = 1,nxtick             
         
         xval = (r0-bx)/ax
-        
+        IF (axis_label_option == "ll") THEN
+          xval = xval/(r_earth*cos(sphi0)) + slam0
+          xval = xval/deg2rad
+          expnt = 0          
+        ENDIF
         CALL format_number(nxdec,xval,expnt,xchar)        
       
                   
@@ -226,7 +235,7 @@
       
       
       WRITE(tex_unit,"(A,F9.5,A,F9.5,A)") "\begin{textblock}{400}[0.5,0](",(rmax_axes+rmin_axes)/2d0,",",smax_page-smin_axes+xlabel_pad,")"
-      WRITE(tex_unit,"(A)") "\centerline{$"//xlabel//"$}"        
+      WRITE(tex_unit,"(A)") "\centerline{$"//TRIM(xlabel)//"$}"        
       WRITE(tex_unit,"(A)") "\end{textblock}"  
       
 !       WRITE(tex_unit,"(A)") TRIM(ADJUSTL(math_font))//" choosefont"         
@@ -269,6 +278,11 @@
         ENDIF
         
         yval = (s0-by)/ay
+        IF (axis_label_option == "ll") THEN        
+          yval = yval/r_earth
+          yval = yval/deg2rad
+          expnt = 0
+        ENDIF
         
         CALL format_number(nydec,yval,expnt,ychar) 
         
@@ -284,7 +298,7 @@
       ENDDO         
       
       WRITE(tex_unit,"(A,F9.5,A,F9.5,A)") "\begin{textblock}{50}[0,0.5](",rmin_axes-ylabel_pad,",",smax_page-(smax_axes+smin_axes)/2d0,")"
-      WRITE(tex_unit,"(A)") "\rotatebox[origin=c]{90}{$"//ylabel//"$}\vskip-\TPboxrulesize"        
+      WRITE(tex_unit,"(A)") "\rotatebox[origin=c]{90}{$"//TRIM(ylabel)//"$}\vskip-\TPboxrulesize"        
       WRITE(tex_unit,"(A)") "\end{textblock}"  
       
       

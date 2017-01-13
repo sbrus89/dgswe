@@ -12,8 +12,8 @@
       CHARACTER(100) :: replace_path
       CHARACTER(100) :: sub_path
       
-      INTEGER :: coord_sys
-      REAL(rp) :: slam0,sphi0      
+!       INTEGER :: coord_sys
+!       REAL(rp) :: slam0,sphi0      
       REAL(rp) :: xmin,xmax
       REAL(rp) :: ymin,ymax
       REAL(rp) :: rmin,rmax
