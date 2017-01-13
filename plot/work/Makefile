@@ -1,7 +1,7 @@
 SHELL = /bin/sh
 
 FC = ifort
-FFLAGS = -I$(ODIR) #-traceback -g -C #-Dadcirc # -fp-model strict
+FFLAGS = -I$(ODIR)
 
 VPATH := ../src/
 ODIR = odir/
@@ -17,6 +17,22 @@ GIT_MOD := $(shell git diff-index --quiet HEAD; echo $$?)
 GIT_MOD := $(strip $(subst 1,+,$(GIT_MOD)))
 GIT_MOD := $(strip $(subst 0,,$(GIT_MOD)))
 GIT_MFILES := $(strip $(shell git ls-files ../* -m))
+
+########################################################################
+#                  Complier Flags (Build Specific)                     #
+########################################################################
+
+ifeq ($(findstring debug,$(OPTS)),debug)
+  FFLAGS += -C -g -traceback
+endif
+
+ifeq ($(findstring adcirc,$(OPTS)),adcirc)
+  FFLAGS += -Dadcirc
+endif
+
+ifeq ($(findstring dgswem,$(OPTS)),dgswem)
+  FFLAGS += -Ddgswem
+endif
 
 ########################################################################
 #                  Library Links (Platform Specific)                   #
@@ -211,7 +227,7 @@ $(ODIR)evaluate_mod.o: evaluate_mod.F90                      $(ODIR)globals.o $(
 	$(FC) $(FFLAGS) -c $< -o $@ 	
 	mv evaluate_mod.mod $(ODIR)	
 	
-$(ODIR)labels_mod.o: labels_mod.F90                          $(ODIR)globals.o $(ODIR)plot_globals.o
+$(ODIR)labels_mod.o: labels_mod.F90                          $(ODIR)globals.o $(ODIR)plot_globals.o $(ODIR)read_input.o
 	$(FC) $(FFLAGS) -c $< -o $@ 	
 	mv labels_mod.mod $(ODIR)
 	
