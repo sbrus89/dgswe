@@ -15,7 +15,7 @@
 
       USE plot_globals, ONLY: hb,Z,Qx,Qy
       USE read_dginp, ONLY: p,hbp
-      USE basis, ONLY: element_basis,linear_basis        
+      USE basis, ONLY: element_basis,linear_basis,dgswem_basis        
       
       IMPLICIT NONE
       
@@ -45,13 +45,25 @@
       IF (PRESENT(r) .and. PRESENT(s)) THEN
       
         IF (sol_type == 2 .or. sol_type == 4) THEN   
-          ALLOCATE(phib(mndf,npts))        
+          ALLOCATE(phib(mndf,npts))  
+#ifdef adcirc
+          CALL linear_basis(ndfb,npts,r,s,phib) 
+#elif dgswem
+          CALL dgswem_basis(hbp,ndfb,npts,r,s,phib) 
+#else
           CALL element_basis(et,hbp,ndfb,npts,r,s,phib)        
+#endif          
         ENDIF
       
         IF (sol_type == 3 .or. sol_type == 4) THEN        
           ALLOCATE(phis(mndf,npts))           
+#ifdef adcirc
+          CALL linear_basis(ndfs,npts,r,s,phis) 
+#elif dgswem
+          CALL dgswem_basis(p,ndfs,npts,r,s,phis)  
+#else 
           CALL element_basis(et,p,ndfs,npts,r,s,phis)          
+#endif          
         ENDIF
       
       ENDIF
@@ -86,6 +98,9 @@
         ENDIF      
       
       ENDIF
+      
+      
+      
       
       
       IF (sol_type == 2 .or. sol_type == 4) THEN                
@@ -153,7 +168,7 @@
 
       SUBROUTINE evaluate_basis(p,nord,mnpp,mndof,nel_type,npplt,r,s,ndof,phi)
       
-      USE basis, ONLY: element_nodes,element_basis,linear_basis          
+      USE basis, ONLY: element_basis,linear_basis,dgswem_basis
       
       IMPLICIT NONE
       
@@ -180,11 +195,13 @@
       DO ord = 1,nord
         DO et = 1,nel_type
           i = (et-1)*nord+ord
-#ifndef adcirc      
-          CALL element_basis(et,p,ndof(et),npplt(i),r(:,i),s(:,i),phi(:,:,i))       
+          
+#ifdef adcirc            
+          CALL linear_basis(ndof(et),npplt(i),r(:,i),s(:,i),phi(:,:,i))             
+#elif dgswem
+          CALL dgswem_basis(p,ndof(et),npplt(i),r(:,i),s(:,i),phi(:,:,i))          
 #else        
-          CALL linear_basis(npplt(i),r(:,i),s(:,i),phi(:,:,i))
-          ndof(et) = 3
+          CALL element_basis(et,p,ndof(et),npplt(i),r(:,i),s(:,i),phi(:,:,i)) 
 #endif
         
         ENDDO          

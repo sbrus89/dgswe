@@ -10,7 +10,8 @@
                          deg2rad
       USE grid_file_mod
       USE basis, ONLY: element_nodes,element_basis
-      USE read_write_output, ONLY: read_solution_full,read_fort63,read_fort64
+      USE read_write_output, ONLY: read_solution_full,read_fort63,read_fort64, &
+                                   read_dg63,read_dg64
       USE read_dginp, ONLY: read_input,out_direc,p,ctp,hbp,tf, &
                             grid_file,curve_file,cb_file_exists,bathy_file,hb_file_exists, &
                             sphi0,slam0
@@ -27,7 +28,7 @@
       USE transformation
       USE shape_functions_mod
       USE version
-      USE bathymetry_interp_mod, ONLY: bathymetry_nodal2modal
+      USE bathymetry_interp_mod, ONLY: bathymetry_nodal2modal,dgswem_bathymetry_nodal2modal
       
       IMPLICIT NONE
       
@@ -44,6 +45,8 @@
       CALL version_information(6)
       
       CALL read_plot_input()
+      
+  
       
       IF (mesh%plot_sol_option == 0 .and. zeta%plot_sol_option == 0 .and. &
           bathy%plot_sol_option == 0 .and. vel%plot_sol_option == 0) THEN
@@ -161,7 +164,11 @@
 
 
       
-#ifndef adcirc 
+#ifdef adcirc 
+
+#elif dgswem
+
+#else 
       snap_start = snap_start + 1
       snap_end = snap_end + 1      
 #endif      
@@ -178,31 +185,8 @@
       snap_char = "0000"      
       
           
-#ifndef adcirc        
-      IF (zeta%plot_sol_option == 1 .or. vel%plot_sol_option == 1) THEN
-        PRINT("(A)"), "Reading zeta solution..."          
-        CALL read_solution_full(out_direc,"Z.sol","N",t,Z,nsnap_Z) 
-      ENDIF
-      IF (vel%plot_sol_option == 1) THEN
-        PRINT("(A)"), "Reading Qx and Qy solutions..."       
-        CALL read_solution_full(out_direc,"Qx.sol","N",t,Qx,nsnap_Qx)        
-        CALL read_solution_full(out_direc,"Qy.sol","N",t,Qy,nsnap_Qy) 
-      ELSE 
-        ALLOCATE(Qx(1,1,1),Qy(1,1,1))
-      ENDIF  
-      IF (bathy%plot_sol_option == 1 .or. vel%plot_sol_option == 1) THEN
-        INQUIRE(file="hb.sol",exist=file_exists)
-        IF (file_exists == .true.) THEN
-          PRINT("(A)"), "Reading bathymetry solution..."          
-          CALL read_solution_full(out_direc,"hb.sol","N",t,hb,nsnap_hb)  
-        ELSE
-          CALL read_bathy_file(0,bathy_file,hbp,ne,el_type,nverts,depth,ect,elhb,hb_file_exists)
-          ALLOCATE(hb(ndof_hb(4),ne,1))
-          CALL bathymetry_nodal2modal(hbp,ndof_hb(4),ne,el_type,elhb,hbm)
-          hb(:,:,1) = hbm(:,:)
-        ENDIF
-      ENDIF  
-#else
+#ifdef adcirc        
+      
       IF (zeta%plot_sol_option == 1 .or. vel%plot_sol_option == 1) THEN
         PRINT("(A)"), "Reading zeta solution..."          
         CALL read_fort63(out_direc,t,eta,nsnap_Z) 
@@ -240,7 +224,52 @@
         ENDDO                
       ELSE 
         ALLOCATE(Qx(1,1,1),Qy(1,1,1))
-      ENDIF        
+      ENDIF             
+      
+#elif dgswem
+
+      IF (zeta%plot_sol_option == 1 .or. vel%plot_sol_option == 1) THEN
+        PRINT("(A)"), "Reading zeta solution..."          
+        CALL read_DG63(out_direc,ne,t,Z,nsnap_Z) 
+      ENDIF
+      IF (vel%plot_sol_option == 1) THEN
+        PRINT("(A)"), "Reading Qx and Qy solutions..."       
+        CALL read_DG64(out_direc,ne,t,Qx,Qy,nsnap_Qx)        
+      ELSE 
+        ALLOCATE(Qx(1,1,1),Qy(1,1,1))
+      ENDIF  
+      IF (bathy%plot_sol_option == 1 .or. vel%plot_sol_option == 1) THEN
+        ALLOCATE(hb(3,ne,1))
+        CALL dgswem_bathymetry_nodal2modal(ne,ect,depth,hbm)
+        hb(:,:,1) = hbm(:,:)
+      ENDIF  
+
+#else
+ 
+      IF (zeta%plot_sol_option == 1 .or. vel%plot_sol_option == 1) THEN
+        PRINT("(A)"), "Reading zeta solution..."          
+        CALL read_solution_full(out_direc,"Z.sol","N",t,Z,nsnap_Z) 
+      ENDIF
+      IF (vel%plot_sol_option == 1) THEN
+        PRINT("(A)"), "Reading Qx and Qy solutions..."       
+        CALL read_solution_full(out_direc,"Qx.sol","N",t,Qx,nsnap_Qx)        
+        CALL read_solution_full(out_direc,"Qy.sol","N",t,Qy,nsnap_Qy) 
+      ELSE 
+        ALLOCATE(Qx(1,1,1),Qy(1,1,1))
+      ENDIF  
+      IF (bathy%plot_sol_option == 1 .or. vel%plot_sol_option == 1) THEN
+        INQUIRE(file="hb.sol",exist=file_exists)
+        IF (file_exists == .true.) THEN
+          PRINT("(A)"), "Reading bathymetry solution..."          
+          CALL read_solution_full(out_direc,"hb.sol","N",t,hb,nsnap_hb)  
+        ELSE
+          CALL read_bathy_file(0,bathy_file,hbp,ne,el_type,nverts,depth,ect,elhb,hb_file_exists)
+          ALLOCATE(hb(ndof_hb(4),ne,1))
+          CALL bathymetry_nodal2modal(hbp,ndof_hb(4),ne,el_type,elhb,hbm)
+          hb(:,:,1) = hbm(:,:)
+        ENDIF
+      ENDIF   
+ 
 #endif
       
 
