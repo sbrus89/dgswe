@@ -205,7 +205,7 @@
       ALLOCATE(lobph(mnobnds,nope,nobfr,nproc))
       
       mnfbnds = MAXVAL(fbseg(1,:))
-      mlbou = nbou
+      mlbou = 3*nbou                               ! this is a guess for the upper bound, nbou is not enough because boundaries can get split up.
       ALLOCATE(lfbseg(2,mlbou,nproc))
       ALLOCATE(lfbnds(mnfbnds,mlbou,nproc))
       ALLOCATE(lbndxy(2,ctp+1,mnfbnds,mlbou,nproc))      
@@ -220,6 +220,7 @@
       lobseg = 0
       lfbseg = 0
   pes:DO pe = 1,nproc
+
         ndflag = 0
         nresnd(pe) = 0
         nd_g2l = 0 ! some nodes will be included in 2 subdomains so need to start a new global to local table each time
@@ -336,8 +337,8 @@
         lnbou(pe) = 0
         lnbouf(pe) = 0
         lbou = 1
-        DO bnd = 1,nbou            ! look for flow boundary nodes in this subdomain            
-          segtype = fbseg(2,bnd)   !   - this has to take into account that global island boundaries my be broken up into several local       
+  bnds: DO bnd = 1,nbou            ! look for flow boundary nodes in this subdomain            
+          segtype = fbseg(2,bnd)   !   - this has to take into account that global island boundaries my be broken up into several local   
           bfnd = 0                 !     boundary segments, meaning there may be more than one local boundary per global boundary          
           bnd_flag = 0             !   - when this happens the island boundaries need to be changed to land boundaries because they are no
      nds: DO j = 1,fbseg(1,bnd)    !     longer closed.
@@ -366,15 +367,15 @@
                 el_flag = 0
               ENDIF
             ENDIF
+                 
             
-            
-            IF(lnd == 0) THEN
-            
+            IF(lnd == 0) THEN       
+                        
               ! node is not in this subdomain
               
               IF (bnd_flag == 1) THEN
                 bnd_flag = 0 ! local boundary is broken
-                
+
                 IF (lfbseg(1,lbou,pe) == 1) THEN ! boundary might break after one node
                   lnbou(pe) = lnbou(pe) - 1      ! if so, don't count it
                   lfbseg(1,lbou,pe) = 0          ! (that node will be included at the end of the global boundary)
@@ -388,7 +389,7 @@
                 IF (j == fbseg(1,bnd)) THEN ! unless it's the "last" node in the global boundary
                   EXIT nds                  ! (island boundaries are closed, i.e. they begin and end with same node,
                 ENDIF                       !  so this is really the first node has already been included earlier)
-                             
+                                        
                 lnbou(pe) = lnbou(pe) + 1   ! start a new local boundary
                 lbou = lnbou(pe)
                 bou_l2g(lbou,pe) = bnd      ! keep track of what global boundary each local segement is from
@@ -404,7 +405,6 @@
               
               IF (el_flag == 0) THEN
                 bnd_flag = 0                     ! break boundary if element edge is not in domain
-                
                 IF (lfbseg(1,lbou,pe) == 1) THEN ! boundary might break after one node
                   lnbou(pe) = lnbou(pe) - 1      ! if so, don't count it
                   lfbseg(1,lbou,pe) = 0          ! (that node will be included at the end of the global boundary)
@@ -429,7 +429,9 @@
               
             ENDIF
           ENDDO nds                
-        ENDDO
+          
+          
+        ENDDO bnds
         
         
         
@@ -457,7 +459,8 @@
           ELSE IF(lfbseg(1,lbou,pe) == 1) THEN
             PRINT("(A,I7,A)"), "Error: boundary ",lbou," only has one node"          
           ENDIF  
-        ENDDO
+        ENDDO       
+        
         
       ENDDO pes
       

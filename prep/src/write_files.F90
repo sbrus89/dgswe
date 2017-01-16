@@ -56,7 +56,7 @@
       PRINT*, "PE    ","NRESEL    ","NRESND    ","NED_SR    "
       
       ! Write the fort.14 grid file
-      DO pe = 1,nproc
+ grd: DO pe = 1,nproc
         
         WRITE(dirname(3:lname),"(I4.4)") pe-1      
         OPEN(UNIT=14,FILE=dirname(1:lname)//'/'//'fort.14')
@@ -133,7 +133,7 @@
         
         CLOSE(141)
          
-      ENDDO
+      ENDDO grd
       
       ! Write the fort.15 boundary forcing file
       DO pe = 1,nproc
@@ -259,7 +259,7 @@
         
         
         CLOSE(18)
-      ENDDO
+      ENDDO 
       
       
       
