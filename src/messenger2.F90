@@ -55,14 +55,20 @@
       TYPE(edge_ptr_array), ALLOCATABLE, DIMENSION(:,:) :: Qxri,Qxre
       TYPE(edge_ptr_array), ALLOCATABLE, DIMENSION(:,:) :: Qyri,Qyre   
       TYPE(edge_ptr_array), ALLOCATABLE, DIMENSION(:,:) :: xmri,ymri,xymri    
+      TYPE(edge_ptr_array), ALLOCATABLE, DIMENSION(:,:) :: Exxri,Eyyri,Exyri,Eyxri
+      TYPE(edge_ptr_array), ALLOCATABLE, DIMENSION(:,:) :: Exxre,Eyyre,Exyre,Eyxre      
 
       REAL(rp), ALLOCATABLE, DIMENSION(:) :: xmre,ymre,xymre
       REAL(rp), ALLOCATABLE, DIMENSION(:) :: Hre
       
       REAL(rp), ALLOCATABLE, TARGET, DIMENSION(:,:) :: sol_recv
       REAL(rp), ALLOCATABLE, TARGET, DIMENSION(:,:) :: sol_send      
+      
+      REAL(rp), ALLOCATABLE, TARGET, DIMENSION(:,:) :: sol_recv_ldg
+      REAL(rp), ALLOCATABLE, TARGET, DIMENSION(:,:) :: sol_send_ldg        
 
       TYPE(edge_ptr_array), ALLOCATABLE, DIMENSION(:,:) :: send_ptr    
+      TYPE(edge_ptr_array), ALLOCATABLE, DIMENSION(:,:) :: send_ptr_ldg         
       
       REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: hbr      
       REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: rnx,rny
@@ -71,7 +77,10 @@
       
       INTEGER, ALLOCATABLE, DIMENSION(:) :: solreq_recv
       INTEGER, ALLOCATABLE, DIMENSION(:) :: solreq_send
-      INTEGER, ALLOCATABLE, DIMENSION(:) :: solreq      
+      INTEGER, ALLOCATABLE, DIMENSION(:) :: solreq  
+      INTEGER, ALLOCATABLE, DIMENSION(:) :: solreq_recv_ldg
+      INTEGER, ALLOCATABLE, DIMENSION(:) :: solreq_send_ldg      
+      INTEGER, ALLOCATABLE, DIMENSION(:) :: solreq_ldg        
       
       INTEGER, ALLOCATABLE, DIMENSION(:) :: win    
       
@@ -334,6 +343,7 @@
       USE globals, ONLY: ned,mnqpte,nqpte,detJe,nx_pt,ny_pt,hbqpte, &
                          Zqpt,Hqpt,Qxqpt,Qyqpt, &
                          xmom,ymom,xymom, &
+                         Exxqpt,Eyyqpt,Exyqpt,Eyxqpt, &                         
                          ged2el,ged2led,gel2ael, &
                          Spe,cfac,xy,ect
       
@@ -356,6 +366,9 @@
       ALLOCATE(send_ptr(3*mnedsr*mnqpte,nproc_sr))
       ALLOCATE(sol_send(3*mnedsr*mnqpte,nproc_sr))
       
+      ALLOCATE(send_ptr_ldg(4*mnedsr*mnqpte,nproc_sr))
+      ALLOCATE(sol_send_ldg(4*mnedsr*mnqpte,nproc_sr))      
+      
       DO pe = 1,nproc_sr
         i = 0
         DO ed = 1,ned_sr(pe)
@@ -372,16 +385,24 @@
             send_ptr(i,pe)%ptr => Zqpt(el_in,gpt)
             send_ptr(ned_sr(pe)*nqpte(1) + i,pe)%ptr => Qxqpt(el_in,gpt)
             send_ptr(2*ned_sr(pe)*nqpte(1) + i,pe)%ptr => Qyqpt(el_in,gpt)
+            
+            send_ptr_ldg(i,pe)%ptr => Exxqpt(el_in,gpt)
+            send_ptr_ldg(ned_sr(pe)*nqpte(1) + i,pe)%ptr => Eyyqpt(el_in,gpt)
+            send_ptr_ldg(2*ned_sr(pe)*nqpte(1) + i,pe)%ptr => Exyqpt(el_in,gpt)
+            send_ptr_ldg(3*ned_sr(pe)*nqpte(1) + i,pe)%ptr => Eyxqpt(el_in,gpt)
           ENDDO
         ENDDO
       ENDDO
       
       
       ALLOCATE(sol_recv(3*mnedsr*mnqpte,nproc_sr))
+      ALLOCATE(sol_recv_ldg(4*mnedsr*mnqpte,nproc_sr))      
 !       ALLOCATE(Hre(nred,mnqpte))
       ALLOCATE(Zre(nred,mnqpte),Qxre(nred,mnqpte),Qyre(nred,mnqpte))
       ALLOCATE(Zri(nred,mnqpte),Hri(nred,mnqpte),Qxri(nred,mnqpte),Qyri(nred,mnqpte))
       ALLOCATE(xmri(nred,mnqpte),ymri(nred,mnqpte),xymri(nred,mnqpte))
+      ALLOCATE(Exxri(nred,mnqpte),Eyyri(nred,mnqpte),Exyri(nred,mnqpte),Eyxri(nred,mnqpte))
+      ALLOCATE(Exxre(nred,mnqpte),Eyyre(nred,mnqpte),Exyre(nred,mnqpte),Eyxre(nred,mnqpte))      
       ALLOCATE(xmre(nred),ymre(nred),xymre(nred))
       ALLOCATE(Hre(nred))      
       ALLOCATE(hbr(nred,mnqpte))
@@ -393,22 +414,7 @@
         DO ed = 1,ned_sr(pe)
           edcnt = edcnt + 1
           el = el_sr(ed,pe)
-          led = led_sr(ed,pe)
-          
-!           IF (myrank == 1) THEN
-!             IF (el == 214 .and. led == 1) THEN
-!               match_edge = edcnt
-!               WRITE(195,"(6(ES24.17,1x))") (xy(1,ect(j,214)), j = 1,3)
-!               WRITE(195,"(6(ES24.17,1x))") (xy(2,ect(j,214)), j = 1,3)
-!             ENDIF
-!           ENDIF
-!           IF (myrank == 0) THEN
-!             IF (el ==  280 .and. led == 2) THEN
-!               match_edge = edcnt
-!               WRITE(195,"(6(ES24.17,1x))") (xy(1,ect(j,280)), j = 1,3)
-!               WRITE(195,"(6(ES24.17,1x))") (xy(2,ect(j,280)), j = 1,3)
-!             ENDIF
-!           ENDIF                    
+          led = led_sr(ed,pe)                            
           
           DO pt = 1,nqpte(1)
             i = i+1
@@ -420,6 +426,11 @@
             Zre(edcnt,gp_ex)%ptr => sol_recv(i,pe)            
             Qxre(edcnt,gp_ex)%ptr => sol_recv(ned_sr(pe)*nqpte(1) + i,pe)
             Qyre(edcnt,gp_ex)%ptr => sol_recv(2*ned_sr(pe)*nqpte(1) + i,pe)
+            
+            Exxre(edcnt,gp_ex)%ptr => sol_recv_ldg(i,pe)
+            Eyyre(edcnt,gp_ex)%ptr => sol_recv_ldg(ned_sr(pe)*nqpte(1) + i,pe) 
+            Exyre(edcnt,gp_ex)%ptr => sol_recv_ldg(2*ned_sr(pe)*nqpte(1) + i,pe)
+            Eyxre(edcnt,gp_ex)%ptr => sol_recv_ldg(3*ned_sr(pe)*nqpte(1) + i,pe)
             
             gp_in = (led-1)*nqpte(1) + pt
             el_in = gel2ael(el)            
@@ -433,6 +444,11 @@
             ymri(edcnt,pt)%ptr  => ymom(el_in,gp_in)
             xymri(edcnt,pt)%ptr => xymom(el_in,gp_in)
 
+            Exxri(edcnt,pt)%ptr => Exxqpt(el_in,gp_in)
+            Eyyri(edcnt,pt)%ptr => Eyyqpt(el_in,gp_in)
+            Exyri(edcnt,pt)%ptr => Exyqpt(el_in,gp_in)
+            Eyxri(edcnt,pt)%ptr => Eyxqpt(el_in,gp_in)            
+            
           ENDDO
         ENDDO
       ENDDO
@@ -511,6 +527,9 @@
       ALLOCATE(solreq_recv(nproc_sr))
       ALLOCATE(solreq_send(nproc_sr))
       ALLOCATE(solreq(2*nproc_sr))
+      ALLOCATE(solreq_recv_ldg(nproc_sr))
+      ALLOCATE(solreq_send_ldg(nproc_sr))
+      ALLOCATE(solreq_ldg(2*nproc_sr))
       
       tag = 1
       
@@ -547,6 +566,22 @@
 !         CALL MPI_Win_create(sol_send(1,pe),3*ned_sr(pe)*nqpte(1)*rp,rp, &
 !                             MPI_INFO_NULL,MPI_COMM_WORLD,win(pe))
 !       ENDDO
+      
+      
+      DO pe = 1,nproc_sr
+        CALL MPI_RECV_INIT(sol_recv_ldg(1,pe),4*ned_sr(pe)*nqpte(1),MPI_DOUBLE_PRECISION,proc_sr(pe), &
+                           tag,comm_dist_graph,solreq_recv_ldg(pe),ierr)
+      ENDDO
+      
+      DO pe = 1,nproc_sr
+        CALL MPI_SEND_INIT(sol_send_ldg(1,pe),4*ned_sr(pe)*nqpte(1),MPI_DOUBLE_PRECISION,proc_sr(pe), &
+                           tag,comm_dist_graph,solreq_send_ldg(pe),ierr)                          
+      ENDDO
+      
+      DO pe = 1,nproc_sr
+        solreq_ldg(pe) = solreq_recv_ldg(pe)
+        solreq_ldg(pe+nproc_sr) = solreq_send_ldg(pe)
+      ENDDO
       
 #endif        
       RETURN
@@ -593,6 +628,32 @@
       RETURN
       END SUBROUTINE message_send
 #endif      
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+#ifdef CMPI
+      SUBROUTINE message_send_ldg()
+      
+      USE globals, ONLY: nqpte
+      
+      IMPLICIT NONE
+      
+      INTEGER :: pe,i
+      
+      DO pe = 1,nproc_sr
+        DO i = 1,4*ned_sr(pe)*nqpte(1)
+        
+          sol_send_ldg(i,pe) = send_ptr_ldg(i,pe)%ptr
+          
+        ENDDO
+      ENDDO
+      
+      CALL MPI_STARTALL(2*nproc_sr,solreq_ldg,ierr)
+      
+      RETURN
+      END SUBROUTINE message_send_ldg
+#endif     
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

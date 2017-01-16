@@ -17,7 +17,7 @@
                          mnpartel,mnparted   
                          
       USE allocation, ONLY: alloc_ptr_arrays,alloc_blk_arrays,dealloc_init_arrays                
-      USE messenger2, ONLY: myrank
+      USE messenger2, ONLY: myrank,nred,redn
       USE read_dginp, ONLY: npart
       
 
@@ -32,29 +32,58 @@
       INTEGER :: ted,tel
       
       INTEGER, ALLOCATABLE, DIMENSION(:) :: edflag      
+      INTEGER, ALLOCATABLE, DIMENSION(:) :: elflag
+      
+      
+      ! Find elements that have send/recieve edges
+      ALLOCATE(elflag(ne))
+      elflag = 0
+      
+      DO ed = 1,nred
+        ged = redn(ed)
+        el = ged2el(1,ged)
+        
+        IF(elflag(el) == 0) THEN
+          elflag(el) = 1
+        ENDIF
+      ENDDO
+      
       
       CALL alloc_ptr_arrays()      
       CALL alloc_blk_arrays()
       
+      
+      ! Create aligned element sections
       npartel = 0
       npartet = 0
       DO et = 1,nel_type
         DO el = 1,ne
           IF (el_type(el) == et) THEN
             pe = part(el) 
-            npartel(pe) = npartel(pe) + 1 ! count elements in partition pe
-            npartet(et,pe) = npartet(et,pe) + 1  
             
-            gel2part(el) = pe ! global element el is in parition pe
-            gel2lel(el) = npartel(pe) ! global element el has local element number npartel(pe) in partition pe
-            lel2gel(npartel(pe),pe) = el ! local element npartel(pe) on partition pe has global element number el
+            IF (elflag(el) == 1) THEN                 ! First aligned section is for elements with send/recieve edges
+              npartel(1) = npartel(1) + 1 
+              npartet(et,1) = npartet(et,1) + 1  
+            
+              gel2lel(el) = npartel(1) 
+              lel2gel(npartel(1),1) = el 
+            ELSE
+              npartel(pe+1) = npartel(pe+1) + 1       ! count elements in partition pe
+              npartet(et,pe+1) = npartet(et,pe+1) + 1  
+            
+              gel2lel(el) = npartel(pe+1)             ! global element el has local element number npartel(pe) in partition pe
+              lel2gel(npartel(pe+1),pe+1) = el        ! local element npartel(pe) on partition pe has global element number el            
+            ENDIF
+            
+            gel2part(el) = pe                         ! global element el is in parition pe            
           ENDIF
         ENDDO
       ENDDO                    
       
 
+      ! Map initial data to aligned sections
       elcnt = 0 
-      DO pe = 1,npart
+      DO pe = 1,npart+1
 !       PRINT*, " "
         DO el = 1,npartel(pe)
           elcnt = elcnt + 1
@@ -87,6 +116,7 @@
       CALL dealloc_init_arrays()
       
       
+      ! Setup pointer arrays for output
       DO el = 1,ne
         DO dof = 1,mndof
           Hwrite(el,dof)%ptr => H(gel2ael(el),dof)
@@ -97,6 +127,7 @@
       ENDDO
       
       
+      ! Identify all partition edges and setup pointer arrays
       ALLOCATE(edflag(nied))
       
       edflag = 0
@@ -126,6 +157,7 @@
         ENDDO
       ENDDO
       
+      ! Identify remainder edges and setup pointer arrays
       DO ed = 1,nied
         IF (edflag(ed) == 0) THEN
           edflag(ed) = edflag(ed) + 1
@@ -166,29 +198,12 @@
         STOP
       ENDIF
       
+      
 
       ! Calculate blocking arrays
-
       
-!       DO blk = 1,nblk
-!         elblk(1,blk) = (blk-1)*(ne/nblk) + 1
-!         elblk(2,blk) = blk*(ne/nblk)
-!       ENDDO
-!       elblk(2,nblk) = ne
-      
-
-      
-!       tel = 0
-!       edblk(1,1) = 1
-!       DO blk = 1,npart-1
-!         tel = tel + npartel(blk)
-!         edblk(2,blk) = tel
-!         edblk(1,blk+1) = tel + 1      
-!       ENDDO
-!       edblk(2,npart) = tel + npartel(npart)
-      
-      tel = 0 
-      DO blk = 1,npart
+      tel = 0                               ! element blocking arrays
+      DO blk = 1,npart+1
         elblk(1,blk,1) = tel + 1
         DO et = 1,nel_type-1
           tel = tel + npartet(et,blk)
@@ -197,10 +212,8 @@
         ENDDO
         elblk(2,blk,nel_type) = tel + npartet(nel_type,blk)        
       ENDDO
-
-
       
-      ted = 0 
+      ted = 0                               ! partition edge blocking arrays              
       nfblk(1,1) = 1
       DO blk = 1,npart
         ted = ted + nparted(blk)
@@ -209,7 +222,7 @@
       ENDDO
       nfblk(2,npart+1) = ted + nparted(npart+1)
       
-      rnfblk(1,1) = ted+1
+      rnfblk(1,1) = ted+1                   ! remainder edge blocking arrays
       DO blk = 1,nrblk-1
         ted = ted + (nparted(npart+1)/nrblk)
         rnfblk(2,blk) = ted  
@@ -224,22 +237,17 @@
         PRINT "(A)", "           Loop Blocking Information         "
         PRINT "(A)", "---------------------------------------------"
         PRINT "(A)", " "            
-      
-!         PRINT*, "elblk: "
-!         DO blk = 1,nblk
-!           PRINT*, elblk(1,blk),elblk(2,blk) 
-!         ENDDO
-!         PRINT*, " "      
+          
       
         PRINT*, "Number of partitions: ", npart      
         PRINT*, " "
-        PRINT*, "edblk: "
-        DO blk = 1,npart
+        PRINT*, "elblk: "
+        DO blk = 1,npart+1
           PRINT*, elblk(1,blk,1), elblk(2,blk,1), npartet(1,blk)
           PRINT*, elblk(1,blk,2), elblk(2,blk,2), npartet(2,blk)
           PRINT*, elblk(1,blk,3), elblk(2,blk,3), npartet(3,blk)
           PRINT*, elblk(1,blk,4), elblk(2,blk,4), npartet(4,blk)    
-          PRINT*, " "
+          PRINT*, " "        
         ENDDO
         mnpartel = MAXVAL(npartel)
         PRINT*, "Max elements per partition: ", mnpartel      
@@ -254,7 +262,7 @@
         PRINT*, " " 
       
         PRINT*, " "
-        PRINT*, "nfblk: "
+        PRINT*, "rnfblk: "
         DO blk = 1,nrblk
           PRINT*, rnfblk(1,blk), rnfblk(2,blk)
         ENDDO      
@@ -274,7 +282,9 @@
                          Hi,He,Zi,Ze,Qxi,Qxe,Qyi,Qye, &
                          xmi,xme,ymi,yme,xymi,xyme, &
                          nx_pt,ny_pt,detJe,Spe,cfac, &
-                         inx,iny,detJe_in,detJe_ex,icfac
+                         inx,iny,detJe_in,detJe_ex,icfac, &
+                         Exxi,Exxe,Eyyi,Eyye,Exyi,Exye,Eyxi,Eyxe, &
+                         Exxqpt,Eyyqpt,Exyqpt,Eyxqpt
                       
       
       IMPLICIT NONE
@@ -320,10 +330,20 @@
 
         xymi(ed,pt)%ptr => xymom(ael_in,gp_in)
         xyme(ed,pt)%ptr => xymom(ael_ex,gp_ex)
-
         
-!         gp_in = pt
-!         gp_ex = nqpte(1) - pt + 1        
+        Exxi(ed,pt)%ptr => Exxqpt(ael_in,gp_in)
+        Exxe(ed,pt)%ptr => Exxqpt(ael_ex,gp_ex)
+        
+        Eyyi(ed,pt)%ptr => Eyyqpt(ael_in,gp_in)
+        Eyye(ed,pt)%ptr => Eyyqpt(ael_ex,gp_ex)
+        
+        Exyi(ed,pt)%ptr => Exyqpt(ael_in,gp_in)
+        Exye(ed,pt)%ptr => Exyqpt(ael_ex,gp_ex)        
+        
+        Eyxi(ed,pt)%ptr => Eyxqpt(ael_in,gp_in)
+        Eyxe(ed,pt)%ptr => Eyxqpt(ael_ex,gp_ex)  
+        
+     
         
         inx(ed,pt) = nx_pt(ged,pt)*Spe(ged,pt)
         iny(ed,pt) = ny_pt(ged,pt)

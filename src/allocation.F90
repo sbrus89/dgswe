@@ -364,12 +364,18 @@
                          Qx,Qxold,Qxinit,rhsQx, &
                          Qy,Qyold,Qyinit,rhsQy, &
                          Hqpt,Zqpt,Qxqpt,Qyqpt,xmom,ymom,xymom, &
+                         Hqpta,Zqpta,Qxqpta,Qyqpta,xmoma,ymoma,xymoma, &
                          tau,src_x,src_y,recipHa, &
                          MirhsH,MirhsZ,MirhsQx,MirhsQy, &
-                         Hwrite,Zwrite,Qxwrite,Qywrite
+                         Hwrite,Zwrite,Qxwrite,Qywrite, &
+                         Exx,Eyy,Exy,Eyx, &
+                         Exxqpt,Eyyqpt,Exyqpt,Eyxqpt, &
+                         Exxqpta,Eyyqpta,Exyqpta,Eyxqpta, &                         
+                         rhsExx,rhsEyy,rhsExy,rhsEyx
+                         
                          
       IMPLICIT NONE
-      INTEGER, PARAMETER :: n=12
+      INTEGER, PARAMETER :: n=15
       INTEGER :: alloc_status(n)
       INTEGER :: i
           
@@ -390,17 +396,24 @@
       ALLOCATE(MirhsH(ne,mndof),MirhsZ(ne,mndof),MirhsQx(ne,mndof), MirhsQy(ne,mndof),STAT = alloc_status(5))
       
       ! Evaluation Arrays
-      ALLOCATE(Hqpt(ne,4*mnqpte),Zqpt(ne,4*mnqpte),Qxqpt(ne,4*mnqpte),Qyqpt(ne,4*mnqpte),STAT = alloc_status(6))
-      ALLOCATE(xmom(ne,4*mnqpte),ymom(ne,4*mnqpte),xymom(ne,4*mnqpte),STAT = alloc_status(7))
-      ALLOCATE(recipHa(mnelred),STAT = alloc_status(8))      
+      ALLOCATE(Hqpta(ne),Zqpta(ne),Qxqpta(ne),Qyqpta(ne), STAT = alloc_status(6))
+      ALLOCATE(xmoma(ne),ymoma(ne),xymoma(ne), STAT = alloc_status(7))
+      ALLOCATE(Hqpt(ne,4*mnqpte),Zqpt(ne,4*mnqpte),Qxqpt(ne,4*mnqpte),Qyqpt(ne,4*mnqpte),STAT = alloc_status(8))
+      ALLOCATE(xmom(ne,4*mnqpte),ymom(ne,4*mnqpte),xymom(ne,4*mnqpte),STAT = alloc_status(9))
+      ALLOCATE(recipHa(mnelred),STAT = alloc_status(10))      
 
       ! Source term arrays
-      ALLOCATE(tau(ne),src_x(ne),src_y(ne),STAT = alloc_status(9))
+      ALLOCATE(tau(ne),src_x(ne),src_y(ne),STAT = alloc_status(11))
 
       
       ! Write arrays
-      ALLOCATE(Hwrite(ne,mndof),Zwrite(ne,mndof),Qxwrite(ne,mndof),Qywrite(ne,mndof),STAT = alloc_status(10))
+      ALLOCATE(Hwrite(ne,mndof),Zwrite(ne,mndof),Qxwrite(ne,mndof),Qywrite(ne,mndof),STAT = alloc_status(12))
       
+      ! LDG arrays
+      ALLOCATE(Exx(ne,mndof),Eyy(ne,mndof),Exy(ne,mndof),Eyx(ne,mndof),STAT = alloc_status(13))
+      ALLOCATE(Exxqpta(ne),Eyyqpta(ne),Exyqpta(ne),Eyxqpta(ne), STAT = alloc_status(14))
+      ALLOCATE(Exxqpt(ne,4*mnqpte),Eyyqpt(ne,4*mnqpte),Exyqpt(ne,4*mnqpte),Eyxqpt(ne,4*mnqpte),STAT = alloc_status(15))
+      ALLOCATE(rhsExx(ne,mndof),rhsEyy(ne,mndof),rhsExy(ne,mndof),rhsEyx(ne,mndof),STAT = alloc_status(16))
 
 
       DO i = 1,n
@@ -417,7 +430,11 @@
       
       MirhsZ(:,:) = 0d0
       MirhsQx(:,:) = 0d0
-      MirhsQy(:,:) = 0d0          
+      MirhsQy(:,:) = 0d0      
+      
+      rhsExx(:,:) = 0d0
+      rhsEyy(:,:) = 0d0
+      rhsExy(:,:) = 0d0
       
       
       RETURN
@@ -467,11 +484,12 @@
      USE globals, ONLY: Hi,He,Zi,Ze,Qxi,Qxe,Qyi,Qye, &
                         xmi,xme,ymi,yme,xymi,xyme, &
                         inx,iny,icfac,detJe_in,detJe_ex,const, &
-                        Hhatv,Zhatv,Qxhatv,Qyhatv
+                        Hhatv,Zhatv,Qxhatv,Qyhatv, &
+                        Exxi,Exxe,Eyyi,Eyye,Exyi,Exye,Eyxi,Eyxe
                      
 
      IMPLICIT NONE
-     INTEGER, PARAMETER :: n=5
+     INTEGER, PARAMETER :: n=9
      INTEGER :: alloc_status(n)
      INTEGER :: i
           
@@ -480,14 +498,21 @@
      mnired  = MAX(nied,nred)     
 
      ! Solution pointer arrays
-     ALLOCATE(Hi(mnired,mnqpte),He(mnired,mnqpte),Zi(mnired,mnqpte),Ze(mnired,mnqpte),Qxi(mnired,mnqpte),Qxe(mnired,mnqpte),Qyi(mnired,mnqpte),Qye(mnired,mnqpte),STAT=alloc_status(1))
-     ALLOCATE(xmi(mnired,mnqpte),xme(mnired,mnqpte),ymi(mnired,mnqpte),yme(mnired,mnqpte),xymi(mnired,mnqpte),xyme(mnired,mnqpte),STAT=alloc_status(2))
+     ALLOCATE(Hi(mnired,mnqpte),He(mnired,mnqpte),Zi(mnired,mnqpte),Ze(mnired,mnqpte), STAT=alloc_status(1))
+     ALLOCATE(Qxi(mnired,mnqpte),Qxe(mnired,mnqpte),Qyi(mnired,mnqpte),Qye(mnired,mnqpte),STAT=alloc_status(2))
+     ALLOCATE(xmi(mnired,mnqpte),xme(mnired,mnqpte),ymi(mnired,mnqpte),yme(mnired,mnqpte),xymi(mnired,mnqpte),xyme(mnired,mnqpte),STAT=alloc_status(3))
        
      ! Edge normals and jacobians
-     ALLOCATE(inx(mnired,mnqpte),iny(mnired,mnqpte),icfac(mnired,mnqpte),detJe_in(mnired,mnqpte),detJe_ex(mnired,mnqpte),STAT=alloc_status(3))      
+     ALLOCATE(inx(mnired,mnqpte),iny(mnired,mnqpte),icfac(mnired,mnqpte),detJe_in(mnired,mnqpte),detJe_ex(mnired,mnqpte),STAT=alloc_status(4))      
 
      ! Temporary storage arrays, LLF constant and fluxes
-     ALLOCATE(const(mnired),Hhatv(mnired),Zhatv(mnired),Qxhatv(mnired),Qyhatv(mnired),STAT=alloc_status(4))
+     ALLOCATE(const(mnired),Hhatv(mnired),Zhatv(mnired),Qxhatv(mnired),Qyhatv(mnired),STAT=alloc_status(5))
+     
+     ! LDG pointer arrays
+     ALLOCATE(Exxi(mnired,mnqpte),Exxe(mnired,mnqpte), STAT=alloc_status(6))
+     ALLOCATE(Eyyi(mnired,mnqpte),Eyye(mnired,mnqpte), STAT=alloc_status(7))
+     ALLOCATE(Exyi(mnired,mnqpte),Exye(mnired,mnqpte), STAT=alloc_status(8))
+     ALLOCATE(Eyxi(mnired,mnqpte),Eyxe(mnired,mnqpte), STAT=alloc_status(9))     
      
       DO i = 1,n
         IF (alloc_status(i) /= 0) THEN
@@ -520,16 +545,16 @@
           
      alloc_status(:) = 0
      
-      ALLOCATE(npartel(npart),STAT=alloc_status(1))
+      ALLOCATE(npartel(npart+1),STAT=alloc_status(1))
       ALLOCATE(gel2part(ne),gel2lel(ne),STAT=alloc_status(2))
-      ALLOCATE(lel2gel(ne,npart),STAT=alloc_status(3))
-      ALLOCATE(npartet(nel_type,npart),STAT=alloc_status(4))     
+      ALLOCATE(lel2gel(ne,npart+1),STAT=alloc_status(3))
+      ALLOCATE(npartet(nel_type,npart+1),STAT=alloc_status(4))     
       ALLOCATE(ael2gel(ne),gel2ael(ne),STAT=alloc_status(5))
       ALLOCATE(nparted(npart+1),STAT=alloc_status(6))  
       
       ALLOCATE(edblk(2,npart),STAT=alloc_status(7))
       ALLOCATE(nfblk(2,npart+1),STAT=alloc_status(8))
-      ALLOCATE(elblk(2,npart,nel_type),STAT=alloc_status(9))
+      ALLOCATE(elblk(2,npart+1,nel_type),STAT=alloc_status(9))
       ALLOCATE(rnfblk(2,nrblk),STAT=alloc_status(10))      
      
       DO i = 1,n

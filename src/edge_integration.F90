@@ -8,7 +8,7 @@
 
        IMPLICIT NONE
        
-       INTEGER :: pt,el,dof,ed,et
+       INTEGER :: pt,el,dof,et
        INTEGER :: tnqpte,ndof
        INTEGER :: sel,eel
        
@@ -28,7 +28,7 @@ ed_points: DO pt = 1,tnqpte
                 DO el = sel,eel   ! Compute solutions at edge quadrature points                
                   Zqpt(el,pt)  = Zqpt(el,pt)  + Z(el,dof)*phie(dof,pt,et)            
                   Qxqpt(el,pt) = Qxqpt(el,pt) + Qx(el,dof)*phie(dof,pt,et)            
-                  Qyqpt(el,pt) = Qyqpt(el,pt) + Qy(el,dof)*phie(dof,pt,et)            
+                  Qyqpt(el,pt) = Qyqpt(el,pt) + Qy(el,dof)*phie(dof,pt,et)                              
                 ENDDO
 
               ENDDO ed_basis
@@ -47,159 +47,86 @@ ed_points: DO pt = 1,tnqpte
           ENDDO ed_points
 
       END SUBROUTINE interior_edge_eval
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
-
-      SUBROUTINE interior_edge_nflux(sed,eed,nqpte)
-
-      USE globals, ONLY:  const,inx,iny,icfac,g, &
-                          Zi,Ze,Hi,He,Qxi,Qxe,Qyi,Qye, &
-                          xmi,xme,ymi,yme,xymi,xyme, &
-                          Zhatv,Qxhatv,Qyhatv, &
-                          detJe_in,detJe_ex
-   
-      IMPLICIT NONE
-
-      INTEGER :: sed,eed,nqpte
-      INTEGER :: pt,ed
-                  
-        
-ed_points: DO pt = 1,nqpte ! Compute numerical fluxes for all edges
-              
-!DIR$ SIMD              
-!!DIR$ VECTOR ALIGNED
-              DO ed = sed,eed
-                
-                const(ed) = max(abs(Qxi(ed,pt)%ptr*inx(ed,pt) + Qyi(ed,pt)%ptr*iny(ed,pt))/Hi(ed,pt)%ptr + sqrt(g*Hi(ed,pt)%ptr*icfac(ed,pt)), &
-                                abs(Qxe(ed,pt)%ptr*inx(ed,pt) + Qye(ed,pt)%ptr*iny(ed,pt))/He(ed,pt)%ptr + sqrt(g*He(ed,pt)%ptr*icfac(ed,pt)))
-              ENDDO
-                                        
-!DIR$ SIMD              
-!!DIR$ VECTOR ALIGNED
-              DO ed = sed,eed                  
-                Zhatv(ed) = .5d0*(inx(ed,pt)*(Qxi(ed,pt)%ptr + Qxe(ed,pt)%ptr) + iny(ed,pt)*(Qyi(ed,pt)%ptr + Qye(ed,pt)%ptr) &
-                                        - const(ed)*(Ze(ed,pt)%ptr - Zi(ed,pt)%ptr))           
-              ENDDO
-              
-!DIR$ SIMD
-!!DIR$ VECTOR ALIGNED
-              DO ed = sed,eed     
-                Qxhatv(ed) = .5d0*(inx(ed,pt)*(xmi(ed,pt)%ptr + xme(ed,pt)%ptr) + iny(ed,pt)*(xymi(ed,pt)%ptr + xyme(ed,pt)%ptr)  &
-                                        - const(ed)*(Qxe(ed,pt)%ptr - Qxi(ed,pt)%ptr))                                     
-              ENDDO
-              
-!DIR$ SIMD
-!!DIR$ VECTOR ALIGNED
-              DO ed = sed,eed
-                Qyhatv(ed) = .5d0*(inx(ed,pt)*(xymi(ed,pt)%ptr + xyme(ed,pt)%ptr) + iny(ed,pt)*(ymi(ed,pt)%ptr + yme(ed,pt)%ptr)  &
-                                        - const(ed)*(Qye(ed,pt)%ptr - Qyi(ed,pt)%ptr))                                     
-              ENDDO
-!DIR$ IVDEP              
-              DO ed = sed,eed
-                Ze(ed,pt)%ptr = -detJe_ex(ed,pt)*Zhatv(ed)
-                Zi(ed,pt)%ptr =  detJe_in(ed,pt)*Zhatv(ed)                
-              ENDDO          
-!DIR$ IVDEP              
-              DO ed = sed,eed                             
-                Qxe(ed,pt)%ptr = -detJe_ex(ed,pt)*Qxhatv(ed)
-                Qxi(ed,pt)%ptr =  detJe_in(ed,pt)*Qxhatv(ed)
-              ENDDO   
-!DIR$ IVDEP              
-              DO ed = sed,eed                                    
-                Qye(ed,pt)%ptr = -detJe_ex(ed,pt)*Qyhatv(ed)
-                Qyi(ed,pt)%ptr =  detJe_in(ed,pt)*Qyhatv(ed)
-              ENDDO               
-
-        ENDDO ed_points  
-
-
-       RETURN 
-       END SUBROUTINE interior_edge_nflux
-       
-       
-       
-       
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!       
-       
-       
-      SUBROUTINE recieve_edge_nflux(nred,nqpte)
-
-      USE globals, ONLY: const,g,pt5g,recipHa, &
-                         Zhatv,Qxhatv,Qyhatv
-         
-      USE messenger2, ONLY: Zri,Zre,Hri,Hre,Qxri,Qxre,Qyri,Qyre, &
-                            xmri,xmre,ymri,ymre,xymri,xymre, &
-                            detJe_recv,rcfac,hbr,rnx,rny
-   
-      IMPLICIT NONE
-
-      INTEGER :: nred,nqpte
-      INTEGER :: pt,ed
-                  
-        
-      DO pt = 1,nqpte
       
-        DO ed = 1,nred
-          Hre(ed) = Zre(ed,pt)%ptr + hbr(ed,pt)
-        ENDDO
       
-!!DIR$ VECTOR ALIGNED      
-        DO ed = 1,nred
-          const(ed) = max(abs(Qxri(ed,pt)%ptr*rnx(ed,pt) + Qyri(ed,pt)%ptr*rny(ed,pt))/Hri(ed,pt)%ptr + sqrt(g*Hri(ed,pt)%ptr*rcfac(ed,pt)), &
-                          abs(Qxre(ed,pt)%ptr*rnx(ed,pt) + Qyre(ed,pt)%ptr*rny(ed,pt))/Hre(ed)        + sqrt(g*Hre(ed)*rcfac(ed,pt)))          
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+      SUBROUTINE interior_edge_eval_ldg_Q(et,sel,eel,ndof,tnqpte)
+      
+      USE globals, ONLY: Qxqpt,Qyqpt, &
+                         Qx,Qy, &
+                         phie
+      
+      IMPLICIT NONE
+      
+      INTEGER :: et
+      INTEGER :: tnqpte,ndof
+      INTEGER :: sel,eel
+       
+      INTEGER :: pt,el,dof
+      
+      DO pt = 1,tnqpte
+        DO el = sel,eel
+          Qxqpt(el,pt) = Qx(el,1)
+          Qyqpt(el,pt) = Qy(el,1)          
         ENDDO
         
-
-!DIR$ IVDEP
-!!DIR$ VECTOR ALIGNED
-        DO ed = 1,nred      
-          Zhatv(ed) = .5d0*(rnx(ed,pt)*(Qxri(ed,pt)%ptr + Qxre(ed,pt)%ptr) + rny(ed,pt)*(Qyri(ed,pt)%ptr + Qyre(ed,pt)%ptr) &
-                                        - const(ed)*(Zre(ed,pt)%ptr - Zri(ed,pt)%ptr))
-        ENDDO
-
-!DIR$ IVDEP
-!!DIR$ VECTOR ALIGNED        
-        DO ed = 1,nred
-          recipHa(ed) = 1d0/Hre(ed)
-          
-          xmre(ed) = pt5g*(Hre(ed)*Hre(ed) - hbr(ed,pt)*hbr(ed,pt)) + Qxre(ed,pt)%ptr*Qxre(ed,pt)%ptr*recipHa(ed)
-          ymre(ed) = pt5g*(Hre(ed)*Hre(ed) - hbr(ed,pt)*hbr(ed,pt)) + Qyre(ed,pt)%ptr*Qyre(ed,pt)%ptr*recipHa(ed)
-          xymre(ed) = Qxre(ed,pt)%ptr*Qyre(ed,pt)%ptr*recipHa(ed)
-        ENDDO
- 
-!DIR$ IVDEP
-!!DIR$ VECTOR ALIGNED 
-        DO ed = 1,nred
-          Qxhatv(ed) = .5d0*(rnx(ed,pt)*(xmri(ed,pt)%ptr + xmre(ed)) + rny(ed,pt)*(xymri(ed,pt)%ptr + xymre(ed))  &
-                                        - const(ed)*(Qxre(ed,pt)%ptr - Qxri(ed,pt)%ptr))
-        ENDDO
-  
-!DIR$ IVDEP
-!!DIR$ VECTOR ALIGNED  
-        DO ed = 1,nred
-          Qyhatv(ed) = .5d0*(rnx(ed,pt)*(xymri(ed,pt)%ptr + xymre(ed)) + rny(ed,pt)*(ymri(ed,pt)%ptr + ymre(ed))  &
-                                        - const(ed)*(Qyre(ed,pt)%ptr - Qyri(ed,pt)%ptr))
-        ENDDO
-
-        DO ed = 1,nred                                       
-          Zri(ed,pt)%ptr =  detJe_recv(ed,pt)*Zhatv(ed)          
-        ENDDO   
-        DO ed = 1,nred                                         
-          Qxri(ed,pt)%ptr =  detJe_recv(ed,pt)*Qxhatv(ed)        
-        ENDDO        
-        DO ed = 1,nred 
-          Qyri(ed,pt)%ptr =  detJe_recv(ed,pt)*Qyhatv(ed)        
+        DO dof = 2,ndof
+          DO el = sel,eel
+            Qxqpt(el,pt) = Qxqpt(el,pt) + Qx(el,dof)*phie(dof,pt,et)            
+            Qyqpt(el,pt) = Qyqpt(el,pt) + Qy(el,dof)*phie(dof,pt,et)            
+          ENDDO
         ENDDO
       ENDDO
+            
+      RETURN
+      END SUBROUTINE interior_edge_eval_ldg_Q
 
-      RETURN 
-      END SUBROUTINE recieve_edge_nflux
-       
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!         
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!     
+
+
+      SUBROUTINE interior_edge_eval_ldg_E(et,sel,eel,ndof,tnqpte)
+      
+      USE globals, ONLY: Exxqpt,Eyyqpt,Exyqpt,Eyxqpt, &
+                         Exx,Eyy,Exy,Eyx, &
+                         phie
+      
+      IMPLICIT NONE
+      
+      INTEGER :: et
+      INTEGER :: tnqpte,ndof
+      INTEGER :: sel,eel
+       
+      INTEGER :: pt,el,dof
+      
+      DO pt = 1,tnqpte
+        DO el = sel,eel
+          Exxqpt(el,pt) = Exx(el,1)
+          Eyyqpt(el,pt) = Eyy(el,1)          
+          Exyqpt(el,pt) = Exy(el,1)           
+          Eyxqpt(el,pt) = Eyx(el,1)          
+        ENDDO
+        
+        DO dof = 2,ndof
+          DO el = sel,eel
+            Exxqpt(el,pt) = Exxqpt(el,pt) + Exx(el,dof)*phie(dof,pt,et)            
+            Eyyqpt(el,pt) = Eyyqpt(el,pt) + Eyy(el,dof)*phie(dof,pt,et)  
+            Exyqpt(el,pt) = Exyqpt(el,pt) + Exy(el,dof)*phie(dof,pt,et)
+            Eyxqpt(el,pt) = Eyxqpt(el,pt) + Eyx(el,dof)*phie(dof,pt,et)            
+          ENDDO
+        ENDDO
+      ENDDO
+            
+      RETURN
+      END SUBROUTINE interior_edge_eval_ldg_E
+      
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
        
        
        SUBROUTINE edge_integration(et,sel,eel,ndof,tnqpte)
@@ -210,7 +137,7 @@ ed_points: DO pt = 1,nqpte ! Compute numerical fluxes for all edges
        
        IMPLICIT NONE
        
-       INTEGER pt,l,el
+       INTEGER :: pt,l,el
        INTEGER :: et
        INTEGER :: sel,eel
        INTEGER :: ndof,tnqpte
@@ -227,4 +154,59 @@ ed_points: DO pt = 1,nqpte ! Compute numerical fluxes for all edges
        ENDDO       
        
        RETURN
-       END SUBROUTINE
+       END SUBROUTINE edge_integration            
+
+       
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+      SUBROUTINE edge_integration_ldg(et,sel,eel,ndof,tnqpte)
+      
+      USE globals, ONLY: rhsExx,rhsEyy,rhsExy,rhsEyx, &
+                         Exxqpt,Eyyqpt,Exyqpt,Eyxqpt, &
+                         phie_int
+                         
+      USE read_dginp, ONLY: esl                          
+      
+      IMPLICIT NONE
+      
+      INTEGER :: et
+      INTEGER :: sel,eel
+      INTEGER :: ndof,tnqpte      
+      
+      INTEGER :: pt,l,el
+      
+      DO pt = 1,tnqpte
+        DO l = 1,ndof
+          DO el = sel,eel
+            rhsExx(el,l) = rhsExx(el,l) + Exxqpt(el,pt)*phie_int(l,pt,et)
+            rhsEyy(el,l) = rhsEyy(el,l) + Eyyqpt(el,pt)*phie_int(l,pt,et)
+            rhsExy(el,l) = rhsExy(el,l) + Exyqpt(el,pt)*phie_int(l,pt,et)
+            rhsEyx(el,l) = rhsEyx(el,l) + Eyxqpt(el,pt)*phie_int(l,pt,et)            
+          ENDDO
+        ENDDO
+      ENDDO
+      
+      DO l = 1,ndof
+        DO el = sel,eel
+!           rhsExx(el,l) = 2d0*esl*rhsExx(el,l)
+!           rhsEyy(el,l) = 2d0*esl*rhsEyy(el,l)
+!           rhsExy(el,l) = esl*rhsExy(el,l)
+!           rhsEyx(el,l) = esl*rhsEyx(el,l)
+
+          rhsExx(el,l) = esl*rhsExx(el,l)
+          rhsEyy(el,l) = esl*rhsEyy(el,l)
+          rhsExy(el,l) = esl*rhsExy(el,l)
+          rhsEyx(el,l) = esl*rhsEyx(el,l)
+        ENDDO
+      ENDDO
+      
+      RETURN
+      END SUBROUTINE edge_integration_ldg
+      
+      
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!       

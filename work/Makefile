@@ -182,7 +182,7 @@ dgprep_objects = globals.o messenger2.o read_input.o allocation.o grid_file_mod.
                  read_grid.o read_forcing.o read_stations.o curvilinear_nodes_mod.o curvilinear.o system.o \
                  kdtree2.o find_element_mod.o sort_mod.o edge_connectivity_mod.o connect.o edge_qpts_mod.o metis2.o decomp2.o \
                  basis.o basis_eval.o vandermonde.o shape_functions_mod.o shape_functions_eval.o transformation.o \
-                 normals.o bathymetry_interp_mod.o bathymetry_interp.o edge_transformation.o spherical_mod.o \
+                 normals.o bathymetry_interp_mod.o bathymetry_interp.o edge_transformation.o spherical_mod.o area_qpts_mod.o \
                  modal2nodal.o write_files.o version.o quit.o output.o read_write_output.o dgprep.o
                  
 dgprep_obj := $(patsubst %.o, $(ODIR)%.o,$(dgprep_objects))  
@@ -511,7 +511,7 @@ $(ODIR)area_integration.o : area_integration.F90               $(ODIR)globals.o 
 $(ODIR)normals.o : normals.F90                                 $(ODIR)globals.o $(ODIR)transformation.o $(ODIR)spherical_mod.o $(ODIR)read_input.o
 	$(FC) $(FFLAGS) -c $< -o $@
 
-$(ODIR)edge_integration.o : edge_integration.F90               $(ODIR)globals.o $(ODIR)messenger2.o
+$(ODIR)edge_integration.o : edge_integration.F90               $(ODIR)globals.o $(ODIR)read_input.o 
 	$(FC) $(FFLAGS) $(OPT_REPORT) -c $< -o $@
 	
 $(ODIR)bathymetry_interp.o : bathymetry_interp.F90             $(ODIR)globals.o $(ODIR)transformation.o $(ODIR)spherical_mod.o $(ODIR)read_input.o $(ODIR)bathymetry_interp_mod.o
@@ -526,7 +526,7 @@ $(ODIR)rhs2.o : rhs2.F90                                       $(ODIR)globals.o 
 $(ODIR)rhs3.o : rhs3.F90                                       $(ODIR)globals.o $(ODIR)messenger2.o $(ODIR)read_input.o
 	$(FC) $(FFLAGS) $(OPT_REPORT) -c $< -o $@
 
-$(ODIR)numerical_flux.o : numerical_flux.F90                   $(ODIR)globals.o
+$(ODIR)numerical_flux.o : numerical_flux.F90                   $(ODIR)globals.o $(ODIR)messenger2.o
 	$(FC) $(FFLAGS) -c $< -o $@
 
 $(ODIR)boundary_edge_land.o : boundary_edge_land.F90           $(ODIR)globals.o

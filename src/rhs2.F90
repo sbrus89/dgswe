@@ -14,9 +14,9 @@
       USE read_dginp, ONLY: npart                          
                           
 #ifdef CMPI                          
-      USE messenger2, ONLY: myrank,message_recieve,message_send, &
+      USE messenger2, ONLY: myrank,message_send,message_send_ldg, &
                             nred,nproc_sr,match_edge, &
-                            solreq,solreq_send,solreq_recv,ierr, &
+                            solreq,solreq_ldg,ierr, &
                             Zri,Zre,Qxri,Qxre,Qyri,Qyre, &
                             rnx,rny,rcfac,detJe_recv,hbr         
                             
@@ -28,10 +28,6 @@
       IMPLICIT NONE
       INTEGER :: et,blk,pt
       INTEGER :: ete
-
-!     ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-!     c Area Integrals
-!     ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc  
 
       
 !$OMP parallel default(none)  &
@@ -56,14 +52,139 @@
 !$OMP                    npart,nrblk,elblk,nfblk,rnfblk,npartet)
 
 
-!     ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-!     c Area Integrals
-!     ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc 
+
+
+
+
+      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      ! Send/recieve element edge evaluations
+      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+      blk = 1
+      DO et = 1,nel_type   
+      
+        IF (et == 3) THEN 
+          ete = 1
+        ELSE IF (et == 4) THEN
+          ete = 2
+        ELSE   
+          ete = et
+        ENDIF
+          
+        IF (npartet(et,blk) > 0) THEN  
+          CALL interior_edge_eval(ete,elblk(1,blk,et),elblk(2,blk,et),ndof(et),nverts(et)*nqpte(ete))     
+        ENDIF
+      ENDDO
+      
+#ifdef CMPI    
+       ! Post an non-blocking combined send/recieve to all processes 
+       ! all edge quadrature point evaluations have been completed 
+       ! for edges in this subdomain and can be passed to the neighbors 
+       ! Send will overlap with internal edge numerical flux calculations
+       
+       CALL message_send()       
+#endif      
+
+      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      ! LDG variables
+      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+      DO blk = 1,npart+1
+        DO et = 1,nel_type
+          IF (npartet(et,blk) > 0) THEN
+            CALL area_integration_ldg(et,elblk(1,blk,et),elblk(2,blk,et),ndof(et),nqpta(et))
+          ENDIF
+        ENDDO
+      ENDDO
+      
+      DO blk = 2,npart+1
+        DO et = 1,nel_type          
+          
+          IF (et == 3) THEN 
+            ete = 1
+          ELSE IF (et == 4) THEN
+            ete = 2
+          ELSE   
+            ete = et
+          ENDIF          
+          
+          IF (npartet(et,blk) > 0) THEN
+            CALL interior_edge_eval_ldg_Q(ete,elblk(1,blk,et),elblk(2,blk,et),ndof(et),nverts(et)*nqpte(ete))    
+          ENDIF
+          
+        ENDDO        
+        
+        CALL interior_edge_nflux_ldg(nfblk(1,blk-1),nfblk(2,blk-1),nqpte(1))
+      ENDDO
+      
+      DO blk = 1,nrblk
+        CALL interior_edge_nflux_ldg(rnfblk(1,blk),rnfblk(2,blk),nqpte(1))         
+      ENDDO         
+      
+#ifdef CMPI      
+
+      CALL MPI_WAITALL(2*nproc_sr,solreq,MPI_STATUSES_IGNORE,ierr)
+      
+      CALL recieve_edge_nflux_ldg(nred,nqpte(1))      
+
+#endif      
+
+      CALL boundary_edge_land_ldg()
+        
+      CALL boundary_edge_flow_ldg()        
+
+      CALL boundary_edge_elev_ldg()
+      
+      DO blk = 1,npart+1   
+        DO et = 1,nel_type
+        
+          IF (et == 3) THEN 
+            ete = 1
+          ELSE IF (et == 4) THEN
+            ete = 2
+          ELSE   
+            ete = et
+          ENDIF          
+          
+          IF (npartet(et,blk) > 0) THEN    
+          
+            CALL edge_integration_ldg(ete,elblk(1,blk,et),elblk(2,blk,et),ndof(et),nverts(et)*nqpte(ete))  
+ 
+            CALL linear_solve_ldg(et,elblk(1,blk,et),elblk(2,blk,et),ndof(et))
+            
+          ENDIF
+        ENDDO
+      ENDDO       
+      
+      blk = 1      
+      DO et = 1,nel_type
+        IF (et == 3) THEN 
+          ete = 1
+        ELSE IF (et == 4) THEN
+          ete = 2
+        ELSE   
+          ete = et
+        ENDIF      
+        
+        IF (npartet(et,blk) > 0) THEN 
+          CALL interior_edge_eval_ldg_E(ete,elblk(1,blk,et),elblk(2,blk,et),ndof(et),nverts(et)*nqpte(ete))  
+        ENDIF
+      ENDDO      
+      
+#ifdef CMPI    
+
+       CALL message_send_ldg()       
+#endif       
+
+
+      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      ! Area integration
+      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 !$OMP do
    
 
-      DO blk = 1,npart
+      DO blk = 1,npart+1
         DO et = 1,nel_type
           IF (npartet(et,blk) > 0) THEN
             CALL area_integration(et,elblk(1,blk,et),elblk(2,blk,et),ndof(et),nqpta(et))                        
@@ -74,19 +195,15 @@
       
 !$OMP end do 
       
-!     ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-!     c Edge Integrals
-!     ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc 
+      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      ! Interior edge evaluations and numerical flux
+      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-#ifdef CMPI 
-!       post a non-blocking recieve from all processes
-!       CALL message_recieve()
-#endif    
-      
+
 
 !$OMP do
 
-       DO blk = 1,npart 
+       DO blk = 2,npart+1 
         DO et = 1,nel_type   
         
           IF (et == 3) THEN 
@@ -98,38 +215,13 @@
           ENDIF
           
           IF (npartet(et,blk) > 0) THEN  
-            CALL interior_edge_eval(ete,elblk(1,blk,et),elblk(2,blk,et),ndof(et),nverts(et)*nqpte(ete))     
-         ENDIF
-        ENDDO
-        
-#ifdef CMPI    
-       ! Post an non-blocking combined send/recieve to all processes 
-       ! all edge quadrature point evaluations have been completed 
-       ! for edges in this subdomain and can be passed to the neighbors 
-       ! Send will overlap with internal edge numerical flux calculations
-       
-       CALL message_send()
-       
-#else
-
-!         WRITE(195,"(ES24.17)") tstage
-! !         WRITE(195,"(6(ES24.17,1x))") (Qxi(check_iedge,pt)%ptr, pt = 1,nqpte(1))
-! !         WRITE(195,"(6(ES24.17,1x))") (Qxe(check_iedge,pt)%ptr, pt = 1,nqpte(1))
-! !         WRITE(195,"(6(ES24.17,1x))") (Qyi(check_iedge,pt)%ptr, pt = 1,nqpte(1))
-! !         WRITE(195,"(6(ES24.17,1x))") (Qye(check_iedge,pt)%ptr, pt = 1,nqpte(1))
-! !         WRITE(195,"(6(ES24.17,1x))") (Zi(check_iedge,pt)%ptr, pt = 1,nqpte(1))
-! !         WRITE(195,"(6(ES24.17,1x))") (Ze(check_iedge,pt)%ptr, pt = 1,nqpte(1))
-!           WRITE(195,"(6(ES24.17,1x))") (inx(check_iedge,pt), pt = 1,nqpte(1)) 
-! !         WRITE(195,"(6(ES24.17,1x))") (iny(check_iedge,pt), pt = 1,nqpte(1)) 
-! !         WRITE(195,"(6(ES24.17,1x))") (detJe_ex(check_iedge,pt), pt = 1,nqpte(1))
-! !         WRITE(195,"(6(ES24.17,1x))") (detJe_in(check_iedge,pt), pt = 1,nqpte(1))
-! !         WRITE(195,"(6(ES24.17,1x))") (hbqpted(check_gedge,pt), pt = 1,nqpte(1))
-
-   
-#endif     
+            CALL interior_edge_eval(ete,elblk(1,blk,et),elblk(2,blk,et),ndof(et),nverts(et)*nqpte(ete))   
+            CALL interior_edge_eval_ldg_E(ete,elblk(1,blk,et),elblk(2,blk,et),ndof(et),nverts(et)*nqpte(ete))                 
+          ENDIF
+        ENDDO        
    
                   
-        CALL interior_edge_nflux(nfblk(1,blk),nfblk(2,blk),nqpte(1))
+        CALL interior_edge_nflux(nfblk(1,blk-1),nfblk(2,blk-1),nqpte(1))
 
       ENDDO              
    
@@ -144,26 +236,15 @@
         
 #ifdef CMPI      
 
-      CALL MPI_WAITALL(2*nproc_sr,solreq,MPI_STATUSES_IGNORE,ierr)
+      CALL MPI_WAITALL(2*nproc_sr,solreq_ldg,MPI_STATUSES_IGNORE,ierr)
       
-!          WRITE(195,"(ES24.17)") tstage
-! !       WRITE(195,"(6(ES24.17,1x))") (Qxri(match_edge,pt)%ptr, pt = 1,nqpte(1))
-! !       WRITE(195,"(6(ES24.17,1x))") (Qxre(match_edge,pt)%ptr, pt = 1,nqpte(1))
-! !       WRITE(195,"(6(ES24.17,1x))") (Qyri(match_edge,pt)%ptr, pt = 1,nqpte(1))
-! !       WRITE(195,"(6(ES24.17,1x))") (Qyre(match_edge,pt)%ptr, pt = 1,nqpte(1))
-! !       WRITE(195,"(6(ES24.17,1x))") (Zri(match_edge,pt)%ptr, pt = 1,nqpte(1))
-! !       WRITE(195,"(6(ES24.17,1x))") (Zre(match_edge,pt)%ptr, pt = 1,nqpte(1))
-!         WRITE(195,"(6(ES24.17,1x))") (rnx(match_edge,pt), pt = 1,nqpte(1))
-! !       WRITE(195,"(6(ES24.17,1x))") (rny(match_edge,pt), pt = 1,nqpte(1))
-! !       WRITE(195,"(6(ES24.17,1x))") (detJe_recv(match_edge,pt), pt = 1,nqpte(1))
-!          WRITE(195,"(6(ES24.17,1x))") (hbr(match_edge,pt), pt = 1,nqpte(1))
-
       CALL recieve_edge_nflux(nred,nqpte(1))      
 
 #endif              
 
-
-
+      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      ! Boundary edge numerical fluxes
+      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
       CALL boundary_edge_land()
         
@@ -173,10 +254,12 @@
       
 
 
-
+      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      ! Edge integration
+      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 !$OMP do
-      DO blk = 1,npart   
+      DO blk = 1,npart+1   
         DO et = 1,nel_type
         
           IF (et == 3) THEN 

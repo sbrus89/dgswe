@@ -1,5 +1,6 @@
 grid_file = ../grids/inlet1.grd                                ! grid file
 forcing_file = ../grids/inlet1.bfr                              ! forcing file
+!curve_file = ../grids/inlet1_ctp3.cb                           ! curve_file
 p = 3                                                          ! polynomial order
 ctp = 1                                                         ! parametric coordinate transformation order
 hbp = 1                                                        ! bathymetry order
@@ -12,6 +13,7 @@ sol_opt = 1
 sol_snap = 50d0
 out_direc = ./                                                 ! output director
 npart = 1
+esl = 5d0
 
 !grid_file = ../grids/converge1_dble.grd
 !forcing_file = ../grids/converge1_dble.bfr  

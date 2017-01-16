@@ -36,7 +36,7 @@
 !           CALL rhs4()
       
           ! Second RK stage
-          DO blk = 1,npart
+          DO blk = 1,npart+1
             DO et  = 1,nel_type
               IF (npartet(et,blk) > 0) THEN   
           
@@ -79,7 +79,7 @@
 !          CALL rhs4()
       
           ! Second RK stage
-          DO blk = 1,npart
+          DO blk = 1,npart+1
             DO et  = 1,nel_type
               IF (npartet(et,blk) > 0) THEN    
           
@@ -119,7 +119,7 @@
 !           CALL rhs4()
       
           ! Third RK stage
-          DO blk = 1,npart
+          DO blk = 1,npart+1
             DO et  = 1,nel_type
               IF (npartet(et,blk) > 0) THEN      
           
@@ -157,7 +157,7 @@
           ramp = TANH((2d0*tstage)/(86400d0*dramp))
           CALL rhs2()
       
-          DO blk = 1,npart
+          DO blk = 1,npart+1
             DO et  = 1,nel_type
               IF (npartet(et,blk) > 0) THEN    
           
@@ -221,7 +221,7 @@
 !       PRINT*, "NaN checked initial condition"      
 
       ! Save previous solution
-      DO blk = 1,npart
+      DO blk = 1,npart+1
         DO et = 1,nel_type
           IF (npartet(et,blk) > 0) THEN
           
@@ -272,7 +272,7 @@
 !        CALL rhs4()
       
       ! First RK stage
-      DO blk = 1,npart
+      DO blk = 1,npart+1
         DO et  = 1,nel_type
           IF (npartet(et,blk) > 0) THEN
           
@@ -333,7 +333,7 @@
       nan_error = 0
       nan_error_sum = 0
       
-      DO blk = 1,npart
+      DO blk = 1,npart+1
         DO et = 1,nel_type
           IF (npartet(et,blk) > 0) THEN
       

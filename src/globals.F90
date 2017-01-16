@@ -10,7 +10,8 @@
       REAL(rp), PARAMETER :: pt5g = 0.5d0*g
       REAL(rp), PARAMETER :: pi=3.141592653589793D0
       REAL(rp), PARAMETER :: deg2rad = pi/180d0      
-      REAL(rp), PARAMETER :: r_earth = 6378206.4d0      
+!       REAL(rp), PARAMETER :: r_earth = 6378206.4d0      
+      REAL(rp), PARAMETER :: r_earth = 6.340304248283833d6    
       CHARACTER(100) :: grid_name ! name of the grid
 
       INTEGER, PARAMETER :: nel_type = 4 !(type #s: 1 -> triangles, 2 -> quads, 3 -> curved triangles, 4-> curved quads)
@@ -170,6 +171,11 @@
       REAL(rp), ALLOCATABLE, TARGET, DIMENSION(:,:) :: Qy ! degrees of freedom for y momentum
       REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: hbm                 
       
+      REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: Exx
+      REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: Eyy
+      REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: Exy   
+      REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: Eyx      
+      
       REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: Hold,Hinit ! degrees of freedom for water column height
       REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: Zold,Zinit 
       REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: Qxold,Qxinit ! degrees of freedom for x momentum
@@ -181,12 +187,18 @@
 
 
       REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: rhsZ,rhsH,rhsQx,rhsQy ! right hand side evaluation arrays
-      REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: MirhsZ,MirhsH,MirhsQx,MirhsQy      
+      REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: MirhsZ,MirhsH,MirhsQx,MirhsQy        
+      REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: rhsExx,rhsEyy,rhsExy,rhsEyx
 
+      REAL(rp), ALLOCATABLE, DIMENSION(:) :: Zqpta,Hqpta,Qxqpta,Qyqpta
+      REAL(rp), ALLOCATABLE, DIMENSION(:) :: xmoma,ymoma,xymoma
       REAL(rp), ALLOCATABLE, TARGET, DIMENSION(:,:) :: Zqpt,Hqpt,Qxqpt,Qyqpt ! solution quadrature point evaluation arrays
       REAL(rp), ALLOCATABLE, TARGET, DIMENSION(:,:) :: xmom,ymom,xymom ! momentum terms quadrature point evaluation arrays
       REAL(rp), ALLOCATABLE, DIMENSION(:) :: src_x,src_y
       REAL(rp), ALLOCATABLE, DIMENSION(:) :: tau
+      
+      REAL(rp), ALLOCATABLE, DIMENSION(:) :: Exxqpta,Eyyqpta,Exyqpta,Eyxqpta             
+      REAL(rp), ALLOCATABLE, TARGET, DIMENSION(:,:) :: Exxqpt,Eyyqpt,Exyqpt,Eyxqpt         
 
       REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: wpta ! area and edge quadrature weights
       REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: wpte      
@@ -233,6 +245,12 @@
       TYPE(edge_ptr_array), ALLOCATABLE, DIMENSION(:,:) :: xmi,xme
       TYPE(edge_ptr_array), ALLOCATABLE, DIMENSION(:,:) :: ymi,yme
       TYPE(edge_ptr_array), ALLOCATABLE, DIMENSION(:,:) :: xymi,xyme   
+      
+      TYPE(edge_ptr_array), ALLOCATABLE, DIMENSION(:,:) :: Exxi,Exxe
+      TYPE(edge_ptr_array), ALLOCATABLE, DIMENSION(:,:) :: Eyyi,Eyye
+      TYPE(edge_ptr_array), ALLOCATABLE, DIMENSION(:,:) :: Exyi,Exye            
+      TYPE(edge_ptr_array), ALLOCATABLE, DIMENSION(:,:) :: Eyxi,Eyxe
+       
       
       TYPE(edge_ptr_array), ALLOCATABLE, DIMENSION(:,:) :: Hwrite
       TYPE(edge_ptr_array), ALLOCATABLE, DIMENSION(:,:) :: Zwrite      
