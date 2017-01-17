@@ -74,7 +74,7 @@
           Exx(el,l) = 0d0
           Eyy(el,l) = 0d0
           Exy(el,l) = 0d0
-          Eyx(el,l) = 0d0
+!           Eyx(el,l) = 0d0
         ENDDO
       ENDDO
             
@@ -88,12 +88,12 @@
               Exx(el,l) = Exx(el,l) + mmi(el,1)*rhsExx(el,l)
               Eyy(el,l) = Eyy(el,l) + mmi(el,1)*rhsEyy(el,l)
               Exy(el,l) = Exy(el,l) + mmi(el,1)*rhsExy(el,l)
-              Eyx(el,l) = Eyx(el,l) + mmi(el,1)*rhsEyx(el,l)              
+!               Eyx(el,l) = Eyx(el,l) + mmi(el,1)*rhsEyx(el,l)              
               
               rhsExx(el,l) = 0d0
               rhsEyy(el,l) = 0d0
               rhsExy(el,l) = 0d0
-              rhsEyx(el,l) = 0d0              
+!               rhsEyx(el,l) = 0d0              
             ENDDO
           ENDDO
         
@@ -106,7 +106,7 @@
                 Exx(el,i) = Exx(el,i) + mmi(el,m)*rhsExx(el,j)
                 Eyy(el,i) = Eyy(el,i) + mmi(el,m)*rhsEyy(el,j)
                 Exy(el,i) = Exy(el,i) + mmi(el,m)*rhsExy(el,j)
-                Eyx(el,i) = Eyx(el,i) + mmi(el,m)*rhsEyx(el,j)                
+!                 Eyx(el,i) = Eyx(el,i) + mmi(el,m)*rhsEyx(el,j)                
               ENDDO
               m = m + 1
             ENDDO
@@ -117,7 +117,7 @@
               rhsExx(el,i) = 0d0
               rhsEyy(el,i) = 0d0
               rhsExy(el,i) = 0d0
-              rhsEyx(el,i) = 0d0                
+!               rhsEyx(el,i) = 0d0                
             ENDDO
           ENDDO 
           

@@ -59,15 +59,13 @@
             Exx_in = Exxqpt(el_in,gp_in)
             Eyy_in = Eyyqpt(el_in,gp_in)
             Exy_in = Exyqpt(el_in,gp_in)
-            Eyx_in = Eyxqpt(el_in,gp_in)            
+!             Eyx_in = Eyxqpt(el_in,gp_in)            
 
             Zqpt(el_in,gp_in) = detJe(ged,pt)*Zhat
-! !             Qxqpt(el_in,gp_in) = detJe(ged,pt)*(Qxhat - nx*Exx_in - ny*Exy_in)
-! !             Qyqpt(el_in,gp_in) = detJe(ged,pt)*(Qyhat - nx*Exy_in - ny*Eyy_in)
-! !             Qxqpt(el_in,gp_in) = detJe(ged,pt)*(Qxhat - nx*Exx_in - ny*(Exy_in+Eyx_in))
-! !             Qyqpt(el_in,gp_in) = detJe(ged,pt)*(Qyhat - nx*(Exy_in+Eyx_in) - ny*Eyy_in)
             Qxqpt(el_in,gp_in) = detJe(ged,pt)*(Qxhat - nx*Exx_in - ny*Exy_in)
-            Qyqpt(el_in,gp_in) = detJe(ged,pt)*(Qyhat - nx*Eyx_in - ny*Eyy_in)
+            Qyqpt(el_in,gp_in) = detJe(ged,pt)*(Qyhat - nx*Exy_in - ny*Eyy_in)
+!             Qxqpt(el_in,gp_in) = detJe(ged,pt)*(Qxhat - nx*Exx_in - ny*Exy_in)
+!             Qyqpt(el_in,gp_in) = detJe(ged,pt)*(Qyhat - nx*Eyx_in - ny*Eyy_in)
 
 !             Qxqpt(el_in,gp_in) = detJe(ged,pt)*Qxhat
 !             Qyqpt(el_in,gp_in) = detJe(ged,pt)*Qyhat
@@ -117,11 +115,14 @@
             Exx_in = Exxqpt(el_in,gp_in)
             Eyy_in = Eyyqpt(el_in,gp_in)
             Exy_in = Exyqpt(el_in,gp_in)
-            Eyx_in = Eyxqpt(el_in,gp_in)            
+!             Eyx_in = Eyxqpt(el_in,gp_in)            
            
             Zhat  = detJe(ged,pt)*Zhat              
-            Qxhat = detJe(ged,pt)*(Qxhat - nx*Exx_in - ny*(Exy_in+Eyx_in))
-            Qyhat = detJe(ged,pt)*(Qyhat - nx*(Exy_in+Eyx_in) - ny*Eyy_in)
+            Qxhat = detJe(ged,pt)*(Qxhat - nx*Exx_in - ny*Exy_in)
+            Qyhat = detJe(ged,pt)*(Qyhat - nx*Exy_in - ny*Eyy_in)
+
+!             Qxhat = detJe(ged,pt)*(Qxhat - nx*Exx_in - ny*Exy_in)
+!             Qyhat = detJe(ged,pt)*(Qyhat - nx*Eyx_in - ny*Eyy_in)
               
             DO l = 1,ndof(et)
               rhsZ(el_in,l)  = rhsZ(el_in,l)  - Zhat*phie_int(l,gp_in,et)
@@ -199,14 +200,13 @@
             
 !             Exxqpt(el_in,gp_in) = detJe(ged,pt)*nx*Qx_ex
 !             Eyyqpt(el_in,gp_in) = detJe(ged,pt)*ny*Qy_ex
-! !             Exyqpt(el_in,gp_in) = detJe(ged,pt)*(ny*Qx_ex + nx*Qy_ex)
-!             Exyqpt(el_in,gp_in) = detJe(ged,pt)*ny*Qx_ex
-!             Eyxqpt(el_in,gp_in) = detJe(ged,pt)*nx*Qy_ex      
+! !             Exyqpt(el_in,gp_in) = detJe(ged,pt)*(ny*Qx_ex + nx*Qy_ex)  
             
             Exxqpt(el_in,gp_in) = detJe(ged,pt)*nx*.5d0*(Qx_ex+Qx_in)
             Eyyqpt(el_in,gp_in) = detJe(ged,pt)*ny*.5d0*(Qy_ex+Qy_in)
-            Exyqpt(el_in,gp_in) = detJe(ged,pt)*ny*.5d0*(Qx_ex+Qx_in)
-            Eyxqpt(el_in,gp_in) = detJe(ged,pt)*nx*.5d0*(Qy_ex+Qy_in)             
+            Exyqpt(el_in,gp_in) = detJe(ged,pt)*.5d0*(ny*(Qx_ex+Qx_in)+nx*(Qy_ex+Qy_in))            
+!             Exyqpt(el_in,gp_in) = detJe(ged,pt)*ny*.5d0*(Qx_ex+Qx_in)
+!             Eyxqpt(el_in,gp_in) = detJe(ged,pt)*nx*.5d0*(Qy_ex+Qy_in)             
           
           ENDDO
           
@@ -243,10 +243,11 @@
             Qx_ex = Qx_in*(ny2-nx2) - 2d0*nxny*Qy_in
             Qy_ex = Qy_in*(nx2-ny2) - 2d0*nxny*Qx_in    
             
-            Exx_hat = detJe(ged,pt)*nx*(Qx_ex+Qx_in)
-            Eyy_hat = detJe(ged,pt)*ny*(Qy_ex+Qy_in)
-            Exy_hat = detJe(ged,pt)*ny*(Qx_ex+Qx_in)
-            Eyx_hat = detJe(ged,pt)*nx*(Qy_ex+Qy_in)
+            Exx_hat = detJe(ged,pt)*nx*.5d0*(Qx_ex+Qx_in)
+            Eyy_hat = detJe(ged,pt)*ny*.5d0*(Qy_ex+Qy_in)
+            Exy_hat = detJe(ged,pt)*.5d0*(ny*(Qx_ex+Qx_in)+nx*(Qy_ex+Qy_in))            
+!             Exy_hat = detJe(ged,pt)*ny*.5d0*(Qx_ex+Qx_in)
+!             Eyx_hat = detJe(ged,pt)*nx*.5d0*(Qy_ex+Qy_in)
             
             DO l = 1,ndof(et)
               rhsExx(el_in,l) = rhsExx(el_in,l) + Exx_hat*phie_int(l,gp_in,et)
@@ -258,7 +259,7 @@
             Exxqpt(el_in,gp_in) = 0d0
             Eyyqpt(el_in,gp_in) = 0d0         
             Exyqpt(el_in,gp_in) = 0d0  
-            Eyxqpt(el_in,gp_in) = 0d0              
+!             Eyxqpt(el_in,gp_in) = 0d0              
           
           ENDDO
         ENDDO

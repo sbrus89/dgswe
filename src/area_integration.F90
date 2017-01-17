@@ -33,7 +33,7 @@ a_points: DO pt = 1,nqpta
               Exxqpta(el) = Exx(el,1)
               Eyyqpta(el) = Eyy(el,1) 
               Exyqpta(el) = Exy(el,1)
-              Eyxqpta(el) = Eyx(el,1)              
+!               Eyxqpta(el) = Eyx(el,1)              
             ENDDO
 
    a_basis: DO dof = 2,ndof
@@ -47,7 +47,7 @@ a_points: DO pt = 1,nqpta
                 Exxqpta(el) = Exxqpta(el) + Exx(el,dof)*phia(dof,pt,et)
                 Eyyqpta(el) = Eyyqpta(el) + Eyy(el,dof)*phia(dof,pt,et)
                 Exyqpta(el) = Exyqpta(el) + Exy(el,dof)*phia(dof,pt,et)
-                Eyxqpta(el) = Eyxqpta(el) + Eyx(el,dof)*phia(dof,pt,et)                
+!                 Eyxqpta(el) = Eyxqpta(el) + Eyx(el,dof)*phia(dof,pt,et)                
               ENDDO
 
             ENDDO a_basis
@@ -60,8 +60,8 @@ a_points: DO pt = 1,nqpta
 
               xmoma(el) = pt5g*(Hqpta(el)*Hqpta(el)-hbqpta(el,pt)*hbqpta(el,pt)) + Qxqpta(el)*Qxqpta(el)*recipHa(el) - Exxqpta(el)
               ymoma(el) = pt5g*(Hqpta(el)*Hqpta(el)-hbqpta(el,pt)*hbqpta(el,pt)) + Qyqpta(el)*Qyqpta(el)*recipHa(el) - Eyyqpta(el)
-!               xymoma(el) = Qxqpta(el)*Qyqpta(el)*recipHa(el) - Exyqpta(el)             
-              xymoma(el) = Qxqpta(el)*Qyqpta(el)*recipHa(el) 
+              xymoma(el) = Qxqpta(el)*Qyqpta(el)*recipHa(el) - Exyqpta(el)             
+!               xymoma(el) = Qxqpta(el)*Qyqpta(el)*recipHa(el) 
             ENDDO 
 
 !!DIR$ VECTOR ALIGNED
@@ -85,11 +85,11 @@ a_points: DO pt = 1,nqpta
               DO el = sel,eel
                 rhsZ(el,l)  = rhsZ(el,l)  + Qxqpta(el)*dpdx(el,l,pt) + Qyqpta(el)*dpdy(el,l,pt)
 
-!                 rhsQx(el,l) = rhsQx(el,l) + xmoma(el)*dpdx(el,l,pt)  + xymoma(el)*dpdy(el,l,pt) + src_x(el)*phia_int(el,l,pt)           
-!                 rhsQy(el,l) = rhsQy(el,l) + xymoma(el)*dpdx(el,l,pt) + ymoma(el)*dpdy(el,l,pt)  + src_y(el)*phia_int(el,l,pt)                
+                rhsQx(el,l) = rhsQx(el,l) + xmoma(el)*dpdx(el,l,pt)  + xymoma(el)*dpdy(el,l,pt) + src_x(el)*phia_int(el,l,pt)           
+                rhsQy(el,l) = rhsQy(el,l) + xymoma(el)*dpdx(el,l,pt) + ymoma(el)*dpdy(el,l,pt)  + src_y(el)*phia_int(el,l,pt)                
                 
-                rhsQx(el,l) = rhsQx(el,l) + xmoma(el)*dpdx(el,l,pt)  + (xymoma(el) - Exyqpta(el))*dpdy(el,l,pt) + src_x(el)*phia_int(el,l,pt)           
-                rhsQy(el,l) = rhsQy(el,l) + (xymoma(el) - Eyxqpta(el))*dpdx(el,l,pt) + ymoma(el)*dpdy(el,l,pt)  + src_y(el)*phia_int(el,l,pt)
+!                 rhsQx(el,l) = rhsQx(el,l) + xmoma(el)*dpdx(el,l,pt)  + (xymoma(el) - Exyqpta(el))*dpdy(el,l,pt) + src_x(el)*phia_int(el,l,pt)           
+!                 rhsQy(el,l) = rhsQy(el,l) + (xymoma(el) - Eyxqpta(el))*dpdx(el,l,pt) + ymoma(el)*dpdy(el,l,pt)  + src_y(el)*phia_int(el,l,pt)
               ENDDO
 
             ENDDO test 
@@ -135,9 +135,9 @@ a_points: DO pt = 1,nqpta
           DO el = sel,eel
             rhsExx(el,l) = rhsExx(el,l) - Qxqpta(el)*dpdx(el,l,pt)
             rhsEyy(el,l) = rhsEyy(el,l) - Qyqpta(el)*dpdy(el,l,pt)
-!             rhsExy(el,l) = rhsExy(el,l) - (Qxqpta(el)*dpdy(el,l,pt) + Qyqpta(el)*dpdx(el,l,pt))            
-            rhsExy(el,l) = rhsExy(el,l) - Qxqpta(el)*dpdy(el,l,pt)
-            rhsEyx(el,l) = rhsEyx(el,l) - Qyqpta(el)*dpdx(el,l,pt)
+            rhsExy(el,l) = rhsExy(el,l) - (Qxqpta(el)*dpdy(el,l,pt) + Qyqpta(el)*dpdx(el,l,pt))            
+!             rhsExy(el,l) = rhsExy(el,l) - Qxqpta(el)*dpdy(el,l,pt)
+!             rhsEyx(el,l) = rhsEyx(el,l) - Qyqpta(el)*dpdx(el,l,pt)
           ENDDO
         ENDDO
       ENDDO

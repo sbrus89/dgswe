@@ -73,15 +73,14 @@
           Exx_in = Exxqpt(el_in,gp_in)
           Eyy_in = Eyyqpt(el_in,gp_in)
           Exy_in = Exyqpt(el_in,gp_in)
-          Eyx_in = Eyxqpt(el_in,gp_in)          
+!           Eyx_in = Eyxqpt(el_in,gp_in)          
 
           Zqpt(el_in,gp_in) = detJe(ged,pt)*Zhat              
-! !           Qxqpt(el_in,gp_in) = detJe(ged,pt)*(Qxhat - nx*Exx_in - ny*Exy_in)
-! !           Qyqpt(el_in,gp_in) = detJe(ged,pt)*(Qyhat - nx*Exy_in - ny*Eyy_in)
-! !           Qxqpt(el_in,gp_in) = detJe(ged,pt)*(Qxhat - nx*Exx_in - ny*(Exy_in+Eyx_in))
-! !           Qyqpt(el_in,gp_in) = detJe(ged,pt)*(Qyhat - nx*(Exy_in+Eyx_in) - ny*Eyy_in)      
           Qxqpt(el_in,gp_in) = detJe(ged,pt)*(Qxhat - nx*Exx_in - ny*Exy_in)
-          Qyqpt(el_in,gp_in) = detJe(ged,pt)*(Qyhat - nx*Eyx_in - ny*Eyy_in)
+          Qyqpt(el_in,gp_in) = detJe(ged,pt)*(Qyhat - nx*Exy_in - ny*Eyy_in)
+          
+!           Qxqpt(el_in,gp_in) = detJe(ged,pt)*(Qxhat - nx*Exx_in - ny*Exy_in)
+!           Qyqpt(el_in,gp_in) = detJe(ged,pt)*(Qyhat - nx*Eyx_in - ny*Eyy_in)
 
 !           Qxqpt(el_in,gp_in) = detJe(ged,pt)*Qxhat
 !           Qyqpt(el_in,gp_in) = detJe(ged,pt)*Qyhat
@@ -162,13 +161,13 @@
 !           Exxqpt(el_in,gp_in) = detJe(ged,pt)*nx*Qx_ex
 !           Eyyqpt(el_in,gp_in) = detJe(ged,pt)*ny*Qy_ex
 ! !           Exyqpt(el_in,gp_in) = detJe(ged,pt)*(ny*Qx_ex + nx*Qy_ex)
-!           Exyqpt(el_in,gp_in) = detJe(ged,pt)*ny*Qx_ex
-!           Eyxqpt(el_in,gp_in) = detJe(ged,pt)*nx*Qy_ex   
+  
 
           Exxqpt(el_in,gp_in) = detJe(ged,pt)*nx*.5d0*(Qx_ex+Qx_in)
           Eyyqpt(el_in,gp_in) = detJe(ged,pt)*ny*.5d0*(Qy_ex+Qy_in)
-          Exyqpt(el_in,gp_in) = detJe(ged,pt)*ny*.5d0*(Qx_ex+Qx_in)
-          Eyxqpt(el_in,gp_in) = detJe(ged,pt)*nx*.5d0*(Qy_ex+Qy_in)
+          Exyqpt(el_in,gp_in) = detJe(ged,pt)*.5d0*(ny*(Qx_ex+Qx_in)+nx*(Qy_ex+Qy_in))          
+!           Exyqpt(el_in,gp_in) = detJe(ged,pt)*ny*.5d0*(Qx_ex+Qx_in)
+!           Eyxqpt(el_in,gp_in) = detJe(ged,pt)*nx*.5d0*(Qy_ex+Qy_in)
         
         ENDDO
       

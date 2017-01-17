@@ -569,12 +569,12 @@
       
       
       DO pe = 1,nproc_sr
-        CALL MPI_RECV_INIT(sol_recv_ldg(1,pe),4*ned_sr(pe)*nqpte(1),MPI_DOUBLE_PRECISION,proc_sr(pe), &
+        CALL MPI_RECV_INIT(sol_recv_ldg(1,pe),3*ned_sr(pe)*nqpte(1),MPI_DOUBLE_PRECISION,proc_sr(pe), &
                            tag,comm_dist_graph,solreq_recv_ldg(pe),ierr)
       ENDDO
       
       DO pe = 1,nproc_sr
-        CALL MPI_SEND_INIT(sol_send_ldg(1,pe),4*ned_sr(pe)*nqpte(1),MPI_DOUBLE_PRECISION,proc_sr(pe), &
+        CALL MPI_SEND_INIT(sol_send_ldg(1,pe),3*ned_sr(pe)*nqpte(1),MPI_DOUBLE_PRECISION,proc_sr(pe), &
                            tag,comm_dist_graph,solreq_send_ldg(pe),ierr)                          
       ENDDO
       
