@@ -57,7 +57,8 @@ bou2sta_obj := $(patsubst %.o, $(ODIR)%.o,$(bou2sta_objects))
 
 consolidate_objects =  globals.o  quit.o \
            grid_file_mod.o edge_connectivity_mod.o \
-           triangulation.o tripack.o consolidate.o 
+           triangulation.o tripack.o consolidate.o \
+           kdtree2.o
                    
 consolidate_obj := $(patsubst %.o, $(ODIR)%.o,$(consolidate_objects))
 
@@ -181,5 +182,5 @@ $(ODIR)copy_nodes.o: copy_nodes.F90                          $(ODIR)globals.o $(
 $(ODIR)convert_bou2sta.o: convert_bou2sta.F90                $(ODIR)globals.o $(ODIR)grid_file_mod.o
 	$(FC) $(FFLAGS) -c $< -o $@	
 	
-$(ODIR)consolidate.o: consolidate.F90                        $(ODIR)globals.o $(ODIR)grid_file_mod.o $(ODIR)edge_connectivity_mod.o $(ODIR)triangulation.o
+$(ODIR)consolidate.o: consolidate.F90                        $(ODIR)globals.o $(ODIR)grid_file_mod.o $(ODIR)edge_connectivity_mod.o $(ODIR)triangulation.o $(ODIR)kdtree2.o
 	$(FC) $(FFLAGS) -c $< -o $@

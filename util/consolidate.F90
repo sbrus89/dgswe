@@ -5,7 +5,8 @@
                          nepn,mnepn,epn,ned,ged2el,ged2nn,ged2led
       USE grid_file_mod
       USE edge_connectivity_mod      
-      USE triangulation, ONLY: delaunay_triangulation       
+      USE triangulation, ONLY: delaunay_triangulation      
+      USE kdtree2_module      
 
       IMPLICIT NONE
       
@@ -47,7 +48,19 @@
       REAL(rp) :: xa,ya,xc,yc,x1,y1,x2,y2    
       REAL(rp) :: cross_product
       REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: xy_coarse   
-      REAL(rp), ALLOCATABLE, DIMENSION(:) :: depth_coarse     
+      REAL(rp), ALLOCATABLE, DIMENSION(:) :: depth_coarse  
+      
+      TYPE(kdtree2), POINTER :: tree_xy      
+      TYPE(kdtree2_result), ALLOCATABLE, DIMENSION(:) :: closest     
+      INTEGER :: srchdp
+      REAL(rp) :: len_avg
+      REAL(rp), DIMENSION(:), ALLOCATABLE :: hnd
+      INTEGER :: it
+      REAL(rp) :: px,py
+      REAL(rp) :: lxy
+      REAL(rp) :: hpt,l0
+      REAL(rp) :: dt
+      REAL(rp), DIMENSION(:,:), ALLOCATABLE ::  frc    
       
       
       grid_file_in = "/home/sbrus/data-drive/galveston_SL18/grid_dev/v25_cart/galveston_SL18_cart.grd"
@@ -390,7 +403,8 @@
       DO el = 1,ntri
         et_coarse(el) = 1
       ENDDO      
-      
+            
+    
       
       
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -565,6 +579,113 @@
       ENDDO
         
       
+      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      ! Adjust node locations to improve mesh quality
+      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+            
+      CALL elements_per_node(ne_coarse,nn_coarse,nverts,et_coarse,ect_coarse,nepn,mnepn,epn) 
+      CALL find_edge_pairs(ne_coarse,nverts,et_coarse,ect_coarse,nepn,epn,ned,ged2el,ged2nn,ged2led) 
+      CALL find_adjacent_nodes(nn_coarse,mnepn,ned,ged2nn,nadjnds,adjnds)
+      
+      ALLOCATE(hnd(nn_coarse))
+      DO n1 = 1,nn_coarse
+        len_avg = 0d0
+        DO j = 1,nadjnds(n1)
+          n2 = adjnds(j,n1) 
+          x1 = xy_coarse(1,n1)
+          x2 = xy_coarse(1,n2)
+          y1 = xy_coarse(2,n1)
+          y2 = xy_coarse(2,n2)
+          
+          len_avg = len_avg + sqrt((x1-x2)**2+(y1-y2)**2)
+        ENDDO
+        hnd(n1) = len_avg/real(nadjnds(n1),rp)
+      ENDDO
+      
+!       srchdp = 20
+!       IF (nn_coarse < srchdp) THEN
+!         srchdp = nn_coarse
+!       ENDIF      
+!       
+!       tree_xy => kdtree2_create(xy_coarse(1:2,1:nn_coarse), rearrange=.true., sort=.true.)
+!       ALLOCATE(closest(MAX(nn_coarse,srchdp)))
+      
+      
+      bou_node = 0
+      
+      DO bou = 1,nope                    
+        nbnds = obseg_coarse(bou)   
+        DO i = 1,nbnds   
+          nd = obnds_coarse(i,bou)    
+          bou_node(nd) = 1
+        ENDDO
+      ENDDO      
+      
+      DO bou = 1,nbou_coarse                    
+        nbnds = fbseg_coarse(1,bou)   
+        DO i = 1,nbnds   
+          nd = fbnds_coarse(i,bou)    
+          bou_node(nd) = 1
+        ENDDO
+      ENDDO   
+      
+      DO bou = 1,ncbou                    
+        nbnds = cbseg_coarse(bou)   
+        DO i = 1,nbnds   
+          nd = cbnds_coarse(i,bou)    
+          bou_node(nd) = 1
+        ENDDO
+      ENDDO         
+      
+      ALLOCATE(frc(nn_coarse,2))
+      dt = 0.2d0
+      
+      DO it = 1,20
+ nodes: DO n1 = 1,nn_coarse
+          
+          frc(n1,1) = 0d0
+          frc(n1,2) = 0d0
+          
+          IF (bou_node(n1) == 1) THEN
+            CYCLE nodes
+          ENDIF                   
+          
+          DO i = 1,nadjnds(n1)
+            n2 = adjnds(i,n1)
+            
+            px = xy_coarse(1,n1)-xy_coarse(1,n2)
+            py = xy_coarse(2,n1)-xy_coarse(2,n2)
+            
+            lxy = sqrt(px**2+py**2)
+            
+!             xy(1) = .5d0*(xy_coarse(1,n1)+xy_coarse(1,n2))            
+!             xy(2) = .5d0*(xy_coarse(2,n1)+xy_coarse(2,n2))
+!             
+!             CALL kdtree2_n_nearest(tp=tree_xy,qv=xy,nn=1,results=closest)
+!             hpt = hnd(closest(1)%idx)
+
+            hpt = .5d0*(hnd(n1)+hnd(n2))
+            l0 = 1.2d0*hpt
+            
+            frc(n1,1) = frc(n1,1) + max(l0-lxy,0d0)*px/lxy
+            frc(n1,2) = frc(n1,2) + max(l0-lxy,0d0)*py/lxy
+            
+          ENDDO
+          
+        ENDDO nodes
+        
+        
+        DO n1 = 1,nn_coarse
+        
+          xy_coarse(1,n1) = xy_coarse(1,n1) + dt*frc(n1,1)
+          xy_coarse(2,n1) = xy_coarse(2,n1) + dt*frc(n1,2)
+        
+        ENDDO
+      ENDDO
+      
+      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      ! Write output
+      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
       
 
       CALL print_grid_info(grid_file_out,grid_name,ne_coarse,nn_coarse) 
