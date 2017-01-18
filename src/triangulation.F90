@@ -277,13 +277,16 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!        
       
-      SUBROUTINE delaunay_triangulation(npt,ri,si,ntri,ect,ra,sa)
+      SUBROUTINE delaunay_triangulation(npt,ri,si,nbou,fbseg,fbnds,ntri,ect,ra,sa)
 
       IMPLICIT NONE
       
       INTEGER, INTENT(IN) :: npt
       REAL(rp), DIMENSION(:), INTENT(IN) :: ri
       REAL(rp), DIMENSION(:), INTENT(IN) :: si
+      INTEGER, INTENT(IN) :: nbou
+      INTEGER, DIMENSION(:), INTENT(IN) :: fbseg
+      INTEGER, DIMENSION(:,:), INTENT(IN) :: fbnds
       INTEGER, INTENT(OUT) :: ntri
       INTEGER, DIMENSION(:,:), INTENT(OUT) :: ect
       REAL(rp), INTENT(IN), OPTIONAL :: ra
@@ -304,6 +307,11 @@
       INTEGER :: ier
       INTEGER :: nit
       INTEGER :: nx
+      INTEGER :: lwk
+      INTEGER, ALLOCATABLE, DIMENSION(:,:) :: iwk
+      INTEGER :: bou
+      INTEGER :: nbnds
+      INTEGER :: nd1,nd2
       REAL(rp) :: nx_rp
       REAL(rp), ALLOCATABLE, DIMENSION(:) :: dist
       REAL(rp) :: wx1,wx2,wy1,wy2
@@ -312,8 +320,6 @@
       INTEGER :: nrow
       INTEGER :: nt
       INTEGER, ALLOCATABLE, DIMENSION(:,:) :: ltri   
-      INTEGER :: lwk
-      INTEGER, DIMENSION(:,:), ALLOCATABLE :: iwk
       INTEGER, DIMENSION(:), ALLOCATABLE :: tri_flag
       INTEGER :: n1,n2      
       REAL(rp) :: rdiff,sdiff,tol
@@ -336,7 +342,7 @@
       ENDIF
       n = n+1      
       
-      
+      PRINT*, "Triangulating nodes..."
       ALLOCATE(list(6*n),lptr(6*n),lend(n))
       ALLOCATE(near(n),next(n),dist(n))
       CALL trmesh(n,r,s,list,lptr,lend,lnew,near,next,dist,ier)
@@ -345,6 +351,21 @@
         PRINT*, "Error in trmesh, ier = ",ier
         STOP
       ENDIF
+      
+!       PRINT*, "Enforcing feature constraints..."
+!       lwk = 6*n
+!       ALLOCATE(iwk(2,lwk))
+!   bnd:DO bou = 1,nbou
+!         nbnds = fbseg(bou)        
+!         DO i = 1,nbnds-1
+!            nd1 = fbnds(i,bou)
+!            nd2 = fbnds(i+1,bou)
+!            
+!            CALL edge(nd1,nd2,r,s,lwk,iwk,list,lptr,lend,ier)
+!            PRINT*, ier
+!         ENDDO
+!       ENDDO bnd
+      
       
       ncc = 0 
       lcc = 0
@@ -372,6 +393,7 @@
 !       CALL trplot(90,7.5d0,wx1,wx2,wy1,wy2,ncc,lcc,n,r,s,list,lptr,lend,"(test)",.true.,ier)
 !       CLOSE(90)    
 
+      PRINT*, "Converting triangulation data ..."
       ALLOCATE(ltri(nrow,12*n))
       CALL trlist ( ncc, lcc, n, list, lptr, lend, nrow, nt, ltri, lct, ier )
 

@@ -17,6 +17,7 @@
       INTEGER :: n1,n2,n3
       INTEGER :: nodes_kept
       INTEGER :: nbnds
+      INTEGER :: bou_type
       INTEGER, ALLOCATABLE, DIMENSION(:) :: nadjnds
       INTEGER, ALLOCATABLE, DIMENSION(:,:) :: adjnds   
       INTEGER, ALLOCATABLE, DIMENSION(:) :: keep_node
@@ -32,9 +33,13 @@
       INTEGER, ALLOCATABLE, DIMENSION(:) :: obseg_coarse
       INTEGER, ALLOCATABLE, DIMENSION(:,:) :: obnds_coarse
       INTEGER :: nvel_coarse
+      INTEGER :: nbou_coarse
       INTEGER, ALLOCATABLE, DIMENSION(:,:) :: fbseg_coarse
       INTEGER, ALLOCATABLE, DIMENSION(:,:) :: fbnds_coarse
       REAL(rp), ALLOCATABLE, DIMENSION(:) :: fbseg_orient
+      INTEGER :: ncbou
+      INTEGER, ALLOCATABLE, DIMENSION(:) :: cbseg_coarse
+      INTEGER, ALLOCATABLE, DIMENSION(:,:) :: cbnds_coarse
       INTEGER :: flag(3)
       INTEGER :: found
       INTEGER, ALLOCATABLE, DIMENSION(:) :: delete_el
@@ -45,10 +50,10 @@
       REAL(rp), ALLOCATABLE, DIMENSION(:) :: depth_coarse     
       
       
-!       grid_file_in = "/home/sbrus/data-drive/galveston_SL18/grid_dev/v23_cart/galveston_SL18_cart.grd"
-!       grid_file_out = "/home/sbrus/data-drive/galveston_SL18/grid_dev/v23_cart/coarse.grd"
-      grid_file_in = "/home/sbrus/data-drive/galveston_SL18/grid_dev/v23_cart/coarse/galveston_SL18_cart_coarse.grd"
-      grid_file_out = "/home/sbrus/data-drive/galveston_SL18/grid_dev/v23_cart/coarse/coarse_x2.grd"
+      grid_file_in = "/home/sbrus/data-drive/galveston_SL18/grid_dev/v25_cart/galveston_SL18_cart.grd"
+      grid_file_out = "/home/sbrus/data-drive/galveston_SL18/grid_dev/v25_cart/coarse.grd"
+!       grid_file_in = "/home/sbrus/data-drive/galveston_SL18/grid_dev/v23_cart/coarse/galveston_SL18_cart_coarse.grd"
+!       grid_file_out = "/home/sbrus/data-drive/galveston_SL18/grid_dev/v23_cart/coarse/coarse_x2.grd"
          
       nverts(1) = 3
       nverts(2) = 4
@@ -68,22 +73,24 @@
       
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       ! Find the nodes adjacent each node
-      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!       
+      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!      
       
-      ALLOCATE(nadjnds(nn))
-      ALLOCATE(adjnds(mnepn,nn))
-      nadjnds = 0
+      CALL find_adjacent_nodes(nn,mnepn,ned,ged2nn,nadjnds,adjnds)
       
-      DO ed = 1,ned
-        n1 = ged2nn(1,ed)  ! find the node numbers on each edge
-        n2 = ged2nn(2,ed)
-        
-        nadjnds(n1) = nadjnds(n1) + 1 ! count the nodes adjacent to node n1
-        nadjnds(n2) = nadjnds(n2) + 1 ! count the nodes adjacent to node n2
-        
-        adjnds(nadjnds(n1),n1) = n2 ! node n2 is adjacent to node n1
-        adjnds(nadjnds(n2),n2) = n1 ! node n1 is adjacent to node n2                       
-      ENDDO
+!       ALLOCATE(nadjnds(nn))
+!       ALLOCATE(adjnds(mnepn,nn))
+!       nadjnds = 0
+!       
+!       DO ed = 1,ned
+!         n1 = ged2nn(1,ed)  ! find the node numbers on each edge
+!         n2 = ged2nn(2,ed)
+!         
+!         nadjnds(n1) = nadjnds(n1) + 1 ! count the nodes adjacent to node n1
+!         nadjnds(n2) = nadjnds(n2) + 1 ! count the nodes adjacent to node n2
+!         
+!         adjnds(nadjnds(n1),n1) = n2 ! node n2 is adjacent to node n1
+!         adjnds(nadjnds(n2),n2) = n1 ! node n1 is adjacent to node n2                       
+!       ENDDO
       
       
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -99,7 +106,7 @@
             
       ! Open ocean boundaries
       
-      DO bou = 1,nope
+      DO bou = 1,nope                     ! flag boundary nodes 
         nbnds = obseg(bou)   
         DO i = 1,nbnds   
           nd = obnds(i,bou)    
@@ -107,7 +114,7 @@
         ENDDO
       ENDDO
 
-      DO bou = 1,nope
+      DO bou = 1,nope                     ! determine nodes to keep
         nbnds = obseg(bou)           
         
         nd = obnds(1,bou)                 ! keep first node
@@ -142,18 +149,29 @@
       
       ! Flow boundaries 
       
-      DO bou = 1,nbou
-        nbnds = fbseg(1,bou)   
-        DO i = 1,nbnds   
-          nd = fbnds(i,bou)    
-          bou_node(nd) = 1
-        ENDDO
+      DO bou = 1,nbou                     ! flag boundary nodes
+        bou_type = fbseg(2,bou)
+        IF (bou_type /= 30) THEN
+          nbnds = fbseg(1,bou)   
+          DO i = 1,nbnds   
+            nd = fbnds(i,bou)    
+            bou_node(nd) = 1
+          ENDDO
+        ENDIF
       ENDDO      
       
-      DO bou = 1,nbou
-        nbnds = fbseg(1,bou)           
+      nbou_coarse = 0
+ fbnd:DO bou = 1,nbou                     ! determine boundary nodes to keep
+        nbnds = fbseg(1,bou) 
+        bou_type = fbseg(2,bou)
         
-        IF (nbnds <= 8) THEN
+        IF (bou_type == 30) THEN          ! skip feature constraint nodestrings
+          CYCLE fbnd
+        ENDIF
+        
+        nbou_coarse = nbou_coarse + 1
+        
+        IF (nbnds <= 8) THEN              ! keep small island boundaries
           DO j = 1,nbnds
             nd = fbnds(j,bou)
             IF (keep_node(nd) == -1) THEN
@@ -164,7 +182,7 @@
           ENDDO
         ELSE
         
-          nd = fbnds(1,bou)             ! keep first node
+          nd = fbnds(1,bou)               ! keep first node
           keep_node(nd) = 1
           DO i = 1,nadjnds(nd)
             keep_node(adjnds(i,nd)) = 0
@@ -188,7 +206,7 @@
             ENDIF
           ENDDO
         
-          nd = fbnds(nbnds,bou)         ! keep last node
+          nd = fbnds(nbnds,bou)           ! keep last node
           keep_node(nd) = 1
           DO i = 1,nadjnds(nd)
             keep_node(adjnds(i,nd)) = 0
@@ -197,7 +215,7 @@
           
         ENDIF
         
-        n1 = fbnds(1,bou)                ! find boundary orientation
+        n1 = fbnds(1,bou)                 ! find boundary orientation
         n2 = fbnds(2,bou)
 
         DO el = 1,ne
@@ -224,21 +242,53 @@
                cross_product = (x2-x1)*(yc-y1) - (y2-y1)*(xc-x1)
                
                IF (cross_product < 0d0) THEN
-                 fbseg_orient(bou) = -1d0    ! CCW
+                 fbseg_orient(nbou_coarse) = -1d0    ! CCW
                ELSE 
-                 fbseg_orient(bou) = 1d0     ! CW
+                 fbseg_orient(nbou_coarse) = 1d0     ! CW
                ENDIF
               
               EXIT  
             ENDIF
           ENDDO
         ENDDO        
-      ENDDO 
+      ENDDO fbnd
       
       nvel_coarse = nodes_kept - neta_coarse
       
+
+      ! Feature constraint nodestrings
+      
+      ncbou = 0
+ cbnd:DO bou = 1,nbou
+        nbnds = fbseg(1,bou)
+        bou_type = fbseg(2,bou)
+        
+        IF (bou_type /= 30) THEN
+          CYCLE
+        ENDIF
+        
+        ncbou = ncbou + 1
+        
+        DO j = 1,nbnds
+          nd = fbnds(j,bou)
+          
+          IF (keep_node(nd) == -1) THEN          
+            keep_node(nd) = 1
+            DO i = 1,nadjnds(nd)
+              IF (keep_node(adjnds(i,nd)) /= 1) THEN
+                keep_node(adjnds(i,nd)) = 0          
+              ENDIF
+            ENDDO
+            nodes_kept = nodes_kept + 1
+          ENDIF          
+        ENDDO
+        
+      ENDDO cbnd
+      
+      
             
       ! Interior nodes
+      
       DO nd = 1,nn
         IF (keep_node(nd) == -1) THEN
           keep_node(nd) = 1
@@ -262,6 +312,7 @@
       
       nn_coarse = 0
       nd_fine2coarse = 0
+      bou_node_coarse = 0
       DO nd = 1,nn
         IF (keep_node(nd) == 1) THEN
           nn_coarse = nn_coarse + 1
@@ -288,21 +339,40 @@
         obseg_coarse(bou) = nbnds
       ENDDO
       
-      ALLOCATE(fbseg_coarse(2,nbou))
-      ALLOCATE(fbnds_coarse(nvel_coarse,nbou))      
+      ALLOCATE(fbseg_coarse(2,nbou_coarse))
+      ALLOCATE(fbnds_coarse(nvel_coarse,nbou_coarse)) 
+      ALLOCATE(cbseg_coarse(ncbou))
+      ALLOCATE(cbnds_coarse(nvel_coarse,ncbou))
       
+      nbou_coarse = 0
+      ncbou = 0 
       DO bou = 1,nbou
-        nbnds = 0
-        DO i = 1,fbseg(1,bou)
-          nd = fbnds(i,bou)
-          IF (keep_node(nd) == 1) THEN
-            nbnds = nbnds + 1
-            fbnds_coarse(nbnds,bou) = nd_fine2coarse(nd)
-          ENDIF
-        ENDDO
-        fbseg_coarse(1,bou) = nbnds
-        fbseg_coarse(2,bou) = fbseg(2,bou)
+        bou_type = fbseg(2,bou)
+        nbnds = 0        
+        IF (bou_type /= 30) THEN
+          nbou_coarse = nbou_coarse + 1
+          DO i = 1,fbseg(1,bou)
+            nd = fbnds(i,bou)
+            IF (keep_node(nd) == 1) THEN
+              nbnds = nbnds + 1
+              fbnds_coarse(nbnds,nbou_coarse) = nd_fine2coarse(nd)
+            ENDIF
+          ENDDO
+          fbseg_coarse(1,nbou_coarse) = nbnds
+          fbseg_coarse(2,nbou_coarse) = fbseg(2,bou)
+        ELSE
+          ncbou = ncbou + 1
+          DO i = 1,fbseg(1,bou)
+            nd = fbnds(i,bou)
+            IF (keep_node(nd) == 1) THEN
+              nbnds = nbnds + 1
+              cbnds_coarse(nbnds,ncbou) = nd_fine2coarse(nd)
+            ENDIF
+          ENDDO
+          cbseg_coarse(ncbou) = nbnds
+        ENDIF
       ENDDO
+      
       
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       ! Triangulate remaining nodes
@@ -314,17 +384,20 @@
       
       ALLOCATE(tri(3,3*nn_coarse))
       ALLOCATE(ect_coarse(3,3*nn_coarse))
-      CALL delaunay_triangulation(nn_coarse,xy_coarse(1,:),xy_coarse(2,:),ntri,tri,xa,ya)      
-      
-      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-      ! Create coarse element connectity table
-      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!       
-      
+      CALL delaunay_triangulation(nn_coarse,xy_coarse(1,:),xy_coarse(2,:),ncbou,cbseg_coarse,cbnds_coarse,ntri,tri,xa,ya) 
+
       ALLOCATE(et_coarse(ntri))
       DO el = 1,ntri
         et_coarse(el) = 1
       ENDDO      
       
+      
+      
+      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      ! Create coarse element connectity table
+      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      
+      PRINT*, "Creating coarse grid data..." 
       CALL elements_per_node(ntri,nn_coarse,nverts,et_coarse,tri,nepn,mnepn,epn)
       
       ! Delete elements that are outside the mesh boundaries
@@ -345,7 +418,7 @@
         
         IF (flag(1) == 1 .and. flag(2) == 1 .and. flag(3) == 1) THEN      ! elements containing 3 boundary nodes are candidates for deletion            
            found = 0
-   search: DO bou = 1,nbou
+   search: DO bou = 1,nbou_coarse
              DO nd = 1,fbseg_coarse(1,bou)-1
                n1 = fbnds_coarse(nd,bou)
                n2 = fbnds_coarse(nd+1,bou)
@@ -384,7 +457,7 @@
       
       
       ! Fix situation where boundary elements do not connect adjacent boundary nodes (because elements extend across narrow islands)
-      DO bou = 1,nbou
+      DO bou = 1,nbou_coarse
         nbnds = fbseg_coarse(1,bou)
         DO i = 1,nbnds-1
           n1 = fbnds_coarse(i,bou)
@@ -502,6 +575,6 @@
       CALL write_coords(nn_coarse,xy_coarse,depth_coarse)
       CALL write_connectivity(ne_coarse,ect_coarse,et_coarse,nverts)
       CALL write_open_boundaries(nope,neta_coarse,obseg_coarse,obnds_coarse)
-      CALL write_flow_boundaries(nbou,nvel_coarse,fbseg_coarse,fbnds_coarse)
+      CALL write_flow_boundaries(nbou_coarse,nvel_coarse,fbseg_coarse,fbnds_coarse)
 
       END PROGRAM consolidate
