@@ -617,6 +617,41 @@
       
       
       END SUBROUTINE
+      
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+      SUBROUTINE find_adjacent_nodes(nn,mnepn,ned,ged2nn,nadjnds,adjnds)
+      
+      IMPLICIT NONE
+      
+      INTEGER, INTENT(IN) :: nn
+      INTEGER, INTENT(IN) :: mnepn
+      INTEGER, INTENT(IN) :: ned
+      INTEGER, DIMENSION(:,:), INTENT(IN) :: ged2nn
+      INTEGER, DIMENSION(:), ALLOCATABLE, INTENT(OUT) :: nadjnds
+      INTEGER, DIMENSION(:,:), ALLOCATABLE, INTENT(OUT) :: adjnds
+      
+      INTEGER :: ed
+      INTEGER :: n1,n2
+      
+      ALLOCATE(nadjnds(nn))
+      ALLOCATE(adjnds(mnepn,nn))
+      nadjnds = 0
+      
+      DO ed = 1,ned
+        n1 = ged2nn(1,ed)  ! find the node numbers on each edge
+        n2 = ged2nn(2,ed)
+        
+        nadjnds(n1) = nadjnds(n1) + 1 ! count the nodes adjacent to node n1
+        nadjnds(n2) = nadjnds(n2) + 1 ! count the nodes adjacent to node n2
+        
+        adjnds(nadjnds(n1),n1) = n2 ! node n2 is adjacent to node n1
+        adjnds(nadjnds(n2),n2) = n1 ! node n1 is adjacent to node n2                       
+      ENDDO      
+      
+      RETURN
+      END SUBROUTINE find_adjacent_nodes
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
