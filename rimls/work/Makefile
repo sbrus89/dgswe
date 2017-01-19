@@ -46,6 +46,7 @@ objects = kdtree2.o globals.o allocation.o basis.o find_element_mod.o sort_mod.o
           vandermonde.o shape_functions_mod.o transformation.o spherical_mod.o \
           curvilinear_nodes_mod.o bathymetry_interp_mod.o bathy_interp.o \
           write_results.o group_coordinates.o connect.o edge_connectivity_mod.o  \
+          area_qpts_mod.o edge_qpts_mod.o \
           evaluate.o boundary_check.o \
           read_input.o read_grid.o grid_file_mod.o \
           curvilinear.o lapack_interfaces.o version.o system.o rimls.o 
@@ -118,6 +119,14 @@ $(ODIR)grid_file_mod.o : ../../src/grid_file_mod.F90            $(ODIR)globals.o
 	$(FC) $(FFLAGS) -c $< -o $@
 	mv grid_file_mod.mod $(ODIR)
 	
+$(ODIR)area_qpts_mod.o : ../../src/area_qpts_mod.F90           $(ODIR)globals.o $(ODIR)edge_qpts_mod.o
+	$(FC) $(FFLAGS) -c $< -o $@
+	mv area_qpts_mod.mod $(ODIR)	
+	
+$(ODIR)edge_qpts_mod.o : ../../src/edge_qpts_mod.F90           $(ODIR)globals.o 
+	$(FC) $(FFLAGS) -c $< -o $@
+	mv edge_qpts_mod.mod $(ODIR)	
+	
 $(ODIR)edge_connectivity_mod.o : ../../src/edge_connectivity_mod.F90 $(ODIR)quit.o $(ODIR)globals.o
 	$(FC) $(FFLAGS) -c $< -o $@
 	mv edge_connectivity_mod.mod $(ODIR)
@@ -134,7 +143,7 @@ $(ODIR)shape_functions_mod.o : ../../src/shape_functions_mod.F90 $(ODIR)globals.
 	$(FC) $(FFLAGS) -c $< -o $@
 	mv shape_functions_mod.mod $(ODIR)	
 
-$(ODIR)transformation.o : ../../src/transformation.F90          $(ODIR)globals.o $(ODIR)basis.o $(ODIR)lapack_interfaces.o $(ODIR)vandermonde.o $(ODIR)shape_functions_mod.o
+$(ODIR)transformation.o : ../../src/transformation.F90          $(ODIR)globals.o $(ODIR)basis.o $(ODIR)lapack_interfaces.o $(ODIR)vandermonde.o $(ODIR)shape_functions_mod.o $(ODIR)area_qpts_mod.o
 	$(FC) $(FFLAGS) -c $< -o $@
 	mv transformation.mod $(ODIR)	
 	
