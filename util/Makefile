@@ -62,6 +62,10 @@ consolidate_objects =  globals.o  quit.o \
                    
 consolidate_obj := $(patsubst %.o, $(ODIR)%.o,$(consolidate_objects))
 
+cfl_objects =  cfl_checker.o globals.o  quit.o  grid_file_mod.o \
+               read_input.o  spherical_mod.o  system.o allocation.o messenger2.o version.o
+                   
+cfl_obj := $(patsubst %.o, $(ODIR)%.o,$(cfl_objects))
 
 ########################################################################
 #                          Executable Targets                          #
@@ -95,6 +99,10 @@ bou2sta: $(ODIR) $(bou2sta_obj)
 consolidate: $(ODIR) $(consolidate_obj)
 	@echo "\n\n"
 	$(FC) $(FFLAGS) -o consolidate $(consolidate_obj)
+	
+cfl_checker: $(ODIR) $(cfl_obj)
+	@echo "\n\n"
+	$(FC) $(FFLAGS) -o cfl_checker $(cfl_obj)
         
 ########################################################################
 #                      Premilinary Targets                             #
@@ -118,7 +126,7 @@ version :
 .PHONY : clean
 
 clean : 
-	rm -r convert adjust odir refine copy      
+	rm -r convert adjust odir refine copy consolidate cfl_checker     
         
 ########################################################################
 #                            File Targets                              #
@@ -131,6 +139,14 @@ $(ODIR)globals.o: ../src/globals.F90
 $(ODIR)version.o : ../src/version.F90                                
 	$(FC) $(FFLAGS) -c $< -o $@
 	mv version.mod $(ODIR)
+	
+$(ODIR)messenger2.o : ../src/messenger2.F90                           $(ODIR)globals.o $(ODIR)quit.o $(ODIR)version.o
+	$(FC) $(FFLAGS) -c $< -o $@
+	mv messenger2.mod $(ODIR)	
+	
+$(ODIR)allocation.o : ../src/allocation.F90                           $(ODIR)globals.o $(ODIR)messenger2.o $(ODIR)read_input.o
+	$(FC) $(FFLAGS) -c $< -o $@
+	mv allocation.mod $(ODIR)	
 	
 $(ODIR)system.o : ../src/system.F90                                
 	$(FC) $(FFLAGS) -c $< -o $@	
@@ -156,6 +172,10 @@ $(ODIR)spherical_mod.o : ../src/spherical_mod.F90            $(ODIR)globals.o
 $(ODIR)edge_connectivity_mod.o : ../src/edge_connectivity_mod.F90 $(ODIR)globals.o $(ODIR)quit.o
 	$(FC) $(FFLAGS) -c $< -o $@
 	mv edge_connectivity_mod.mod $(ODIR)
+	
+$(ODIR)read_input.o : ../src/read_input.F90                  $(ODIR)globals.o $(ODIR)quit.o
+	$(FC) $(FFLAGS) -c $< -o $@
+	mv read_dginp.mod $(ODIR)	
 	
 $(ODIR)triangulation.o : ../src/triangulation.F90            $(ODIR)globals.o         
 	$(FC) $(FFLAGS) -c $< -o $@
@@ -184,3 +204,6 @@ $(ODIR)convert_bou2sta.o: convert_bou2sta.F90                $(ODIR)globals.o $(
 	
 $(ODIR)consolidate.o: consolidate.F90                        $(ODIR)globals.o $(ODIR)grid_file_mod.o $(ODIR)edge_connectivity_mod.o $(ODIR)triangulation.o $(ODIR)kdtree2.o
 	$(FC) $(FFLAGS) -c $< -o $@
+	
+$(ODIR)cfl_checker.o: cfl_checker.f90                        $(ODIR)globals.o $(ODIR)grid_file_mod.o $(ODIR)read_input.o $(ODIR)allocation.o
+	$(FC) $(FFLAGS) -c $< -o $@	
