@@ -205,7 +205,7 @@
       ALLOCATE(lobph(mnobnds,nope,nobfr,nproc))
       
       mnfbnds = MAXVAL(fbseg(1,:))
-      mlbou = 3*nbou                               ! this is a guess for the upper bound, nbou is not enough because boundaries can get split up.
+      mlbou = nbou+2                               ! this is a guess for the upper bound, nbou is not enough because boundaries can get split up.
       ALLOCATE(lfbseg(2,mlbou,nproc))
       ALLOCATE(lfbnds(mnfbnds,mlbou,nproc))
       ALLOCATE(lbndxy(2,ctp+1,mnfbnds,mlbou,nproc))      

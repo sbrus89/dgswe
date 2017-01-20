@@ -375,7 +375,7 @@
                          
                          
       IMPLICIT NONE
-      INTEGER, PARAMETER :: n=15
+      INTEGER, PARAMETER :: n=16
       INTEGER :: alloc_status(n)
       INTEGER :: i
           
