@@ -29,8 +29,8 @@
 
       IMPLICIT NONE
 
-      INTEGER :: el,pe,nd,ed,i,j,k,bnd,eln,bfr,pt,sta
-      INTEGER :: ged,lnd,nv
+      INTEGER :: el,pe,nd,ed,i,j,k,bnd,eln,bfr,pt,sta,bou
+      INTEGER :: ged,lnd,nv,n
       INTEGER :: lled,gled,ln1,ln2,gn1,gn2,n1,n2,nd1,nd2
       INTEGER :: el1,el2
       INTEGER :: pe1,pe2
@@ -204,8 +204,42 @@
       ALLOCATE(lobamp(mnobnds,nope,nobfr,nproc))
       ALLOCATE(lobph(mnobnds,nope,nobfr,nproc))
       
-      mnfbnds = MAXVAL(fbseg(1,:))
-      mlbou = nbou+2                               ! this is a guess for the upper bound, nbou is not enough because boundaries can get split up.
+     
+      mnfbnds = 0                                  ! Find the max number of flow boundary nodes
+      DO pe = 1,nproc                              ! in any subdomain.
+        n = 0
+        ndflag = 0        
+        DO el = 1,nresel(pe)
+          eln = el_l2g(el,pe)
+          et = el_type(eln)
+          DO j = 1,nverts(et)
+            nd = ect(j,eln)           
+              
+            IF (ndflag(nd) == 0) THEN
+              ndflag(nd) = 1
+              
+   nd_search: DO bou = 1,nbou
+                DO i = 1,fbseg(1,bou)
+                  IF (nd == fbnds(i,bou)) THEN
+                    n = n+1
+                    EXIT nd_search
+                  ENDIF
+                ENDDO
+              ENDDO nd_search
+              
+            ENDIF
+              
+          ENDDO
+        ENDDO
+        
+        IF (n > mnfbnds) THEN
+          mnfbnds = n
+        ENDIF
+      ENDDO
+      
+!       mnfbnds = MAXVAL(fbseg(1,:))
+      mlbou = nbou+2                               ! this is a guess for the upper bound, nbou is not enough because boundaries can get split up.      
+      
       ALLOCATE(lfbseg(2,mlbou,nproc))
       ALLOCATE(lfbnds(mnfbnds,mlbou,nproc))
       ALLOCATE(lbndxy(2,ctp+1,mnfbnds,mlbou,nproc))      
