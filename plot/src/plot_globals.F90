@@ -7,6 +7,7 @@
       CHARACTER(100) :: tsnap_spec
       CHARACTER(3) :: frmt
       CHARACTER(3) :: density
+      CHARACTER(5) :: font
       
       INTEGER :: substitute_path
       CHARACTER(100) :: replace_path
@@ -131,7 +132,7 @@
       CHARACTER(3) :: nframes
       
       TYPE :: char_array
-        CHARACTER(200) :: line
+        CHARACTER(500) :: line
       END TYPE
             
       

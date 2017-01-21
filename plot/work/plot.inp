@@ -20,6 +20,7 @@ auto-snap                                                                       
 auto-all                                                                                             ! velocity colorscale limits 
 auto-snap                                                                                            ! bathymetry colorscale limits
 11                                                                                                   ! font size 
+cm                                                                                                   ! font
 10                                                                                                   ! number of x ticks 
 auto                                                                                                 ! number of y ticks 
 10                                                                                                   ! number of c ticks 

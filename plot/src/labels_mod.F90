@@ -1,7 +1,7 @@
       MODULE labels_mod
 
       USE globals, ONLY: rp,r_earth,deg2rad
-      USE plot_globals, ONLY: cscale_width,fontsize,ax,bx,ay,by, &
+      USE plot_globals, ONLY: cscale_width,fontsize,font,ax,bx,ay,by, &
                               rmin_page,rmax_page,smin_page,smax_page, &
                               rmin_axes,rmax_axes,smin_axes,smax_axes, &
                               rmin_cbar,rmax_cbar,smin_cbar,smax_cbar, &
@@ -36,11 +36,18 @@
 !       WRITE(tex_unit,"(A)") "\usepackage[absolute,showboxes]{textpos}"
       WRITE(tex_unit,"(A)") "\usepackage[absolute]{textpos}"       
       WRITE(tex_unit,"(A)") "\usepackage{graphicx}"  
-      WRITE(tex_unit,"(A)") "\usepackage{xcolor}"      
+      WRITE(tex_unit,"(A)") "\usepackage{xcolor}"            
       WRITE(tex_unit,"(A)") "\setlength{\TPHorizModule}{1pt}"  
       WRITE(tex_unit,"(A)") "\setlength{\TPVertModule}{1pt}"
       WRITE(tex_unit,"(A)") "\textblockorigin{0pt}{0pt}"
-      WRITE(tex_unit,"(A)") "\setlength{\parindent}{0pt}"      
+      WRITE(tex_unit,"(A)") "\setlength{\parindent}{0pt}"
+      IF (TRIM(ADJUSTL(font)) == "times") THEN
+        WRITE(tex_unit,"(A)") "\usepackage{mathptmx}"       
+      ELSE IF (TRIM(ADJUSTL(font)) == "sans") THEN
+        WRITE(tex_unit,"(A)") "\renewcommand{\rmdefault}{\sfdefault}"     
+        WRITE(tex_unit,"(A)") "\usepackage{sansmath}" 
+        WRITE(tex_unit,"(A)") "\sansmath"        
+      ENDIF
       WRITE(tex_unit,"(A)") "\begin{document}"
        
       
