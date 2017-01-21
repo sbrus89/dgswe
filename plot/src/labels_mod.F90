@@ -95,7 +95,13 @@
       
       CALL write_texheader()        
       
-      CALL write_xyaxis_labels("xy")  
+      IF (abs(sphi0) > 0d0 .and. abs(slam0) > 0d0) THEN
+        CALL write_xyaxis_labels("ll")        
+      ELSE
+        CALL write_xyaxis_labels("xy")  
+!         CALL write_xyaxis_labels("rs")          
+      ENDIF      
+      
       IF (fig%cbar_flag == 1) THEN      
         CALL write_caxis_labels(fig%tbar_flag,fig%sol_min,fig%sol_max,fig%sol_label)
       ENDIF

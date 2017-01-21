@@ -549,8 +549,8 @@
       dginp(13)%key = "npart";          dginp(13)%iptr => npart;          dginp(13)%required = .false.;     dginp(13)%iptr = 1
       dginp(14)%key = "bathy_file";     dginp(14)%cptr => bathy_file;     dginp(14)%required = .false.;    dginp(14)%cptr = "./elem_nodes.d"
       dginp(15)%key = "coord_sys";      dginp(15)%iptr => coord_sys;      dginp(15)%required = .false.;    dginp(15)%iptr = 1
-      dginp(16)%key = "slam0";          dginp(16)%rptr => slam0;          dginp(16)%required = .false.;    dginp(16)%rptr = -79.0d0 
-      dginp(17)%key = "sphi0";          dginp(17)%rptr => sphi0;          dginp(17)%required = .false.;    dginp(17)%rptr = 35.0d0 
+      dginp(16)%key = "slam0";          dginp(16)%rptr => slam0;          dginp(16)%required = .false.;    dginp(16)%rptr = 0d0 
+      dginp(17)%key = "sphi0";          dginp(17)%rptr => sphi0;          dginp(17)%required = .false.;    dginp(17)%rptr = 0d0 
       dginp(18)%key = "h0";             dginp(18)%rptr => h0;             dginp(18)%required = .false.;    dginp(18)%rptr = 1d0   
       dginp(19)%key = "curve_file";     dginp(19)%cptr => curve_file;     dginp(19)%required = .false.;    dginp(19)%cptr = "./cl_nodes.cb"
       dginp(20)%key = "sol_opt";        dginp(20)%iptr => sol_opt;        dginp(20)%required = .false.;    dginp(20)%iptr = 0  
