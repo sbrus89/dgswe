@@ -15,7 +15,8 @@
                               ncolors,colors, &
                               mnpp,ps,pc,nord,adapt_option, &
                               phi_hb,phi_sol,ndof_hb,ndof_sol, &
-                              ax,ay,bx,by
+                              ax,ay,bx,by, &
+                              xbox_min,xbox_max,ybox_min,ybox_max
       
       IMPLICIT NONE
       
@@ -34,7 +35,8 @@
                          nnfbed,nfbedn, &
                          nfbed,fbedn, &
                          nobed,obedn, &
-                         ged2el,ged2led 
+                         ged2el,ged2led, &
+                         nsta,xysta
       USE read_dginp, ONLY: p,ctp
       USE plot_globals, ONLY: el_in,t_start,t_end,xyplt,pplt,npplt,nptri,rect,r,s, &
                               frmt,density,pc,el_area
@@ -126,9 +128,12 @@
 
       IF (fig%plot_mesh_option == 1) THEN
         IF (fig%name == "mesh") THEN
-          CALL fill_elements(fig%ps_unit,ne,nverts,fig%el_plt,pplt,el_type,el_in,xy,ect,xyplt)      
+          CALL fill_elements(fig%ps_unit,ne,nverts,fig%el_plt,pplt,el_type,el_in,xy,ect,xyplt)   
         ENDIF
-        CALL plot_mesh(fig%ps_unit,ne,nverts,fig%el_plt,pplt,el_type,el_in,xy,ect,xyplt)          
+        CALL plot_mesh(fig%ps_unit,ne,nverts,fig%el_plt,pplt,el_type,el_in,xy,ect,xyplt)         
+        IF (fig%name == "mesh" .and. fig%plot_sta_option == 1) THEN
+          CALL plot_stations(fig%ps_unit,fig%sta_start,fig%sta_end,xysta)        
+        ENDIF
       ELSE IF (fig%plot_mesh_option == 2) THEN
         pe = (et-1)*nord + nord
         CALL plot_boundaries(fig%ps_unit,nverts,fig%el_plt,pplt,nobed,obedn,ged2el,ged2led,el_type,el_in,ect,xy,xyplt)       
@@ -419,7 +424,8 @@
       WRITE(file_unit,"(A)") "newpath"      
       WRITE(file_unit,"(A)") " 2 0 360 arc closepath"
 !       WRITE(file_unit,"(A)") "stroke"
-      WRITE(file_unit,"(A)") "gsave 0 0 0 setrgbcolor fill grestore"
+!       WRITE(file_unit,"(A)") "gsave 0 0 0 setrgbcolor fill grestore"
+      WRITE(file_unit,"(A)") "gsave setrgbcolor fill grestore"
       WRITE(file_unit,"(A)") "} def"
       
       WRITE(file_unit,"(A)") "/trifill {"
@@ -1395,16 +1401,19 @@ edge:DO ed = 1,nbed
           DO j = 1,nbnds-1
             
             nd = fbnds(j,i)            
+            WRITE(file_unit,"(3(I5,1x))") 0,0,0                    
             WRITE(file_unit,"(2(F9.5,1x))") ax*xy(1,nd)+bx, ay*xy(2,nd)+by
             WRITE(file_unit,"(A)") "draw-dot"
             
             DO k = 1,ctp-1
+              WRITE(file_unit,"(3(I5,1x))") 0,0,0             
               WRITE(file_unit,"(2(F9.5,1x))") ax*bndxy(1,k,j,i)+bx, ay*bndxy(2,k,j,i)+by
               WRITE(file_unit,"(A)") "draw-dot"              
             ENDDO
           
           ENDDO
           
+          WRITE(file_unit,"(3(I5,1x))") 0,0,0           
           WRITE(file_unit,"(2(F9.5,1x))") ax*xy(1,nbnds)+bx, ay*xy(2,nbnds)+by
           WRITE(file_unit,"(A)") "draw-dot"         
             
@@ -1436,6 +1445,7 @@ edge:DO ed = 1,nbed
         nnd = nnds(et)
         
         DO nd = 1,nnd
+          WRITE(file_unit,"(3(I5,1x))") 0,0,0         
           WRITE(file_unit,"(2(F9.5,1x))") ax*elxy(nd,el,1)+bx, ay*elxy(nd,el,2)+by
           WRITE(file_unit,"(A)") "draw-dot"         
         ENDDO
@@ -1528,7 +1538,35 @@ edge:DO ed = 1,nbed
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!   
 
+      SUBROUTINE plot_stations(file_unit,sta_start,sta_end,xysta)
+      
+      IMPLICIT NONE
+      
+      INTEGER, INTENT(IN) :: file_unit
+      INTEGER, INTENT(IN) :: sta_start
+      INTEGER, INTENT(IN) :: sta_end
+      REAL(rp), DIMENSION(:,:), INTENT(IN) :: xysta
+      
+      INTEGER :: sta
+      REAL(rp) :: x,y
+      
+      DO sta = sta_start,sta_end
+            
+        x = xysta(1,sta)
+        y = xysta(2,sta)
+            
+        IF (x > xbox_min .AND. x < xbox_max .AND. y > ybox_min .AND. y < ybox_max) THEN  
+          WRITE(file_unit,"(3(I5,1x))") 1,0,0        
+          WRITE(file_unit,"(2(F9.5,1x))") ax*x+bx,ay*y+by
+          WRITE(file_unit,"(A)") "draw-dot"        
+        ENDIF
+      
+      ENDDO
+      
+      END SUBROUTINE plot_stations
 
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!   
 
       SUBROUTINE interp_colors(lev,sol_lev,dc,colors,sol_val,color_val)
       
@@ -1835,6 +1873,7 @@ edge:DO ed = 1,nbed
       CALL write_xyaxis(file_unit)  
       
       DO nd = 1,nnd
+        WRITE(file_unit,"(3(I5,1x))") 0,0,0       
         WRITE(file_unit,"(2(F9.5,1x))") ax*rc(nd)+bx,ay*sc(nd)+by
         WRITE(file_unit,"(A)") "draw-dot"            
       ENDDO         

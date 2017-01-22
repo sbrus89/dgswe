@@ -14,7 +14,8 @@
                                    read_dg63,read_dg64
       USE read_dginp, ONLY: read_input,out_direc,p,ctp,hbp,tf, &
                             grid_file,curve_file,cb_file_exists,bathy_file,hb_file_exists, &
-                            sphi0,slam0
+                            sphi0,slam0, &
+                            sta_opt,stations_file
       USE plot_mod, ONLY: read_colormap,setup_cbounds,plot_ref_el, &
                           scale_factors,zoom_box,make_plot,make_movie                                                                           
       USE evaluate_mod, ONLY: evaluate_basis
@@ -59,6 +60,7 @@
       IF (substitute_path == 1) THEN
         CALL substitute_partial_path(grid_file,replace_path,sub_path)
         CALL substitute_partial_path(curve_file,replace_path,sub_path)    
+        CALL substitute_partial_path(stations_file,replace_path,sub_path)       
       ENDIF
       
       slam0 = slam0*deg2rad
@@ -84,6 +86,9 @@
       CALL find_flow_edges(nbou,fbseg,fbnds,ged2nn,nnfbed,nfbedn,nfbednn,nfbed,fbedn,recv_edge,ed_type)     
       nred = 0
       CALL print_connect_info(mnepn,ned,nied,nobed,nfbed,nnfbed,nred)
+      IF (sta_opt > 0) THEN
+        CALL read_stations()
+      ENDIF
 
       PRINT("(A)"), "Calculating curved boundary information..."
       CALL shape_functions_linear_at_ctp(nel_type,np,psiv)                   

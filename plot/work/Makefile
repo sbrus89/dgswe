@@ -76,7 +76,8 @@ endif
 
 
 plot_objects =  plot_globals.o globals.o quit.o basis.o read_input.o messenger2.o \
-           read_plot_input.o grid_file_mod.o read_write_output.o system.o tripack.o \
+           read_plot_input.o grid_file_mod.o read_write_output.o read_stations.o \
+           system.o tripack.o \
            edge_connectivity_mod.o curvilinear_nodes_mod.o bathymetry_interp_mod.o \
            vandermonde.o transformation.o shape_functions_mod.o triangulation.o \
            area_qpts_mod.o edge_qpts_mod.o \
@@ -205,7 +206,7 @@ $(ODIR)transformation.o : ../../src/transformation.F90               $(ODIR)basi
 	
 $(ODIR)vandermonde.o : ../../src/vandermonde.F90                     $(ODIR)globals.o $(ODIR)basis.o 
 	$(FC) $(FFLAGS) -c $< -o $@
-	mv vandermonde.mod $(ODIR)		
+	mv vandermonde.mod $(ODIR)
 	
 $(ODIR)system.o : ../../src/system.F90                                
 	$(FC) $(FFLAGS) -c $< -o $@	
@@ -216,7 +217,7 @@ $(ODIR)read_plot_input.o : read_plot_input.F90               $(ODIR)plot_globals
 $(ODIR)convert.o: convert2cartesian.F90                      $(ODIR)globals.o $(ODIR)grid_file_mod.o $(ODIR)spherical_mod.o
 	$(FC) $(FFLAGS) -c $< -o $@
         
-$(ODIR)adjust.o: adjust_channel_boundaries.f90               $(ODIR)globals.o $(ODIR)grid_file_mod.o 
+$(ODIR)read_stations.o: ../../src/read_stations.F90          $(ODIR)globals.o $(ODIR)read_input.o $(ODIR)messenger2.o $(ODIR)quit.o 
 	$(FC) $(FFLAGS) -c $< -o $@        
 
 $(ODIR)plot_mod.o: plot_mod.F90                              $(ODIR)globals.o $(ODIR)plot_globals.o $(ODIR)evaluate_mod.o $(ODIR)labels_mod.o $(ODIR)axes_mod.o  $(ODIR)read_input.o $(ODIR)basis.o  $(ODIR)transformation.o $(ODIR)shape_functions_mod.o $(ODIR)area_qpts_mod.o

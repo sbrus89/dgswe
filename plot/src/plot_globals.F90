@@ -153,6 +153,9 @@
         INTEGER :: plot_sol_option
         INTEGER :: plot_mesh_option
         INTEGER :: plot_lines_option
+        INTEGER :: plot_sta_option
+        INTEGER :: sta_start
+        INTEGER :: sta_end
         
         INTEGER :: cbar_flag
         INTEGER :: tbar_flag
