@@ -162,7 +162,7 @@
 
                                                      
       PRINT("(A)"), "Scaling coordinates..."
-      CALL scale_factors(ne,nn,el_type,nverts,nnds,npplt,figure_width,xmin,xmax,ymin,ymax,ax,bx,ay,by)
+      CALL scale_factors(figure_width,figure_height,xmin,xmax,ymin,ymax,ax,bx,ay,by)
 
       
     

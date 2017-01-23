@@ -374,11 +374,12 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
 
-      SUBROUTINE read_fort63(out_direc,t,eta,nsnap_read,last_snap)
+      SUBROUTINE read_fort6163(out_direc,num,t,eta,nsnap_read,last_snap)
       
       IMPLICIT NONE            
       
       CHARACTER(*), INTENT(IN) :: out_direc
+      CHARACTER(2), INTENT(IN) :: num
       REAL(rp), DIMENSION(:), ALLOCATABLE, INTENT(INOUT) :: t
       REAL(rp), DIMENSION(:,:), ALLOCATABLE, INTENT(INOUT) :: eta      
       INTEGER, INTENT(INOUT) :: nsnap_read
@@ -392,7 +393,7 @@
       CHARACTER(200) :: line 
       CHARACTER(1) :: last_only      
       
-      OPEN(UNIT=63,file=TRIM(ADJUSTL(out_direc)) // 'fort.63')      
+      OPEN(UNIT=63,file=TRIM(ADJUSTL(out_direc)) // 'fort.'//num)      
       
       READ(63,*) line
       READ(63,*) nsnap,nn,tf,nskip,var_type
@@ -454,16 +455,17 @@
       nsnap_read = tstep      
       
       RETURN
-      END SUBROUTINE read_fort63
+      END SUBROUTINE read_fort6163
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
 
-      SUBROUTINE read_fort64(out_direc,t,u,v,nsnap_read,last_snap)
+      SUBROUTINE read_fort6264(out_direc,num,t,u,v,nsnap_read,last_snap)
       
       IMPLICIT NONE
       
       CHARACTER(*), INTENT(IN) :: out_direc
+      CHARACTER(2), INTENT(IN) :: num      
       REAL(rp), DIMENSION(:), ALLOCATABLE, INTENT(INOUT) :: t
       REAL(rp), DIMENSION(:,:), ALLOCATABLE, INTENT(INOUT) :: u
       REAL(rp), DIMENSION(:,:), ALLOCATABLE, INTENT(INOUT) :: v         
@@ -478,7 +480,7 @@
       CHARACTER(200) :: line   
       CHARACTER(1) :: last_only
       
-      OPEN(UNIT=64,file=TRIM(ADJUSTL(out_direc)) // 'fort.64')      
+      OPEN(UNIT=64,file=TRIM(ADJUSTL(out_direc)) // 'fort.'//num)      
       
       READ(64,*) line
       READ(64,*) nsnap,nn,tf,nskip,var_type      
@@ -548,7 +550,7 @@
       nsnap_read = tstep    
       
       RETURN
-      END SUBROUTINE read_fort64
+      END SUBROUTINE read_fort6264
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

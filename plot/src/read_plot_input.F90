@@ -2,7 +2,8 @@
 
       USE plot_globals, ONLY: rp,input_path,cmap_file,ps,pc,p_low,p_high,p_skip, &
                               frmt,density, &
-                              xbox_min,xbox_max,ybox_min,ybox_max,figure_width, &
+                              xbox_min,xbox_max,ybox_min,ybox_max, &
+                              figure_width,figure_height, &
                               snap_start,snap_end, &
                               zeta,bathy,vel,mesh, &
                               fontsize,font,nxtick,nytick,nctick, &
@@ -159,6 +160,7 @@
               READ(temp,*) figure_width
               figure_width = figure_width*72d0  
               PRINT("(A,F9.5)"), "figure width = ", figure_width
+              figure_height = -1d0  ! makes axis scaling equal if < 0
               
             CASE (18)
               READ(temp,*) snap_start,snap_end

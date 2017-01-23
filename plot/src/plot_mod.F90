@@ -1,8 +1,8 @@
       MODULE plot_mod
       
       USE globals, ONLY: rp,nel_type,np,nnds,psic
-      USE plot_globals, ONLY: plot_type,cscale_width,lr_margin,dash,fontsize, &
-                              axes_width, &
+      USE plot_globals, ONLY: plot_type,cscale_width,lr_margin,top_margin,dash,fontsize, &
+                              axes_width,axes_height, &
                               rmin_page,rmax_page,smin_page,smax_page, &
                               rmin_axes,rmax_axes,smin_axes,smax_axes, &
                               rmin_cbar,rmax_cbar,smin_cbar,smax_cbar, &
@@ -102,7 +102,7 @@
            
       CALL write_psheader(filename//".ps",fig%ps_unit)  
       CALL write_char_array(fig%ps_unit,fig%nline_header,fig%latex_header)  
-      CALL plot_background(fig%ps_unit)
+      CALL plot_background(fig%ps_unit,.75d0,.75d0,.75d0)
       
       
       IF (fig%cbar_flag == 1) THEN
@@ -153,6 +153,72 @@
       RETURN
       END SUBROUTINE make_plot
 
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
+
+      SUBROUTINE prep_station_plot(fig,axis_label_option,snap,xmin,xmax,ymin,ymax,filename)
+      
+      USE plot_globals, ONLY: figure_width,figure_height,frmt,density, &
+                              ax,bx,ay,by
+      USE labels_mod, ONLY: write_texheader,run_latex,read_latex, & 
+                            write_xyaxis_labels,remove_latex_files, &
+                            write_char_array
+      USE axes_mod, ONLY: write_xyaxis                             
+      
+      IMPLICIT NONE
+            
+      TYPE(plot_type), INTENT(INOUT) :: fig   
+      CHARACTER(*), INTENT(IN) :: axis_label_option
+      INTEGER, INTENT(IN) :: snap
+      REAL(rp), INTENT(IN) :: xmax,xmin,ymin,ymax
+      
+      CHARACTER(:), ALLOCATABLE, INTENT(IN) :: filename     
+
+           
+      CALL scale_factors(figure_width,figure_height,xmin,xmax,ymin,ymax,ax,bx,ay,by)      
+      
+      CALL write_texheader()  
+      CALL write_xyaxis_labels(axis_label_option)      
+      
+      CALL run_latex()
+      CALL read_latex(fig%latex_header,fig%nline_header,fig%latex_body,fig%nline_body)
+      CALL remove_latex_files()     
+                
+      CALL write_psheader(filename//".ps",fig%ps_unit)  
+      CALL write_char_array(fig%ps_unit,fig%nline_header,fig%latex_header)  
+      CALL plot_background(fig%ps_unit,1d0,1d0,1d0)      
+               
+      
+      RETURN
+      END SUBROUTINE prep_station_plot
+      
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
+
+
+      SUBROUTINE finish_station_plot(fig,filename)
+      
+      USE plot_globals, ONLY: frmt,density
+      USE labels_mod, ONLY: write_char_array
+      USE axes_mod, ONLY: write_xyaxis           
+      
+      IMPLICIT NONE
+      
+      TYPE(plot_type), INTENT(INOUT) :: fig      
+      CHARACTER(*), INTENT(IN) :: filename
+      
+      CALL write_xyaxis(fig%ps_unit)       
+      CALL write_char_array(fig%ps_unit,fig%nline_body,fig%latex_body)  
+      
+      CALL close_ps(filename,fig%ps_unit)
+      CALL convert_ps(filename,frmt,density,fig%rm_ps)            
+                  
+      RETURN
+      END SUBROUTINE finish_station_plot
+      
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
@@ -254,17 +320,12 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
 
-      SUBROUTINE scale_factors(ne,nn,el_type,nverts,nnds,npplt,figure_width,xmin,xmax,ymin,ymax,ax,bx,ay,by)
+      SUBROUTINE scale_factors(figure_width,figure_height,xmin,xmax,ymin,ymax,ax,bx,ay,by)
       
       IMPLICIT NONE
       
-      INTEGER, INTENT(IN) :: ne
-      INTEGER, INTENT(IN) :: nn
-      INTEGER, DIMENSION(:), INTENT(IN) :: el_type
-      INTEGER, DIMENSION(:), INTENT(IN) :: nverts
-      INTEGER, DIMENSION(:), INTENT(IN) :: nnds
-      INTEGER, DIMENSION(:), INTENT(IN) :: npplt
       REAL(rp), INTENT(IN) :: figure_width
+      REAL(rp), INTENT(IN) :: figure_height
       REAL(rp), INTENT(IN) :: xmin
       REAL(rp), INTENT(IN) :: xmax
       REAL(rp), INTENT(IN) :: ymin
@@ -280,7 +341,7 @@
       INTEGER :: el,nd
       INTEGER :: et,npts,nv,nnd
                
-      lr_margin =(612d0 - figure_width)/2d0 
+      lr_margin = (rmax_page - figure_width)/2d0 
       axes_width = figure_width/1.37d0
       
       cscale_width = axes_width*.05d0
@@ -307,8 +368,14 @@
       ax = ((rmax_axes-rmin_axes)/(xmax-xmin))
       bx = (rmin_axes*xmax-rmax_axes*xmin)/(xmax-xmin)
       
-      ay = ax     ! axis equal
-      by = smin_axes-ax*ymin                  
+      IF (figure_height < 0d0) THEN
+        ay = ax     ! axis equal            
+      ELSE
+        axes_height = (rmax_axes-rmin_axes)/1.25d0
+        smax_axes = smin_axes+axes_height
+        ay = ((smax_axes-smin_axes)/(ymax-ymin))      
+      ENDIF
+      by = smin_axes-ay*ymin              
       
       smax_axes = ay*ymax + by
       
@@ -581,11 +648,12 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!      
 
-      SUBROUTINE plot_background(file_unit)
+      SUBROUTINE plot_background(file_unit,r,b,g)
      
       IMPLICIT NONE
       
       INTEGER, INTENT(IN) :: file_unit
+      REAL(rp), INTENT(IN) :: r,b,g
      
       WRITE(file_unit,"(A)") "gsave newpath"        
       WRITE(file_unit,"(2(F9.5,1x),A)") rmin_axes,smin_axes,"moveto"
@@ -593,7 +661,7 @@
       WRITE(file_unit,"(2(F9.5,1x),A)") rmax_axes,smax_axes,"lineto"      
       WRITE(file_unit,"(2(F9.5,1x),A)") rmin_axes,smax_axes,"lineto"      
       WRITE(file_unit,"(A)") "closepath"     
-      WRITE(file_unit,"(A)") ".75 .75 .75 setrgbcolor fill grestore"          
+      WRITE(file_unit,"(3(F9.5,1x),A)") r,g,b," setrgbcolor fill grestore"          
      
       RETURN
       END SUBROUTINE plot_background
@@ -1566,7 +1634,36 @@ edge:DO ed = 1,nbed
       END SUBROUTINE plot_stations
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!   
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
+
+      SUBROUTINE plot_xy(file_unit,npt,xvec,yvec,rgb,width)
+      
+      IMPLICIT NONE
+      
+      INTEGER, INTENT(IN) :: file_unit
+      INTEGER, INTENT(IN) :: npt
+      REAL(rp), DIMENSION(:), INTENT(IN) :: xvec
+      REAL(rp), DIMENSION(:), INTENT(IN) :: yvec
+      REAL(rp), DIMENSION(:), INTENT(IN) :: rgb
+      REAL(rp), INTENT(IN) :: width
+      
+      INTEGER :: pt
+      
+      WRITE(file_unit,"(3(F9.5,1x),A)") rgb(1),rgb(2),rgb(3)," setrgbcolor"      
+      WRITE(file_unit,"(A)") "newpath"        
+      WRITE(file_unit,"(2(F9.5,1x),A)") ax*xvec(1)+bx,ay*yvec(1)+by, " moveto"      
+      DO pt = 2,npt                
+        WRITE(file_unit,"(2(F9.5,1x),A)") ax*xvec(pt)+bx,ay*yvec(pt)+by, " lineto"      
+      ENDDO
+      WRITE(file_unit,"(F9.5,1x,A)") width," setlinewidth 2 setlinejoin"
+      WRITE(file_unit,"(A)") "stroke"            
+      WRITE(file_unit,"(A)")  "0 0 0 setrgbcolor"       
+      
+      RETURN
+      END SUBROUTINE plot_xy
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
 
       SUBROUTINE interp_colors(lev,sol_lev,dc,colors,sol_val,color_val)
       

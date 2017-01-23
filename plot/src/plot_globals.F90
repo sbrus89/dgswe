@@ -21,8 +21,10 @@
       REAL(rp) :: smin,smax
       
       REAL(rp) :: lr_margin 
+      REAL(rp) :: top_margin
       REAL(rp) :: cscale_width
       REAL(rp) :: axes_width
+      REAL(rp) :: axes_height
       REAL(rp) :: rmin_axes,rmax_axes
       REAL(rp) :: smin_axes,smax_axes    
       REAL(rp) :: rmin_cbar,rmax_cbar
@@ -103,6 +105,7 @@
       INTEGER, DIMENSION(:), ALLOCATABLE :: el_in
       REAL(rp) :: xbox_min,xbox_max,ybox_min,ybox_max
       REAL(rp) :: figure_width
+      REAL(rp) :: figure_height
       
 !       TYPE :: viz
 !         INTEGER, DIMENSION(:), ALLOCATABLE :: p
@@ -172,6 +175,7 @@
         INTEGER :: nsnap
         INTEGER, DIMENSION(:), ALLOCATABLE :: el_plt
         REAL(rp), DIMENSION(:,:), ALLOCATABLE :: sol_val
+        REAL(rp), DIMENSION(:), ALLOCATABLE :: t
         REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: phi 
         INTEGER :: p
         INTEGER :: ndof(4)         
@@ -198,12 +202,24 @@
         INTEGER :: nline_body
         TYPE(char_array), DIMENSION(:), ALLOCATABLE :: latex_body        
       
+      
+        REAL(rp), DIMENSION(:,:,:), ALLOCATABLE :: sta_val
+        REAL(rp), DIMENSION(:,:), ALLOCATABLE :: t_sta        
       END TYPE
       
       TYPE(plot_type) :: zeta
       TYPE(plot_type) :: vel
       TYPE(plot_type) :: bathy
       TYPE(plot_type) :: mesh  
+      
+!       TYPE(plot_type), DIMENSION(:), ALLOCATABLE :: zeta_sta
+!       TYPE(plot_type), DIMENSION(:), ALLOCATABLE :: vel_sta
+      
+      INTEGER :: nadc
+      INTEGER :: ndg
+      
+      TYPE(char_array), DIMENSION(:), ALLOCATABLE :: adc_sol
+      TYPE(char_array), DIMENSION(:), ALLOCATABLE :: dg_sol
       
 
 

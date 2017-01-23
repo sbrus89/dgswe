@@ -193,37 +193,60 @@
       CHARACTER(2), INTENT(IN) :: axis_label_option
       
       INTEGER :: i
-      INTEGER :: expnt
+      INTEGER :: expnt,expnt_min,expnt_max
       REAL(rp) :: r0,r1,s0,s1
       REAL(rp) :: xval,yval
     
       CHARACTER(20) :: xchar,ychar     
-      CHARACTER(20) :: xlabel,ylabel
+      CHARACTER(25) :: xlabel,ylabel
       
       IF (axis_label_option == "xy") THEN
-        xlabel = "x"
-        ylabel = "y"
+        xlabel = "$x$"
+        ylabel = "$y$"
       ELSE IF (axis_label_option == "rs") THEN
-        xlabel = "r"
-        ylabel = "s"
+        xlabel = "$r$"
+        ylabel = "$s$"
       ELSE IF (axis_label_option == "ll") THEN
-        xlabel = "\rm longitude"
-        ylabel = "\rm latitude"
+        xlabel = "longitude"
+        ylabel = "latitude"
+      ELSE IF (axis_label_option == "zt") THEN
+        xlabel = "time (days)"
+        ylabel = "surface elevation (m)"      
+      ELSE IF (axis_label_option == "vt") THEN
+        xlabel = "time (days)"
+        ylabel = "velocity (m/s)"      
+      ELSE IF (axis_label_option == "zs") THEN
+        xlabel = "station"
+        ylabel = "surface elevation (m)"      
+      ELSE IF (axis_label_option == "vs") THEN
+        xlabel = "station"
+        ylabel = "velocity (m/s)"      
       ENDIF
       
 
       dr_xlabel = (rmax_axes-rmin_axes)/(real(nxtick,rp)-1d0)
       
-
-      r0 = rmin_axes
       
-      xval = (r0-bx)/ax
-      expnt = INT(LOG10(xval))
-      IF (expnt <= 3) THEN
-        expnt = 0
+      xval = (rmin_axes-bx)/ax
+      expnt_min = INT(LOG10(abs(xval)))
+      IF ((expnt_min <= 3 .AND. expnt_min > -2) .OR. xval < 1d-10) THEN
+        expnt_min = 0
       ENDIF
       
+      xval = (rmax_axes-bx)/ax      
+      expnt_max = INT(LOG10(abs(xval)))
+      IF ((expnt_max <= 3 .AND. expnt_max > -2) .OR. xval < 1d-10) THEN
+        expnt_max = 0
+      ENDIF      
       
+      IF (expnt_min /= 0) THEN
+        expnt = expnt_min
+      ELSEIF (expnt_max /= 0) THEN
+        expnt = expnt_max
+      ENDIF
+
+      
+      r0 = rmin_axes
       
       DO i = 1,nxtick             
         
@@ -248,7 +271,7 @@
       
       
       WRITE(tex_unit,"(A,F9.5,A,F9.5,A)") "\begin{textblock}{400}[0.5,0](",(rmax_axes+rmin_axes)/2d0,",",smax_page-smin_axes+xlabel_pad,")"
-      WRITE(tex_unit,"(A)") "\centerline{$"//TRIM(xlabel)//"$}"        
+      WRITE(tex_unit,"(A)") "\centerline{"//TRIM(xlabel)//"}"        
       WRITE(tex_unit,"(A)") "\end{textblock}"  
       
 !       WRITE(tex_unit,"(A)") TRIM(ADJUSTL(math_font))//" choosefont"         
@@ -275,14 +298,28 @@
       ENDIF
       
       
-      s0 = smin_axes      
       
-      yval = (s0-by)/ay
-      expnt = INT(LOG10(yval))
-      IF (expnt <= 3) THEN
-        expnt = 0
+      
+      yval = (smin_axes-by)/ay
+      expnt_min = INT(LOG10(abs(yval)))
+      IF ((expnt_min <= 3 .AND. expnt_min > -2) .OR. yval < 1d-10) THEN
+        expnt_min = 0
+      ENDIF
+      
+      yval = (smax_axes-by)/ay      
+      expnt_max = INT(LOG10(abs(yval)))
+      IF ((expnt_max <= 3 .AND. expnt_max > -2) .OR. yval < 1d-10) THEN
+        expnt_max = 0
+      ENDIF      
+      
+      IF (expnt_min /= 0) THEN
+        expnt = expnt_min
+      ELSEIF (expnt_max /= 0) THEN
+        expnt = expnt_max
       ENDIF      
           
+      
+      s0 = smin_axes         
       
       DO i = 1,nytick
       
@@ -311,7 +348,7 @@
       ENDDO         
       
       WRITE(tex_unit,"(A,F9.5,A,F9.5,A)") "\begin{textblock}{50}[0,0.5](",rmin_axes-ylabel_pad,",",smax_page-(smax_axes+smin_axes)/2d0,")"
-      WRITE(tex_unit,"(A)") "\rotatebox[origin=c]{90}{$"//TRIM(ylabel)//"$}\vskip-\TPboxrulesize"        
+      WRITE(tex_unit,"(A)") "\rotatebox[origin=c]{90}{"//TRIM(ylabel)//"}\vskip-\TPboxrulesize"        
       WRITE(tex_unit,"(A)") "\end{textblock}"  
       
       

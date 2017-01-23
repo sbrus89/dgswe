@@ -86,6 +86,16 @@ plot_objects =  plot_globals.o globals.o quit.o basis.o read_input.o messenger2.
 plot_obj := $(patsubst %.o, $(ODIR)%.o,$(plot_objects))
 
 
+plot_sta_objects =  plot_globals.o globals.o quit.o basis.o read_input.o messenger2.o \
+           read_plot_input.o grid_file_mod.o read_write_output.o read_stations.o \
+           system.o tripack.o \
+           edge_connectivity_mod.o curvilinear_nodes_mod.o bathymetry_interp_mod.o \
+           vandermonde.o transformation.o shape_functions_mod.o triangulation.o \
+           area_qpts_mod.o edge_qpts_mod.o \
+           plot_mod.o evaluate_mod.o axes_mod.o labels_mod.o version.o plot_stations.o 
+          
+plot_sta_obj := $(patsubst %.o, $(ODIR)%.o,$(plot_sta_objects))
+
 ########################################################################
 #                          Executable Targets                          #
 ########################################################################
@@ -94,6 +104,10 @@ plot_obj := $(patsubst %.o, $(ODIR)%.o,$(plot_objects))
 plot:  version $(ODIR) $(plot_obj)
 	@echo "\n\n"
 	$(FC) $(FFLAGS) -o plot $(plot_obj) $(LAPACK_LIB)
+	
+plot_sta:  version $(ODIR) $(plot_sta_obj)
+	@echo "\n\n"
+	$(FC) $(FFLAGS) -o plot_sta $(plot_sta_obj) $(LAPACK_LIB)	
 	
 version :
 	@sed -i '5 c \      CHARACTER(:), ALLOCATABLE, PARAMETER :: gitBranch = "$(GIT_BRANCH)" ' ../../src/version.F90
@@ -238,3 +252,6 @@ $(ODIR)axes_mod.o: axes_mod.F90                              $(ODIR)globals.o $(
 	
 $(ODIR)plot.o: plot_dg.F90                                   $(ODIR)plot_globals.o $(ODIR)globals.o $(ODIR)grid_file_mod.o $(ODIR)plot_mod.o $(ODIR)evaluate_mod.o $(ODIR)labels_mod.o $(ODIR)basis.o $(ODIR)read_write_output.o $(ODIR)read_input.o $(ODIR)triangulation.o $(ODIR)version.o
 	$(FC) $(FFLAGS) -c $< -o $@       
+
+$(ODIR)plot_stations.o: plot_stations.F90                    $(ODIR)plot_globals.o $(ODIR)globals.o $(ODIR)grid_file_mod.o $(ODIR)plot_mod.o $(ODIR)evaluate_mod.o $(ODIR)labels_mod.o $(ODIR)basis.o $(ODIR)read_write_output.o $(ODIR)read_input.o $(ODIR)triangulation.o $(ODIR)version.o
+	$(FC) $(FFLAGS) -c $< -o $@   
