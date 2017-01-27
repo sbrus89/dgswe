@@ -2,13 +2,13 @@
       
       IMPLICIT NONE
       
-      CHARACTER(:), ALLOCATABLE, PARAMETER :: gitBranch = "master" 
-      CHARACTER(:), ALLOCATABLE, PARAMETER :: gitSHA = "2a0cbe96a8d0887ce123c10bf03b2b246c208e23 +" 
-      CHARACTER(:), ALLOCATABLE, PARAMETER :: compiler_version = "mpifort for MPICH version 3.1.4 ifort version 14.0.0" 
-      CHARACTER(:), ALLOCATABLE, PARAMETER :: compiler_flags = "-O3 -xHost -DCMPI -Iodir_dgswe_mpi/" 
-      CHARACTER(:), ALLOCATABLE, PARAMETER :: modified_files = "../plot/plot_PE_grid.m ../plot/plot_grid.m ../plot/plot_stations.m ../plot/work/show_plots.py ../src/area_integration.F90 ../src/boundary_edge_elev.F90 ../src/boundary_edge_flow.F90 ../src/boundary_edge_land.F90 ../src/edge_integration.F90 ../src/linear_solve.F90 ../src/messenger2.F90 ../src/numerical_flux.F90" 
-      CHARACTER(:), ALLOCATABLE, PARAMETER :: compile_date = "Mon Jan 16 23:18:11 EST 2017" 
-      CHARACTER(:), ALLOCATABLE, PARAMETER :: host = "chl-tilos" 
+      CHARACTER(:), ALLOCATABLE :: gitBranch
+      CHARACTER(:), ALLOCATABLE :: gitSHA 
+      CHARACTER(:), ALLOCATABLE :: compiler_version 
+      CHARACTER(:), ALLOCATABLE :: compiler_flags
+      CHARACTER(:), ALLOCATABLE :: modified_files
+      CHARACTER(:), ALLOCATABLE :: compile_date
+      CHARACTER(:), ALLOCATABLE :: host
             
       CONTAINS      
       
@@ -20,7 +20,15 @@
       IMPLICIT NONE
       
       INTEGER, INTENT(IN) :: unit
-      INTEGER :: length,ind,sind,eind            
+      INTEGER :: length,ind,sind,eind        
+
+      gitBranch = "master" 
+      gitSHA = "2f549cb6c2b9d9217df6f46c7c7bd7f4445233bb +" 
+      compiler_version = "ifort version 12.1.3" 
+      compiler_flags = "-O3 -xHost -Iodir_dgswe/" 
+      modified_files = "../src/version.F90 Makefile" 
+      compile_date = "Thu Jan 26 22:12:31 EST 2017" 
+      host = "sbrus-laptop" 
 
       
       length = LEN(TRIM(ADJUSTL(modified_files)))

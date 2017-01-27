@@ -281,13 +281,13 @@ $(ODIR) :
 	mkdir -p $@
 	
 version :
-	@sed -i '5 c \      CHARACTER(:), ALLOCATABLE, PARAMETER :: gitBranch = "$(GIT_BRANCH)" ' $(VPATH)version.F90
-	@sed -i '6 c \      CHARACTER(:), ALLOCATABLE, PARAMETER :: gitSHA = "$(GIT_SHA) $(GIT_MOD)" ' $(VPATH)version.F90
-	@sed -i '7 c \      CHARACTER(:), ALLOCATABLE, PARAMETER :: compiler_version = "$(FC_VERSION)" ' $(VPATH)version.F90
-	@sed -i '8 c \      CHARACTER(:), ALLOCATABLE, PARAMETER :: compiler_flags = "$(FFLAGS)" ' $(VPATH)version.F90
-	@sed -i '9 c \      CHARACTER(:), ALLOCATABLE, PARAMETER :: modified_files = "$(GIT_MFILES)" ' $(VPATH)version.F90
-	@sed -i '10 c \      CHARACTER(:), ALLOCATABLE, PARAMETER :: compile_date = "$(DATE)" ' $(VPATH)version.F90
-	@sed -i '11 c \      CHARACTER(:), ALLOCATABLE, PARAMETER :: host = "$(NAME)" ' $(VPATH)version.F90	
+	@sed -i '25 c \      gitBranch = "$(GIT_BRANCH)" ' $(VPATH)version.F90
+	@sed -i '26 c \      gitSHA = "$(GIT_SHA) $(GIT_MOD)" ' $(VPATH)version.F90
+	@sed -i '27 c \      compiler_version = "$(FC_VERSION)" ' $(VPATH)version.F90
+	@sed -i '28 c \      compiler_flags = "$(FFLAGS)" ' $(VPATH)version.F90
+	@sed -i '29 c \      modified_files = "$(GIT_MFILES)" ' $(VPATH)version.F90
+	@sed -i '30 c \      compile_date = "$(DATE)" ' $(VPATH)version.F90
+	@sed -i '31 c \      host = "$(NAME)" ' $(VPATH)version.F90	
 	
 ########################################################################
 #                            Clean Targets                             #
