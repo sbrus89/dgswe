@@ -257,7 +257,7 @@
 
       ENDDO           
       
-      IF (blend) THEN
+      IF (blend == 1) THEN
         IF (mod(et,2) == 1) THEN
           CALL tri_blend_coordinates(et,el,ctp,led,mnnds,eddx,elxy)
         ELSE IF (mod(et,2) == 0) THEN

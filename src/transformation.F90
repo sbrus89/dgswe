@@ -192,7 +192,7 @@
 
       DO it = 1,maxit     
            
-        IF (vandermonde_init) THEN
+        IF (vandermonde_init == 1) THEN
           ! Evaluate basis functions at r,s coordinates 
           CALL element_basis(et,p,n,npt,r,s,l,dldr,dlds)
           

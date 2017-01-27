@@ -67,14 +67,14 @@
           hbp_type = 6
         ENDIF   
                  
-        IF (extract) THEN
+        IF (extract == 1) THEN
           CALL element_nodes(et,space,np(hbp_type),npts,r,s,ext)
           nnds(hbp_type) = npts
         ELSE
           CALL element_nodes(et,space,np(hbp_type),npts,r,s)                  
         ENDIF
         
-        IF (calc_deriv) THEN
+        IF (calc_deriv == 1) THEN
           CALL shape_functions_area_eval(et,np(et),nnd,npts,r,s,psi(:,:,et),dpdr(:,:,et),dpds(:,:,et))                    
         ELSE
           CALL shape_functions_area_eval(et,np(et),nnd,npts,r,s,psi(:,:,et))     
@@ -174,7 +174,7 @@
 
         
         
-          IF (calc_deriv) THEN
+          IF (calc_deriv == 1) THEN
             CALL element_transformation(nnd_coord,elxy(:,el,1),elxy(:,el,2),psic(:,pt,et),xpt,ypt, &
                                         dpdr(:,pt,et),dpds(:,pt,et),drdx,drdy,dsdx,dsdy,jac)
           ELSE
@@ -187,14 +187,14 @@
           
         
         
-          IF (interp) THEN
+          IF (interp == 1) THEN
             DO nd = 1,nv        
               hbvert(nd) = depth(ect(nd,el))         
             ENDDO        
                          
             Sp = 1d0             
                                               
-            IF (calc_deriv) THEN
+            IF (calc_deriv == 1) THEN
               CALL bathymetry_interp_eval(nnd_interp,hbvert,psic(:,pt,et_linear),hb, &
                                           dpdr(:,pt,et_linear),dpds(:,pt,et_linear),drdx,drdy,dsdx,dsdy,Sp,dhdx,dhdy)
                                           
@@ -210,7 +210,7 @@
 !              elhb(pt,el) = 10d0 - 5d0*cos(2d0*pi/500d0*ypt) 
 
           
-            IF (calc_norm) THEN
+            IF (calc_norm == 1) THEN
               nrm = sqrt(dhdx**2 + dhdy**2 + 1d0)
               nhb(pt,el,1) = dhdx/nrm
               nhb(pt,el,2) = dhdy/nrm

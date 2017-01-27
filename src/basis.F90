@@ -1163,9 +1163,18 @@
       REAL(rp), DIMENSION(:), INTENT(OUT) :: s
       
       INTEGER :: i
+      INTEGER :: ni
+      INTEGER, DIMENSION(:), ALLOCATABLE :: iseed
       REAL(rp) :: a,b
       
-      CALL RANDOM_SEED(put=(/seed/))  
+      CALL RANDOM_SEED(size=ni)  
+      ALLOCATE(iseed(ni))
+
+      DO i = 1,ni
+        iseed(i) = seed
+      ENDDO
+
+      CALL RANDOM_SEED(put=iseed)  
       
 !       DO i = 1,n
 !         CALL RANDOM_NUMBER(a)                
@@ -1212,9 +1221,18 @@
       REAL(rp), DIMENSION(:), INTENT(OUT) :: s 
       
       INTEGER :: i
+      INTEGER :: ni
+      INTEGER, DIMENSION(:), ALLOCATABLE :: iseed      
       REAL(rp) :: rnd
       
-      CALL RANDOM_SEED(put=(/seed/))      
+      CALL RANDOM_SEED(size=ni)  
+      ALLOCATE(iseed(ni))
+
+      DO i = 1,ni
+        iseed(i) = seed
+      ENDDO
+
+      CALL RANDOM_SEED(put=iseed)      
       
       DO i = 1,n
         CALL RANDOM_NUMBER(rnd)       
