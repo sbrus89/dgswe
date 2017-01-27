@@ -176,7 +176,7 @@
       LOGICAL :: file_exists       
       
       INQUIRE(FILE=TRIM(ADJUSTL(out_direc)) // TRIM(ADJUSTL(filename)), EXIST=file_exists)
-      IF(file_exists == .FALSE.) THEN
+      IF(file_exists .eqv. .FALSE.) THEN
         PRINT*, "file does not exist"
         STOP        
       ENDIF      

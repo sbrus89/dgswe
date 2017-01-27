@@ -20,8 +20,10 @@ ed_points: DO pt = 1,nqpte ! Compute numerical fluxes for all edges
 !!DIR$ VECTOR ALIGNED
               DO ed = sed,eed
                 
-                const(ed) = max(abs(Qxi(ed,pt)%ptr*inx(ed,pt) + Qyi(ed,pt)%ptr*iny(ed,pt))/Hi(ed,pt)%ptr + sqrt(g*Hi(ed,pt)%ptr*icfac(ed,pt)), &
-                                abs(Qxe(ed,pt)%ptr*inx(ed,pt) + Qye(ed,pt)%ptr*iny(ed,pt))/He(ed,pt)%ptr + sqrt(g*He(ed,pt)%ptr*icfac(ed,pt)))
+                const(ed) = max(abs(Qxi(ed,pt)%ptr*inx(ed,pt) + Qyi(ed,pt)%ptr*iny(ed,pt))/Hi(ed,pt)%ptr &
+                                                              + sqrt(g*Hi(ed,pt)%ptr*icfac(ed,pt)), &
+                                abs(Qxe(ed,pt)%ptr*inx(ed,pt) + Qye(ed,pt)%ptr*iny(ed,pt))/He(ed,pt)%ptr &
+                                                              + sqrt(g*He(ed,pt)%ptr*icfac(ed,pt)))
               ENDDO
                                         
 !DIR$ SIMD              
@@ -46,12 +48,14 @@ ed_points: DO pt = 1,nqpte ! Compute numerical fluxes for all edges
               ENDDO
               
               DO ed = sed,eed
-                Qxhatv(ed) = Qxhatv(ed) - inx(ed,pt)*.5d0*(Exxe(ed,pt)%ptr+Exxi(ed,pt)%ptr) - iny(ed,pt)*.5d0*(Exye(ed,pt)%ptr+Exyi(ed,pt)%ptr)               
+                Qxhatv(ed) = Qxhatv(ed) - inx(ed,pt)*.5d0*(Exxe(ed,pt)%ptr+Exxi(ed,pt)%ptr) &
+                                        - iny(ed,pt)*.5d0*(Exye(ed,pt)%ptr+Exyi(ed,pt)%ptr)               
               ENDDO
               
               DO ed = sed,eed
 !                 Qyhatv(ed) = Qyhatv(ed) - inx(ed,pt)*.5d0*(Eyxe(ed,pt)%ptr+Eyxi(ed,pt)%ptr) - iny(ed,pt)*.5d0*(Eyye(ed,pt)%ptr+Eyyi(ed,pt)%ptr)
-                Qyhatv(ed) = Qyhatv(ed) - inx(ed,pt)*.5d0*(Exye(ed,pt)%ptr+Exyi(ed,pt)%ptr) - iny(ed,pt)*.5d0*(Eyye(ed,pt)%ptr+Eyyi(ed,pt)%ptr)                
+                Qyhatv(ed) = Qyhatv(ed) - inx(ed,pt)*.5d0*(Exye(ed,pt)%ptr+Exyi(ed,pt)%ptr) &
+                                        - iny(ed,pt)*.5d0*(Eyye(ed,pt)%ptr+Eyyi(ed,pt)%ptr)                
               ENDDO
               
               
@@ -121,8 +125,10 @@ ed_points: DO pt = 1,nqpte ! Compute numerical fluxes for all edges
           Eyye(ed,pt)%ptr = -detJe_ex(ed,pt)*iny(ed,pt)*.5d0*(Qyi(ed,pt)%ptr+Qye(ed,pt)%ptr)           
           Eyyi(ed,pt)%ptr =  detJe_in(ed,pt)*iny(ed,pt)*.5d0*(Qye(ed,pt)%ptr+Qyi(ed,pt)%ptr)
           
-          Exye(ed,pt)%ptr = -detJe_ex(ed,pt)*.5d0*(iny(ed,pt)*(Qxi(ed,pt)%ptr+Qxe(ed,pt)%ptr)+inx(ed,pt)*(Qyi(ed,pt)%ptr+Qye(ed,pt)%ptr))
-          Exyi(ed,pt)%ptr =  detJe_in(ed,pt)*.5d0*(iny(ed,pt)*(Qxe(ed,pt)%ptr+Qxi(ed,pt)%ptr)+inx(ed,pt)*(Qye(ed,pt)%ptr+Qyi(ed,pt)%ptr))          
+          Exye(ed,pt)%ptr = -detJe_ex(ed,pt)*.5d0*(iny(ed,pt)*(Qxi(ed,pt)%ptr+Qxe(ed,pt)%ptr) &
+                                                  +inx(ed,pt)*(Qyi(ed,pt)%ptr+Qye(ed,pt)%ptr))
+          Exyi(ed,pt)%ptr =  detJe_in(ed,pt)*.5d0*(iny(ed,pt)*(Qxe(ed,pt)%ptr+Qxi(ed,pt)%ptr) &
+                                                  +inx(ed,pt)*(Qye(ed,pt)%ptr+Qyi(ed,pt)%ptr))          
           
 !           Exye(ed,pt)%ptr = -detJe_ex(ed,pt)*iny(ed,pt)*.5d0*(Qxi(ed,pt)%ptr+Qxe(ed,pt)%ptr)
 !           Exyi(ed,pt)%ptr =  detJe_in(ed,pt)*iny(ed,pt)*.5d0*(Qxe(ed,pt)%ptr+Qxi(ed,pt)%ptr)
@@ -166,8 +172,10 @@ ed_points: DO pt = 1,nqpte ! Compute numerical fluxes for all edges
       
 !!DIR$ VECTOR ALIGNED      
         DO ed = 1,nred
-          const(ed) = max(abs(Qxri(ed,pt)%ptr*rnx(ed,pt) + Qyri(ed,pt)%ptr*rny(ed,pt))/Hri(ed,pt)%ptr + sqrt(g*Hri(ed,pt)%ptr*rcfac(ed,pt)), &
-                          abs(Qxre(ed,pt)%ptr*rnx(ed,pt) + Qyre(ed,pt)%ptr*rny(ed,pt))/Hre(ed)        + sqrt(g*Hre(ed)*rcfac(ed,pt)))          
+          const(ed) = max(abs(Qxri(ed,pt)%ptr*rnx(ed,pt) + Qyri(ed,pt)%ptr*rny(ed,pt))/Hri(ed,pt)%ptr  &
+                                                         + sqrt(g*Hri(ed,pt)%ptr*rcfac(ed,pt)), &
+                          abs(Qxre(ed,pt)%ptr*rnx(ed,pt) + Qyre(ed,pt)%ptr*rny(ed,pt))/Hre(ed) &
+                                                         + sqrt(g*Hre(ed)*rcfac(ed,pt)))          
         ENDDO
         
 
@@ -203,12 +211,14 @@ ed_points: DO pt = 1,nqpte ! Compute numerical fluxes for all edges
         ENDDO
         
         DO ed = 1,nred
-          Qxhatv(ed) = Qxhatv(ed) - rnx(ed,pt)*.5d0*(Exxri(ed,pt)%ptr+Exxre(ed,pt)%ptr) - rny(ed,pt)*.5d0*(Exyri(ed,pt)%ptr+Exyre(ed,pt)%ptr)
+          Qxhatv(ed) = Qxhatv(ed) - rnx(ed,pt)*.5d0*(Exxri(ed,pt)%ptr+Exxre(ed,pt)%ptr)  &
+                                  - rny(ed,pt)*.5d0*(Exyri(ed,pt)%ptr+Exyre(ed,pt)%ptr)
         ENDDO
         
         DO ed = 1,nred
 !           Qyhatv(ed) = Qyhatv(ed) - rnx(ed,pt)*.5d0*(Eyxri(ed,pt)%ptr+Eyxre(ed,pt)%ptr) - rny(ed,pt)*.5d0*(Eyyri(ed,pt)%ptr+Eyyre(ed,pt)%ptr)
-          Qyhatv(ed) = Qyhatv(ed) - rnx(ed,pt)*.5d0*(Exyri(ed,pt)%ptr+Exyre(ed,pt)%ptr) - rny(ed,pt)*.5d0*(Eyyri(ed,pt)%ptr+Eyyre(ed,pt)%ptr)          
+          Qyhatv(ed) = Qyhatv(ed) - rnx(ed,pt)*.5d0*(Exyri(ed,pt)%ptr+Exyre(ed,pt)%ptr)  &
+                                  - rny(ed,pt)*.5d0*(Eyyri(ed,pt)%ptr+Eyyre(ed,pt)%ptr)          
         ENDDO
 
         
@@ -255,7 +265,9 @@ ed_points: DO pt = 1,nqpte ! Compute numerical fluxes for all edges
 
           Exxri(ed,pt)%ptr = detJe_recv(ed,pt)*rnx(ed,pt)*.5d0*(Qxre(ed,pt)%ptr+Qxri(ed,pt)%ptr)
           Eyyri(ed,pt)%ptr = detJe_recv(ed,pt)*rny(ed,pt)*.5d0*(Qyre(ed,pt)%ptr+Qyri(ed,pt)%ptr)
-          Exyri(ed,pt)%ptr = detJe_recv(ed,pt)*.5d0*(rny(ed,pt)*(Qxre(ed,pt)%ptr+Qxri(ed,pt)%ptr)+rnx(ed,pt)*(Qyre(ed,pt)%ptr+Qyri(ed,pt)%ptr))
+          Exyri(ed,pt)%ptr = detJe_recv(ed,pt)*.5d0*(rny(ed,pt)*(Qxre(ed,pt)%ptr+Qxri(ed,pt)%ptr) &
+                                                    +rnx(ed,pt)*(Qyre(ed,pt)%ptr+Qyri(ed,pt)%ptr))
+
 !           Exyri(ed,pt)%ptr = detJe_recv(ed,pt)*rny(ed,pt)*.5d0*(Qxre(ed,pt)%ptr+Qxri(ed,pt)%ptr)
 !           Eyxri(ed,pt)%ptr = detJe_recv(ed,pt)*rnx(ed,pt)*.5d0*(Qyre(ed,pt)%ptr+Qyri(ed,pt)%ptr)
           
