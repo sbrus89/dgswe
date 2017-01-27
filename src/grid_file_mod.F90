@@ -28,7 +28,7 @@
 
       ! open fort.14 grid file
       INQUIRE(FILE=grid_file, EXIST=file_exists)
-      IF(file_exists == .FALSE.) THEN
+      IF(file_exists .eqv. .FALSE.) THEN
         PRINT*, "grid file does not exist"
         CALL abort()        
       ENDIF
@@ -84,7 +84,7 @@
         limit_depth = 1
       ENDIF      
       
-      IF (limit_depth) THEN
+      IF (limit_depth == 1) THEN
         DO i = 1,nn      
           IF (depth(i) < h0) THEN
             depth(i) = h0
@@ -278,7 +278,7 @@
       
       
       INQUIRE(FILE=grid_file_from, EXIST=file_exists)
-      IF(file_exists == .FALSE.) THEN
+      IF(file_exists .eqv. .FALSE.) THEN
         PRINT*, "grid file does not exist"
         CALL abort()        
       ENDIF   
@@ -298,7 +298,7 @@
       ENDDO
       
       INQUIRE(FILE=grid_file_to, EXIST=file_exists)
-      IF(file_exists == .FALSE.) THEN
+      IF(file_exists .eqv. .FALSE.) THEN
         PRINT*, "grid file does not exist"
         CALL abort()        
       ENDIF        
@@ -441,7 +441,7 @@
       mnnds = (hbp+1)**2
       
       INQUIRE(FILE=bathy_file, EXIST = file_exists)
-      IF(file_exists == .FALSE.) THEN
+      IF(file_exists .eqv. .FALSE.) THEN
         IF (myrank == 0) PRINT*, "high order bathymetry file does not exist"  
         
         IF (hbp > 1) THEN
@@ -528,7 +528,7 @@
       
       
       INQUIRE(FILE=curve_file, EXIST = file_exists)  
-      IF (file_exists == .FALSE.) THEN
+      IF (file_exists .eqv. .FALSE.) THEN
         IF (myrank == 0) PRINT*, "curved boundary file does not exist"
         
         IF (ctp > 1) THEN

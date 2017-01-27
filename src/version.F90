@@ -23,11 +23,11 @@
       INTEGER :: length,ind,sind,eind        
 
       gitBranch = "master" 
-      gitSHA = "2f549cb6c2b9d9217df6f46c7c7bd7f4445233bb +" 
-      compiler_version = "ifort version 12.1.3" 
-      compiler_flags = "-O3 -xHost -Iodir_dgswe/" 
-      modified_files = "../src/version.F90 Makefile" 
-      compile_date = "Thu Jan 26 22:12:31 EST 2017" 
+      gitSHA = "e5cd3c8f92010fbbfdf5a991b8ae13628f14ba32 +" 
+      compiler_version = "Using built-in specs. COLLECT_GCC=gfortran" 
+      compiler_flags = "-O2 -Iodir_dgswe/" 
+      modified_files = "../src/allocation.F90 ../src/grid_file_mod.F90 ../src/kdtree2.F ../src/read_forcing.F90 ../src/read_input.F90 Makefile" 
+      compile_date = "Thu Jan 26 23:24:09 EST 2017" 
       host = "sbrus-laptop" 
 
       

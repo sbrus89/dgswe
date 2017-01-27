@@ -288,8 +288,8 @@
          call heapify(a,1)
          return
       else
-         write (*,*) 'PQ_EXTRACT_MAX: error,',
-     &               ' attempted to pop non-positive PQ'
+         write (*,*) 'PQ_EXTRACT_MAX: error,', &
+                     ' attempted to pop non-posiive PQ'
          stop
       end if
 
@@ -460,8 +460,8 @@
       integer           :: i
 
       if ((i .lt. 1) .or. (i .gt. a%heap_size)) then
-         write (*,*) 'PQ_DELETE: error, attempt to remove',
-     &               ' out of bounds element.'
+         write (*,*) 'PQ_DELETE: error, attempt to remove', &
+                     ' out of bounds element.'
          stop
       endif
 
@@ -659,16 +659,16 @@
       if (mr%dimen > mr%n) then
       !  unlikely to be correct
          write (*,*) 'KD_TREE_TRANS: likely user error.'
-         write (*,*) 'KD_TREE_TRANS: You passed in matrix with D=',
-     &                mr%dimen
+         write (*,*) 'KD_TREE_TRANS: You passed in matrix with D=', &
+                      mr%dimen
          write (*,*) 'KD_TREE_TRANS: and N=',mr%n
 
-         write (*,*) 'KD_TREE_TRANS: note, that new format is',
-     &               ' data(1:D,1:N)'
-         write (*,*) 'KD_TREE_TRANS: with usually N >> D.  ',
-     &               'If N =approx= D, then a k-d tree'
-         write (*,*) 'KD_TREE_TRANS: is not an appropriate data',
-     &               ' structure.'
+         write (*,*) 'KD_TREE_TRANS: note, that new format is', &
+                     ' data(1:D,1:N)'
+         write (*,*) 'KD_TREE_TRANS: with usually N >> D.  ', &
+                     'If N =approx= D, then a k-d tree'
+         write (*,*) 'KD_TREE_TRANS: is not an appropriate data', &
+                     ' structure.'
          stop
       end if
 
@@ -689,8 +689,8 @@
       if (mr%rearrange) then
          allocate(mr%rearranged_data(mr%dimen,mr%n))
          do i=1,mr%n
-         mr%rearranged_data(:,i) = mr%the_data(:, 
-     &          mr%ind(i))
+         mr%rearranged_data(:,i) = mr%the_data(:, &
+                mr%ind(i))
          enddo
       else
          nullify(mr%rearranged_data)
@@ -813,8 +813,8 @@
             endif
             
             res%cut_val = average
-            m = select_on_coordinate_value(
-     &                               tp%the_data,tp%ind,c,average,l,u)
+            m = select_on_coordinate_value( &
+                                     tp%the_data,tp%ind,c,average,l,u)
          endif
             
          ! moves indexes around
@@ -850,8 +850,8 @@
          end if
       end function build_tree_for_range
 
-      integer function select_on_coordinate_value(v,ind,c,alpha,li,ui)
-     &      result(res)
+      integer function select_on_coordinate_value(v,ind,c,alpha,li,ui) &
+            result(res)
          ! Move elts of ind around between l and u, so that all points
          ! <= than alpha (in c cooordinate) are first, and then
          ! all points > alpha are second. 
@@ -1079,8 +1079,8 @@
       return
       end subroutine kdtree2_n_nearest
 
-      subroutine kdtree2_n_nearest_around_point(tp,idxin,correltime,
-     &                                          nn,results)
+      subroutine kdtree2_n_nearest_around_point(tp,idxin,correltime, &
+                                                nn,results)
       ! Find the 'nn' vectors in the tree nearest to point 'idxin',
       ! with correlation window 'correltime', returing results in
       ! results(:), which must be pre-allocated upon entry.
@@ -1176,19 +1176,19 @@
       endif
 
       if (sr%overflow) then
-         write (*,*) 'KD_TREE_TRANS: warning! return from',
-     &               ' kdtree2_r_nearest found more neighbors'
-         write (*,*) 'KD_TREE_TRANS: than storage was provided for.',
-     &               '  Answer is NOT smallest ball'
-         write (*,*) 'KD_TREE_TRANS: with that number of neighbors!',
-     &               '  I.e. it is wrong.'
+         write (*,*) 'KD_TREE_TRANS: warning! return from', &
+                     ' kdtree2_r_nearest found more neighbors'
+         write (*,*) 'KD_TREE_TRANS: than storage was provided for.', &
+                     '  Answer is NOT smallest ball'
+         write (*,*) 'KD_TREE_TRANS: with that number of neighbors!', &
+                     '  I.e. it is wrong.'
       endif
 
       return
       end subroutine kdtree2_r_nearest
 
-      subroutine kdtree2_r_nearest_around_point(tp,idxin,correltime,r2,
-     &      nfound,nalloc,results)
+      subroutine kdtree2_r_nearest_around_point(tp,idxin,correltime,r2, &
+            nfound,nalloc,results)
       !
       ! Like kdtree2_r_nearest, but around a point 'idxin' already existing
       ! in the data set. 
@@ -1245,12 +1245,12 @@
       endif
 
       if (sr%overflow) then
-         write (*,*) 'KD_TREE_TRANS: warning! return from',
-     &               ' kdtree2_r_nearest found more neighbors'
-         write (*,*) 'KD_TREE_TRANS: than storage was provided for.',
-     &               '  Answer is NOT smallest ball'
-         write (*,*) 'KD_TREE_TRANS: with that number of neighbors!',
-     &               '  I.e. it is wrong.'
+         write (*,*) 'KD_TREE_TRANS: warning! return from', &
+                     ' kdtree2_r_nearest found more neighbors'
+         write (*,*) 'KD_TREE_TRANS: than storage was provided for.', &
+                     '  Answer is NOT smallest ball'
+         write (*,*) 'KD_TREE_TRANS: with that number of neighbors!', &
+                     '  I.e. it is wrong.'
       endif
 
       deallocate (sr%qv)
@@ -1301,8 +1301,8 @@
       return
       end function kdtree2_r_count
 
-      function kdtree2_r_count_around_point(tp,idxin,correltime,r2)
-     &      result(nfound)
+      function kdtree2_r_count_around_point(tp,idxin,correltime,r2) &
+            result(nfound)
       ! Count the number of neighbors within square distance 'r2' around
       ! point 'idxin' with decorrelation time 'correltime'.
       !
@@ -1359,8 +1359,8 @@
       integer, intent(in) :: n
 
       if (size(sr%results,1) .lt. n) then
-         write (*,*) 'KD_TREE_TRANS:  you did not provide enough',
-     &               ' storage for results(1:n)'
+         write (*,*) 'KD_TREE_TRANS:  you did not provide enough', &
+                     ' storage for results(1:n)'
          stop
          return
       endif
@@ -1404,8 +1404,8 @@
       real(kdkind), pointer           :: qv(:)
       type(interval), pointer :: box(:) 
 
-      if ((associated(node%left) .and. associated(node%right))
-     &     .eqv. .false.) then
+      if ((associated(node%left) .and. associated(node%right)) &
+           .eqv. .false.) then
          ! we are on a terminal node
          if (sr%nn .eq. 0) then
          call process_terminal_node_fixedball(node)

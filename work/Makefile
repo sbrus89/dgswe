@@ -63,7 +63,8 @@ OPT_REPORT = -vec_report6
 # OPT_REPORT = -qopt-report -qopt-report-phase=vec
 
 ifeq ($(BUILDTYPE),dgswe)
-  FC := ifort
+#   FC := ifort
+  FC := gfortran
   ODIR = odir_dgswe/
 
   EXE_NAME = dgswe
@@ -359,8 +360,8 @@ help :
 # $< = first prerequisite/depenency
 # $@ = name of the target	
 
-$(ODIR)kdtree2.o: kdtree2.F
-	$(FC) $(FFLAGS) -132 -c $< -o $@
+$(ODIR)kdtree2.o: kdtree2.F90
+	$(FC) $(FFLAGS) -c $< -o $@
 	mv kdtree2_precision_module.mod $(ODIR)
 	mv kdtree2_module.mod $(ODIR)
 	mv kdtree2_priority_queue_module.mod $(ODIR)

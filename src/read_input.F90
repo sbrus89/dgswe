@@ -122,7 +122,7 @@
       CALL dginp_setup(myrank)      
 
       INQUIRE(FILE=TRIM(ADJUSTL(dirname))//'/'//'dgswe.inp', EXIST = file_exists)
-      IF(file_exists == .FALSE.) THEN
+      IF(file_exists .eqv. .FALSE.) THEN
         PRINT*, "dgswe.inp file does not exist"
         CALL abort()
       ENDIF      
@@ -370,10 +370,10 @@
             ENDIF
           ENDDO test
                     
-          IF (found == .false. .and. eqind > 0) THEN
+          IF (found .eqv. .false. .and. eqind > 0) THEN
             ! unmatched lines with an equal sign are either incorrect or no longer supported
             IF (myrank == 0) PRINT("(3A)"),"*** WARNING: ",test_opt, " is an incorrect or depreciated value ***"            
-          ELSE IF (found == .false.) THEN
+          ELSE IF (found .eqv. .false.) THEN
             ! unmatched lines without an equal sign are ignored
             IF (myrank == 0) PRINT("(A)"), "*** WARNING: non-comment line does not contain a keyword assignment***"           
           ENDIF
@@ -410,7 +410,7 @@
        quit = 0
        DO opt = 1,nopt
          i = dginp_ind(opt)
-         IF (dginp(i)%flag == 0 .and. dginp(i)%required == .true.) THEN
+         IF (dginp(i)%flag == 0 .and. dginp(i)%required .eqv. .true.) THEN
            quit = 1   ! flag fatal error
          ENDIF
        ENDDO
@@ -422,7 +422,7 @@
           j = 0        
           DO opt = 1,nopt
             i = dginp_ind(opt)
-            IF (dginp(i)%flag == 0 .and. dginp(i)%required == .true.) THEN
+            IF (dginp(i)%flag == 0 .and. dginp(i)%required .eqv. .true.) THEN
               j = j+1
               IF (myrank == 0) PRINT "(A,I3,2A)", "              ",j,") ",dginp(i)%key
             ENDIF
@@ -438,7 +438,7 @@
           j = 0        
           DO opt = 1,nopt
             i = dginp_ind(opt)
-            IF (dginp(i)%flag == 0 .and. dginp(i)%required == .false.) THEN
+            IF (dginp(i)%flag == 0 .and. dginp(i)%required .eqv. .false.) THEN
               
               j = j+1
               SELECT CASE (dginp(i)%vartype) 
@@ -534,32 +534,32 @@
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       
       !    keywords                         target variables                      requirement                 default values
-      dginp(1)%key = "grid_file";       dginp(1)%cptr => grid_file ;      dginp(1)%required = .true.;      dginp(1)%cptr = ""
-      dginp(2)%key = "forcing_file";    dginp(2)%cptr => forcing_file;    dginp(2)%required = .true.;      dginp(2)%cptr = ""
-      dginp(3)%key = "p";               dginp(3)%iptr => p;               dginp(3)%required = .true.;      dginp(3)%iptr = 1
-      dginp(4)%key = "ctp";             dginp(4)%iptr => ctp;             dginp(4)%required = .false.;     dginp(4)%iptr = 1
-      dginp(5)%key = "hbp";             dginp(5)%iptr => hbp;             dginp(5)%required = .false.;     dginp(5)%iptr = 1
-      dginp(6)%key = "rk";              dginp(6)%iptr => rk_type;         dginp(6)%required = .false.;     dginp(6)%iptr = 22      
-      dginp(7)%key = "dt";              dginp(7)%rptr => dt;              dginp(7)%required = .true.;      dginp(7)%rptr = 0.5d0
-      dginp(8)%key = "tf";              dginp(8)%rptr => tf;              dginp(8)%required = .true.;      dginp(8)%rptr = 1
-      dginp(9)%key = "dramp";           dginp(9)%rptr => dramp;           dginp(9)%required = .true.;      dginp(9)%rptr = 0.08d0
-      dginp(10)%key = "cf";             dginp(10)%rptr => cf;             dginp(10)%required = .true.;     dginp(10)%rptr = 0.0025d0
-!       dginp(11)%key = "lines";          dginp(11)%rptr => lines;          dginp(11)%required = .true.;     dginp(11)%rptr = 10d0
-      dginp(12)%key = "out_direc";      dginp(12)%cptr => out_direc;      dginp(12)%required = .false.;    dginp(12)%cptr = "./"
-      dginp(13)%key = "npart";          dginp(13)%iptr => npart;          dginp(13)%required = .false.;     dginp(13)%iptr = 1
-      dginp(14)%key = "bathy_file";     dginp(14)%cptr => bathy_file;     dginp(14)%required = .false.;    dginp(14)%cptr = "./elem_nodes.d"
-      dginp(15)%key = "coord_sys";      dginp(15)%iptr => coord_sys;      dginp(15)%required = .false.;    dginp(15)%iptr = 1
-      dginp(16)%key = "slam0";          dginp(16)%rptr => slam0;          dginp(16)%required = .false.;    dginp(16)%rptr = 0d0 
-      dginp(17)%key = "sphi0";          dginp(17)%rptr => sphi0;          dginp(17)%required = .false.;    dginp(17)%rptr = 0d0 
-      dginp(18)%key = "h0";             dginp(18)%rptr => h0;             dginp(18)%required = .false.;    dginp(18)%rptr = 1d0   
-      dginp(19)%key = "curve_file";     dginp(19)%cptr => curve_file;     dginp(19)%required = .false.;    dginp(19)%cptr = "./cl_nodes.cb"
-      dginp(20)%key = "sol_opt";        dginp(20)%iptr => sol_opt;        dginp(20)%required = .false.;    dginp(20)%iptr = 0  
-      dginp(21)%key = "sta_opt";        dginp(21)%iptr => sta_opt;        dginp(21)%required = .false.;    dginp(21)%iptr = 0  
-      dginp(22)%key = "sol_snap";       dginp(22)%rptr => sol_snap;       dginp(22)%required = .false.;    dginp(22)%rptr = 0  
-      dginp(23)%key = "sta_snap";       dginp(23)%rptr => sta_snap;       dginp(23)%required = .false.;    dginp(23)%rptr = 0  
-      dginp(24)%key = "sta_file";       dginp(24)%cptr => stations_file;  dginp(24)%required = .false.;    dginp(24)%cptr = "./stations.d"  
-      dginp(25)%key = "esl";            dginp(25)%rptr => esl;            dginp(25)%required = .false.;    dginp(25)%rptr = 0d0       
-!       dginp(25)%key = "??";             dginp(25)%?ptr => ??;             dginp(25)%required = .false.;    dginp(25)%?ptr = ??  
+     dginp(1)%key = "grid_file";    dginp(1)%cptr => grid_file ;     dginp(1)%required = .true.;   dginp(1)%cptr = ""
+     dginp(2)%key = "forcing_file"; dginp(2)%cptr => forcing_file;   dginp(2)%required = .true.;   dginp(2)%cptr = ""
+     dginp(3)%key = "p";            dginp(3)%iptr => p;              dginp(3)%required = .true.;   dginp(3)%iptr = 1
+     dginp(4)%key = "ctp";          dginp(4)%iptr => ctp;            dginp(4)%required = .false.;  dginp(4)%iptr = 1
+     dginp(5)%key = "hbp";          dginp(5)%iptr => hbp;            dginp(5)%required = .false.;  dginp(5)%iptr = 1
+     dginp(6)%key = "rk";           dginp(6)%iptr => rk_type;        dginp(6)%required = .false.;  dginp(6)%iptr = 22      
+     dginp(7)%key = "dt";           dginp(7)%rptr => dt;             dginp(7)%required = .true.;   dginp(7)%rptr = 0.5d0
+     dginp(8)%key = "tf";           dginp(8)%rptr => tf;             dginp(8)%required = .true.;   dginp(8)%rptr = 1
+     dginp(9)%key = "dramp";        dginp(9)%rptr => dramp;          dginp(9)%required = .true.;   dginp(9)%rptr = 0.08d0
+     dginp(10)%key = "cf";          dginp(10)%rptr => cf;            dginp(10)%required = .true.;  dginp(10)%rptr = 0.0025d0
+!      dginp(11)%key = "lines";       dginp(11)%rptr => lines;         dginp(11)%required = .true.;  dginp(11)%rptr = 10d0
+     dginp(12)%key = "out_direc";   dginp(12)%cptr => out_direc;     dginp(12)%required = .false.; dginp(12)%cptr = "./"
+     dginp(13)%key = "npart";       dginp(13)%iptr => npart;         dginp(13)%required = .false.; dginp(13)%iptr = 1
+     dginp(14)%key = "bathy_file";  dginp(14)%cptr => bathy_file;    dginp(14)%required = .false.; dginp(14)%cptr = "./elem_nodes.d"
+     dginp(15)%key = "coord_sys";   dginp(15)%iptr => coord_sys;     dginp(15)%required = .false.; dginp(15)%iptr = 1
+     dginp(16)%key = "slam0";       dginp(16)%rptr => slam0;         dginp(16)%required = .false.; dginp(16)%rptr = 0d0 
+     dginp(17)%key = "sphi0";       dginp(17)%rptr => sphi0;         dginp(17)%required = .false.; dginp(17)%rptr = 0d0 
+     dginp(18)%key = "h0";          dginp(18)%rptr => h0;            dginp(18)%required = .false.; dginp(18)%rptr = 1d0   
+     dginp(19)%key = "curve_file";  dginp(19)%cptr => curve_file;    dginp(19)%required = .false.; dginp(19)%cptr = "./cl_nodes.cb"
+     dginp(20)%key = "sol_opt";     dginp(20)%iptr => sol_opt;       dginp(20)%required = .false.; dginp(20)%iptr = 0  
+     dginp(21)%key = "sta_opt";     dginp(21)%iptr => sta_opt;       dginp(21)%required = .false.; dginp(21)%iptr = 0  
+     dginp(22)%key = "sol_snap";    dginp(22)%rptr => sol_snap;      dginp(22)%required = .false.; dginp(22)%rptr = 0  
+     dginp(23)%key = "sta_snap";    dginp(23)%rptr => sta_snap;      dginp(23)%required = .false.; dginp(23)%rptr = 0  
+     dginp(24)%key = "sta_file";    dginp(24)%cptr => stations_file; dginp(24)%required = .false.; dginp(24)%cptr = "./stations.d"  
+     dginp(25)%key = "esl";         dginp(25)%rptr => esl;           dginp(25)%required = .false.; dginp(25)%rptr = 0d0       
+!      dginp(25)%key = "??";        dginp(25)%?ptr => ??;            dginp(25)%required = .false.;    dginp(25)%?ptr = ??  
       
 
       

@@ -130,7 +130,7 @@
       IMPLICIT NONE
       INTEGER :: stage
       INTEGER :: n,i
-      INTEGER :: alloc_status(3)
+      INTEGER :: alloc_status(4)
       
       alloc_status(:) = 0      
       
@@ -150,11 +150,12 @@
         ALLOCATE(fbstag(nfbsfr),fbstag2(nfbsfr),fbsbgn(nfbsfr),fbsend(nfbsfr),fbssig(nfbsfr),STAT = alloc_status(1))
         ALLOCATE(fbsamp(nvel,nbou,nfbsfr),STAT = alloc_status(2))
       ELSE IF (stage == 4) THEN
-        n = 3
+        n = 4
         ! Boundary information interpolated to quadrature points
-        ALLOCATE(obamp_qpt(nobfr,mnqpte,nobed),obph_qpt(nobfr,mnqpte,nobed),obdepth_qpt(nobed,mnqpte),STAT=alloc_status(1))
-        ALLOCATE(fbamp_qpt(nfbfr,mnqpte,nfbed),fbph_qpt(nfbfr,mnqpte,nfbed),STAT=alloc_status(2))      
-        ALLOCATE(fbsamp_qpt(nfbsfr,mnqpte,nfbed) ,STAT=alloc_status(3))
+        ALLOCATE(obamp_qpt(nobfr,mnqpte,nobed),obph_qpt(nobfr,mnqpte,nobed),STAT=alloc_status(1))
+        ALLOCATE(obdepth_qpt(nobed,mnqpte),STAT=alloc_status(2))
+        ALLOCATE(fbamp_qpt(nfbfr,mnqpte,nfbed),fbph_qpt(nfbfr,mnqpte,nfbed),STAT=alloc_status(3))      
+        ALLOCATE(fbsamp_qpt(nfbsfr,mnqpte,nfbed) ,STAT=alloc_status(4))
       ENDIF
       
       
@@ -315,7 +316,7 @@
                          area,edlen,edlen_area,normal
       
       IMPLICIT NONE
-      INTEGER, PARAMETER :: n=13
+      INTEGER, PARAMETER :: n=14
       INTEGER :: alloc_status(n)
       INTEGER :: i
       
@@ -330,19 +331,20 @@
       ALLOCATE(hbqpte_init(ne,4*mnqpte),hbqpte(ne,4*mnqpte),hbqpted(ned,mnqpte), STAT = alloc_status(4))      
       
       ! Area transformation information
-      ALLOCATE(psia(mnnds,mnqpta+4*mnqpte,2*nel_type),dpsidr(mnnds,mnqpta+4*mnqpte,2*nel_type),dpsids(mnnds,mnqpta+4*mnqpte,2*nel_type),STAT = alloc_status(5))
-      ALLOCATE(detJa(ne,mnqpta),mmi_init(ne,mndof*mndof),mmi(ne,mndof*mndof),STAT = alloc_status(6))
-      ALLOCATE(nx_pt(ned,mnqpte),ny_pt(ned,mnqpte),cfac(ned,mnqpte),Spe(ned,mnqpte),STAT = alloc_status(7)) 
-      ALLOCATE(psiv(mnnds,mnnds,norder),psic(mnnds,mnnds,norder),STAT = alloc_status(8))
+      ALLOCATE(psia(mnnds,mnqpta+4*mnqpte,2*nel_type),STAT = alloc_status(5))
+      ALLOCATE(dpsidr(mnnds,mnqpta+4*mnqpte,2*nel_type),dpsids(mnnds,mnqpta+4*mnqpte,2*nel_type),STAT = alloc_status(6))
+      ALLOCATE(detJa(ne,mnqpta),mmi_init(ne,mndof*mndof),mmi(ne,mndof*mndof),STAT = alloc_status(7))
+      ALLOCATE(nx_pt(ned,mnqpte),ny_pt(ned,mnqpte),cfac(ned,mnqpte),Spe(ned,mnqpte),STAT = alloc_status(8)) 
+      ALLOCATE(psiv(mnnds,mnnds,norder),psic(mnnds,mnnds,norder),STAT = alloc_status(9))
       
       ! Edge transformation information
-      ALLOCATE(psie(mnp,mnqpte,norder),dpsidxi(mnp,mnqpte,norder),STAT = alloc_status(9))
-      ALLOCATE(detJe(ned,mnqpte),STAT = alloc_status(10))
+      ALLOCATE(psie(mnp,mnqpte,norder),dpsidxi(mnp,mnqpte,norder),STAT = alloc_status(10))
+      ALLOCATE(detJe(ned,mnqpte),STAT = alloc_status(11))
       
       ! Depreciated arrays, used as a check
-      ALLOCATE(area(ne),STAT = alloc_status(11))
-      ALLOCATE(edlen(ned),edlen_area(2,ned),STAT = alloc_status(12))      
-      ALLOCATE(normal(2,ned),STAT = alloc_status(13))
+      ALLOCATE(area(ne),STAT = alloc_status(12))
+      ALLOCATE(edlen(ned),edlen_area(2,ned),STAT = alloc_status(13))      
+      ALLOCATE(normal(2,ned),STAT = alloc_status(14))
       
       DO i = 1,n
         IF (alloc_status(i) /= 0) THEN
@@ -489,7 +491,7 @@
                      
 
      IMPLICIT NONE
-     INTEGER, PARAMETER :: n=9
+     INTEGER, PARAMETER :: n=11
      INTEGER :: alloc_status(n)
      INTEGER :: i
           
@@ -500,19 +502,22 @@
      ! Solution pointer arrays
      ALLOCATE(Hi(mnired,mnqpte),He(mnired,mnqpte),Zi(mnired,mnqpte),Ze(mnired,mnqpte), STAT=alloc_status(1))
      ALLOCATE(Qxi(mnired,mnqpte),Qxe(mnired,mnqpte),Qyi(mnired,mnqpte),Qye(mnired,mnqpte),STAT=alloc_status(2))
-     ALLOCATE(xmi(mnired,mnqpte),xme(mnired,mnqpte),ymi(mnired,mnqpte),yme(mnired,mnqpte),xymi(mnired,mnqpte),xyme(mnired,mnqpte),STAT=alloc_status(3))
+     ALLOCATE(xmi(mnired,mnqpte),ymi(mnired,mnqpte),xymi(mnired,mnqpte),STAT=alloc_status(3))
+     ALLOCATE(xme(mnired,mnqpte),yme(mnired,mnqpte),xyme(mnired,mnqpte),STAT=alloc_status(4))
+
        
      ! Edge normals and jacobians
-     ALLOCATE(inx(mnired,mnqpte),iny(mnired,mnqpte),icfac(mnired,mnqpte),detJe_in(mnired,mnqpte),detJe_ex(mnired,mnqpte),STAT=alloc_status(4))      
+     ALLOCATE(inx(mnired,mnqpte),iny(mnired,mnqpte),icfac(mnired,mnqpte),STAT=alloc_status(5))
+     ALLOCATE(detJe_in(mnired,mnqpte),detJe_ex(mnired,mnqpte),STAT=alloc_status(6))      
 
      ! Temporary storage arrays, LLF constant and fluxes
-     ALLOCATE(const(mnired),Hhatv(mnired),Zhatv(mnired),Qxhatv(mnired),Qyhatv(mnired),STAT=alloc_status(5))
+     ALLOCATE(const(mnired),Hhatv(mnired),Zhatv(mnired),Qxhatv(mnired),Qyhatv(mnired),STAT=alloc_status(7))
      
      ! LDG pointer arrays
-     ALLOCATE(Exxi(mnired,mnqpte),Exxe(mnired,mnqpte), STAT=alloc_status(6))
-     ALLOCATE(Eyyi(mnired,mnqpte),Eyye(mnired,mnqpte), STAT=alloc_status(7))
-     ALLOCATE(Exyi(mnired,mnqpte),Exye(mnired,mnqpte), STAT=alloc_status(8))
-     ALLOCATE(Eyxi(mnired,mnqpte),Eyxe(mnired,mnqpte), STAT=alloc_status(9))     
+     ALLOCATE(Exxi(mnired,mnqpte),Exxe(mnired,mnqpte), STAT=alloc_status(8))
+     ALLOCATE(Eyyi(mnired,mnqpte),Eyye(mnired,mnqpte), STAT=alloc_status(9))
+     ALLOCATE(Exyi(mnired,mnqpte),Exye(mnired,mnqpte), STAT=alloc_status(10))
+     ALLOCATE(Eyxi(mnired,mnqpte),Eyxe(mnired,mnqpte), STAT=alloc_status(11))     
      
       DO i = 1,n
         IF (alloc_status(i) /= 0) THEN
