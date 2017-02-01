@@ -95,9 +95,9 @@
           !!!!!!!!!!!!!!!!!!!
 
 
-          CALL calc_cubic_spline(1,bou,n,sig,ax(:,bou),bx(:,bou), &
-                                             cx(:,bou),dx(:,bou), &
-                                             dt(:,bou))
+          CALL calc_cubic_spline(1,bou,n,btype,sig,ax(:,bou),bx(:,bou), &
+                                                   cx(:,bou),dx(:,bou), &
+                                                   dt(:,bou))
 
 
           !!!!!!!!!!!!!!!!!!!
@@ -105,9 +105,9 @@
           !!!!!!!!!!!!!!!!!!!
 
 
-          CALL calc_cubic_spline(2,bou,n,sig,ay(:,bou),by(:,bou), &
-                                             cy(:,bou),dy(:,bou), &
-                                             dt(:,bou))
+          CALL calc_cubic_spline(2,bou,n,btype,sig,ay(:,bou),by(:,bou), &
+                                                   cy(:,bou),dy(:,bou), &
+                                                   dt(:,bou))
           
                   
            

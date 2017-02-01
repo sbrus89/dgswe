@@ -131,7 +131,7 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
 
       
-      SUBROUTINE calc_cubic_spline(coord,bou,n,sig,a,b,c,d,dt)
+      SUBROUTINE calc_cubic_spline(coord,bou,n,btype,sig,a,b,c,d,dt)
 
       USE globals, ONLY: base
       
@@ -140,6 +140,7 @@
       INTEGER, INTENT(IN) :: coord
       INTEGER, INTENT(IN) :: bou
       INTEGER, INTENT(IN) :: n
+      INTEGER, INTENT(IN) :: btype
       INTEGER :: i      
       INTEGER :: info
       
@@ -149,7 +150,9 @@
       REAL(rp), INTENT(OUT), DIMENSION(:) :: dt
       REAL(rp) :: mult
       REAL(rp) :: x1,y1,x2,y2
-      REAL(rp), DIMENSION(n) :: Ml,Md,Mu,v                 
+      REAL(rp), DIMENSION(n) :: Ml,Md,Mu,v
+      REAL(rp), DIMENSION(n,n) :: M
+      INTEGER, DIMENSION(n) :: ipiv
      
      
       DO i = 1,n-1
@@ -173,29 +176,64 @@
       ENDDO      
      
 
-
+      M = 0d0
 
       IF (sig < 1d-12) THEN   ! No tension      
       
-          ! Set up matrix 
-          Ml(1) = 0d0
-          Md(1) = 1d0
-          Mu(1) = 0d0
-          DO i = 2,n-1     
-            Ml(i) = dt(i-1)
-            Md(i) = 2d0*(dt(i-1)+dt(i))
-            Mu(i) = dt(i)
-          ENDDO
-          Ml(n) = 0d0
-          Md(n) = 1d0
-          Mu(n) = 0d0
+!           ! Set up matrix  (because of periodic b.c.'s, the system is not longer strictly tridiagonal)
+          
+!           Ml(1) = 0d0
+!           Md(1) = 1d0
+!           Mu(1) = 0d0
+!           DO i = 2,n-1     
+!             Ml(i) = dt(i-1)
+!             Md(i) = 2d0*(dt(i-1)+dt(i))
+!             Mu(i) = dt(i)
+!           ENDDO
+!           Ml(n) = 0d0
+!           Md(n) = 1d0
+!           Mu(n) = 0d0
 
+!           ! Set up RHS
+!           c(1) = 0d0
+!           DO i = 2,n-1
+!             c(i) = 3d0/dt(i)*(a(i+1)-a(i)) - 3d0/dt(i-1)*(a(i)-a(i-1)) 
+!           ENDDO
+!           c(n) = 0d0
+          
+       ! Solve system for c coefficients
+!         CALL DGTSV(n,1,Ml,Md,Mu,c,n,info)          
+
+           ! Set up matrix 
+           DO i = 2,n-1
+             M(i,i-1) = dt(i-1)
+             M(i,i) = 2d0*(dt(i-1)+dt(i))
+             M(i,i+1) = dt(i)
+           ENDDO
+           
           ! Set up RHS
           c(1) = 0d0
           DO i = 2,n-1
             c(i) = 3d0/dt(i)*(a(i+1)-a(i)) - 3d0/dt(i-1)*(a(i)-a(i-1)) 
           ENDDO
-          c(n) = 0d0
+          c(n) = 0d0           
+          
+          ! boundary conditions
+          IF (btype == 1 .OR. btype == 11 .OR. btype == 21) THEN    ! periodic for islands
+            M(1,1) = 1d0                                                ! second derivatives equal
+            M(1,n) = -1d0
+        
+            M(n,1) = -2d0*dt(n-1)/3d0 - 2d0*dt(1)/3d0                   ! first derivatives equal
+            M(n,2) = -dt(1)/3d0
+            M(n,n-1) = -dt(n-1)/3d0
+            c(n) = (a(n)-a(n-1))/dt(n-1) - (a(2)-a(1))/dt(1)
+          ELSE                                                      ! natural for land
+            M(1,1) = 1d0
+            M(n,n) = 1d0
+          ENDIF
+              
+       ! Solve system for c coefficients      
+        CALL DGESV(n,1,M,n,ipiv,c,n,info)              
           
       ELSE   ! With tension (had to multiply the LHS of Palucci's notes by 2 )
 
@@ -220,10 +258,12 @@
           ENDDO
           c(n) = 0d0
           
+        ! Solve system for c coefficients
+        CALL DGTSV(n,1,Ml,Md,Mu,c,n,info)             
+          
       ENDIF
       
-      ! Solve system for c coefficients
-      CALL DGTSV(n,1,Ml,Md,Mu,c,n,info)      
+      
 
       
 !       ! Solve system for c coefficients, forward sweep
@@ -241,10 +281,7 @@
 !       ENDDO
  
       ! Solve for other coefficients d and b
-      DO i = 1,n-1
-!         d(i) = (c(i+1)-c(i))/(3d0*dt)
-!         b(i) = (a(i+1)-a(i))/dt - dt*(2d0*c(i)+c(i+1))/3d0      
-      
+      DO i = 1,n-1      
         d(i) = (c(i+1)-c(i))/(3d0*dt(i))
         b(i) = (a(i+1)-a(i))/dt(i) - dt(i)*(2d0*c(i)+c(i+1))/3d0
       ENDDO
