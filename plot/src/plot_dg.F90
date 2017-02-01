@@ -10,7 +10,7 @@
                          deg2rad
       USE grid_file_mod
       USE basis, ONLY: element_nodes,element_basis
-      USE read_write_output, ONLY: read_solution_full,read_fort63,read_fort64, &
+      USE read_write_output, ONLY: read_solution_full,read_fort6163,read_fort6264, &
                                    read_dg63,read_dg64
       USE read_dginp, ONLY: read_input,out_direc,p,ctp,hbp,tf, &
                             grid_file,curve_file,cb_file_exists,bathy_file,hb_file_exists, &
@@ -194,7 +194,7 @@
       
       IF (zeta%plot_sol_option == 1 .or. vel%plot_sol_option == 1) THEN
         PRINT("(A)"), "Reading zeta solution..."          
-        CALL read_fort63(out_direc,t,eta,nsnap_Z) 
+        CALL read_fort6163(out_direc,"63",t,eta,nsnap_Z) 
         ALLOCATE(Z(3,ne,nsnap_Z))
         DO snap = 1,nsnap_Z
           DO el = 1,ne
@@ -215,7 +215,7 @@
       ENDIF        
       IF (vel%plot_sol_option == 1) THEN
         PRINT("(A)"), "Reading u and v solutions..."       
-        CALL read_fort64(out_direc,t,uu2,vv2,nsnap_Qx)
+        CALL read_fort6264(out_direc,"64make ",t,uu2,vv2,nsnap_Qx)
         ALLOCATE(Qx(3,ne,nsnap_Qx))
         ALLOCATE(Qy(3,ne,nsnap_Qx))        
         DO snap = 1,nsnap_Qx
