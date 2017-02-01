@@ -49,6 +49,7 @@ objects = globals.o kdtree2.o allocation.o basis.o  \
           read_input.o read_grid.o write_results.o system.o \
           bathy_interp.o bathymetry_interp_mod.o lapack_interfaces.o interp_check.o \
           grid_file_mod.o shape_functions_mod.o curvilinear_nodes_mod.o  \
+          area_qpts_mod.o edge_qpts_mod.o \
           transformation.o vandermonde.o edge_connectivity_mod.o quit.o version.o
 
 obj := $(patsubst %.o, $(ODIR)%.o,$(objects))
@@ -72,19 +73,20 @@ $(ODIR) :
 	mkdir -p $@
 	
 version:
-	@sed -i '5 c \      CHARACTER(:), ALLOCATABLE, PARAMETER :: gitBranch = "$(GIT_BRANCH)" ' ../../src/version.F90
-	@sed -i '6 c \      CHARACTER(:), ALLOCATABLE, PARAMETER :: gitSHA = "$(GIT_SHA) $(GIT_MOD)" ' ../../src/version.F90
-	@sed -i '7 c \      CHARACTER(:), ALLOCATABLE, PARAMETER :: compiler_version = "$(FC_VERSION)" ' ../../src/version.F90
-	@sed -i '8 c \      CHARACTER(:), ALLOCATABLE, PARAMETER :: compiler_flags = "$(FFLAGS)" ' ../../src/version.F90
-	@sed -i '9 c \      CHARACTER(:), ALLOCATABLE, PARAMETER :: modified_files = "$(GIT_MFILES)" ' ../../src/version.F90
-	@sed -i '10 c \      CHARACTER(:), ALLOCATABLE, PARAMETER :: compile_date = "$(DATE)" ' ../../src/version.F90
-	@sed -i '11 c \      CHARACTER(:), ALLOCATABLE, PARAMETER :: host = "$(NAME)" ' ../../src/version.F90
+	@sed -i '25 c \      gitBranch = "$(GIT_BRANCH)" ' ../../src/version.F90
+	@sed -i '26 c \      gitSHA = "$(GIT_SHA) $(GIT_MOD)" ' ../../src/version.F90
+	@sed -i '27 c \      compiler_version = "$(FC_VERSION)" ' ../../src/version.F90
+	@sed -i '28 c \      compiler_flags = "$(FFLAGS)" ' ../../src/version.F90
+	@sed -i '29 c \      modified_files = "$(GIT_MFILES)" ' ../../src/version.F90
+	@sed -i '30 c \      compile_date = "$(DATE)" ' ../../src/version.F90
+	@sed -i '31 c \      host = "$(NAME)" ' ../../src/version.F90
+
 	
 ########################################################################
 #                            File Targets                              #
 ########################################################################	
 
-$(ODIR)kdtree2.o: ../../src/kdtree2.F
+$(ODIR)kdtree2.o: ../../src/kdtree2.F90
 	$(FC) $(FFLAGS) -c $< -o $@
 	mv kdtree2_*.mod  $(ODIR)
 	
@@ -119,9 +121,17 @@ $(ODIR)shape_functions_mod.o : ../../src/shape_functions_mod.F90 $(ODIR)globals.
 	$(FC) $(FFLAGS) -c $< -o $@
 	mv shape_functions_mod.mod $(ODIR)
 
-$(ODIR)transformation.o : ../../src/transformation.F90          $(ODIR)globals.o $(ODIR)basis.o $(ODIR)lapack_interfaces.o $(ODIR)vandermonde.o $(ODIR)shape_functions_mod.o
+$(ODIR)transformation.o : ../../src/transformation.F90          $(ODIR)globals.o $(ODIR)basis.o $(ODIR)lapack_interfaces.o $(ODIR)vandermonde.o $(ODIR)shape_functions_mod.o $(ODIR)area_qpts_mod.o
 	$(FC) $(FFLAGS) -c $< -o $@
 	mv transformation.mod $(ODIR)
+	
+$(ODIR)area_qpts_mod.o : ../../src/area_qpts_mod.F90            $(ODIR)globals.o $(ODIR)edge_qpts_mod.o
+	$(FC) $(FFLAGS) -c $< -o $@
+	mv area_qpts_mod.mod $(ODIR)
+
+$(ODIR)edge_qpts_mod.o : ../../src/edge_qpts_mod.F90            $(ODIR)globals.o 
+	$(FC) $(FFLAGS) -c $< -o $@
+	mv edge_qpts_mod.mod $(ODIR)		
 	
 $(ODIR)vandermonde.o : ../../src/vandermonde.F90                $(ODIR)globals.o $(ODIR)basis.o
 	$(FC) $(FFLAGS) -c $< -o $@
