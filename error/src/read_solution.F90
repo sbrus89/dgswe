@@ -1,7 +1,7 @@
       SUBROUTINE read_solution(sol,t)
 
       USE globals, ONLY:rp,solution,lines
-      USE read_write_output, ONLY: read_solution_full,read_fort63,read_fort64
+      USE read_write_output, ONLY: read_solution_full,read_fort6163,read_fort6264
 
       IMPLICIT NONE
       
@@ -45,8 +45,8 @@
 #elif adcirc     
 
       nsnap_read = lines
-      CALL read_fort63(sol%out_direc,t_sol,eta,nsnap_read,last_snap="T")
-      CALL read_fort64(sol%out_direc,t_sol,u,v,nsnap_read,last_snap="T")
+      CALL read_fort6163(sol%out_direc,"63",t_sol,eta,nsnap_read,last_snap="T")
+      CALL read_fort6264(sol%out_direc,"64",t_sol,u,v,nsnap_read,last_snap="T")
       
       ALLOCATE(sol%H(sol%ne,3,1),sol%Qx(sol%ne,3,1),sol%Qy(sol%ne,3,1))
       DO el = 1,sol%ne
