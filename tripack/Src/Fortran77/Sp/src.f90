@@ -2633,7 +2633,7 @@ subroutine edge ( in1, in2, x, y, lwk, iwk, list, lptr, lend, ier )
   write (*,130) in1, in2
   130 format (//5x,'*** error in edge:  invalid triangula', &
           'tion or null triangles on boundary'/ &
-          9x,'in1 =',i4,', in2=',i4/)
+          9x,'in1 =',i7,', in2=',i7/)
   return
 !
 ! Error flag returned by OPTIM.

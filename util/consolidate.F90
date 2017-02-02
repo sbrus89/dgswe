@@ -25,6 +25,7 @@
       INTEGER, ALLOCATABLE, DIMENSION(:,:) :: adjnds   
       INTEGER, ALLOCATABLE, DIMENSION(:) :: keep_node
       INTEGER, ALLOCATABLE, DIMENSION(:) :: nd_fine2coarse
+      INTEGER, ALLOCATABLE, DIMENSION(:) :: nd_coarse2fine      
       INTEGER, ALLOCATABLE, DIMENSION(:) :: bou_node
       INTEGER, ALLOCATABLE, DIMENSION(:) :: bou_node_coarse
       INTEGER :: ntri
@@ -40,7 +41,9 @@
       INTEGER, ALLOCATABLE, DIMENSION(:,:) :: fbseg_coarse
       INTEGER, ALLOCATABLE, DIMENSION(:,:) :: fbnds_coarse
       REAL(rp), ALLOCATABLE, DIMENSION(:) :: fbseg_orient
+      REAL(rp), ALLOCATABLE, DIMENSION(:) :: orient      
       INTEGER :: ncbou
+      INTEGER :: ncnds
       INTEGER, ALLOCATABLE, DIMENSION(:) :: cbseg_coarse
       INTEGER, ALLOCATABLE, DIMENSION(:,:) :: cbnds_coarse
       INTEGER :: flag(3)
@@ -58,7 +61,7 @@
       INTEGER :: srchdp
       REAL(rp) :: len_avg
       REAL(rp), DIMENSION(:), ALLOCATABLE :: hnd
-      INTEGER :: it
+      INTEGER :: it,retri
       REAL(rp) :: px,py
       REAL(rp) :: lxy
       REAL(rp) :: hpt,l0
@@ -66,9 +69,9 @@
       REAL(rp), DIMENSION(:,:), ALLOCATABLE ::  frc    
       
       
-      fine_file_in = "/home/sbrus/data-drive/galveston_SL18/grid_dev/v25_cart/galveston_SL18_cart_type30.grd"
-      coarse_file_out = "/home/sbrus/data-drive/galveston_SL18/grid_dev/v25_cart/coarse.grd"
-      fine_file_out = "/home/sbrus/data-drive/galveston_SL18/grid_dev/v25_cart/galveston_SL18_cart.grd"      
+      fine_file_in = "/home/sbrus/data-drive/galveston_SL18/grid_dev/v26_cart/galveston_SL18_cart.grd"
+      coarse_file_out = "/home/sbrus/data-drive/galveston_SL18/grid_dev/v26_cart/coarse.grd"
+      fine_file_out = "/home/sbrus/data-drive/galveston_SL18/grid_dev/v26_cart/galveston_SL18_cart_no30.grd"      
          
       nverts(1) = 3
       nverts(2) = 4
@@ -84,7 +87,8 @@
       CALL print_grid_info(fine_file_in,grid_name,ne,nn)          
       
       CALL elements_per_node(ne,nn,nverts,el_type,ect,nepn,mnepn,epn)       
-      CALL find_edge_pairs(ne,nverts,el_type,ect,nepn,epn,ned,ged2el,ged2nn,ged2led)           
+      CALL find_edge_pairs(ne,nverts,el_type,ect,nepn,epn,ned,ged2el,ged2nn,ged2led)   
+!       CALL boundary_orientation(nbou,fbseg,fbnds,ne,ect,xy,nepn,epn,orient)      
       
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       ! Find the nodes adjacent each node
@@ -186,7 +190,7 @@
         
         nbou_coarse = nbou_coarse + 1
         
-        IF (nbnds <= 8) THEN              ! keep small island boundaries
+        IF (nbnds <= 9) THEN              ! keep small island boundaries
           DO j = 1,nbnds
             nd = fbnds(j,bou)
             IF (keep_node(nd) == -1) THEN
@@ -323,7 +327,7 @@
       ALLOCATE(xy_coarse(2,nodes_kept))
       ALLOCATE(depth_coarse(nodes_kept))
       ALLOCATE(bou_node_coarse(nodes_kept))
-      ALLOCATE(nd_fine2coarse(nn))
+      ALLOCATE(nd_fine2coarse(nn),nd_coarse2fine(nn))
       
       nn_coarse = 0
       nd_fine2coarse = 0
@@ -336,6 +340,7 @@
           depth_coarse(nn_coarse) = depth(nd)
           bou_node_coarse(nn_coarse) = bou_node(nd)
           nd_fine2coarse(nd) = nn_coarse
+          nd_coarse2fine(nn_coarse) = nd
         ENDIF        
       ENDDO      
       
@@ -354,8 +359,8 @@
         obseg_coarse(bou) = nbnds
       ENDDO
       
-      ALLOCATE(fbseg_coarse(2,nbou_coarse))
-      ALLOCATE(fbnds_coarse(nvel_coarse,nbou_coarse)) 
+      ALLOCATE(fbseg_coarse(2,nbou))
+      ALLOCATE(fbnds_coarse(nvel_coarse,nbou)) 
       ALLOCATE(cbseg_coarse(ncbou))
       ALLOCATE(cbnds_coarse(nvel_coarse,ncbou))
       
@@ -399,186 +404,15 @@
       
       ALLOCATE(tri(3,3*nn_coarse))
       ALLOCATE(ect_coarse(3,3*nn_coarse))
-      CALL delaunay_triangulation(nn_coarse,xy_coarse(1,:),xy_coarse(2,:),ncbou,cbseg_coarse,cbnds_coarse,ntri,tri,xa,ya) 
+      CALL delaunay_triangulation(nn_coarse,xy_coarse(1,:),xy_coarse(2,:),ncbou,cbseg_coarse,cbnds_coarse, &
+                                                                          nbou_coarse,fbseg_coarse,fbnds_coarse, &
+                                                                          ne_coarse,ect_coarse,xa,ya) 
 
-      ALLOCATE(et_coarse(ntri))
-      DO el = 1,ntri
+      ALLOCATE(et_coarse(3*nn_coarse))
+      DO el = 1,3*nn_coarse
         et_coarse(el) = 1
       ENDDO      
-            
-    
-      
-      
-      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-      ! Create coarse element connectity table
-      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-      
-      PRINT*, "Creating coarse grid data..." 
-      CALL elements_per_node(ntri,nn_coarse,nverts,et_coarse,tri,nepn,mnepn,epn)
-      
-      ! Delete elements that are outside the mesh boundaries
-      ALLOCATE(delete_el(ntri))
-      delete_el = 0
-      ne_coarse = 0
-      DO el = 1,ntri
-        flag = 0 
-        xc = 0d0
-        yc = 0d0
-        DO i = 1,3
-          flag(i) = bou_node_coarse(tri(i,el))
-          xc = xc + xy_coarse(1,tri(i,el))
-          yc = yc + xy_coarse(2,tri(i,el))
-        ENDDO
-        xc = xc/3d0
-        yc = yc/3d0
-        
-        IF (flag(1) == 1 .and. flag(2) == 1 .and. flag(3) == 1) THEN      ! elements containing 3 boundary nodes are candidates for deletion            
-           found = 0
-   search: DO bou = 1,nbou_coarse
-             DO nd = 1,fbseg_coarse(1,bou)-1
-               n1 = fbnds_coarse(nd,bou)
-               n2 = fbnds_coarse(nd+1,bou)
-               DO i = 1,3
-                 v1 = mod(i+0,3) + 1
-                 v2 = mod(i+1,3) + 1                 
-                 IF ((tri(v1,el) == n1 .and. tri(v2,el) == n2) .or. &
-                     (tri(v1,el) == n2 .and. tri(v2,el) == n1)) THEN
-                     found = 1
-                     EXIT search
-                 ENDIF
-               ENDDO               
-             ENDDO
-           ENDDO search
-           
-           IF (found == 1) THEN
-             x1 = xy_coarse(1,n1)
-             y1 = xy_coarse(2,n1)
-             x2 = xy_coarse(1,n2)
-             y2 = xy_coarse(2,n2)
-           
-             cross_product = fbseg_orient(bou)*((x2-x1)*(yc-y1) - (y2-y1)*(xc-x1))
-           
-             IF (cross_product <= 0d0) THEN
-               delete_el(el) = 1
-             ENDIF
-           ELSE
-             delete_el(el) = 1
-           ENDIF
-        ENDIF
-          
-      ENDDO
-
-      
-
-      
-      
-      ! Fix situation where boundary elements do not connect adjacent boundary nodes (because elements extend across narrow islands)
-      DO bou = 1,nbou_coarse
-        nbnds = fbseg_coarse(1,bou)
-        DO i = 1,nbnds-1
-          n1 = fbnds_coarse(i,bou)
-          n2 = fbnds_coarse(i+1,bou)
-          found = 0
- search2: DO j = 1,nepn(n1)
-            el = epn(j,n1)
-
-            DO k = 1,3
-              v1 = mod(k+0,3) + 1
-              v2 = mod(k+1,3) + 1
-               IF ((tri(v1,el) == n1 .and. tri(v2,el) == n2) .or. &
-                   (tri(v1,el) == n2 .and. tri(v2,el) == n1)) THEN
-                   found = 1
-                   EXIT search2
-               ENDIF
-            ENDDO
-          ENDDO search2
-          
-          IF (found == 0) THEN
- search3:   DO j = 1,nepn(n1)
-              el1 = epn(j,n1)
-              DO k = 1,3
-                v11 = mod(k+0,3) + 1
-                v21 = mod(k+1,3) + 1  
-                DO l = 1,nepn(n2)
-                  el2 = epn(l,n2)
-                  DO m = 1,3
-                    v12 = mod(m+0,3) + 1
-                    v22 = mod(m+1,3) + 1
-                    IF ((tri(v11,el1) == tri(v12,el2) .and. tri(v21,el1) == tri(v22,el2)) .or. &
-                        (tri(v11,el1) == tri(v22,el2) .and. tri(v21,el1) == tri(v12,el2))) THEN
-                        
-                      delete_el(el2) = 1  
-                      
-                      IF (bou_node_coarse(tri(v11,el1)) == 0) THEN
-                        n3 = tri(v11,el1)
-                      ELSE IF (bou_node_coarse(tri(v21,el1)) == 0) THEN
-                        n3 = tri(v21,el1) 
-                      ENDIF                      
-                      
-                      tri(1,el1) = n1
-                      IF (fbseg_orient(bou) < 0d0) THEN
-                        tri(2,el1) = n3
-                        tri(3,el1) = n2
-                      ELSE
-                        tri(2,el1) = n2
-                        tri(3,el1) = n3
-                      ENDIF
-                      
-                      EXIT search3
-                                            
-                    ENDIF
-                  ENDDO
-                ENDDO
-              ENDDO
-            ENDDO search3         
-          ENDIF
-          
-        ENDDO
-      ENDDO 
-      
-      
-      ! Keep elements containing 3 boundary nodes if the are connected to three interior elements
-      DO el1 = 1,ntri
-        IF (delete_el(el1) == 1) THEN
-        
-          flag = 0
-          DO i = 1,3
-            v11 = mod(i+0,3) + 1
-            v21 = mod(i+1,3) + 1
-            DO j = 1,3
-              nd = tri(j,el1)
-              DO k = 1,nepn(nd)
-                el2 = epn(k,nd)
-                DO m = 1,3
-                  v12 = mod(m+0,3) + 1
-                  v22 = mod(m+1,3) + 1                  
-                  IF ((tri(v11,el1) == tri(v12,el2) .and. tri(v21,el1) == tri(v22,el2)) .or. &
-                      (tri(v11,el1) == tri(v22,el2) .and. tri(v21,el1) == tri(v12,el2))) THEN
-                    IF (delete_el(el2) == 0) THEN   
-                      flag(i) = 1
-                    ENDIF
-                  ENDIF
-                ENDDO
-              ENDDO
-            ENDDO                                    
-          ENDDO
-          
-          IF (flag(1) == 1 .and. flag(2) == 1 .and. flag(3) == 1) THEN
-            delete_el(el1) = 0
-          ENDIF      
-          
-        ENDIF
-      ENDDO
-      
-      
-      DO el = 1,ntri
-        IF (delete_el(el) == 0) THEN
-          ne_coarse = ne_coarse + 1          
-          DO i = 1,3
-            ect_coarse(i,ne_coarse) = tri(i,el)
-          ENDDO
-        ENDIF      
-      ENDDO
+     
         
       
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -642,7 +476,8 @@
       ALLOCATE(frc(nn_coarse,2))
       dt = 0.2d0
       
-      DO it = 1,20
+      DO retri = 1,3
+      DO it = 1,10
  nodes: DO n1 = 1,nn_coarse
           
           frc(n1,1) = 0d0
@@ -685,9 +520,47 @@
         ENDDO
       ENDDO
       
+      CALL delaunay_triangulation(nn_coarse,xy_coarse(1,:),xy_coarse(2,:),ncbou,cbseg_coarse,cbnds_coarse, &
+                                                                          nbou_coarse,fbseg_coarse,fbnds_coarse, &
+                                                                          ne_coarse,ect_coarse,xa,ya) 
+                                                                          
+      CALL elements_per_node(ne_coarse,nn_coarse,nverts,et_coarse,ect_coarse,nepn,mnepn,epn) 
+      CALL find_edge_pairs(ne_coarse,nverts,et_coarse,ect_coarse,nepn,epn,ned,ged2el,ged2nn,ged2led) 
+      CALL find_adjacent_nodes(nn_coarse,mnepn,ned,ged2nn,nadjnds,adjnds)
+      
+      DO n1 = 1,nn_coarse
+        len_avg = 0d0
+        DO j = 1,nadjnds(n1)
+          n2 = adjnds(j,n1) 
+          x1 = xy_coarse(1,n1)
+          x2 = xy_coarse(1,n2)
+          y1 = xy_coarse(2,n1)
+          y2 = xy_coarse(2,n2)
+          
+          len_avg = len_avg + sqrt((x1-x2)**2+(y1-y2)**2)
+        ENDDO
+        hnd(n1) = len_avg/real(nadjnds(n1),rp)
+      ENDDO                                                                          
+      
+      ENDDO
+      
+      
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       ! Write output
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
+      
+      ncnds = 0                                        ! enclude feature constraints in coarse mesh so they are there for 
+      DO bou = 1,ncbou                                 ! subsequent refinements
+        nbnds = cbseg_coarse(bou)
+        fbseg_coarse(1,nbou_coarse+bou) = nbnds
+        fbseg_coarse(2,nbou_coarse+bou) = cbou_type
+        DO i = 1,nbnds
+          fbnds_coarse(i,nbou_coarse+bou) = cbnds_coarse(i,bou)
+          ncnds = ncnds + 1
+        ENDDO
+      ENDDO
+      nbou_coarse = nbou_coarse + ncbou
+      nvel_coarse = nvel_coarse + ncnds
       
       grid_name_coarse = grid_name // " coarse"
       

@@ -636,7 +636,7 @@
       INTEGER :: n1,n2
       
       ALLOCATE(nadjnds(nn))
-      ALLOCATE(adjnds(mnepn,nn))
+      ALLOCATE(adjnds(mnepn+1,nn))
       nadjnds = 0
       
       DO ed = 1,ned

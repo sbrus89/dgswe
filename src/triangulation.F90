@@ -277,15 +277,18 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!        
       
-      SUBROUTINE delaunay_triangulation(npt,ri,si,nbou,fbseg,fbnds,ntri,ect,ra,sa)
+      SUBROUTINE delaunay_triangulation(npt,ri,si,ncbou,cbseg,cbnds,nbou,fbseg,fbnds,ntri,ect,ra,sa)
 
       IMPLICIT NONE
       
       INTEGER, INTENT(IN) :: npt
       REAL(rp), DIMENSION(:), INTENT(IN) :: ri
       REAL(rp), DIMENSION(:), INTENT(IN) :: si
-      INTEGER, INTENT(IN) :: nbou
-      INTEGER, DIMENSION(:), INTENT(IN) :: fbseg
+      INTEGER, INTENT(IN) :: ncbou
+      INTEGER, DIMENSION(:), INTENT(IN) :: cbseg
+      INTEGER, DIMENSION(:,:), INTENT(IN) :: cbnds
+      INTEGER :: nbou
+      INTEGER, DIMENSION(:,:), INTENT(IN) :: fbseg
       INTEGER, DIMENSION(:,:), INTENT(IN) :: fbnds
       INTEGER, INTENT(OUT) :: ntri
       INTEGER, DIMENSION(:,:), INTENT(OUT) :: ect
@@ -293,10 +296,12 @@
       REAL(rp), INTENT(IN), OPTIONAL :: sa
 
       
-      INTEGER :: i,j
+      INTEGER :: i,j,k
       INTEGER :: remove
       INTEGER :: n
-      REAL(rp), ALLOCATABLE, DIMENSION(:) :: r,s      
+      INTEGER :: segtype
+      REAL(rp), ALLOCATABLE, DIMENSION(:) :: r,s  
+      REAL(rp), ALLOCATABLE, DIMENSION(:) :: rcc,scc      
       REAL(rp), ALLOCATABLE, DIMENSION(:) :: x,y        
       INTEGER, ALLOCATABLE, DIMENSION(:) :: list
       INTEGER, ALLOCATABLE, DIMENSION(:) :: lptr
@@ -309,38 +314,60 @@
       INTEGER :: nx
       INTEGER :: lwk
       INTEGER, ALLOCATABLE, DIMENSION(:,:) :: iwk
-      INTEGER :: bou
+      INTEGER, ALLOCATABLE, DIMENSION(:) :: iwork      
+      INTEGER :: bou,nd
       INTEGER :: nbnds
       INTEGER :: nd1,nd2
       REAL(rp) :: nx_rp
       REAL(rp), ALLOCATABLE, DIMENSION(:) :: dist
       REAL(rp) :: wx1,wx2,wy1,wy2
       INTEGER :: ncc 
-      INTEGER :: lcc(1),lct(1)
+      INTEGER, ALLOCATABLE, DIMENSION(:) :: lcc,lct
       INTEGER :: nrow
       INTEGER :: nt
-      INTEGER, ALLOCATABLE, DIMENSION(:,:) :: ltri   
+      INTEGER, ALLOCATABLE, DIMENSION(:,:) :: ltri  
+      INTEGER, ALLOCATABLE, DIMENSION(:) :: bnd_flag
+      INTEGER, ALLOCATABLE, DIMENSION(:) :: nd_flag
       INTEGER, DIMENSION(:), ALLOCATABLE :: tri_flag
-      INTEGER :: n1,n2      
+      INTEGER, DIMENSION(:), ALLOCATABLE :: ndtab
+      INTEGER :: vflag(3),vnd(3)
+      INTEGER :: vmax,vmin
+      INTEGER :: n1,n2  
+      REAL(rp) :: xc,yc
       REAL(rp) :: rdiff,sdiff,tol
       CHARACTER(3) :: nout
+      LOGICAL :: crtri
 
       n = npt
         
       
       ALLOCATE(r(n+1),s(n+1))
-      DO i = n,1,-1    ! add extra node so that first three aren't collinear
-        r(i+1) = ri(i)
-        s(i+1) = si(i)
+!       DO i = n,1,-1    ! add extra node so that first three aren't collinear
+!         r(i+1) = ri(i)
+!         s(i+1) = si(i)
+!       ENDDO
+!       IF (PRESENT(ra) .and. PRESENT(sa)) THEN
+!         r(1) = ra
+!         s(1) = sa
+!       ELSE
+!         r(1) = -1.1d0
+!         s(1) = -2d0
+!       ENDIF
+!       n = n+1  
+
+      DO i = 1,n
+        r(i) = ri(i)
+        s(i) = si(i)
       ENDDO
-      IF (PRESENT(ra) .and. PRESENT(sa)) THEN
-        r(1) = ra
-        s(1) = sa
-      ELSE
-        r(1) = -1.1d0
-        s(1) = -2d0
-      ENDIF
-      n = n+1      
+      
+
+      
+      
+      
+    
+      ncc = 0
+      ALLOCATE(lcc(1))
+
       
       PRINT*, "Triangulating nodes..."
       ALLOCATE(list(6*n),lptr(6*n),lend(n))
@@ -350,81 +377,119 @@
       IF (ier < 0) THEN
         PRINT*, "Error in trmesh, ier = ",ier
         STOP
-      ENDIF
+      ENDIF      
       
-!       PRINT*, "Enforcing feature constraints..."
-!       lwk = 6*n
-!       ALLOCATE(iwk(2,lwk))
-!   bnd:DO bou = 1,nbou
-!         nbnds = fbseg(bou)        
-!         DO i = 1,nbnds-1
-!            nd1 = fbnds(i,bou)
-!            nd2 = fbnds(i+1,bou)
-!            
-!            CALL edge(nd1,nd2,r,s,lwk,iwk,list,lptr,lend,ier)
+      
+      
+      
+      
+      PRINT*, "Enforcing feature constraints..."
+      lwk = 6*n      
+      ALLOCATE(iwk(2,lwk))
+      DO bou = 1,ncbou
+        nbnds = cbseg(bou)        
+        DO i = 1,nbnds-1
+           nd1 = cbnds(i,bou)
+           nd2 = cbnds(i+1,bou)
+           
+           CALL edge(nd1,nd2,r,s,lwk,iwk,list,lptr,lend,ier)
 !            PRINT*, ier
-!         ENDDO
-!       ENDDO bnd
-      
-      
-      ncc = 0 
-      lcc = 0
-      nrow = 6      
-      
-!       lwk = n
-!       ALLOCATE(iwk(2,n))      
-!       call delnod (1,ncc,lcc,n,r,s,list,lptr,lend,lnew,lwk,iwk,ier )      
-
-      
-      wx1 = r(1)
-      wx2 = wx1
-      wy1 = s(1)
-      wy2 = wy1
-      DO i = 2,N
-        IF (r(i) .LT. wx1) wx1 = r(i)
-        IF (r(i) .GT. wx2) wx2 = r(i)
-        IF (s(i) .LT. wy1) wy1 = s(i)
-        IF (s(i) .GT. wy2) wy2 = s(i)
+        ENDDO
       ENDDO 
-
-!       ncall = ncall + 1
-!       WRITE(nout,"(I3.3)") ncall
-!       OPEN(UNIT=90,file="tri"//nout//".ps")
-!       CALL trplot(90,7.5d0,wx1,wx2,wy1,wy2,ncc,lcc,n,r,s,list,lptr,lend,"(test)",.true.,ier)
-!       CLOSE(90)    
+      
+      PRINT*, "Enforcing boundary constraints..."
+      DO bou = 1,nbou
+        nbnds = fbseg(1,bou)        
+        DO i = 1,nbnds-1
+           nd1 = fbnds(i,bou)
+           nd2 = fbnds(i+1,bou)
+           
+           CALL edge(nd1,nd2,r,s,lwk,iwk,list,lptr,lend,ier)
+!            PRINT*, ier
+        ENDDO
+      ENDDO       
+      
+      
+    
+               
 
       PRINT*, "Converting triangulation data ..."
+      nrow = 6          
       ALLOCATE(ltri(nrow,12*n))
+      ALLOCATE(lct(ncc))
       CALL trlist ( ncc, lcc, n, list, lptr, lend, nrow, nt, ltri, lct, ier )
-
+      PRINT*, ier
       
-      ntri = 0
-      DO i = 1,nt
-        remove = 0
- nodes: DO j = 1,3
-          IF (ltri(j,i) == 1) THEN
-            remove = 1
-            EXIT nodes                        
-          ENDIF 
-        ENDDO nodes
-        
-        IF (remove == 0) THEN
-          ntri = ntri + 1
-          DO j = 1,3
-            ect(j,ntri) = ltri(j,i)-1    ! -1 to account for extra node
-          ENDDO
-        ENDIF
-      ENDDO
-
-
-
+      
+!       DO i = 1,nt
+!         
+!         
+!       
+!         CALL delnod ( k, ncc, lcc, n, x, y, list, lptr, lend, lnew, lwk, iwk, ier )        
+!       ENDDO
+      
+      
 !       ntri = 0
-!       DO i = 1,nt     
+!       DO i = 1,nt
+!         remove = 0
+!  nodes: DO j = 1,3
+!           IF (ltri(j,i) == 1) THEN
+!             remove = 1
+!             EXIT nodes                        
+!           ENDIF 
+!         ENDDO nodes
+!         
+!         IF (remove == 0) THEN
 !           ntri = ntri + 1
 !           DO j = 1,3
-!             ect(j,ntri) = ltri(j,i)
+!             ect(j,ntri) = ltri(j,i)-1    ! -1 to account for extra node
 !           ENDDO
+!         ENDIF
 !       ENDDO
+
+
+
+      ntri = 0
+      DO i = 1,nt 
+        remove = 0
+        
+  bchk: DO bou = 1,nbou
+          nbnds = fbseg(1,bou)
+          vflag = 0
+          vnd = 0
+          DO j = 1,3
+            nd = ltri(j,i)
+      nchk: DO k = 1,nbnds
+              IF (nd == fbnds(k,bou)) THEN
+                vflag(j) = 1
+                vnd(j) = k
+                EXIT nchk
+              ENDIF
+            ENDDO nchk
+          ENDDO
+                 
+          IF (vflag(1) + vflag(2) + vflag(3) == 3) THEN
+            vmax = fbnds(maxval(vnd),bou)
+            vmin = fbnds(minval(vnd),bou)
+            
+            IF ((vmin == ltri(1,i) .and. vmax == ltri(3,i)) .or. &
+                (vmin == ltri(2,i) .and. vmax == ltri(1,i)) .or. &
+                (vmin == ltri(3,i) .and. vmax == ltri(2,i))) THEN
+              remove = 1
+!               PRINT*, remove
+              EXIT bchk
+            ENDIF
+          ENDIF
+        ENDDO bchk     
+        
+        IF(remove == 0) THEN
+          ntri = ntri + 1
+          DO j = 1,3              
+!             ect(j,ntri) = ndtab(ltri(j,i))
+            ect(j,ntri) = ltri(j,i)             
+          ENDDO  
+        ENDIF
+      ENDDO
 
       RETURN
       END SUBROUTINE delaunay_triangulation      

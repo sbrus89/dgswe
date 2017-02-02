@@ -708,6 +708,87 @@
       RETURN
       END SUBROUTINE grid_size
       
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!      
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+      SUBROUTINE boundary_orientation(nbou,fbseg,fbnds,ne,ect,xy,nepn,epn,orient)
+      
+      IMPLICIT NONE
+      
+      INTEGER, INTENT(IN) :: nbou
+      INTEGER, DIMENSION(:,:), INTENT(IN) :: fbseg
+      INTEGER, DIMENSION(:,:), INTENT(IN) :: fbnds
+      INTEGER, INTENT(IN) :: ne
+      INTEGER, DIMENSION(:,:), INTENT(IN) :: ect
+      REAL(rp), DIMENSION(:,:), INTENT(IN) :: xy
+      INTEGER, DIMENSION(:), INTENT(IN) :: nepn
+      INTEGER, DIMENSION(:,:), INTENT(IN) :: epn
+      REAL(rp), DIMENSION(:), ALLOCATABLE, INTENT(OUT) :: orient
+      
+      INTEGER :: i,j,k,bou
+      INTEGER :: n1,n2
+      INTEGER :: v1,v2
+      INTEGER :: el
+      INTEGER :: cnt
+      REAL(rp) :: xc,yc
+      REAL(rp) :: x1,y1,x2,y2
+      REAL(rp) :: cross_product
+      
+      ALLOCATE(orient(nbou))
+      cnt = 0
+      
+      DO bou = 1,nbou
+        n1 = fbnds(1,bou)
+        n2 = fbnds(2,bou)
+        
+elsrch: DO k = 1,nepn(n1)
+
+          el = epn(k,n1)
+          
+          DO i = 1,3
+            v1 = mod(i+0,3) + 1
+            v2 = mod(i+1,3) + 1                 
+            IF ((ect(v1,el) == n1 .and. ect(v2,el) == n2) .or. &
+                (ect(v1,el) == n2 .and. ect(v2,el) == n1)) THEN
+                
+               xc = 0d0
+               yc = 0d0
+               DO j = 1,3
+                 xc = xc + xy(1,ect(i,el)) 
+                 yc = yc + xy(2,ect(i,el))
+               ENDDO
+               xc = xc/3d0
+               yc = yc/3d0
+               
+               x1 = xy(1,n1)
+               y1 = xy(2,n1)
+               x2 = xy(1,n2)
+               y2 = xy(2,n2)
+               
+               cross_product = (x2-x1)*(yc-y1) - (y2-y1)*(xc-x1)
+               
+               IF (cross_product < 0d0) THEN
+                 orient(bou) = -1d0    ! CCW
+               ELSE 
+                 orient(bou) = 1d0     ! CW
+               ENDIF
+              
+              EXIT  elsrch
+            ENDIF
+          ENDDO
+          
+        ENDDO elsrch   
+        
+        IF (fbseg(2,bou) /= 30) THEN
+          cnt = cnt + 1
+          PRINT*, cnt,bou,orient(bou)
+        ENDIF
+        
+      ENDDO
+      
+      RETURN
+      END SUBROUTINE boundary_orientation
+      
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!      
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
