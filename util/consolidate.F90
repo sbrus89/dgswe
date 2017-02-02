@@ -88,28 +88,9 @@
       
       CALL elements_per_node(ne,nn,nverts,el_type,ect,nepn,mnepn,epn)       
       CALL find_edge_pairs(ne,nverts,el_type,ect,nepn,epn,ned,ged2el,ged2nn,ged2led)   
-!       CALL boundary_orientation(nbou,fbseg,fbnds,ne,ect,xy,nepn,epn,orient)      
-      
-      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-      ! Find the nodes adjacent each node
-      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!      
-      
+!       CALL boundary_orientation(nbou,fbseg,fbnds,ne,ect,xy,nepn,epn,orient)                    
       CALL find_adjacent_nodes(nn,mnepn,ned,ged2nn,nadjnds,adjnds)
-      
-!       ALLOCATE(nadjnds(nn))
-!       ALLOCATE(adjnds(mnepn,nn))
-!       nadjnds = 0
-!       
-!       DO ed = 1,ned
-!         n1 = ged2nn(1,ed)  ! find the node numbers on each edge
-!         n2 = ged2nn(2,ed)
-!         
-!         nadjnds(n1) = nadjnds(n1) + 1 ! count the nodes adjacent to node n1
-!         nadjnds(n2) = nadjnds(n2) + 1 ! count the nodes adjacent to node n2
-!         
-!         adjnds(nadjnds(n1),n1) = n2 ! node n2 is adjacent to node n1
-!         adjnds(nadjnds(n2),n2) = n1 ! node n1 is adjacent to node n2                       
-!       ENDDO
+     
       
       
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -196,7 +177,7 @@
             IF (keep_node(nd) == -1) THEN
               keep_node(nd) = 1
               nodes_kept = nodes_kept + 1
-              PRINT*, "keep node", nd
+              PRINT*, "keeping node on small island", nd
             ENDIF
           ENDDO
         ELSE
@@ -233,43 +214,7 @@
           nodes_kept = nodes_kept + 1   
           
         ENDIF
-        
-        n1 = fbnds(1,bou)                 ! find boundary orientation
-        n2 = fbnds(2,bou)
-
-        DO el = 1,ne
-          DO i = 1,3
-            v1 = mod(i+0,3) + 1
-            v2 = mod(i+1,3) + 1                 
-            IF ((ect(v1,el) == n1 .and. ect(v2,el) == n2) .or. &
-                (ect(v1,el) == n2 .and. ect(v2,el) == n1)) THEN
-                
-               xc = 0d0
-               yc = 0d0
-               DO j = 1,3
-                 xc = xc + xy(1,ect(i,el)) 
-                 yc = yc + xy(2,ect(i,el))
-               ENDDO
-               xc = xc/3d0
-               yc = yc/3d0
-               
-               x1 = xy(1,n1)
-               y1 = xy(2,n1)
-               x2 = xy(1,n2)
-               y2 = xy(2,n2)
-               
-               cross_product = (x2-x1)*(yc-y1) - (y2-y1)*(xc-x1)
-               
-               IF (cross_product < 0d0) THEN
-                 fbseg_orient(nbou_coarse) = -1d0    ! CCW
-               ELSE 
-                 fbseg_orient(nbou_coarse) = 1d0     ! CW
-               ENDIF
               
-              EXIT  
-            ENDIF
-          ENDDO
-        ENDDO        
       ENDDO fbnd
       
       nvel_coarse = nodes_kept - neta_coarse
