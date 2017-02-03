@@ -277,32 +277,27 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!        
       
-      SUBROUTINE delaunay_triangulation(npt,ri,si,ncbou,cbseg,cbnds,nbou,fbseg,fbnds,ntri,ect,ra,sa)
+      SUBROUTINE delaunay_triangulation(n,x,y,ncbou,cbseg,cbnds,nbou,fbseg,fbnds,ntri,ect)
 
       IMPLICIT NONE
       
-      INTEGER, INTENT(IN) :: npt
-      REAL(rp), DIMENSION(:), INTENT(IN) :: ri
-      REAL(rp), DIMENSION(:), INTENT(IN) :: si
+      INTEGER, INTENT(INOUT) :: n
+      REAL(rp), DIMENSION(n), INTENT(INOUT) :: x
+      REAL(rp), DIMENSION(n), INTENT(INOUT) :: y
       INTEGER, INTENT(IN) :: ncbou
       INTEGER, DIMENSION(:), INTENT(IN) :: cbseg
-      INTEGER, DIMENSION(:,:), INTENT(IN) :: cbnds
+      INTEGER, DIMENSION(:,:), INTENT(INOUT) :: cbnds
       INTEGER :: nbou
       INTEGER, DIMENSION(:,:), INTENT(IN) :: fbseg
-      INTEGER, DIMENSION(:,:), INTENT(IN) :: fbnds
+      INTEGER, DIMENSION(:,:), INTENT(INOUT) :: fbnds
       INTEGER, INTENT(OUT) :: ntri
       INTEGER, DIMENSION(:,:), INTENT(OUT) :: ect
-      REAL(rp), INTENT(IN), OPTIONAL :: ra
-      REAL(rp), INTENT(IN), OPTIONAL :: sa
+
 
       
-      INTEGER :: i,j,k
-      INTEGER :: remove
-      INTEGER :: n
-      INTEGER :: segtype
-      REAL(rp), ALLOCATABLE, DIMENSION(:) :: r,s  
-      REAL(rp), ALLOCATABLE, DIMENSION(:) :: rcc,scc      
-      REAL(rp), ALLOCATABLE, DIMENSION(:) :: x,y        
+      INTEGER :: i,j,k,ed
+      INTEGER :: remove,found
+      INTEGER :: segtype    
       INTEGER, ALLOCATABLE, DIMENSION(:) :: list
       INTEGER, ALLOCATABLE, DIMENSION(:) :: lptr
       INTEGER, ALLOCATABLE, DIMENSION(:) :: lend
@@ -310,61 +305,28 @@
       INTEGER, ALLOCATABLE, DIMENSION(:) :: near
       INTEGER, ALLOCATABLE, DIMENSION(:) :: next
       INTEGER :: ier
-      INTEGER :: nit
-      INTEGER :: nx
       INTEGER :: lwk
       INTEGER, ALLOCATABLE, DIMENSION(:,:) :: iwk
       INTEGER, ALLOCATABLE, DIMENSION(:) :: iwork      
       INTEGER :: bou,nd
       INTEGER :: nbnds
       INTEGER :: nd1,nd2
-      REAL(rp) :: nx_rp
       REAL(rp), ALLOCATABLE, DIMENSION(:) :: dist
-      REAL(rp) :: wx1,wx2,wy1,wy2
       INTEGER :: ncc 
       INTEGER, ALLOCATABLE, DIMENSION(:) :: lcc,lct
       INTEGER :: nrow
       INTEGER :: nt
       INTEGER, ALLOCATABLE, DIMENSION(:,:) :: ltri  
-      INTEGER, ALLOCATABLE, DIMENSION(:) :: bnd_flag
-      INTEGER, ALLOCATABLE, DIMENSION(:) :: nd_flag
-      INTEGER, DIMENSION(:), ALLOCATABLE :: tri_flag
-      INTEGER, DIMENSION(:), ALLOCATABLE :: ndtab
       INTEGER :: vflag(3),vnd(3)
-      INTEGER :: vmax,vmin
+      INTEGER :: vmin,vmax
       INTEGER :: n1,n2  
+      INTEGER :: v1,v2
+      INTEGER :: el1,el2
       REAL(rp) :: xc,yc
-      REAL(rp) :: rdiff,sdiff,tol
-      CHARACTER(3) :: nout
-      LOGICAL :: crtri
+      REAL(rp) :: dc(3),dmax,dmin
 
-      n = npt
-        
-      
-      ALLOCATE(r(n+1),s(n+1))
-!       DO i = n,1,-1    ! add extra node so that first three aren't collinear
-!         r(i+1) = ri(i)
-!         s(i+1) = si(i)
-!       ENDDO
-!       IF (PRESENT(ra) .and. PRESENT(sa)) THEN
-!         r(1) = ra
-!         s(1) = sa
-!       ELSE
-!         r(1) = -1.1d0
-!         s(1) = -2d0
-!       ENDIF
-!       n = n+1  
 
-      DO i = 1,n
-        r(i) = ri(i)
-        s(i) = si(i)
-      ENDDO
-      
 
-      
-      
-      
-    
       ncc = 0
       ALLOCATE(lcc(1))
 
@@ -372,7 +334,7 @@
       PRINT*, "Triangulating nodes..."
       ALLOCATE(list(6*n),lptr(6*n),lend(n))
       ALLOCATE(near(n),next(n),dist(n))
-      CALL trmesh(n,r,s,list,lptr,lend,lnew,near,next,dist,ier)
+      CALL trmesh(n,x,y,list,lptr,lend,lnew,near,next,dist,ier)
       
       IF (ier < 0) THEN
         PRINT*, "Error in trmesh, ier = ",ier
@@ -392,7 +354,7 @@
            nd1 = cbnds(i,bou)
            nd2 = cbnds(i+1,bou)
            
-           CALL edge(nd1,nd2,r,s,lwk,iwk,list,lptr,lend,ier)
+           CALL edge(nd1,nd2,x,y,lwk,iwk,list,lptr,lend,ier)
 !            PRINT*, ier
         ENDDO
       ENDDO 
@@ -404,7 +366,7 @@
            nd1 = fbnds(i,bou)
            nd2 = fbnds(i+1,bou)
            
-           CALL edge(nd1,nd2,r,s,lwk,iwk,list,lptr,lend,ier)
+           CALL edge(nd1,nd2,x,y,lwk,iwk,list,lptr,lend,ier)
 !            PRINT*, ier
         ENDDO
       ENDDO       
@@ -420,32 +382,9 @@
       CALL trlist ( ncc, lcc, n, list, lptr, lend, nrow, nt, ltri, lct, ier )
       PRINT*, ier
       
-      
-!       DO i = 1,nt
-!         
-!         
-!       
-!         CALL delnod ( k, ncc, lcc, n, x, y, list, lptr, lend, lnew, lwk, iwk, ier )        
-!       ENDDO
+
       
       
-!       ntri = 0
-!       DO i = 1,nt
-!         remove = 0
-!  nodes: DO j = 1,3
-!           IF (ltri(j,i) == 1) THEN
-!             remove = 1
-!             EXIT nodes                        
-!           ENDIF 
-!         ENDDO nodes
-!         
-!         IF (remove == 0) THEN
-!           ntri = ntri + 1
-!           DO j = 1,3
-!             ect(j,ntri) = ltri(j,i)-1    ! -1 to account for extra node
-!           ENDDO
-!         ENDIF
-!       ENDDO
 
 
 
@@ -485,11 +424,75 @@
         IF(remove == 0) THEN
           ntri = ntri + 1
           DO j = 1,3              
-!             ect(j,ntri) = ndtab(ltri(j,i))
             ect(j,ntri) = ltri(j,i)             
           ENDDO  
         ENDIF
       ENDDO
+      
+      
+!       remove = 0
+!       DO el1 = 1,ntri
+!         
+!          xc = 0d0
+!          yc = 0d0
+!          DO j = 1,3
+!            k = ect(j,el1)
+!            xc = xc + x(k)
+!            yc = yc + y(k)
+!          ENDDO
+!          xc = xc/3d0
+!          yc = yc/3d0
+!                   
+!          DO j = 1,3
+!            k = ect(j,el1)         
+!            dc(j) = sqrt((x(k)-xc)**2+(y(k)-yc)**2)
+!          ENDDO
+!          
+!          dmin = 1d9
+!          dmax = 0d0
+!          DO j = 1,3
+!            IF (dc(j) < dmin) THEN
+!              dmin = dc(j)
+!              vmin = j
+!            ENDIF
+!            IF (dc(j) > dmax) THEN
+!              dmax = dc(j)
+!            ENDIF
+!          ENDDO
+!       
+!         IF (dmin < dmax*.1d0) THEN
+!         
+!           n1 = ect(mod(vmin+0,3)+1,el1)
+!           n2 = ect(mod(vmin+1,3)+1,el1)
+!           nd1 = ect(vmin,el1)
+!           
+!           found = 0
+!    tsrch: DO el2 = 1,ntri
+!             DO ed = 1,3
+!               v1 = ect(mod(ed+0,3)+1,el2)
+!               v2 = ect(mod(ed+1,3)+1,el2)
+!               
+!               IF (((n1 == v1) .and. (n2 == v2)) .or. &
+!                   ((n1 == v2) .and. (n2 == v1))) THEN
+!                   nd2 = ect(ed,el2)
+!                   found = 1
+!                   EXIT tsrch                 
+!               ENDIF
+!             ENDDO
+!           ENDDO tsrch
+!           
+!           IF (found == 1) THEN
+!             ect(mod(vmin+0,3)+1,el1) = nd2            
+!             ect(mod(ed+0,3)+1,el2) = nd1  
+!             PRINT*, "Swapped element", nd1,nd2
+!           ELSE
+!             PRINT*, "Error finding neighbor element"
+!           ENDIF
+!           
+!         ENDIF
+!         
+!       ENDDO
+      
 
       RETURN
       END SUBROUTINE delaunay_triangulation      

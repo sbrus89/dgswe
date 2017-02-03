@@ -44,6 +44,7 @@
       REAL(rp), ALLOCATABLE, DIMENSION(:) :: orient      
       INTEGER :: ncbou
       INTEGER :: ncnds
+      INTEGER, ALLOCATABLE, DIMENSION(:) :: cbnd_flag
       INTEGER, ALLOCATABLE, DIMENSION(:) :: cbseg_coarse
       INTEGER, ALLOCATABLE, DIMENSION(:,:) :: cbnds_coarse
       INTEGER :: flag(3)
@@ -69,9 +70,13 @@
       REAL(rp), DIMENSION(:,:), ALLOCATABLE ::  frc    
       
       
-      fine_file_in = "/home/sbrus/data-drive/galveston_SL18/grid_dev/v26_cart/galveston_SL18_cart.grd"
-      coarse_file_out = "/home/sbrus/data-drive/galveston_SL18/grid_dev/v26_cart/coarse.grd"
-      fine_file_out = "/home/sbrus/data-drive/galveston_SL18/grid_dev/v26_cart/galveston_SL18_cart_no30.grd"      
+!       fine_file_in = "/home/sbrus/data-drive/galveston_SL18/grid_dev/v26_cart/galveston_SL18_cart.grd"
+!       coarse_file_out = "/home/sbrus/data-drive/galveston_SL18/grid_dev/v26_cart/coarse.grd"
+!       fine_file_out = "/home/sbrus/data-drive/galveston_SL18/grid_dev/v26_cart/galveston_SL18_cart_no30.grd"      
+
+      fine_file_in = "/home/sbrus/data-drive/galveston_SL18/grid_dev/v26_cart/coarse.grd"
+      coarse_file_out = "/home/sbrus/data-drive/galveston_SL18/grid_dev/v26_cart/coarse_x2.grd"
+      fine_file_out = "/home/sbrus/data-drive/galveston_SL18/grid_dev/v26_cart/coarse_no30.grd" 
          
       nverts(1) = 3
       nverts(2) = 4
@@ -100,9 +105,27 @@
       ALLOCATE(keep_node(nn))
       ALLOCATE(bou_node(nn))
       ALLOCATE(fbseg_orient(nbou))
+      ALLOCATE(cbnd_flag(nn))
       keep_node = -1
       nodes_kept = 0    
       bou_node = 0       
+      
+      ! Find feature constraint nodes
+     
+      cbnd_flag = 0
+      DO bou = 1,nbou
+        nbnds = fbseg(1,bou)
+        bou_type = fbseg(2,bou)
+        
+        IF (bou_type /= cbou_type) THEN
+          CYCLE
+        ENDIF        
+        
+        DO j = 1,nbnds
+          nd = fbnds(j,bou)
+          cbnd_flag(nd) = 1
+        ENDDO        
+      ENDDO       
             
       ! Open ocean boundaries
       
@@ -185,7 +208,9 @@
           nd = fbnds(1,bou)               ! keep first node
           keep_node(nd) = 1
           DO i = 1,nadjnds(nd)
-            keep_node(adjnds(i,nd)) = 0
+            IF (cbnd_flag(adjnds(i,nd)) /= 1) THEN          
+              keep_node(adjnds(i,nd)) = 0
+            ENDIF
           ENDDO 
           nodes_kept = nodes_kept + 1    
         
@@ -199,7 +224,9 @@
                     keep_node(adjnds(i,nd)) = 0                                                ! side aren't eliminated
                   ENDIF
                 ELSE
-                  keep_node(adjnds(i,nd)) = 0
+                  IF (cbnd_flag(adjnds(i,nd)) /= 1) THEN          
+                    keep_node(adjnds(i,nd)) = 0
+                  ENDIF
                 ENDIF
               ENDDO
               nodes_kept = nodes_kept + 1        
@@ -209,7 +236,9 @@
           nd = fbnds(nbnds,bou)           ! keep last node
           keep_node(nd) = 1
           DO i = 1,nadjnds(nd)
-            keep_node(adjnds(i,nd)) = 0
+            IF (cbnd_flag(adjnds(i,nd)) /= 1) THEN          
+              keep_node(adjnds(i,nd)) = 0
+            ENDIF
           ENDDO 
           nodes_kept = nodes_kept + 1   
           
@@ -218,6 +247,21 @@
       ENDDO fbnd
       
       nvel_coarse = nodes_kept - neta_coarse
+      
+      
+      ! Interior nodes
+      
+      DO nd = 1,nn
+        IF (keep_node(nd) == -1 .and. cbnd_flag(nd) /= 1) THEN
+          keep_node(nd) = 1
+          DO i = 1,nadjnds(nd)
+            IF (keep_node(adjnds(i,nd)) /= 1 .and. cbnd_flag(adjnds(i,nd)) /= 1) THEN
+              keep_node(adjnds(i,nd)) = 0          
+            ENDIF
+          ENDDO
+          nodes_kept = nodes_kept + 1                  
+        ENDIF
+      ENDDO               
       
 
       ! Feature constraint nodestrings
@@ -233,37 +277,70 @@
         
         ncbou = ncbou + 1
         
-        DO j = 1,nbnds
+        
+        nd = fbnds(1,bou)               ! keep first node
+        keep_node(nd) = 1
+        DO i = 1,nadjnds(nd)
+          IF (cbnd_flag(adjnds(i,nd)) == 1) THEN
+            IF (adjnds(i,nd) == fbnds(j+1,bou)) THEN
+              keep_node(adjnds(i,nd)) = 0
+            ENDIF
+          ELSE IF (bou_node(adjnds(i,nd)) /= 1) THEN
+            keep_node(adjnds(i,nd)) = 0
+          ENDIF
+        ENDDO 
+        nodes_kept = nodes_kept + 1           
+
+        DO j = 2,nbnds-1
           nd = fbnds(j,bou)
-          
-          IF (keep_node(nd) == -1) THEN          
+     
+          IF (keep_node(nd) == -1) THEN   
             keep_node(nd) = 1
             DO i = 1,nadjnds(nd)
-              IF (keep_node(adjnds(i,nd)) /= 1) THEN
-                keep_node(adjnds(i,nd)) = 0          
+              IF (cbnd_flag(adjnds(i,nd)) == 1 ) THEN
+                IF (adjnds(i,nd) == fbnds(j-1,bou) .or. adjnds(i,nd) == fbnds(j+1,bou)) THEN              
+                  keep_node(adjnds(i,nd)) = 0 
+                ENDIF
+              ELSE IF (bou_node(adjnds(i,nd)) /= 1) THEN
+                keep_node(adjnds(i,nd)) = 0               
               ENDIF
             ENDDO
             nodes_kept = nodes_kept + 1
           ENDIF          
         ENDDO
         
+        nd = fbnds(nbnds,bou)               ! keep last node
+        keep_node(nd) = 1
+        DO i = 1,nadjnds(nd)
+          IF (cbnd_flag(adjnds(i,nd)) == 1) THEN
+            IF (adjnds(i,nd) == fbnds(j-1,bou)) THEN
+              keep_node(adjnds(i,nd)) = 0
+            ENDIF
+          ELSE IF (bou_node(adjnds(i,nd)) /= 1) THEN
+            keep_node(adjnds(i,nd)) = 0
+          ENDIF
+        ENDDO 
+        nodes_kept = nodes_kept + 1           
+        
       ENDDO cbnd
       
       
-            
-      ! Interior nodes
       
+      
+      
+      i = 0
       DO nd = 1,nn
-        IF (keep_node(nd) == -1) THEN
-          keep_node(nd) = 1
-          DO i = 1,nadjnds(nd)
-            IF (keep_node(adjnds(i,nd)) /= 1) THEN
-              keep_node(adjnds(i,nd)) = 0          
-            ENDIF
-          ENDDO
-          nodes_kept = nodes_kept + 1                  
+        IF (keep_node(nd) < 0) THEN
+          i = i+1
         ENDIF
-      ENDDO           
+      ENDDO
+      
+      IF (i > 0) THEN
+        PRINT*, i, " unassigned nodes"
+        STOP
+      ENDIF
+            
+  
       
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       ! Keep track of node infromation for coarse mesh
@@ -351,7 +428,7 @@
       ALLOCATE(ect_coarse(3,3*nn_coarse))
       CALL delaunay_triangulation(nn_coarse,xy_coarse(1,:),xy_coarse(2,:),ncbou,cbseg_coarse,cbnds_coarse, &
                                                                           nbou_coarse,fbseg_coarse,fbnds_coarse, &
-                                                                          ne_coarse,ect_coarse,xa,ya) 
+                                                                          ne_coarse,ect_coarse) 
 
       ALLOCATE(et_coarse(3*nn_coarse))
       DO el = 1,3*nn_coarse
@@ -421,7 +498,7 @@
       ALLOCATE(frc(nn_coarse,2))
       dt = 0.2d0
       
-      DO retri = 1,3
+      DO retri = 1,5
       DO it = 1,10
  nodes: DO n1 = 1,nn_coarse
           
@@ -467,7 +544,7 @@
       
       CALL delaunay_triangulation(nn_coarse,xy_coarse(1,:),xy_coarse(2,:),ncbou,cbseg_coarse,cbnds_coarse, &
                                                                           nbou_coarse,fbseg_coarse,fbnds_coarse, &
-                                                                          ne_coarse,ect_coarse,xa,ya) 
+                                                                          ne_coarse,ect_coarse) 
                                                                           
       CALL elements_per_node(ne_coarse,nn_coarse,nverts,et_coarse,ect_coarse,nepn,mnepn,epn) 
       CALL find_edge_pairs(ne_coarse,nverts,et_coarse,ect_coarse,nepn,epn,ned,ged2el,ged2nn,ged2led) 
@@ -494,19 +571,19 @@
       ! Write output
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
       
-      ncnds = 0                                        ! enclude feature constraints in coarse mesh so they are there for 
-      DO bou = 1,ncbou                                 ! subsequent refinements
-        nbnds = cbseg_coarse(bou)
-        fbseg_coarse(1,nbou_coarse+bou) = nbnds
-        fbseg_coarse(2,nbou_coarse+bou) = cbou_type
-        DO i = 1,nbnds
-          fbnds_coarse(i,nbou_coarse+bou) = cbnds_coarse(i,bou)
-          ncnds = ncnds + 1
-        ENDDO
-      ENDDO
-      nbou_coarse = nbou_coarse + ncbou
-      nvel_coarse = nvel_coarse + ncnds
-      
+!       ncnds = 0                                        ! enclude feature constraints in coarse mesh so they are there for 
+!       DO bou = 1,ncbou                                 ! subsequent refinements
+!         nbnds = cbseg_coarse(bou)
+!         fbseg_coarse(1,nbou_coarse+bou) = nbnds
+!         fbseg_coarse(2,nbou_coarse+bou) = cbou_type
+!         DO i = 1,nbnds
+!           fbnds_coarse(i,nbou_coarse+bou) = cbnds_coarse(i,bou)
+!           ncnds = ncnds + 1
+!         ENDDO
+!       ENDDO
+!       nbou_coarse = nbou_coarse + ncbou
+!       nvel_coarse = nvel_coarse + ncnds
+             
       grid_name_coarse = grid_name // " coarse"
       
       CALL print_grid_info(coarse_file_out,grid_name_coarse,ne_coarse,nn_coarse) 
