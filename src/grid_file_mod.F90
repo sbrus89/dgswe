@@ -18,7 +18,7 @@
       IMPLICIT NONE
       
       INTEGER, INTENT(IN) :: myrank
-      CHARACTER(100), INTENT(IN)  :: grid_file
+      CHARACTER(*), INTENT(IN)  :: grid_file
       CHARACTER(100), INTENT(OUT) :: grid_name      
       INTEGER, INTENT(OUT) :: ne
       INTEGER, INTENT(OUT) :: nn   
@@ -602,8 +602,8 @@
       
       IMPLICIT NONE
 
-      CHARACTER(100), INTENT(IN) :: grid_file
-      CHARACTER(100), INTENT(IN) :: grid_name
+      CHARACTER(*), INTENT(IN) :: grid_file
+      CHARACTER(*), INTENT(IN) :: grid_name
       INTEGER, INTENT(IN) :: ne
       INTEGER, INTENT(IN) :: nn
       
