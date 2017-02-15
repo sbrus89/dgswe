@@ -1,7 +1,7 @@
 SHELL = /bin/sh
 
 FC = ifort
-FFLAGS = -I$(ODIR) #-traceback -g -C
+FFLAGS = -I$(ODIR) -traceback -g -C
 
 ODIR = odir/
 FULLNAME := $(shell hostname)
@@ -67,6 +67,16 @@ cfl_objects =  cfl_checker.o globals.o  quit.o  grid_file_mod.o \
                    
 cfl_obj := $(patsubst %.o, $(ODIR)%.o,$(cfl_objects))
 
+remove_bou_objects = globals.o grid_file_mod.o quit.o spherical_mod.o remove_bou.o
+
+remove_bou_obj := $(patsubst %.o, $(ODIR)%.o,$(remove_bou_objects))
+
+write_bou_file_objects = globals.o grid_file_mod.o quit.o spherical_mod.o \
+                         allocation.o messenger2.o read_input.o \
+                         system.o version.o write_bou_file.o
+
+write_bou_file_obj := $(patsubst %.o, $(ODIR)%.o,$(write_bou_file_objects))                       
+
 ########################################################################
 #                          Executable Targets                          #
 ########################################################################
@@ -103,7 +113,15 @@ consolidate: $(ODIR) $(consolidate_obj)
 cfl_checker: $(ODIR) $(cfl_obj)
 	@echo "\n\n"
 	$(FC) $(FFLAGS) -o cfl_checker $(cfl_obj)
-        
+	
+remove_bou: $(ODIR) $(remove_bou_obj)
+	@echo "\n\n"
+	$(FC) $(FFLAGS) -o remove_bou $(remove_bou_obj)  
+	
+write_bou: $(ODIR) $(write_bou_file_obj)
+	@echo "\n\n"
+	$(FC) $(FFLAGS) -o write_bou $(write_bou_file_obj)  	
+	
 ########################################################################
 #                      Premilinary Targets                             #
 ########################################################################        
@@ -127,7 +145,7 @@ version :
 .PHONY : clean
 
 clean : 
-	rm -r convert adjust odir refine copy consolidate cfl_checker     
+	rm -r convert adjust odir refine copy consolidate cfl_checker remove_bou write_bou    
         
 ########################################################################
 #                            File Targets                              #
@@ -207,4 +225,10 @@ $(ODIR)consolidate.o: consolidate.F90                        $(ODIR)globals.o $(
 	$(FC) $(FFLAGS) -c $< -o $@
 	
 $(ODIR)cfl_checker.o: cfl_checker.f90                        $(ODIR)globals.o $(ODIR)grid_file_mod.o $(ODIR)read_input.o $(ODIR)allocation.o
+	$(FC) $(FFLAGS) -c $< -o $@	
+	
+$(ODIR)remove_bou.o: remove_bou_type.F90                     $(ODIR)globals.o $(ODIR)grid_file_mod.o 
+	$(FC) $(FFLAGS) -c $< -o $@
+	
+$(ODIR)write_bou_file.o: write_bou_file.F90                  $(ODIR)globals.o $(ODIR)grid_file_mod.o $(ODIR)allocation.o
 	$(FC) $(FFLAGS) -c $< -o $@	
