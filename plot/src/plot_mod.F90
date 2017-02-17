@@ -36,7 +36,8 @@
                          nfbed,fbedn, &
                          nobed,obedn, &
                          ged2el,ged2led, &
-                         nsta,xysta
+                         nsta,xysta, &
+                         nepn,epn
       USE read_dginp, ONLY: p,ctp
       USE plot_globals, ONLY: el_in,t_start,t_end,xyplt,pplt,npplt,nptri,rect,r,s, &
                               frmt,density,pc,el_area
@@ -112,8 +113,7 @@
         CALL plot_line_contours(fig%ps_unit,ne,el_type,el_in,nptri,rect,xyplt,r,s,snap,fig)          
       ENDIF      
       
-!         CALL plot_cb_nodes(fig%ps_unit,ctp,nbou,fbseg,fbnds,xy,bndxy)
-!         CALL plot_elxy_nodes(fig%ps_unit,ne,el_type,nnds,elxy)
+
 
       IF (adapt_option == 1 .and. fig%type_flag > 1) THEN
         CALL SYSTEM("cp "//filename//".ps "//filename//"_pltmesh.ps")
@@ -140,6 +140,9 @@
         CALL plot_boundaries(fig%ps_unit,nverts,fig%el_plt,pplt,nnfbed,nfbedn,ged2el,ged2led,el_type,el_in,ect,xy,xyplt)        
         CALL plot_boundaries(fig%ps_unit,nverts,fig%el_plt,pplt,nfbed,fbedn,ged2el,ged2led,el_type,el_in,ect,xy,xyplt)          
       ENDIF 
+      
+!         CALL plot_cb_nodes(fig%ps_unit,ctp,nbou,fbseg,fbnds,xy,bndxy,nepn,epn,el_in)
+!         CALL plot_elxy_nodes(fig%ps_unit,ne,el_type,el_in,nnds,elxy)      
               
       
       CALL write_all_axes(fig%ps_unit,fig%cbar_flag,fig%tbar_flag,t_snap,t_start,t_end)       
@@ -1442,7 +1445,7 @@ edge:DO ed = 1,nbed
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
 
-      SUBROUTINE plot_cb_nodes(file_unit,ctp,nbou,fbseg,fbnds,xy,bndxy)
+      SUBROUTINE plot_cb_nodes(file_unit,ctp,nbou,fbseg,fbnds,xy,bndxy,nepn,epn,el_in)
       
       IMPLICIT NONE
       
@@ -1453,11 +1456,15 @@ edge:DO ed = 1,nbed
       INTEGER, DIMENSION(:,:), INTENT(IN) :: fbnds
       REAL(rp), DIMENSION(:,:), INTENT(IN) :: xy
       REAL(rp), DIMENSION(:,:,:,:), INTENT(IN) :: bndxy
+      INTEGER, DIMENSION(:), INTENT(IN) :: nepn
+      INTEGER, DIMENSION(:,:), INTENT(IN) :: epn
+      INTEGER, DIMENSION(:), INTENT(IN) :: el_in
       
       INTEGER :: i,j,k
-      INTEGER :: nd
+      INTEGER :: nd,el
       INTEGER :: nbnds
       INTEGER :: btype
+      INTEGER :: in_flag
       
       DO i = 1,nbou
         nbnds = fbseg(1,i)
@@ -1468,23 +1475,49 @@ edge:DO ed = 1,nbed
             
           DO j = 1,nbnds-1
             
-            nd = fbnds(j,i)            
-            WRITE(file_unit,"(3(I5,1x))") 0,0,0                    
+            
+            nd = fbnds(j,i) 
+            
+            in_flag = 0
+            DO k = 1,nepn(nd)
+              el = epn(k,nd)
+              IF (el_in(el) == 1) THEN
+                in_flag = 1
+              ENDIF
+            ENDDO
+            
+            IF (in_flag /= 1) THEN
+              CYCLE
+            ENDIF
+            
+            
+            WRITE(file_unit,"(3(I5,1x))") 1,0,0                    
             WRITE(file_unit,"(2(F9.5,1x))") ax*xy(1,nd)+bx, ay*xy(2,nd)+by
             WRITE(file_unit,"(A)") "draw-dot"
             
             DO k = 1,ctp-1
-              WRITE(file_unit,"(3(I5,1x))") 0,0,0             
+              WRITE(file_unit,"(3(I5,1x))") 1,0,0             
               WRITE(file_unit,"(2(F9.5,1x))") ax*bndxy(1,k,j,i)+bx, ay*bndxy(2,k,j,i)+by
               WRITE(file_unit,"(A)") "draw-dot"              
             ENDDO
           
           ENDDO
           
-          WRITE(file_unit,"(3(I5,1x))") 0,0,0           
-          WRITE(file_unit,"(2(F9.5,1x))") ax*xy(1,nbnds)+bx, ay*xy(2,nbnds)+by
-          WRITE(file_unit,"(A)") "draw-dot"         
+          nd = fbnds(nbnds,i) 
             
+          in_flag = 0
+          DO k = 1,nepn(nd)
+            el = epn(k,nd)
+            IF (el_in(el) == 1) THEN
+              in_flag = 1
+            ENDIF
+          ENDDO
+          
+          IF (in_flag == 1) THEN
+            WRITE(file_unit,"(3(I5,1x))") 1,0,0           
+            WRITE(file_unit,"(2(F9.5,1x))") ax*xy(1,nbnds)+bx, ay*xy(2,nbnds)+by
+            WRITE(file_unit,"(A)") "draw-dot"         
+          ENDIF  
         ENDIF    
       ENDDO
       
@@ -1494,13 +1527,14 @@ edge:DO ed = 1,nbed
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
 
-      SUBROUTINE plot_elxy_nodes(file_unit,ne,el_type,nnds,elxy)
+      SUBROUTINE plot_elxy_nodes(file_unit,ne,el_type,el_in,nnds,elxy)
       
       IMPLICIT NONE
       
       INTEGER, INTENT(IN) :: file_unit    
       INTEGER, INTENT(IN) :: ne
       INTEGER, DIMENSION(:), INTENT(IN) :: el_type
+      INTEGER, DIMENSION(:), INTENT(IN) :: el_in
       INTEGER, DIMENSION(:), INTENT(IN) :: nnds
       REAL(rp), DIMENSION(:,:,:), INTENT(IN) :: elxy
       
@@ -1511,6 +1545,10 @@ edge:DO ed = 1,nbed
       DO el = 1,ne
         et = el_type(el)
         nnd = nnds(et)
+        
+        IF (el_in(el) == 0) THEN
+          CYCLE
+        ENDIF
         
         DO nd = 1,nnd
           WRITE(file_unit,"(3(I5,1x))") 0,0,0         

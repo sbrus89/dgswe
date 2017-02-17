@@ -14,7 +14,7 @@
       SUBROUTINE evaluate_solution(el,et,sol_type,snap,sol_val,npts,r,s,phi_hb,phi_sol,ndf_hb,ndf_sol)
 
       USE plot_globals, ONLY: hb,Z,Qx,Qy
-      USE read_dginp, ONLY: p,hbp
+      USE read_dginp, ONLY: p,hbp,h0
       USE basis, ONLY: element_basis,linear_basis,dgswem_basis        
       
       IMPLICIT NONE
@@ -39,6 +39,7 @@
       REAL(rp) :: Qx_val(npts),Qy_val(npts)
       REAL(rp), DIMENSION(:,:), ALLOCATABLE :: phib
       REAL(rp), DIMENSION(:,:), ALLOCATABLE :: phis
+      REAL(rp) :: depth_min
 
       mndf = (p+1)**2
       
@@ -104,7 +105,7 @@
       
       
       IF (sol_type == 2 .or. sol_type == 4) THEN                
-          
+        
         DO pt = 1,npts
           hb_val(pt) = 0d0
           DO dof = 1,ndfb
@@ -113,9 +114,18 @@
         ENDDO
             
         IF (sol_type == 2) THEN
+          depth_min = 1d10
           DO pt = 1,npts 
             sol_val(pt) = hb_val(pt)
+            
+            IF (sol_val(pt) < depth_min) THEN
+              depth_min = sol_val(pt)
+            ENDIF
           ENDDO
+          
+          IF (depth_min < h0) THEN
+            PRINT "(A,I7,A,F15.7)", "Element depth is less than tolerance: ", el, " hb min = ", depth_min      
+          ENDIF           
         ENDIF
       ENDIF                         
      
@@ -155,9 +165,7 @@
 
   
       
-!           IF (sol_type == 2 .and. sol%sol_val(pt,el) < sol%h0) THEN
-!             PRINT "(A,I7,A,F15.7)", "Element depth is less than tolerance: ", el, " hb = ", sol%sol_val(pt,el)          
-!           ENDIF           
+          
       
       RETURN
       END SUBROUTINE evaluate_solution      
