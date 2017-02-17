@@ -59,12 +59,12 @@ endif
 
 
 FFLAGS += -I$(ODIR)
-OPT_REPORT = -vec_report6 
+OPT_REPORT = #-vec_report6 
 # OPT_REPORT = -qopt-report -qopt-report-phase=vec
 
 ifeq ($(BUILDTYPE),dgswe)
-#   FC := ifort
-  FC := gfortran
+  FC := ifort
+#   FC := gfortran
   ODIR = odir_dgswe/
 
   EXE_NAME = dgswe
@@ -286,7 +286,7 @@ version :
 	@sed -i '26 c \      gitSHA = "$(GIT_SHA) $(GIT_MOD)" ' $(VPATH)version.F90
 	@sed -i '27 c \      compiler_version = "$(FC_VERSION)" ' $(VPATH)version.F90
 	@sed -i '28 c \      compiler_flags = "$(FFLAGS)" ' $(VPATH)version.F90
-	@sed -i '29 c \      modified_files = "$(GIT_MFILES)" ' $(VPATH)version.F90
+# 	@sed -i '29 c \      modified_files = "$(GIT_MFILES)" ' $(VPATH)version.F90
 	@sed -i '30 c \      compile_date = "$(DATE)" ' $(VPATH)version.F90
 	@sed -i '31 c \      host = "$(NAME)" ' $(VPATH)version.F90	
 	
