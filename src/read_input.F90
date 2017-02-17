@@ -547,7 +547,7 @@
 !      dginp(11)%key = "lines";       dginp(11)%rptr => lines;         dginp(11)%required = .true.;  dginp(11)%rptr = 10d0
      dginp(12)%key = "out_direc";   dginp(12)%cptr => out_direc;     dginp(12)%required = .false.; dginp(12)%cptr = "./"
      dginp(13)%key = "npart";       dginp(13)%iptr => npart;         dginp(13)%required = .false.; dginp(13)%iptr = 1
-     dginp(14)%key = "bathy_file";  dginp(14)%cptr => bathy_file;    dginp(14)%required = .false.; dginp(14)%cptr = "./elem_nodes.d"
+     dginp(14)%key = "bathy_file";  dginp(14)%cptr => bathy_file;    dginp(14)%required = .false.; dginp(14)%cptr = "./hb_nodes.hb"
      dginp(15)%key = "coord_sys";   dginp(15)%iptr => coord_sys;     dginp(15)%required = .false.; dginp(15)%iptr = 1
      dginp(16)%key = "slam0";       dginp(16)%rptr => slam0;         dginp(16)%required = .false.; dginp(16)%rptr = 0d0 
      dginp(17)%key = "sphi0";       dginp(17)%rptr => sphi0;         dginp(17)%required = .false.; dginp(17)%rptr = 0d0 
