@@ -166,7 +166,7 @@
       REAL(rp), DIMENSION(:,:,:), INTENT(IN) :: psiv
       REAL(rp), DIMENSION(:,:,:), INTENT(INOUT) :: elxy
       
-      INTEGER :: pt,nd
+      INTEGER :: pt,nd,i
       INTEGER :: nnd,nv,et,mnnds
       INTEGER :: pt1,pt2
       INTEGER :: reverse      
@@ -235,10 +235,13 @@
       
       DO nd = 1,ctp-1                   ! adjust mid-edge nodes to spline coordinates, 
                                         ! verticies have already been adjusted in read_curve_file
+                                        
+        pt = mod(led,nv)*ctp + 1 + nd  
+        
         IF (reverse == 0) THEN                                        
-          pt = mod(led,nv)*ctp + 1 + nd                                        
+          i = nd
         ELSE IF (reverse == 1) THEN
-          pt = mod(led,nv)*ctp + 1 + ctp - nd
+          i = ctp - nd
         ENDIF
         
 !         ytest = elxy(pt,el,2)
@@ -251,9 +254,9 @@
 !         ENDIF
 !         
 !         eddx(nd+1,2) = ypt - elxy(pt,el,2)        
-
-        eddx(nd+1,1) = segxy(1,nd)-elxy(pt,el,1)
-        eddx(nd+1,2) = segxy(2,nd)-elxy(pt,el,2)
+        
+        eddx(nd+1,1) = segxy(1,i)-elxy(pt,el,1)
+        eddx(nd+1,2) = segxy(2,i)-elxy(pt,el,2)        
 
       ENDDO           
       
@@ -289,7 +292,7 @@
       INTEGER :: nd,pt
       
         DO nd = 1,ctp-1                   
-          pt = mod(led,nv)*ctp + 1 + nd                      
+          pt = mod(led,nv)*ctp + 1 + nd             
 
           elxy(pt,el,1) = elxy(pt,el,1) + eddx(nd+1,1)
           elxy(pt,el,2) = elxy(pt,el,2) + eddx(nd+1,2) 
