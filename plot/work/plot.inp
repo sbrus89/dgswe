@@ -5,7 +5,6 @@
 1,0,1                                                                                                ! bathymetry plot options 
 1                                                                                                    ! mesh plot option 
 0,1,48                                                                                               ! station plot option
-0                                                                                                    ! mesh plot stations option
 off                                                                                                  ! mesh plot element labels 
 off                                                                                                  ! mesh plot node lables 
 1,30,2                                                                                               ! order of nodal set for plotting straight elements 
