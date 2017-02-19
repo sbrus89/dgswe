@@ -4,6 +4,7 @@
 1,0,1                                                                                                ! velocity plot options 
 1,0,1                                                                                                ! bathymetry plot options 
 1                                                                                                    ! mesh plot option 
+0,1,48                                                                                               ! station plot option
 0                                                                                                    ! mesh plot stations option
 off                                                                                                  ! mesh plot element labels 
 off                                                                                                  ! mesh plot node lables 
