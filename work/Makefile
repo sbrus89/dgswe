@@ -163,7 +163,7 @@ METIS_LIB = -L../metis-4.0.3 -lmetis
 ########################################################################
 
 dgswe_objects = globals.o lapack_interfaces.o messenger2.o allocation.o grid_file_mod.o \
-                read_input.o read_grid.o read_forcing.o read_stations.o system.o \
+                read_input.o read_grid.o read_forcing.o system.o \
                 kdtree2.o find_element_mod.o find_stations.o sort_mod.o \
                 bathymetry_interp_mod.o bathymetry_interp.o \
                 edge_connectivity_mod.o connect.o initial.o interp_forcing.o \
@@ -430,7 +430,7 @@ $(ODIR)read_write_output.o : read_write_output.F90             $(ODIR)globals.o
 	$(FC) $(FFLAGS) $(NETCDF_INC) -c $< -o $@
 	mv read_write_output.mod $(ODIR)
 	
-$(ODIR)output.o : output.F90                                   $(ODIR)globals.o $(ODIR)messenger2.o $(ODIR)read_input.o $(ODIR)read_write_output.o
+$(ODIR)output.o : output.F90                                   $(ODIR)globals.o $(ODIR)messenger2.o $(ODIR)read_input.o $(ODIR)read_write_output.o $(ODIR)grid_file_mod.o
 	$(FC) $(FFLAGS) $(NETCDF_INC) -c $< -o $@
 	mv output.mod $(ODIR)
 	
@@ -474,10 +474,7 @@ $(ODIR)interp_forcing.o : interp_forcing.F90                   $(ODIR)globals.o 
 	$(FC) $(FFLAGS) -c $< -o $@
 
 $(ODIR)initial.o : initial.F90                                 $(ODIR)globals.o $(ODIR)read_input.o $(ODIR)allocation.o $(ODIR)basis.o $(ODIR)messenger2.o
-	$(FC) $(FFLAGS) -c $< -o $@
-	
-$(ODIR)read_stations.o: read_stations.F90                      $(ODIR)globals.o $(ODIR)read_input.o
-	$(FC) $(FFLAGS) -c $< -o $@
+	$(FC) $(FFLAGS) -c $< -o $@	
 	
 $(ODIR)find_stations.o: find_stations.F90                      $(ODIR)globals.o  $(ODIR)basis.o  $(ODIR)read_input.o $(ODIR)bathymetry_interp_mod.o $(ODIR)find_element_mod.o $(ODIR)shape_functions_mod.o
 	$(FC) $(FFLAGS) -c $< -o $@		

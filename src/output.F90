@@ -177,7 +177,8 @@
                          Hwrite,Zwrite,Qxwrite,Qywrite, &
                          Zsta,Qxsta,Qysta, &
                          Zsta_unit,Qxsta_unit,Qysta_unit
-      USE read_dginp, ONLY: tf,dt,sta_opt,sta_snap                         
+      USE read_dginp, ONLY: tf,dt,sta_opt,sta_snap,stations_file    
+      USE grid_file_mod, ONLY: read_stations
 
       IMPLICIT NONE
 
@@ -195,7 +196,7 @@
       IF (init) THEN      
       
         IF (sta_opt > 0) THEN
-          CALL read_stations()         
+          CALL read_stations(myrank,stations_file,sta_opt,nsta,xysta)          
           CALL find_stations()
         ELSE 
           nsta = 0
