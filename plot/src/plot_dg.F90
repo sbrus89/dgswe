@@ -7,7 +7,8 @@
                          nepn,epn,mnepn,ned,ged2el,ged2el,ged2led,ged2nn,ed_type,recv_edge, &
                          nied,iedn,nobed,obedn,nfbed,fbedn,nnfbed,nfbedn,nfbednn, &
                          psic,psiv, &
-                         deg2rad
+                         deg2rad, &
+                         nsta,xysta
       USE grid_file_mod
       USE basis, ONLY: element_nodes,element_basis
       USE read_write_output, ONLY: read_solution_full,read_fort6163,read_fort6264, &
@@ -86,8 +87,8 @@
       CALL find_flow_edges(nbou,fbseg,fbnds,ged2nn,nnfbed,nfbedn,nfbednn,nfbed,fbedn,recv_edge,ed_type)     
       nred = 0
       CALL print_connect_info(mnepn,ned,nied,nobed,nfbed,nnfbed,nred)
-      IF (sta_opt > 0) THEN
-        CALL read_stations()
+      IF (mesh%plot_sta_option == 1 .and. sta_opt > 0) THEN
+        CALL read_stations(0,stations_file,sta_opt,nsta,xysta)
       ENDIF
 
       PRINT("(A)"), "Calculating curved boundary information..."
