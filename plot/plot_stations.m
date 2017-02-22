@@ -8,9 +8,15 @@ adc_sta_direc = {
 %                 '/home/sbrus/data-drive/galveston_spline_flux_fix/galveston_tri_x4/adcirc/ESL0/';
 %                 '/home/sbrus/data-drive/galveston_spline_flux_fix/galveston_tri_x16/adcirc/ESL0/';                
 %                 '/home/sbrus/data-drive/galveston_spline_flux_fix/galveston_tri_x64/adcirc/ESL0/';
+% 
+%                '/home/sbrus/data-drive/galveston_spline_surge/galveston_tri/adcirc/';  
+%                '/home/sbrus/data-drive/galveston_spline_surge/galveston_tri_x64/adcirc/';      
 
-               '/home/sbrus/data-drive/galveston_spline_surge/galveston_tri/adcirc/';  
-               '/home/sbrus/data-drive/galveston_spline_surge/galveston_tri_x64/adcirc/';                   
+% %                   '/home/sbrus/data-drive/galveston_SL18_tides/galveston_SL18_cart/esl1/adcirc_default/';
+% %                   '/home/sbrus/data-drive/galveston_SL18_tides/galveston_SL18_cart/esl1/adcirc_513111/';     
+%                   '/home/sbrus/data-drive/galveston_SL18_tides/galveston_SL18_cart/esl1/adcirc/';                  
+% %                   '/home/sbrus/data-drive/galveston_SL18_tides/coarse/adcirc/';
+%                   '/home/sbrus/data-drive/galveston_SL18_tides/coarse_x2/esl1/adcirc/';
                 };         
 
 dg_sta_direc = {
@@ -29,10 +35,16 @@ dg_sta_direc = {
 
 %                '/home/sbrus/data-drive/galveston_spline_surge/galveston_tri/p1/ctp1/hbp1/'; 
 %                '/home/sbrus/data-drive/galveston_spline_surge/galveston_tri/p1/ctp2/hbp1/';
-               '/home/sbrus/data-drive/galveston_spline_surge/galveston_tri/p3/ctp3/hbp3/'
-               '/home/sbrus/data-drive/galveston_spline_surge/galveston_tri/p2/ctp2/hbp2/'
+%                '/home/sbrus/data-drive/galveston_spline_surge/galveston_tri/p3/ctp3/hbp3/'
+%                '/home/sbrus/data-drive/galveston_spline_surge/galveston_tri/p2/ctp2/hbp2/'
 
-                               
+%                   '/home/sbrus/data-drive/galveston_SL18_tides/coarse/esl0/p1/ctp2/hbp1/';    
+%                   '/home/sbrus/data-drive/galveston_SL18_tides/coarse_x2/esl0/p3/ctp3/hbp3/';    
+                  '/home/sbrus/data-drive/galveston_SL18_tides/coarse_x2/esl.5/p3/ctp3/hbp3/rk45/';
+                  '/home/sbrus/data-drive/galveston_SL18_tides/coarse_x2/esl.5/p3/ctp1/hbp1/rk45/';     
+                  '/home/sbrus/data-drive/galveston_SL18_tides/coarse_x2/esl.5/p3/ctp3/hbp3/';
+                  '/home/sbrus/data-drive/galveston_SL18_tides/coarse_x2/esl.5/p3/ctp1/hbp1/';                     
+%                   '/home/sbrus/data-drive/galveston_SL18_tides/coarse_x2/esl1/p3/ctp3/hbp3/';    
                };         
          
         
@@ -41,30 +53,50 @@ dg_sta_direc = {
 % stations_file = '/home/sbrus/data-drive/galveston_spline_flux_fix/grids/stations.d';
 % save_dir = '/home/sbrus/data-drive/galveston_spline_flux_fix/';         
 
-grid_name = '/home/sbrus/data-drive/galveston_spline_surge/grids/galveston_tri.grd';
-stations_file = '/home/sbrus/data-drive/galveston_spline_surge/grids/stations.d';
-save_dir = '/home/sbrus/data-drive/galveston_spline_surge/';   
+% grid_name = '/home/sbrus/data-drive/galveston_spline_surge/grids/galveston_tri.grd';
+% stations_file = '/home/sbrus/data-drive/galveston_spline_surge/grids/stations.d';
+% save_dir = '/home/sbrus/data-drive/galveston_spline_surge/';   
+
+grid_name = '/home/sbrus/data-drive/galveston_SL18_tides/grids/coarse_x2.grd';
+stations_file = '/home/sbrus/data-drive/galveston_SL18_tides/grids/stations_avg.d';
+save_dir = '/home/sbrus/data-drive/galveston_SL18_tides/';   
          
 cmap = colormap(lines);          
 
 labels = {
-          'adcirc';
+%           'adcirc';
 %           'adcirc x4';
 %           'adcirc x16';          
-          'adcirc x64';
+%           'adcirc x64';
 %             'DG p1 tri lin';
 %             'DG p1 tri h.o.'            
 %           'DG x64 p3 tri h.o.';
 %           'DG x16 p3 tri h.o.';
 %           'DG x4 p3 tri h.o.';
-            'DG p3 tri h.o.';
-            'DG p2 tri h.o.';
+%             'DG p3 tri h.o.';
+%             'DG p2 tri h.o.';
 %           'DG p3 tri lin'            
 
 %           'DG x64 p3 quad h.o.'
 %           'DG x16 p3 quad h.o.'
 %           'DG x4 p3 quad h.o.'
 %           'DG p3 quad h.o.'
+
+% %             'adcirc fine default';
+% %             'adcirc fine 513111'
+%             'adcirc fine';            
+% %             'adcirc med';
+%             'adcirc coarse'
+            
+% %             'dg med p=1'
+% %             'dg coarse p=3 esl=0'         
+%             'dg coarse p=3 h.o.'
+%             'dg coarse p=3 lin'            
+% %             'dg coarse p=3 esl=1'
+               'dg h.o. rk45';
+               'dg lin rk45';
+               'dg h.o. rk22';
+               'dg lin rk 22'
           }; 
 colors = [cmap(1,:)
           cmap(2,:)
@@ -75,26 +107,27 @@ colors = [cmap(1,:)
 
 
 
-sta_vec = 1:481; % center of channel
+% sta_vec = 1:481; % center of channel
 % sta_vec = 482:521;
 % sta_vec = 522:561;
 % sta_vec = 542:601;
+
+sta_vec = 1:1763;
 
 % nsnap_plot = 552;
 % ts_sta = 100;
 
 nsnap_read = 576;
-nsta = 601;
 
 xs_flag = 1;
 ts_flag = 1;
+sta_loc_flag = 0;
 
 % xs_snap_vec = 2:576;
 % ts_sta_vec = 1:481;
 
-xs_snap_vec = 2:576;
-ts_sta_vec = 1:481;
-% ts_sta_vec = 1:10:481;
+xs_snap_vec = 2:10:nsnap_read;
+ts_sta_vec = 1:20:sta_vec(end);
 
 
 fig_onoff = 'off';
@@ -111,21 +144,23 @@ fid = fopen(stations_file);
 nsta = fscanf(fid,' %g ', 1);
 xysta = fscanf(fid,' %g ', [2 nsta])';
 
-figure(3)
-set(gcf,'visible',fig_onoff) 
-subplot(1,4,4)
-hold on
-plot_grid_function(grid_name);
-plot(xysta(:,1),xysta(:,2),'ro','MarkerFaceColor','r','MarkerSize',2)
-axis off
-
-figure(4)
-set(gcf,'visible',fig_onoff) 
-subplot(1,4,4)
-hold on
-plot_grid_function(grid_name);
-plot(xysta(:,1),xysta(:,2),'ro','MarkerFaceColor','r','MarkerSize',2)
-axis off
+if sta_loc_flag == 1
+    figure(3)
+    set(gcf,'visible',fig_onoff)
+    subplot(1,4,4)
+    hold on
+    plot_grid_function(grid_name);
+    plot(xysta(:,1),xysta(:,2),'ro','MarkerFaceColor','r','MarkerSize',2)
+    axis off
+    
+    figure(4)
+    set(gcf,'visible',fig_onoff)
+    subplot(1,4,4)
+    hold on
+    plot_grid_function(grid_name);
+    plot(xysta(:,1),xysta(:,2),'ro','MarkerFaceColor','r','MarkerSize',2)
+    axis off
+end
 
 sta_dist = zeros(nsta);
 for sta = 1:nsta-1
@@ -193,7 +228,7 @@ if xs_flag == 1
         end
         set(gcf, 'units', 'inches', 'pos', fig_size);
         set(gcf,'PaperPositionMode','auto') ;
-        legend(labels,'Location','Northwest','FontSize',10)
+        legend(labels,'Location','Northeast','FontSize',10)
         title(['Center channel stations, t = ',num2str(t(snap)),' s'])
         xlabel('station')
         ylabel('zeta (m)')
@@ -215,7 +250,7 @@ if xs_flag == 1
         end
         set(gcf, 'units', 'inches', 'pos', fig_size)
         set(gcf,'PaperPositionMode','auto') ;
-        legend(labels,'Location','Northwest','FontSize',10)
+        legend(labels,'Location','Northeast','FontSize',10)
         title(['Center channel stations, t = ',num2str(t(snap)),' s'])
         xlabel('station')
         ylabel('velocity (m/s)')
@@ -234,7 +269,9 @@ if ts_flag == 1
         
         figure(3)
         set(gcf,'visible',fig_onoff)
-        subplot(1,4,[1 3])
+        if sta_loc_flag == 1
+            subplot(1,4,[1 3])
+        end
         i = 1;
         for run = 1:nruns_adc
             plot(time,z_adc(sta,:,run),'Color',colors(i,:))
@@ -253,14 +290,22 @@ if ts_flag == 1
         xlabel('t (s)')
         ylabel('zeta (m)')
         hold off
-        subplot(1,4,4);
-        sta_dot = plot(xysta(sta,1),xysta(sta,2),'go','MarkerFaceColor','g','MarkerSize',5);
-        print(['-d',fig_fmt],['-r',res],[save_dir,'zeta_ts_sta_',num2str(sta),'.',fig_fmt])
-        delete(sta_dot)
+        if sta_loc_flag == 1
+            subplot(1,4,4);
+            sta_dot = plot(xysta(sta,1),xysta(sta,2),'go','MarkerFaceColor','g','MarkerSize',5);
+        end
+        
+            print(['-d',fig_fmt],['-r',res],[save_dir,'zeta_ts_sta_',num2str(sta),'.',fig_fmt])
+            
+        if sta_loc_flag == 1
+            delete(sta_dot)
+        end
         
         figure(4)
         set(gcf,'visible',fig_onoff)
-        subplot(1,4,[1 3])
+        if sta_loc_flag == 1            
+            subplot(1,4,[1 3])
+        end
         i = 1;
         for run = 1:nruns_adc
             plot(time,vel_adc(sta,:,run),'Color',colors(i,:))
@@ -279,10 +324,16 @@ if ts_flag == 1
         xlabel('t (s)')
         ylabel('velocity (m/s)')
         hold off
-        subplot(1,4,4);
-        sta_dot = plot(xysta(sta,1),xysta(sta,2),'go','MarkerFaceColor','g','MarkerSize',5);
-        print(['-d',fig_fmt],['-r',res],[save_dir,'vel_ts_sta_',num2str(sta),'.',fig_fmt])
-        delete(sta_dot)
+        if sta_loc_flag == 1
+            subplot(1,4,4);
+            sta_dot = plot(xysta(sta,1),xysta(sta,2),'go','MarkerFaceColor','g','MarkerSize',5);
+        end
+        
+            print(['-d',fig_fmt],['-r',res],[save_dir,'vel_ts_sta_',num2str(sta),'.',fig_fmt])
+            
+        if sta_loc_flag == 1
+            delete(sta_dot)
+        end
         
         
         j = j+1;
