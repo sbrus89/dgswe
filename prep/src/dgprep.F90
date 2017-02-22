@@ -5,7 +5,7 @@
       USE read_dginp
       USE messenger2, ONLY: message_init,nproc
       USE edge_qpts_mod, ONLY: edge_qpts
-      USE grid_file_mod, ONLY: courant
+      USE grid_file_mod, ONLY: courant,read_stations
 
       IMPLICIT NONE
       
@@ -37,7 +37,7 @@
       CALL connect()
       
       IF (sta_opt > 0) THEN
-        CALL read_stations()
+        CALL read_stations(0,stations_file,sta_opt,nsta,xysta)
         CALL find_stations()
       ENDIF       
       

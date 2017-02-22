@@ -180,7 +180,7 @@ dgswe_objects = globals.o lapack_interfaces.o messenger2.o allocation.o grid_fil
 dgswe_obj := $(patsubst %.o, $(ODIR)%.o,$(dgswe_objects))
 
 dgprep_objects = globals.o messenger2.o read_input.o allocation.o grid_file_mod.o find_stations.o \
-                 read_grid.o read_forcing.o read_stations.o curvilinear_nodes_mod.o curvilinear.o system.o \
+                 read_grid.o read_forcing.o curvilinear_nodes_mod.o curvilinear.o system.o \
                  kdtree2.o find_element_mod.o sort_mod.o edge_connectivity_mod.o connect.o edge_qpts_mod.o metis2.o decomp2.o \
                  basis.o basis_eval.o vandermonde.o shape_functions_mod.o shape_functions_eval.o transformation.o \
                  normals.o bathymetry_interp_mod.o bathymetry_interp.o edge_transformation.o spherical_mod.o area_qpts_mod.o \
@@ -550,7 +550,7 @@ $(ODIR)decomp2.o : ../prep/src/decomp2.F90                     $(ODIR)globals.o 
 $(ODIR)write_files.o : ../prep/src/write_files.F90             $(ODIR)globals.o $(ODIR)read_input.o $(ODIR)messenger2.o $(ODIR)output.o
 	$(FC) $(FFLAGS) -c $< -o $@
 
-$(ODIR)dgprep.o : ../prep/src/dgprep.F90                        $(ODIR)globals.o $(ODIR)allocation.o $(ODIR)read_input.o $(ODIR)messenger2.o $(ODIR)vandermonde.o $(ODIR)shape_functions_mod.o $(ODIR)find_stations.o $(ODIR)read_stations.o $(ODIR)grid_file_mod.o
+$(ODIR)dgprep.o : ../prep/src/dgprep.F90                        $(ODIR)globals.o $(ODIR)allocation.o $(ODIR)read_input.o $(ODIR)messenger2.o $(ODIR)vandermonde.o $(ODIR)shape_functions_mod.o $(ODIR)find_stations.o $(ODIR)grid_file_mod.o
 	$(FC) $(FFLAGS) -c $< -o $@
 
 # post file targets
