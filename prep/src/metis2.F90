@@ -1,6 +1,6 @@
       SUBROUTINE metis2()
 
-      USE globals, ONLY: nn,ne,ned,ged2el,nproc,mnepn,part
+      USE globals, ONLY: nn,ne,ned,ged2el,nproc,mnepn,part,el_type
 
       IMPLICIT NONE
       
@@ -65,9 +65,11 @@
       ! (ADCPREP uses the number of adjacent nodes)
       ALLOCATE(vwgt(ne))
       
-      DO el = 1,ne
+      DO el = 1,ne        
         vwgt(el) = nadjels(el)
-!         PRINT*, nd,vwgt(nd)
+        IF (el_type(el) == 3) THEN
+          vwgt(el) = vwgt(el)*3
+        ENDIF
       ENDDO
       
       ! Create the adjacency arrays used by metis
