@@ -150,7 +150,8 @@
 
       SUBROUTINE edge_coordinates_curved(el,ctp,led,nnds,nverts,el_type,xy,ect,segxy,psiv,elxy)
       
-      USE transformation, ONLY: element_transformation            
+      USE transformation, ONLY: element_transformation      
+      USE read_dginp, ONLY: straight_tol
        
       IMPLICIT NONE
        
@@ -169,10 +170,15 @@
       INTEGER :: pt,nd,i
       INTEGER :: nnd,nv,et,mnnds
       INTEGER :: pt1,pt2
+      INTEGER :: nd1,nd2
+      INTEGER :: straight_flag
       INTEGER :: reverse      
       REAL(rp) :: xpt,ypt
       REAL(rp) :: d1,d2
       REAL(rp) :: dx1,dy1,dx2,dy2
+      REAL(rp) :: det
+      REAL(rp) :: x1,x2,x3
+      REAL(rp) :: y1,y2,y3
       REAL(rp), DIMENSION(:), ALLOCATABLE :: x,y
       REAL(rp), DIMENSION(:,:), ALLOCATABLE :: eddx      
        
@@ -183,6 +189,41 @@
        
       et = el_type(el)
       nv = nverts(et)  
+      
+      DO nd = 1,nv
+        x(nd) = xy(1,ect(nd,el))
+        y(nd) = xy(2,ect(nd,el))
+      ENDDO               
+      
+      nd1 = mod(led+0,nv)+1         ! decide if the element edge has enough curvature
+      nd2 = mod(led+1,nv)+1         ! to warant treatment as a curved element
+      
+      x1 = x(nd1)
+      x2 = x(nd2)
+      y1 = y(nd1)
+      y2 = y(nd2)
+      
+      straight_flag = 1
+      DO pt = 1,ctp-1        
+        
+        x3 = segxy(1,pt)
+        y3 = segxy(2,pt)
+        
+        det = (x2*y3-x3*y2) - (x1*y3-x3*y1) + (x1*y2-x2*y1)
+        
+        IF (abs(det) > straight_tol) THEN
+          straight_flag = 0
+        ENDIF
+        
+      ENDDO
+      
+      IF (straight_flag == 1) THEN
+        PRINT("(A,I7,A,E15.7)"), "Curve boundary element ~ straight, changed to straight-sided, el = ", el
+        RETURN
+      ENDIF
+      
+      
+      
         
       IF (et <= 2) THEN            ! only compute extra nodes if element isn't already curved
                                    ! otherwise, just adjust the boundary nodes. 
@@ -192,12 +233,7 @@
         ELSE IF (mod(et,2) == 0) THEN
           el_type(el) = 4
           nnd = nnds(4)                  
-        ENDIF         
-        
-        DO nd = 1,nv
-          x(nd) = xy(1,ect(nd,el))
-          y(nd) = xy(2,ect(nd,el))
-        ENDDO        
+        ENDIF                      
         
         DO pt = 1,nnd               
 
@@ -207,7 +243,7 @@
           elxy(pt,el,2) = ypt
         ENDDO      
         
-      ENDIF        
+      ENDIF           
       
       d1 = 0d0                                   ! Make sure the same boundary orientation is used  
       d2 = 0d0                                   ! between the segxy data and elxy. 

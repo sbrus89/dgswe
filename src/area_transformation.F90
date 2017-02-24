@@ -23,9 +23,7 @@
       REAL(rp) :: drdx,drdy,dsdx,dsdy
       REAL(rp) :: Sp
 
-    
-          
-
+      
           
       DO el = 1,ne
         et = el_type(el)
@@ -50,8 +48,7 @@
                      
             
           DO dof = 1,ndf
-            i = (dof-1)*nqa + pt        
-              
+
             dpdx_init(el,dof,pt) = wpta(pt,et)*(dpdr(dof,pt,et)*drdx + dpds(dof,pt,et)*dsdx)*detJa(el,pt)*Sp
             dpdy_init(el,dof,pt) = wpta(pt,et)*(dpdr(dof,pt,et)*drdy + dpds(dof,pt,et)*dsdy)*detJa(el,pt)  
               
@@ -67,7 +64,7 @@
           ENDDO
 
         ENDDO pts
-          
+                  
           
         CALL DGETRF(ndf,ndf,mm,mndof,ipiv,info)       
         CALL DGETRI(ndf,mm,mndof,ipiv,work,ndf*ndf,info)

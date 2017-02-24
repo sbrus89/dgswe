@@ -446,7 +446,7 @@ $(ODIR)edge_connectivity_mod.o : edge_connectivity_mod.F90     $(ODIR)quit.o $(O
 	$(FC) $(FFLAGS) -c $< -o $@
 	mv edge_connectivity_mod.mod $(ODIR)
 	
-$(ODIR)curvilinear_nodes_mod.o : curvilinear_nodes_mod.F90     $(ODIR)globals.o $(ODIR)transformation.o $(ODIR)shape_functions_mod.o $(ODIR)basis.o $(ODIR)lapack_interfaces.o
+$(ODIR)curvilinear_nodes_mod.o : curvilinear_nodes_mod.F90     $(ODIR)globals.o $(ODIR)transformation.o $(ODIR)shape_functions_mod.o $(ODIR)basis.o $(ODIR)lapack_interfaces.o $(ODIR)read_input.o
 	$(FC) $(FFLAGS) -c $< -o $@
 	mv curvilinear_nodes_mod.mod $(ODIR)
 

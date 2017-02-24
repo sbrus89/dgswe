@@ -83,7 +83,7 @@
       INTEGER, TARGET  :: npart 
       INTEGER, TARGET :: coord_sys      
       INTEGER, TARGET :: sol_opt
-      INTEGER, TARGET :: sta_opt
+      INTEGER, TARGET :: sta_opt      
       REAL(rp), TARGET :: sol_snap
       REAL(rp), TARGET :: sta_snap
       REAL(rp), TARGET  :: dt
@@ -94,6 +94,7 @@
       REAL(rp), TARGET :: slam0,sphi0
       REAL(rp), TARGET :: h0   
       REAL(rp), TARGET :: esl
+      REAL(rp), TARGET :: straight_tol
       LOGICAL :: hb_file_exists
       LOGICAL :: cb_file_exists
  
@@ -558,7 +559,8 @@
      dginp(22)%key = "sol_snap";    dginp(22)%rptr => sol_snap;      dginp(22)%required = .false.; dginp(22)%rptr = 0  
      dginp(23)%key = "sta_snap";    dginp(23)%rptr => sta_snap;      dginp(23)%required = .false.; dginp(23)%rptr = 0  
      dginp(24)%key = "sta_file";    dginp(24)%cptr => stations_file; dginp(24)%required = .false.; dginp(24)%cptr = "./stations.d"  
-     dginp(25)%key = "esl";         dginp(25)%rptr => esl;           dginp(25)%required = .false.; dginp(25)%rptr = 0d0       
+     dginp(25)%key = "esl";         dginp(25)%rptr => esl;           dginp(25)%required = .false.; dginp(25)%rptr = 0d0 
+     dginp(26)%key = "str_tol";     dginp(26)%rptr => straight_tol;  dginp(26)%required = .false.; dginp(26)%rptr = 0d0          
 !      dginp(25)%key = "??";        dginp(25)%?ptr => ??;            dginp(25)%required = .false.;    dginp(25)%?ptr = ??  
       
 
