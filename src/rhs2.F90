@@ -8,10 +8,11 @@
                           const,inx,iny,icfac,detJe_in,detJe_ex,detJe, &
                           nx_pt,ny_pt,Spe, &
                           rhsZ,rhsQx,rhsQy, &
-                          MirhsZ,MirhsQx,MirhsQy
+                          MirhsZ,MirhsQx,MirhsQy, &
+                          esl_tol
 
                           
-      USE read_dginp, ONLY: npart                          
+      USE read_dginp, ONLY: npart,esl                          
                           
 #ifdef CMPI                          
       USE messenger2, ONLY: myrank,message_send,message_send_ldg, &
@@ -28,6 +29,7 @@
       IMPLICIT NONE
       INTEGER :: et,blk,pt
       INTEGER :: ete
+
 
       
 !$OMP parallel default(none)  &
@@ -79,6 +81,8 @@
        CALL message_send()       
 #endif      
 
+      IF (esl > esl_tol) THEN
+      
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       ! LDG variables
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -151,8 +155,9 @@
 #ifdef CMPI    
 
        CALL message_send_ldg()       
-#endif       
+#endif     
 
+      ENDIF
 
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       ! Area integration
@@ -164,7 +169,11 @@
       DO blk = 1,npart+1
         DO et = 1,nel_type
           IF (npartet(et,blk) > 0) THEN
-            CALL area_integration(et,elblk(1,blk,et),elblk(2,blk,et),ndof(et),nqpta(et))                        
+            IF (esl > esl_tol) THEN
+              CALL area_integration(et,elblk(1,blk,et),elblk(2,blk,et),ndof(et),nqpta(et))                        
+            ELSE
+              CALL area_integration_no_ldg(et,elblk(1,blk,et),elblk(2,blk,et),ndof(et),nqpta(et))            
+            ENDIF
           ENDIF
         ENDDO
       ENDDO      
@@ -186,8 +195,10 @@
           ete = 2 - mod(et,2) ! restrict to straight-sided         
           
           IF (npartet(et,blk) > 0) THEN  
-            CALL interior_edge_eval(ete,elblk(1,blk,et),elblk(2,blk,et),ndof(et),nverts(et)*nqpte(ete))   
-            CALL interior_edge_eval_ldg_E(ete,elblk(1,blk,et),elblk(2,blk,et),ndof(et),nverts(et)*nqpte(ete))                 
+            CALL interior_edge_eval(ete,elblk(1,blk,et),elblk(2,blk,et),ndof(et),nverts(et)*nqpte(ete))  
+            IF (esl > esl_tol) THEN
+              CALL interior_edge_eval_ldg_E(ete,elblk(1,blk,et),elblk(2,blk,et),ndof(et),nverts(et)*nqpte(ete))                 
+            ENDIF
           ENDIF
         ENDDO        
    

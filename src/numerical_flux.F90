@@ -6,7 +6,10 @@
                           xmi,xme,ymi,yme,xymi,xyme, &
                           Zhatv,Qxhatv,Qyhatv, &
                           detJe_in,detJe_ex, &
-                          Exxi,Exxe,Eyyi,Eyye,Exyi,Exye,Eyxi,Eyxe
+                          Exxi,Exxe,Eyyi,Eyye,Exyi,Exye,Eyxi,Eyxe, &
+                          esl_tol
+                          
+      USE read_dginp, ONLY: esl
    
       IMPLICIT NONE
 
@@ -47,16 +50,23 @@ ed_points: DO pt = 1,nqpte ! Compute numerical fluxes for all edges
                                         - const(ed)*(Qye(ed,pt)%ptr - Qyi(ed,pt)%ptr))                                     
               ENDDO
               
-              DO ed = sed,eed
-                Qxhatv(ed) = Qxhatv(ed) - inx(ed,pt)*.5d0*(Exxe(ed,pt)%ptr+Exxi(ed,pt)%ptr) &
-                                        - iny(ed,pt)*.5d0*(Exye(ed,pt)%ptr+Exyi(ed,pt)%ptr)               
-              ENDDO
               
-              DO ed = sed,eed
-!                 Qyhatv(ed) = Qyhatv(ed) - inx(ed,pt)*.5d0*(Eyxe(ed,pt)%ptr+Eyxi(ed,pt)%ptr) - iny(ed,pt)*.5d0*(Eyye(ed,pt)%ptr+Eyyi(ed,pt)%ptr)
-                Qyhatv(ed) = Qyhatv(ed) - inx(ed,pt)*.5d0*(Exye(ed,pt)%ptr+Exyi(ed,pt)%ptr) &
-                                        - iny(ed,pt)*.5d0*(Eyye(ed,pt)%ptr+Eyyi(ed,pt)%ptr)                
-              ENDDO
+              
+              
+              ! Eddy viscosity terms
+              IF (esl > esl_tol) THEN
+                DO ed = sed,eed
+                  Qxhatv(ed) = Qxhatv(ed) - inx(ed,pt)*.5d0*(Exxe(ed,pt)%ptr+Exxi(ed,pt)%ptr) &
+                                          - iny(ed,pt)*.5d0*(Exye(ed,pt)%ptr+Exyi(ed,pt)%ptr)               
+                ENDDO
+              
+                DO ed = sed,eed
+                  Qyhatv(ed) = Qyhatv(ed) - inx(ed,pt)*.5d0*(Exye(ed,pt)%ptr+Exyi(ed,pt)%ptr) &
+                                          - iny(ed,pt)*.5d0*(Eyye(ed,pt)%ptr+Eyyi(ed,pt)%ptr)                
+                ENDDO
+              ENDIF
+              
+              
               
               
 !DIR$ IVDEP              
@@ -65,18 +75,12 @@ ed_points: DO pt = 1,nqpte ! Compute numerical fluxes for all edges
                 Zi(ed,pt)%ptr =  detJe_in(ed,pt)*Zhatv(ed)                
               ENDDO          
 !DIR$ IVDEP              
-              DO ed = sed,eed             
-!                 Qxe(ed,pt)%ptr = -detJe_ex(ed,pt)*(Qxhatv(ed) - inx(ed,pt)*Exxe(ed,pt)%ptr - iny(ed,pt)*Exye(ed,pt)%ptr) 
-!                 Qxi(ed,pt)%ptr =  detJe_in(ed,pt)*(Qxhatv(ed) - inx(ed,pt)*Exxi(ed,pt)%ptr - iny(ed,pt)*Exyi(ed,pt)%ptr)               
-
+              DO ed = sed,eed                  
                 Qxe(ed,pt)%ptr = -detJe_ex(ed,pt)*Qxhatv(ed)
                 Qxi(ed,pt)%ptr =  detJe_in(ed,pt)*Qxhatv(ed)
               ENDDO   
 !DIR$ IVDEP              
               DO ed = sed,eed                      
-!                 Qye(ed,pt)%ptr = -detJe_ex(ed,pt)*(Qyhatv(ed) - inx(ed,pt)*Exye(ed,pt)%ptr - iny(ed,pt)*Eyye(ed,pt)%ptr) 
-!                 Qyi(ed,pt)%ptr =  detJe_in(ed,pt)*(Qyhatv(ed) - inx(ed,pt)*Exyi(ed,pt)%ptr - iny(ed,pt)*Eyyi(ed,pt)%ptr)               
-
                 Qye(ed,pt)%ptr = -detJe_ex(ed,pt)*Qyhatv(ed)
                 Qyi(ed,pt)%ptr =  detJe_in(ed,pt)*Qyhatv(ed)
               ENDDO               
@@ -86,6 +90,7 @@ ed_points: DO pt = 1,nqpte ! Compute numerical fluxes for all edges
 
        RETURN 
        END SUBROUTINE interior_edge_nflux
+       
        
        
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -109,16 +114,6 @@ ed_points: DO pt = 1,nqpte ! Compute numerical fluxes for all edges
       DO pt = 1,nqpte
         DO ed = sed,eed
 
-!           Exxe(ed,pt)%ptr = -detJe_ex(ed,pt)*inx(ed,pt)*Qxi(ed,pt)%ptr        
-!           Exxi(ed,pt)%ptr =  detJe_in(ed,pt)*inx(ed,pt)*Qxe(ed,pt)%ptr
-! 
-!           Eyye(ed,pt)%ptr = -detJe_ex(ed,pt)*iny(ed,pt)*Qyi(ed,pt)%ptr          
-!           Eyyi(ed,pt)%ptr =  detJe_in(ed,pt)*iny(ed,pt)*Qye(ed,pt)%ptr
-! 
-!           Exye(ed,pt)%ptr = -detJe_ex(ed,pt)*(iny(ed,pt)*Qxi(ed,pt)%ptr + inx(ed,pt)*Qyi(ed,pt)%ptr)          
-!           Exyi(ed,pt)%ptr =  detJe_in(ed,pt)*(iny(ed,pt)*Qxe(ed,pt)%ptr + inx(ed,pt)*Qye(ed,pt)%ptr)
-! 
-
           Exxe(ed,pt)%ptr = -detJe_ex(ed,pt)*inx(ed,pt)*.5d0*(Qxi(ed,pt)%ptr+Qxe(ed,pt)%ptr)
           Exxi(ed,pt)%ptr =  detJe_in(ed,pt)*inx(ed,pt)*.5d0*(Qxe(ed,pt)%ptr+Qxi(ed,pt)%ptr)
 
@@ -129,13 +124,6 @@ ed_points: DO pt = 1,nqpte ! Compute numerical fluxes for all edges
                                                   +inx(ed,pt)*(Qyi(ed,pt)%ptr+Qye(ed,pt)%ptr))
           Exyi(ed,pt)%ptr =  detJe_in(ed,pt)*.5d0*(iny(ed,pt)*(Qxe(ed,pt)%ptr+Qxi(ed,pt)%ptr) &
                                                   +inx(ed,pt)*(Qye(ed,pt)%ptr+Qyi(ed,pt)%ptr))          
-          
-!           Exye(ed,pt)%ptr = -detJe_ex(ed,pt)*iny(ed,pt)*.5d0*(Qxi(ed,pt)%ptr+Qxe(ed,pt)%ptr)
-!           Exyi(ed,pt)%ptr =  detJe_in(ed,pt)*iny(ed,pt)*.5d0*(Qxe(ed,pt)%ptr+Qxi(ed,pt)%ptr)
-! 
-!           Eyxe(ed,pt)%ptr = -detJe_ex(ed,pt)*inx(ed,pt)*.5d0*(Qyi(ed,pt)%ptr+Qye(ed,pt)%ptr)            
-!           Eyxi(ed,pt)%ptr =  detJe_in(ed,pt)*inx(ed,pt)*.5d0*(Qye(ed,pt)%ptr+Qyi(ed,pt)%ptr)
- 
           
         ENDDO
       ENDDO
@@ -151,12 +139,15 @@ ed_points: DO pt = 1,nqpte ! Compute numerical fluxes for all edges
       SUBROUTINE recieve_edge_nflux(nred,nqpte)
 
       USE globals, ONLY: const,g,pt5g,recipHa, &
-                         Zhatv,Qxhatv,Qyhatv
+                         Zhatv,Qxhatv,Qyhatv, &
+                         esl_tol
          
       USE messenger2, ONLY: Zri,Zre,Hri,Hre,Qxri,Qxre,Qyri,Qyre, &
                             xmri,xmre,ymri,ymre,xymri,xymre, &
                             detJe_recv,rcfac,hbr,rnx,rny, &
                             Exxri,Exxre,Eyyri,Eyyre,Exyri,Exyre,Eyxri,Eyxre
+                            
+      USE read_dginp, ONLY: esl
    
       IMPLICIT NONE
 
@@ -210,28 +201,28 @@ ed_points: DO pt = 1,nqpte ! Compute numerical fluxes for all edges
                                         - const(ed)*(Qyre(ed,pt)%ptr - Qyri(ed,pt)%ptr))
         ENDDO
         
-        DO ed = 1,nred
-          Qxhatv(ed) = Qxhatv(ed) - rnx(ed,pt)*.5d0*(Exxri(ed,pt)%ptr+Exxre(ed,pt)%ptr)  &
-                                  - rny(ed,pt)*.5d0*(Exyri(ed,pt)%ptr+Exyre(ed,pt)%ptr)
-        ENDDO
         
-        DO ed = 1,nred
-!           Qyhatv(ed) = Qyhatv(ed) - rnx(ed,pt)*.5d0*(Eyxri(ed,pt)%ptr+Eyxre(ed,pt)%ptr) - rny(ed,pt)*.5d0*(Eyyri(ed,pt)%ptr+Eyyre(ed,pt)%ptr)
-          Qyhatv(ed) = Qyhatv(ed) - rnx(ed,pt)*.5d0*(Exyri(ed,pt)%ptr+Exyre(ed,pt)%ptr)  &
-                                  - rny(ed,pt)*.5d0*(Eyyri(ed,pt)%ptr+Eyyre(ed,pt)%ptr)          
-        ENDDO
-
+        ! Eddy viscosity terms
+        IF (esl > esl_tol) THEN
+          DO ed = 1,nred
+            Qxhatv(ed) = Qxhatv(ed) - rnx(ed,pt)*.5d0*(Exxri(ed,pt)%ptr+Exxre(ed,pt)%ptr)  &
+                                    - rny(ed,pt)*.5d0*(Exyri(ed,pt)%ptr+Exyre(ed,pt)%ptr)
+          ENDDO
+        
+          DO ed = 1,nred
+            Qyhatv(ed) = Qyhatv(ed) - rnx(ed,pt)*.5d0*(Exyri(ed,pt)%ptr+Exyre(ed,pt)%ptr)  &
+                                    - rny(ed,pt)*.5d0*(Eyyri(ed,pt)%ptr+Eyyre(ed,pt)%ptr)          
+          ENDDO
+        ENDIF
         
         
         DO ed = 1,nred                                       
           Zri(ed,pt)%ptr =  detJe_recv(ed,pt)*Zhatv(ed)          
         ENDDO   
-        DO ed = 1,nred                                         
-!           Qxri(ed,pt)%ptr =  detJe_recv(ed,pt)*(Qxhatv(ed) - rnx(ed,pt)*Exxri(ed,pt)%ptr - rny(ed,pt)*Exyri(ed,pt)%ptr)      
+        DO ed = 1,nred                                            
           Qxri(ed,pt)%ptr =  detJe_recv(ed,pt)*Qxhatv(ed)
         ENDDO        
         DO ed = 1,nred 
-!           Qyri(ed,pt)%ptr =  detJe_recv(ed,pt)*(Qyhatv(ed) - rnx(ed,pt)*Exyri(ed,pt)%ptr - rny(ed,pt)*Eyyri(ed,pt)%ptr)
           Qyri(ed,pt)%ptr =  detJe_recv(ed,pt)*Qyhatv(ed)
         ENDDO
       ENDDO
@@ -258,18 +249,11 @@ ed_points: DO pt = 1,nqpte ! Compute numerical fluxes for all edges
       
       DO pt = 1,nqpte
         DO ed = 1,nred
-        
-!           Exxri(ed,pt)%ptr = detJe_recv(ed,pt)*rnx(ed,pt)*Qxre(ed,pt)%ptr
-!           Eyyri(ed,pt)%ptr = detJe_recv(ed,pt)*rny(ed,pt)*Qyre(ed,pt)%ptr
-!           Exyri(ed,pt)%ptr = detJe_recv(ed,pt)*(rny(ed,pt)*Qxre(ed,pt)%ptr + rnx(ed,pt)*Qyre(ed,pt)%ptr)
 
           Exxri(ed,pt)%ptr = detJe_recv(ed,pt)*rnx(ed,pt)*.5d0*(Qxre(ed,pt)%ptr+Qxri(ed,pt)%ptr)
           Eyyri(ed,pt)%ptr = detJe_recv(ed,pt)*rny(ed,pt)*.5d0*(Qyre(ed,pt)%ptr+Qyri(ed,pt)%ptr)
           Exyri(ed,pt)%ptr = detJe_recv(ed,pt)*.5d0*(rny(ed,pt)*(Qxre(ed,pt)%ptr+Qxri(ed,pt)%ptr) &
                                                     +rnx(ed,pt)*(Qyre(ed,pt)%ptr+Qyri(ed,pt)%ptr))
-
-!           Exyri(ed,pt)%ptr = detJe_recv(ed,pt)*rny(ed,pt)*.5d0*(Qxre(ed,pt)%ptr+Qxri(ed,pt)%ptr)
-!           Eyxri(ed,pt)%ptr = detJe_recv(ed,pt)*rnx(ed,pt)*.5d0*(Qyre(ed,pt)%ptr+Qyri(ed,pt)%ptr)
           
         ENDDO
       ENDDO

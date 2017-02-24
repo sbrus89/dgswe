@@ -438,6 +438,13 @@
       rhsEyy(:,:) = 0d0
       rhsExy(:,:) = 0d0
       
+      Exx(:,:) = 0d0
+      Eyy(:,:) = 0d0
+      Exy(:,:) = 0d0   
+      
+      Exxqpt(:,:) = 0d0
+      Eyyqpt(:,:) = 0d0
+      Exyqpt(:,:) = 0d0         
       
       RETURN
       END SUBROUTINE alloc_sol_arrays

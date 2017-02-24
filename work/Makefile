@@ -524,7 +524,7 @@ $(ODIR)rhs2.o : rhs2.F90                                       $(ODIR)globals.o 
 $(ODIR)rhs3.o : rhs3.F90                                       $(ODIR)globals.o $(ODIR)messenger2.o $(ODIR)read_input.o
 	$(FC) $(FFLAGS) $(OPT_REPORT) -c $< -o $@
 
-$(ODIR)numerical_flux.o : numerical_flux.F90                   $(ODIR)globals.o $(ODIR)messenger2.o
+$(ODIR)numerical_flux.o : numerical_flux.F90                   $(ODIR)globals.o $(ODIR)messenger2.o $(ODIR)read_input.o
 	$(FC) $(FFLAGS) -c $< -o $@
 
 $(ODIR)boundary_edge_land.o : boundary_edge_land.F90           $(ODIR)globals.o

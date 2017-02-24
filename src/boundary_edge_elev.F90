@@ -63,9 +63,6 @@
           Zqpt(el_in,gp_in) = detJe(ged,pt)*Zhat
           Qxqpt(el_in,gp_in) = detJe(ged,pt)*(Qxhat - nx*Exx_in - ny*Exy_in)
           Qyqpt(el_in,gp_in) = detJe(ged,pt)*(Qyhat - nx*Exy_in - ny*Eyy_in)
-
-!           Qxqpt(el_in,gp_in) = detJe(ged,pt)*(Qxhat - nx*Exx_in - ny*Exy_in)
-!           Qyqpt(el_in,gp_in) = detJe(ged,pt)*(Qyhat - nx*Eyx_in - ny*Eyy_in)
                           
           ENDDO
         ENDDO
@@ -115,8 +112,6 @@
            Exxqpt(el_in,gp_in) = detJe(ged,pt)*nx*Qx_ex
            Eyyqpt(el_in,gp_in) = detJe(ged,pt)*ny*Qy_ex
            Exyqpt(el_in,gp_in) = detJe(ged,pt)*(ny*Qx_ex+nx*Qy_ex)          
-!            Exyqpt(el_in,gp_in) = detJe(ged,pt)*ny*Qx_ex
-!            Eyxqpt(el_in,gp_in) = detJe(ged,pt)*nx*Qy_ex
            
          ENDDO
       ENDDO

@@ -10,8 +10,8 @@
       REAL(rp), PARAMETER :: pt5g = 0.5d0*g
       REAL(rp), PARAMETER :: pi=3.141592653589793D0
       REAL(rp), PARAMETER :: deg2rad = pi/180d0      
-!       REAL(rp), PARAMETER :: r_earth = 6378206.4d0      
-      REAL(rp), PARAMETER :: r_earth = 6.340304248283833d6    
+      REAL(rp), PARAMETER :: r_earth = 6378206.4d0      
+!       REAL(rp), PARAMETER :: r_earth = 6.340304248283833d6    
       CHARACTER(100) :: grid_name ! name of the grid
 
       INTEGER, PARAMETER :: nel_type = 4 !(type #s: 1 -> triangles, 2 -> quads, 3 -> curved triangles, 4-> curved quads)
@@ -171,6 +171,7 @@
       REAL(rp), ALLOCATABLE, TARGET, DIMENSION(:,:) :: Qy ! degrees of freedom for y momentum
       REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: hbm                 
       
+      REAL(rp), PARAMETER :: esl_tol = 1d-12      
       REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: Exx
       REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: Eyy
       REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: Exy   

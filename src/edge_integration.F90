@@ -107,16 +107,14 @@ ed_points: DO pt = 1,tnqpte
         DO el = sel,eel
           Exxqpt(el,pt) = Exx(el,1)
           Eyyqpt(el,pt) = Eyy(el,1)          
-          Exyqpt(el,pt) = Exy(el,1)           
-!           Eyxqpt(el,pt) = Eyx(el,1)          
+          Exyqpt(el,pt) = Exy(el,1)                    
         ENDDO
         
         DO dof = 2,ndof
           DO el = sel,eel
             Exxqpt(el,pt) = Exxqpt(el,pt) + Exx(el,dof)*phie(dof,pt,et)            
             Eyyqpt(el,pt) = Eyyqpt(el,pt) + Eyy(el,dof)*phie(dof,pt,et)  
-            Exyqpt(el,pt) = Exyqpt(el,pt) + Exy(el,dof)*phie(dof,pt,et)
-!             Eyxqpt(el,pt) = Eyxqpt(el,pt) + Eyx(el,dof)*phie(dof,pt,et)            
+            Exyqpt(el,pt) = Exyqpt(el,pt) + Exy(el,dof)*phie(dof,pt,et)         
           ENDDO
         ENDDO
       ENDDO
@@ -182,8 +180,7 @@ ed_points: DO pt = 1,tnqpte
           DO el = sel,eel
             rhsExx(el,l) = rhsExx(el,l) + Exxqpt(el,pt)*phie_int(l,pt,et)
             rhsEyy(el,l) = rhsEyy(el,l) + Eyyqpt(el,pt)*phie_int(l,pt,et)
-            rhsExy(el,l) = rhsExy(el,l) + Exyqpt(el,pt)*phie_int(l,pt,et)
-!             rhsEyx(el,l) = rhsEyx(el,l) + Eyxqpt(el,pt)*phie_int(l,pt,et)            
+            rhsExy(el,l) = rhsExy(el,l) + Exyqpt(el,pt)*phie_int(l,pt,et)      
           ENDDO
         ENDDO
       ENDDO
@@ -193,11 +190,6 @@ ed_points: DO pt = 1,tnqpte
           rhsExx(el,l) = 2d0*esl*rhsExx(el,l)
           rhsEyy(el,l) = 2d0*esl*rhsEyy(el,l)
           rhsExy(el,l) = esl*rhsExy(el,l)
-
-!           rhsExx(el,l) = esl*rhsExx(el,l)
-!           rhsEyy(el,l) = esl*rhsEyy(el,l)
-!           rhsExy(el,l) = esl*rhsExy(el,l)
-!           rhsEyx(el,l) = esl*rhsEyx(el,l)
         ENDDO
       ENDDO
       
