@@ -63,13 +63,7 @@
       blk = 1
       DO et = 1,nel_type   
       
-        IF (et == 3) THEN 
-          ete = 1
-        ELSE IF (et == 4) THEN
-          ete = 2
-        ELSE   
-          ete = et
-        ENDIF
+        ete = 2 - mod(et,2) ! restrict to straight-sided
           
         IF (npartet(et,blk) > 0) THEN  
           CALL interior_edge_eval(ete,elblk(1,blk,et),elblk(2,blk,et),ndof(et),nverts(et)*nqpte(ete))     
@@ -100,13 +94,7 @@
       DO blk = 2,npart+1
         DO et = 1,nel_type          
           
-          IF (et == 3) THEN 
-            ete = 1
-          ELSE IF (et == 4) THEN
-            ete = 2
-          ELSE   
-            ete = et
-          ENDIF          
+          ete = 2 - mod(et,2) ! restrict to straight-sided         
           
           IF (npartet(et,blk) > 0) THEN
             CALL interior_edge_eval_ldg_Q(ete,elblk(1,blk,et),elblk(2,blk,et),ndof(et),nverts(et)*nqpte(ete))    
@@ -136,15 +124,9 @@
       CALL boundary_edge_elev_ldg()
       
       DO blk = 1,npart+1   
-        DO et = 1,nel_type
-        
-          IF (et == 3) THEN 
-            ete = 1
-          ELSE IF (et == 4) THEN
-            ete = 2
-          ELSE   
-            ete = et
-          ENDIF          
+        DO et = 1,nel_type    
+          
+          ete = 2 - mod(et,2) ! restrict to straight-sided         
           
           IF (npartet(et,blk) > 0) THEN    
           
@@ -157,14 +139,9 @@
       ENDDO       
       
       blk = 1      
-      DO et = 1,nel_type
-        IF (et == 3) THEN 
-          ete = 1
-        ELSE IF (et == 4) THEN
-          ete = 2
-        ELSE   
-          ete = et
-        ENDIF      
+      DO et = 1,nel_type 
+        
+        ete = 2 - mod(et,2) ! restrict to straight-sided       
         
         IF (npartet(et,blk) > 0) THEN 
           CALL interior_edge_eval_ldg_E(ete,elblk(1,blk,et),elblk(2,blk,et),ndof(et),nverts(et)*nqpte(ete))  
@@ -205,14 +182,8 @@
 
        DO blk = 2,npart+1 
         DO et = 1,nel_type   
-        
-          IF (et == 3) THEN 
-            ete = 1
-          ELSE IF (et == 4) THEN
-            ete = 2
-          ELSE   
-            ete = et
-          ENDIF
+          
+          ete = 2 - mod(et,2) ! restrict to straight-sided         
           
           IF (npartet(et,blk) > 0) THEN  
             CALL interior_edge_eval(ete,elblk(1,blk,et),elblk(2,blk,et),ndof(et),nverts(et)*nqpte(ete))   
@@ -260,15 +231,9 @@
 
 !$OMP do
       DO blk = 1,npart+1   
-        DO et = 1,nel_type
-        
-          IF (et == 3) THEN 
-            ete = 1
-          ELSE IF (et == 4) THEN
-            ete = 2
-          ELSE   
-            ete = et
-          ENDIF          
+        DO et = 1,nel_type        
+          
+          ete = 2 - mod(et,2) ! restrict to straight-sided         
           
           IF (npartet(et,blk) > 0) THEN    
           
