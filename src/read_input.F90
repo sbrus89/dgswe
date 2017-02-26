@@ -83,7 +83,8 @@
       INTEGER, TARGET  :: npart 
       INTEGER, TARGET :: coord_sys      
       INTEGER, TARGET :: sol_opt
-      INTEGER, TARGET :: sta_opt      
+      INTEGER, TARGET :: sta_opt     
+      INTEGER, TARGET :: cb_wmult
       REAL(rp), TARGET :: sol_snap
       REAL(rp), TARGET :: sta_snap
       REAL(rp), TARGET  :: dt
@@ -560,7 +561,9 @@
      dginp(23)%key = "sta_snap";    dginp(23)%rptr => sta_snap;      dginp(23)%required = .false.; dginp(23)%rptr = 0  
      dginp(24)%key = "sta_file";    dginp(24)%cptr => stations_file; dginp(24)%required = .false.; dginp(24)%cptr = "./stations.d"  
      dginp(25)%key = "esl";         dginp(25)%rptr => esl;           dginp(25)%required = .false.; dginp(25)%rptr = 0d0 
-     dginp(26)%key = "str_tol";     dginp(26)%rptr => straight_tol;  dginp(26)%required = .false.; dginp(26)%rptr = 0d0          
+     dginp(26)%key = "str_tol";     dginp(26)%rptr => straight_tol;  dginp(26)%required = .false.; dginp(26)%rptr = 0d0
+     dginp(27)%key = "cb_wmult";    dginp(27)%iptr => cb_wmult;      dginp(27)%required = .false.; dginp(27)%iptr = 1      
+     
 !      dginp(25)%key = "??";        dginp(25)%?ptr => ??;            dginp(25)%required = .false.;    dginp(25)%?ptr = ??  
       
 

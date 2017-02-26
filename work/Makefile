@@ -494,7 +494,7 @@ $(ODIR)shape_functions_eval.o : shape_functions_eval.F90       $(ODIR)globals.o 
 $(ODIR)edge_partition2.o : edge_partition2.F90                 $(ODIR)globals.o $(ODIR)messenger2.o $(ODIR)read_input.o $(ODIR)allocation.o
 	$(FC) $(FFLAGS) -c $< -o $@
 
-$(ODIR)metis2.o : metis2.F90                                   $(ODIR)globals.o $(ODIR)messenger2.o 
+$(ODIR)metis2.o : metis2.F90                                   $(ODIR)globals.o $(ODIR)messenger2.o $(ODIR)read_input.o
 	$(FC) $(FFLAGS) -c $< -o $@	
 	
 $(ODIR)area_transformation.o : area_transformation.F90         $(ODIR)globals.o $(ODIR)transformation.o $(ODIR)lapack_interfaces.o $(ODIR)spherical_mod.o $(ODIR)read_input.o

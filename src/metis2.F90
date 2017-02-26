@@ -1,7 +1,8 @@
       SUBROUTINE metis2(nparts)
 
-      USE globals, ONLY: nn,ne,ned,ged2el,part      
+      USE globals, ONLY: nn,ne,ned,ged2el,part,el_type      
       USE messenger2, ONLY: myrank
+      USE read_dginp, ONLY: cb_wmult
 
       IMPLICIT NONE
       
@@ -71,7 +72,9 @@
       
       DO el = 1,ne
         vwgt(el) = nadjels(el)
-!         PRINT*, nd,vwgt(nd)
+        IF (el_type(el) == 3) THEN
+          vwgt(el) = vwgt(el)*cb_wmult
+        ENDIF
       ENDDO
       
       ! Create the adjacency arrays used by metis
