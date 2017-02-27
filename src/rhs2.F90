@@ -216,9 +216,13 @@
         
 !$OMP end do        
         
-#ifdef CMPI      
+#ifdef CMPI    
 
-      CALL MPI_WAITALL(2*nproc_sr,solreq_ldg,MPI_STATUSES_IGNORE,ierr)
+      IF (esl > esl_tol) THEN
+        CALL MPI_WAITALL(2*nproc_sr,solreq_ldg,MPI_STATUSES_IGNORE,ierr)
+      ELSE
+        CALL MPI_WAITALL(2*nproc_sr,solreq,MPI_STATUSES_IGNORE,ierr)
+      ENDIF
       
       CALL recieve_edge_nflux(nred,nqpte(1))      
 
