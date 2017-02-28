@@ -198,7 +198,6 @@
       CALL read_latex(fig%latex_header,fig%nline_header,fig%latex_body,fig%nline_body)
       CALL remove_latex_files()   
       CALL write_psheader(filename//".ps",fig%ps_unit)
-      CALL plot_background(fig%ps_unit,1d0,1d0,1d0)
       CALL write_char_array(fig%ps_unit,fig%nline_header,fig%latex_header)   
       CALL write_colorscale_horz(fig%ps_unit)           
       CALL write_char_array(fig%ps_unit,fig%nline_body,fig%latex_body)       
