@@ -114,6 +114,77 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+      SUBROUTINE write_colorscale_horz(file_unit)
+      
+      IMPLICIT NONE
+      
+      INTEGER, INTENT(IN) :: file_unit
+
+      
+      INTEGER :: lev
+      INTEGER :: tick         
+      REAL(rp) :: r0,r1,s0,s1
+      REAL(rp) :: dr
+      REAL(rp) :: cval
+      REAL(rp) :: dc   
+      CHARACTER(20) :: cchar
+      
+
+      
+      r0 = rmin_axes
+      s0 = smin_axes
+      s1 = smin_axes + cscale_width
+      r1 = rmin_axes            
+      
+
+      
+      dr = (rmax_axes-rmin_axes)/(ncolors-1)
+      DO lev = 1,ncolors-1
+      
+        r1 = r0 + dr
+      
+        WRITE(file_unit,"(A,3(F9.5,1x),A)") "[",colors(lev+1,1),colors(lev+1,2),colors(lev+1,3),"]"       
+        WRITE(file_unit,"(A,3(F9.5,1x),A)") "[",colors(lev,1),colors(lev,2),colors(lev,3),"]"  
+        WRITE(file_unit,"(A,4(F9.5,1x),A)") "[",r0,s0,r1,s0,"]" 
+        WRITE(file_unit,"(A,4(F9.5,1x),A)") "[",r0,s0,r1,s1,"]"         
+        WRITE(file_unit,"(A)") "recfill" 
+        
+        r0 = r1
+        
+      ENDDO
+                     
+      WRITE(file_unit,"(2(F9.5,1x))") rmin_axes,s1
+      WRITE(file_unit,"(2(F9.5,1x))") rmax_axes,s1
+      WRITE(file_unit,"(2(F9.5,1x))") rmax_axes,smin_axes
+      WRITE(file_unit,"(2(F9.5,1x))") rmin_axes,smin_axes      
+      WRITE(file_unit,"(A)") "draw-box"       
+      
+
+      
+      r0 = rmin_axes 
+      dr = (rmax_axes-rmin_axes)/(nctick-1)      
+      DO tick = 1,nctick
+              
+        WRITE(file_unit,"(2(F9.5,1x))") r0,smin_axes 
+        WRITE(file_unit,"(2(F9.5,1x))") r0,smin_axes+dash     
+        WRITE(file_unit,"(A)") "draw-line" 
+        
+        WRITE(file_unit,"(2(F9.5,1x))") r0,smin_axes+cscale_width
+        WRITE(file_unit,"(2(F9.5,1x))") r0,smin_axes+cscale_width-dash     
+        WRITE(file_unit,"(A)") "draw-line"  
+
+        r0 = r0 + dr
+      ENDDO       
+           
+      
+      RETURN
+      END SUBROUTINE write_colorscale_horz
+      
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
       SUBROUTINE write_xyaxis(file_unit)
       
       IMPLICIT NONE

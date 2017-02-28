@@ -186,6 +186,53 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+      SUBROUTINE write_caxis_labels_horz(sol_min,sol_max,sol_label)
+      
+      IMPLICIT NONE
+      
+      REAL(rp), INTENT(IN) :: sol_min
+      REAL(rp), INTENT(IN) :: sol_max
+      CHARACTER(*), INTENT(IN) :: sol_label
+
+      
+      INTEGER :: lev
+      INTEGER :: tick         
+      REAL(rp) :: r0,r1,s0,s1
+      REAL(rp) :: dr
+      REAL(rp) :: cval
+      REAL(rp) :: dc   
+      CHARACTER(20) :: cchar
+         
+            
+
+      r0 = rmin_axes
+      s0 = smin_axes          
+      
+      cval = sol_min
+      dc = (sol_max-sol_min)/(nctick-1)
+      dr = (rmax_axes-rmin_axes)/(nctick-1)      
+      DO tick = 1,nctick               
+        
+        CALL format_number(ncdec,cval,0,cchar)         
+        
+        WRITE(tex_unit,"(A,F9.5,A,F9.5,A)") "\begin{textblock}{400}[0.5,0](",r0,",",smax_page-smin_axes+xticklabel_pad,")"
+        WRITE(tex_unit,"(A)") "\centerline{"//TRIM(ADJUSTL(cchar))//"}"      
+        WRITE(tex_unit,"(A)") "\end{textblock}"                 
+        
+        cval = cval + dc
+        r0 = r0 + dr
+      ENDDO       
+        
+      WRITE(tex_unit,"(A,F9.5,A,F9.5,A)") "\begin{textblock}{400}[0.5,0](",(rmax_axes+rmin_axes)/2d0,",",smax_page-smin_axes+xlabel_pad,")"
+      WRITE(tex_unit,"(A)") "\centerline{"//TRIM(sol_label)//"}"       
+      WRITE(tex_unit,"(A)") "\end{textblock}"         
+      
+      RETURN
+      END SUBROUTINE write_caxis_labels_horz       
+      
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
       SUBROUTINE write_xyaxis_labels(axis_label_option)
       
       IMPLICIT NONE

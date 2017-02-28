@@ -292,10 +292,14 @@
       mesh%tbar_flag = 0
       bathy%cbar_flag = 1
       bathy%tbar_flag = 0
-      zeta%cbar_flag = 1
-      zeta%tbar_flag = 1
-      vel%cbar_flag = 1
-      vel%tbar_flag = 1
+!       zeta%cbar_flag = 1
+!       zeta%tbar_flag = 1
+!       vel%cbar_flag = 1
+!       vel%tbar_flag = 1
+      zeta%cbar_flag = 0
+      zeta%tbar_flag = 0
+      vel%cbar_flag = 0
+      vel%tbar_flag = 0      
       
       bathy%el_label_option = "off"
       bathy%nd_label_option = "off"
