@@ -54,10 +54,7 @@
 !       ALLOCATE(dg_sol(ndg))
 !       dg_sol(1)%line = "/home/sbrus/data-drive/galveston_spline_flux_fix/galveston_tri/p3/ctp3/hbp3/"
 !       dg_sol(2)%line = "/home/sbrus/data-drive/galveston_spline_flux_fix/galveston_tri/p3/ctp1/hbp1/"      
-!       
-!       stations_file = "/home/sbrus/data-drive/galveston_spline_flux_fix/grids/stations.d"
-!       grid_file = "/home/sbrus/data-drive/galveston_spline_flux_fix/grids/galveston_tri.grd"
-!       curve_file = "/home/sbrus/data-drive/galveston_spline_flux_fix/grids/galveston_tri_ctp3.cb"
+
       
       CALL read_plot_sta_input()
                  
@@ -118,9 +115,6 @@
   
       ENDDO 
  
-      nsnap_Z = nsnap_Z + 1
-      nsnap_Qx = nsnap_Qx + 1
-      nsnap_Qy = nsnap_Qy + 1 
       DEALLOCATE(t)
  
  
@@ -214,8 +208,8 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
 
       IF (plot_xc_snap_opt > 0) THEN
-      x_min = xsta_min
-      x_max = xsta_max
+      x_min = real(xsta_min,rp)
+      x_max = real(xsta_max,rp)
       nsta_plot = xsta_max-xsta_min+1
       
       ALLOCATE(xvec(nsta_plot),yvec(nsta_plot))
@@ -257,8 +251,8 @@
       
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!      
       
-      x_min = xsta_min
-      x_max = xsta_max      
+      x_min = real(xsta_min,rp)
+      x_max = real(xsta_max,rp)      
       
       DO i = 1,nsnap
       
@@ -300,11 +294,9 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!       
       
       IF (plot_ts_sta_opt > 0) THEN
+      
       x_min = xtime_min
       x_max = xtime_max
-      
-!       nxtick = 4
-!       nytick = 5
       
       tf = zeta%t_sta(nsnap_Z,1)
       
@@ -316,37 +308,37 @@
       
       ALLOCATE(xvec(nsnap),yvec(nsnap))
       
-!       DO i = 1,nsta
-!       
-!         sta = ts_stas(i)
-!         PRINT*, "zeta station",sta      
-!       
-!         y_min = MINVAL(zeta%sta_val(sta,snap_start:snap_end,1:nrun))  
-!         y_max = MAXVAL(zeta%sta_val(sta,snap_start:snap_end,1:nrun)) 
-!         
-!         y_min = y_min - abs((y_max-ymin)*.05d0)
-!         y_max = y_max + abs((y_max-ymin)*.05d0)
-! 
-!         
-!         WRITE(snap_char,"(I4.4)") sta           
-!         filename = TRIM(ADJUSTL(zeta%name))//"_ts_"//snap_char          
-!         
-!         CALL prep_station_plot(zeta,"zt",sta,x_min,x_max,y_min,y_max,filename)        
-!         
-!         DO run = 1,nrun
-!           j = 1
-!           DO pt = snap_start,snap_end
-!             xvec(j) = zeta%t_sta(pt,run)
-!             yvec(j) = zeta%sta_val(sta,pt,run)
-!             j = j+1
-!           ENDDO
-!         
-!           CALL plot_xy(zeta%ps_unit,nsnap,xvec,yvec,colors(run+1,:),line_width)
-!         ENDDO
-!         
-!         CALL finish_station_plot(zeta,filename)
-!       ENDDO
-!       
+      DO i = 1,nsta
+      
+        sta = ts_stas(i)
+        PRINT*, "zeta station",sta      
+      
+        y_min = MINVAL(zeta%sta_val(sta,snap_start:snap_end,1:nrun))  
+        y_max = MAXVAL(zeta%sta_val(sta,snap_start:snap_end,1:nrun)) 
+        
+        y_min = y_min - abs((y_max-ymin)*.05d0)
+        y_max = y_max + abs((y_max-ymin)*.05d0)
+
+        
+        WRITE(snap_char,"(I4.4)") sta           
+        filename = TRIM(ADJUSTL(zeta%name))//"_ts_"//snap_char          
+        
+        CALL prep_station_plot(zeta,"zt",sta,x_min,x_max,y_min,y_max,filename)        
+        
+        DO run = 1,nrun
+          j = 1
+          DO pt = snap_start,snap_end
+            xvec(j) = zeta%t_sta(pt,run)
+            yvec(j) = zeta%sta_val(sta,pt,run)
+            j = j+1
+          ENDDO
+        
+          CALL plot_xy(zeta%ps_unit,nsnap,xvec,yvec,colors(run+1,:),line_width)
+        ENDDO
+        
+        CALL finish_station_plot(zeta,filename)
+      ENDDO
+      
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!     
 
       x_min = xtime_min
