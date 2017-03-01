@@ -1,7 +1,7 @@
 SHELL = /bin/sh
 
 FC = ifort
-FFLAGS = -I$(ODIR)
+FFLAGS = -I$(ODIR) -g -traceback -C
 
 VPATH := ../src/
 ODIR = odir/
@@ -87,7 +87,7 @@ plot_obj := $(patsubst %.o, $(ODIR)%.o,$(plot_objects))
 
 
 plot_sta_objects =  plot_globals.o globals.o quit.o basis.o read_input.o messenger2.o \
-           read_plot_input.o grid_file_mod.o read_write_output.o read_stations.o \
+           read_plot_sta_input.o grid_file_mod.o read_write_output.o read_stations.o \
            system.o tripack.o \
            edge_connectivity_mod.o curvilinear_nodes_mod.o bathymetry_interp_mod.o \
            vandermonde.o transformation.o shape_functions_mod.o triangulation.o \
@@ -227,6 +227,9 @@ $(ODIR)system.o : ../../src/system.F90
 	
 $(ODIR)read_plot_input.o : read_plot_input.F90               $(ODIR)plot_globals.o $(ODIR)plot_mod.o              
 	$(FC) $(FFLAGS) -c $< -o $@		
+	
+$(ODIR)read_plot_sta_input.o : read_plot_sta_input.F90       $(ODIR)plot_globals.o $(ODIR)read_input.o             
+	$(FC) $(FFLAGS) -c $< -o $@		
 
 $(ODIR)convert.o: convert2cartesian.F90                      $(ODIR)globals.o $(ODIR)grid_file_mod.o $(ODIR)spherical_mod.o
 	$(FC) $(FFLAGS) -c $< -o $@
@@ -234,7 +237,7 @@ $(ODIR)convert.o: convert2cartesian.F90                      $(ODIR)globals.o $(
 $(ODIR)read_stations.o: ../../src/read_stations.F90          $(ODIR)globals.o $(ODIR)read_input.o $(ODIR)messenger2.o $(ODIR)quit.o 
 	$(FC) $(FFLAGS) -c $< -o $@        
 
-$(ODIR)plot_mod.o: plot_mod.F90                              $(ODIR)globals.o $(ODIR)plot_globals.o $(ODIR)evaluate_mod.o $(ODIR)labels_mod.o $(ODIR)axes_mod.o  $(ODIR)read_input.o $(ODIR)basis.o  $(ODIR)transformation.o $(ODIR)shape_functions_mod.o $(ODIR)area_qpts_mod.o
+$(ODIR)plot_mod.o: plot_mod.F90                              $(ODIR)globals.o $(ODIR)plot_globals.o $(ODIR)evaluate_mod.o $(ODIR)labels_mod.o $(ODIR)axes_mod.o  $(ODIR)read_input.o $(ODIR)basis.o  $(ODIR)transformation.o $(ODIR)shape_functions_mod.o $(ODIR)area_qpts_mod.o $(ODIR)grid_file_mod.o
 	$(FC) $(FFLAGS) -c $< -o $@ 	
 	mv plot_mod.mod $(ODIR)
 	

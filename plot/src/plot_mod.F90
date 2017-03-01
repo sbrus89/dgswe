@@ -237,7 +237,7 @@
       CALL run_latex()
       CALL read_latex(fig%latex_header,fig%nline_header,fig%latex_body,fig%nline_body)
       CALL remove_latex_files()     
-                
+        
       CALL write_psheader(filename//".ps",fig%ps_unit)  
       CALL write_char_array(fig%ps_unit,fig%nline_header,fig%latex_header)  
       CALL plot_background(fig%ps_unit,1d0,1d0,1d0)      
@@ -1812,7 +1812,7 @@ edge:DO ed = 1,nbed
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!   
 
-      SUBROUTINE plot_stations(file_unit,sta_start,sta_end,xysta)
+      SUBROUTINE plot_stations(file_unit,sta_start,sta_end,xysta,sta_pick)
       
       IMPLICIT NONE
       
@@ -1820,9 +1820,11 @@ edge:DO ed = 1,nbed
       INTEGER, INTENT(IN) :: sta_start
       INTEGER, INTENT(IN) :: sta_end
       REAL(rp), DIMENSION(:,:), INTENT(IN) :: xysta
+      INTEGER, INTENT(IN), OPTIONAL :: sta_pick
       
       INTEGER :: sta
       REAL(rp) :: x,y
+     
       
       DO sta = sta_start,sta_end
             
@@ -1836,6 +1838,18 @@ edge:DO ed = 1,nbed
         ENDIF
       
       ENDDO
+      
+      IF (PRESENT(sta_pick)) THEN
+        x = xysta(1,sta_pick)
+        y = xysta(2,sta_pick)
+            
+        IF (x > xbox_min .AND. x < xbox_max .AND. y > ybox_min .AND. y < ybox_max) THEN  
+          WRITE(file_unit,"(3(I5,1x))") 0,1,0        
+          WRITE(file_unit,"(2(F9.5,1x))") ax*x+bx,ay*y+by
+          WRITE(file_unit,"(A)") "draw-dot"        
+        ENDIF      
+      
+      ENDIF
       
       END SUBROUTINE plot_stations
 

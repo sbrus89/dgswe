@@ -106,6 +106,7 @@
       REAL(rp) :: xbox_min,xbox_max,ybox_min,ybox_max
       REAL(rp) :: figure_width
       REAL(rp) :: figure_height
+      REAL(rp) :: line_width      
       
 !       TYPE :: viz
 !         INTEGER, DIMENSION(:), ALLOCATABLE :: p
@@ -122,6 +123,8 @@
       
       INTEGER :: snap_start
       INTEGER :: snap_end
+      INTEGER :: sta_start
+      INTEGER :: sta_end
       
       INTEGER :: nsnap_Z
       INTEGER :: nsnap_Qx
@@ -135,7 +138,7 @@
       CHARACTER(3) :: nframes
       
       TYPE :: char_array
-        CHARACTER(500) :: line
+        CHARACTER(:),ALLOCATABLE :: line
       END TYPE
             
       
@@ -221,7 +224,14 @@
       TYPE(char_array), DIMENSION(:), ALLOCATABLE :: adc_sol
       TYPE(char_array), DIMENSION(:), ALLOCATABLE :: dg_sol
       
-
+      INTEGER :: xsta_min,xsta_max
+      REAL(rp) :: xtime_min,xtime_max
+      CHARACTER(4) :: xc_snap_opt
+      CHARACTER(4) :: ts_sta_opt
+      
+      INTEGER :: plot_ts_sta_opt
+      INTEGER :: plot_xc_snap_opt
+      INTEGER :: plot_sta_loc_opt      
 
       
       CONTAINS

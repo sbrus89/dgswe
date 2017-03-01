@@ -1,78 +1,77 @@
-      PROGRAM plot_stations
+      PROGRAM plot_sta
 
 
       USE plot_globals
-      USE globals, ONLY: nsta
+      USE globals, ONLY: ne,nn,nverts,ndof,mndof,np,mnp,nnds,mnnds,nel_type,ect,xy,depth, &
+                         nope,neta,obseg,obnds,nvel,nbou,fbseg,fbnds,bndxy,grid_name, &
+                         el_type,elxy, &
+                         nepn,epn,mnepn,ned,ged2el,ged2el,ged2led,ged2nn,ed_type,recv_edge, &
+                         nied,iedn,nobed,obedn,nfbed,fbedn,nnfbed,nfbedn,nfbednn, &
+                         psic,psiv, &
+                         nsta,xysta
       USE grid_file_mod
       USE read_write_output
       USE plot_mod
-      USE read_dginp, ONLY: stations_file     
+      USE read_dginp, ONLY: stations_file,grid_file,curve_file,cb_file_exists,ctp     
+      USE edge_connectivity_mod
+      USE curvilinear_nodes_mod
+      USE transformation
+      USE shape_functions_mod   
+      USE triangulation, ONLY: reference_element_delaunay  
+      USE basis, ONLY: element_nodes,element_basis      
 
       IMPLICIT NONE
       
       CHARACTER(100) :: out_direc
       CHARACTER(:), ALLOCATABLE :: filename
-      INTEGER :: sta,run
-      REAL(rp) :: h,u,v
+      INTEGER :: sta,run,ord
+      REAL(rp) :: h,uu,vv
       REAL(rp) :: x_max,x_min,y_max,y_min
       INTEGER :: npt
       REAL(rp), DIMENSION(:), ALLOCATABLE :: xvec,yvec
       INTEGER :: nrun 
       INTEGER :: nsta_plot
-      REAL(rp) :: line_width
+      INTEGER :: nsnap_max
+      REAL(rp) :: tf
+      INTEGER, DIMENSION(:), ALLOCATABLE :: xc_snaps
+      INTEGER, DIMENSION(:), ALLOCATABLE :: ts_stas
+
+      
       
 
 !       nadc = 2
-!       ALLOCATE(adc_sol(nadc))
+!       ALLOCATE(adc_sol(nadc))     
 !       adc_sol(1)%line = "/home/sbrus/data-drive/galveston_spline_flux_fix/galveston_tri/adcirc/ESL0/"
 !       adc_sol(2)%line = "/home/sbrus/data-drive/galveston_spline_flux_fix/galveston_tri_x64/adcirc/ESL0/"
 !       ndg = 1
 !       ALLOCATE(dg_sol(ndg))
 !       dg_sol(1)%line = "/home/sbrus/data-drive/galveston_spline_flux_fix/galveston_tri/p3/ctp3/hbp3/"
 
-      nadc = 1
-      ALLOCATE(adc_sol(nadc))
-      adc_sol(1)%line = "/home/sbrus/data-drive/galveston_spline_flux_fix/galveston_tri_x64/adcirc/ESL0/"
-      ndg = 2
-      ALLOCATE(dg_sol(ndg))
-      dg_sol(1)%line = "/home/sbrus/data-drive/galveston_spline_flux_fix/galveston_tri/p3/ctp3/hbp3/"
-      dg_sol(2)%line = "/home/sbrus/data-drive/galveston_spline_flux_fix/galveston_tri/p3/ctp1/hbp1/"      
+!       nadc = 1
+!       ALLOCATE(adc_sol(nadc))
+!       adc_sol(1)%line = "/home/sbrus/data-drive/galveston_spline_flux_fix/galveston_tri_x64/adcirc/ESL0/"
+!       ndg = 2
+!       ALLOCATE(dg_sol(ndg))
+!       dg_sol(1)%line = "/home/sbrus/data-drive/galveston_spline_flux_fix/galveston_tri/p3/ctp3/hbp3/"
+!       dg_sol(2)%line = "/home/sbrus/data-drive/galveston_spline_flux_fix/galveston_tri/p3/ctp1/hbp1/"      
+!       
+!       stations_file = "/home/sbrus/data-drive/galveston_spline_flux_fix/grids/stations.d"
+!       grid_file = "/home/sbrus/data-drive/galveston_spline_flux_fix/grids/galveston_tri.grd"
+!       curve_file = "/home/sbrus/data-drive/galveston_spline_flux_fix/grids/galveston_tri_ctp3.cb"
       
-      stations_file = "/home/sbrus/data-drive/galveston_spline_flux_fix/grids/stations.d"
+      CALL read_plot_sta_input()
+                 
+      nsnap_max = 2000  
+       
+      CALL read_stations(0,stations_file,1,nsta,xysta)   
+      nsta_plot = nsta      
       
-      nsta_plot = 480            
-      
-      nsnap_Z = 576
-      nsnap_Qx = 576      
-      nsnap_Qy = 576      
-      
-      out_direc = dg_sol(1)%line    
-      CALL read_stations()    
-      
-      zeta%plot_sol_option = 1
-      vel%plot_sol_option = 1
 
-      zeta%name = "zeta"
-      vel%name = "vel"            
-      
-      line_width = 1.25d0
-      figure_width = 7d0*72d0
-      figure_height = 7d0*72d0
-      nxtick = 5
-      nytick = 5
-      nxdec = 0
-      nydec = 2
-      fontsize = 12
-      font = "sans"
-      frmt = "png"
-      density = "400"
-      zeta%rm_ps = 1
-      vel%rm_ps = 1
       
       CALL read_colormap("/home/sbrus/Codes/dgswe/plot/work/lines.cmap")
       
-      ALLOCATE(zeta%sta_val(nsta,nsnap_Z+1,ndg+nadc),zeta%t_sta(nsnap_Z+1,ndg+nadc))         
-      ALLOCATE(vel%sta_val(nsta,nsnap_Z+1,ndg+nadc),vel%t_sta(nsnap_Z+1,ndg+nadc))           
+      ALLOCATE(zeta%sta_val(nsta,nsnap_max+1,ndg+nadc),zeta%t_sta(nsnap_max+1,ndg+nadc))         
+      ALLOCATE(vel%sta_val(nsta,nsnap_max+1,ndg+nadc),vel%t_sta(nsnap_max+1,ndg+nadc))           
       
       
       nrun = 0            
@@ -159,30 +158,83 @@
         DO snap = 1,nsnap_Qx
           DO sta = 1,nsta
             h = Z(sta,1,snap) + hb(sta,1,1)
-            u = Qx(sta,1,snap)/h
-            v = Qy(sta,1,snap)/h
-            vel%sta_val(sta,snap,nrun) = sqrt(u**2 + v**2)
+            uu = Qx(sta,1,snap)/h
+            vv = Qy(sta,1,snap)/h
+            vel%sta_val(sta,snap,nrun) = sqrt(uu**2 + vv**2)
           ENDDO
           vel%t_sta(snap,nrun) = t(snap)/86400d0
         ENDDO
       
       ENDDO
       
+      
+      IF (xc_snap_opt == "all") THEN
+        nsnap = nsnap_Z
+        ALLOCATE(xc_snaps(nsnap))
+        DO i = 1,nsnap
+          xc_snaps(i) = i
+        ENDDO
+      ELSE IF (xc_snap_opt == "file") THEN
+        OPEN(unit=10,file="xc_snap.list")
+        READ(10,*) nsnap
+        ALLOCATE(xc_snaps(nsnap))
+        DO i = 1,nsnap
+          READ(10,*) xc_snaps(i)
+        ENDDO
+        CLOSE(10)
+      ELSE
+        nsnap = snap_end-snap_start+1
+        ALLOCATE(xc_snaps(nsnap))
+        DO i = 1,nsnap
+          xc_snaps(i) = snap_start + (i-1)
+        ENDDO
+      ENDIF
+      
+      IF (ts_sta_opt == "all") THEN
+        ALLOCATE(ts_stas(nsta))
+        DO i = 1,nsta
+          ts_stas(i) = i
+        ENDDO
+      ELSE IF (ts_sta_opt == "file") THEN
+        OPEN(unit=10,file="ts_sta.list")
+        READ(10,*) nsta
+        ALLOCATE(ts_stas(nsta))
+        DO i = 1,nsta
+          READ(10,*) ts_stas(i)
+        ENDDO
+        CLOSE(10)
+      ELSE
+        nsta = sta_end-sta_start+1
+        ALLOCATE(ts_stas(nsta))
+        DO i = 1,nsta
+          ts_stas(i) = sta_start + (i-1)
+        ENDDO
+      ENDIF      
+      
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
 
-      x_min = 1
-      x_max = nsta_plot
+      IF (plot_xc_snap_opt > 0) THEN
+      x_min = xsta_min
+      x_max = xsta_max
+      nsta_plot = xsta_max-xsta_min+1
       
       ALLOCATE(xvec(nsta_plot),yvec(nsta_plot))
       
-      DO snap = 2,nsnap_Z
+      DO i = 1,nsnap
+      
+        snap = xc_snaps(i)
         PRINT*, "zeta snap",snap
       
-        y_min = MINVAL(zeta%sta_val(x_min:x_max,snap,1:nrun))  
-        y_max = MAXVAL(zeta%sta_val(x_min:x_max,snap,1:nrun)) 
+        y_min = MINVAL(zeta%sta_val(xsta_min:xsta_max,snap,1:nrun))  
+        y_max = MAXVAL(zeta%sta_val(xsta_min:xsta_max,snap,1:nrun)) 
         
         y_min = y_min - abs((y_max-ymin)*.05d0)
-        y_max = y_max + abs((y_max-ymin)*.05d0)        
+        y_max = y_max + abs((y_max-ymin)*.05d0)    
+        
+        
+        IF (abs(y_min) < 1d-8 .and. abs(y_max) < 1d-8) THEN
+          CYCLE 
+        ENDIF
         
         WRITE(snap_char,"(I4.4)") snap           
         filename = TRIM(ADJUSTL(zeta%name))//"_xs_"//snap_char          
@@ -190,9 +242,11 @@
         CALL prep_station_plot(zeta,"zs",snap,x_min,x_max,y_min,y_max,filename)        
         
         DO run = 1,nrun
-          DO pt = 1,nsta_plot
-            xvec(pt) = pt
-            yvec(pt) = zeta%sta_val(pt,snap,run)
+          j = 1
+          DO pt = xsta_min,xsta_max
+            xvec(j) = pt
+            yvec(j) = zeta%sta_val(pt,snap,run)
+            j = j + 1
           ENDDO
         
           CALL plot_xy(zeta%ps_unit,nsta_plot,xvec,yvec,colors(run+1,:),line_width)
@@ -203,14 +257,23 @@
       
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!      
       
-      DO snap = 2,nsnap_Qx
+      x_min = xsta_min
+      x_max = xsta_max      
+      
+      DO i = 1,nsnap
+      
+        snap = xc_snaps(i)
         PRINT*, "vel snap",snap      
       
-        y_min = MINVAL(vel%sta_val(x_min:x_max,snap,1:nrun))  
-        y_max = MAXVAL(vel%sta_val(x_min:x_max,snap,1:nrun)) 
+        y_min = MINVAL(vel%sta_val(xsta_min:xsta_max,snap,1:nrun))  
+        y_max = MAXVAL(vel%sta_val(xsta_min:xsta_max,snap,1:nrun)) 
         
         y_min = 0d0
-        y_max = y_max + (y_max-ymin)*.05d0        
+        y_max = y_max + (y_max-ymin)*.05d0   
+        
+        IF (abs(y_min) < 1d-8 .and. abs(y_max) < 1d-8) THEN
+          CYCLE 
+        ENDIF        
         
         WRITE(snap_char,"(I4.4)") snap           
         filename = TRIM(ADJUSTL(vel%name))//"_xs_"//snap_char          
@@ -218,9 +281,11 @@
         CALL prep_station_plot(vel,"vs",snap,x_min,x_max,y_min,y_max,filename)        
         
         DO run = 1,nrun
-          DO pt = 1,nsta_plot
-            xvec(pt) = pt
-            yvec(pt) = vel%sta_val(pt,snap,run)
+          j = 1
+          DO pt = xsta_min,xsta_max
+            xvec(j) = pt
+            yvec(j) = vel%sta_val(pt,snap,run)
+            j = j + 1
           ENDDO
         
           CALL plot_xy(vel%ps_unit,nsta_plot,xvec,yvec,colors(run+1,:),line_width)
@@ -230,52 +295,70 @@
       ENDDO      
       
       DEALLOCATE(xvec,yvec)
+      ENDIF
       
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!       
       
-      x_min = 0d0
-      x_max = 3d0
+      IF (plot_ts_sta_opt > 0) THEN
+      x_min = xtime_min
+      x_max = xtime_max
       
-      nxtick = 4
-      nytick = 5
+!       nxtick = 4
+!       nytick = 5
       
-      snap_end = INT(((nsnap_Z-1)/4)*3)
+      tf = zeta%t_sta(nsnap_Z,1)
       
-      ALLOCATE(xvec(snap_end+1),yvec(snap_end+1))
+      snap_start = INT(((nsnap_Z-1)/tf)*xtime_min)+1
+      snap_end = INT(((nsnap_Z-1)/tf)*xtime_max)
+      nsnap = snap_end-snap_start+1
       
-      DO sta = 1,nsta_plot
-        PRINT*, "zeta station",sta      
+      PRINT*, tf,nsnap_Z,snap_start,snap_end
       
-        y_min = MINVAL(zeta%sta_val(sta,1:snap_end,1:nrun))  
-        y_max = MAXVAL(zeta%sta_val(sta,1:snap_end,1:nrun)) 
-        
-        y_min = y_min - abs((y_max-ymin)*.05d0)
-        y_max = y_max + abs((y_max-ymin)*.05d0)
-        
-        WRITE(snap_char,"(I4.4)") sta           
-        filename = TRIM(ADJUSTL(zeta%name))//"_ts_"//snap_char          
-        
-        CALL prep_station_plot(zeta,"zt",sta,x_min,x_max,y_min,y_max,filename)        
-        
-        DO run = 1,nrun
-          DO pt = 1,snap_end
-            xvec(pt) = zeta%t_sta(pt,run)
-            yvec(pt) = zeta%sta_val(sta,pt,run)
-          ENDDO
-        
-          CALL plot_xy(zeta%ps_unit,snap_end,xvec,yvec,colors(run+1,:),line_width)
-        ENDDO
-        
-        CALL finish_station_plot(zeta,filename)
-      ENDDO
+      ALLOCATE(xvec(nsnap),yvec(nsnap))
       
+!       DO i = 1,nsta
+!       
+!         sta = ts_stas(i)
+!         PRINT*, "zeta station",sta      
+!       
+!         y_min = MINVAL(zeta%sta_val(sta,snap_start:snap_end,1:nrun))  
+!         y_max = MAXVAL(zeta%sta_val(sta,snap_start:snap_end,1:nrun)) 
+!         
+!         y_min = y_min - abs((y_max-ymin)*.05d0)
+!         y_max = y_max + abs((y_max-ymin)*.05d0)
+! 
+!         
+!         WRITE(snap_char,"(I4.4)") sta           
+!         filename = TRIM(ADJUSTL(zeta%name))//"_ts_"//snap_char          
+!         
+!         CALL prep_station_plot(zeta,"zt",sta,x_min,x_max,y_min,y_max,filename)        
+!         
+!         DO run = 1,nrun
+!           j = 1
+!           DO pt = snap_start,snap_end
+!             xvec(j) = zeta%t_sta(pt,run)
+!             yvec(j) = zeta%sta_val(sta,pt,run)
+!             j = j+1
+!           ENDDO
+!         
+!           CALL plot_xy(zeta%ps_unit,nsnap,xvec,yvec,colors(run+1,:),line_width)
+!         ENDDO
+!         
+!         CALL finish_station_plot(zeta,filename)
+!       ENDDO
+!       
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!     
 
-      DO sta = 1,nsta_plot
+      x_min = xtime_min
+      x_max = xtime_max
+
+      DO i = 1,nsta
+      
+        sta = ts_stas(i)
         PRINT*, "vel station",sta
       
-        y_min = MINVAL(vel%sta_val(sta,1:snap_end,1:nrun))  
-        y_max = MAXVAL(vel%sta_val(sta,1:snap_end,1:nrun)) 
+        y_min = MINVAL(vel%sta_val(sta,snap_start:snap_end,1:nrun))  
+        y_max = MAXVAL(vel%sta_val(sta,snap_start:snap_end,1:nrun)) 
         
         y_min = 0d0
         y_max = y_max + abs((y_max-ymin)*.05d0)        
@@ -286,17 +369,112 @@
         CALL prep_station_plot(vel,"vt",sta,x_min,x_max,y_min,y_max,filename)        
         
         DO run = 1,nrun
-          DO pt = 1,snap_end
-            xvec(pt) = vel%t_sta(pt,run)
-            yvec(pt) = vel%sta_val(sta,pt,run)
+          j = 1
+          DO pt = snap_start,snap_end
+            xvec(j) = vel%t_sta(pt,run)
+            yvec(j) = vel%sta_val(sta,pt,run)
+            j = j+1
           ENDDO
         
-          CALL plot_xy(vel%ps_unit,snap_end,xvec,yvec,colors(run+1,:),line_width)
+          CALL plot_xy(vel%ps_unit,nsnap,xvec,yvec,colors(run+1,:),line_width)
         ENDDO
         
         CALL finish_station_plot(vel,filename)
       ENDDO
-      
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!   
+      ENDIF
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
 
-      END PROGRAM plot_stations
+      IF (plot_sta_loc_opt > 0) THEN
+      CALL sizes()
+
+      CALL read_header(0,TRIM(grid_file),grid_name,ne,nn)
+      CALL read_coords(nn,xy,depth)
+      CALL read_connectivity(ne,ect,el_type)
+      CALL init_element_coordinates(ne,ctp,el_type,nverts,xy,ect,elxy)                  
+      CALL read_open_boundaries(nope,neta,obseg,obnds)            
+      CALL read_flow_boundaries(nbou,nvel,fbseg,fbnds)                       
+      CALL read_curve_file(0,curve_file,ctp,nbou,xy,bndxy,cb_file_exists)   
+      
+      CALL elements_per_node(ne,nn,nverts,el_type,ect,nepn,mnepn,epn)       
+      CALL find_edge_pairs(ne,nverts,el_type,ect,nepn,epn,ned,ged2el,ged2nn,ged2led)      
+      CALL find_interior_edges(ned,ged2el,nied,iedn,ed_type,recv_edge)      
+      CALL find_open_edges(nope,obseg,obnds,ged2nn,nobed,obedn,ed_type,recv_edge)            
+      CALL find_flow_edges(nbou,fbseg,fbnds,ged2nn,nnfbed,nfbedn,nfbednn,nfbed,fbedn,recv_edge,ed_type)          
+      
+      CALL shape_functions_linear_at_ctp(nel_type,np,psiv)                   
+      CALL eval_coordinates_curved(ctp,nnds,nverts,el_type,xy,ect,fbseg,fbnds, &
+                                   nnfbed,nfbedn,nfbednn,ged2el,ged2led, &
+                                   psiv,bndxy,elxy)  
+                                   
+      nord = (p_high-p_low+1)/p_skip
+      
+      ALLOCATE(r(mnpp,nel_type*nord),s(mnpp,nel_type*nord))      
+      ALLOCATE(psic(mnnds,mnpp,nel_type*nord))
+      ALLOCATE(rect(3,3*mnpp,nel_type*nord))      
+      ALLOCATE(nptri(nel_type*nord),npplt(nel_type*nord),pplt(nel_type*nord))
+      DO et = 1,nel_type 
+              
+        DO ord = 1,nord
+          i = (et-1)*nord+ord
+          pplt(i) = (ord-1)*p_skip+p_low
+          CALL element_nodes(et,space,pplt(i),npplt(i),r(:,i),s(:,i))                  
+          CALL shape_functions_area_eval(et,np(et),nnd,npplt(i),r(:,i),s(:,i),psic(:,:,i))  
+!           CALL reference_element_delaunay(et,pplt(i),npplt(i),r(:,i),s(:,i),nptri(i),rect(:,:,i))        
+        ENDDO         
+        
+      ENDDO                                    
+           
+      ALLOCATE(xyplt(mnpp,ne,2))
+      DO el = 1,ne      
+        et = el_type(el)                          
+        nnd = nnds(et)
+        i = (et-1)*nord+nord
+        npts = npplt(i)
+        DO pt = 1,npts              
+          CALL element_transformation(nnd,elxy(:,el,1),elxy(:,el,2),psic(:,pt,i),xpt,ypt)           
+          xyplt(pt,el,1) = xpt
+          xyplt(pt,el,2) = ypt
+        ENDDO
+      ENDDO                                          
+      
+      x_min = MINVAL(xy(1,:))
+      x_max = MAXVAL(xy(1,:))
+      y_min = MINVAL(xy(2,:))
+      y_max = MAXVAL(xy(2,:))
+      
+      xbox_min = x_min      
+      xbox_max = x_max
+      ybox_min = y_min      
+      ybox_max = y_max      
+      
+      figure_height = -1d0
+      CALL scale_factors(figure_width,figure_height,x_min,x_max,y_min,y_max,ax,bx,ay,by)   
+
+      ALLOCATE(vel%el_plt(ne))  
+      ALLOCATE(el_in(el))
+      DO el = 1,ne
+        et = el_type(el)
+        vel%el_plt(el) = (et-1)*nord + nord
+        el_in(el) = 1
+      ENDDO             
+
+      DO i = 1,nsta
+      
+        sta = ts_stas(i)      
+        WRITE(snap_char,"(I4.4)") sta           
+        filename = "sta_loc_"//snap_char      
+      
+        CALL write_psheader(filename//".ps",vel%ps_unit)  
+        CALL plot_background(vel%ps_unit,1d0,1d0,1d0)        
+        CALL plot_mesh(vel%ps_unit,ne,nverts,vel%el_plt,pplt,el_type,el_in,xy,ect,xyplt)    
+        CALL plot_stations(vel%ps_unit,1,nsta_plot,xysta,sta)
+        CALL close_ps(filename,vel%ps_unit)
+        CALL convert_ps(filename,frmt,density,vel%rm_ps)           
+                
+      ENDDO
+      
+      ENDIF
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
+
+      END PROGRAM plot_sta

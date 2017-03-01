@@ -276,11 +276,12 @@
       
       xval = (rmin_axes-bx)/ax
       expnt_min = INT(LOG10(abs(xval)))
+      expnt = 0 
       IF ((expnt_min <= 3 .AND. expnt_min > -2) .OR. xval < 1d-10) THEN
         expnt_min = 0
       ENDIF
       
-      xval = (rmax_axes-bx)/ax      
+      xval = (rmax_axes-bx)/ax
       expnt_max = INT(LOG10(abs(xval)))
       IF ((expnt_max <= 3 .AND. expnt_max > -2) .OR. xval < 1d-10) THEN
         expnt_max = 0
@@ -291,7 +292,6 @@
       ELSEIF (expnt_max /= 0) THEN
         expnt = expnt_max
       ENDIF
-
       
       r0 = rmin_axes
       
@@ -304,7 +304,6 @@
           expnt = 0          
         ENDIF
         CALL format_number(nxdec,xval,expnt,xchar)        
-      
                   
         WRITE(tex_unit,"(A,F9.5,A,F9.5,A)") "\begin{textblock}{400}[0.5,0](",r0,",",smax_page-smin_axes+xticklabel_pad,")"
         WRITE(tex_unit,"(A)") "\centerline{"//TRIM(ADJUSTL(xchar))//"}"
@@ -329,7 +328,7 @@
       
       IF (expnt /= 0) THEN      
         WRITE(tex_unit,"(A,F9.5,A,F9.5,A)") "\begin{textblock}{400}[0,0](",rmin_axes+(nxtick-1)*dr_xlabel,",",smax_page-smin_axes+xticklabel_pad+xlabel_pad/2d0,")"
-        WRITE(tex_unit,"(A,I2,A)") "$\times10^{",expnt,"}$"        
+        WRITE(tex_unit,"(A,I5,A)") "$\times10^{",expnt,"}$"        
         WRITE(tex_unit,"(A)") "\end{textblock}"         
       ENDIF
       
@@ -349,6 +348,7 @@
       
       yval = (smin_axes-by)/ay
       expnt_min = INT(LOG10(abs(yval)))
+      expnt = 0       
       IF ((expnt_min <= 3 .AND. expnt_min > -2) .OR. yval < 1d-10) THEN
         expnt_min = 0
       ENDIF
@@ -406,7 +406,7 @@
       
       IF (expnt /= 0) THEN      
         WRITE(tex_unit,"(A,F9.5,A,F9.5,A)") "\begin{textblock}{400}[0,1](",rmin_axes,",",smax_page-(smax_axes + yticklabel_pad),")"
-        WRITE(tex_unit,"(A,I2,A)") "$\times10^{",expnt,"}$"        
+        WRITE(tex_unit,"(A,I5,A)") "$\times10^{",expnt,"}$"        
         WRITE(tex_unit,"(A)") "\end{textblock}"         
       ENDIF
       
@@ -723,12 +723,14 @@ body: DO
       OPEN(UNIT=tex_output_unit, FILE="labels.ps",POSITION="REWIND")
       READ(tex_output_unit,"(A)") line                    ! discard first line
       DO i = 1,nhead       
-        READ(tex_output_unit,"(A)") header_lines(i)%line      
+        READ(tex_output_unit,"(A)") line
+        header_lines(i)%line = TRIM(ADJUSTL(line))
 !         PRINT "(A200)", header_lines(i)%line
       ENDDO
 !       PRINT*, "------------------------------------------"
       DO i = 1,nbody
-        READ(tex_output_unit,"(A)") body_lines(i)%line   
+        READ(tex_output_unit,"(A)") line
+        body_lines(i)%line = TRIM(ADJUSTL(line))
 !         PRINT "(A)", body_lines(i)%line       
       ENDDO
       CLOSE(tex_output_unit)   
