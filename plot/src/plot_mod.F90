@@ -229,7 +229,7 @@
       CHARACTER(:), ALLOCATABLE, INTENT(IN) :: filename     
 
            
-      CALL scale_factors(figure_width,figure_height,xmin,xmax,ymin,ymax,ax,bx,ay,by)      
+      CALL scale_factors_line_plot(figure_width,figure_height,xmin,xmax,ymin,ymax,ax,bx,ay,by)      
       
       CALL write_texheader()  
       CALL write_xyaxis_labels(axis_label_option)      
@@ -424,7 +424,9 @@
       IF (figure_height < 0d0) THEN
         ay = ax     ! axis equal            
       ELSE
-        axes_height = (rmax_axes-rmin_axes)/1.25d0
+!         axes_height = (rmax_axes-rmin_axes)/1.25d0
+
+        axes_height = figure_height
         smax_axes = smin_axes+axes_height
         ay = ((smax_axes-smin_axes)/(ymax-ymin))      
       ENDIF
@@ -444,6 +446,71 @@
       
       RETURN
       END SUBROUTINE scale_factors
+      
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
+
+      SUBROUTINE scale_factors_line_plot(figure_width,figure_height,xmin,xmax,ymin,ymax,ax,bx,ay,by)
+      
+      IMPLICIT NONE
+      
+      REAL(rp), INTENT(IN) :: figure_width
+      REAL(rp), INTENT(IN) :: figure_height
+      REAL(rp), INTENT(IN) :: xmin
+      REAL(rp), INTENT(IN) :: xmax
+      REAL(rp), INTENT(IN) :: ymin
+      REAL(rp), INTENT(IN) :: ymax
+      REAL(rp), INTENT(OUT) :: ax
+      REAL(rp), INTENT(OUT) :: bx
+      REAL(rp), INTENT(OUT) :: ay
+      REAL(rp), INTENT(OUT) :: by
+!       REAL(rp), DIMENSION(:,:,:), INTENT(INOUT) :: xyplt
+!       REAL(rp), DIMENSION(:,:), INTENT(INOUT) :: xy
+!       REAL(rp), DIMENSION(:,:,:), INTENT(INOUT) :: elxy      
+      
+      INTEGER :: el,nd
+      INTEGER :: et,npts,nv,nnd
+               
+      lr_margin = (rmax_page - figure_width)/2d0 
+      axes_width = figure_width
+      
+      cscale_width = axes_width*.05d0
+      
+      dash = 0.2d0*cscale_width
+      xticklabel_pad = 2d0*dash
+      yticklabel_pad = 2d0*dash
+      xlabel_pad = 7d0*dash
+      ylabel_pad = 12d0*dash        
+      
+
+      rmin_axes = rmin_page + lr_margin + ylabel_pad
+      rmax_axes = rmax_page - lr_margin 
+      smin_axes = smin_page + lr_margin + xlabel_pad
+      smax_axes = smax_page      
+      
+    
+            
+      ax = ((rmax_axes-rmin_axes)/(xmax-xmin))
+      bx = (rmin_axes*xmax-rmax_axes*xmin)/(xmax-xmin)
+      
+      IF (figure_height < 0d0) THEN
+        ay = ax     ! axis equal            
+      ELSE
+        axes_height = figure_height
+        smax_axes = smin_axes+axes_height
+        ay = ((smax_axes-smin_axes)/(ymax-ymin))      
+      ENDIF
+      by = smin_axes-ay*ymin              
+      
+      smax_axes = ay*ymax + by
+      
+      IF (smax_axes > smax_page) THEN
+        PRINT*, "Error: Equal axis scaling puts y axis off page"
+        STOP
+      ENDIF      
+      
+      RETURN
+      END SUBROUTINE scale_factors_line_plot      
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
@@ -563,7 +630,7 @@
       
       WRITE(file_unit,"(A)") "/draw-dot {"
       WRITE(file_unit,"(A)") "newpath"      
-      WRITE(file_unit,"(A)") " 2 0 360 arc closepath"
+      WRITE(file_unit,"(A)") "0 360 arc closepath"
 !       WRITE(file_unit,"(A)") "stroke"
 !       WRITE(file_unit,"(A)") "gsave 0 0 0 setrgbcolor fill grestore"
       WRITE(file_unit,"(A)") "gsave setrgbcolor fill grestore"
@@ -1661,11 +1728,13 @@ edge:DO ed = 1,nbed
             
             WRITE(file_unit,"(3(I5,1x))") 1,0,0                    
             WRITE(file_unit,"(2(F9.5,1x))") ax*xy(1,nd)+bx, ay*xy(2,nd)+by
+            WRITE(file_unit,"(I5)") 2                 
             WRITE(file_unit,"(A)") "draw-dot"
             
             DO k = 1,ctp-1
               WRITE(file_unit,"(3(I5,1x))") 1,0,0             
               WRITE(file_unit,"(2(F9.5,1x))") ax*bndxy(1,k,j,i)+bx, ay*bndxy(2,k,j,i)+by
+              WRITE(file_unit,"(I5)") 2                   
               WRITE(file_unit,"(A)") "draw-dot"              
             ENDDO
           
@@ -1684,6 +1753,7 @@ edge:DO ed = 1,nbed
           IF (in_flag == 1) THEN
             WRITE(file_unit,"(3(I5,1x))") 1,0,0           
             WRITE(file_unit,"(2(F9.5,1x))") ax*xy(1,nbnds)+bx, ay*xy(2,nbnds)+by
+            WRITE(file_unit,"(I5)") 2                 
             WRITE(file_unit,"(A)") "draw-dot"         
           ENDIF  
         ENDIF    
@@ -1721,6 +1791,7 @@ edge:DO ed = 1,nbed
         DO nd = 1,nnd
           WRITE(file_unit,"(3(I5,1x))") 0,0,0         
           WRITE(file_unit,"(2(F9.5,1x))") ax*elxy(nd,el,1)+bx, ay*elxy(nd,el,2)+by
+          WRITE(file_unit,"(I5)") 2               
           WRITE(file_unit,"(A)") "draw-dot"         
         ENDDO
       ENDDO
@@ -1825,30 +1896,31 @@ edge:DO ed = 1,nbed
       INTEGER :: sta
       REAL(rp) :: x,y
      
-      
       DO sta = sta_start,sta_end
             
         x = xysta(1,sta)
         y = xysta(2,sta)
             
         IF (x > xbox_min .AND. x < xbox_max .AND. y > ybox_min .AND. y < ybox_max) THEN  
-          WRITE(file_unit,"(3(I5,1x))") 1,0,0        
+          WRITE(file_unit,"(3(F9.5,1x))") 1.0,.65,0.0        
           WRITE(file_unit,"(2(F9.5,1x))") ax*x+bx,ay*y+by
+          WRITE(file_unit,"(I5)") 2              
           WRITE(file_unit,"(A)") "draw-dot"        
         ENDIF
       
-      ENDDO
+      ENDDO         
+
       
       IF (PRESENT(sta_pick)) THEN
         x = xysta(1,sta_pick)
         y = xysta(2,sta_pick)
             
         IF (x > xbox_min .AND. x < xbox_max .AND. y > ybox_min .AND. y < ybox_max) THEN  
-          WRITE(file_unit,"(3(I5,1x))") 0,1,0        
+          WRITE(file_unit,"(3(F9.5,1x))") 0.5,0.0,0.5
           WRITE(file_unit,"(2(F9.5,1x))") ax*x+bx,ay*y+by
+          WRITE(file_unit,"(I5)") 6            
           WRITE(file_unit,"(A)") "draw-dot"        
         ENDIF      
-      
       ENDIF
       
       END SUBROUTINE plot_stations
@@ -2192,6 +2264,7 @@ edge:DO ed = 1,nbed
       DO nd = 1,nnd
         WRITE(file_unit,"(3(I5,1x))") 0,0,0       
         WRITE(file_unit,"(2(F9.5,1x))") ax*rc(nd)+bx,ay*sc(nd)+by
+        WRITE(file_unit,"(I5)") 2             
         WRITE(file_unit,"(A)") "draw-dot"            
       ENDDO         
       

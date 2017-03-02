@@ -65,7 +65,7 @@
       
 
       
-      CALL read_colormap("/home/sbrus/Codes/dgswe/plot/work/lines.cmap")
+      CALL read_colormap(cmap_file)
       
       ALLOCATE(zeta%sta_val(nsta,nsnap_max+1,ndg+nadc),zeta%t_sta(nsnap_max+1,ndg+nadc))         
       ALLOCATE(vel%sta_val(nsta,nsnap_max+1,ndg+nadc),vel%t_sta(nsnap_max+1,ndg+nadc))           
@@ -162,6 +162,11 @@
       ENDDO
       
       
+      
+      
+      
+      nsta_plot = xsta_max-xsta_min+1
+      
       IF (xc_snap_opt == "all") THEN
         nsnap = nsnap_Z
         ALLOCATE(xc_snaps(nsnap))
@@ -183,6 +188,9 @@
           xc_snaps(i) = snap_start + (i-1)
         ENDDO
       ENDIF
+      
+      
+          
       
       IF (ts_sta_opt == "all") THEN
         ALLOCATE(ts_stas(nsta))
@@ -210,7 +218,6 @@
       IF (plot_xc_snap_opt > 0) THEN
       x_min = real(xsta_min,rp)
       x_max = real(xsta_max,rp)
-      nsta_plot = xsta_max-xsta_min+1
       
       ALLOCATE(xvec(nsta_plot),yvec(nsta_plot))
       
@@ -243,7 +250,7 @@
             j = j + 1
           ENDDO
         
-          CALL plot_xy(zeta%ps_unit,nsta_plot,xvec,yvec,colors(run+1,:),line_width)
+          CALL plot_xy(zeta%ps_unit,nsta_plot,xvec,yvec,colors(run,:),line_width)
         ENDDO
         
         CALL finish_station_plot(zeta,filename)
@@ -282,7 +289,7 @@
             j = j + 1
           ENDDO
         
-          CALL plot_xy(vel%ps_unit,nsta_plot,xvec,yvec,colors(run+1,:),line_width)
+          CALL plot_xy(vel%ps_unit,nsta_plot,xvec,yvec,colors(run,:),line_width)
         ENDDO
         
         CALL finish_station_plot(vel,filename)
@@ -302,9 +309,8 @@
       
       snap_start = INT(((nsnap_Z-1)/tf)*xtime_min)+1
       snap_end = INT(((nsnap_Z-1)/tf)*xtime_max)
-      nsnap = snap_end-snap_start+1
       
-      PRINT*, tf,nsnap_Z,snap_start,snap_end
+      nsnap = snap_end-snap_start+1       
       
       ALLOCATE(xvec(nsnap),yvec(nsnap))
       
@@ -333,7 +339,7 @@
             j = j+1
           ENDDO
         
-          CALL plot_xy(zeta%ps_unit,nsnap,xvec,yvec,colors(run+1,:),line_width)
+          CALL plot_xy(zeta%ps_unit,nsnap,xvec,yvec,colors(run,:),line_width)
         ENDDO
         
         CALL finish_station_plot(zeta,filename)
@@ -368,7 +374,7 @@
             j = j+1
           ENDDO
         
-          CALL plot_xy(vel%ps_unit,nsnap,xvec,yvec,colors(run+1,:),line_width)
+          CALL plot_xy(vel%ps_unit,nsnap,xvec,yvec,colors(run,:),line_width)
         ENDDO
         
         CALL finish_station_plot(vel,filename)
@@ -455,10 +461,12 @@
         sta = ts_stas(i)      
         WRITE(snap_char,"(I4.4)") sta           
         filename = "sta_loc_"//snap_char      
-      
+
         CALL write_psheader(filename//".ps",vel%ps_unit)  
         CALL plot_background(vel%ps_unit,1d0,1d0,1d0)        
-        CALL plot_mesh(vel%ps_unit,ne,nverts,vel%el_plt,pplt,el_type,el_in,xy,ect,xyplt)    
+!         CALL plot_mesh(vel%ps_unit,ne,nverts,vel%el_plt,pplt,el_type,el_in,xy,ect,xyplt)   
+        CALL plot_boundaries(vel%ps_unit,nverts,vel%el_plt,pplt,nnfbed,nfbedn,ged2el,ged2led,el_type,el_in,ect,xy,xyplt)        
+        CALL plot_boundaries(vel%ps_unit,nverts,vel%el_plt,pplt,nfbed,fbedn,ged2el,ged2led,el_type,el_in,ect,xy,xyplt)         
         CALL plot_stations(vel%ps_unit,1,nsta_plot,xysta,sta)
         CALL close_ps(filename,vel%ps_unit)
         CALL convert_ps(filename,frmt,density,vel%rm_ps)           

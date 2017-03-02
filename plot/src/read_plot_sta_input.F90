@@ -12,7 +12,8 @@
                               line_width,figure_width,figure_height, &
                               nxtick,nytick,nxdec,nydec, &
                               fontsize,font, &
-                              frmt,density
+                              frmt,density, &
+                              cmap_file
       USE read_dginp, ONLY: stations_file,grid_file,curve_file,ctp       
 
       IMPLICIT NONE
@@ -94,6 +95,7 @@
         p_low = p_high
         p_skip = 1
         
+      READ(15,"(A100)") cmap_file  
       READ(15,*) line_width
       READ(15,*) figure_width
          figure_width = figure_width*72d0
