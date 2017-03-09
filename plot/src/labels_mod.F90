@@ -71,9 +71,11 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
 
-      SUBROUTINE run_latex()
+      SUBROUTINE run_latex(tex_file_exists)
       
       IMPLICIT NONE
+      
+      LOGICAL :: tex_file_exists
       
       CALL close_tex()
       
@@ -81,7 +83,10 @@
 !       CALL SYSTEM("dvips -o labels.ps labels.dvi")
       
       CALL SYSTEM("latex labels.tex >/dev/null")
-      CALL SYSTEM("dvips -q -o labels.ps labels.dvi")        
+      INQUIRE(FILE="labels.dvi",EXIST=tex_file_exists)
+      IF (tex_file_exists == .TRUE.) THEN
+        CALL SYSTEM("dvips -q -o labels.ps labels.dvi")        
+      ENDIF
       
       RETURN
       END SUBROUTINE run_latex      
@@ -102,12 +107,14 @@
       
       CALL write_texheader()        
       
-      IF (abs(sphi0) > 0d0 .and. abs(slam0) > 0d0) THEN
-        CALL write_xyaxis_labels("ll")        
-      ELSE
-        CALL write_xyaxis_labels("xy")  
-!         CALL write_xyaxis_labels("rs")          
-      ENDIF      
+      IF (fig%axis_label_flag == 1) THEN
+        IF (abs(sphi0) > 0d0 .and. abs(slam0) > 0d0) THEN
+          CALL write_xyaxis_labels("ll")        
+        ELSE
+          CALL write_xyaxis_labels("xy")  
+!           CALL write_xyaxis_labels("rs")          
+        ENDIF      
+      ENDIF
       
       IF (fig%cbar_flag == 1) THEN      
         CALL write_caxis_labels(fig%tbar_flag,fig%sol_min,fig%sol_max,fig%sol_label)
@@ -676,10 +683,11 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-      SUBROUTINE read_latex(header_lines,nhead,body_lines,nbody)
+      SUBROUTINE read_latex(tex_file_exists,header_lines,nhead,body_lines,nbody)
       
       IMPLICIT NONE
             
+      LOGICAL :: tex_file_exists      
       TYPE(char_array), DIMENSION(:), ALLOCATABLE, INTENT(OUT) :: header_lines
       INTEGER, INTENT(OUT) :: nhead
       TYPE(char_array), DIMENSION(:), ALLOCATABLE, INTENT(OUT) :: body_lines      
@@ -687,11 +695,19 @@
       
       INTEGER :: i
       CHARACTER(1000) :: line
-      INTEGER :: read_stat       
+      INTEGER :: read_stat 
+      
+      nhead = 0
+      nbody = 0
+      
+      IF (tex_file_exists == .FALSE.) THEN
+        RETURN
+      ENDIF
+      
       
       OPEN(UNIT=tex_output_unit, FILE="labels.ps")
       READ(tex_output_unit,"(A)",IOSTAT=read_stat) line    ! discard first line  
-      nhead = 0
+
 head: DO
         READ(tex_output_unit,"(A)",IOSTAT=read_stat) line    
         nhead = nhead + 1         
@@ -704,7 +720,7 @@ head: DO
                 
       ENDDO head  
       
-      nbody = 0
+
 body: DO
         READ(tex_output_unit,"(A)",IOSTAT=read_stat) line       
         IF (read_stat < 0 ) THEN

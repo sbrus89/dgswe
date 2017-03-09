@@ -165,6 +165,8 @@
         
         INTEGER :: cbar_flag
         INTEGER :: tbar_flag
+        INTEGER :: axis_label_flag
+        LOGICAL :: tex_file_exists
         
         INTEGER :: rm_ps
         INTEGER :: movie_flag        
@@ -298,16 +300,25 @@
       zeta%type_flag = 3     
       vel%type_flag = 4
       
+      mesh%axis_label_flag = 1
       mesh%cbar_flag = 0
       mesh%tbar_flag = 0
-      bathy%cbar_flag = 1
-      bathy%tbar_flag = 0
+!       bathy%axis_label_flag = 1
+!       bathy%cbar_flag = 1
+!       bathy%tbar_flag = 0
+!       zeta%axis_label_flag = 1
 !       zeta%cbar_flag = 1
 !       zeta%tbar_flag = 1
+!       vel%axis_label_flag = 1
 !       vel%cbar_flag = 1
 !       vel%tbar_flag = 1
+      bathy%axis_label_flag = 0
+      bathy%cbar_flag = 0
+      bathy%tbar_flag = 0
+      zeta%axis_label_flag = 0
       zeta%cbar_flag = 0
       zeta%tbar_flag = 0
+      vel%axis_label_flag = 0
       vel%cbar_flag = 0
       vel%tbar_flag = 0      
       

@@ -31,7 +31,7 @@
       SUBROUTINE make_plot(snap,t_snap,fig)
             
       USE globals, ONLY: ne,nn,nverts,el_type,xy,ect,elxy, &
-                         nbou,fbseg,fbnds,bndxy, &
+                         nbou,fbseg,fbnds,bndxy,nvel, &
                          nnfbed,nfbedn, &
                          nfbed,fbedn, &
                          nobed,obedn, &
@@ -96,8 +96,8 @@
       IF (fig%nd_label_option /= "off") THEN
         CALL latex_node_labels(nn,fig%nd_label_option,xy,nbou,fbseg,fbnds)
       ENDIF
-      CALL run_latex()
-      CALL read_latex(fig%latex_header,fig%nline_header,fig%latex_body,fig%nline_body)
+      CALL run_latex(fig%tex_file_exists)      
+      CALL read_latex(fig%tex_file_exists,fig%latex_header,fig%nline_header,fig%latex_body,fig%nline_body)
       CALL remove_latex_files()      
       
            
@@ -119,7 +119,7 @@
         CALL SYSTEM("cp "//filename//".ps "//filename//"_pltmesh.ps")
         OPEN(UNIT=999,FILE=filename//"_pltmesh.ps",POSITION="APPEND")
         CALL plot_vis_mesh(999,ne,el_type,el_in,xyplt,nptri,rect,fig)   
-        CALL write_all_axes(999,fig%cbar_flag,fig%tbar_flag,t_snap,t_start,t_end)
+        CALL write_all_axes(999,fig%axis_label_flag,fig%cbar_flag,fig%tbar_flag,t_snap,t_start,t_end)
         CALL write_char_array(999,fig%nline_body,fig%latex_body)        
         CALL convert_ps(filename//"_pltmesh",frmt,density,fig%rm_ps)
         CLOSE(999)
@@ -128,8 +128,9 @@
 !       IF (fig%plot_mesh_option == 1 .and. fig%name == "mesh") THEN
 !         CALL SYSTEM("cp "//filename//".ps "//filename//"_decomp.ps")
 !         OPEN(UNIT=998,FILE=filename//"_decomp.ps",POSITION="APPEND")
+!         CALL fill_elements(998,ne,nverts,fig%el_plt,pplt,el_type,el_in,xy,ect,xyplt)        
 !         CALL plot_decomp_mesh(998,nverts)
-!         CALL write_all_axes(998,fig%cbar_flag,fig%tbar_flag,t_snap,t_start,t_end)
+!         CALL write_all_axes(998,fig%axis_label_flag,fig%cbar_flag,fig%tbar_flag,t_snap,t_start,t_end)
 !         CALL write_char_array(998,fig%nline_body,fig%latex_body)        
 !         CALL convert_ps(filename//"_decomp",frmt,density,fig%rm_ps)         
 !         CLOSE(998)
@@ -141,7 +142,8 @@
         IF (fig%name == "mesh") THEN
           CALL fill_elements(fig%ps_unit,ne,nverts,fig%el_plt,pplt,el_type,el_in,xy,ect,xyplt)   
         ENDIF
-        CALL plot_mesh(fig%ps_unit,ne,nverts,fig%el_plt,pplt,el_type,el_in,xy,ect,xyplt)         
+        CALL plot_mesh(fig%ps_unit,ne,nverts,fig%el_plt,pplt,el_type,el_in,xy,ect,xyplt)  
+!         CALL plot_nodestring(fig%ps_unit,nbou,nvel,fbseg,fbnds,xy)
         IF (fig%name == "mesh" .and. fig%plot_sta_option == 1) THEN
           CALL plot_stations(fig%ps_unit,fig%sta_start,fig%sta_end,xysta)        
         ENDIF
@@ -156,7 +158,7 @@
 !         CALL plot_elxy_nodes(fig%ps_unit,ne,el_type,el_in,nnds,elxy)      
               
       
-      CALL write_all_axes(fig%ps_unit,fig%cbar_flag,fig%tbar_flag,t_snap,t_start,t_end)       
+      CALL write_all_axes(fig%ps_unit,fig%axis_label_flag,fig%cbar_flag,fig%tbar_flag,t_snap,t_start,t_end)       
       
 !       CALL write_latex_ps_body(fig%ps_unit)
       CALL write_char_array(fig%ps_unit,fig%nline_body,fig%latex_body)  
@@ -194,8 +196,8 @@
       CALL write_texheader()
       CALL write_caxis_labels_horz(fig%sol_min,fig%sol_max,fig%sol_label)
       CALL close_tex()
-      CALL run_latex()
-      CALL read_latex(fig%latex_header,fig%nline_header,fig%latex_body,fig%nline_body)
+      CALL run_latex(fig%tex_file_exists)
+      CALL read_latex(fig%tex_file_exists,fig%latex_header,fig%nline_header,fig%latex_body,fig%nline_body)
       CALL remove_latex_files()   
       CALL write_psheader(filename//".ps",fig%ps_unit)
       CALL write_char_array(fig%ps_unit,fig%nline_header,fig%latex_header)   
@@ -234,8 +236,8 @@
       CALL write_texheader()  
       CALL write_xyaxis_labels(axis_label_option)      
       
-      CALL run_latex()
-      CALL read_latex(fig%latex_header,fig%nline_header,fig%latex_body,fig%nline_body)
+      CALL run_latex(fig%tex_file_exists)
+      CALL read_latex(fig%tex_file_exists,fig%latex_header,fig%nline_header,fig%latex_body,fig%nline_body)
       CALL remove_latex_files()     
         
       CALL write_psheader(filename//".ps",fig%ps_unit)  
@@ -263,7 +265,7 @@
       TYPE(plot_type), INTENT(INOUT) :: fig      
       CHARACTER(*), INTENT(IN) :: filename
       
-      CALL write_xyaxis(fig%ps_unit)       
+      CALL write_xyaxis(fig%ps_unit,1)       
       CALL write_char_array(fig%ps_unit,fig%nline_body,fig%latex_body)  
       
       CALL close_ps(filename,fig%ps_unit)
@@ -1437,6 +1439,9 @@ levels:DO lev = 1,nctick
 
       INTEGER :: el,nd
       INTEGER :: et
+      REAL(rp) :: line_color(3)
+      
+      line_color = 0
 
       
  elem:DO el = 1,ne
@@ -1447,16 +1452,18 @@ levels:DO lev = 1,nctick
         
         et = el_type(el)
         
-        IF (et == 1) THEN
-          DO nd = 1,nverts(et)
+        IF (et == 1) THEN         
+          WRITE(file_unit,"(3(F9.5,1x))")  line_color(1), line_color(2), line_color(3)      
+          DO nd = 1,nverts(et)       
             WRITE(file_unit,"(2(F9.5,1x))") ax*xy(1,ect(nd,el))+bx,ay*xy(2,ect(nd,el))+by    
-          ENDDO                
-          WRITE(file_unit,"(A)") "draw-tri-element"         
+          ENDDO                 
+          WRITE(file_unit,"(A)") "draw-tri-element-color"              
         ELSE IF (et == 2) THEN
+          WRITE(file_unit,"(3(F9.5,1x))")  line_color(1), line_color(2), line_color(3)          
           DO nd = 1,nverts(et)
             WRITE(file_unit,"(2(F9.5,1x))") ax*xy(1,ect(nd,el))+bx,ay*xy(2,ect(nd,el))+by    
           ENDDO                
-          WRITE(file_unit,"(A)") "draw-quad-element"  
+          WRITE(file_unit,"(A)") "draw-quad-element-color"           
         ELSE
           WRITE(file_unit,"(A)") "newpath"
           WRITE(file_unit,"(2(F9.5,1x),A)") ax*xyplt(1,el,1)+bx,ay*xyplt(1,el,2)+by,"moveto" 
@@ -1465,7 +1472,8 @@ levels:DO lev = 1,nctick
           ENDDO
           WRITE(file_unit,"(A)") "closepath"
           WRITE(file_unit,"(A)") ".5 setlinewidth 2 setlinejoin"          
-          WRITE(file_unit,"(A)") "stroke"          
+          WRITE(file_unit,"(3(F9.5,1x))")  line_color(1), line_color(2), line_color(3)               
+          WRITE(file_unit,"(A)") "gsave setrgbcolor stroke grestore"
         ENDIF
       ENDDO elem
 
@@ -1535,25 +1543,18 @@ levels:DO lev = 1,nctick
       REAL(rp), DIMENSION(:), ALLOCATABLE :: depth_pe
       INTEGER, DIMENSION(:,:), ALLOCATABLE :: ect_pe
       INTEGER, DIMENSION(:), ALLOCATABLE :: el_type_pe
-      INTEGER, PARAMETER :: ncolors = 7
-      REAL(rp), DIMENSION(ncolors,3) :: line_color
       INTEGER :: color
       REAL(rp) :: xpt,ypt
       INTEGER :: outside
-      
-      line_color(1,:) = (/  0.0,  0.0, 1.0  /)
-      line_color(2,:) = (/  0.0,  0.5, 0.0  /)
-      line_color(3,:) = (/  1.0,  0.0, 0.0  /)
-      line_color(4,:) = (/  0.0, 0.75, 0.75 /)
-      line_color(5,:) = (/ 0.75,  0.0, 0.75 /)
-      line_color(6,:) = (/ 0.75, 0.75, 0.0  /)
-      line_color(7,:) = (/ 0.25, 0.25, 0.25 /)      
+          
       
       dirname = "PE0000"
       
       OPEN(unit=8080,file='PE0000/fort.80')
       READ(8080,*) npe
       CLOSE(8080)
+      
+      i = 0      
       
   pes:DO pe = 1,npe
   
@@ -1563,7 +1564,9 @@ levels:DO lev = 1,nctick
         CALL read_connectivity(ne_pe,ect_pe,el_type_pe)        
         CLOSE(14)
       
-        i = 0
+        i = i + 1
+        color = mod(i,ncolors)+1      
+
    elem:DO el = 1,ne_pe        
         
           et = el_type_pe(el)
@@ -1586,18 +1589,17 @@ levels:DO lev = 1,nctick
             CYCLE elem
           ENDIF
         
-          i = i + 1
-          color = mod(i,ncolors)+1
+
         
           IF (et == 1) THEN
+            WRITE(file_unit,"(3(F9.5,1x))") colors(color,1), colors(color,2), colors(color,3)          
             DO nd = 1,nverts(et)
-              WRITE(file_unit,"(3(F9.5,1x))") line_color(color,1), line_color(color,2), line_color(color,3)
               WRITE(file_unit,"(2(F9.5,1x))") ax*xy_pe(1,ect_pe(nd,el))+bx,ay*xy_pe(2,ect_pe(nd,el))+by    
             ENDDO                
             WRITE(file_unit,"(A)") "draw-tri-element-color"         
           ELSE IF (et == 2) THEN
-            DO nd = 1,nverts(et)
-              WRITE(file_unit,"(3(F9.5,1x))") line_color(color,1), line_color(color,2), line_color(color,3)            
+            WRITE(file_unit,"(3(F9.5,1x))") colors(color,1), colors(color,2), colors(color,3)             
+            DO nd = 1,nverts(et)         
               WRITE(file_unit,"(2(F9.5,1x))") ax*xy_pe(1,ect_pe(nd,el))+bx,ay*xy_pe(2,ect_pe(nd,el))+by    
             ENDDO                
             WRITE(file_unit,"(A)") "draw-quad-element-color"           
@@ -1677,6 +1679,74 @@ edge:DO ed = 1,nbed
      
      END SUBROUTINE plot_boundaries
      
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
+
+      SUBROUTINE plot_nodestring(file_unit,nbou,nvel,fbseg,fbnds,xy)
+      
+      IMPLICIT NONE
+      
+      INTEGER, INTENT(IN) :: file_unit
+      INTEGER, INTENT(IN) :: nbou
+      INTEGER, INTENT(IN) :: nvel
+      INTEGER, DIMENSION(:,:), INTENT(IN) :: fbseg
+      INTEGER, DIMENSION(:,:), INTENT(IN) :: fbnds
+      REAL(rp), DIMENSION(:,:), INTENT(IN) :: xy
+      
+      INTEGER :: bou,j
+      INTEGER :: nd
+      INTEGER :: segtype,nbnds
+      INTEGER :: started
+      INTEGER, DIMENSION(:), ALLOCATABLE :: ndflag
+      
+      ALLOCATE(ndflag(nvel))
+      
+      DO bou = 1,nbou
+        segtype = fbseg(2,bou)
+        
+        IF (segtype /= 30) THEN
+          CYCLE
+        ENDIF
+                
+        nbnds = fbseg(1,bou)        
+        
+        ndflag = 0
+        DO j = 1,nbnds
+        
+          nd = fbnds(j,bou)        
+            
+          IF (xy(1,nd) < xbox_min .or. xy(1,nd) > xbox_max) THEN
+            ndflag(j) = 1
+          ENDIF
+           
+          IF (xy(2,nd) < ybox_min .or. xy(2,nd) > ybox_max) THEN
+            ndflag(j) = 1
+          ENDIF     
+        ENDDO
+        
+        
+        started = 0
+        DO j = 1,nbnds
+          nd = fbnds(j,bou)
+          IF (started == 0 .and. ndflag(j) == 0) THEN
+            WRITE(file_unit,"(A)") "newpath"                  
+            WRITE(file_unit,"(2(F9.5,1x),A)") ax*xy(1,nd)+bx,ay*xy(2,nd)+by,"moveto"   
+            started = 1
+          ELSE IF (started == 1 .and. ndflag(j) == 0) THEN
+            WRITE(file_unit,"(2(F9.5,1x),A)") ax*xy(1,nd)+bx,ay*xy(2,nd)+by, "lineto"          
+          ENDIF
+        ENDDO
+        
+        IF (started /= 0) THEN
+          WRITE(file_unit,"(A)") "1 setlinewidth 2 setlinejoin"    
+          WRITE(file_unit,"(A)") "gsave 1 0 0 setrgbcolor stroke grestore"        
+        ENDIF
+      ENDDO
+      
+      RETURN
+      END SUBROUTINE plot_nodestring
+
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
 
@@ -1902,7 +1972,7 @@ edge:DO ed = 1,nbed
         y = xysta(2,sta)
             
         IF (x > xbox_min .AND. x < xbox_max .AND. y > ybox_min .AND. y < ybox_max) THEN  
-          WRITE(file_unit,"(3(F9.5,1x))") 1.0,.65,0.0        
+          WRITE(file_unit,"(3(F9.5,1x))") .89,0.1,0.11        
           WRITE(file_unit,"(2(F9.5,1x))") ax*x+bx,ay*y+by
           WRITE(file_unit,"(I5)") 2              
           WRITE(file_unit,"(A)") "draw-dot"        
@@ -1916,7 +1986,7 @@ edge:DO ed = 1,nbed
         y = xysta(2,sta_pick)
             
         IF (x > xbox_min .AND. x < xbox_max .AND. y > ybox_min .AND. y < ybox_max) THEN  
-          WRITE(file_unit,"(3(F9.5,1x))") 0.5,0.0,0.5
+          WRITE(file_unit,"(3(F9.5,1x))") 0.21,0.49,.72
           WRITE(file_unit,"(2(F9.5,1x))") ax*x+bx,ay*y+by
           WRITE(file_unit,"(I5)") 6            
           WRITE(file_unit,"(A)") "draw-dot"        
@@ -2204,6 +2274,7 @@ edge:DO ed = 1,nbed
       INTEGER, DIMENSION(:,:), INTENT(IN) :: ect
       REAL(rp), DIMENSION(:), INTENT(IN) :: r
       REAL(rp), DIMENSION(:), INTENT(IN) :: s
+      LOGICAL :: tex_file_exists
       
       INTEGER :: el,nd
       INTEGER :: file_unit
@@ -2245,7 +2316,7 @@ edge:DO ed = 1,nbed
 
       CALL write_texheader()              
       CALL write_xyaxis_labels("rs")  
-      CALL run_latex()         
+      CALL run_latex(tex_file_exists)         
 
       CALL write_psheader(TRIM(filename),file_unit)     
       
@@ -2259,7 +2330,7 @@ edge:DO ed = 1,nbed
       ALLOCATE(rc((ctp+1)**2),sc((ctp+1)**2))
       CALL element_nodes(et,1,ctp,nnd,rc,sc)          
     
-      CALL write_xyaxis(file_unit)  
+      CALL write_xyaxis(file_unit,1)  
       
       DO nd = 1,nnd
         WRITE(file_unit,"(3(I5,1x))") 0,0,0       

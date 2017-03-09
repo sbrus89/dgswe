@@ -17,11 +17,12 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
       
-      SUBROUTINE write_all_axes(file_unit,color_bar,time_bar,t_snap,t_start,t_end)
+      SUBROUTINE write_all_axes(file_unit,axis_labels,color_bar,time_bar,t_snap,t_start,t_end)
       
       IMPLICIT NONE
       
-      INTEGER, INTENT(IN) :: file_unit    
+      INTEGER, INTENT(IN) :: file_unit  
+      INTEGER, INTENT(IN) :: axis_labels
       INTEGER, INTENT(IN) :: color_bar
       INTEGER, INTENT(IN) :: time_bar      
       REAL(rp), INTENT(IN) :: t_snap
@@ -29,7 +30,7 @@
       REAL(rp), INTENT(IN) :: t_end 
       
 
-      CALL write_xyaxis(file_unit)   
+      CALL write_xyaxis(file_unit,axis_labels)   
       
       IF (color_bar == 1) THEN
         CALL write_colorscale(file_unit)
@@ -185,11 +186,12 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-      SUBROUTINE write_xyaxis(file_unit)
+      SUBROUTINE write_xyaxis(file_unit,axis_labels)
       
       IMPLICIT NONE
             
       INTEGER, INTENT(IN) :: file_unit
+      INTEGER, INTENT(IN) :: axis_labels
       
       INTEGER :: i
       INTEGER :: expnt
@@ -230,6 +232,9 @@
 !       WRITE(file_unit,"(2(F9.5,1x))") rmin_axes,smax_axes     
 !       WRITE(file_unit,"(A)") "draw-line"        
 
+      IF (axis_labels == 0) THEN
+        RETURN
+      ENDIF
       
       dr = (rmax_axes-rmin_axes)/(real(nxtick,rp)-1d0)
       
@@ -240,7 +245,7 @@
       expnt = INT(LOG10(xval))
       IF (expnt <= 3) THEN
         expnt = 0
-      ENDIF
+      ENDIF     
       
       DO i = 1,nxtick        
         WRITE(file_unit,"(2(F9.5,1x))") r0,smin_axes+dash
