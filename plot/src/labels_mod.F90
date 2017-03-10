@@ -36,7 +36,7 @@
 !       WRITE(tex_unit,"(A)") "\usepackage[absolute,showboxes]{textpos}"
       WRITE(tex_unit,"(A)") "\usepackage[absolute]{textpos}"       
       WRITE(tex_unit,"(A)") "\usepackage{graphicx}"  
-      WRITE(tex_unit,"(A)") "\usepackage{xcolor}"            
+      WRITE(tex_unit,"(A)") "\usepackage{xcolor}"        
       WRITE(tex_unit,"(A)") "\setlength{\TPHorizModule}{1pt}"  
       WRITE(tex_unit,"(A)") "\setlength{\TPVertModule}{1pt}"
       WRITE(tex_unit,"(A)") "\textblockorigin{0pt}{0pt}"
@@ -252,7 +252,7 @@
       REAL(rp) :: xval,yval
     
       CHARACTER(20) :: xchar,ychar     
-      CHARACTER(25) :: xlabel,ylabel
+      CHARACTER(35) :: xlabel,ylabel
       
       IF (axis_label_option == "xy") THEN
         xlabel = "$x$"
@@ -270,11 +270,29 @@
         xlabel = "time (days)"
         ylabel = "velocity (m/s)"      
       ELSE IF (axis_label_option == "zs") THEN
-        xlabel = "station"
+        xlabel = "centerline location"
         ylabel = "surface elevation (m)"      
       ELSE IF (axis_label_option == "vs") THEN
-        xlabel = "station"
-        ylabel = "velocity (m/s)"      
+        xlabel = "centerline location"
+        ylabel = "velocity (m/s)"   
+      ELSE IF (axis_label_option == "va") THEN
+        xlabel = "centerline location"
+        ylabel = "velocity error (m/s)"            
+      ELSE IF (axis_label_option == "za") THEN
+        xlabel = "centerline location"
+        ylabel = "surface elevation error (m)"       
+      ELSE IF (axis_label_option == "vr") THEN
+        xlabel = "centerline location"
+        ylabel = "velocity relative error"            
+      ELSE IF (axis_label_option == "zr") THEN
+        xlabel = "centerline location"
+        ylabel = "surface elevation relative error" 
+      ELSE IF (axis_label_option == "vc") THEN
+        xlabel = "ADCIRC fine: veclocity (m/s)"
+        ylabel = "others: velocity (m/s)"            
+      ELSE IF (axis_label_option == "zc") THEN
+        xlabel = "ADCIRC fine: surface elevation (m)"
+        ylabel = "others: surface elevation (m)"                
       ENDIF
       
 
@@ -323,7 +341,7 @@
       ENDDO
       
       
-      WRITE(tex_unit,"(A,F9.5,A,F9.5,A)") "\begin{textblock}{400}[0.5,0](",(rmax_axes+rmin_axes)/2d0,",",smax_page-smin_axes+xlabel_pad,")"
+      WRITE(tex_unit,"(A,F9.5,A,F9.5,A)") "\begin{textblock}{600}[0.5,0](",(rmax_axes+rmin_axes)/2d0,",",smax_page-smin_axes+xlabel_pad,")"
       WRITE(tex_unit,"(A)") "\centerline{"//TRIM(xlabel)//"}"        
       WRITE(tex_unit,"(A)") "\end{textblock}"  
       
@@ -402,7 +420,7 @@
       ENDDO         
       
       WRITE(tex_unit,"(A,F9.5,A,F9.5,A)") "\begin{textblock}{50}[0,0.5](",rmin_axes-ylabel_pad,",",smax_page-(smax_axes+smin_axes)/2d0,")"
-      WRITE(tex_unit,"(A)") "\rotatebox[origin=c]{90}{"//TRIM(ylabel)//"}\vskip-\TPboxrulesize"        
+      WRITE(tex_unit,"(A)") "\rotatebox[origin=c]{90}{"//TRIM(ylabel)//"}"//"\vskip-\TPboxrulesize"        
       WRITE(tex_unit,"(A)") "\end{textblock}"  
       
       

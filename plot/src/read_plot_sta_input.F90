@@ -13,7 +13,8 @@
                               nxtick,nytick,nxdec,nydec, &
                               fontsize,font, &
                               frmt,density, &
-                              cmap_file
+                              cmap_file, &
+                              plot_error_opt,plot_scatter_opt
       USE read_dginp, ONLY: stations_file,grid_file,curve_file,ctp       
 
       IMPLICIT NONE
@@ -94,7 +95,8 @@
       READ(15,*) p_high
         p_low = p_high
         p_skip = 1
-        
+      READ(15,*) plot_error_opt
+      READ(15,*) plot_scatter_opt
       READ(15,"(A100)") cmap_file  
       READ(15,*) line_width
       READ(15,*) figure_width

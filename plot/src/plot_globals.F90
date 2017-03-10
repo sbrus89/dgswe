@@ -233,7 +233,9 @@
       
       INTEGER :: plot_ts_sta_opt
       INTEGER :: plot_xc_snap_opt
-      INTEGER :: plot_sta_loc_opt      
+      INTEGER :: plot_sta_loc_opt
+      INTEGER :: plot_error_opt
+      INTEGER :: plot_scatter_opt
 
       
       CONTAINS
@@ -300,9 +302,9 @@
       zeta%type_flag = 3     
       vel%type_flag = 4
       
-      mesh%axis_label_flag = 1
-      mesh%cbar_flag = 0
-      mesh%tbar_flag = 0
+!       mesh%axis_label_flag = 1
+!       mesh%cbar_flag = 0
+!       mesh%tbar_flag = 0
 !       bathy%axis_label_flag = 1
 !       bathy%cbar_flag = 1
 !       bathy%tbar_flag = 0
@@ -312,6 +314,9 @@
 !       vel%axis_label_flag = 1
 !       vel%cbar_flag = 1
 !       vel%tbar_flag = 1
+      mesh%axis_label_flag = 0
+      mesh%cbar_flag = 0
+      mesh%tbar_flag = 0
       bathy%axis_label_flag = 0
       bathy%cbar_flag = 0
       bathy%tbar_flag = 0

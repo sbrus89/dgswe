@@ -19,9 +19,11 @@
       USE shape_functions_mod   
       USE triangulation, ONLY: reference_element_delaunay  
       USE basis, ONLY: element_nodes,element_basis      
+      USE station_plot_types, ONLY: cross_section_snap,time_series_station,error_station,error_scatter
 
       IMPLICIT NONE
       
+      INTEGER :: k
       CHARACTER(100) :: out_direc
       CHARACTER(:), ALLOCATABLE :: filename
       INTEGER :: sta,run,ord
@@ -29,12 +31,18 @@
       REAL(rp) :: x_max,x_min,y_max,y_min
       INTEGER :: npt
       REAL(rp), DIMENSION(:), ALLOCATABLE :: xvec,yvec
+      REAL(rp), DIMENSION(:,:), ALLOCATABLE :: xvec_err,yvec_err      
       INTEGER :: nrun 
       INTEGER :: nsta_plot
       INTEGER :: nsnap_max
       REAL(rp) :: tf
       INTEGER, DIMENSION(:), ALLOCATABLE :: xc_snaps
       INTEGER, DIMENSION(:), ALLOCATABLE :: ts_stas
+      REAL(rp) :: err,max_err
+      REAL(rp) :: yval
+      REAL(rp) :: r2
+      CHARACTER(3) :: maxavg_opt,absrel_opt
+      CHARACTER(2) :: axis_label_option
 
       
       
@@ -213,174 +221,55 @@
         ENDDO
       ENDIF      
       
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!       
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
 
       IF (plot_xc_snap_opt > 0) THEN
-      x_min = real(xsta_min,rp)
-      x_max = real(xsta_max,rp)
       
-      ALLOCATE(xvec(nsta_plot),yvec(nsta_plot))
-      
-      DO i = 1,nsnap
-      
-        snap = xc_snaps(i)
-        PRINT*, "zeta snap",snap
-      
-        y_min = MINVAL(zeta%sta_val(xsta_min:xsta_max,snap,1:nrun))  
-        y_max = MAXVAL(zeta%sta_val(xsta_min:xsta_max,snap,1:nrun)) 
-        
-        y_min = y_min - abs((y_max-ymin)*.05d0)
-        y_max = y_max + abs((y_max-ymin)*.05d0)    
-        
-        
-        IF (abs(y_min) < 1d-8 .and. abs(y_max) < 1d-8) THEN
-          CYCLE 
-        ENDIF
-        
-        WRITE(snap_char,"(I4.4)") snap           
-        filename = TRIM(ADJUSTL(zeta%name))//"_xs_"//snap_char          
-        
-        CALL prep_station_plot(zeta,"zs",snap,x_min,x_max,y_min,y_max,filename)        
-        
-        DO run = 1,nrun
-          j = 1
-          DO pt = xsta_min,xsta_max
-            xvec(j) = pt
-            yvec(j) = zeta%sta_val(pt,snap,run)
-            j = j + 1
-          ENDDO
-        
-          CALL plot_xy(zeta%ps_unit,nsta_plot,xvec,yvec,colors(run,:),line_width)
-        ENDDO
-        
-        CALL finish_station_plot(zeta,filename)
-      ENDDO
-      
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!      
-      
-      x_min = real(xsta_min,rp)
-      x_max = real(xsta_max,rp)      
-      
-      DO i = 1,nsnap
-      
-        snap = xc_snaps(i)
-        PRINT*, "vel snap",snap      
-      
-        y_min = MINVAL(vel%sta_val(xsta_min:xsta_max,snap,1:nrun))  
-        y_max = MAXVAL(vel%sta_val(xsta_min:xsta_max,snap,1:nrun)) 
-        
-        y_min = 0d0
-        y_max = y_max + (y_max-ymin)*.05d0   
-        
-        IF (abs(y_min) < 1d-8 .and. abs(y_max) < 1d-8) THEN
-          CYCLE 
-        ENDIF        
-        
-        WRITE(snap_char,"(I4.4)") snap           
-        filename = TRIM(ADJUSTL(vel%name))//"_xs_"//snap_char          
-        
-        CALL prep_station_plot(vel,"vs",snap,x_min,x_max,y_min,y_max,filename)        
-        
-        DO run = 1,nrun
-          j = 1
-          DO pt = xsta_min,xsta_max
-            xvec(j) = pt
-            yvec(j) = vel%sta_val(pt,snap,run)
-            j = j + 1
-          ENDDO
-        
-          CALL plot_xy(vel%ps_unit,nsta_plot,xvec,yvec,colors(run,:),line_width)
-        ENDDO
-        
-        CALL finish_station_plot(vel,filename)
-      ENDDO      
-      
-      DEALLOCATE(xvec,yvec)
+        CALL cross_section_snap(zeta,nrun,nsnap,xc_snaps,xsta_min,xsta_max)      
+        CALL cross_section_snap(vel,nrun,nsnap,xc_snaps,xsta_min,xsta_max)
+
       ENDIF
       
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!       
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!            
+      
+      IF (plot_error_opt == 1) THEN
+
+        CALL error_station(vel,nrun,nsta,ts_stas,xsta_min,xsta_max,nsnap,xc_snaps,"max","abs")   
+        CALL error_station(vel,nrun,nsta,ts_stas,xsta_min,xsta_max,nsnap,xc_snaps,"max","rel") 
+        CALL error_station(vel,nrun,nsta,ts_stas,xsta_min,xsta_max,nsnap,xc_snaps,"avg","abs")  
+        CALL error_station(vel,nrun,nsta,ts_stas,xsta_min,xsta_max,nsnap,xc_snaps,"avg","rel")   
+      
+        CALL error_station(zeta,nrun,nsta,ts_stas,xsta_min,xsta_max,nsnap,xc_snaps,"max","abs")   
+        CALL error_station(zeta,nrun,nsta,ts_stas,xsta_min,xsta_max,nsnap,xc_snaps,"max","rel") 
+        CALL error_station(zeta,nrun,nsta,ts_stas,xsta_min,xsta_max,nsnap,xc_snaps,"avg","abs")  
+        CALL error_station(zeta,nrun,nsta,ts_stas,xsta_min,xsta_max,nsnap,xc_snaps,"avg","rel")                            
+      
+      ENDIF
+      
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
+
+      IF (plot_scatter_opt == 1) THEN      
+      
+        CALL error_scatter(vel,nrun,nsta,ts_stas,nsnap,xc_snaps)
+        CALL error_scatter(zeta,nrun,nsta,ts_stas,nsnap,xc_snaps)          
+
+      ENDIF
+      
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!            
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!       
       
       IF (plot_ts_sta_opt > 0) THEN
       
-      x_min = xtime_min
-      x_max = xtime_max
+        CALL time_series_station(zeta,nrun,nsta,ts_stas,xtime_min,xtime_max,nsnap_Z)  
+        CALL time_series_station(vel,nrun,nsta,ts_stas,xtime_min,xtime_max,nsnap_Z)              
       
-      tf = zeta%t_sta(nsnap_Z,1)
-      
-      snap_start = INT(((nsnap_Z-1)/tf)*xtime_min)+1
-      snap_end = INT(((nsnap_Z-1)/tf)*xtime_max)
-      
-      nsnap = snap_end-snap_start+1       
-      
-      ALLOCATE(xvec(nsnap),yvec(nsnap))
-      
-      DO i = 1,nsta
-      
-        sta = ts_stas(i)
-        PRINT*, "zeta station",sta      
-      
-        y_min = MINVAL(zeta%sta_val(sta,snap_start:snap_end,1:nrun))  
-        y_max = MAXVAL(zeta%sta_val(sta,snap_start:snap_end,1:nrun)) 
-        
-        y_min = y_min - abs((y_max-ymin)*.05d0)
-        y_max = y_max + abs((y_max-ymin)*.05d0)
-
-        
-        WRITE(snap_char,"(I4.4)") sta           
-        filename = TRIM(ADJUSTL(zeta%name))//"_ts_"//snap_char          
-        
-        CALL prep_station_plot(zeta,"zt",sta,x_min,x_max,y_min,y_max,filename)        
-        
-        DO run = 1,nrun
-          j = 1
-          DO pt = snap_start,snap_end
-            xvec(j) = zeta%t_sta(pt,run)
-            yvec(j) = zeta%sta_val(sta,pt,run)
-            j = j+1
-          ENDDO
-        
-          CALL plot_xy(zeta%ps_unit,nsnap,xvec,yvec,colors(run,:),line_width)
-        ENDDO
-        
-        CALL finish_station_plot(zeta,filename)
-      ENDDO
-      
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!     
-
-      x_min = xtime_min
-      x_max = xtime_max
-
-      DO i = 1,nsta
-      
-        sta = ts_stas(i)
-        PRINT*, "vel station",sta
-      
-        y_min = MINVAL(vel%sta_val(sta,snap_start:snap_end,1:nrun))  
-        y_max = MAXVAL(vel%sta_val(sta,snap_start:snap_end,1:nrun)) 
-        
-        y_min = 0d0
-        y_max = y_max + abs((y_max-ymin)*.05d0)        
-        
-        WRITE(snap_char,"(I4.4)") sta           
-        filename = TRIM(ADJUSTL(vel%name))//"_ts_"//snap_char          
-        
-        CALL prep_station_plot(vel,"vt",sta,x_min,x_max,y_min,y_max,filename)        
-        
-        DO run = 1,nrun
-          j = 1
-          DO pt = snap_start,snap_end
-            xvec(j) = vel%t_sta(pt,run)
-            yvec(j) = vel%sta_val(sta,pt,run)
-            j = j+1
-          ENDDO
-        
-          CALL plot_xy(vel%ps_unit,nsnap,xvec,yvec,colors(run,:),line_width)
-        ENDDO
-        
-        CALL finish_station_plot(vel,filename)
-      ENDDO
       ENDIF
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
+      
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
       IF (plot_sta_loc_opt > 0) THEN
       CALL sizes()
@@ -475,6 +364,8 @@
       
       ENDIF
 
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
+
 
       END PROGRAM plot_sta

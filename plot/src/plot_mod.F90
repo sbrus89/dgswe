@@ -2010,7 +2010,7 @@ edge:DO ed = 1,nbed
       REAL(rp), INTENT(IN) :: width
       
       INTEGER :: pt
-      
+!       PRINT*, rgb(1),rgb(2),rgb(3)
       WRITE(file_unit,"(3(F9.5,1x),A)") rgb(1),rgb(2),rgb(3)," setrgbcolor"      
       WRITE(file_unit,"(A)") "newpath"        
       WRITE(file_unit,"(2(F9.5,1x),A)") ax*xvec(1)+bx,ay*yvec(1)+by, " moveto"      
@@ -2023,6 +2023,32 @@ edge:DO ed = 1,nbed
       
       RETURN
       END SUBROUTINE plot_xy
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
+
+      SUBROUTINE plot_xy_scatter(file_unit,npt,xvec,yvec,rgb,width)
+      
+      IMPLICIT NONE
+      
+      INTEGER, INTENT(IN) :: file_unit
+      INTEGER, INTENT(IN) :: npt
+      REAL(rp), DIMENSION(:), INTENT(IN) :: xvec
+      REAL(rp), DIMENSION(:), INTENT(IN) :: yvec
+      REAL(rp), DIMENSION(:), INTENT(IN) :: rgb
+      REAL(rp), INTENT(IN) :: width
+      
+      INTEGER :: pt
+     
+      DO pt = 1,npt                
+        WRITE(file_unit,"(3(F9.5,1x))") rgb(1),rgb(2),rgb(3)        
+        WRITE(file_unit,"(2(F9.5,1x))") ax*xvec(pt)+bx,ay*yvec(pt)+by
+        WRITE(file_unit,"(F9.5)") width              
+        WRITE(file_unit,"(A)") "draw-dot"       
+      ENDDO
+    
+      RETURN
+      END SUBROUTINE plot_xy_scatter
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
