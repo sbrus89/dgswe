@@ -252,7 +252,7 @@
       REAL(rp) :: xval,yval
     
       CHARACTER(20) :: xchar,ychar     
-      CHARACTER(35) :: xlabel,ylabel
+      CHARACTER(40) :: xlabel,ylabel
       
       IF (axis_label_option == "xy") THEN
         xlabel = "$x$"
@@ -289,10 +289,12 @@
         ylabel = "surface elevation relative error" 
       ELSE IF (axis_label_option == "vc") THEN
         xlabel = "ADCIRC fine: veclocity (m/s)"
-        ylabel = "others: velocity (m/s)"            
+!         xlabel = "ADCIRC $\times 64$: veclocity (m/s)"
+        ylabel = "all solutions: velocity (m/s)"            
       ELSE IF (axis_label_option == "zc") THEN
         xlabel = "ADCIRC fine: surface elevation (m)"
-        ylabel = "others: surface elevation (m)"                
+!         xlabel = "ADCIRC $\times 64$: surface elevation (m)"
+        ylabel = "all solutions: surface elevation (m)"                
       ENDIF
       
 

@@ -152,6 +152,9 @@
         CALL plot_boundaries(fig%ps_unit,nverts,fig%el_plt,pplt,nobed,obedn,ged2el,ged2led,el_type,el_in,ect,xy,xyplt)       
         CALL plot_boundaries(fig%ps_unit,nverts,fig%el_plt,pplt,nnfbed,nfbedn,ged2el,ged2led,el_type,el_in,ect,xy,xyplt)        
         CALL plot_boundaries(fig%ps_unit,nverts,fig%el_plt,pplt,nfbed,fbedn,ged2el,ged2led,el_type,el_in,ect,xy,xyplt)          
+        IF (fig%name == "mesh" .and. fig%plot_sta_option == 1) THEN
+          CALL plot_stations(fig%ps_unit,fig%sta_start,fig%sta_end,xysta)        
+        ENDIF        
       ENDIF 
       
 !         CALL plot_cb_nodes(fig%ps_unit,ctp,nbou,fbseg,fbnds,xy,bndxy,nepn,epn,el_in)
