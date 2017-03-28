@@ -863,7 +863,7 @@
       TYPE(plot_type), INTENT(INOUT) :: fig
 
       
-      INTEGER :: i,j,v
+      INTEGER :: i,j,v,k
       INTEGER :: el,nd,dof,lev,tri,ord,pt
       INTEGER :: et,nv,pl    
       INTEGER :: nqpt,nnd,mnnds,mnp,ndf,mnqpta,nqpta(nel_type)
@@ -897,7 +897,8 @@
 !       REAL(rp) :: rel_tol,abs_tol
       
       REAL(rp), DIMENSION(:), ALLOCATABLE :: hb_val,zeta_val,Qx_val,Qy_val     
-      REAL(rp), DIMENSION(:), ALLOCATABLE :: hb_sol,zeta_sol,Qx_sol,Qy_sol    
+      REAL(rp), DIMENSION(:), ALLOCATABLE :: hb_sol,zeta_sol,Qx_sol,Qy_sol 
+      REAL(rp), DIMENSION(:), ALLOCATABLE :: sol_vec
       
       
       ! quadrature points for elemental solution average
@@ -916,6 +917,7 @@
       ALLOCATE(xpt(mnqpta),ypt(mnqpta))
       ALLOCATE(rpt(mnqpta),spt(mnqpta))
       ALLOCATE(sol_lin(mnqpta),sol_el(mnqpta))
+      ALLOCATE(sol_vec(mnpp))      
       
       DO pt = 1,nqpt
         qpt(pt,1) = qpts(pt,1)
@@ -991,9 +993,18 @@
             CALL element_transformation(nnd,elxy(:,el,1),elxy(:,el,2),psic(:,pt,i),xyplt(pt,el,1),xyplt(pt,el,2))           
           ENDDO                  
      
-          ! Evaluate solution at plotting nodes
-          CALL evaluate_solution(el,et,fig%type_flag,snap,fig%sol_val(:,el),npplt(i),phi_hb=phi_hb(:,:,i),phi_sol=phi_sol(:,:,i),ndf_hb=ndof_hb(et),ndf_sol=ndof_sol(et))          
-!           CALL evaluate_solution(el,et,fig%type_flag,snap,fig%sol_val(:,el),npplt(i),r(:,i),s(:,i))       
+          ! Evaluate solution at plotting nodes     
+          CALL evaluate_solution(el,et,fig%type_flag,snap,fig%sol_val(:,el),npplt(i),phi_hb=phi_hb(:,:,i),phi_sol=phi_sol(:,:,i),ndf_hb=ndof_hb(et),ndf_sol=ndof_sol(et))      
+     
+!           fig%sol_val(:,el) = -1d99
+!           DO k = snap_start,snap_end
+!             CALL evaluate_solution(el,et,fig%type_flag,k,sol_vec(:),npplt(i),phi_hb=phi_hb(:,:,i),phi_sol=phi_sol(:,:,i),ndf_hb=ndof_hb(et),ndf_sol=ndof_sol(et))                   
+!             DO j = 1,npplt(i)
+!               IF (sol_vec(j) > fig%sol_val(j,el)) THEN
+!                 fig%sol_val(j,el) = sol_vec(j)
+!               ENDIF
+!             ENDDO
+!           ENDDO
 
           IF (adapt_option == 0) THEN
             EXIT order
