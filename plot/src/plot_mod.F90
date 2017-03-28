@@ -16,7 +16,8 @@
                               mnpp,ps,pc,nord,adapt_option, &
                               phi_hb,phi_sol,ndof_hb,ndof_sol, &
                               ax,ay,bx,by, &
-                              xbox_min,xbox_max,ybox_min,ybox_max
+                              xbox_min,xbox_max,ybox_min,ybox_max, &
+                              snap_start,snap_end
       
       IMPLICIT NONE
       
@@ -170,8 +171,11 @@
       CALL convert_ps(filename,frmt,density,fig%rm_ps)    
       
       IF (fig%name /= "mesh" .and. fig%cbar_flag == 0) THEN
-        CALL make_cscale_horz(fig,filename)
+!         CALL make_cscale_horz(fig,filename)
+        CALL make_cscale_vert(fig,filename,t_snap,t_start,t_end)        
       ENDIF
+      
+!       STOP
       
       RETURN
       END SUBROUTINE make_plot
@@ -193,7 +197,7 @@
       
       TYPE(plot_type), INTENT(INOUT) :: fig   
       CHARACTER(*), INTENT(IN) :: file
-      CHARACTER(:), ALLOCATABLE :: filename      
+      CHARACTER(:), ALLOCATABLE :: filename   
         
       filename = TRIM(ADJUSTL(file))//"_horz_cscale"         
       CALL write_texheader()
@@ -204,13 +208,64 @@
       CALL remove_latex_files()   
       CALL write_psheader(filename//".ps",fig%ps_unit)
       CALL write_char_array(fig%ps_unit,fig%nline_header,fig%latex_header)   
-      CALL write_colorscale_horz(fig%ps_unit)           
+      CALL write_colorscale_horz(fig%ps_unit)          
       CALL write_char_array(fig%ps_unit,fig%nline_body,fig%latex_body)       
       CALL close_ps(filename,fig%ps_unit)
       CALL convert_ps(filename,frmt,density,fig%rm_ps)
       
       RETURN
       END SUBROUTINE make_cscale_horz
+      
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
+
+      SUBROUTINE make_cscale_vert(fig,file,t_snap,t_start,t_end)
+      
+      USE plot_globals, ONLY: frmt,density 
+      USE labels_mod, ONLY: write_caxis_labels_horz,write_caxis_labels, &
+                            write_texheader,run_latex,read_latex, &                             
+                            close_tex,remove_latex_files, &
+                            write_char_array,write_tbar_labels
+      USE axes_mod, ONLY: write_colorscale_horz,write_colorscale,write_tbar      
+ 
+      IMPLICIT NONE
+      
+      TYPE(plot_type), INTENT(INOUT) :: fig   
+      CHARACTER(*), INTENT(IN) :: file
+      CHARACTER(:), ALLOCATABLE :: filename   
+      REAL(rp), INTENT(IN) :: t_snap
+      REAL(rp), INTENT(IN) :: t_start
+      REAL(rp), INTENT(IN) :: t_end      
+      INTEGER :: time_bar
+        
+      filename = TRIM(ADJUSTL(file))//"_horz_cscale"         
+      CALL write_texheader()
+      IF (fig%name == 'bathy') THEN
+        time_bar = 0
+      ELSE
+        time_bar = 1
+      ENDIF
+      PRINT*, "time bar = ", time_bar
+      CALL write_caxis_labels(time_bar,fig%sol_min,fig%sol_max,fig%sol_label)
+      IF (time_bar == 1) THEN
+        CALL write_tbar_labels(t_snap)      
+      ENDIF 
+      CALL close_tex()
+      CALL run_latex(fig%tex_file_exists)
+      CALL read_latex(fig%tex_file_exists,fig%latex_header,fig%nline_header,fig%latex_body,fig%nline_body)
+      CALL remove_latex_files()   
+      CALL write_psheader(filename//".ps",fig%ps_unit)
+      CALL write_char_array(fig%ps_unit,fig%nline_header,fig%latex_header)    
+      CALL write_colorscale(fig%ps_unit)    
+      IF (time_bar == 1) THEN
+        CALL write_tbar(fig%ps_unit,t_snap,t_start,t_end)      
+      ENDIF
+      CALL write_char_array(fig%ps_unit,fig%nline_body,fig%latex_body)       
+      CALL close_ps(filename,fig%ps_unit)
+      CALL convert_ps(filename,frmt,density,fig%rm_ps)
+      
+      RETURN
+      END SUBROUTINE make_cscale_vert      
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
