@@ -2,9 +2,11 @@ close all
 clear all
 clc
 
-file =  '/home/sbrus/Codes/dgswe/grids/inlet1_ctp3.cb'
+% file =  '/home/sbrus/Codes/dgswe/grids/inlet1_ctp3.cb'
 % file = '/home/sbrus/data-drive/galveston_spline_flux_fix/grids/galveston_quad_x4_ctp3.cb';
 % file = '/home/sbrus/data-drive/galveston_spline_flux/galveston_tri_x4/p3/ctp3/hbp3/decomp48/PE0009/fort.cb';
+file = '/home/sbrus/data-drive/galveston_SL18/grid_dev/v29_cart/spline_modified/coarse_x2_ctp3.cb';
+
 fid = fopen(file);
 header = 1;
 while header == 1
