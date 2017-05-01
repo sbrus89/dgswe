@@ -12,7 +12,7 @@ out_dir = '../output/';
 finp = fopen('../work/rimls.inp');
 
 n = 0;
-while n < 4 && ~feof(finp)
+while n < 5 && ~feof(finp)
    temp = strtrim(fgetl(finp));
      
    if isempty(temp) || temp(1) == '!'
@@ -25,7 +25,7 @@ while n < 4 && ~feof(finp)
 end
 
 base_name = names{1};
-eval_name = names{4};
+eval_name = names{5};
 
 
 mesh = 'on';

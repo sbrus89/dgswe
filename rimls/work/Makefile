@@ -46,7 +46,7 @@ objects = kdtree2.o globals.o allocation.o basis.o find_element_mod.o sort_mod.o
           vandermonde.o shape_functions_mod.o transformation.o spherical_mod.o \
           curvilinear_nodes_mod.o bathymetry_interp_mod.o bathy_interp.o \
           write_results.o group_coordinates.o connect.o edge_connectivity_mod.o  \
-          area_qpts_mod.o edge_qpts_mod.o \
+          area_qpts_mod.o edge_qpts_mod.o read_dg_input.o\
           evaluate.o boundary_check.o \
           read_input.o read_grid.o grid_file_mod.o \
           curvilinear.o lapack_interfaces.o version.o system.o rimls.o 
@@ -114,6 +114,11 @@ $(ODIR)lapack_interfaces.o : ../../src/lapack_interfaces.F90
 	
 $(ODIR)system.o : ../../src/system.F90                                
 	$(FC) $(FFLAGS) -c $< -o $@		
+	
+$(ODIR)read_dg_input.o : read_dg_input.F90                 
+	$(FC) $(FFLAGS) -c $< -o $@
+	mv read_dginp.mod $(ODIR)
+	
 
 $(ODIR)grid_file_mod.o : ../../src/grid_file_mod.F90            $(ODIR)globals.o $(ODIR)quit.o $(ODIR)spherical_mod.o
 	$(FC) $(FFLAGS) -c $< -o $@
@@ -155,7 +160,7 @@ $(ODIR)spherical_mod.o : ../../src/spherical_mod.F90            $(ODIR)globals.o
 	$(FC) $(FFLAGS) -c $< -o $@
 	mv spherical_mod.mod $(ODIR)	
 	
-$(ODIR)curvilinear_nodes_mod.o : ../../src/curvilinear_nodes_mod.F90  $(ODIR)globals.o $(ODIR)shape_functions_mod.o $(ODIR)transformation.o $(ODIR)basis.o $(ODIR)lapack_interfaces.o
+$(ODIR)curvilinear_nodes_mod.o : ../../src/curvilinear_nodes_mod.F90  $(ODIR)globals.o $(ODIR)shape_functions_mod.o $(ODIR)transformation.o $(ODIR)basis.o   $(ODIR)lapack_interfaces.o $(ODIR)read_dg_input.o
 	$(FC) $(FFLAGS) -c $< -o $@
 	mv curvilinear_nodes_mod.mod $(ODIR)		
 	
