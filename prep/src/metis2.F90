@@ -1,6 +1,7 @@
       SUBROUTINE metis2()
 
       USE globals, ONLY: nn,ne,ned,ged2el,nproc,mnepn,part,el_type
+      USE read_dginp, ONLY: cb_wmult
 
       IMPLICIT NONE
       
@@ -68,7 +69,7 @@
       DO el = 1,ne        
         vwgt(el) = nadjels(el)
         IF (el_type(el) == 3) THEN
-          vwgt(el) = vwgt(el)*3
+          vwgt(el) = vwgt(el)*cb_wmult
         ENDIF
       ENDDO
       

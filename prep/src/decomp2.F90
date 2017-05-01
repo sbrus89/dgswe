@@ -85,6 +85,7 @@
       ALLOCATE(sredn(ned))
       
       ned_sr = 0
+      nied_pe = 0
       nsred = 0
       DO ed = 1,ned 
         el1 = ged2el(1,ed) ! find elements on this edge
@@ -96,6 +97,8 @@
     
           IF(pe1 == pe2) THEN
             ! resident element, do nothing
+            nied_pe(pe1) = nied_pe(pe1) + 1 ! keep track of interior edges
+            nied_pe(pe2) = nied_pe(pe2) + 1
           ELSE 
             ned_sr(pe1) = ned_sr(pe1) + 1 ! count send/recieve edges for each subdomain
             ned_sr(pe2) = ned_sr(pe2) + 1

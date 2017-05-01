@@ -86,4 +86,28 @@
       PRINT*, "Minimum number of elements", MINVAL(nresel)
       PRINT*, " "
       
+      ncalc_area = 0
+      ncalc_edge = 0
+      ncalc_solve = 0
+      DO pe = 1,nproc
+        DO el = 1,nresel(pe) 
+          eln = el_l2g(el,pe)        
+          et = el_type(eln)
+          IF (et == 1) THEN
+            ncalc_area = ncalc_area + 12
+          ELSE
+            ncalc_area = ncalc_area + 36
+          ENDIF
+          
+          ENDIF                    
+        ENDDO
+        
+        DO ed = 1,nied_pe(pe)
+          ncalc = ncalc + 4
+        ENDDO
+        
+        
+        
+      ENDDO
+      
       END PROGRAM dgprep
