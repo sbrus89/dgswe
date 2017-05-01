@@ -23,7 +23,8 @@ dg_sta_direc = {
 %                '/home/sbrus/data-drive/galveston_spline_flux_fix/galveston_tri_x64/p3/ctp3/hbp3/';
 %                '/home/sbrus/data-drive/galveston_spline_flux_fix/galveston_tri_x16/p3/ctp3/hbp3/';
 %                '/home/sbrus/data-drive/galveston_spline_flux_fix/galveston_tri_x4/p3/ctp3/hbp3/';              
-%                '/home/sbrus/data-drive/galveston_spline_flux_fix/galveston_tri/p3/ctp3/hbp3/';
+               '/home/sbrus/data-drive/galveston_spline_flux_fix/galveston_tri/p3/ctp3/hbp3/';
+               '/home/sbrus/data-drive/galveston_spline_flux_fix/galveston_tri/p3/ctp3/hbp3/rk22/';               
 %                '/home/sbrus/data-drive/galveston_spline_flux_fix/galveston_tri/p3/ctp1/hbp1/'                      
 %                '/home/sbrus/data-drive/galveston_spline_flux_fix/galveston_tri/p2/ctp2/hbp2/';
 %                '/home/sbrus/data-drive/galveston_spline_flux_fix/galveston_tri/p1/ctp2/hbp1/';
@@ -40,26 +41,34 @@ dg_sta_direc = {
 
 %                   '/home/sbrus/data-drive/galveston_SL18_tides/coarse/esl0/p1/ctp2/hbp1/';    
 %                   '/home/sbrus/data-drive/galveston_SL18_tides/coarse_x2/esl0/p3/ctp3/hbp3/';    
-                  '/home/sbrus/data-drive/galveston_SL18_tides/coarse_x2/esl.5/p3/ctp3/hbp3/rk45/';
-                  '/home/sbrus/data-drive/galveston_SL18_tides/coarse_x2/esl.5/p3/ctp1/hbp1/rk45/';     
-                  '/home/sbrus/data-drive/galveston_SL18_tides/coarse_x2/esl.5/p3/ctp3/hbp3/';
-                  '/home/sbrus/data-drive/galveston_SL18_tides/coarse_x2/esl.5/p3/ctp1/hbp1/';                     
-%                   '/home/sbrus/data-drive/galveston_SL18_tides/coarse_x2/esl1/p3/ctp3/hbp3/';    
+%                   '/home/sbrus/data-drive/galveston_SL18_tides/coarse_x2/esl.5/p3/ctp3/hbp3/rk45/';
+%                   '/home/sbrus/data-drive/galveston_SL18_tides/coarse_x2/esl.5/p3/ctp1/hbp1/rk45/';     
+%                   '/home/sbrus/data-drive/galveston_SL18_tides/coarse_x2/esl.5/p3/ctp3/hbp3/';
+%                   '/home/sbrus/data-drive/galveston_SL18_tides/coarse_x2/esl.5/p3/ctp3/hbp3/rk22_str_tol0/';                  
+%                   '/home/sbrus/data-drive/galveston_SL18_tides/coarse_x2/esl.5/p3/ctp1/hbp1/';                     
+%                   '/home/sbrus/data-drive/galveston_SL18_tides/coarse_x2/esl1/p3/ctp3/hbp3/'; 
+
+%                   '/home/sbrus/data-drive/galveston_SL18_surge/coarse_x2/esl.5/p3/ctp3/hbp3/';
+%                   '/home/sbrus/data-drive/galveston_SL18_surge/coarse_x2/esl.5/p3/ctp1/hbp1/';
                };         
          
         
-% grid_name = '/home/sbrus/data-drive/galveston_spline_flux_fix/grids/galveston_tri.grd';
-% % grid_name = '/home/sbrus/data-drive/galveston_spline_flux_fix/grids/galveston_quad.grd';
-% stations_file = '/home/sbrus/data-drive/galveston_spline_flux_fix/grids/stations.d';
-% save_dir = '/home/sbrus/data-drive/galveston_spline_flux_fix/';         
+grid_name = '/home/sbrus/data-drive/galveston_spline_flux_fix/grids/galveston_tri.grd';
+% grid_name = '/home/sbrus/data-drive/galveston_spline_flux_fix/grids/galveston_quad.grd';
+stations_file = '/home/sbrus/data-drive/galveston_spline_flux_fix/grids/stations.d';
+save_dir = '/home/sbrus/data-drive/galveston_spline_flux_fix/';         
 
 % grid_name = '/home/sbrus/data-drive/galveston_spline_surge/grids/galveston_tri.grd';
 % stations_file = '/home/sbrus/data-drive/galveston_spline_surge/grids/stations.d';
 % save_dir = '/home/sbrus/data-drive/galveston_spline_surge/';   
 
-grid_name = '/home/sbrus/data-drive/galveston_SL18_tides/grids/coarse_x2.grd';
-stations_file = '/home/sbrus/data-drive/galveston_SL18_tides/grids/stations_avg.d';
-save_dir = '/home/sbrus/data-drive/galveston_SL18_tides/';   
+% grid_name = '/home/sbrus/data-drive/galveston_SL18_tides/grids/coarse_x2.grd';
+% stations_file = '/home/sbrus/data-drive/galveston_SL18_tides/grids/stations_avg.d';
+% save_dir = '/home/sbrus/data-drive/galveston_SL18_tides/';   
+
+% grid_name = '/home/sbrus/data-drive/galveston_SL18_surge/grids/coarse_x2.grd';
+% stations_file = '/home/sbrus/data-drive/galveston_SL18_surge/grids/stations_avg.d';
+% save_dir = '/home/sbrus/data-drive/galveston_SL18_surge/';   
          
 cmap = colormap(lines);          
 
@@ -89,14 +98,15 @@ labels = {
 %             'adcirc coarse'
             
 % %             'dg med p=1'
-% %             'dg coarse p=3 esl=0'         
+%             'dg coarse p=3 esl=0'
+%             'dg coarse p=3 strtol=80'
 %             'dg coarse p=3 h.o.'
 %             'dg coarse p=3 lin'            
 % %             'dg coarse p=3 esl=1'
                'dg h.o. rk45';
-               'dg lin rk45';
+%                'dg lin rk45';
                'dg h.o. rk22';
-               'dg lin rk 22'
+%                'dg lin rk 22'
           }; 
 colors = [cmap(1,:)
           cmap(2,:)
@@ -107,12 +117,12 @@ colors = [cmap(1,:)
 
 
 
-% sta_vec = 1:481; % center of channel
+sta_vec = 1:481; % center of channel
 % sta_vec = 482:521;
 % sta_vec = 522:561;
 % sta_vec = 542:601;
 
-sta_vec = 1:1763;
+% sta_vec = 1:1763;
 
 % nsnap_plot = 552;
 % ts_sta = 100;
