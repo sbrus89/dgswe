@@ -60,8 +60,16 @@ direc_ls = [
             #'/home/sbrus/data-drive/galveston_spline_flux_fix/galveston_tri/p1/ctp2/hbp1/plots/inlet/',             
             #'/home/sbrus/data-drive/galveston_spline_flux_fix/galveston_tri/adcirc/ESL0/plots/inlet/',        
             
-            '/home/sbrus/data-drive/galveston_SL18_tides/galveston_SL18/p1/ctp2/hbp1/',
-            '/home/sbrus/data-drive/galveston_SL18_tides/galveston_SL18/p1/ctp1/hbp1/',
+            '/home/sbrus/data-drive/galveston_SL18_tides/coarse_x2/esl.5/p3/ctp3/hbp3/rk45/plots/upper/',
+            '/home/sbrus/data-drive/galveston_SL18_tides/coarse_x2/esl.5/p3/ctp1/hbp1/rk45/plots/upper/',
+            '/home/sbrus/data-drive/galveston_SL18_tides/coarse_x2/esl1/adcirc/plots/upper/',
+            '/home/sbrus/data-drive/galveston_SL18_tides/galveston_SL18_cart/esl1/adcirc/plots/upper/',   
+            
+            #'/home/sbrus/data-drive/galveston_SL18_tides/coarse_x2/esl.5/p3/ctp3/hbp3/rk45/plots/inlet/',
+            #'/home/sbrus/data-drive/galveston_SL18_tides/coarse_x2/esl.5/p3/ctp1/hbp1/rk45/plots/inlet/',
+            #'/home/sbrus/data-drive/galveston_SL18_tides/coarse_x2/esl1/adcirc/plots/inlet/',
+            #'/home/sbrus/data-drive/galveston_SL18_tides/galveston_SL18_cart/esl1/adcirc/plots/inlet/',            
+            
             ]         
             
 #offset = [0,0,0]         
