@@ -36,7 +36,7 @@
                          nnfbed,nfbedn, &
                          nfbed,fbedn, &
                          nobed,obedn, &
-                         ged2el,ged2led, &
+                         ned,ged2el,ged2led,ed_type,&
                          nsta,xysta, &
                          nepn,epn
       USE read_dginp, ONLY: p,ctp
@@ -119,8 +119,9 @@
       IF (adapt_option == 1 .and. fig%type_flag > 1) THEN
         CALL SYSTEM("cp "//filename//".ps "//filename//"_pltmesh.ps")
         OPEN(UNIT=999,FILE=filename//"_pltmesh.ps",POSITION="APPEND")
-        CALL plot_vis_mesh(999,ne,el_type,el_in,xyplt,nptri,rect,fig)   
+        CALL plot_vis_mesh(999,ne,el_type,el_in,xyplt,nptri,rect,fig)         
         CALL write_all_axes(999,fig%axis_label_flag,fig%cbar_flag,fig%tbar_flag,t_snap,t_start,t_end)
+!         CALL plot_elxy_nodes(999,ne,el_type,el_in,nnds,elxy)              
         CALL write_char_array(999,fig%nline_body,fig%latex_body)        
         CALL convert_ps(filename//"_pltmesh",frmt,density,fig%rm_ps)
         CLOSE(999)
@@ -145,6 +146,7 @@
         ENDIF
         CALL plot_mesh(fig%ps_unit,ne,nverts,fig%el_plt,pplt,el_type,el_in,xy,ect,xyplt)  
 !         CALL plot_nodestring(fig%ps_unit,nbou,nvel,fbseg,fbnds,xy)
+          CALL plot_qpts(fig%ps_unit,ne,el_type,el_in,elxy,nverts,ned,ed_type,ged2el,ged2led)
         IF (fig%name == "mesh" .and. fig%plot_sta_option == 1) THEN
           CALL plot_stations(fig%ps_unit,fig%sta_start,fig%sta_end,xysta)        
         ENDIF
@@ -159,7 +161,8 @@
       ENDIF 
       
 !         CALL plot_cb_nodes(fig%ps_unit,ctp,nbou,fbseg,fbnds,xy,bndxy,nepn,epn,el_in)
-!         CALL plot_elxy_nodes(fig%ps_unit,ne,el_type,el_in,nnds,elxy)      
+!         CALL plot_elxy_nodes(fig%ps_unit,ne,el_type,el_in,nnds,elxy) 
+!         CALL plot_qpts(fig%ps_unit,ne,el_type,el_in,elxy,nverts,ned,ed_type,ged2el,ged2led)
               
       
       CALL write_all_axes(fig%ps_unit,fig%axis_label_flag,fig%cbar_flag,fig%tbar_flag,t_snap,t_start,t_end)       
@@ -236,18 +239,11 @@
       REAL(rp), INTENT(IN) :: t_snap
       REAL(rp), INTENT(IN) :: t_start
       REAL(rp), INTENT(IN) :: t_end      
-      INTEGER :: time_bar
         
       filename = TRIM(ADJUSTL(file))//"_horz_cscale"         
       CALL write_texheader()
-      IF (fig%name == 'bathy') THEN
-        time_bar = 0
-      ELSE
-        time_bar = 1
-      ENDIF
-      PRINT*, "time bar = ", time_bar
-      CALL write_caxis_labels(time_bar,fig%sol_min,fig%sol_max,fig%sol_label)
-      IF (time_bar == 1) THEN
+      CALL write_caxis_labels(fig%tbar_flag,fig%sol_min,fig%sol_max,fig%sol_label)
+      IF (fig%tbar_flag == 1) THEN
         CALL write_tbar_labels(t_snap)      
       ENDIF 
       CALL close_tex()
@@ -257,7 +253,7 @@
       CALL write_psheader(filename//".ps",fig%ps_unit)
       CALL write_char_array(fig%ps_unit,fig%nline_header,fig%latex_header)    
       CALL write_colorscale(fig%ps_unit)    
-      IF (time_bar == 1) THEN
+      IF (fig%tbar_flag == 1) THEN
         CALL write_tbar(fig%ps_unit,t_snap,t_start,t_end)      
       ENDIF
       CALL write_char_array(fig%ps_unit,fig%nline_body,fig%latex_body)       
@@ -1807,8 +1803,8 @@ edge:DO ed = 1,nbed
         ENDDO
         
         IF (started /= 0) THEN
-          WRITE(file_unit,"(A)") "1 setlinewidth 2 setlinejoin"    
-          WRITE(file_unit,"(A)") "gsave 1 0 0 setrgbcolor stroke grestore"        
+          WRITE(file_unit,"(A)") "2 setlinewidth 2 setlinejoin"    
+          WRITE(file_unit,"(A)") "gsave 1 .5 0 setrgbcolor stroke grestore"        
         ENDIF
       ENDDO
       
@@ -1937,8 +1933,118 @@ edge:DO ed = 1,nbed
 
       
       RETURN
-      END SUBROUTINE plot_elxy_nodes      
+      END SUBROUTINE plot_elxy_nodes     
       
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
+
+      SUBROUTINE plot_qpts(file_unit,ne,el_type,el_in,elxy,nverts,ned,ed_type,ged2el,ged2led)
+      
+      USE transformation, ONLY: element_transformation       
+      USE read_dginp, ONLY: p,ctp         
+      USE area_qpts_mod, ONLY: area_qpts
+      USE edge_qpts_mod, ONLY: edge_qpts
+      USE shape_functions_mod, ONLY: shape_functions_area_eval
+      USE evaluate_mod, ONLY: evaluate_solution      
+      
+      IMPLICIT NONE
+      
+      INTEGER, INTENT(IN) :: file_unit
+      INTEGER, INTENT(IN) :: ne
+      INTEGER, DIMENSION(:), INTENT(IN) :: el_type
+      INTEGER, DIMENSION(:), INTENT(IN) :: el_in
+      REAL(rp), DIMENSION(:,:,:), INTENT(IN) :: elxy
+      INTEGER, DIMENSION(:), INTENT(IN) :: nverts
+      INTEGER, INTENT(IN) :: ned
+      INTEGER, DIMENSION(:), INTENT(IN) :: ed_type
+      INTEGER, DIMENSION(:,:), INTENT(IN) :: ged2el
+      INTEGER, DIMENSION(:,:), INTENT(IN) :: ged2led
+      
+      INTEGER :: el,pt,nd,i,ged
+      INTEGER :: et,nnd,edt,led
+      INTEGER :: mnqpta,nqpta(nel_type)   
+      INTEGER :: mnqpte,nqpte(nel_type)       
+      INTEGER :: mnnds,mnp
+      REAL(rp) :: xpt,ypt
+      REAL(rp), DIMENSION(:,:,:), ALLOCATABLE :: qpta
+      REAL(rp), DIMENSION(:,:), ALLOCATABLE ::  wpta 
+      REAL(rp), DIMENSION(:,:,:), ALLOCATABLE :: qpte
+      REAL(rp), DIMENSION(:,:), ALLOCATABLE ::  wpte         
+      REAL(rp), DIMENSION(:,:,:), ALLOCATABLE :: psi     
+      
+      CALL area_qpts(1,p,ctp,nel_type,nqpta,mnqpta,wpta,qpta)           
+      
+      mnp = maxval(np)      
+      mnnds = (mnp+1)**2           
+      ALLOCATE(psi(mnnds,mnqpta,nel_type))      
+      DO et = 1,nel_type         
+        CALL shape_functions_area_eval(et,np(et),nnds(et),nqpta(et),qpta(:,1,et),qpta(:,2,et), &
+                                       psi(:,:,et))
+      ENDDO            
+      
+      DO el = 1,ne
+        et = el_type(el)
+        nnd = nnds(et)
+        
+        IF (el_in(el) == 0) THEN
+          CYCLE
+        ENDIF
+        
+        DO pt = 1,nqpta(et)             
+          CALL element_transformation(nnd,elxy(:,el,1),elxy(:,el,2),psi(:,pt,et),xpt,ypt)           
+          WRITE(file_unit,"(3(I5,1x))") 0,0,0         
+          WRITE(file_unit,"(2(F9.5,1x))") ax*xpt+bx, ay*ypt+by
+          WRITE(file_unit,"(I5)") 2               
+          WRITE(file_unit,"(A)") "draw-dot"         
+        ENDDO                
+      ENDDO  
+      DEALLOCATE(psi)
+      
+      
+      
+      
+      CALL edge_qpts(1,p,ctp,nel_type,nqpte,mnqpte,wpte,qpte)           
+      
+      mnp = maxval(np)      
+      mnnds = (mnp+1)**2           
+      ALLOCATE(psi(mnnds,4*mnqpte,nel_type))      
+      
+      
+      DO ged = 1,ned
+        edt = ed_type(ged)
+        el = ged2el(1,ged)
+        led = ged2led(1,ged)
+        et = el_type(el)
+        
+        nnd = nnds(et)          
+       
+        IF (el_in(el) == 0) THEN
+          CYCLE
+        ENDIF       
+       
+        IF (edt /= 10 .and. et > 2) THEN
+          edt = 1
+        ELSE 
+          edt = et
+        ENDIF                 
+               
+        CALL shape_functions_area_eval(et,np(et),nnds(et),nverts(et)*nqpte(edt),qpte(:,1,edt),qpte(:,2,edt), &
+                                       psi(:,:,et))          
+        
+        DO i = 1,nqpte(edt)   
+          pt = (led-1)*nqpte(edt)+i
+          CALL element_transformation(nnd,elxy(:,el,1),elxy(:,el,2),psi(:,pt,et),xpt,ypt)           
+          WRITE(file_unit,"(3(I5,1x))") 0,0,0         
+          WRITE(file_unit,"(2(F9.5,1x))") ax*xpt+bx, ay*ypt+by
+          WRITE(file_unit,"(I5)") 2               
+          WRITE(file_unit,"(A)") "draw-dot"         
+        ENDDO          
+        
+      ENDDO
+      
+      
+      RETURN
+      END SUBROUTINE plot_qpts
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 

@@ -317,8 +317,8 @@
       mesh%axis_label_flag = 0
       mesh%cbar_flag = 0
       mesh%tbar_flag = 0
-      bathy%axis_label_flag = 0
-      bathy%cbar_flag = 0
+      bathy%axis_label_flag = 1
+      bathy%cbar_flag = 1
       bathy%tbar_flag = 0
       zeta%axis_label_flag = 0
       zeta%cbar_flag = 0

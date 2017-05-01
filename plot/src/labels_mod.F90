@@ -11,7 +11,8 @@
                               nxtick,nytick,nctick, &
                               nxdec,nydec,ncdec,ntdec, &
                               dr_xlabel,ds_ylabel,ds_clabel, &
-                              plot_type,char_array
+                              plot_type,char_array, &
+                              xmin,xmax,ymin,ymax
       USE read_dginp, ONLY: sphi0,slam0                              
 
       IMPLICIT NONE
@@ -103,16 +104,19 @@
       REAL(rp), INTENT(IN) :: t_start
       REAL(rp), INTENT(IN) :: t_end 
       
-                  
+      REAL(rp) :: tol
+      
+      tol = 1d-10
       
       CALL write_texheader()        
       
       IF (fig%axis_label_flag == 1) THEN
         IF (abs(sphi0) > 0d0 .and. abs(slam0) > 0d0) THEN
-          CALL write_xyaxis_labels("ll")        
+          CALL write_xyaxis_labels("ll")  
+        ELSE IF (abs(xmin+1d0)<tol .and. abs(xmax-1d0)<tol .and. abs(ymin+1d0)<tol .and. abs(ymax-1d0)<tol)THEN
+          CALL write_xyaxis_labels("rs")            
         ELSE
-          CALL write_xyaxis_labels("xy")  
-!           CALL write_xyaxis_labels("rs")          
+          CALL write_xyaxis_labels("xy")          
         ENDIF      
       ENDIF
       
@@ -330,6 +334,11 @@
           xval = xval/deg2rad
           expnt = 0          
         ENDIF
+        
+        IF (abs(xval) < 1d-10 .and. xval < 0d0) THEN    ! prevent -0.0
+          xval = xval*-1d0
+        ENDIF        
+        
         CALL format_number(nxdec,xval,expnt,xchar)        
                   
         WRITE(tex_unit,"(A,F9.5,A,F9.5,A)") "\begin{textblock}{400}[0.5,0](",r0,",",smax_page-smin_axes+xticklabel_pad,")"
@@ -406,6 +415,10 @@
           yval = yval/r_earth
           yval = yval/deg2rad
           expnt = 0
+        ENDIF
+        
+        IF (abs(yval) < 1d-10 .and. yval < 0d0) THEN    ! prevent -0.0
+          yval = yval*-1d0
         ENDIF
         
         CALL format_number(nydec,yval,expnt,ychar) 
