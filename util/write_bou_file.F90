@@ -20,14 +20,17 @@
       INTEGER :: segtype
       INTEGER :: nbnds
       
-      grid_file = "/home/sbrus/data-drive/galveston_SL18/grid_dev/v27_cart/rimls_spline_modified/galveston_SL18_cart.grd"
-      bou_file  = "/home/sbrus/data-drive/galveston_SL18/grid_dev/v27_cart/rimls_spline_modified/galveston_SL18_cart.bfr"        
+!       grid_file = "/home/sbrus/data-drive/galveston_SL18/grid_dev/v27_cart/rimls_spline_modified/galveston_SL18_cart.grd"
+! !       bou_file  = "/home/sbrus/data-drive/galveston_SL18/grid_dev/v27_cart/rimls_spline_modified/galveston_SL18_cart.bfr"         
+!       bou_file  = "/home/sbrus/data-drive/galveston_SL18/grid_dev/v27_cart/rimls_spline_modified/galveston_SL18_cart.bfr_surge"        
       
 !       grid_file = "/home/sbrus/data-drive/galveston_SL18/grid_dev/v27_cart/rimls_spline_modified/coarse.grd"
-!       bou_file  = "/home/sbrus/data-drive/galveston_SL18/grid_dev/v27_cart/rimls_spline_modified/coarse.bfr"  
+! !       bou_file  = "/home/sbrus/data-drive/galveston_SL18/grid_dev/v27_cart/rimls_spline_modified/coarse.bfr"  
+!       bou_file  = "/home/sbrus/data-drive/galveston_SL18/grid_dev/v27_cart/rimls_spline_modified/coarse.bfr_surge"
       
-!       grid_file = "/home/sbrus/data-drive/galveston_SL18/grid_dev/v27_cart/rimls_spline_modified/coarse_x2.grd"
-!       bou_file  = "/home/sbrus/data-drive/galveston_SL18/grid_dev/v27_cart/rimls_spline_modified/coarse_x2.bfr"        
+      grid_file = "/home/sbrus/data-drive/galveston_SL18/grid_dev/v27_cart/rimls_spline_modified/coarse_x2.grd"
+!       bou_file  = "/home/sbrus/data-drive/galveston_SL18/grid_dev/v27_cart/rimls_spline_modified/coarse_x2.bfr"      
+      bou_file  = "/home/sbrus/data-drive/galveston_SL18/grid_dev/v27_cart/rimls_spline_modified/coarse_x2.bfr_surge" 
       
       nverts(1) = 3
       nverts(2) = 4
@@ -82,8 +85,22 @@
       
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!         
       
-      nfbsfr = 0
+      nfbsfr = 1
       CALL alloc_forcing_arrays(3)
+      
+      fbstag(1) = "SURGE"
+      fbsbgn(1) = 1.5d0
+      fbsend(1) = 3.0d0
+      fbssig(1) = 0.18d0
+      
+      DO bou = 1,nfrbou
+        nbnds = fbseg(1,bou)
+        DO nd = 1,nbnds
+          DO bfr = 1,nfbsfr
+            fbsamp(nd,bou,bfr) = 16d0
+          ENDDO
+        ENDDO        
+      ENDDO      
       
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!     
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!    
@@ -145,6 +162,8 @@
             WRITE(15,"(E24.17)") fbsamp(nd,bou,bfr)
           ENDDO
         ENDDO
-      ENDDO           
+      ENDDO          
+      
+      CLOSE(15)
       
       END PROGRAM write_bou_file

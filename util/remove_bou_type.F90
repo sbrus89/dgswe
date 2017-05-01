@@ -15,10 +15,10 @@
       INTEGER :: nbnds
       INTEGER, PARAMETER :: cbou_type = 30
 
-      file_in = "/home/sbrus/data-drive/galveston_SL18/grid_dev/v27_cart/SMS_output/coarse.grd"
-      file_out = "/home/sbrus/data-drive/galveston_SL18/grid_dev/v27_cart/unmodified_no_type30/coarse.grd" 
-!       file_in = "/home/sbrus/data-drive/galveston_SL18/grid_dev/v27_cart/SMS_output/galveston_SL18_cart.grd"
-!       file_out = "/home/sbrus/data-drive/galveston_SL18/grid_dev/v27_cart/unmodified_no_type30/galveston_SL18_cart.grd"  
+!       file_in = "/home/sbrus/data-drive/galveston_SL18/grid_dev/v29_cart/SMS_output/coarse.grd"
+!       file_out = "/home/sbrus/data-drive/galveston_SL18/grid_dev/v29_cart/unmodified_no_type30/coarse.grd" 
+      file_in = "/home/sbrus/data-drive/galveston_SL18/grid_dev/v29_cart/SMS_output/galveston_SL18_cart.grd"
+      file_out = "/home/sbrus/data-drive/galveston_SL18/grid_dev/v29_cart/unmodified_no_type30/galveston_SL18_cart.grd"  
       
       nverts(1) = 3
       nverts(2) = 4

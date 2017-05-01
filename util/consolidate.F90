@@ -74,9 +74,16 @@
 !       coarse_file_out = "/home/sbrus/data-drive/galveston_SL18/grid_dev/v26_cart/coarse.grd"
 !       fine_file_out = "/home/sbrus/data-drive/galveston_SL18/grid_dev/v26_cart/galveston_SL18_cart_no30.grd"      
 
-      fine_file_in = "/home/sbrus/data-drive/galveston_SL18/grid_dev/v26_cart/coarse.grd"
-      coarse_file_out = "/home/sbrus/data-drive/galveston_SL18/grid_dev/v26_cart/coarse_x2.grd"
-      fine_file_out = "/home/sbrus/data-drive/galveston_SL18/grid_dev/v26_cart/coarse_no30.grd" 
+!       fine_file_in = "/home/sbrus/data-drive/galveston_SL18/grid_dev/v26_cart/coarse.grd"
+!       coarse_file_out = "/home/sbrus/data-drive/galveston_SL18/grid_dev/v26_cart/coarse_x2.grd"
+!       fine_file_out = "/home/sbrus/data-drive/galveston_SL18/grid_dev/v26_cart/coarse_no30.grd" 
+
+!       fine_file_in = "./galveston_SL18_cart.grd"
+!       coarse_file_out = "./coarse.grd"
+      
+      fine_file_in = "./coarse.grd"
+      coarse_file_out = "./coarse_x2.grd"      
+
          
       nverts(1) = 3
       nverts(2) = 4
@@ -498,7 +505,7 @@
       ALLOCATE(frc(nn_coarse,2))
       dt = 0.2d0
       
-      DO retri = 1,5
+      DO retri = 1,4
       DO it = 1,10
  nodes: DO n1 = 1,nn_coarse
           
@@ -542,9 +549,9 @@
         ENDDO
       ENDDO
       
-      CALL delaunay_triangulation(nn_coarse,xy_coarse(1,:),xy_coarse(2,:),ncbou,cbseg_coarse,cbnds_coarse, &
-                                                                          nbou_coarse,fbseg_coarse,fbnds_coarse, &
-                                                                          ne_coarse,ect_coarse) 
+      CALL delaunay_triangulation(nn_coarse,xy_coarse(1,:),xy_coarse(2,:),nbou_coarse,fbseg_coarse,fbnds_coarse, &
+                                                                          ne_coarse,ect_coarse, &
+                                                                          ncbou,cbseg_coarse,cbnds_coarse) 
                                                                           
       CALL elements_per_node(ne_coarse,nn_coarse,nverts,et_coarse,ect_coarse,nepn,mnepn,epn) 
       CALL find_edge_pairs(ne_coarse,nverts,et_coarse,ect_coarse,nepn,epn,ned,ged2el,ged2nn,ged2led) 
@@ -571,18 +578,22 @@
       ! Write output
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
       
-!       ncnds = 0                                        ! enclude feature constraints in coarse mesh so they are there for 
-!       DO bou = 1,ncbou                                 ! subsequent refinements
-!         nbnds = cbseg_coarse(bou)
-!         fbseg_coarse(1,nbou_coarse+bou) = nbnds
-!         fbseg_coarse(2,nbou_coarse+bou) = cbou_type
-!         DO i = 1,nbnds
-!           fbnds_coarse(i,nbou_coarse+bou) = cbnds_coarse(i,bou)
-!           ncnds = ncnds + 1
-!         ENDDO
-!       ENDDO
-!       nbou_coarse = nbou_coarse + ncbou
-!       nvel_coarse = nvel_coarse + ncnds
+      ncnds = 0                                        ! enclude feature constraints in coarse mesh so they are there for 
+      DO bou = 1,ncbou                                 ! subsequent refinements
+        nbnds = cbseg_coarse(bou)
+        fbseg_coarse(1,nbou_coarse+bou) = nbnds
+        fbseg_coarse(2,nbou_coarse+bou) = cbou_type
+        DO i = 1,nbnds
+          fbnds_coarse(i,nbou_coarse+bou) = cbnds_coarse(i,bou)
+          ncnds = ncnds + 1
+        ENDDO
+      ENDDO
+      nbou_coarse = nbou_coarse + ncbou
+      nvel_coarse = nvel_coarse + ncnds
+             
+             
+             
+             
              
       grid_name_coarse = grid_name // " coarse"
       
@@ -596,41 +607,41 @@
       CALL write_open_boundaries(nope,neta_coarse,obseg_coarse,obnds_coarse)
       CALL write_flow_boundaries(nbou_coarse,nvel_coarse,fbseg_coarse,fbnds_coarse)
       
-      ! Write out fine grid without type 30 boundaries if present 
-      IF (ncbou > 0) THEN
-        CALL write_header(fine_file_out,grid_name,ne,nn)
-        CALL write_coords(nn,xy,depth)
-        CALL write_connectivity(ne,ect,el_type,nverts)
-        CALL write_open_boundaries(nope,neta,obseg,obnds)
-        
-        bou = nbou
-        nbou = 0
-        nvel = 0        
-        DO i = 1,bou
-        
-          bou_type = fbseg(2,i)
-          nbnds = fbseg(1,i)          
-          
-          IF (bou_type == cbou_type) THEN
-            CYCLE
-          ENDIF
-          
-          nbou = nbou + 1
-          
-!           IF (bou_type == 1 .OR. bou_type == 11 .OR. bou_type == 21) THEN
-!             nbnds = nbnds - 1
+!       ! Write out fine grid without type 30 boundaries if present 
+!       IF (ncbou > 0) THEN
+!         CALL write_header(fine_file_out,grid_name,ne,nn)
+!         CALL write_coords(nn,xy,depth)
+!         CALL write_connectivity(ne,ect,el_type,nverts)
+!         CALL write_open_boundaries(nope,neta,obseg,obnds)
+!         
+!         bou = nbou
+!         nbou = 0
+!         nvel = 0        
+!         DO i = 1,bou
+!         
+!           bou_type = fbseg(2,i)
+!           nbnds = fbseg(1,i)          
+!           
+!           IF (bou_type == cbou_type) THEN
+!             CYCLE
 !           ENDIF
-          
-          DO j = 1,nbnds
-            nvel = nvel + 1
-            fbnds(j,nbou) = fbnds(j,i)
-          ENDDO
-          fbseg(1,nbou) = nbnds
-          fbseg(2,nbou) = bou_type
-                    
-        ENDDO
-        
-        CALL write_flow_boundaries(nbou,nvel,fbseg,fbnds)        
-      ENDIF
+!           
+!           nbou = nbou + 1
+!           
+! !           IF (bou_type == 1 .OR. bou_type == 11 .OR. bou_type == 21) THEN
+! !             nbnds = nbnds - 1
+! !           ENDIF
+!           
+!           DO j = 1,nbnds
+!             nvel = nvel + 1
+!             fbnds(j,nbou) = fbnds(j,i)
+!           ENDDO
+!           fbseg(1,nbou) = nbnds
+!           fbseg(2,nbou) = bou_type
+!                     
+!         ENDDO
+!         
+!         CALL write_flow_boundaries(nbou,nvel,fbseg,fbnds)        
+!       ENDIF
 
       END PROGRAM consolidate

@@ -277,27 +277,28 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!        
       
-      SUBROUTINE delaunay_triangulation(n,x,y,ncbou,cbseg,cbnds,nbou,fbseg,fbnds,ntri,ect)
+      SUBROUTINE delaunay_triangulation(n,x,y,nbou,fbseg,fbnds,ntri,ect,ncbou,cbseg,cbnds)
 
       IMPLICIT NONE
       
       INTEGER, INTENT(INOUT) :: n
       REAL(rp), DIMENSION(n), INTENT(INOUT) :: x
       REAL(rp), DIMENSION(n), INTENT(INOUT) :: y
-      INTEGER, INTENT(IN) :: ncbou
-      INTEGER, DIMENSION(:), INTENT(IN) :: cbseg
-      INTEGER, DIMENSION(:,:), INTENT(INOUT) :: cbnds
       INTEGER :: nbou
       INTEGER, DIMENSION(:,:), INTENT(IN) :: fbseg
       INTEGER, DIMENSION(:,:), INTENT(INOUT) :: fbnds
       INTEGER, INTENT(OUT) :: ntri
       INTEGER, DIMENSION(:,:), INTENT(OUT) :: ect
+      INTEGER, INTENT(IN), OPTIONAL :: ncbou
+      INTEGER, DIMENSION(:), INTENT(IN), OPTIONAL :: cbseg
+      INTEGER, DIMENSION(:,:), INTENT(INOUT), OPTIONAL :: cbnds      
 
 
       
       INTEGER :: i,j,k,ed
       INTEGER :: remove,found
-      INTEGER :: segtype    
+      INTEGER :: segtype   
+      INTEGER :: constraint
       INTEGER, ALLOCATABLE, DIMENSION(:) :: list
       INTEGER, ALLOCATABLE, DIMENSION(:) :: lptr
       INTEGER, ALLOCATABLE, DIMENSION(:) :: lend
@@ -329,6 +330,11 @@
 
       ncc = 0
       ALLOCATE(lcc(1))
+      
+      constraint = 0
+      IF (PRESENT(ncbou)) THEN
+        constraint = 1
+      ENDIF
 
       
       PRINT*, "Triangulating nodes..."
@@ -344,20 +350,21 @@
       
       
       
-      
-      PRINT*, "Enforcing feature constraints..."
-      lwk = 6*n      
-      ALLOCATE(iwk(2,lwk))
-      DO bou = 1,ncbou
-        nbnds = cbseg(bou)        
-        DO i = 1,nbnds-1
-           nd1 = cbnds(i,bou)
-           nd2 = cbnds(i+1,bou)
+      IF (constraint == 1) THEN
+        PRINT*, "Enforcing feature constraints..."
+        lwk = 6*n      
+        ALLOCATE(iwk(2,lwk))
+        DO bou = 1,ncbou
+          nbnds = cbseg(bou)        
+          DO i = 1,nbnds-1
+             nd1 = cbnds(i,bou)
+             nd2 = cbnds(i+1,bou)
            
-           CALL edge(nd1,nd2,x,y,lwk,iwk,list,lptr,lend,ier)
+             CALL edge(nd1,nd2,x,y,lwk,iwk,list,lptr,lend,ier)
 !            PRINT*, ier
-        ENDDO
-      ENDDO 
+          ENDDO
+        ENDDO 
+      ENDIF
       
       PRINT*, "Enforcing boundary constraints..."
       DO bou = 1,nbou
