@@ -146,7 +146,7 @@
         ENDIF
         CALL plot_mesh(fig%ps_unit,ne,nverts,fig%el_plt,pplt,el_type,el_in,xy,ect,xyplt)  
 !         CALL plot_nodestring(fig%ps_unit,nbou,nvel,fbseg,fbnds,xy)
-          CALL plot_qpts(fig%ps_unit,ne,el_type,el_in,elxy,nverts,ned,ed_type,ged2el,ged2led)
+!         CALL plot_qpts(fig%ps_unit,ne,el_type,el_in,elxy,nverts,ned,ed_type,ged2el,ged2led)
         IF (fig%name == "mesh" .and. fig%plot_sta_option == 1) THEN
           CALL plot_stations(fig%ps_unit,fig%sta_start,fig%sta_end,xysta)        
         ENDIF
@@ -950,6 +950,8 @@
       REAL(rp), DIMENSION(:), ALLOCATABLE :: hb_val,zeta_val,Qx_val,Qy_val     
       REAL(rp), DIMENSION(:), ALLOCATABLE :: hb_sol,zeta_sol,Qx_sol,Qy_sol 
       REAL(rp), DIMENSION(:), ALLOCATABLE :: sol_vec
+      
+      err = 0d0
       
       
       ! quadrature points for elemental solution average
