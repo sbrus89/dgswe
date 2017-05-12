@@ -68,7 +68,7 @@
         REAL(rp), DIMENSION(:,:), INTENT(OUT) :: phi
         REAL(rp), DIMENSION(:,:), OPTIONAL, INTENT(OUT) :: dpdr,dpds         
         
-        INTEGER :: m,i,j,pt
+        INTEGER :: m,i,j,k,pt
         INTEGER :: calc_deriv        
         REAL(rp) :: dpda,dpdb,dadr,dads,ii,tmp       
         REAL(rp) :: a(npts),b(npts)
@@ -96,9 +96,11 @@
         
         ! Calculate basis function values and derivative values at area quadrature points
         m = 0
-        DO i = 0,p
-          ii = real(i,rp)
-          DO j = 0,p-i
+        DO k = 0,p
+          DO i = k,0,-1
+             j = k-i          
+             
+            ii = real(i,rp)          
 
             m = m+1
 
@@ -176,7 +178,7 @@
         REAL(rp), DIMENSION(:,:), INTENT(OUT) :: phi
         REAL(rp), DIMENSION(:,:), OPTIONAL, INTENT(OUT) :: dpdr,dpds
         
-        INTEGER :: m,i,j,pt    
+        INTEGER :: m,i,j,k,l,pt    
         REAL(rp) :: Pi(npts),Pj(npts)
         REAL(rp) :: dPi(npts),dPj(npts)  
         INTEGER :: calc_deriv
@@ -191,9 +193,11 @@
         
         ! Calculate basis function values and derivative values at area quadrature points
         m = 0
-        DO i = 0,p
-          DO j = 0,p
-
+        DO k = 0,p
+          i = k
+          j = 0
+          DO l = 1,2*k+1
+                       
             m = m+1
 
             CALL jacobi(0,0,i,r,npts,Pi)
@@ -213,6 +217,14 @@
                 dpdr(m,pt) = 2d0*dPi(pt)*Pj(pt)
                 dpds(m,pt) = 2d0*Pi(pt)*dPj(pt)
               ENDDO
+            ENDIF
+            
+            IF (mod(l,2) == 1) THEN
+              i = j
+              j = k
+            ELSE
+              j = i+1
+              i = k
             ENDIF
 
           ENDDO
