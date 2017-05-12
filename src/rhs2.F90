@@ -106,11 +106,11 @@
           
         ENDDO        
         
-        CALL interior_edge_nflux_ldg(nfblk(1,blk-1),nfblk(2,blk-1),nqpte(1))
+        CALL interior_edge_nflux_ldg(nfblk(1,blk-1),nfblk(2,blk-1))
       ENDDO
       
       DO blk = 1,nrblk
-        CALL interior_edge_nflux_ldg(rnfblk(1,blk),rnfblk(2,blk),nqpte(1))         
+        CALL interior_edge_nflux_ldg(rnfblk(1,blk),rnfblk(2,blk))         
       ENDDO         
       
 #ifdef CMPI      
@@ -203,7 +203,7 @@
         ENDDO        
    
                   
-        CALL interior_edge_nflux(nfblk(1,blk-1),nfblk(2,blk-1),nqpte(1))
+        CALL interior_edge_nflux(nfblk(1,blk-1),nfblk(2,blk-1))
 
       ENDDO              
    
@@ -211,7 +211,7 @@
             
 !$OMP do         
       DO blk = 1,nrblk
-        CALL interior_edge_nflux(rnfblk(1,blk),rnfblk(2,blk),nqpte(1))         
+        CALL interior_edge_nflux(rnfblk(1,blk),rnfblk(2,blk))         
       ENDDO        
         
 !$OMP end do        

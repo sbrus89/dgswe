@@ -36,6 +36,7 @@
       INTEGER, ALLOCATABLE, DIMENSION(:) :: part
       INTEGER, ALLOCATABLE, DIMENSION(:) :: npartel
       INTEGER, ALLOCATABLE, DIMENSION(:) :: nparted
+      INTEGER, ALLOCATABLE, DIMENSION(:) :: npartpt      
       INTEGER, ALLOCATABLE, DIMENSION(:,:) :: npartet      
       INTEGER, ALLOCATABLE, DIMENSION(:,:) :: lel2gel ! gives the global element number that corresponds to a local partition element number
       INTEGER, ALLOCATABLE, DIMENSION(:) :: gel2lel
@@ -221,9 +222,9 @@
       REAL(rp), ALLOCATABLE, DIMENSION(:) :: recipHa ! temporary variables for momentum term calculation
 
       REAL(rp), ALLOCATABLE, DIMENSION(:) :: const
-      REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: inx,iny
-      REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: icfac      
-      REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: detJe_in,detJe_ex
+      REAL(rp), ALLOCATABLE, DIMENSION(:) :: inx,iny
+      REAL(rp), ALLOCATABLE, DIMENSION(:) :: icfac      
+      REAL(rp), ALLOCATABLE, DIMENSION(:) :: detJe_in,detJe_ex
       REAL(rp), ALLOCATABLE, DIMENSION(:) :: Zhatv,Hhatv,Qxhatv,Qyhatv
       REAL(rp), ALLOCATABLE, DIMENSION(:) :: rHi,rHe
       REAL(rp), ALLOCATABLE, DIMENSION(:) :: xmomi,xmome,ymomi,ymome,xymomi,xymome     
@@ -239,18 +240,18 @@
         REAL(rp), POINTER :: ptr
       END TYPE edge_ptr_array
 
-      TYPE(edge_ptr_array), ALLOCATABLE, DIMENSION(:,:) :: Hi,He
-      TYPE(edge_ptr_array), ALLOCATABLE, DIMENSION(:,:) :: Zi,Ze      
-      TYPE(edge_ptr_array), ALLOCATABLE, DIMENSION(:,:) :: Qxi,Qxe
-      TYPE(edge_ptr_array), ALLOCATABLE, DIMENSION(:,:) :: Qyi,Qye
-      TYPE(edge_ptr_array), ALLOCATABLE, DIMENSION(:,:) :: xmi,xme
-      TYPE(edge_ptr_array), ALLOCATABLE, DIMENSION(:,:) :: ymi,yme
-      TYPE(edge_ptr_array), ALLOCATABLE, DIMENSION(:,:) :: xymi,xyme   
+      TYPE(edge_ptr_array), ALLOCATABLE, DIMENSION(:) :: Hi,He
+      TYPE(edge_ptr_array), ALLOCATABLE, DIMENSION(:) :: Zi,Ze      
+      TYPE(edge_ptr_array), ALLOCATABLE, DIMENSION(:) :: Qxi,Qxe
+      TYPE(edge_ptr_array), ALLOCATABLE, DIMENSION(:) :: Qyi,Qye
+      TYPE(edge_ptr_array), ALLOCATABLE, DIMENSION(:) :: xmi,xme
+      TYPE(edge_ptr_array), ALLOCATABLE, DIMENSION(:) :: ymi,yme
+      TYPE(edge_ptr_array), ALLOCATABLE, DIMENSION(:) :: xymi,xyme   
       
-      TYPE(edge_ptr_array), ALLOCATABLE, DIMENSION(:,:) :: Exxi,Exxe
-      TYPE(edge_ptr_array), ALLOCATABLE, DIMENSION(:,:) :: Eyyi,Eyye
-      TYPE(edge_ptr_array), ALLOCATABLE, DIMENSION(:,:) :: Exyi,Exye            
-      TYPE(edge_ptr_array), ALLOCATABLE, DIMENSION(:,:) :: Eyxi,Eyxe
+      TYPE(edge_ptr_array), ALLOCATABLE, DIMENSION(:) :: Exxi,Exxe
+      TYPE(edge_ptr_array), ALLOCATABLE, DIMENSION(:) :: Eyyi,Eyye
+      TYPE(edge_ptr_array), ALLOCATABLE, DIMENSION(:) :: Exyi,Exye            
+      TYPE(edge_ptr_array), ALLOCATABLE, DIMENSION(:) :: Eyxi,Eyxe
        
       
       TYPE(edge_ptr_array), ALLOCATABLE, DIMENSION(:,:) :: Hwrite

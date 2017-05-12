@@ -1,5 +1,5 @@
 
-      SUBROUTINE interior_edge_nflux(sed,eed,nqpte)
+      SUBROUTINE interior_edge_nflux(spt,ept)
 
       USE globals, ONLY:  const,inx,iny,icfac,g, &
                           Zi,Ze,Hi,He,Qxi,Qxe,Qyi,Qye, &
@@ -13,83 +13,80 @@
    
       IMPLICIT NONE
 
-      INTEGER :: sed,eed,nqpte
-      INTEGER :: pt,ed
+      INTEGER :: spt,ept
+      INTEGER :: pt
                   
         
-ed_points: DO pt = 1,nqpte ! Compute numerical fluxes for all edges
               
 !DIR$ SIMD              
 !!DIR$ VECTOR ALIGNED
-              DO ed = sed,eed
+      DO pt = spt,ept
                 
-                const(ed) = max(abs(Qxi(ed,pt)%ptr*inx(ed,pt) + Qyi(ed,pt)%ptr*iny(ed,pt))/Hi(ed,pt)%ptr &
-                                                              + sqrt(g*Hi(ed,pt)%ptr*icfac(ed,pt)), &
-                                abs(Qxe(ed,pt)%ptr*inx(ed,pt) + Qye(ed,pt)%ptr*iny(ed,pt))/He(ed,pt)%ptr &
-                                                              + sqrt(g*He(ed,pt)%ptr*icfac(ed,pt)))
-              ENDDO
+        const(pt) = max(abs(Qxi(pt)%ptr*inx(pt) + Qyi(pt)%ptr*iny(pt))/Hi(pt)%ptr &
+                                                      + sqrt(g*Hi(pt)%ptr*icfac(pt)), &
+                        abs(Qxe(pt)%ptr*inx(pt) + Qye(pt)%ptr*iny(pt))/He(pt)%ptr &
+                                                      + sqrt(g*He(pt)%ptr*icfac(pt)))
+      ENDDO
                                         
 !DIR$ SIMD              
 !!DIR$ VECTOR ALIGNED
-              DO ed = sed,eed                  
-                Zhatv(ed) = .5d0*(inx(ed,pt)*(Qxi(ed,pt)%ptr + Qxe(ed,pt)%ptr) + iny(ed,pt)*(Qyi(ed,pt)%ptr + Qye(ed,pt)%ptr) &
-                                        - const(ed)*(Ze(ed,pt)%ptr - Zi(ed,pt)%ptr))           
-              ENDDO
+      DO pt = spt,ept                
+        Zhatv(pt) = .5d0*(inx(pt)*(Qxi(pt)%ptr + Qxe(pt)%ptr) + iny(pt)*(Qyi(pt)%ptr + Qye(pt)%ptr) &
+                              - const(pt)*(Ze(pt)%ptr - Zi(pt)%ptr))           
+      ENDDO
               
 !DIR$ SIMD
 !!DIR$ VECTOR ALIGNED
-              DO ed = sed,eed     
-                Qxhatv(ed) = .5d0*(inx(ed,pt)*(xmi(ed,pt)%ptr + xme(ed,pt)%ptr) + iny(ed,pt)*(xymi(ed,pt)%ptr + xyme(ed,pt)%ptr)  &
-                                        - const(ed)*(Qxe(ed,pt)%ptr - Qxi(ed,pt)%ptr))                                     
-              ENDDO
+      DO pt = spt,ept     
+        Qxhatv(pt) = .5d0*(inx(pt)*(xmi(pt)%ptr + xme(pt)%ptr) + iny(pt)*(xymi(pt)%ptr + xyme(pt)%ptr)  &
+                               - const(pt)*(Qxe(pt)%ptr - Qxi(pt)%ptr))                                     
+      ENDDO
               
 !DIR$ SIMD
 !!DIR$ VECTOR ALIGNED
-              DO ed = sed,eed
-                Qyhatv(ed) = .5d0*(inx(ed,pt)*(xymi(ed,pt)%ptr + xyme(ed,pt)%ptr) + iny(ed,pt)*(ymi(ed,pt)%ptr + yme(ed,pt)%ptr)  &
-                                        - const(ed)*(Qye(ed,pt)%ptr - Qyi(ed,pt)%ptr))                                     
-              ENDDO
+      DO pt = spt,ept
+        Qyhatv(pt) = .5d0*(inx(pt)*(xymi(pt)%ptr + xyme(pt)%ptr) + iny(pt)*(ymi(pt)%ptr + yme(pt)%ptr)  &
+                               - const(pt)*(Qye(pt)%ptr - Qyi(pt)%ptr))                                     
+      ENDDO
               
               
               
               
-              ! Eddy viscosity terms
-              IF (esl > esl_tol) THEN
-                DO ed = sed,eed
-                  Qxhatv(ed) = Qxhatv(ed) - inx(ed,pt)*.5d0*(Exxe(ed,pt)%ptr+Exxi(ed,pt)%ptr) &
-                                          - iny(ed,pt)*.5d0*(Exye(ed,pt)%ptr+Exyi(ed,pt)%ptr)               
-                ENDDO
+      ! Eddy viscosity terms
+      IF (esl > esl_tol) THEN
+        DO pt = spt,ept
+          Qxhatv(pt) = Qxhatv(pt) - inx(pt)*.5d0*(Exxe(pt)%ptr+Exxi(pt)%ptr) &
+                                  - iny(pt)*.5d0*(Exye(pt)%ptr+Exyi(pt)%ptr)               
+        ENDDO
               
-                DO ed = sed,eed
-                  Qyhatv(ed) = Qyhatv(ed) - inx(ed,pt)*.5d0*(Exye(ed,pt)%ptr+Exyi(ed,pt)%ptr) &
-                                          - iny(ed,pt)*.5d0*(Eyye(ed,pt)%ptr+Eyyi(ed,pt)%ptr)                
-                ENDDO
-              ENDIF
+        DO pt = spt,ept
+          Qyhatv(pt) = Qyhatv(pt) - inx(pt)*.5d0*(Exye(pt)%ptr+Exyi(pt)%ptr) &
+                                  - iny(pt)*.5d0*(Eyye(pt)%ptr+Eyyi(pt)%ptr)                
+        ENDDO
+      ENDIF
               
               
               
               
 !DIR$ IVDEP              
-              DO ed = sed,eed
-                Ze(ed,pt)%ptr = -detJe_ex(ed,pt)*Zhatv(ed)
-                Zi(ed,pt)%ptr =  detJe_in(ed,pt)*Zhatv(ed)                
-              ENDDO          
+      DO pt = spt,ept
+        Ze(pt)%ptr = -detJe_ex(pt)*Zhatv(pt)
+        Zi(pt)%ptr =  detJe_in(pt)*Zhatv(pt)                
+      ENDDO          
 !DIR$ IVDEP              
-              DO ed = sed,eed                  
-                Qxe(ed,pt)%ptr = -detJe_ex(ed,pt)*Qxhatv(ed)
-                Qxi(ed,pt)%ptr =  detJe_in(ed,pt)*Qxhatv(ed)
-              ENDDO   
+      DO pt = spt,ept                
+        Qxe(pt)%ptr = -detJe_ex(pt)*Qxhatv(pt)
+        Qxi(pt)%ptr =  detJe_in(pt)*Qxhatv(pt)
+      ENDDO   
 !DIR$ IVDEP              
-              DO ed = sed,eed                      
-                Qye(ed,pt)%ptr = -detJe_ex(ed,pt)*Qyhatv(ed)
-                Qyi(ed,pt)%ptr =  detJe_in(ed,pt)*Qyhatv(ed)
-              ENDDO               
-
-        ENDDO ed_points  
+      DO pt = spt,ept                      
+        Qye(pt)%ptr = -detJe_ex(pt)*Qyhatv(pt)
+        Qyi(pt)%ptr =  detJe_in(pt)*Qyhatv(pt)
+      ENDDO               
 
 
-       RETURN 
-       END SUBROUTINE interior_edge_nflux
+      RETURN 
+      END SUBROUTINE interior_edge_nflux
        
        
        
@@ -97,7 +94,7 @@ ed_points: DO pt = 1,nqpte ! Compute numerical fluxes for all edges
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
 
 
-      SUBROUTINE interior_edge_nflux_ldg(sed,eed,nqpte)  
+      SUBROUTINE interior_edge_nflux_ldg(spt,ept)  
       
       USE globals, ONLY: Exxi,Exxe,Eyyi,Eyye,Exyi,Exye,Eyxi,Eyxe, &
                          Qxi,Qxe,Qyi,Qye, &
@@ -106,26 +103,23 @@ ed_points: DO pt = 1,nqpte ! Compute numerical fluxes for all edges
       
       IMPLICIT NONE
       
-      INTEGER :: sed,eed
+      INTEGER :: spt,ept
       INTEGER :: nqpte
       
       INTEGER :: pt,ed
                   
-      DO pt = 1,nqpte
-        DO ed = sed,eed
+      DO pt = spt,ept
 
-          Exxe(ed,pt)%ptr = -detJe_ex(ed,pt)*inx(ed,pt)*.5d0*(Qxi(ed,pt)%ptr+Qxe(ed,pt)%ptr)
-          Exxi(ed,pt)%ptr =  detJe_in(ed,pt)*inx(ed,pt)*.5d0*(Qxe(ed,pt)%ptr+Qxi(ed,pt)%ptr)
+          Exxe(pt)%ptr = -detJe_ex(pt)*inx(pt)*.5d0*(Qxi(pt)%ptr+Qxe(pt)%ptr)
+          Exxi(pt)%ptr =  detJe_in(pt)*inx(pt)*.5d0*(Qxe(pt)%ptr+Qxi(pt)%ptr)
 
-          Eyye(ed,pt)%ptr = -detJe_ex(ed,pt)*iny(ed,pt)*.5d0*(Qyi(ed,pt)%ptr+Qye(ed,pt)%ptr)           
-          Eyyi(ed,pt)%ptr =  detJe_in(ed,pt)*iny(ed,pt)*.5d0*(Qye(ed,pt)%ptr+Qyi(ed,pt)%ptr)
+          Eyye(pt)%ptr = -detJe_ex(pt)*iny(pt)*.5d0*(Qyi(pt)%ptr+Qye(pt)%ptr)           
+          Eyyi(pt)%ptr =  detJe_in(pt)*iny(pt)*.5d0*(Qye(pt)%ptr+Qyi(pt)%ptr)
           
-          Exye(ed,pt)%ptr = -detJe_ex(ed,pt)*.5d0*(iny(ed,pt)*(Qxi(ed,pt)%ptr+Qxe(ed,pt)%ptr) &
-                                                  +inx(ed,pt)*(Qyi(ed,pt)%ptr+Qye(ed,pt)%ptr))
-          Exyi(ed,pt)%ptr =  detJe_in(ed,pt)*.5d0*(iny(ed,pt)*(Qxe(ed,pt)%ptr+Qxi(ed,pt)%ptr) &
-                                                  +inx(ed,pt)*(Qye(ed,pt)%ptr+Qyi(ed,pt)%ptr))          
-          
-        ENDDO
+          Exye(pt)%ptr = -detJe_ex(pt)*.5d0*(iny(pt)*(Qxi(pt)%ptr+Qxe(pt)%ptr) &
+                                            +inx(pt)*(Qyi(pt)%ptr+Qye(pt)%ptr))
+          Exyi(pt)%ptr =  detJe_in(pt)*.5d0*(iny(pt)*(Qxe(pt)%ptr+Qxi(pt)%ptr) &
+                                            +inx(pt)*(Qye(pt)%ptr+Qyi(pt)%ptr))          
       ENDDO
       
       RETURN

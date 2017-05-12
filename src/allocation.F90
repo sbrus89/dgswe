@@ -501,30 +501,32 @@
      INTEGER, PARAMETER :: n=11
      INTEGER :: alloc_status(n)
      INTEGER :: i
+     INTEGER :: npt
           
      alloc_status(:) = 0
      
-     mnired  = MAX(nied,nred)     
+     mnired  = MAX(nied,nred) 
+     npt = mnired*mnqpte     
 
      ! Solution pointer arrays
-     ALLOCATE(Hi(mnired,mnqpte),He(mnired,mnqpte),Zi(mnired,mnqpte),Ze(mnired,mnqpte), STAT=alloc_status(1))
-     ALLOCATE(Qxi(mnired,mnqpte),Qxe(mnired,mnqpte),Qyi(mnired,mnqpte),Qye(mnired,mnqpte),STAT=alloc_status(2))
-     ALLOCATE(xmi(mnired,mnqpte),ymi(mnired,mnqpte),xymi(mnired,mnqpte),STAT=alloc_status(3))
-     ALLOCATE(xme(mnired,mnqpte),yme(mnired,mnqpte),xyme(mnired,mnqpte),STAT=alloc_status(4))
+     ALLOCATE(Hi(npt),He(npt),Zi(npt),Ze(npt), STAT=alloc_status(1))
+     ALLOCATE(Qxi(npt),Qxe(npt),Qyi(npt),Qye(npt),STAT=alloc_status(2))
+     ALLOCATE(xmi(npt),ymi(npt),xymi(npt),STAT=alloc_status(3))
+     ALLOCATE(xme(npt),yme(npt),xyme(npt),STAT=alloc_status(4))
 
        
      ! Edge normals and jacobians
-     ALLOCATE(inx(mnired,mnqpte),iny(mnired,mnqpte),icfac(mnired,mnqpte),STAT=alloc_status(5))
-     ALLOCATE(detJe_in(mnired,mnqpte),detJe_ex(mnired,mnqpte),STAT=alloc_status(6))      
+     ALLOCATE(inx(npt),iny(npt),icfac(npt),STAT=alloc_status(5))
+     ALLOCATE(detJe_in(npt),detJe_ex(npt),STAT=alloc_status(6))      
 
      ! Temporary storage arrays, LLF constant and fluxes
-     ALLOCATE(const(mnired),Hhatv(mnired),Zhatv(mnired),Qxhatv(mnired),Qyhatv(mnired),STAT=alloc_status(7))
+     ALLOCATE(const(npt),Hhatv(npt),Zhatv(npt),Qxhatv(npt),Qyhatv(npt),STAT=alloc_status(7))
      
      ! LDG pointer arrays
-     ALLOCATE(Exxi(mnired,mnqpte),Exxe(mnired,mnqpte), STAT=alloc_status(8))
-     ALLOCATE(Eyyi(mnired,mnqpte),Eyye(mnired,mnqpte), STAT=alloc_status(9))
-     ALLOCATE(Exyi(mnired,mnqpte),Exye(mnired,mnqpte), STAT=alloc_status(10))
-     ALLOCATE(Eyxi(mnired,mnqpte),Eyxe(mnired,mnqpte), STAT=alloc_status(11))     
+     ALLOCATE(Exxi(npt),Exxe(npt), STAT=alloc_status(8))
+     ALLOCATE(Eyyi(npt),Eyye(npt), STAT=alloc_status(9))
+     ALLOCATE(Exyi(npt),Exye(npt), STAT=alloc_status(10))
+     ALLOCATE(Eyxi(npt),Eyxe(npt), STAT=alloc_status(11))     
      
       DO i = 1,n
         IF (alloc_status(i) /= 0) THEN
@@ -532,9 +534,6 @@
           STOP
         ENDIF
       ENDDO
-      
-      
-     
 
 
      RETURN
@@ -547,11 +546,11 @@
      SUBROUTINE alloc_blk_arrays()
      
      USE globals, ONLY: npartel,gel2part,gel2lel,lel2gel,gel2ael, &
-                        npartet,ael2gel,nparted, &
+                        npartet,ael2gel,nparted,npartpt, &
                         edblk,nfblk,elblk,rnfblk
 
      IMPLICIT NONE
-     INTEGER, PARAMETER :: n=10
+     INTEGER, PARAMETER :: n=11
      INTEGER :: alloc_status(n)
      INTEGER :: i
           
@@ -563,11 +562,12 @@
       ALLOCATE(npartet(nel_type,npart+1),STAT=alloc_status(4))     
       ALLOCATE(ael2gel(ne),gel2ael(ne),STAT=alloc_status(5))
       ALLOCATE(nparted(npart+1),STAT=alloc_status(6))  
+      ALLOCATE(npartpt(npart+1),STAT=alloc_status(7))       
       
-      ALLOCATE(edblk(2,npart),STAT=alloc_status(7))
-      ALLOCATE(nfblk(2,npart+1),STAT=alloc_status(8))
-      ALLOCATE(elblk(2,npart+1,nel_type),STAT=alloc_status(9))
-      ALLOCATE(rnfblk(2,nrblk),STAT=alloc_status(10))      
+      ALLOCATE(edblk(2,npart),STAT=alloc_status(8))
+      ALLOCATE(nfblk(2,npart+1),STAT=alloc_status(9))
+      ALLOCATE(elblk(2,npart+1,nel_type),STAT=alloc_status(10))
+      ALLOCATE(rnfblk(2,nrblk),STAT=alloc_status(11))      
      
       DO i = 1,n
         IF (alloc_status(i) /= 0) THEN

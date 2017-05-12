@@ -1,8 +1,9 @@
       SUBROUTINE edge_partition2()
       
-      USE globals, ONLY: nn,ne,ndof,mndof,nqpta,mnqpta,mnqpte,part,nel_type,el_type, &
+      USE globals, ONLY: nn,ne,ndof,mndof,nqpta,mnqpta,nqpte,mnqpte, &
+                         part,nel_type,el_type, &
                          ged2el,&
-                         npartel,nparted,npartet, &
+                         npartel,nparted,npartet,npartpt, &
                          gel2part,gel2lel,lel2gel, &
                          ael2gel,gel2ael, &
                          nied,iedn, &
@@ -28,7 +29,7 @@
       INTEGER :: ged
       INTEGER :: el_in,el_ex
       INTEGER :: pe_in,pe_ex
-      INTEGER :: elcnt,edcnt
+      INTEGER :: elcnt,edcnt,ptcnt
       INTEGER :: ted,tel
       
       INTEGER, ALLOCATABLE, DIMENSION(:) :: edflag      
@@ -132,7 +133,9 @@
       
       edflag = 0
       edcnt = 0
+      ptcnt = 0
       nparted = 0
+      npartpt = 0
       DO pe = 1,npart
         DO ed = 1,nied
         
@@ -149,8 +152,9 @@
             edcnt = edcnt + 1
             
             nparted(pe) = nparted(pe) + 1
+            npartpt(pe) = npartpt(pe) + nqpte(1)
             
-            CALL point_to_el(edcnt,ged,el_in,el_ex)
+            CALL point_to_el(ptcnt,ged,el_in,el_ex)
             
           ENDIF
         
@@ -168,10 +172,11 @@
           el_ex = ged2el(2,ged)
           
           nparted(npart+1) = nparted(npart+1) + 1
+          npartpt(npart+1) = npartpt(npart+1) + nqpte(1)          
           
-          CALL point_to_el(edcnt,ged,el_in,el_ex)          
+          CALL point_to_el(ptcnt,ged,el_in,el_ex)          
           
-        ENDIF
+        ENDIF      
       ENDDO
       
       
@@ -213,22 +218,39 @@
         elblk(2,blk,nel_type) = tel + npartet(nel_type,blk)        
       ENDDO
       
+!       ted = 0                               ! partition edge blocking arrays              
+!       nfblk(1,1) = 1
+!       DO blk = 1,npart
+!         ted = ted + nparted(blk)
+!         nfblk(2,blk) = ted
+!         nfblk(1,blk+1) = ted + 1
+!       ENDDO
+!       nfblk(2,npart+1) = ted + nparted(npart+1)
+
       ted = 0                               ! partition edge blocking arrays              
       nfblk(1,1) = 1
       DO blk = 1,npart
-        ted = ted + nparted(blk)
+        ted = ted + npartpt(blk)
         nfblk(2,blk) = ted
         nfblk(1,blk+1) = ted + 1
       ENDDO
-      nfblk(2,npart+1) = ted + nparted(npart+1)
+      nfblk(2,npart+1) = ted + npartpt(npart+1)
       
+!       rnfblk(1,1) = ted+1                   ! remainder edge blocking arrays
+!       DO blk = 1,nrblk-1
+!         ted = ted + (nparted(npart+1)/nrblk)
+!         rnfblk(2,blk) = ted  
+!         rnfblk(1,blk+1) = ted + 1
+!       ENDDO
+!       rnfblk(2,nrblk) = nied
+
       rnfblk(1,1) = ted+1                   ! remainder edge blocking arrays
       DO blk = 1,nrblk-1
-        ted = ted + (nparted(npart+1)/nrblk)
+        ted = ted + (npartpt(npart+1)/nrblk)
         rnfblk(2,blk) = ted  
         rnfblk(1,blk+1) = ted + 1
       ENDDO
-      rnfblk(2,nrblk) = nied
+      rnfblk(2,nrblk) = ptcnt
       
       
       IF (myrank == 0) THEN
@@ -274,7 +296,7 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!      
       
-      SUBROUTINE point_to_el(ed,ged,el_in,el_ex)
+      SUBROUTINE point_to_el(pt,ged,el_in,el_ex)
       
       USE globals, ONLY: nqpte,ged2led,gel2ael,gel2part, &
                          Hqpt,Zqpt,Qxqpt,Qyqpt, &
@@ -291,7 +313,7 @@
       
       INTEGER :: pt
       INTEGER :: ged
-      INTEGER :: ed
+      INTEGER :: i
       INTEGER :: el_in,el_ex
       INTEGER :: led_in,led_ex
       INTEGER :: gp_in,gp_ex
@@ -302,56 +324,58 @@
       
 !       PRINT "(I8,8x,3(I8),8X,3(I8))", ed,el_in,ael_in,gel2part(el_in), el_ex,ael_ex,gel2part(el_ex)
       
-      DO pt = 1,nqpte(1)
+      DO i = 1,nqpte(1)            
       
         led_in = ged2led(1,ged)
         led_ex = ged2led(2,ged)
 
-        gp_in = (led_in-1)*nqpte(1) + pt
-        gp_ex = (led_ex-1)*nqpte(1) + nqpte(1) - pt + 1
+        gp_in = (led_in-1)*nqpte(1) + i
+        gp_ex = (led_ex-1)*nqpte(1) + nqpte(1) - i + 1
 
-        Hi(ed,pt)%ptr => Hqpt(ael_in,gp_in)
-        He(ed,pt)%ptr => Hqpt(ael_ex,gp_ex)
+        pt = pt + 1
         
-        Zi(ed,pt)%ptr => Zqpt(ael_in,gp_in)
-        Ze(ed,pt)%ptr => Zqpt(ael_ex,gp_ex)        
-
-        Qxi(ed,pt)%ptr => Qxqpt(ael_in,gp_in)
-        Qxe(ed,pt)%ptr => Qxqpt(ael_ex,gp_ex)
-
-        Qyi(ed,pt)%ptr => Qyqpt(ael_in,gp_in)
-        Qye(ed,pt)%ptr => Qyqpt(ael_ex,gp_ex)
-
-        xmi(ed,pt)%ptr => xmom(ael_in,gp_in)
-        xme(ed,pt)%ptr => xmom(ael_ex,gp_ex)
-
-        ymi(ed,pt)%ptr => ymom(ael_in,gp_in)
-        yme(ed,pt)%ptr => ymom(ael_ex,gp_ex)
-
-        xymi(ed,pt)%ptr => xymom(ael_in,gp_in)
-        xyme(ed,pt)%ptr => xymom(ael_ex,gp_ex)
+        Hi(pt)%ptr => Hqpt(ael_in,gp_in)
+        He(pt)%ptr => Hqpt(ael_ex,gp_ex)
         
-        Exxi(ed,pt)%ptr => Exxqpt(ael_in,gp_in)
-        Exxe(ed,pt)%ptr => Exxqpt(ael_ex,gp_ex)
+        Zi(pt)%ptr => Zqpt(ael_in,gp_in)
+        Ze(pt)%ptr => Zqpt(ael_ex,gp_ex)        
+
+        Qxi(pt)%ptr => Qxqpt(ael_in,gp_in)
+        Qxe(pt)%ptr => Qxqpt(ael_ex,gp_ex)
+
+        Qyi(pt)%ptr => Qyqpt(ael_in,gp_in)
+        Qye(pt)%ptr => Qyqpt(ael_ex,gp_ex)
+
+        xmi(pt)%ptr => xmom(ael_in,gp_in)
+        xme(pt)%ptr => xmom(ael_ex,gp_ex)
+
+        ymi(pt)%ptr => ymom(ael_in,gp_in)
+        yme(pt)%ptr => ymom(ael_ex,gp_ex)
+
+        xymi(pt)%ptr => xymom(ael_in,gp_in)
+        xyme(pt)%ptr => xymom(ael_ex,gp_ex)
         
-        Eyyi(ed,pt)%ptr => Eyyqpt(ael_in,gp_in)
-        Eyye(ed,pt)%ptr => Eyyqpt(ael_ex,gp_ex)
+        Exxi(pt)%ptr => Exxqpt(ael_in,gp_in)
+        Exxe(pt)%ptr => Exxqpt(ael_ex,gp_ex)
         
-        Exyi(ed,pt)%ptr => Exyqpt(ael_in,gp_in)
-        Exye(ed,pt)%ptr => Exyqpt(ael_ex,gp_ex)        
+        Eyyi(pt)%ptr => Eyyqpt(ael_in,gp_in)
+        Eyye(pt)%ptr => Eyyqpt(ael_ex,gp_ex)
         
-        Eyxi(ed,pt)%ptr => Eyxqpt(ael_in,gp_in)
-        Eyxe(ed,pt)%ptr => Eyxqpt(ael_ex,gp_ex)  
+        Exyi(pt)%ptr => Exyqpt(ael_in,gp_in)
+        Exye(pt)%ptr => Exyqpt(ael_ex,gp_ex)        
+        
+        Eyxi(pt)%ptr => Eyxqpt(ael_in,gp_in)
+        Eyxe(pt)%ptr => Eyxqpt(ael_ex,gp_ex)  
         
      
         
-        inx(ed,pt) = nx_pt(ged,pt)*Spe(ged,pt)
-        iny(ed,pt) = ny_pt(ged,pt)
+        inx(pt) = nx_pt(ged,i)*Spe(ged,i)
+        iny(pt) = ny_pt(ged,i)
         
-        icfac(ed,pt) = cfac(ged,pt)
+        icfac(pt) = cfac(ged,i)
           
-        detJe_in(ed,pt) = detJe(ged,pt)
-        detJe_ex(ed,pt) = detJe(ged,pt)        
+        detJe_in(pt) = detJe(ged,i)
+        detJe_ex(pt) = detJe(ged,i)        
      
       
       ENDDO
