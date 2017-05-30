@@ -54,7 +54,9 @@
       nverts(3) = 3
       nverts(4) = 4      
       
-
+      !!!!!!!!!!!!!!!!!!!!!!!!!!
+      ! Read in the input file
+      !!!!!!!!!!!!!!!!!!!!!!!!!!
       ninp = 2
       
       INQUIRE(file='refine.inp',exist=file_exists)
@@ -91,8 +93,9 @@
       CLOSE(15)
       
       
-      
-      
+      !!!!!!!!!!!!!!!!!!!!!!!!
+      ! Read in the grid file
+      !!!!!!!!!!!!!!!!!!!!!!!!
       CALL read_header(myrank,grid_file,grid_name,ne,nn)  
       
       CALL read_coords(nn,xy,depth,h0)     
@@ -106,8 +109,9 @@
       CALL print_grid_info(grid_file,grid_name,ne,nn)      
 
 
-      
-      
+      !!!!!!!!!!!!!!!!!!!!!!!!!!!
+      ! Compute edge information
+      !!!!!!!!!!!!!!!!!!!!!!!!!!!
       CALL elements_per_node(ne,nn,nverts,el_type,ect,nepn,mnepn,epn) 
       
       CALL find_edge_pairs(ne,nverts,el_type,ect,nepn,epn,ned,ged2el,ged2nn,ged2led)
@@ -123,24 +127,26 @@
       CALL print_connect_info(mnepn,ned,nied,nobed,nfbed,nnfbed,nred)      
       
       
-            
-            
+      !!!!!!!!!!!!!!!!!       
+      ! Keep/add nodes 
+      !!!!!!!!!!!!!!!!!
+      
       ALLOCATE(xy_refine(2,nn+ned+ne))   
       ALLOCATE(depth_refine(nn+ned+ne))
       ALLOCATE(el2nn(ne))      
-      DO i = 1,nn
+      DO i = 1,nn                                        ! Keep all nodes from base grid
         xy_refine(1,i)  = xy(1,i)
         xy_refine(2,i)  = xy(2,i)        
         depth_refine(i) = depth(i)
       ENDDO
       
       nnr = nn
-      DO ged = 1,ned
-                    
+      DO ged = 1,ned                                     ! Compute refined grid nodes at midpoints of element edges
+                                                         ! New nodes are numbered starting from the number of nodes in the base grid 
         n1 = ged2nn(1,ged)
         n2 = ged2nn(2,ged)
         
-        n = nn + ged
+        n = nn + ged                                      
         nnr = nnr + 1
         
         xy_refine(1,n)  = .5d0*(xy(1,n1)  + xy(1,n2))
@@ -148,11 +154,11 @@
         depth_refine(n) = .5d0*(depth(n1) + depth(n2))
       ENDDO
       
-      DO el = 1,ne
+      DO el = 1,ne                                      ! For quadrilateral elements, add a node at the center of the element
       
         et = el_type(el)              
         
-        IF (et == 2) THEN
+        IF (et == 2) THEN                               
 !           n = nn + ned + el         
           nnr = nnr+1        
           el2nn(el) = nnr
@@ -172,9 +178,9 @@
       
       
       
-      
-      
-      
+      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      ! Create the element connectivity table
+      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       ALLOCATE(ect_refine(4,4*ne),el_type_refine(4*ne))
       
       ner = 0
@@ -182,28 +188,28 @@
       
         et = el_type(el)
         nv = nverts(et)
-        IF (et == 1) THEN
-        
-          DO n = 1,nv         
+        IF (et == 1) THEN                                ! Triangles
+                                                            
+          DO n = 1,nv                                    !   - Corner elements
             ner = ner + 1
-            
-            ged1 = el2ged(el,mod(n+1,nv)+1)
-            ged2 = el2ged(el,mod(n+0,nv)+1)
-                        
-            ect_refine(1,ner) = ect(n,el)
-            ect_refine(2,ner) = nn + ged1
-            ect_refine(3,ner) = nn + ged2
+                                                         
+            ged1 = el2ged(el,mod(n+1,nv)+1)              
+            ged2 = el2ged(el,mod(n+0,nv)+1)              
+                                                         
+            ect_refine(1,ner) = ect(n,el)                
+            ect_refine(2,ner) = nn + ged1                
+            ect_refine(3,ner) = nn + ged2                
             
             el_type_refine(ner) = 1
           ENDDO
           
-          ner = ner + 1
+          ner = ner + 1                                  !    - Center element
           DO n = 1,nv
             ect_refine(n,ner) = nn + el2ged(el,n)
           ENDDO
           el_type_refine(ner) = 1
           
-        ELSE IF (et == 2) THEN
+        ELSE IF (et == 2) THEN                           ! Quadrilaterals
         
           nd = el2nn(el)
         
@@ -228,8 +234,9 @@
       
       
       
-      
-      
+      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!      
+      ! Create list of open bounary nodes
+      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       ALLOCATE(obnodes(2*neta),obnds_refine(2*neta,nope))
             
       ed = 0
@@ -252,7 +259,9 @@
         obnds_refine(2*nd-1,bou) = obnds(nd,bou)
       ENDDO
       
-      
+      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!      
+      ! Create list of flow boundary nodes
+      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       ALLOCATE(fbnodes(2*nvel),fbnds_refine(2*nvel,nbou))
             
       fed = 0
@@ -272,7 +281,7 @@
               ged = nfbedn(nfed)
           ENDIF
           
-          IF ( segtype == 2 .OR. segtype == 12 .OR. segtype == 22 ) THEN             
+          IF ( segtype == 2 .OR. segtype == 12 .OR. segtype == 22 ) THEN   ! flux specified boundaries          
                
                fed = fed + 1
                ged = fbedn(fed)
@@ -293,7 +302,9 @@
       ENDDO
       
       
-      
+      !!!!!!!!!!!!!!!!!!!!!!!!!!
+      ! Write out refined grid
+      !!!!!!!!!!!!!!!!!!!!!!!!!!
       CALL write_header(out_file,grid_name,ner,nnr)
       
       CALL write_coords(nnr,xy_refine,depth_refine)
