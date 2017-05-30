@@ -11,7 +11,7 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
 
-      SUBROUTINE evaluate_solution(el,et,sol_type,snap,sol_val,npts,r,s,phi_hb,phi_sol,ndf_hb,ndf_sol)
+      SUBROUTINE evaluate_solution(el,et,sol_type,snap,sol_val,npts,r,s,phi_sol)
 
       USE plot_globals, ONLY: hb,Z,Qx,Qy
       USE read_dginp, ONLY: p,hbp,h0
@@ -27,36 +27,30 @@
       INTEGER, INTENT(IN) :: npts
       REAL(rp), DIMENSION(:), INTENT(IN), OPTIONAL :: r
       REAL(rp), DIMENSION(:), INTENT(IN), OPTIONAL :: s   
-      REAL(rp), DIMENSION(:,:), INTENT(IN), OPTIONAL :: phi_hb
       REAL(rp), DIMENSION(:,:), INTENT(IN), OPTIONAL :: phi_sol   
-      INTEGER, INTENT(IN), OPTIONAL :: ndf_hb
-      INTEGER, INTENT(IN), OPTIONAL :: ndf_sol
 
       INTEGER :: pt,dof
       INTEGER :: mndf,ndfb,ndfs
       REAL(rp) :: H,u_vel,v_vel
       REAL(rp) :: hb_val(npts),zeta_val(npts)
       REAL(rp) :: Qx_val(npts),Qy_val(npts)
-      REAL(rp), DIMENSION(:,:), ALLOCATABLE :: phib
       REAL(rp), DIMENSION(:,:), ALLOCATABLE :: phis
       REAL(rp) :: depth_min
 
       mndf = (p+1)**2
       
+      IF (mod(et,2) == 1) THEN
+        ndfs = (p+1)*(p+2)/2 
+        ndfb = (hbp+1)*(hbp+2)/2
+      ELSE IF (mod(et,2) == 0) THEn
+        ndfs = (p+1)**2
+        ndfb = (hbp+1)**2
+      ENDIF
+      
+      
+      
       IF (PRESENT(r) .and. PRESENT(s)) THEN
-      
-        IF (sol_type == 2 .or. sol_type == 4) THEN   
-          ALLOCATE(phib(mndf,npts))  
-#ifdef adcirc
-          CALL linear_basis(ndfb,npts,r,s,phib) 
-#elif dgswem
-          CALL dgswem_basis(hbp,ndfb,npts,r,s,phib) 
-#else
-          CALL element_basis(et,hbp,ndfb,npts,r,s,phib)        
-#endif          
-        ENDIF
-      
-        IF (sol_type == 3 .or. sol_type == 4) THEN        
+       
           ALLOCATE(phis(mndf,npts))           
 #ifdef adcirc
           CALL linear_basis(ndfs,npts,r,s,phis) 
@@ -65,38 +59,18 @@
 #else 
           CALL element_basis(et,p,ndfs,npts,r,s,phis)          
 #endif          
-        ENDIF
       
       ENDIF
-      
-      
-      IF (PRESENT(phi_hb)) THEN
-        
-        IF (sol_type == 2 .or. sol_type == 4) THEN   
-          ALLOCATE(phib(mndf,npts))    
-          DO pt = 1,npts
-            DO dof = 1,mndf
-              phib(dof,pt) = phi_hb(dof,pt)
-            ENDDO
-          ENDDO
-          
-          ndfb = ndf_hb
-        ENDIF
-         
-      ENDIF
+
       
       IF (PRESENT(phi_sol)) THEN
-      
-        IF (sol_type == 3 .or. sol_type == 4) THEN        
-          ALLOCATE(phis(mndf,npts))  
-          DO pt = 1,npts
-            DO dof = 1,mndf
-              phis(dof,pt) = phi_sol(dof,pt)
-            ENDDO
-          ENDDO  
-          
-          ndfs = ndf_sol
-        ENDIF      
+       
+        ALLOCATE(phis(mndf,npts))  
+        DO pt = 1,npts
+          DO dof = 1,mndf
+            phis(dof,pt) = phi_sol(dof,pt)
+          ENDDO
+        ENDDO     
       
       ENDIF
       
@@ -109,7 +83,7 @@
         DO pt = 1,npts
           hb_val(pt) = 0d0
           DO dof = 1,ndfb
-            hb_val(pt) = hb_val(pt) + phib(dof,pt)*hb(dof,el,1)
+            hb_val(pt) = hb_val(pt) + phis(dof,pt)*hb(dof,el,1)
           ENDDO
         ENDDO
             

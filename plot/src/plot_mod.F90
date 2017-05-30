@@ -1047,7 +1047,7 @@
           ENDDO                  
      
           ! Evaluate solution at plotting nodes     
-          CALL evaluate_solution(el,et,fig%type_flag,snap,fig%sol_val(:,el),npplt(i),phi_hb=phi_hb(:,:,i),phi_sol=phi_sol(:,:,i),ndf_hb=ndof_hb(et),ndf_sol=ndof_sol(et))      
+          CALL evaluate_solution(el,et,fig%type_flag,snap,fig%sol_val(:,el),npplt(i),phi_sol=phi_sol(:,:,i))      
      
 !           fig%sol_val(:,el) = -1d99
 !           DO k = snap_start,snap_end
@@ -2367,7 +2367,7 @@ edge:DO ed = 1,nbed
             i = (et-1)*nord+nord                 
             npts = npplt(i)       
             
-            CALL evaluate_solution(el,et,fig%type_flag,snap,fig%sol_val(:,el),npts,phi_hb=phi_hb(:,:,i),phi_sol=phi_sol(:,:,i),ndf_hb=ndof_hb(et),ndf_sol=ndof_sol(et))  
+            CALL evaluate_solution(el,et,fig%type_flag,snap,fig%sol_val(:,el),npts,phi_sol=phi_sol(:,:,i))  
             
             DO pt = 1,npts
               IF (fig%sol_val(pt,el) > fig%cscale_max) THEN

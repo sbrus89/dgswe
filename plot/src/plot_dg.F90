@@ -147,7 +147,6 @@
              
       
       PRINT("(A)"), "Evaluating reference element coordinate information..."
-      CALL evaluate_basis(hbp,nord,mnpp,mndof,nel_type,npplt,r,s,ndof_hb,phi_hb)
       CALL evaluate_basis(p,nord,mnpp,mndof,nel_type,npplt,r,s,ndof_sol,phi_sol)
 
       
