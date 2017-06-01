@@ -3,13 +3,15 @@
       USE globals
       USE allocation, ONLY: sizes, alloc_trans_arrays
       USE read_dginp
-      USE messenger2, ONLY: message_init,nproc
+      USE messenger2, ONLY: message_init,nproc,nied_pe
       USE edge_qpts_mod, ONLY: edge_qpts
       USE grid_file_mod, ONLY: courant,read_stations
 
       IMPLICIT NONE
       
-      INTEGER :: pe
+      INTEGER :: pe,el
+      INTEGER :: et,ed,eln
+      INTEGER :: ncalc,ncalc_area,ncalc_edge,ncalc_solve
       REAL :: elsum,elavg,elstd
       REAL(rp) :: cfl,u       
 
@@ -99,7 +101,6 @@
             ncalc_area = ncalc_area + 36
           ENDIF
           
-          ENDIF                    
         ENDDO
         
         DO ed = 1,nied_pe(pe)

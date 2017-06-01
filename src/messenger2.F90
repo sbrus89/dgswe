@@ -31,6 +31,7 @@
       INTEGER, ALLOCATABLE, DIMENSION(:,:) :: el_sr
       INTEGER, ALLOCATABLE, DIMENSION(:,:) :: led_sr
       INTEGER, ALLOCATABLE, DIMENSION(:,:) :: nqpte_sr
+      INTEGER, ALLOCATABLE, DIMENSION(:) :: nied_pe
       REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: nx_sr
       REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: ny_sr
       REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: hb_sr

@@ -25,7 +25,7 @@
       USE read_dginp, ONLY: hbp,ctp                           
                          
       USE messenger2, ONLY: nproc,nqpte_sr,hb_sr,nx_sr,ny_sr,detJe_sr, &
-                            ned_sr,pe_sr,el_sr,led_sr                       
+                            ned_sr,pe_sr,el_sr,led_sr,nied_pe                       
 
       IMPLICIT NONE
 
@@ -83,7 +83,8 @@
       ! maximunm number of send/recv edges for allocation
       ALLOCATE(ned_sr(nproc))
       ALLOCATE(sredn(ned))
-      
+      ALLOCATE(nied_pe(nproc))
+
       ned_sr = 0
       nied_pe = 0
       nsred = 0
