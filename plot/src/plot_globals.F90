@@ -314,6 +314,25 @@
       vel%axis_label_flag = 1
       vel%cbar_flag = 1
       vel%tbar_flag = 1
+      
+      IF (nxdec < 0 .or. nydec < 0) THEN
+        mesh%axis_label_flag = 0
+        bathy%axis_label_flag = 0
+        zeta%axis_label_flag = 0
+        vel%axis_label_flag = 0        
+      ENDIF
+      
+      IF (ncdec < 0) THEN
+        bathy%cbar_flag = 0
+        zeta%cbar_flag = 0
+        vel%cbar_flag = 0
+      ENDIF
+      
+      IF (ntdec < 0) THEN
+        zeta%tbar_flag = 0
+        vel%tbar_flag = 0
+      ENDIF
+      
 !       mesh%axis_label_flag = 0
 !       mesh%cbar_flag = 0
 !       mesh%tbar_flag = 0

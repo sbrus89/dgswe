@@ -337,6 +337,8 @@
 
         CALL make_plot(snap,t_snap,vel)
         
+        STOP
+        
       ENDDO
       
       IF (adapt_option == 1) THEN

@@ -11,7 +11,7 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
 
-      SUBROUTINE evaluate_solution(el,et,sol_type,snap,sol_val,npts,r,s,phi_sol)
+      SUBROUTINE evaluate_solution(el,et,sol_type,snap,sol_val,npts,r,s,phi_sol,plim)
 
       USE plot_globals, ONLY: hb,Z,Qx,Qy
       USE read_dginp, ONLY: p,hbp,h0
@@ -28,6 +28,7 @@
       REAL(rp), DIMENSION(:), INTENT(IN), OPTIONAL :: r
       REAL(rp), DIMENSION(:), INTENT(IN), OPTIONAL :: s   
       REAL(rp), DIMENSION(:,:), INTENT(IN), OPTIONAL :: phi_sol   
+      INTEGER, INTENT(IN), OPTIONAL :: plim
 
       INTEGER :: pt,dof
       INTEGER :: mndf,ndfb,ndfs
@@ -39,13 +40,7 @@
 
       mndf = (p+1)**2
       
-      IF (mod(et,2) == 1) THEN
-        ndfs = (p+1)*(p+2)/2 
-        ndfb = (hbp+1)*(hbp+2)/2
-      ELSE IF (mod(et,2) == 0) THEn
-        ndfs = (p+1)**2
-        ndfb = (hbp+1)**2
-      ENDIF
+
       
       
       
@@ -73,6 +68,25 @@
         ENDDO     
       
       ENDIF
+      
+      
+      IF (PRESENT(plim)) THEN
+        IF (mod(et,2) == 1) THEN
+          ndfs = (plim+1)*(plim+2)/2 
+          ndfb = min(ndfs,(hbp+1)*(hbp+2)/2)
+        ELSE IF (mod(et,2) == 0) THEn
+          ndfs = (plim+1)**2
+          ndfb = min(ndfs,(hbp+1)**2)
+        ENDIF            
+      ELSE      
+        IF (mod(et,2) == 1) THEN
+          ndfs = (p+1)*(p+2)/2 
+          ndfb = (hbp+1)*(hbp+2)/2
+        ELSE IF (mod(et,2) == 0) THEn
+          ndfs = (p+1)**2
+          ndfb = (hbp+1)**2
+        ENDIF
+      ENDIF      
       
       
       

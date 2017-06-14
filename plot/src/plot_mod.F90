@@ -108,7 +108,7 @@
       
       
       IF (fig%type_flag > 1) THEN
-        CALL plot_filled_contours_adapt(fig%ps_unit,ne,el_type,el_in,el_area,elxy,xyplt,pplt,nptri,npplt,rect,r,s,snap,fig)             
+        CALL plot_filled_contours_adapt(fig%ps_unit,ne,ect,nverts,el_type,el_in,el_area,elxy,xyplt,pplt,nptri,npplt,rect,r,s,snap,fig)             
       ENDIF
       IF (fig%plot_lines_option == 1) THEN
         CALL plot_line_contours(fig%ps_unit,ne,el_type,el_in,nptri,rect,xyplt,r,s,snap,fig)          
@@ -142,8 +142,9 @@
 
       IF (fig%plot_mesh_option == 1) THEN
         IF (fig%name == "mesh") THEN
-          CALL fill_elements(fig%ps_unit,ne,nverts,fig%el_plt,pplt,el_type,el_in,xy,ect,xyplt)   
-        ENDIF
+          CALL fill_elements(fig%ps_unit,ne,nverts,fig%el_plt,pplt,el_type,el_in,xy,ect,xyplt)        
+        ENDIF                
+       
         CALL plot_mesh(fig%ps_unit,ne,nverts,fig%el_plt,pplt,el_type,el_in,xy,ect,xyplt)  
 !         CALL plot_nodestring(fig%ps_unit,nbou,nvel,fbseg,fbnds,xy)
 !         CALL plot_qpts(fig%ps_unit,ne,el_type,el_in,elxy,nverts,ned,ed_type,ged2el,ged2led)
@@ -151,6 +152,10 @@
           CALL plot_stations(fig%ps_unit,fig%sta_start,fig%sta_end,xysta)        
         ENDIF
       ELSE IF (fig%plot_mesh_option == 2) THEN
+      
+        IF (fig%name == "mesh") THEN
+          CALL fill_elements(fig%ps_unit,ne,nverts,fig%el_plt,pplt,el_type,el_in,xy,ect,xyplt)        
+        ENDIF          
         pe = (et-1)*nord + nord
         CALL plot_boundaries(fig%ps_unit,nverts,fig%el_plt,pplt,nobed,obedn,ged2el,ged2led,el_type,el_in,ect,xy,xyplt)       
         CALL plot_boundaries(fig%ps_unit,nverts,fig%el_plt,pplt,nnfbed,nfbedn,ged2el,ged2led,el_type,el_in,ect,xy,xyplt)        
@@ -650,8 +655,8 @@
       WRITE(file_unit,"(A)") "lineto"
       WRITE(file_unit,"(A)") "lineto"
       WRITE(file_unit,"(A)") "closepath"
-!       WRITE(file_unit,"(A)") "gsave 0 0 1 setrgbcolor fill grestore"     
-      WRITE(file_unit,"(A)") "gsave 1 1 1 setrgbcolor fill grestore"         
+      WRITE(file_unit,"(A)") "gsave setrgbcolor fill grestore"     
+!       WRITE(file_unit,"(A)") "gsave 1 1 1 setrgbcolor fill grestore"         
       WRITE(file_unit,"(A)") "} def" 
       
       WRITE(file_unit,"(A)") "/fill-quad-element {"
@@ -661,8 +666,8 @@
       WRITE(file_unit,"(A)") "lineto"
       WRITE(file_unit,"(A)") "lineto"      
       WRITE(file_unit,"(A)") "closepath"
-!       WRITE(file_unit,"(A)") "gsave 0 0 1 setrgbcolor fill grestore"  
-      WRITE(file_unit,"(A)") "gsave 1 1 1 setrgbcolor fill grestore"        
+      WRITE(file_unit,"(A)") "gsave setrgbcolor fill grestore"  
+!       WRITE(file_unit,"(A)") "gsave 1 1 1 setrgbcolor fill grestore"        
       WRITE(file_unit,"(A)") "} def"       
       
       WRITE(file_unit,"(A)") "/draw-box {"
@@ -885,7 +890,7 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-      SUBROUTINE plot_filled_contours_adapt(file_unit,ne,el_type,el_in,el_area,elxy,xyplt,pplt,nptri,npplt,rect,r,s,snap,fig)
+      SUBROUTINE plot_filled_contours_adapt(file_unit,ne,ect,nverts,el_type,el_in,el_area,elxy,xyplt,pplt,nptri,npplt,rect,r,s,snap,fig)
       
       USE transformation, ONLY: init_vandermonde,element_transformation,xy2rs
       USE basis, ONLY: element_basis,linear_basis           
@@ -899,6 +904,8 @@
       
       INTEGER, INTENT(IN) :: file_unit
       INTEGER, INTENT(IN) :: ne
+      INTEGER, DIMENSION(:,:), INTENT(IN) :: ect      
+      INTEGER, DIMENSION(:), INTENT(IN) :: nverts      
       INTEGER, DIMENSION(:), INTENT(IN) :: el_type
       INTEGER, DIMENSION(:), INTENT(IN) :: el_in
       REAL(rp), DIMENSION(:), INTENT(IN) :: el_area
@@ -931,7 +938,7 @@
       REAL(rp), DIMENSION(:,:), ALLOCATABLE :: l
       REAL(rp), DIMENSION(:), ALLOCATABLE :: xpt,ypt
       REAL(rp), DIMENSION(:), ALLOCATABLE :: rpt,spt
-      REAL(rp), DIMENSION(:), ALLOCATABLE :: sol_lin,sol_el  
+      REAL(rp), DIMENSION(:), ALLOCATABLE :: sol_lin,sol_el,sol_lo  
       REAL(rp), DIMENSION(:,:,:), ALLOCATABLE :: phia
       REAL(rp), DIMENSION(:,:,:), ALLOCATABLE :: psi,dpsidr,dpsids      
       REAL(rp) :: xpta,ypta
@@ -950,6 +957,10 @@
       REAL(rp), DIMENSION(:), ALLOCATABLE :: hb_val,zeta_val,Qx_val,Qy_val     
       REAL(rp), DIMENSION(:), ALLOCATABLE :: hb_sol,zeta_sol,Qx_sol,Qy_sol 
       REAL(rp), DIMENSION(:), ALLOCATABLE :: sol_vec
+      
+      INTEGER :: elcnt,ndcnt
+      REAL(rp) :: el_max
+      INTEGER, DIMENSION(:), ALLOCATABLE :: el_list,nd_list,nd_flag
       
       err = 0d0
       
@@ -971,12 +982,14 @@
       ALLOCATE(rpt(mnqpta),spt(mnqpta))
       ALLOCATE(sol_lin(mnqpta),sol_el(mnqpta))
       ALLOCATE(sol_vec(mnpp))      
+      ALLOCATE(sol_lo(mnpp))
       
       DO pt = 1,nqpt
         qpt(pt,1) = qpts(pt,1)
         qpt(pt,2) = qpts(pt,2)
         wpt(pt) = qpts(pt,3)
       ENDDO
+      
       
       
       ! shape functions for elemental solution average
@@ -1046,18 +1059,30 @@
             CALL element_transformation(nnd,elxy(:,el,1),elxy(:,el,2),psic(:,pt,i),xyplt(pt,el,1),xyplt(pt,el,2))           
           ENDDO                  
      
-          ! Evaluate solution at plotting nodes     
-          CALL evaluate_solution(el,et,fig%type_flag,snap,fig%sol_val(:,el),npplt(i),phi_sol=phi_sol(:,:,i))      
-     
-!           fig%sol_val(:,el) = -1d99
-!           DO k = snap_start,snap_end
-!             CALL evaluate_solution(el,et,fig%type_flag,k,sol_vec(:),npplt(i),phi_hb=phi_hb(:,:,i),phi_sol=phi_sol(:,:,i),ndf_hb=ndof_hb(et),ndf_sol=ndof_sol(et))                   
-!             DO j = 1,npplt(i)
-!               IF (sol_vec(j) > fig%sol_val(j,el)) THEN
-!                 fig%sol_val(j,el) = sol_vec(j)
-!               ENDIF
-!             ENDDO
+          ! Evaluate solution at plotting nodes    
+          
+!           CALL evaluate_solution(el,et,fig%type_flag,snap,fig%sol_val(:,el),npplt(i),phi_sol=phi_sol(:,:,i))           
+!           CALL evaluate_solution(el,et,fig%type_flag,snap,sol_lo,npplt(i),phi_sol=phi_sol(:,:,i),plim=1)
+!           
+!           DO pt = 1,npplt(i)
+!             fig%sol_val(pt,el) = abs(fig%sol_val(pt,el)-sol_lo(pt))
 !           ENDDO
+     
+          fig%sol_val(:,el) = -1d99
+          DO k = snap_start,snap_end
+            CALL evaluate_solution(el,et,fig%type_flag,k,sol_vec,npplt(i),phi_sol=phi_sol(:,:,i))           
+            CALL evaluate_solution(el,et,fig%type_flag,k,sol_lo,npplt(i),phi_sol=phi_sol(:,:,i),plim=1)
+          
+            DO pt = 1,npplt(i)
+              sol_vec(pt) = abs(sol_vec(pt)-sol_lo(pt))
+            ENDDO    
+            
+            DO j = 1,npplt(i)
+              IF (sol_vec(j) > fig%sol_val(j,el)) THEN
+                fig%sol_val(j,el) = sol_vec(j)
+              ENDIF
+            ENDDO
+          ENDDO
 
           IF (adapt_option == 0) THEN
             EXIT order
@@ -1190,6 +1215,58 @@
       IF (adapt_option == 1) THEN
         WRITE(998,"(A25,I25,E24.17,1x,I25,I25,I25)") fig%name, snap, sqrt(error_total), nptri_total, pplt_max, ne_total
       ENDIF
+      
+      
+      ALLOCATE(el_list(ne),nd_list(ne),nd_flag(ne))
+      nd_flag = 0
+      elcnt = 0
+      ndcnt = 0
+      DO el = 1,ne
+      
+        IF (el_in(el) == 0) THEN
+          CYCLE
+        ENDIF      
+      
+        i = fig%el_plt(el)
+        et = el_type(el)
+        nv = nverts(et)
+        
+        el_max = -1d99
+        DO pt = 1,npplt(i)
+          IF (fig%sol_val(pt,el) > el_max) THEN
+            el_max = fig%sol_val(pt,el)
+          ENDIF          
+        ENDDO
+        
+        IF (el_max < 0.0004) THEN
+          elcnt = elcnt + 1
+          el_list(elcnt) = el
+          DO j = 1,nv
+            nd = ect(j,el)
+            IF (nd_flag(nd) == 0)THEN
+              ndcnt = ndcnt + 1
+              nd_list(ndcnt) = nd
+              nd_flag(nd) = 1
+            ENDIF
+          ENDDO
+        ENDIF      
+        
+        
+      ENDDO
+      
+      OPEN(unit=123,file="element.fill")
+      WRITE(123,*) elcnt
+      DO i = 1,elcnt
+        WRITE(123,*) el_list(i)
+      ENDDO
+      CLOSE(123)
+      
+      OPEN(unit=123,file="node.list")
+      WRITE(123,*) ndcnt
+      DO i = 1,ndcnt
+        WRITE(123,*) nd_list(i)
+      ENDDO
+      CLOSE(123)      
               
 
       END SUBROUTINE plot_filled_contours_adapt
@@ -2075,19 +2152,19 @@ edge:DO ed = 1,nbed
       
       ALLOCATE(fill_list(ne))
       
-!       fill_list = 0
-!       INQUIRE(file='element.fill',exist=file_exists)
-!       IF (file_exists) THEN
-!         OPEN(unit=101,file='element.fill')
-!         READ(101,*) n
-!         DO i = 1,n
-!           READ(101,*) el
-!           fill_list(el) = 1
-!         ENDDO
-!         CLOSE(101)
-!       ENDIF
+      fill_list = 0
+      INQUIRE(file='element.fill',exist=file_exists)
+      IF (file_exists) THEN
+        OPEN(unit=101,file='element.fill')
+        READ(101,*) n
+        DO i = 1,n
+          READ(101,*) el
+          fill_list(el) = 1
+        ENDDO
+        CLOSE(101)
+      ENDIF
 
-      fill_list = 1
+!       fill_list = 1
       
  elem:DO el = 1,ne
         
@@ -2100,28 +2177,38 @@ edge:DO ed = 1,nbed
         
         IF (et == 1) THEN
           IF (fill == 1) THEN
-            DO nd = 1,nverts(et)
-              WRITE(file_unit,"(2(F9.5,1x))") ax*xy(1,ect(nd,el))+bx,ay*xy(2,ect(nd,el))+by
-            ENDDO                
+            WRITE(file_unit,"(3(I5,1x))") 0,0,1          
+          ELSE
+            WRITE(file_unit,"(3(I5,1x))") 1,1,1  
+          ENDIF
+          
+          DO nd = 1,nverts(et)
+            WRITE(file_unit,"(2(F9.5,1x))") ax*xy(1,ect(nd,el))+bx,ay*xy(2,ect(nd,el))+by
+          ENDDO                
           WRITE(file_unit,"(A)") "fill-tri-element"            
-          ENDIF
-        ELSE IF (et == 2) THEN
+        ELSE IF (et == 2) THEN        
           IF (fill == 1) THEN
-            DO nd = 1,nverts(et)
-              WRITE(file_unit,"(2(F9.5,1x))") ax*xy(1,ect(nd,el))+bx,ay*xy(2,ect(nd,el))+by
-            ENDDO                
-          WRITE(file_unit,"(A)") "fill-quad-element"            
-          ENDIF
-       ELSE
-          IF (fill == 1) THEN       
-            WRITE(file_unit,"(A)") "newpath"
-            WRITE(file_unit,"(2(F9.5,1x),A)") ax*xyplt(1,el,1)+bx,ay*xyplt(1,el,2)+by,"moveto" 
-            DO nd = 2,nverts(et)*pplt(el_plt(el))
-              WRITE(file_unit,"(2(F9.5,1x),A)") ax*xyplt(nd,el,1)+bx,ay*xyplt(nd,el,2)+by, "lineto"
-            ENDDO
-!             WRITE(file_unit,"(A)") "gsave 0 0 1 setrgbcolor fill grestore"
-            WRITE(file_unit,"(A)") "gsave 1 1 1 setrgbcolor fill grestore"
+            WRITE(file_unit,"(3(I5,1x))") 0,0,1          
+          ELSE
+            WRITE(file_unit,"(3(I5,1x))") 1,1,1  
           ENDIF        
+
+          DO nd = 1,nverts(et)
+            WRITE(file_unit,"(2(F9.5,1x))") ax*xy(1,ect(nd,el))+bx,ay*xy(2,ect(nd,el))+by
+          ENDDO                
+          WRITE(file_unit,"(A)") "fill-quad-element"            
+       ELSE   
+          WRITE(file_unit,"(A)") "newpath"
+          WRITE(file_unit,"(2(F9.5,1x),A)") ax*xyplt(1,el,1)+bx,ay*xyplt(1,el,2)+by,"moveto" 
+          DO nd = 2,nverts(et)*pplt(el_plt(el))
+            WRITE(file_unit,"(2(F9.5,1x),A)") ax*xyplt(nd,el,1)+bx,ay*xyplt(nd,el,2)+by, "lineto"
+          ENDDO
+          
+          IF (fill == 1) THEN
+            WRITE(file_unit,"(A)") "gsave 0 0 1 setrgbcolor fill grestore"
+          ELSE
+            WRITE(file_unit,"(A)") "gsave 1 1 1 setrgbcolor fill grestore"      
+          ENDIF
         ENDIF
       ENDDO elem
 
