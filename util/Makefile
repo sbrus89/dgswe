@@ -1,7 +1,7 @@
 SHELL = /bin/sh
 
 FC = ifort
-FFLAGS = -I$(ODIR) #-traceback -g -C
+FFLAGS = -I$(ODIR) -traceback -g -C
 
 ODIR = odir/
 FULLNAME := $(shell hostname)
@@ -75,7 +75,11 @@ write_bou_file_objects = globals.o grid_file_mod.o quit.o spherical_mod.o \
                          allocation.o messenger2.o read_input.o \
                          system.o version.o write_bou_file.o
 
-write_bou_file_obj := $(patsubst %.o, $(ODIR)%.o,$(write_bou_file_objects))                       
+write_bou_file_obj := $(patsubst %.o, $(ODIR)%.o,$(write_bou_file_objects))    
+
+find_const_objects = globals.o grid_file_mod.o quit.o kdtree2.o find_const.o
+
+find_const_obj := $(patsubst %.o, $(ODIR)%.o,$(find_const_objects))   
 
 ########################################################################
 #                          Executable Targets                          #
@@ -121,6 +125,10 @@ remove_bou: $(ODIR) $(remove_bou_obj)
 write_bou: $(ODIR) $(write_bou_file_obj)
 	@echo "\n\n"
 	$(FC) $(FFLAGS) -o write_bou $(write_bou_file_obj)  	
+	
+find_const: $(ODIR) $(find_const_obj)
+	@echo "\n\n"
+	$(FC) $(FFLAGS) -o find_const $(find_const_obj)  		
 	
 ########################################################################
 #                      Premilinary Targets                             #
@@ -232,3 +240,6 @@ $(ODIR)remove_bou.o: remove_bou_type.F90                     $(ODIR)globals.o $(
 	
 $(ODIR)write_bou_file.o: write_bou_file.F90                  $(ODIR)globals.o $(ODIR)grid_file_mod.o $(ODIR)allocation.o
 	$(FC) $(FFLAGS) -c $< -o $@	
+	
+$(ODIR)find_const.o: find_constraints.F90                   $(ODIR)globals.o $(ODIR)grid_file_mod.o 
+	$(FC) $(FFLAGS) -c $< -o $@

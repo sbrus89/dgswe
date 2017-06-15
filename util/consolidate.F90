@@ -21,13 +21,15 @@
       INTEGER :: nodes_kept
       INTEGER :: nbnds
       INTEGER :: bou_type
+      INTEGER :: ndcnt
       INTEGER, ALLOCATABLE, DIMENSION(:) :: nadjnds
       INTEGER, ALLOCATABLE, DIMENSION(:,:) :: adjnds   
       INTEGER, ALLOCATABLE, DIMENSION(:) :: keep_node
       INTEGER, ALLOCATABLE, DIMENSION(:) :: nd_fine2coarse
       INTEGER, ALLOCATABLE, DIMENSION(:) :: nd_coarse2fine      
       INTEGER, ALLOCATABLE, DIMENSION(:) :: bou_node
-      INTEGER, ALLOCATABLE, DIMENSION(:) :: bou_node_coarse
+      INTEGER, ALLOCATABLE, DIMENSION(:) :: bou_node_coarse 
+      INTEGER, ALLOCATABLE, DIMENSION(:) :: node_flag      
       INTEGER :: ntri
       INTEGER, ALLOCATABLE, DIMENSION(:,:) :: tri            
       INTEGER :: nn_coarse,ne_coarse      
@@ -81,8 +83,8 @@
 !       fine_file_in = "./galveston_SL18_cart.grd"
 !       coarse_file_out = "./coarse.grd"
       
-      fine_file_in = "./coarse.grd"
-      coarse_file_out = "./coarse_x2.grd"      
+      fine_file_in = "./coarse_x2_const.grd"
+      coarse_file_out = "./coarse_x2_reduced.grd"      
 
          
       nverts(1) = 3
@@ -107,15 +109,31 @@
       
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       ! Eliminate node from input (fine) mesh
-      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!           
+      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!      
+      
+
       
       ALLOCATE(keep_node(nn))
       ALLOCATE(bou_node(nn))
       ALLOCATE(fbseg_orient(nbou))
       ALLOCATE(cbnd_flag(nn))
+      ALLOCATE(node_flag(nn))
       keep_node = -1
       nodes_kept = 0    
-      bou_node = 0       
+      bou_node = 0    
+      node_flag = 0
+      
+      OPEN(unit=123,file="node.list")
+      READ(123,*) ndcnt
+      DO i = 1,ndcnt
+        READ(123,*) nd
+        node_flag(nd) = 1
+      ENDDO
+      CLOSE(123)  
+      
+
+      
+      
       
       ! Find feature constraint nodes
      
@@ -197,7 +215,7 @@
         
         IF (bou_type == cbou_type) THEN          ! skip feature constraint nodestrings
           CYCLE fbnd
-        ENDIF
+        ENDIF                
         
         nbou_coarse = nbou_coarse + 1
         
@@ -333,6 +351,14 @@
       
       
       
+      DO i = 1,nn
+        IF (node_flag(i) == 0 .and. keep_node(i) == 0) THEN                
+          keep_node(i) = 1
+          nodes_kept = nodes_kept + 1
+        ENDIF
+      ENDDO
+      nvel_coarse = nvel
+            
       
       
       i = 0
@@ -433,9 +459,9 @@
       
       ALLOCATE(tri(3,3*nn_coarse))
       ALLOCATE(ect_coarse(3,3*nn_coarse))
-      CALL delaunay_triangulation(nn_coarse,xy_coarse(1,:),xy_coarse(2,:),ncbou,cbseg_coarse,cbnds_coarse, &
-                                                                          nbou_coarse,fbseg_coarse,fbnds_coarse, &
-                                                                          ne_coarse,ect_coarse) 
+      CALL delaunay_triangulation(nn_coarse,xy_coarse(1,:),xy_coarse(2,:),nbou_coarse,fbseg_coarse,fbnds_coarse, &
+                                                                          ne_coarse,ect_coarse, &
+                                                                          ncbou,cbseg_coarse,cbnds_coarse) 
 
       ALLOCATE(et_coarse(3*nn_coarse))
       DO el = 1,3*nn_coarse
