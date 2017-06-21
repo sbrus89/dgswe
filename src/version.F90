@@ -23,11 +23,11 @@
       INTEGER :: length,ind,sind,eind        
 
       gitBranch = "master" 
-      gitSHA = "3e4fc47e7c95982d51e7002611a11f7165bcca6e +" 
+      gitSHA = "494b123d3d70f9dbf031952fe71fb9301fd7ab43 +" 
       compiler_version = "ifort version 14.0.0" 
-      compiler_flags = "-O3 -xHost -Iodir_dgswe/" 
+      compiler_flags = "-O3 -xHost -Iodir_dgprep/" 
       modified_files = "" 
-      compile_date = "Tue May  9 15:07:59 EDT 2017" 
+      compile_date = "Fri Jun 16 17:23:09 EDT 2017" 
       host = "chl-tilos" 
 
       

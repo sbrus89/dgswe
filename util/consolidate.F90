@@ -83,8 +83,8 @@
 !       fine_file_in = "./galveston_SL18_cart.grd"
 !       coarse_file_out = "./coarse.grd"
       
-      fine_file_in = "./coarse_x2_const.grd"
-      coarse_file_out = "./coarse_x2_reduced.grd"      
+      fine_file_in = "./coarse_x2_reduced_constrained.grd"
+      coarse_file_out = "./coarse_x2_reduced_x2.grd"      
 
          
       nverts(1) = 3
