@@ -13,7 +13,7 @@
 
       SUBROUTINE evaluate_solution(el,et,sol_type,snap,sol_val,npts,r,s,phi_sol,plim)
 
-      USE plot_globals, ONLY: hb,Z,Qx,Qy
+      USE plot_globals, ONLY: hb,Z,Qx,Qy,el_size,g
       USE read_dginp, ONLY: p,hbp,h0
       USE basis, ONLY: element_basis,linear_basis,dgswem_basis        
       
@@ -92,7 +92,7 @@
       
       
       
-      IF (sol_type == 2 .or. sol_type == 4) THEN                
+      IF (sol_type == 2 .or. sol_type == 4 .or. sol_type == 5) THEN                
         
         DO pt = 1,npts
           hb_val(pt) = 0d0
@@ -151,7 +151,14 @@
         ENDDO
       ENDIF                
 
-  
+      IF (sol_type == 5) THEN
+
+        DO pt = 1,npts 
+          sol_val(pt) = el_size(el)/sqrt(g*hb_val(pt))                    
+          sol_val(pt) = sol_val(pt)/(2d0*real(p,rp)+1d0)
+        ENDDO        
+
+      ENDIF
       
           
       

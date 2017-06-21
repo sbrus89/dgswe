@@ -76,7 +76,8 @@
       CALL read_connectivity(ne,ect,el_type) 
       CALL init_element_coordinates(ne,ctp,el_type,nverts,xy,ect,elxy)                  
       CALL read_open_boundaries(nope,neta,obseg,obnds)            
-      CALL read_flow_boundaries(nbou,nvel,fbseg,fbnds)                       
+      CALL read_flow_boundaries(nbou,nvel,fbseg,fbnds)     
+      CALL grid_size(ne,el_type,ect,xy,el_size)
       CALL read_curve_file(0,curve_file,ctp,nbou,xy,bndxy,cb_file_exists)      
       CALL print_grid_info(grid_file,grid_name,ne,nn)    
       
@@ -269,8 +270,8 @@
           CALL read_solution_full(out_direc,"hb.sol","N",t,hb,nsnap_hb)  
         ELSE
           CALL read_bathy_file(0,bathy_file,hbp,ne,el_type,nverts,depth,ect,elhb,hb_file_exists)
-          ALLOCATE(hb(ndof_hb(4),ne,1))
-          CALL bathymetry_nodal2modal(hbp,ndof_hb(4),ne,el_type,elhb,hbm)
+          ALLOCATE(hb(mndof,ne,1))
+          CALL bathymetry_nodal2modal(hbp,mndof,ne,el_type,elhb,hbm)
           hb(:,:,1) = hbm(:,:)
         ENDIF
       ENDIF   
@@ -294,7 +295,10 @@
       ENDIF      
       
       CALL setup_cbounds(ne,el_in,el_type,npplt,bathy,1,1)      
-      CALL make_plot(1,t_snap,bathy)                         
+      CALL make_plot(1,t_snap,bathy)    
+      
+      CALL setup_cbounds(ne,el_in,el_type,npplt,cfl,1,1)      
+      CALL make_plot(1,t_snap,cfl)          
       
       
       IF (zeta%plot_sol_option == 0 .and. vel%plot_sol_option == 0) THEN
@@ -337,7 +341,7 @@
 
         CALL make_plot(snap,t_snap,vel)
         
-        STOP
+!         STOP
         
       ENDDO
       

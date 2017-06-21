@@ -1061,28 +1061,28 @@
      
           ! Evaluate solution at plotting nodes    
           
-!           CALL evaluate_solution(el,et,fig%type_flag,snap,fig%sol_val(:,el),npplt(i),phi_sol=phi_sol(:,:,i))           
+          CALL evaluate_solution(el,et,fig%type_flag,snap,fig%sol_val(:,el),npplt(i),phi_sol=phi_sol(:,:,i))           
 !           CALL evaluate_solution(el,et,fig%type_flag,snap,sol_lo,npplt(i),phi_sol=phi_sol(:,:,i),plim=1)
 !           
 !           DO pt = 1,npplt(i)
 !             fig%sol_val(pt,el) = abs(fig%sol_val(pt,el)-sol_lo(pt))
 !           ENDDO
      
-          fig%sol_val(:,el) = -1d99
-          DO k = snap_start,snap_end
-            CALL evaluate_solution(el,et,fig%type_flag,k,sol_vec,npplt(i),phi_sol=phi_sol(:,:,i))           
-            CALL evaluate_solution(el,et,fig%type_flag,k,sol_lo,npplt(i),phi_sol=phi_sol(:,:,i),plim=1)
-          
-            DO pt = 1,npplt(i)
-              sol_vec(pt) = abs(sol_vec(pt)-sol_lo(pt))
-            ENDDO    
-            
-            DO j = 1,npplt(i)
-              IF (sol_vec(j) > fig%sol_val(j,el)) THEN
-                fig%sol_val(j,el) = sol_vec(j)
-              ENDIF
-            ENDDO
-          ENDDO
+!           fig%sol_val(:,el) = -1d99
+!           DO k = snap_start,snap_end
+!             CALL evaluate_solution(el,et,fig%type_flag,k,sol_vec,npplt(i),phi_sol=phi_sol(:,:,i))           
+!             CALL evaluate_solution(el,et,fig%type_flag,k,sol_lo,npplt(i),phi_sol=phi_sol(:,:,i),plim=1)
+!           
+!             DO pt = 1,npplt(i)
+!               sol_vec(pt) = abs(sol_vec(pt)-sol_lo(pt))
+!             ENDDO    
+!             
+!             DO j = 1,npplt(i)
+!               IF (sol_vec(j) > fig%sol_val(j,el)) THEN
+!                 fig%sol_val(j,el) = sol_vec(j)
+!               ENDIF
+!             ENDDO
+!           ENDDO
 
           IF (adapt_option == 0) THEN
             EXIT order
@@ -1217,56 +1217,56 @@
       ENDIF
       
       
-      ALLOCATE(el_list(ne),nd_list(ne),nd_flag(ne))
-      nd_flag = 0
-      elcnt = 0
-      ndcnt = 0
-      DO el = 1,ne
-      
-        IF (el_in(el) == 0) THEN
-          CYCLE
-        ENDIF      
-      
-        i = fig%el_plt(el)
-        et = el_type(el)
-        nv = nverts(et)
-        
-        el_max = -1d99
-        DO pt = 1,npplt(i)
-          IF (fig%sol_val(pt,el) > el_max) THEN
-            el_max = fig%sol_val(pt,el)
-          ENDIF          
-        ENDDO
-        
-        IF (el_max < 0.0004) THEN
-          elcnt = elcnt + 1
-          el_list(elcnt) = el
-          DO j = 1,nv
-            nd = ect(j,el)
-            IF (nd_flag(nd) == 0)THEN
-              ndcnt = ndcnt + 1
-              nd_list(ndcnt) = nd
-              nd_flag(nd) = 1
-            ENDIF
-          ENDDO
-        ENDIF      
-        
-        
-      ENDDO
-      
-      OPEN(unit=123,file="element.fill")
-      WRITE(123,*) elcnt
-      DO i = 1,elcnt
-        WRITE(123,*) el_list(i)
-      ENDDO
-      CLOSE(123)
-      
-      OPEN(unit=123,file="node.list")
-      WRITE(123,*) ndcnt
-      DO i = 1,ndcnt
-        WRITE(123,*) nd_list(i)
-      ENDDO
-      CLOSE(123)      
+!       ALLOCATE(el_list(ne),nd_list(ne),nd_flag(ne))
+!       nd_flag = 0
+!       elcnt = 0
+!       ndcnt = 0
+!       DO el = 1,ne
+!       
+!         IF (el_in(el) == 0) THEN
+!           CYCLE
+!         ENDIF      
+!       
+!         i = fig%el_plt(el)
+!         et = el_type(el)
+!         nv = nverts(et)
+!         
+!         el_max = -1d99
+!         DO pt = 1,npplt(i)
+!           IF (fig%sol_val(pt,el) > el_max) THEN
+!             el_max = fig%sol_val(pt,el)
+!           ENDIF          
+!         ENDDO
+!         
+!         IF (el_max < 0.0004) THEN
+!           elcnt = elcnt + 1
+!           el_list(elcnt) = el
+!           DO j = 1,nv
+!             nd = ect(j,el)
+!             IF (nd_flag(nd) == 0)THEN
+!               ndcnt = ndcnt + 1
+!               nd_list(ndcnt) = nd
+!               nd_flag(nd) = 1
+!             ENDIF
+!           ENDDO
+!         ENDIF      
+!         
+!         
+!       ENDDO
+!       
+!       OPEN(unit=123,file="element.fill")
+!       WRITE(123,*) elcnt
+!       DO i = 1,elcnt
+!         WRITE(123,*) el_list(i)
+!       ENDDO
+!       CLOSE(123)
+!       
+!       OPEN(unit=123,file="node.list")
+!       WRITE(123,*) ndcnt
+!       DO i = 1,ndcnt
+!         WRITE(123,*) nd_list(i)
+!       ENDDO
+!       CLOSE(123)      
               
 
       END SUBROUTINE plot_filled_contours_adapt

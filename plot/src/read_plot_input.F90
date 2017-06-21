@@ -5,7 +5,7 @@
                               xbox_min,xbox_max,ybox_min,ybox_max, &
                               figure_width,figure_height, &
                               snap_start,snap_end, &
-                              zeta,bathy,vel,mesh, &
+                              zeta,bathy,vel,mesh,cfl, &
                               fontsize,font,nxtick,nytick,nctick, &
                               nxdec,nydec,ncdec,ntdec, &
                               substitute_path,replace_path,sub_path, &
@@ -85,7 +85,9 @@
               PRINT("(A,I3)"), "bathymetry plot option = ", bathy%plot_sol_option 
               PRINT("(A,I3)"), "plot bathymetry mesh = ", bathy%plot_mesh_option
               PRINT("(A,I3)"), "plot bathymetry contour lines = ", bathy%plot_lines_option              
-              
+              cfl%plot_sol_option = bathy%plot_sol_option
+              cfl%plot_mesh_option = cfl%plot_mesh_option
+              cfl%plot_lines_option = cfl%plot_lines_option
             CASE (6)
               READ(temp,*) mesh%plot_mesh_option
               mesh%plot_sol_option = mesh%plot_mesh_option
@@ -209,7 +211,7 @@
               
               ELSE
                 READ(temp,*) bathy%cscale_min,bathy%cscale_max
-                bathy%cscale_option = "spec"
+                bathy%cscale_option = "spec"                
               ENDIF
               PRINT("(A,2(1x,F15.7))"), "bathymetry color scale = ", bathy%cscale_min,bathy%cscale_max                
               
@@ -267,6 +269,7 @@
               bathy%rm_ps = rm_ps
               zeta%rm_ps = rm_ps
               vel%rm_ps = rm_ps
+              cfl%rm_ps = rm_ps
             CASE (33)
               READ(temp,*) density
               PRINT("(A,A)"), "density of raster format = ", density 

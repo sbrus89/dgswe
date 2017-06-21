@@ -101,12 +101,14 @@
       INTEGER, ALLOCATABLE, DIMENSION(:,:,:) :: rect        
       REAL(rp), DIMENSION(:,:,:), ALLOCATABLE :: xyplt  
       REAL(rp), DIMENSION(:), ALLOCATABLE :: el_area
+      REAL(rp), DIMENSION(:), ALLOCATABLE :: el_size
       INTEGER :: outside
       INTEGER, DIMENSION(:), ALLOCATABLE :: el_in
       REAL(rp) :: xbox_min,xbox_max,ybox_min,ybox_max
       REAL(rp) :: figure_width
       REAL(rp) :: figure_height
       REAL(rp) :: line_width      
+      REAL(rp), PARAMETER :: g = 9.81d0
       
 !       TYPE :: viz
 !         INTEGER, DIMENSION(:), ALLOCATABLE :: p
@@ -216,6 +218,7 @@
       TYPE(plot_type) :: vel
       TYPE(plot_type) :: bathy
       TYPE(plot_type) :: mesh  
+      TYPE(plot_type) :: cfl
       
 !       TYPE(plot_type), DIMENSION(:), ALLOCATABLE :: zeta_sta
 !       TYPE(plot_type), DIMENSION(:), ALLOCATABLE :: vel_sta
@@ -301,6 +304,7 @@
       bathy%type_flag = 2    
       zeta%type_flag = 3     
       vel%type_flag = 4
+      cfl%type_flag = 5
       
       mesh%axis_label_flag = 1
       mesh%cbar_flag = 0
@@ -314,18 +318,23 @@
       vel%axis_label_flag = 1
       vel%cbar_flag = 1
       vel%tbar_flag = 1
+      cfl%axis_label_flag = 1
+      cfl%cbar_flag = 1
+      cfl%tbar_flag = 0
       
       IF (nxdec < 0 .or. nydec < 0) THEN
         mesh%axis_label_flag = 0
         bathy%axis_label_flag = 0
         zeta%axis_label_flag = 0
-        vel%axis_label_flag = 0        
+        vel%axis_label_flag = 0   
+        cfl%axis_label_flag = 0
       ENDIF
       
       IF (ncdec < 0) THEN
         bathy%cbar_flag = 0
         zeta%cbar_flag = 0
         vel%cbar_flag = 0
+        cfl%cbar_flag = 0
       ENDIF
       
       IF (ntdec < 0) THEN
@@ -352,6 +361,8 @@
       zeta%nd_label_option = "off"
       vel%el_label_option = "off"
       vel%nd_label_option = "off"
+      cfl%el_label_option = "off"
+      cfl%nd_label_option = "off"
       
       mesh%sol_label = "mesh"
       mesh%name = "mesh"
@@ -360,22 +371,32 @@
       vel%sol_label = "velocity (m/s)"
       vel%name = "vel"      
       bathy%sol_label = "bathymetry (m)"
-      bathy%name = "bathy"           
+      bathy%name = "bathy"       
+      cfl%sol_label = "Courant number"
+      cfl%name = "cfl"      
       
       mesh%t_snap => t_snap
       bathy%t_snap => t_snap
       zeta%t_snap => t_snap
-      vel%t_snap => t_snap            
+      vel%t_snap => t_snap 
+      cfl%t_snap => t_snap
       
       zeta%cscale_unit = 30
       bathy%cscale_unit = 31
       vel%cscale_unit = 32
       
       bathy%h0 = h0
+      cfl%h0 = h0
       
       bathy%p = hbp
       zeta%p = p
       vel%p = p
+      cfl%p = hbp
+      
+!       cfl%cscale_option = "auto-snap"
+      cfl%cscale_option = "spec"      
+      cfl%cscale_min = 0.4d0
+      cfl%cscale_max = 7d0
       
       END SUBROUTINE setup_plot_types
 
