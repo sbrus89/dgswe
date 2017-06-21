@@ -885,6 +885,7 @@ elsrch: DO k = 1,nepn(n1)
       
       INTEGER :: el,nd
       INTEGER :: et,nv,nnd
+      INTEGER :: el_min
       REAL(rp) :: hb
       REAL(rp) :: c
       REAL(rp) :: dt,dtmin
@@ -916,11 +917,13 @@ elsrch: DO k = 1,nepn(n1)
         
         IF (dt < dtmin) THEN
           dtmin = dt
+          el_min = el
         ENDIF
           
       ENDDO
       
       PRINT ("(A,F6.3,A,F6.3,A,F18.3,A)"), "Rough max timestep based on CFL = ",cfl, " and u = ", u, ": ", dtmin, " sec"
+      PRINT*, "Element corresponding to minimum timestep: ", el_min
       PRINT*,""
       
       RETURN
