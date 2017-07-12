@@ -26,11 +26,15 @@ convert_objects =  globals.o  quit.o \
           
 convert_obj := $(patsubst %.o, $(ODIR)%.o,$(convert_objects))
 
+########################################################################
+
 adjust_objects =  globals.o  quit.o \
            grid_file_mod.o \
            adjust.o 
           
 adjust_obj := $(patsubst %.o, $(ODIR)%.o,$(adjust_objects))
+
+########################################################################
 
 convert_bou_objects =  globals.o  quit.o \
            grid_file_mod.o \
@@ -38,22 +42,30 @@ convert_bou_objects =  globals.o  quit.o \
           
 convert_bou_obj := $(patsubst %.o, $(ODIR)%.o,$(convert_bou_objects))
 
+########################################################################
+
 refine_objects = globals.o quit.o \
                  grid_file_mod.o edge_connectivity_mod.o \
                  version.o system.o refine.o
                  
-refine_obj := $(patsubst %.o, $(ODIR)%.o,$(refine_objects))   
+refine_obj := $(patsubst %.o, $(ODIR)%.o,$(refine_objects))  
+
+########################################################################
 
 copy_objects = globals.o quit.o kdtree2.o\
                grid_file_mod.o copy_nodes.o
                
 copy_obj := $(patsubst %.o, $(ODIR)%.o,$(copy_objects))  
 
+########################################################################
+
 bou2sta_objects =  globals.o  quit.o \
            grid_file_mod.o \
            convert_bou2sta.o 
                    
 bou2sta_obj := $(patsubst %.o, $(ODIR)%.o,$(bou2sta_objects))
+
+########################################################################
 
 consolidate_objects =  globals.o  quit.o \
            grid_file_mod.o edge_connectivity_mod.o \
@@ -62,24 +74,38 @@ consolidate_objects =  globals.o  quit.o \
                    
 consolidate_obj := $(patsubst %.o, $(ODIR)%.o,$(consolidate_objects))
 
+########################################################################
+
 cfl_objects =  cfl_checker.o globals.o  quit.o  grid_file_mod.o \
                read_input.o  spherical_mod.o  system.o allocation.o messenger2.o version.o
                    
 cfl_obj := $(patsubst %.o, $(ODIR)%.o,$(cfl_objects))
 
+########################################################################
+
 remove_bou_objects = globals.o grid_file_mod.o quit.o spherical_mod.o remove_bou.o
 
 remove_bou_obj := $(patsubst %.o, $(ODIR)%.o,$(remove_bou_objects))
+
+########################################################################
 
 write_bou_file_objects = globals.o grid_file_mod.o quit.o spherical_mod.o \
                          allocation.o messenger2.o read_input.o \
                          system.o version.o write_bou_file.o
 
-write_bou_file_obj := $(patsubst %.o, $(ODIR)%.o,$(write_bou_file_objects))    
+write_bou_file_obj := $(patsubst %.o, $(ODIR)%.o,$(write_bou_file_objects))   
+
+########################################################################
 
 find_const_objects = globals.o grid_file_mod.o quit.o kdtree2.o find_const.o
 
 find_const_obj := $(patsubst %.o, $(ODIR)%.o,$(find_const_objects))   
+
+########################################################################
+
+create_fort13_objects = globals.o nodal_attributes_mod.o create_fort13.o
+
+create_fort13_obj := $(patsubst %.o, $(ODIR)%.o,$(create_fort13_objects))   
 
 ########################################################################
 #                          Executable Targets                          #
@@ -130,6 +156,10 @@ find_const: $(ODIR) $(find_const_obj)
 	@echo "\n\n"
 	$(FC) $(FFLAGS) -o find_const $(find_const_obj)  		
 	
+create_fort13: $(ODIR) $(create_fort13_obj)
+	@echo "\n\n"
+	$(FC) $(FFLAGS) -o create_fort13 $(create_fort13_obj)  	
+	
 ########################################################################
 #                      Premilinary Targets                             #
 ########################################################################        
@@ -153,7 +183,7 @@ version :
 .PHONY : clean
 
 clean : 
-	rm -r convert adjust odir refine copy consolidate cfl_checker remove_bou write_bou    
+	rm -r convert adjust odir refine copy consolidate cfl_checker remove_bou write_bou find_const create_fort13
         
 ########################################################################
 #                            File Targets                              #
@@ -187,6 +217,10 @@ $(ODIR)kdtree2.o: ../src/kdtree2.F90
 $(ODIR)grid_file_mod.o : ../src/grid_file_mod.F90            $(ODIR)globals.o $(ODIR)quit.o $(ODIR)spherical_mod.o
 	$(FC) $(FFLAGS) -c $< -o $@
 	mv grid_file_mod.mod $(ODIR)        
+        
+$(ODIR)nodal_attributes_mod.o : ../src/nodal_attributes.F90  $(ODIR)globals.o 
+	$(FC) $(FFLAGS) -c $< -o $@
+	mv nodal_attributes_mod.mod $(ODIR)	        
         
 $(ODIR)quit.o : ../src/quit.F90                              $(ODIR)globals.o
 	$(FC) $(FFLAGS) -c $< -o $@
@@ -243,3 +277,6 @@ $(ODIR)write_bou_file.o: write_bou_file.F90                  $(ODIR)globals.o $(
 	
 $(ODIR)find_const.o: find_constraints.F90                   $(ODIR)globals.o $(ODIR)grid_file_mod.o 
 	$(FC) $(FFLAGS) -c $< -o $@
+	
+$(ODIR)create_fort13.o: create_fort13.F90                   $(ODIR)nodal_attributes_mod.o 
+	$(FC) $(FFLAGS) -c $< -o $@	
