@@ -1,7 +1,7 @@
 SHELL = /bin/sh
 
 FC = ifort
-FFLAGS = -I$(ODIR) -traceback -g -C
+FFLAGS = -I$(ODIR) #-traceback -g -C
 
 ODIR = odir/
 FULLNAME := $(shell hostname)
@@ -103,7 +103,7 @@ find_const_obj := $(patsubst %.o, $(ODIR)%.o,$(find_const_objects))
 
 ########################################################################
 
-create_fort13_objects = globals.o nodal_attributes_mod.o create_fort13.o
+create_fort13_objects = globals.o nodal_attributes_mod.o grid_file_mod.o quit.o kdtree2.o create_fort13.o
 
 create_fort13_obj := $(patsubst %.o, $(ODIR)%.o,$(create_fort13_objects))   
 
@@ -278,5 +278,5 @@ $(ODIR)write_bou_file.o: write_bou_file.F90                  $(ODIR)globals.o $(
 $(ODIR)find_const.o: find_constraints.F90                   $(ODIR)globals.o $(ODIR)grid_file_mod.o 
 	$(FC) $(FFLAGS) -c $< -o $@
 	
-$(ODIR)create_fort13.o: create_fort13.F90                   $(ODIR)nodal_attributes_mod.o 
+$(ODIR)create_fort13.o: create_fort13.F90                   $(ODIR)nodal_attributes_mod.o $(ODIR)grid_file_mod.o $(ODIR)kdtree2.o
 	$(FC) $(FFLAGS) -c $< -o $@	
