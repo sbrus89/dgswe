@@ -28,19 +28,20 @@
       INTEGER :: n,nattr
       INTEGER :: nd
       INTEGER :: clnd      
-      INTEGER :: nattr_list,attr_list(6)
+      INTEGER :: nattr_list,attr_list(7)
       INTEGER, DIMENSION(:), ALLOCATABLE :: neighbor_table
       
-      old13%file_name = "/home/sbrus/data-drive/DWH_Oysters/grid/SL18TX33/sl18_tx_v2b.13.advectionstate.GULF"
-      old14%grid_file = "/home/sbrus/data-drive/DWH_Oysters/grid/SL18TX33/sl18_tx_v2c_071311.grd"
+      old13%file_name = "/home/sbrus/data-drive/DWH_Oysters/inputs/fort.13/SL18TX33/sl18_tx_v2b.13.advectionstate.GULF"
+      old14%grid_file = "/home/sbrus/data-drive/DWH_Oysters/inputs/fort.14/SL18TX33/sl18_tx_v2c_071311.grd"
       
-      prvi13%file_name = "/home/sbrus/data-drive/DWH_Oysters/grid/PRVI/PRVI-2017.13.V2"
-      prvi14%grid_file = "/home/sbrus/data-drive/DWH_Oysters/grid/PRVI/PRVI-2017.14"
+      prvi13%file_name = "/home/sbrus/data-drive/DWH_Oysters/inputs/fort.13/PRVI/PRVI-2017.13.V2"
+      prvi14%grid_file = "/home/sbrus/data-drive/DWH_Oysters/inputs/fort.14/PRVI/PRVI-2017.14"
       
-      manning14%grid_file = "/home/sbrus/data-drive/DWH_Oysters/grid/SL18TX33+PRVI/SL18_GoM_PRVI_manning.grd"
-      submerge14%grid_file = "/home/sbrus/data-drive/DWH_Oysters/grid/SL18TX33+PRVI/SL18_GoM_PRVI_submergence.grd"
+      manning14%grid_file = "/home/sbrus/data-drive/DWH_Oysters/inputs/fort.13/SL18TX33+PRVI/SL18_GoM_PRVI_manning.grd"
+      submerge14%grid_file = "/home/sbrus/data-drive/DWH_Oysters/inputs/fort.13/SL18TX33+PRVI/SL18_GoM_PRVI_submergence.grd"
       
-      new14%grid_file = "/home/sbrus/data-drive/DWH_Oysters/grid/SL18TX33+PRVI/SL18_GoM_PRVI_check.grd"
+      new14%grid_file = "/home/sbrus/data-drive/DWH_Oysters/inputs/fort.14/SL18TX33+PRVI/SL18_GoM_PRVI_check.grd"
+      new13%file_name = "/home/sbrus/data-drive/DWH_Oysters/inputs/fort.13/SL18TX33+PRVI/fort.13"
       
       ! average_horizontal_eddy_viscosity_in_sea_water_wrt_depth
       ! sea_surface_height_above_geoid
@@ -65,7 +66,7 @@
    
 
       
-      attr_list = (/ 1, 2, 5, 7, 3, 3 /)
+      attr_list = (/ 1, 2, 5, 7, 3, 3, 4 /)
       
       ALLOCATE(new13%defined_val(new14%nn,old13%n))
       ALLOCATE(new13%default_val(old13%n))
@@ -79,7 +80,6 @@
       new13%nn = new14%nn
       new13%n = nattr
       new13%nattr = nattr
-      new13%file_name = "fort.13"
       new13%grid_name = new14%grid_name    
       
       DO k = 1,nattr
@@ -95,6 +95,7 @@
       
       CALL create_neighbor_table(old14%nn,old14%xy,new14%nn,new14%xy,neighbor_table)
       
+      ! Eddy viscosity, Sea surface height above geoid, primative weighting from SL18TX33
       DO k = 1,3
         j = attr_list(k)
         i = old13%attr_index(j)
@@ -102,6 +103,9 @@
                                             new13%nndns(k),new13%ndns(:,k),new13%defined_val(:,k))
       ENDDO
       
+      new13%nndns(2) = 0 ! make sea_surface_height_above_geoid constant
+      
+      ! Manning's n from Andika fort.14
       PRINT*, "Finding non-default manning n values"
       k = 4
       j = attr_list(k)
@@ -111,6 +115,7 @@
       PRINT("(2(A,I9,2x))"), "non-default = ", new13%nndns(k), "default = ",new14%nn - new13%nndns(k)                                       
       PRINT*, "" 
       
+      ! Surface submergence state from Andika fort.14
       PRINT*, "Finding non-default surface submergence state values"
       k = 5
       j = attr_list(k)
@@ -122,6 +127,7 @@
       
       CALL create_neighbor_table(prvi14%nn,prvi14%xy,new14%nn,new14%xy,neighbor_table)
       
+      ! Advection state from PRVI grid
       k = 6
       j = attr_list(k)
       i = prvi13%attr_index(j)
