@@ -5,10 +5,69 @@
    
       
       IMPLICIT NONE
+      
+      TYPE :: grid_type
+      
+        CHARACTER(100) :: grid_name                   ! name of the grid
+        CHARACTER(100) :: grid_file                   ! name of fort.14 file 
+        
+        INTEGER :: ne                                 ! number of elements
+        INTEGER :: nn                                 ! number of nodes                
+      
+        INTEGER, ALLOCATABLE, DIMENSION(:) :: el_type      
+      
+        INTEGER, ALLOCATABLE, DIMENSION(:,:) :: ect   ! element connectivity table
+        REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: xy   ! x,y coordinates of nodes
+        REAL(rp), ALLOCATABLE, DIMENSION(:) :: depth  ! depth at each node
+ 
+        INTEGER :: nope                               ! number of open boundary segents
+        INTEGER, ALLOCATABLE, DIMENSION(:) :: obseg   ! number of nodes in each open boundary segment
+        INTEGER :: neta                               ! total elevation specified boundary nodes
+        INTEGER, ALLOCATABLE, DIMENSION(:,:) :: obnds ! open boundary nodes
+
+        INTEGER :: nbou                               ! number of normal flow boundary segments
+        INTEGER, ALLOCATABLE, DIMENSION(:,:) :: fbseg ! number of nodes and type of each normal flow boundary segment
+        INTEGER :: nvel                               ! total number of normal flow boundary nodes
+        INTEGER, ALLOCATABLE, DIMENSION(:,:) :: fbnds ! normal flow boundary nodes
+      
+        INTEGER :: mnepn
+        INTEGER, ALLOCATABLE, DIMENSION(:) :: nepn    ! number of elements per node
+        INTEGER, ALLOCATABLE, DIMENSION(:,:) :: epn   ! elements per node                      
+
+      END TYPE      
          
 
       CONTAINS
       
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+     SUBROUTINE read_grid(mesh,option)
+     
+     IMPLICIT NONE
+     
+     TYPE(grid_type), INTENT(INOUT) :: mesh
+     INTEGER :: option
+     
+     
+     CALL read_header(0,mesh%grid_file,mesh%grid_name,mesh%ne,mesh%nn)
+     
+     CALL read_coords(mesh%nn,mesh%xy,mesh%depth)             
+     
+     IF (option > 1) THEN
+      CALL read_connectivity(mesh%ne,mesh%ect,mesh%el_type)      
+     ENDIF 
+     
+     IF (option > 2) THEN
+       CALL read_open_boundaries(mesh%nope,mesh%neta,mesh%obseg,mesh%obnds) 
+       CALL read_flow_boundaries(mesh%nbou,mesh%nvel,mesh%fbseg,mesh%fbnds) 
+     ENDIF
+      
+     CALL print_grid_info(mesh%grid_file,mesh%grid_name,mesh%ne,mesh%nn)      
+     
+     RETURN
+     END SUBROUTINE
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
