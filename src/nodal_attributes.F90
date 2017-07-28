@@ -72,7 +72,7 @@
       PRINT*, "Applying nodal attributes"
       CALL apply_default_attributes(fort13%nn,fort13%n,fort13%default_val,fort13%defined_val)
       PRINT*, "Reading defined attributes"      
-      CALL read_defined_attributes(fort13%nattr,fort13%name,fort13%nvals,fort13%nndns,fort13%defined_val)
+      CALL read_defined_attributes(fort13%nattr,fort13%name,fort13%nvals,fort13%nn,fort13%nndns,fort13%ndns,fort13%defined_val)
       
       RETURN
       END SUBROUTINE read_fort13
@@ -141,11 +141,14 @@
       INTEGER, INTENT(IN) :: nn
       INTEGER, INTENT(IN) :: n
       REAL(rp), DIMENSION(:), INTENT(IN) :: default_val
-      REAL(rp), DIMENSION(:,:), ALLOCATABLE, INTENT(OUT) :: defined_val
+      REAL(rp), DIMENSION(:,:), ALLOCATABLE, INTENT(INOUT) :: defined_val
       
       INTEGER :: i,j
       
-      ALLOCATE(defined_val(nn,n))
+      IF (NOT(ALLOCATED(defined_val))) THEN      
+        ALLOCATE(defined_val(nn,n))
+      ENDIF
+      
       DO i = 1,n
         DO j = 1,nn
           defined_val(j,i) = default_val(i)
@@ -158,14 +161,16 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!       
       
-      SUBROUTINE read_defined_attributes(nattr,name,nvals,nndns,defined_val)
+      SUBROUTINE read_defined_attributes(nattr,name,nvals,nn,nndns,ndns,defined_val)
       
       IMPLICIT NONE
       
       INTEGER, INTENT(IN) :: nattr
       TYPE(char_array), DIMENSION(:), INTENT(IN) :: name
       INTEGER, DIMENSION(:), INTENT(IN) :: nvals
+      INTEGER, INTENT(IN) :: nn
       INTEGER, DIMENSION(:), ALLOCATABLE, INTENT(OUT) :: nndns
+      INTEGER, DIMENSION(:,:), ALLOCATABLE, INTENT(OUT) :: ndns      
       REAL(rp), DIMENSION(:,:), ALLOCATABLE, INTENT(INOUT) :: defined_val
       
       INTEGER :: attr
@@ -176,6 +181,7 @@
       
       n = 0
       ALLOCATE(nndns(nattr))
+      ALLOCATE(ndns(nn,nattr))
       DO attr = 1,nattr
       
         READ(13,*) check
@@ -187,6 +193,7 @@
         
         DO i = 1,nndns(attr)
           READ(13,*) nd, (defined_val(nd,n+k), k = 1,nvals(attr))
+          ndns(i,attr) = nd
         ENDDO
         n = n + nvals(attr)
       
@@ -331,12 +338,11 @@
       
       nndns = 0
       DO nd = 1,nn
-        IF (abs(val(nd)-default_val) > 1d-12) THEN
-          
+        defined_val(nd) = val(nd)      
+        
+        IF (abs(val(nd)-default_val) > 1d-12) THEN          
           nndns = nndns + 1
-          defined_val(nndns) = val(nd)
-          ndns(nndns) = nd
-          
+          ndns(nndns) = nd          
         ENDIF
       ENDDO
       
