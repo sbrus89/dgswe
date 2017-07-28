@@ -29,6 +29,11 @@
         INTEGER, ALLOCATABLE, DIMENSION(:,:) :: fbseg ! number of nodes and type of each normal flow boundary segment
         INTEGER :: nvel                               ! total number of normal flow boundary nodes
         INTEGER, ALLOCATABLE, DIMENSION(:,:) :: fbnds ! normal flow boundary nodes
+        
+        INTEGER, ALLOCATABLE, DIMENSION(:,:) :: inbconn    ! back face node pair with front face
+        REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: barinht   ! internal barrier height
+        REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: barincfsb ! sub-critical flow coefficient
+        REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: barincfsp ! super-critical flow coefficient
       
         INTEGER :: mnepn
         INTEGER, ALLOCATABLE, DIMENSION(:) :: nepn    ! number of elements per node
@@ -60,7 +65,8 @@
      
      IF (option > 2) THEN
        CALL read_open_boundaries(mesh%nope,mesh%neta,mesh%obseg,mesh%obnds) 
-       CALL read_flow_boundaries(mesh%nbou,mesh%nvel,mesh%fbseg,mesh%fbnds) 
+       CALL read_flow_boundaries(mesh%nbou,mesh%nvel,mesh%fbseg,mesh%fbnds,  &
+                                 mesh%inbconn,mesh%barinht,mesh%barincfsb,mesh%barincfsp) 
      ENDIF
       
      CALL print_grid_info(mesh%grid_file,mesh%grid_name,mesh%ne,mesh%nn)      
@@ -266,7 +272,7 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 
-      SUBROUTINE read_flow_boundaries(nbou,nvel,fbseg,fbnds)
+      SUBROUTINE read_flow_boundaries(nbou,nvel,fbseg,fbnds,inbconn,barinht,barincfsb,barincfsp)
       
       IMPLICIT NONE
       
@@ -274,6 +280,10 @@
       INTEGER, INTENT(OUT) :: nvel
       INTEGER, DIMENSION(:,:), ALLOCATABLE, INTENT(OUT) :: fbseg
       INTEGER, DIMENSION(:,:), ALLOCATABLE, INTENT(OUT) :: fbnds
+      INTEGER, DIMENSION(:,:), ALLOCATABLE, INTENT(OUT), OPTIONAL :: inbconn
+      REAL(rp), DIMENSION(:,:), ALLOCATABLE, INTENT(OUT), OPTIONAL :: barinht
+      REAL(rp), DIMENSION(:,:), ALLOCATABLE, INTENT(OUT), OPTIONAL :: barincfsb
+      REAL(rp), DIMENSION(:,:), ALLOCATABLE, INTENT(OUT), OPTIONAL :: barincfsp      
             
       INTEGER :: i,j      
       INTEGER :: nbseg,btype
@@ -290,12 +300,30 @@
       ENDIF        
 
       DO i = 1,nbou
+      
         READ(14,*), nbseg, btype ! read in # of nodes in segment, boundary type
         fbseg(1,i) = nbseg
         fbseg(2,i) = btype
-        DO j = 1,nbseg
-          READ(14,*), fbnds(j,i)  ! read in normal flow boundary node numbers
-        ENDDO
+        
+        IF (btype == 0  .OR. btype == 1  .OR. btype == 2  .OR. &
+            btype == 10 .OR. btype == 11 .OR. btype == 12 .OR. &
+            btype == 20 .OR. btype == 21 .OR. btype == 22 ) THEN
+            
+          DO j = 1,nbseg
+            READ(14,*), fbnds(j,i)  ! read in normal flow boundary node numbers
+          ENDDO
+        ENDIF
+        
+        IF (btype == 4 .OR. btype == 24) THEN
+          IF (NOT(ALLOCATED(inbconn))) THEN
+            ALLOCATE(inbconn(nvel,nbou),barinht(nvel,nbou),barincfsb(nvel,nbou),barincfsp(nvel,nbou))            
+          ENDIF
+          
+          DO j = 1,nbseg
+            READ(14,*), fbnds(j,i), inbconn(j,i), barinht(j,i), barincfsb(j,i), barincfsp(j,i)
+          ENDDO        
+        ENDIF
+        
         IF (btype == 1 .OR. btype == 11 .OR. btype == 21) THEN
           IF (fbnds(nbseg,i) /= fbnds(1,i)) THEN
             fbnds(nbseg+1,i) = fbnds(1,i)  ! close island boundaries
@@ -992,6 +1020,30 @@ elsrch: DO k = 1,nepn(n1)
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!      
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+      SUBROUTINE write_grid(mesh)
+      
+      IMPLICIT NONE
+      
+      TYPE(grid_type), INTENT(IN) :: mesh
+      
+      INTEGER :: nverts(4)
+      
+      nverts = (/ 3, 4, 3, 4 /)
+      
+      CALL write_header(mesh%grid_file,mesh%grid_name,mesh%ne,mesh%nn)
+      CALL write_coords(mesh%nn,mesh%xy,mesh%depth)
+      CALL write_connectivity(mesh%ne,mesh%ect,mesh%el_type,nverts)
+      CALL write_open_boundaries(mesh%nope,mesh%neta,mesh%obseg,mesh%obnds)
+      CALL write_flow_boundaries(mesh%nbou,mesh%nvel,mesh%fbseg,mesh%fbnds, &
+                                 mesh%inbconn,mesh%barinht,mesh%barincfsb,mesh%barincfsp) 
+      
+      
+      RETURN
+      END SUBROUTINE write_grid
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!      
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
 
       SUBROUTINE write_header(grid_file,grid_name,ne,nn)
 
@@ -1102,7 +1154,7 @@ elsrch: DO k = 1,nepn(n1)
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 
-      SUBROUTINE write_flow_boundaries(nbou,nvel,fbseg,fbnds)
+      SUBROUTINE write_flow_boundaries(nbou,nvel,fbseg,fbnds,inbconn,barinht,barincfsb,barincfsp)
       
       IMPLICIT NONE
       
@@ -1110,6 +1162,10 @@ elsrch: DO k = 1,nepn(n1)
       INTEGER, INTENT(IN) :: nvel
       INTEGER, DIMENSION(:,:), INTENT(IN) :: fbseg
       INTEGER, DIMENSION(:,:), INTENT(IN) :: fbnds
+      INTEGER, DIMENSION(:,:), INTENT(IN), OPTIONAL :: inbconn
+      REAL(rp), DIMENSION(:,:), INTENT(IN), OPTIONAL :: barinht
+      REAL(rp), DIMENSION(:,:), INTENT(IN), OPTIONAL :: barincfsb
+      REAL(rp), DIMENSION(:,:), INTENT(IN), OPTIONAL :: barincfsp
             
       INTEGER :: i,j      
       INTEGER :: nbseg,btype      
@@ -1118,12 +1174,27 @@ elsrch: DO k = 1,nepn(n1)
       WRITE(14,"(I8,19x,A)") nvel, "! total number of normal flow nodes"
 
       DO i = 1,nbou
+      
         nbseg = fbseg(1,i)
         btype = fbseg(2,i)      
         WRITE(14,"(I8,1x,I8,10x,A,1x,I8)"), nbseg, btype, "! number of nodes in normal flow boundary", i
-        DO j = 1,nbseg
-          WRITE(14,"(I8)"), fbnds(j,i)  ! read in normal flow boundary node numbers
-        ENDDO
+        
+        IF (btype == 0  .OR. btype == 1  .OR. btype == 2  .OR. &
+            btype == 10 .OR. btype == 11 .OR. btype == 12 .OR. &
+            btype == 20 .OR. btype == 21 .OR. btype == 22 ) THEN     
+            
+          DO j = 1,nbseg
+            WRITE(14,"(I8)"), fbnds(j,i)  ! write out normal flow boundary node numbers          
+          ENDDO
+        ENDIF
+        
+        IF (btype == 4 .OR. btype == 24) THEN
+          
+          DO j = 1,nbseg
+            WRITE(14,"(I8,1x,I8,1x,3(E24.17,1X))"), fbnds(j,i), inbconn(j,i), barinht(j,i), barincfsb(j,i), barincfsp(j,i)
+          ENDDO        
+        ENDIF 
+        
       ENDDO
 
       WRITE(14,"(A)") " "
