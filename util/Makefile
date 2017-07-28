@@ -108,6 +108,13 @@ create_fort13_objects = globals.o nodal_attributes_mod.o grid_file_mod.o quit.o 
 create_fort13_obj := $(patsubst %.o, $(ODIR)%.o,$(create_fort13_objects))   
 
 ########################################################################
+
+essential2natural_objects = globals.o grid_file_mod.o quit.o essential2natural.o
+
+essential2natural_obj := $(patsubst %.o, $(ODIR)%.o,$(essential2natural_objects))   
+
+
+########################################################################
 #                          Executable Targets                          #
 ########################################################################
 .PHONY : convert adjust
@@ -158,7 +165,11 @@ find_const: $(ODIR) $(find_const_obj)
 	
 create_fort13: $(ODIR) $(create_fort13_obj)
 	@echo "\n\n"
-	$(FC) $(FFLAGS) -o create_fort13 $(create_fort13_obj)  	
+	$(FC) $(FFLAGS) -o create_fort13 $(create_fort13_obj) 
+	
+essential2natural: $(ODIR) $(essential2natural_obj)
+	@echo "\n\n"
+	$(FC) $(FFLAGS) -o essential2natural $(essential2natural_obj) 
 	
 ########################################################################
 #                      Premilinary Targets                             #
@@ -218,7 +229,7 @@ $(ODIR)grid_file_mod.o : ../src/grid_file_mod.F90            $(ODIR)globals.o $(
 	$(FC) $(FFLAGS) -c $< -o $@
 	mv grid_file_mod.mod $(ODIR)        
         
-$(ODIR)nodal_attributes_mod.o : ../src/nodal_attributes.F90  $(ODIR)globals.o 
+$(ODIR)nodal_attributes_mod.o : ../src/nodal_attributes.F90  $(ODIR)globals.o $(ODIR)kdtree2.o
 	$(FC) $(FFLAGS) -c $< -o $@
 	mv nodal_attributes_mod.mod $(ODIR)	        
         
@@ -275,8 +286,11 @@ $(ODIR)remove_bou.o: remove_bou_type.F90                     $(ODIR)globals.o $(
 $(ODIR)write_bou_file.o: write_bou_file.F90                  $(ODIR)globals.o $(ODIR)grid_file_mod.o $(ODIR)allocation.o
 	$(FC) $(FFLAGS) -c $< -o $@	
 	
-$(ODIR)find_const.o: find_constraints.F90                   $(ODIR)globals.o $(ODIR)grid_file_mod.o 
+$(ODIR)find_const.o: find_constraints.F90                    $(ODIR)globals.o $(ODIR)grid_file_mod.o 
 	$(FC) $(FFLAGS) -c $< -o $@
 	
-$(ODIR)create_fort13.o: create_fort13.F90                   $(ODIR)nodal_attributes_mod.o $(ODIR)grid_file_mod.o $(ODIR)kdtree2.o
+$(ODIR)create_fort13.o: create_fort13.F90                    $(ODIR)nodal_attributes_mod.o $(ODIR)grid_file_mod.o $(ODIR)kdtree2.o
 	$(FC) $(FFLAGS) -c $< -o $@	
+	
+$(ODIR)essential2natural.o: essential2natural.F90            $(ODIR)globals.o $(ODIR)grid_file_mod.o 
+	$(FC) $(FFLAGS) -c $< -o $@

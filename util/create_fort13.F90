@@ -19,12 +19,14 @@
       TYPE(grid_type) :: manning14
       TYPE(grid_type) :: submerge14       
       TYPE(type13) :: new13
+      
+      TYPE(type13) :: it13
 
       TYPE(kdtree2), POINTER :: tree_xy      
       TYPE(kdtree2_result), ALLOCATABLE, DIMENSION(:) :: closest   
       REAL(rp) :: xy(2)       
       
-      INTEGER :: i,j,k,attr
+      INTEGER :: i,j,k,l,attr
       INTEGER :: n,nattr
       INTEGER :: nd
       INTEGER :: clnd      
@@ -40,7 +42,9 @@
       manning14%grid_file = "/home/sbrus/data-drive/DWH_Oysters/inputs/fort.13/SL18TX33+PRVI/SL18_GoM_PRVI_manning.grd"
       submerge14%grid_file = "/home/sbrus/data-drive/DWH_Oysters/inputs/fort.13/SL18TX33+PRVI/SL18_GoM_PRVI_submergence.grd"
       
-      new14%grid_file = "/home/sbrus/data-drive/DWH_Oysters/inputs/fort.14/SL18TX33+PRVI/SL18_GoM_PRVI_check.grd"
+      it13%file_name = "/home/sbrus/data-drive/DWH_Oysters/inputs/fort.13/SL18TX33+PRVI/fort.13_internal_tides"
+      
+      new14%grid_file = "/home/sbrus/data-drive/DWH_Oysters/inputs/fort.14/SL18TX33+PRVI/SL18_GoM_PRVI_natural.grd"
       new13%file_name = "/home/sbrus/data-drive/DWH_Oysters/inputs/fort.13/SL18TX33+PRVI/fort.13"
       
       ! average_horizontal_eddy_viscosity_in_sea_water_wrt_depth
@@ -64,32 +68,45 @@
       CALL read_grid(manning14,1)
       CALL read_grid(submerge14,1)
    
-
+      CALL read_fort13(it13)
+      CALL print_fort13_info(it13)       
+      
+!       PRINT*, MINVAL(new14%xy(1,:)),MAXVAL(new14%xy(1,:)),MINVAL(new14%xy(2,:)),MAXVAL(new14%xy(2,:))            
+!        PRINT*, MINVAL(manning14%depth(:)),MAXVAL(manning14%depth(:))            
+!       STOP      
       
       attr_list = (/ 1, 2, 5, 7, 3, 3, 4 /)
       
-      ALLOCATE(new13%defined_val(new14%nn,old13%n))
-      ALLOCATE(new13%default_val(old13%n))
-      ALLOCATE(new13%ndns(new14%nn,old13%n))
+      ALLOCATE(new13%defined_val(new14%nn,7))
+      ALLOCATE(new13%default_val(7))
+      ALLOCATE(new13%ndns(new14%nn,7))
       ALLOCATE(new13%nndns(old13%nattr))
       ALLOCATE(new13%name(old13%nattr))
       ALLOCATE(new13%units(old13%nattr))
       ALLOCATE(new13%nvals(old13%nattr))
+      ALLOCATE(new13%attr_index(7))
       
       nattr = 5
       new13%nn = new14%nn
-      new13%n = nattr
       new13%nattr = nattr
       new13%grid_name = new14%grid_name    
       
+      new13%n = 0
       DO k = 1,nattr
         j = attr_list(k)
-        i = old13%attr_index(j)        
+        i = old13%attr_index(j)-1 
+!         PRINT*, k,j,i
         new13%name(k)%line = old13%name(j)%line
         new13%units(k)%line = old13%units(j)%line
         new13%nvals(k) = old13%nvals(j)
-        new13%default_val(k) = old13%default_val(i)
+        DO l = 1,new13%nvals(k)
+          new13%default_val(new13%n+l) = old13%default_val(i+l) 
+!           PRINT*, new13%default_val(new13%n+l)
+        ENDDO
+        new13%attr_index(k) = new13%n+1
+        new13%n = new13%n + new13%nvals(k)
       ENDDO
+      
       
       CALL apply_default_attributes(new13%nn,new13%nattr,new13%default_val,new13%defined_val)         
       
@@ -141,10 +158,28 @@
                    
       new13%n = new13%n + 1
       new13%nattr = new13%nattr + 1                   
-      new13%name(k)%line = prvi13%name(i)%line
-      new13%units(k)%line = prvi13%units(i)%line
-      new13%nvals(k) = prvi13%nvals(i)
-      new13%default_val(k) = prvi13%default_val(i)                                          
+      new13%name(k)%line = prvi13%name(j)%line
+      new13%units(k)%line = prvi13%units(j)%line
+      new13%nvals(k) = prvi13%nvals(j)
+      new13%default_val(new13%n) = prvi13%default_val(i) 
+      
+      ! Internal tides
+      k = 7
+      
+      new13%n = new13%n + 1
+      new13%nattr = new13%nattr + 1                   
+      new13%name(k)%line = it13%name(1)%line
+      new13%units(k)%line = it13%units(1)%line
+      new13%nvals(k) = it13%nvals(1)
+      new13%default_val(new13%n) = it13%default_val(1)   
+      new13%nndns(k) = it13%nndns(1)
+      
+      DO i = 1,it13%nndns(1)
+        nd = it13%ndns(i,1)
+        new13%ndns(i,k) = nd
+        new13%defined_val(nd,k) = it13%defined_val(nd,1)
+      ENDDO
+      
 
       CALL write_fort13(new13)
       CALL print_fort13_info(new13)
