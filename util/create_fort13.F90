@@ -45,7 +45,7 @@
       it13%file_name = "/home/sbrus/data-drive/DWH_Oysters/inputs/fort.13/SL18TX33+PRVI/fort.13_internal_tides"
       
       new14%grid_file = "/home/sbrus/data-drive/DWH_Oysters/inputs/fort.14/SL18TX33+PRVI/SL18_GoM_PRVI_natural.grd"
-      new13%file_name = "/home/sbrus/data-drive/DWH_Oysters/inputs/fort.13/SL18TX33+PRVI/fort.13"
+      new13%file_name = "/home/sbrus/data-drive/DWH_Oysters/inputs/fort.13/SL18TX33+PRVI/fort.13_fixed_sub"
       
       ! average_horizontal_eddy_viscosity_in_sea_water_wrt_depth
       ! sea_surface_height_above_geoid
@@ -55,6 +55,11 @@
       ! surface_directional_effective_roughness_length
       ! mannings_n_at_sea_floor
       ! advection_state
+      
+!       CALL read_fort13(new13)
+!       CALL print_fort13_info(new13)
+      
+!       STOP
       
       CALL read_fort13(old13)
       CALL read_grid(old14,1)
@@ -72,10 +77,82 @@
       CALL print_fort13_info(it13)       
       
 !       PRINT*, MINVAL(new14%xy(1,:)),MAXVAL(new14%xy(1,:)),MINVAL(new14%xy(2,:)),MAXVAL(new14%xy(2,:))            
-!        PRINT*, MINVAL(manning14%depth(:)),MAXVAL(manning14%depth(:))            
-!       STOP      
+!        PRINT*, MINVAL(manning14%depth(:)),MAXVAL(manning14%depth(:))   
+!        PRINT*, MINVAL(submerge14%depth(:)),MAXVAL(submerge14%depth(:))  
       
-      attr_list = (/ 1, 2, 5, 7, 3, 3, 4 /)
+      attr_list = (/ 1, 2, 3, 5, 7, 3, 1 /)
+      
+!       CALL create_neighbor_table(old14%nn,old14%xy,new14%nn,new14%xy,neighbor_table)      
+!       
+!       DO k = 1,3
+!         IF (k == 2) THEN
+!           CYCLE
+!         ENDIF
+!       
+!         j = attr_list(k)
+!         DO i = 1,new13%nn
+!           nd = neighbor_table(i)
+!           
+!           IF (abs(new13%defined_val(i,k)-old13%defined_val(nd,j)) > 1d-12) THEN
+!             PRINT*, "matching error old13", k, j
+!             STOP
+!           ENDIF
+!         ENDDO        
+!       ENDDO
+!       
+!       k = 4
+!       n = 0
+!       DO i = 1,new13%nn
+!           IF (abs(new13%defined_val(i,k)-manning14%depth(i)) > 1d-12) THEN
+! !             PRINT*, new13%defined_val(i,k)
+! !             PRINT*, manning14%depth(i)
+! !             PRINT*, "matching error manning" 
+! !             STOP
+!               n = n + 1
+!           ENDIF        
+!       ENDDO
+!       
+!       IF (n > 0) THEN
+!             PRINT*, "matching error manning", n      
+!       ENDIF
+!       
+!       k = 5
+!       n = 0
+!       DO i = 1,new13%nn
+!           IF (abs(new13%defined_val(i,k)-submerge14%depth(i)) > 1d-12) THEN
+! !             PRINT*, "matching error submerge" 
+! !             STOP
+!               n = n + 1
+!           ENDIF        
+!       ENDDO      
+!       
+!       IF (n > 0) THEN
+!             PRINT*, "matching error submerge", n      
+!       ENDIF      
+!       
+!       k = 6
+!       CALL create_neighbor_table(prvi14%nn,prvi14%xy,new14%nn,new14%xy,neighbor_table)
+!       j = attr_list(k)
+!       DO i = 1,new13%nn
+!         nd = neighbor_table(i)
+!           
+!         IF (abs(new13%defined_val(i,k)-prvi13%defined_val(nd,j)) > 1d-12) THEN
+!           PRINT*, "matching error advection"
+!           STOP
+!         ENDIF
+!       ENDDO    
+!       
+!       STOP
+!       
+!       k = 7
+!       DO i = 1,new13%nn
+!           IF (abs(new13%defined_val(i,k) -it13%defined_val(i,1)) > 1d-12) THEN
+!             PRINT*, "matching error internal tides"
+!             STOP
+!           ENDIF        
+!       ENDDO        
+!       
+!       STOP
       
       ALLOCATE(new13%defined_val(new14%nn,7))
       ALLOCATE(new13%default_val(7))
@@ -113,7 +190,7 @@
       CALL create_neighbor_table(old14%nn,old14%xy,new14%nn,new14%xy,neighbor_table)
       
       ! Eddy viscosity, Sea surface height above geoid, primative weighting from SL18TX33
-      DO k = 1,3
+      DO k = 1,4
         j = attr_list(k)
         i = old13%attr_index(j)
         CALL nearest_neighbor_interpolation(new13%nn,neighbor_table,old13%defined_val(:,i),old13%default_val(i), &
@@ -124,7 +201,7 @@
       
       ! Manning's n from Andika fort.14
       PRINT*, "Finding non-default manning n values"
-      k = 4
+      k = 5
       j = attr_list(k)
       i = old13%attr_index(j)      
       CALL determine_non_default_nodes(new14%nn,manning14%depth,old13%default_val(i), &
@@ -132,15 +209,15 @@
       PRINT("(2(A,I9,2x))"), "non-default = ", new13%nndns(k), "default = ",new14%nn - new13%nndns(k)                                       
       PRINT*, "" 
       
-      ! Surface submergence state from Andika fort.14
-      PRINT*, "Finding non-default surface submergence state values"
-      k = 5
-      j = attr_list(k)
-      i = old13%attr_index(j) 
-      CALL determine_non_default_nodes(new14%nn,submerge14%depth,old13%default_val(i), &
-                                       new13%nndns(k),new13%ndns(:,k),new13%defined_val(:,k))                                                      
-      PRINT("(2(A,I9,2x))"), "non-default = ", new13%nndns(k), "default = ",new14%nn - new13%nndns(k)                                       
-      PRINT*, ""       
+!       ! Surface submergence state from Andika fort.14
+!       PRINT*, "Finding non-default surface submergence state values"
+!       k = 5
+!       j = attr_list(k)
+!       i = old13%attr_index(j) 
+!       CALL determine_non_default_nodes(new14%nn,submerge14%depth,old13%default_val(i), &
+!                                        new13%nndns(k),new13%ndns(:,k),new13%defined_val(:,k))                                                      
+!       PRINT("(2(A,I9,2x))"), "non-default = ", new13%nndns(k), "default = ",new14%nn - new13%nndns(k)                                       
+!       PRINT*, ""       
       
       CALL create_neighbor_table(prvi14%nn,prvi14%xy,new14%nn,new14%xy,neighbor_table)
       
@@ -149,9 +226,9 @@
       j = attr_list(k)
       i = prvi13%attr_index(j)
       
-      DO nd = 1,new13%nn
-        new13%defined_val(nd,k) = prvi13%default_val(i)
-      ENDDO
+!       DO nd = 1,new13%nn
+!         new13%defined_val(nd,k) = prvi13%default_val(i)
+!       ENDDO
       
       CALL nearest_neighbor_interpolation(new13%nn,neighbor_table,prvi13%defined_val(:,i),prvi13%default_val(i), &
                                           new13%nndns(k),new13%ndns(:,k),new13%defined_val(:,k))

@@ -411,11 +411,11 @@
       DO nd = 1,nn
       
         clnd = neighbor_table(nd)
+        defined_val(nd) = val(clnd)        
         
         IF (abs(val(clnd)-default_val) > 1d-12) THEN
           nndns = nndns + 1
           ndns(nndns) = nd
-          defined_val(nd) = val(clnd)
         ENDIF
           
       ENDDO      
