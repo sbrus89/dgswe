@@ -94,7 +94,7 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!      
       
 
-      SUBROUTINE in_element(xy,el_type,elxy,el_found,rs,closest_eds,closest_vertex,closest_els)
+      SUBROUTINE in_element(xy,el_type,elxy,el_found,rs,closest_eds,closest_vertex,closest_els,found_flag)
 
       IMPLICIT NONE
               
@@ -106,14 +106,16 @@
       INTEGER, INTENT(OUT), OPTIONAL :: closest_eds(4)      
       INTEGER, INTENT(OUT), OPTIONAL :: closest_vertex 
       INTEGER, INTENT(OUT), DIMENSION(:), ALLOCATABLE, OPTIONAL :: closest_els
+      INTEGER, INTENT(OUT), OPTIONAL :: found_flag
      
             
       INTEGER :: srch,nd,i,j
       INTEGER :: el,eln,clnd,et,n
-      INTEGER :: found,etemp     
+      INTEGER :: etemp     
       INTEGER :: min_el
       INTEGER :: vert,leds(4)
       INTEGER :: ntested,tested
+      INTEGER :: found
       INTEGER, ALLOCATABLE, DIMENSION(:) :: el_tested
       REAL(rp) :: diff,min_diff
       REAL(rp) :: tol,dtemp
@@ -128,7 +130,7 @@
       ! Test elements to see which element point is located in    
       ntested = 0
       found = 0      
-      min_diff = 999d0
+      min_diff = 9d10
 search: DO srch = 1,srchdp
 
           clnd = closest(srch)%idx          
@@ -211,6 +213,10 @@ search: DO srch = 1,srchdp
             closest_els(i) = el_tested(i)
 !             PRINT*, el_diff(i),el_tested(i)
           ENDDO                    
+        ENDIF
+        
+        IF (PRESENT(found_flag)) THEN
+          found_flag = found
         ENDIF
 
       RETURN
