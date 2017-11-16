@@ -240,10 +240,10 @@
               xyh_eval(pt,i,3) = xyh_eval(pt,i,3) + b(m)*phi(m,1)
           ENDDO    
               
-          IF (xyh_eval(pt,i,3) < hmin*.9d0) THEN
-            PRINT "(A,I7,A,I7,A,F15.7)", "Value exceeds minimum tolerance, point: ", i, " el: ", elin, " hb = ", xyh_eval(pt,i,3)
-            xyh_eval(pt,i,3) = hmin*.9d0
-          ENDIF
+!           IF (xyh_eval(pt,i,3) < hmin*.9d0) THEN
+!             PRINT "(A,I7,A,I7,A,F15.7)", "Value exceeds minimum tolerance, point: ", i, " el: ", elin, " hb = ", xyh_eval(pt,i,3)
+!             xyh_eval(pt,i,3) = hmin*.9d0
+!           ENDIF
           
         ENDDO
       

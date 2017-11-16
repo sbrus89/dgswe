@@ -2,7 +2,10 @@
       
       USE globals, ONLY: rp,grid,nverts, &
                          Erad,lambda0,phi0   
-      USE grid_file_mod
+      USE grid_file_mod, ONLY: read_header,read_coords,read_connectivity, &
+                               init_element_coordinates,init_element_depth, &
+                               read_open_boundaries,read_flow_boundaries, &
+                               print_grid_info,grid_size
       USE spherical_mod, ONLY: cpp_transformation
 
       IMPLICIT NONE
@@ -16,7 +19,7 @@
       TYPE(grid) :: mesh      
       
       coord_sys = 1
-      h0 = 0d0
+      h0 = -1d6
       
       CALL read_header(0,mesh%grid_file,mesh%grid_name,mesh%ne,mesh%nn)
       

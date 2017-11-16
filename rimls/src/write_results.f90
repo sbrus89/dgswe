@@ -203,7 +203,8 @@ search:DO i = 1,nlist
 
       SUBROUTINE rewrite_fort14(mesh)
       
-      USE grid_file_mod    
+      USE grid_file_mod, ONLY: write_header,write_coords,write_connectivity, &
+                               write_open_boundaries,write_flow_boundaries,copy_footer    
       USE version, ONLY: version_information
 
       IMPLICIT NONE
