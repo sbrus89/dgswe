@@ -354,6 +354,11 @@
       TYPE(grid) :: base
       TYPE(grid) :: eval
       
+      TYPE :: char_array
+!         CHARACTER(:),ALLOCATABLE :: line
+        CHARACTER(50) :: line        
+      END TYPE      
+      
 #ifdef ALIGN16      
 !DIR$ ATTRIBUTES ALIGN:16 :: rhsH,rhsQx,rhsQy
 !DIR$ ATTRIBUTES ALIGN:16 :: Hqpt,Qxqpt,Qyqpt
