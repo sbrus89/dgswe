@@ -16,6 +16,28 @@ GIT_MOD := $(strip $(subst 0,,$(GIT_MOD)))
 GIT_MFILES := $(strip $(shell git ls-files ../* -m))
 
 ########################################################################
+#                  Library Links (Platform Specific)                   #
+########################################################################
+
+NAME := $(strip $(subst ., , $(FULLNAME)))
+ifeq ($(NAME),chl-tilos)
+  LAPACK_LIB = -llapack
+  NC_LIB = -lnetcdf -lnetcdff 
+  NC_INC = -I/usr/local/include
+endif
+
+ifeq ($(NAME),sbrus-laptop)
+  LAPACK_LIB = -llapack
+endif
+
+ifeq ($(filter crc nd edu,$(NAME)),crc nd edu)
+    LAPACK_LIB = -Wl,--start-group $(MKLROOT)/lib/intel64/libmkl_intel_lp64.a $(MKLROOT)/lib/intel64/libmkl_sequential.a  $(MKLROOT)/lib/intel64/libmkl_core.a -Wl,--end-group -lpthread -lm
+#   LAPACK_LIB = -L./ -llapack -lrefblas -ltmglib
+#   NC_LIB = -L/afs/crc.nd.edu/x86_64_linux/netcdf/4.3.2/lib -lnetcdf -lnetcdff
+#   NC_INC = -I/afs/crc.nd.edu/x86_64_linux/netcdf/4.3.2/include
+endif
+
+########################################################################
 #                               Objects                                #
 ########################################################################
 
@@ -111,7 +133,15 @@ create_fort13_obj := $(patsubst %.o, $(ODIR)%.o,$(create_fort13_objects))
 
 essential2natural_objects = globals.o grid_file_mod.o quit.o essential2natural.o
 
-essential2natural_obj := $(patsubst %.o, $(ODIR)%.o,$(essential2natural_objects))   
+essential2natural_obj := $(patsubst %.o, $(ODIR)%.o,$(essential2natural_objects))  
+
+########################################################################
+
+stations_objects = globals.o kdtree2.o basis.o grid_file_mod.o quit.o sort_mod.o \
+                   edge_connectivity_mod.o find_element_mod.o shape_functions_mod.o \
+                   transformation.o vandermonde.o area_qpts_mod.o edge_qpts_mod.o stations.o  
+
+stations_obj := $(patsubst %.o, $(ODIR)%.o,$(stations_objects))   
 
 
 ########################################################################
@@ -171,6 +201,10 @@ essential2natural: $(ODIR) $(essential2natural_obj)
 	@echo "\n\n"
 	$(FC) $(FFLAGS) -o essential2natural $(essential2natural_obj) 
 	
+stations: $(ODIR) $(stations_obj)
+	@echo "\n\n"
+	$(FC) $(FFLAGS) -o stations $(stations_obj) $(LAPACK_LIB)
+	
 ########################################################################
 #                      Premilinary Targets                             #
 ########################################################################        
@@ -224,6 +258,30 @@ $(ODIR)kdtree2.o: ../src/kdtree2.F90
 	mv kdtree2_precision_module.mod $(ODIR)
 	mv kdtree2_module.mod $(ODIR)
 	mv kdtree2_priority_queue_module.mod $(ODIR)	
+	
+$(ODIR)sort_mod.o : ../src/sort_mod.F90                      $(ODIR)globals.o
+	$(FC) $(FFLAGS) -c $< -o $@
+	mv sort_mod.mod $(ODIR)	
+	
+$(ODIR)area_qpts_mod.o : ../src/area_qpts_mod.F90            $(ODIR)globals.o $(ODIR)edge_qpts_mod.o
+	$(FC) $(FFLAGS) -c $< -o $@
+	mv area_qpts_mod.mod $(ODIR)
+	
+$(ODIR)edge_qpts_mod.o : ../src/edge_qpts_mod.F90            $(ODIR)globals.o 
+	$(FC) $(FFLAGS) -c $< -o $@
+	mv edge_qpts_mod.mod $(ODIR)		
+	
+$(ODIR)lapack_interfaces.o : ../src/lapack_interfaces.F90
+	$(FC) $(FFLAGS) -c $< -o $@
+	mv lapack_interfaces.mod $(ODIR)
+	
+$(ODIR)vandermonde.o : ../src/vandermonde.F90                $(ODIR)globals.o $(ODIR)basis.o
+	$(FC) $(FFLAGS) -c $< -o $@
+	mv vandermonde.mod $(ODIR)	
+	
+$(ODIR)basis.o : ../src/basis.F90                            $(ODIR)globals.o $(ODIR)lapack_interfaces.o
+	$(FC) $(FFLAGS) -c $< -o $@
+	mv basis.mod $(ODIR)	
 
 $(ODIR)grid_file_mod.o : ../src/grid_file_mod.F90            $(ODIR)globals.o $(ODIR)quit.o $(ODIR)spherical_mod.o
 	$(FC) $(FFLAGS) -c $< -o $@
@@ -252,6 +310,18 @@ $(ODIR)read_input.o : ../src/read_input.F90                  $(ODIR)globals.o $(
 $(ODIR)triangulation.o : ../src/triangulation.F90            $(ODIR)globals.o         
 	$(FC) $(FFLAGS) -c $< -o $@
 	mv triangulation.mod $(ODIR)
+	
+$(ODIR)shape_functions_mod.o : ../src/shape_functions_mod.F90 $(ODIR)globals.o $(ODIR)basis.o $(ODIR)lapack_interfaces.o $(ODIR)vandermonde.o
+	$(FC) $(FFLAGS) -c $< -o $@
+	mv shape_functions_mod.mod $(ODIR)	
+	
+$(ODIR)find_element_mod.o: ../src/find_element_mod.F90       $(ODIR)kdtree2.o  $(ODIR)globals.o $(ODIR)shape_functions_mod.o $(ODIR)transformation.o $(ODIR)vandermonde.o $(ODIR)sort_mod.o
+	$(FC) $(FFLAGS) -c $< -o $@
+	mv find_element.mod $(ODIR) 	
+	
+$(ODIR)transformation.o : ../src/transformation.F90          $(ODIR)basis.o $(ODIR)vandermonde.o $(ODIR)lapack_interfaces.o $(ODIR)shape_functions_mod.o $(ODIR)area_qpts_mod.o
+	$(FC) $(FFLAGS) -c $< -o $@
+	mv transformation.mod $(ODIR)	
 	
 $(ODIR)tripack.o : ../tripack/Src/Fortran77/Sp/src.f90                                
 	$(FC) $(FFLAGS) -c $< -o $@	
@@ -294,3 +364,6 @@ $(ODIR)create_fort13.o: create_fort13.F90                    $(ODIR)nodal_attrib
 	
 $(ODIR)essential2natural.o: essential2natural.F90            $(ODIR)globals.o $(ODIR)grid_file_mod.o 
 	$(FC) $(FFLAGS) -c $< -o $@
+	
+$(ODIR)stations.o: stations.F90                              $(ODIR)globals.o $(ODIR)grid_file_mod.o $(ODIR)edge_connectivity_mod.o $(ODIR)shape_functions_mod.o
+	$(FC) $(FFLAGS) -c $< -o $@	
