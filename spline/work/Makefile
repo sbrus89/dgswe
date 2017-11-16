@@ -47,7 +47,7 @@ endif
 
 spline_objects = globals.o kdtree2.o sort_mod.o lapack_interfaces.o basis.o allocation.o edge_connectivity_mod.o \
                  find_element_mod.o calc_spline.o check.o find_edge.o grid_file_mod.o area_qpts_mod.o edge_qpts_mod.o\
-                 system.o read_grid.o read_input.o connect.o write_output.o version.o spline.o \
+                 system.o read_grid.o read_input.o read_dginp.o connect.o write_output.o version.o spline.o \
                  quit.o spherical_mod.o shape_functions_eval.o shape_functions_mod.o curvilinear_nodes_mod.o transformation.o vandermonde.o
                  
 spline_obj := $(patsubst %.o, $(ODIR)%.o,$(spline_objects)) 
@@ -163,6 +163,10 @@ $(ODIR)spherical_mod.o : ../../src/spherical_mod.F90          $(ODIR)globals.o
 	$(FC) $(FFLAGS) -c $< -o $@
 	mv spherical_mod.mod $(ODIR)
 	
+$(ODIR)read_dginp.o : ../../src/read_input.F90                $(ODIR)globals.o $(ODIR)quit.o
+	$(FC) $(FFLAGS) -c $< -o $@
+	mv read_dginp.mod $(ODIR)	
+	
 $(ODIR)quit.o : ../../src/quit.F90                            $(ODIR)globals.o
 	$(FC) $(FFLAGS) -c $< -o $@
 	mv quit.mod $(ODIR)	
@@ -179,7 +183,7 @@ $(ODIR)edge_qpts_mod.o : ../../src/edge_qpts_mod.F90          $(ODIR)globals.o
 	$(FC) $(FFLAGS) -c $< -o $@
 	mv edge_qpts_mod.mod $(ODIR)	
 	
-$(ODIR)curvilinear_nodes_mod.o : ../../src/curvilinear_nodes_mod.F90  $(ODIR)globals.o $(ODIR)shape_functions_mod.o $(ODIR)transformation.o $(ODIR)basis.o $(ODIR)lapack_interfaces.o
+$(ODIR)curvilinear_nodes_mod.o : ../../src/curvilinear_nodes_mod.F90  $(ODIR)globals.o $(ODIR)shape_functions_mod.o $(ODIR)transformation.o $(ODIR)basis.o $(ODIR)lapack_interfaces.o $(ODIR)read_dginp.o
 	$(FC) $(FFLAGS) -c $< -o $@
 	mv curvilinear_nodes_mod.mod $(ODIR)
 
