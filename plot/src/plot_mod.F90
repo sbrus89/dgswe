@@ -14,7 +14,7 @@
                               dr_xlabel,ds_ylabel,ds_clabel,main_font, &
                               ncolors,colors, &
                               mnpp,ps,pc,nord,adapt_option, &
-                              phi_hb,phi_sol,ndof_hb,ndof_sol, &
+                              phi_sol,ndof_sol, &
                               ax,ay,bx,by, &
                               xbox_min,xbox_max,ybox_min,ybox_max, &
                               snap_start,snap_end
