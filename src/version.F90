@@ -22,12 +22,12 @@
       INTEGER, INTENT(IN) :: unit
       INTEGER :: length,ind,sind,eind        
 
-      gitBranch = "plot_sol_diff" 
-      gitSHA = "c1846494ff7c7ee76849e4c60b8efa76b05ca2a1 +" 
+      gitBranch = "master" 
+      gitSHA = "70943da06e536e627447b2c651346f421d779b98 +" 
       compiler_version = "ifort version 14.0.0" 
       compiler_flags = "-Iodir/ -g -traceback -C" 
-      modified_files = "../src/evaluate_mod.F90 ../src/labels_mod.F90 ../src/plot_dg.F90 ../src/plot_globals.F90 ../src/plot_mod.F90 Makefile plot.inp" 
-      compile_date = "Mon Nov 27 10:35:36 EST 2017" 
+      modified_files = "../src/plot_mod.F90" 
+      compile_date = "Mon Nov 27 11:53:30 EST 2017" 
       host = "chl-tilos" 
 
       

@@ -1152,44 +1152,11 @@
         
         ord = fig%el_plt(el)
         
+        
          
+        CALL contour_fill_element(file_unit,nptri(ord),rect(:,:,ord),fig%sol_min,fig%sol_max,fig%sol_val(:,el),xyplt(:,el,1),xyplt(:,el,2))
+
         
-        DO tri = 1,nptri(ord)
-
-          DO v = 1,3  
-   
-            nd = rect(v,tri,ord)
-          
-            sol_lev = fig%sol_min
-            lev = ncolors
-    levels: DO i = 1,ncolors-1
-              IF ((fig%sol_val(nd,el) >= sol_lev) .and. (fig%sol_val(nd,el) < sol_lev+dc)) THEN
-                lev = i
-                CALL interp_colors(lev,sol_lev,dc,colors,fig%sol_val(nd,el),color_val)
-                EXIT levels
-              ENDIF
-              sol_lev = sol_lev + dc
-            ENDDO levels
-          
-            IF (fig%sol_val(nd,el) <= fig%sol_min) THEN
-              lev = 1
-              color_val(1) = colors(lev,1)
-              color_val(2) = colors(lev,2)
-              color_val(3) = colors(lev,3)
-            ELSE IF (fig%sol_val(nd,el) > fig%sol_max) THEN
-              lev = ncolors
-              color_val(1) = colors(lev,1)
-              color_val(2) = colors(lev,2)
-              color_val(3) = colors(lev,3)           
-            ENDIF          
-
-          
-            WRITE(file_unit,"(A,5(F9.5,1x),A)") "[",ax*xyplt(nd,el,1)+bx,ay*xyplt(nd,el,2)+by,color_val(1),color_val(2),color_val(3),"]"  
-          ENDDO        
-
-          WRITE(file_unit,"(A)") "trifill"        
-        
-        ENDDO 
         
         error_total = error_total + err**2
         nptri_total = nptri_total + nptri(ord)
@@ -1262,6 +1229,70 @@
       
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!   
+
+      SUBROUTINE contour_fill_element(file_unit,nptri,rect,sol_min,sol_max,sol_val,xplt,yplt)
+      
+      IMPLICIT NONE
+      
+      INTEGER, INTENT(IN) :: file_unit
+      INTEGER, INTENT(IN) :: nptri
+      INTEGER, DIMENSION(:,:), INTENT(IN) :: rect
+      REAL(rp), INTENT(IN) :: sol_min
+      REAL(rp), INTENT(IN) :: sol_max
+      REAL(rp), DIMENSION(:), INTENT(IN) :: sol_val
+      REAL(rp), DIMENSION(:), INTENT(IN) :: xplt
+      REAL(rp), DIMENSION(:), INTENT(IN) :: yplt
+      
+      INTEGER :: tri,v,i
+      INTEGER :: nd,lev
+      REAL(rp) :: dc
+      REAL(rp) :: sol_lev
+      REAL(rp) :: color_val(3)        
+      
+      dc = (sol_max-sol_min)/real(ncolors-1,rp)             
+      
+      
+      DO tri = 1,nptri
+
+        DO v = 1,3  
+   
+          nd = rect(v,tri)
+        
+          sol_lev = sol_min
+          lev = ncolors
+  levels: DO i = 1,ncolors-1
+            IF ((sol_val(nd) >= sol_lev) .and. (sol_val(nd) < sol_lev+dc)) THEN
+              lev = i
+              CALL interp_colors(lev,sol_lev,dc,colors,sol_val(nd),color_val)
+              EXIT levels
+            ENDIF
+            sol_lev = sol_lev + dc
+          ENDDO levels
+          
+          IF (sol_val(nd) <= sol_min) THEN
+            lev = 1
+            color_val(1) = colors(lev,1)
+            color_val(2) = colors(lev,2)
+            color_val(3) = colors(lev,3)
+          ELSE IF (sol_val(nd) > sol_max) THEN
+            lev = ncolors
+            color_val(1) = colors(lev,1)
+            color_val(2) = colors(lev,2)
+            color_val(3) = colors(lev,3)           
+          ENDIF          
+          
+          WRITE(file_unit,"(A,5(F9.5,1x),A)") "[",ax*xplt(nd)+bx,ay*yplt(nd)+by,color_val(1),color_val(2),color_val(3),"]"  
+        ENDDO        
+
+        WRITE(file_unit,"(A)") "trifill"        
+        
+      ENDDO       
+      
+      RETURN
+      END SUBROUTINE contour_fill_element
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
 
       SUBROUTINE plot_line_contours(file_unit,sol,nptri,rect,xyplt,rre,sre,snap,fig)
 
