@@ -440,8 +440,8 @@
           j = 0        
           DO opt = 1,nopt
             i = dginp_ind(opt)
-            IF (dginp(i)%flag == 0 .and. dginp(i)%required .eqv. .false.) THEN
-              
+            IF (dginp(i)%flag == 0 .and. (dginp(i)%required .eqv. .false.)) THEN
+
               j = j+1
               SELECT CASE (dginp(i)%vartype) 
                 CASE(1)
@@ -575,6 +575,8 @@
       nopt = 0
       ncheck = 0
       DO i = 1,maxopt
+      
+        dginp(i)%flag = 0
       
         ! find and keep track of populated indicies
         IF (dginp(i)%key .ne. empty) THEN      
