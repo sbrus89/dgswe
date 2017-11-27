@@ -1,7 +1,7 @@
       MODULE evaluate_mod
 
       USE globals, ONLY: rp
-      USE plot_globals, ONLY: plot_type
+      USE plot_globals, ONLY: plot_type,solution_type
 
       IMPLICIT NONE
 
@@ -11,18 +11,16 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
 
-      SUBROUTINE evaluate_solution(el,et,sol_type,snap,sol_val,npts,r,s,phi_sol,plim)
+      SUBROUTINE evaluate_solution(el,sol_type,snap,sol,sol_val,npts,r,s,phi_sol,plim)
 
-      USE plot_globals, ONLY: hb,Z,Qx,Qy,el_size,g
-      USE read_dginp, ONLY: p,hbp,h0
       USE basis, ONLY: element_basis,linear_basis,dgswem_basis        
       
       IMPLICIT NONE
       
       INTEGER, INTENT(IN) :: el
-      INTEGER, INTENT(IN) :: et
       INTEGER, INTENT(IN) :: sol_type
       INTEGER, INTENT(IN) :: snap
+      TYPE(solution_type), INTENT(IN) :: sol
       REAL(rp), DIMENSION(:), INTENT(OUT) :: sol_val
       INTEGER, INTENT(IN) :: npts
       REAL(rp), DIMENSION(:), INTENT(IN), OPTIONAL :: r
@@ -30,7 +28,7 @@
       REAL(rp), DIMENSION(:,:), INTENT(IN), OPTIONAL :: phi_sol   
       INTEGER, INTENT(IN), OPTIONAL :: plim
 
-      INTEGER :: pt,dof
+      INTEGER :: pt,dof,et
       INTEGER :: mndf,ndfb,ndfs
       REAL(rp) :: H,u_vel,v_vel
       REAL(rp) :: hb_val(npts),zeta_val(npts)
@@ -38,10 +36,10 @@
       REAL(rp), DIMENSION(:,:), ALLOCATABLE :: phis
       REAL(rp) :: depth_min
 
-      mndf = (p+1)**2
+      mndf = (sol%p+1)**2
       
 
-      
+      et = sol%el_type(el)
       
       
       IF (PRESENT(r) .and. PRESENT(s)) THEN
@@ -50,9 +48,9 @@
 #ifdef adcirc
           CALL linear_basis(ndfs,npts,r,s,phis) 
 #elif dgswem
-          CALL dgswem_basis(p,ndfs,npts,r,s,phis)  
+          CALL dgswem_basis(sol%p,ndfs,npts,r,s,phis)  
 #else 
-          CALL element_basis(et,p,ndfs,npts,r,s,phis)          
+          CALL element_basis(et,sol%p,ndfs,npts,r,s,phis)          
 #endif          
       
       ENDIF
@@ -73,18 +71,18 @@
       IF (PRESENT(plim)) THEN
         IF (mod(et,2) == 1) THEN
           ndfs = (plim+1)*(plim+2)/2 
-          ndfb = min(ndfs,(hbp+1)*(hbp+2)/2)
+          ndfb = min(ndfs,(sol%hbp+1)*(sol%hbp+2)/2)
         ELSE IF (mod(et,2) == 0) THEn
           ndfs = (plim+1)**2
-          ndfb = min(ndfs,(hbp+1)**2)
+          ndfb = min(ndfs,(sol%hbp+1)**2)
         ENDIF            
       ELSE      
         IF (mod(et,2) == 1) THEN
-          ndfs = (p+1)*(p+2)/2 
-          ndfb = (hbp+1)*(hbp+2)/2
+          ndfs = (sol%p+1)*(sol%p+2)/2 
+          ndfb = (sol%hbp+1)*(sol%hbp+2)/2
         ELSE IF (mod(et,2) == 0) THEn
-          ndfs = (p+1)**2
-          ndfb = (hbp+1)**2
+          ndfs = (sol%p+1)**2
+          ndfb = (sol%hbp+1)**2
         ENDIF
       ENDIF      
       
@@ -97,7 +95,7 @@
         DO pt = 1,npts
           hb_val(pt) = 0d0
           DO dof = 1,ndfb
-            hb_val(pt) = hb_val(pt) + phis(dof,pt)*hb(dof,el,1)
+            hb_val(pt) = hb_val(pt) + phis(dof,pt)*sol%hb(dof,el,1)
           ENDDO
         ENDDO
             
@@ -111,7 +109,7 @@
             ENDIF
           ENDDO
           
-          IF (depth_min < h0) THEN
+          IF (depth_min < sol%h0) THEN
             PRINT "(A,I7,A,F15.7)", "Element depth is less than tolerance: ", el, " hb min = ", depth_min      
           ENDIF           
         ENDIF
@@ -122,7 +120,7 @@
         DO pt = 1,npts
           zeta_val(pt) = 0d0
           DO dof = 1,ndfs
-            zeta_val(pt) = zeta_val(pt) + phis(dof,pt)*Z(dof,el,snap)
+            zeta_val(pt) = zeta_val(pt) + phis(dof,pt)*sol%Z(dof,el,snap)
           ENDDO
         ENDDO
             
@@ -138,8 +136,8 @@
           Qx_val(pt) = 0d0
           Qy_val(pt) = 0d0
           DO dof = 1,ndfs
-            Qx_val(pt) = Qx_val(pt) + phis(dof,pt)*Qx(dof,el,snap)
-            Qy_val(pt) = Qy_val(pt) + phis(dof,pt)*Qy(dof,el,snap)                
+            Qx_val(pt) = Qx_val(pt) + phis(dof,pt)*sol%Qx(dof,el,snap)
+            Qy_val(pt) = Qy_val(pt) + phis(dof,pt)*sol%Qy(dof,el,snap)                
           ENDDO
         ENDDO
           
@@ -154,8 +152,8 @@
       IF (sol_type == 5) THEN
 
         DO pt = 1,npts 
-          sol_val(pt) = el_size(el)/sqrt(g*hb_val(pt))                    
-          sol_val(pt) = sol_val(pt)/(2d0*real(p,rp)+1d0)
+          sol_val(pt) = sol%el_size(el)/sqrt(sol%g*hb_val(pt))                    
+          sol_val(pt) = sol_val(pt)/(2d0*real(sol%p,rp)+1d0)
         ENDDO        
 
       ENDIF

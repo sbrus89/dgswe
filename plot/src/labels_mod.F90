@@ -12,7 +12,8 @@
                               nxdec,nydec,ncdec,ntdec, &
                               dr_xlabel,ds_ylabel,ds_clabel, &
                               plot_type,char_array, &
-                              xmin,xmax,ymin,ymax
+                              xmin,xmax,ymin,ymax, &
+                              solution_type
       USE read_dginp, ONLY: sphi0,slam0                              
 
       IMPLICIT NONE
@@ -479,12 +480,12 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-      SUBROUTINE latex_element_labels(ne,label_option,el_type,el_in,nverts,xy,ect,nnfbed,nfbedn,ged2el)
+      SUBROUTINE latex_element_labels(label_option,ne,el_type,el_in,nverts,xy,ect,nnfbed,nfbedn,ged2el)
       
       IMPLICIT NONE
       
-      INTEGER, INTENT(IN) :: ne
       CHARACTER(*), INTENT(IN) :: label_option 
+      INTEGER, INTENT(IN) :: ne      
       INTEGER, DIMENSION(:), INTENT(IN) :: el_type
       INTEGER, DIMENSION(:), INTENT(IN) :: el_in      
       INTEGER, DIMENSION(:), INTENT(IN) :: nverts
@@ -592,12 +593,12 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!   
 
-      SUBROUTINE latex_node_labels(nn,label_option,xy,nbou,fbseg,fbnds)
+      SUBROUTINE latex_node_labels(label_option,nn,xy,nbou,fbseg,fbnds)
       
       IMPLICIT NONE
 
-      INTEGER, INTENT(IN) :: nn
       CHARACTER(*), INTENT(IN) :: label_option 
+      INTEGER, INTENT(IN) :: nn      
       REAL(rp), DIMENSION(:,:), INTENT(IN) :: xy
       INTEGER, INTENT(IN) :: nbou
       INTEGER, DIMENSION(:,:), INTENT(IN) :: fbseg

@@ -84,8 +84,6 @@
       
       INTEGER, DIMENSION(:), ALLOCATABLE :: ndof_sol      
       REAL(rp), DIMENSION(:,:,:), ALLOCATABLE :: phi_sol 
-      INTEGER, DIMENSION(:), ALLOCATABLE :: ndof_hb      
-      REAL(rp), DIMENSION(:,:,:), ALLOCATABLE :: phi_hb
 
       
       INTEGER :: i,j
@@ -101,14 +99,14 @@
       INTEGER, ALLOCATABLE, DIMENSION(:,:,:) :: rect        
       REAL(rp), DIMENSION(:,:,:), ALLOCATABLE :: xyplt  
       REAL(rp), DIMENSION(:), ALLOCATABLE :: el_area
-      REAL(rp), DIMENSION(:), ALLOCATABLE :: el_size
+      REAL(rp), DIMENSION(:), ALLOCATABLE :: el_size          
       INTEGER :: outside
       INTEGER, DIMENSION(:), ALLOCATABLE :: el_in
       REAL(rp) :: xbox_min,xbox_max,ybox_min,ybox_max
       REAL(rp) :: figure_width
       REAL(rp) :: figure_height
       REAL(rp) :: line_width      
-      REAL(rp), PARAMETER :: g = 9.81d0
+
       
 !       TYPE :: viz
 !         INTEGER, DIMENSION(:), ALLOCATABLE :: p
@@ -145,16 +143,103 @@
             
       
 
+      TYPE :: solution_type
+        CHARACTER(100) :: input_path      
+        CHARACTER(:),ALLOCATABLE :: out_direc  
+        CHARACTER(:),ALLOCATABLE :: grid_file 
+        CHARACTER(:),ALLOCATABLE :: curve_file 
+        CHARACTER(:),ALLOCATABLE :: bathy_file    
+        CHARACTER(:),ALLOCATABLE :: stations_file
+        INTEGER :: sta_opt              
       
-      REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: Z
-      REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: hb
-      REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: Qx
-      REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: Qy
-      REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: hbm
-            
-      REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: eta
-      REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: uu2
-      REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: vv2
+        INTEGER :: p
+        INTEGER :: ctp
+        INTEGER :: hbp      
+        
+        CHARACTER(100) :: grid_name          
+        INTEGER :: ne
+        INTEGER :: nn       
+        INTEGER :: nel_type   
+        INTEGER :: ndof(4)
+        INTEGER :: mndof         
+        INTEGER :: nverts(4)
+        INTEGER :: np(4)
+        INTEGER :: mnp
+        INTEGER :: nnds(4)
+        INTEGER :: mnnds
+        
+        REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: psiv        
+        
+        REAL(rp) :: sphi0
+        REAL(rp) :: slam0
+        REAL(rp) :: h0
+        REAL(rp) :: g = 9.81d0          
+        REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: xy
+        REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: elxy
+        REAL(rp), ALLOCATABLE, DIMENSION(:) :: depth
+        REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: elhb
+        REAL(rp), ALLOCATABLE, DIMENSION(:,:,:,:) :: bndxy    
+               
+        INTEGER, ALLOCATABLE, DIMENSION(:,:) :: ect
+        INTEGER, ALLOCATABLE, DIMENSION(:) :: el_type
+        REAL(rp), DIMENSION(:), ALLOCATABLE :: el_area
+        REAL(rp), DIMENSION(:), ALLOCATABLE :: el_size   
+        INTEGER, DIMENSION(:), ALLOCATABLE :: el_in        
+        
+        INTEGER :: nope 
+        INTEGER, ALLOCATABLE, DIMENSION(:) :: obseg 
+        INTEGER :: neta
+        INTEGER, ALLOCATABLE, DIMENSION(:,:) :: obnds 
+
+        INTEGER :: nbou  
+        INTEGER, ALLOCATABLE, DIMENSION(:,:) :: fbseg 
+        INTEGER :: nvel  
+        INTEGER, ALLOCATABLE, DIMENSION(:,:) :: fbnds 
+      
+        INTEGER :: ned       
+        INTEGER :: mnepn
+        INTEGER, ALLOCATABLE, DIMENSION(:) :: nepn 
+        INTEGER, ALLOCATABLE, DIMENSION(:,:) :: epn   
+     
+        INTEGER, ALLOCATABLE, DIMENSION(:,:) :: ged2nn 
+        INTEGER, ALLOCATABLE, DIMENSION(:,:) :: ged2el 
+        INTEGER, ALLOCATABLE, DIMENSION(:,:) :: ged2led 
+        INTEGER, ALLOCATABLE, DIMENSION(:) :: recv_edge    
+      
+        INTEGER :: nied 
+        INTEGER, ALLOCATABLE, DIMENSION(:) :: iedn 
+        INTEGER :: nbed
+        INTEGER, ALLOCATABLE, DIMENSION(:) :: bedn
+        INTEGER :: nobed 
+        INTEGER, ALLOCATABLE, DIMENSION(:) :: obedn  
+        INTEGER :: nfbed 
+        INTEGER, ALLOCATABLE, DIMENSION(:) :: fbedn 
+        INTEGER :: nnfbed 
+        INTEGER, ALLOCATABLE, DIMENSION(:) :: nfbedn 
+        INTEGER, ALLOCATABLE, DIMENSION(:,:) :: nfbednn       
+        INTEGER, ALLOCATABLE, DIMENSION(:) :: ed_type        
+        
+        REAL(rp) :: tf
+        REAL(rp), ALLOCATABLE, DIMENSION(:) :: t         
+        REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: Z
+        REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: hb
+        REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: Qx
+        REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: Qy 
+        
+        REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: hbm            
+        REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: eta
+        REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: uu2
+        REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: vv2          
+        
+        INTEGER :: nsnap_Z
+        INTEGER :: nsnap_Qx
+        INTEGER :: nsnap_Qy
+        INTEGER :: nsnap_hb
+      END TYPE
+      
+      TYPE(solution_type) :: sol1
+      TYPE(solution_type) :: sol2
+          
       
       TYPE :: plot_type
       
@@ -180,13 +265,11 @@
         REAL(rp) :: sol_min,sol_max
         REAL(rp) :: snap_min,snap_max
         INTEGER :: nsnap
+        INTEGER :: p
         INTEGER, DIMENSION(:), ALLOCATABLE :: el_plt
         REAL(rp), DIMENSION(:,:), ALLOCATABLE :: sol_val
         REAL(rp), DIMENSION(:), ALLOCATABLE :: t
-        REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: phi 
-        INTEGER :: p
-        INTEGER :: ndof(4)         
-        REAL(rp) :: h0
+        REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: phi     
         
         REAL(rp) :: rel_tol
         REAL(rp) :: abs_tol
@@ -203,7 +286,7 @@
         INTEGER :: type_flag 
         
         REAL(rp), POINTER :: t_snap
-
+ 
         INTEGER :: nline_header
         TYPE(char_array), DIMENSION(:), ALLOCATABLE :: latex_header
         INTEGER :: nline_body
@@ -246,51 +329,51 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!         
       
-      SUBROUTINE sizes()
-      
-      USE globals, ONLY: nverts,ndof,mndof,np,mnp,nnds,mnnds
-      USE read_dginp, ONLY: p,ctp,hbp
-      
-      IMPLICIT NONE
-            
-      ndof(1) = (p+1)*(p+2)/2
-      ndof(2) = (p+1)**2
-      ndof(3) = ndof(1)
-      ndof(4) = ndof(2)      
-      mndof = maxval(ndof)
-      
-      
-      nverts(1) = 3
-      nverts(2) = 4
-      nverts(3) = 3
-      nverts(4) = 4
-      
-      np(1) = 1
-      np(2) = 1
-      np(3) = ctp
-      np(4) = ctp  
-      mnp = maxval(np)+1
-
-      nnds(1) = 3
-      nnds(2) = 4
-      nnds(3) = (ctp+1)*(ctp+2)/2
-      nnds(4) = (ctp+1)*(ctp+1)      
-      mnnds = maxval(nnds)   
-      
-!       pplt(1) = ps
-!       pplt(2) = ps
-!       pplt(3) = pc
-!       pplt(4) = pc
-
-!       npplt(1) = (ps+1)*(ps+2)/2
-!       npplt(2) = (ps+1)*(ps+1)
-!       npplt(3) = (pc+1)*(pc+2)/2
-!       npplt(4) = (pc+1)*(pc+1)
-!       mnpp = maxval(npplt)     
-
-      mnpp = (p_high+1)**2
-      
-      END SUBROUTINE sizes
+!       SUBROUTINE sizes()
+!       
+!       USE globals, ONLY: nverts,ndof,mndof,np,mnp,nnds,mnnds
+!       USE read_dginp, ONLY: p,ctp,hbp
+!       
+!       IMPLICIT NONE
+!             
+!       ndof(1) = (p+1)*(p+2)/2
+!       ndof(2) = (p+1)**2
+!       ndof(3) = ndof(1)
+!       ndof(4) = ndof(2)      
+!       mndof = maxval(ndof)
+!       
+!       
+!       nverts(1) = 3
+!       nverts(2) = 4
+!       nverts(3) = 3
+!       nverts(4) = 4
+!       
+!       np(1) = 1
+!       np(2) = 1
+!       np(3) = ctp
+!       np(4) = ctp  
+!       mnp = maxval(np)+1
+! 
+!       nnds(1) = 3
+!       nnds(2) = 4
+!       nnds(3) = (ctp+1)*(ctp+2)/2
+!       nnds(4) = (ctp+1)*(ctp+1)      
+!       mnnds = maxval(nnds)   
+!       
+! !       pplt(1) = ps
+! !       pplt(2) = ps
+! !       pplt(3) = pc
+! !       pplt(4) = pc
+! 
+! !       npplt(1) = (ps+1)*(ps+2)/2
+! !       npplt(2) = (ps+1)*(ps+1)
+! !       npplt(3) = (pc+1)*(pc+2)/2
+! !       npplt(4) = (pc+1)*(pc+1)
+! !       mnpp = maxval(npplt)     
+! 
+!       mnpp = (p_high+1)**2
+!       
+!       END SUBROUTINE sizes
       
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
@@ -383,10 +466,7 @@
       
       zeta%cscale_unit = 30
       bathy%cscale_unit = 31
-      vel%cscale_unit = 32
-      
-      bathy%h0 = h0
-      cfl%h0 = h0
+      vel%cscale_unit = 32      
       
       bathy%p = hbp
       zeta%p = p

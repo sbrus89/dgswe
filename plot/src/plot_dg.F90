@@ -9,10 +9,7 @@
                          psic,psiv, &
                          deg2rad, &
                          nsta,xysta
-      USE grid_file_mod
       USE basis, ONLY: element_nodes,element_basis
-      USE read_write_output, ONLY: read_solution_full,read_fort6163,read_fort6264, &
-                                   read_dg63,read_dg64
       USE read_dginp, ONLY: read_input,out_direc,p,ctp,hbp,tf, &
                             grid_file,curve_file,cb_file_exists,bathy_file,hb_file_exists, &
                             sphi0,slam0, &
@@ -30,7 +27,7 @@
       USE transformation
       USE shape_functions_mod
       USE version
-      USE bathymetry_interp_mod, ONLY: bathymetry_nodal2modal,dgswem_bathymetry_nodal2modal
+      USE initialize
       
       IMPLICIT NONE
       
@@ -57,65 +54,37 @@
         STOP
       ENDIF    
       
-      CALL read_input(0,input_path)
-      IF (substitute_path == 1) THEN
-        CALL substitute_partial_path(grid_file,replace_path,sub_path)
-        CALL substitute_partial_path(curve_file,replace_path,sub_path)    
-        CALL substitute_partial_path(stations_file,replace_path,sub_path)       
-      ENDIF
+ 
+
+      CALL read_dgsweinp(sol1,input_path,substitute_path,replace_path,sub_path)
       
-      slam0 = slam0*deg2rad
-      sphi0 = sphi0*deg2rad          
+      CALL sizes(sol1)     
       
-      CALL sizes()
       CALL setup_plot_types()
 
-      PRINT("(A)"), grid_file
-      CALL read_header(0,grid_file,grid_name,ne,nn)        
-      CALL read_coords(nn,xy,depth)
-      CALL read_connectivity(ne,ect,el_type) 
-      CALL init_element_coordinates(ne,ctp,el_type,nverts,xy,ect,elxy)                  
-      CALL read_open_boundaries(nope,neta,obseg,obnds)            
-      CALL read_flow_boundaries(nbou,nvel,fbseg,fbnds)     
-      CALL grid_size(ne,el_type,ect,xy,el_size)
-      CALL read_curve_file(0,curve_file,ctp,nbou,xy,bndxy,cb_file_exists)      
-      CALL print_grid_info(grid_file,grid_name,ne,nn)    
-      
-      CALL elements_per_node(ne,nn,nverts,el_type,ect,nepn,mnepn,epn)       
-      CALL find_edge_pairs(ne,nverts,el_type,ect,nepn,epn,ned,ged2el,ged2nn,ged2led)      
-      CALL find_interior_edges(ned,ged2el,nied,iedn,ed_type,recv_edge)      
-      CALL find_open_edges(nope,obseg,obnds,ged2nn,nobed,obedn,ed_type,recv_edge)            
-      CALL find_flow_edges(nbou,fbseg,fbnds,ged2nn,nnfbed,nfbedn,nfbednn,nfbed,fbedn,recv_edge,ed_type)     
-      nred = 0
-      CALL print_connect_info(mnepn,ned,nied,nobed,nfbed,nnfbed,nred)
-      IF (mesh%plot_sta_option == 1 .and. sta_opt > 0) THEN
-        CALL read_stations(0,stations_file,sta_opt,nsta,xysta)
-      ENDIF
+      CALL read_grid(sol1)
 
-      PRINT("(A)"), "Calculating curved boundary information..."
-      CALL shape_functions_linear_at_ctp(nel_type,np,psiv)                   
-      CALL eval_coordinates_curved(ctp,nnds,nverts,el_type,xy,ect,fbseg,fbnds, &
-                                   nnfbed,nfbedn,nfbednn,ged2el,ged2led, &
-                                   psiv,bndxy,elxy)     
-      CALL element_area(ne,nel_type,np,el_type,elxy,el_area)
-!       CALL find_element_init(nel_type,nverts,np,nnds,nn,xy,nepn,epn)      
-      
+      CALL connectivity(sol1)
 
+      CALL curvilinear(sol1)
+
+      
       PRINT("(A)"), "Calculating additional ploting point coordinates..."
       nord = (p_high-p_low+1)/p_skip
       
-      ALLOCATE(r(mnpp,nel_type*nord),s(mnpp,nel_type*nord))      
-      ALLOCATE(psic(mnnds,mnpp,nel_type*nord))
-      ALLOCATE(rect(3,3*mnpp,nel_type*nord))      
-      ALLOCATE(nptri(nel_type*nord),npplt(nel_type*nord),pplt(nel_type*nord))
+      mnpp = (p_high+1)**2      
+      ALLOCATE(r(mnpp,sol1%nel_type*nord),s(mnpp,sol1%nel_type*nord))      
+      ALLOCATE(psic(sol1%mnnds,mnpp,sol1%nel_type*nord))
+      ALLOCATE(rect(3,3*mnpp,sol1%nel_type*nord))      
+      ALLOCATE(nptri(sol1%nel_type*nord),npplt(sol1%nel_type*nord),pplt(sol1%nel_type*nord))
       ncall = 0 
-      DO et = 1,nel_type 
+      DO et = 1,sol1%nel_type 
               
         DO ord = 1,nord
           i = (et-1)*nord+ord
           pplt(i) = (ord-1)*p_skip+p_low
           CALL element_nodes(et,space,pplt(i),npplt(i),r(:,i),s(:,i))                  
-          CALL shape_functions_area_eval(et,np(et),nnd,npplt(i),r(:,i),s(:,i),psic(:,:,i))  
+          CALL shape_functions_area_eval(et,sol1%np(et),nnd,npplt(i),r(:,i),s(:,i),psic(:,:,i))  
           CALL reference_element_delaunay(et,pplt(i),npplt(i),r(:,i),s(:,i),nptri(i),rect(:,:,i))        
           
           PRINT("(4(A,I4))"), "  number of additional nodes/sub-triangles: ", npplt(i),"/",nptri(i) 
@@ -133,24 +102,24 @@
         
       ENDDO                                    
            
-      ALLOCATE(xyplt(mnpp,ne,2))
-      DO el = 1,ne      
-        et = el_type(el)                          
-        nnd = nnds(et)
+      ALLOCATE(xyplt(mnpp,sol1%ne,2))
+      DO el = 1,sol1%ne      
+        et = sol1%el_type(el)                          
+        nnd = sol1%nnds(et)
         i = (et-1)*nord+nord
         npts = npplt(i)
         DO pt = 1,npts              
-          CALL element_transformation(nnd,elxy(:,el,1),elxy(:,el,2),psic(:,pt,i),xpt,ypt)           
+          CALL element_transformation(nnd,sol1%elxy(:,el,1),sol1%elxy(:,el,2),psic(:,pt,i),xpt,ypt)           
           xyplt(pt,el,1) = xpt
           xyplt(pt,el,2) = ypt
         ENDDO
       ENDDO       
              
+                 
+             
       
       PRINT("(A)"), "Evaluating reference element coordinate information..."
-      CALL evaluate_basis(p,nord,mnpp,mndof,nel_type,npplt,r,s,ndof_sol,phi_sol)
-
-      
+      CALL evaluate_basis(sol1%p,nord,mnpp,sol1%mndof,sol1%nel_type,npplt,r,s,ndof_sol,phi_sol)   
       
       
       CALL read_colormap(cmap_file)
@@ -158,17 +127,13 @@
       
       
       PRINT("(A)"), "Finding zoom box..."
-      CALL zoom_box(ne,nord,npplt,el_type,xyplt,xbox_min,xbox_max,ybox_min,ybox_max, &
-                                                     xmin,xmax,ymin,ymax,el_in)
+      CALL zoom_box(sol1%ne,nord,npplt,sol1%el_type,xyplt,xbox_min,xbox_max,ybox_min,ybox_max, &
+                                                     xmin,xmax,ymin,ymax,sol1%el_in)
 
                                                      
       PRINT("(A)"), "Scaling coordinates..."
       CALL scale_factors(figure_width,figure_height,xmin,xmax,ymin,ymax,ax,bx,ay,by)
-
-      
-    
-
-
+          
       
 #ifdef adcirc 
 
@@ -191,98 +156,11 @@
       snap_char = "0000"      
       
           
-#ifdef adcirc        
-      
-      IF (zeta%plot_sol_option == 1 .or. vel%plot_sol_option == 1) THEN
-        PRINT("(A)"), "Reading zeta solution..."          
-        CALL read_fort6163(out_direc,"63",t,eta,nsnap_Z) 
-        ALLOCATE(Z(3,ne,nsnap_Z))
-        DO snap = 1,nsnap_Z
-          DO el = 1,ne
-            DO nd = 1,3
-              Z(nd,el,snap) = eta(ect(nd,el),snap)
-            ENDDO
-          ENDDO
-        ENDDO
-      ENDIF
-      IF (bathy%plot_sol_option == 1 .or. vel%plot_sol_option == 1) THEN
-        PRINT("(A)"), "Reading bathymetry solution..."       
-        ALLOCATE(hb(3,ne,1))
-        DO el = 1,ne
-          DO nd = 1,3
-            hb(nd,el,1) = depth(ect(nd,el))
-          ENDDO
-        ENDDO
-      ENDIF        
-      IF (vel%plot_sol_option == 1) THEN
-        PRINT("(A)"), "Reading u and v solutions..."       
-        CALL read_fort6264(out_direc,"64make ",t,uu2,vv2,nsnap_Qx)
-        ALLOCATE(Qx(3,ne,nsnap_Qx))
-        ALLOCATE(Qy(3,ne,nsnap_Qx))        
-        DO snap = 1,nsnap_Qx
-          DO el = 1,ne
-            DO nd = 1,3
-              H = Z(nd,el,snap)+hb(nd,el,1)
-              Qx(nd,el,snap) = uu2(ect(nd,el),snap)*H
-              Qy(nd,el,snap) = vv2(ect(nd,el),snap)*H
-            ENDDO
-          ENDDO
-        ENDDO                
-      ELSE 
-        ALLOCATE(Qx(1,1,1),Qy(1,1,1))
-      ENDIF             
-      
-#elif dgswem
 
-      IF (zeta%plot_sol_option == 1 .or. vel%plot_sol_option == 1) THEN
-        PRINT("(A)"), "Reading zeta solution..."          
-        CALL read_DG63(out_direc,ne,t,Z,nsnap_Z) 
-      ENDIF
-      IF (vel%plot_sol_option == 1) THEN
-        PRINT("(A)"), "Reading Qx and Qy solutions..."       
-        CALL read_DG64(out_direc,ne,t,Qx,Qy,nsnap_Qx)        
-      ELSE 
-        ALLOCATE(Qx(1,1,1),Qy(1,1,1))
-      ENDIF  
-      IF (bathy%plot_sol_option == 1 .or. vel%plot_sol_option == 1) THEN
-        ALLOCATE(hb(3,ne,1))
-        CALL dgswem_bathymetry_nodal2modal(ne,ect,depth,hbm)
-        hb(:,:,1) = hbm(:,:)
-      ENDIF  
-
-#else
- 
-      IF (zeta%plot_sol_option == 1 .or. vel%plot_sol_option == 1) THEN
-        PRINT("(A)"), "Reading zeta solution..."          
-        CALL read_solution_full(out_direc,"Z.sol","N",t,Z,nsnap_Z) 
-      ENDIF
-      IF (vel%plot_sol_option == 1) THEN
-        PRINT("(A)"), "Reading Qx and Qy solutions..."       
-        CALL read_solution_full(out_direc,"Qx.sol","N",t,Qx,nsnap_Qx)        
-        CALL read_solution_full(out_direc,"Qy.sol","N",t,Qy,nsnap_Qy) 
-      ELSE 
-        ALLOCATE(Qx(1,1,1),Qy(1,1,1))
-      ENDIF  
-      IF (bathy%plot_sol_option == 1 .or. vel%plot_sol_option == 1) THEN
-        INQUIRE(file="hb.sol",exist=file_exists)
-        IF (file_exists == .true.) THEN
-          PRINT("(A)"), "Reading bathymetry solution..."          
-          CALL read_solution_full(out_direc,"hb.sol","N",t,hb,nsnap_hb)  
-        ELSE
-          CALL read_bathy_file(0,bathy_file,hbp,ne,el_type,nverts,depth,ect,elhb,hb_file_exists)
-          ALLOCATE(hb(mndof,ne,1))
-          CALL bathymetry_nodal2modal(hbp,mndof,ne,el_type,elhb,hbm)
-          hb(:,:,1) = hbm(:,:)
-        ENDIF
-      ENDIF   
- 
-#endif
+      CALL read_solutions(zeta,vel,bathy,sol1)             
       
-
-      
-      
-      CALL setup_cbounds(ne,el_in,el_type,npplt,mesh,1,1)     
-      CALL make_plot(1,0d0,mesh)  
+      CALL setup_cbounds(npplt,mesh,sol1,1,1)     
+      CALL make_plot(1,0d0,mesh,sol1)  
       
 
       IF (zeta%plot_sol_option == 0 .and. vel%plot_sol_option == 0 .and. bathy%plot_sol_option == 0) THEN
@@ -294,11 +172,11 @@
         WRITE(998,"(A)") "name     snap     error_total     nptri_total     pplt_max     ne_total"
       ENDIF      
       
-      CALL setup_cbounds(ne,el_in,el_type,npplt,bathy,1,1)      
-      CALL make_plot(1,t_snap,bathy)    
+      CALL setup_cbounds(npplt,bathy,sol1,1,1)      
+      CALL make_plot(1,t_snap,bathy,sol1)    
       
-      CALL setup_cbounds(ne,el_in,el_type,npplt,cfl,1,1)      
-      CALL make_plot(1,t_snap,cfl)          
+      CALL setup_cbounds(npplt,cfl,sol1,1,1)      
+      CALL make_plot(1,t_snap,cfl,sol1)          
       
       
       IF (zeta%plot_sol_option == 0 .and. vel%plot_sol_option == 0) THEN
@@ -320,8 +198,8 @@
       
 
 
-      CALL setup_cbounds(ne,el_in,el_type,npplt,zeta,snap_start,snap_end)
-      CALL setup_cbounds(ne,el_in,el_type,npplt,vel,snap_start,snap_end)
+      CALL setup_cbounds(npplt,zeta,sol1,snap_start,snap_end)
+      CALL setup_cbounds(npplt,vel,sol1,snap_start,snap_end)
 
       
       PRINT("(A)"), " "
@@ -330,16 +208,16 @@
       DO snap = snap_start,snap_end
       
         
-        t_snap = t(snap)      
+        t_snap = sol1%t(snap)      
         PRINT("(A)"), "---------------------------------------------"
         PRINT("(A,I5,A,I5,A,F20.5)"), "Time snap: ", snap-1,"/",snap_end," t = ", t_snap        
      
       
-        CALL make_plot(snap,t_snap,zeta)
+        CALL make_plot(snap,t_snap,zeta,sol1)
               
         PRINT("(A)"), " "        
 
-        CALL make_plot(snap,t_snap,vel)
+        CALL make_plot(snap,t_snap,vel,sol1)
         
 !         STOP
         

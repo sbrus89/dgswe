@@ -77,7 +77,7 @@ endif
 
 plot_objects =  plot_globals.o globals.o quit.o basis.o read_input.o messenger2.o \
            read_plot_input.o grid_file_mod.o read_write_output.o read_stations.o \
-           system.o tripack.o \
+           read_solution.o system.o tripack.o initialize.o \
            edge_connectivity_mod.o curvilinear_nodes_mod.o bathymetry_interp_mod.o \
            vandermonde.o transformation.o shape_functions_mod.o triangulation.o \
            area_qpts_mod.o edge_qpts_mod.o \
@@ -236,12 +236,20 @@ $(ODIR)convert.o: convert2cartesian.F90                      $(ODIR)globals.o $(
         
 $(ODIR)read_stations.o: ../../src/read_stations.F90          $(ODIR)globals.o $(ODIR)read_input.o $(ODIR)messenger2.o $(ODIR)quit.o 
 	$(FC) $(FFLAGS) -c $< -o $@        
+	
+$(ODIR)initialize.o: initialize.F90                          $(ODIR)globals.o $(ODIR)plot_globals.o $(ODIR)read_input.o $(ODIR)grid_file_mod.o $(ODIR)edge_connectivity_mod.o $(ODIR)transformation.o $(ODIR)curvilinear_nodes_mod.o
+	$(FC) $(FFLAGS) -c $< -o $@ 	
+	mv initialize.mod $(ODIR)	
 
 $(ODIR)plot_mod.o: plot_mod.F90                              $(ODIR)globals.o $(ODIR)plot_globals.o $(ODIR)evaluate_mod.o $(ODIR)labels_mod.o $(ODIR)axes_mod.o  $(ODIR)read_input.o $(ODIR)basis.o  $(ODIR)transformation.o $(ODIR)shape_functions_mod.o $(ODIR)area_qpts_mod.o $(ODIR)grid_file_mod.o $(ODIR)edge_qpts_mod.o
 	$(FC) $(FFLAGS) -c $< -o $@ 	
 	mv plot_mod.mod $(ODIR)
 	
-$(ODIR)evaluate_mod.o: evaluate_mod.F90                      $(ODIR)globals.o $(ODIR)basis.o  
+$(ODIR)read_solution.o: read_solution.F90                    $(ODIR)plot_globals.o $(ODIR)read_write_output.o $(ODIR)bathymetry_interp_mod.o $(ODIR)grid_file_mod.o
+	$(FC) $(FFLAGS) -c $< -o $@ 	
+	mv read_solution.mod $(ODIR)	
+	
+$(ODIR)evaluate_mod.o: evaluate_mod.F90                      $(ODIR)plot_globals.o $(ODIR)globals.o $(ODIR)basis.o  
 	$(FC) $(FFLAGS) -c $< -o $@ 	
 	mv evaluate_mod.mod $(ODIR)	
 	
@@ -261,7 +269,7 @@ $(ODIR)station_plot_types.o: station_plot_types.F90          $(ODIR)plot_globals
 	$(FC) $(FFLAGS) -c $< -o $@ 	
 	mv station_plot_types.mod $(ODIR)
 	
-$(ODIR)plot.o: plot_dg.F90                                   $(ODIR)plot_globals.o $(ODIR)globals.o $(ODIR)grid_file_mod.o $(ODIR)plot_mod.o $(ODIR)evaluate_mod.o $(ODIR)labels_mod.o $(ODIR)basis.o $(ODIR)read_write_output.o $(ODIR)read_input.o $(ODIR)triangulation.o $(ODIR)version.o
+$(ODIR)plot.o: plot_dg.F90                                   $(ODIR)plot_globals.o $(ODIR)globals.o $(ODIR)grid_file_mod.o $(ODIR)plot_mod.o $(ODIR)evaluate_mod.o $(ODIR)labels_mod.o $(ODIR)basis.o $(ODIR)read_write_output.o $(ODIR)read_input.o $(ODIR)triangulation.o $(ODIR)version.o $(ODIR)initialize.o
 	$(FC) $(FFLAGS) -c $< -o $@       
 
 $(ODIR)plot_stations.o: plot_stations.F90                    $(ODIR)plot_globals.o $(ODIR)globals.o $(ODIR)grid_file_mod.o $(ODIR)plot_mod.o $(ODIR)evaluate_mod.o $(ODIR)labels_mod.o $(ODIR)basis.o $(ODIR)read_write_output.o $(ODIR)read_input.o $(ODIR)triangulation.o $(ODIR)version.o 

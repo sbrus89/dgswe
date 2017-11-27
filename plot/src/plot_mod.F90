@@ -1,7 +1,8 @@
       MODULE plot_mod
       
-      USE globals, ONLY: rp,nel_type,np,nnds,psic
-      USE plot_globals, ONLY: plot_type,cscale_width,lr_margin,top_margin,dash,fontsize, &
+      USE globals, ONLY: rp,nel_type,psic
+      USE plot_globals, ONLY: plot_type,solution_type, &
+                              cscale_width,lr_margin,top_margin,dash,fontsize, &
                               axes_width,axes_height, &
                               rmin_page,rmax_page,smin_page,smax_page, &
                               rmin_axes,rmax_axes,smin_axes,smax_axes, &
@@ -29,18 +30,10 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-      SUBROUTINE make_plot(snap,t_snap,fig)
+      SUBROUTINE make_plot(snap,t_snap,fig,sol1)
             
-      USE globals, ONLY: ne,nn,nverts,el_type,xy,ect,elxy, &
-                         nbou,fbseg,fbnds,bndxy,nvel, &
-                         nnfbed,nfbedn, &
-                         nfbed,fbedn, &
-                         nobed,obedn, &
-                         ned,ged2el,ged2led,ed_type,&
-                         nsta,xysta, &
-                         nepn,epn
-      USE read_dginp, ONLY: p,ctp
-      USE plot_globals, ONLY: el_in,t_start,t_end,xyplt,pplt,npplt,nptri,rect,r,s, &
+      USE globals, ONLY: nsta,xysta
+      USE plot_globals, ONLY: t_start,t_end,xyplt,pplt,npplt,nptri,rect,r,s, &
                               frmt,density,pc,el_area
       USE labels_mod, ONLY: latex_axes_labels,run_latex,read_latex, & 
                             latex_element_labels,latex_node_labels, &
@@ -52,7 +45,8 @@
 
       INTEGER, INTENT(IN) :: snap
       REAL(rp), INTENT(IN) :: t_snap
-      TYPE(plot_type), INTENT(INOUT) :: fig      
+      TYPE(plot_type), INTENT(INOUT) :: fig   
+      TYPE(solution_type), INTENT(INOUT) :: sol1
 
       INTEGER :: el,et
       INTEGER :: pe
@@ -60,25 +54,27 @@
       CHARACTER(:), ALLOCATABLE :: filename
       CHARACTER(4) :: snap_char
       
- 
+      ! Return if solution is not being plotted
       IF (fig%plot_sol_option < 1) THEN
         RETURN
       ENDIF     
                 
+      PRINT("(A)"), "Ploting "//fig%name         
+                
       IF (.not. ALLOCATED(fig%el_plt)) THEN
-        ALLOCATE(fig%el_plt(ne))
-      ENDIF                   
-              
-      DO el = 1,ne
-        et = el_type(el)
+        ALLOCATE(fig%el_plt(sol1%ne))
+      ENDIF                                 
+      DO el = 1,sol1%ne
+        et = sol1%el_type(el)
         fig%el_plt(el) = (et-1)*nord + nord
       ENDDO              
 
-      fig%sol_min = fig%cscale_vals(snap,2)
-      fig%sol_max = fig%cscale_vals(snap,3)                                      
-      
-                
-      PRINT("(2(A,F10.5))"), "  min value = ", fig%sol_min, "  max value = ", fig%sol_max
+      ! Set minimum and maximum value range for colorbar
+      IF (fig%name /= "mesh")  THEN
+        fig%sol_min = fig%cscale_vals(snap,2)
+        fig%sol_max = fig%cscale_vals(snap,3)                                                            
+        PRINT("(2(A,F10.5))"), "  min value = ", fig%sol_min, "  max value = ", fig%sol_max
+      ENDIF
        
       IF (fig%type_flag == 3 .or. fig%type_flag == 4) THEN 
         WRITE(snap_char,"(I4.4)") snap           
@@ -89,49 +85,50 @@
       ENDIF
       
       
-          
+      ! Initialize axes labels    
       CALL latex_axes_labels(fig,t_snap,t_start,t_end)  
       IF (fig%el_label_option /= "off") THEN
-        CALL latex_element_labels(ne,fig%el_label_option,el_type,el_in,nverts,xy,ect,nnfbed,nfbedn,ged2el)
+        CALL latex_element_labels(fig%el_label_option,sol1%ne,sol1%el_type,sol1%el_in,sol1%nverts,sol1%xy,sol1%ect,sol1%nnfbed,sol1%nfbedn,sol1%ged2el)
       ENDIF
       IF (fig%nd_label_option /= "off") THEN
-        CALL latex_node_labels(nn,fig%nd_label_option,xy,nbou,fbseg,fbnds)
+        CALL latex_node_labels(fig%nd_label_option,sol1%nn,sol1%xy,sol1%nbou,sol1%fbseg,sol1%fbnds)
       ENDIF
       CALL run_latex(fig%tex_file_exists)      
       CALL read_latex(fig%tex_file_exists,fig%latex_header,fig%nline_header,fig%latex_body,fig%nline_body)
       CALL remove_latex_files()      
       
-           
+      ! Initialize PS file with PS functions, latex header, and backgound
       CALL write_psheader(filename//".ps",fig%ps_unit)  
       CALL write_char_array(fig%ps_unit,fig%nline_header,fig%latex_header)  
       CALL plot_background(fig%ps_unit,.75d0,.75d0,.75d0)
       
-      
+      ! Plot solution
       IF (fig%type_flag > 1) THEN
-        CALL plot_filled_contours_adapt(fig%ps_unit,ne,ect,nverts,el_type,el_in,el_area,elxy,xyplt,pplt,nptri,npplt,rect,r,s,snap,fig)             
+        CALL plot_filled_contours_adapt(fig%ps_unit,sol1,xyplt,pplt,nptri,npplt,rect,r,s,snap,fig)             
       ENDIF
       IF (fig%plot_lines_option == 1) THEN
-        CALL plot_line_contours(fig%ps_unit,ne,el_type,el_in,nptri,rect,xyplt,r,s,snap,fig)          
+        CALL plot_line_contours(fig%ps_unit,sol1,nptri,rect,xyplt,r,s,snap,fig)          
       ENDIF      
       
 
-
+      ! Plot adaptive visualization mesh
       IF (adapt_option == 1 .and. fig%type_flag > 1) THEN
         CALL SYSTEM("cp "//filename//".ps "//filename//"_pltmesh.ps")
         OPEN(UNIT=999,FILE=filename//"_pltmesh.ps",POSITION="APPEND")
-        CALL plot_vis_mesh(999,ne,el_type,el_in,xyplt,nptri,rect,fig)         
+        CALL plot_vis_mesh(999,sol1%ne,sol1%el_type,sol1%el_in,xyplt,nptri,rect,fig)         
         CALL write_all_axes(999,fig%axis_label_flag,fig%cbar_flag,fig%tbar_flag,t_snap,t_start,t_end)
-!         CALL plot_elxy_nodes(999,ne,el_type,el_in,nnds,elxy)              
+!         CALL plot_elxy_nodes(999,sol1%ne,sol1%el_type,sol1%el_in,nnds,sol1%elxy)              
         CALL write_char_array(999,fig%nline_body,fig%latex_body)        
         CALL convert_ps(filename//"_pltmesh",frmt,density,fig%rm_ps)
         CLOSE(999)
       ENDIF 
       
+!       ! Plot decomposed mesh        
 !       IF (fig%plot_mesh_option == 1 .and. fig%name == "mesh") THEN
 !         CALL SYSTEM("cp "//filename//".ps "//filename//"_decomp.ps")
 !         OPEN(UNIT=998,FILE=filename//"_decomp.ps",POSITION="APPEND")
-!         CALL fill_elements(998,ne,nverts,fig%el_plt,pplt,el_type,el_in,xy,ect,xyplt)        
-!         CALL plot_decomp_mesh(998,nverts)
+!         CALL fill_elements(998,sol1%ne,sol1%nverts,fig%el_plt,pplt,sol1%el_type,sol1%el_in,sol1%xy,sol1%ect,xyplt)        
+!         CALL plot_decomp_mesh(998,sol1%nverts)
 !         CALL write_all_axes(998,fig%axis_label_flag,fig%cbar_flag,fig%tbar_flag,t_snap,t_start,t_end)
 !         CALL write_char_array(998,fig%nline_body,fig%latex_body)        
 !         CALL convert_ps(filename//"_decomp",frmt,density,fig%rm_ps)         
@@ -139,51 +136,51 @@
 !       ENDIF       
       
       
-
+      ! Plot mesh 
       IF (fig%plot_mesh_option == 1) THEN
         IF (fig%name == "mesh") THEN
-          CALL fill_elements(fig%ps_unit,ne,nverts,fig%el_plt,pplt,el_type,el_in,xy,ect,xyplt)        
+          CALL fill_elements(fig%ps_unit,sol1%ne,sol1%nverts,fig%el_plt,pplt,sol1%el_type,sol1%el_in,sol1%xy,sol1%ect,xyplt)        
         ENDIF                
        
-        CALL plot_mesh(fig%ps_unit,ne,nverts,fig%el_plt,pplt,el_type,el_in,xy,ect,xyplt)  
-!         CALL plot_nodestring(fig%ps_unit,nbou,nvel,fbseg,fbnds,xy)
-!         CALL plot_qpts(fig%ps_unit,ne,el_type,el_in,elxy,nverts,ned,ed_type,ged2el,ged2led)
+        CALL plot_mesh(fig%ps_unit,sol1%ne,sol1%nverts,fig%el_plt,pplt,sol1%el_type,sol1%el_in,sol1%xy,sol1%ect,xyplt)  
+!         CALL plot_nodestring(fig%ps_unit,sol1%nbou,sol1%nvel,sol1%fbseg,sol1%fbnds,sol1%xy)
+!         CALL plot_qpts(fig%ps_unit,sol1%ne,sol1%p,sol1%ctp,sol1%np,sol1%el_type,sol1%el_in,sol1%elxy,sol1%nverts,sol1%ned,sol1%ed_type,sol1%ged2el,sol1%ged2led)
         IF (fig%name == "mesh" .and. fig%plot_sta_option == 1) THEN
           CALL plot_stations(fig%ps_unit,fig%sta_start,fig%sta_end,xysta)        
         ENDIF
       ELSE IF (fig%plot_mesh_option == 2) THEN
       
         IF (fig%name == "mesh") THEN
-          CALL fill_elements(fig%ps_unit,ne,nverts,fig%el_plt,pplt,el_type,el_in,xy,ect,xyplt)        
+          CALL fill_elements(fig%ps_unit,sol1%ne,sol1%nverts,fig%el_plt,pplt,sol1%el_type,sol1%el_in,sol1%xy,sol1%ect,xyplt)        
         ENDIF          
         pe = (et-1)*nord + nord
-        CALL plot_boundaries(fig%ps_unit,nverts,fig%el_plt,pplt,nobed,obedn,ged2el,ged2led,el_type,el_in,ect,xy,xyplt)       
-        CALL plot_boundaries(fig%ps_unit,nverts,fig%el_plt,pplt,nnfbed,nfbedn,ged2el,ged2led,el_type,el_in,ect,xy,xyplt)        
-        CALL plot_boundaries(fig%ps_unit,nverts,fig%el_plt,pplt,nfbed,fbedn,ged2el,ged2led,el_type,el_in,ect,xy,xyplt)          
+        CALL plot_boundaries(fig%ps_unit,sol1%nverts,fig%el_plt,pplt,sol1%nobed,sol1%obedn,sol1%ged2el,sol1%ged2led,sol1%el_type,sol1%el_in,sol1%ect,sol1%xy,xyplt)       
+        CALL plot_boundaries(fig%ps_unit,sol1%nverts,fig%el_plt,pplt,sol1%nnfbed,sol1%nfbedn,sol1%ged2el,sol1%ged2led,sol1%el_type,sol1%el_in,sol1%ect,sol1%xy,xyplt)        
+        CALL plot_boundaries(fig%ps_unit,sol1%nverts,fig%el_plt,pplt,sol1%nfbed,sol1%fbedn,sol1%ged2el,sol1%ged2led,sol1%el_type,sol1%el_in,sol1%ect,sol1%xy,xyplt)          
         IF (fig%name == "mesh" .and. fig%plot_sta_option == 1) THEN
           CALL plot_stations(fig%ps_unit,fig%sta_start,fig%sta_end,xysta)        
         ENDIF        
       ENDIF 
       
-!         CALL plot_cb_nodes(fig%ps_unit,ctp,nbou,fbseg,fbnds,xy,bndxy,nepn,epn,el_in)
-!         CALL plot_elxy_nodes(fig%ps_unit,ne,el_type,el_in,nnds,elxy) 
-!         CALL plot_qpts(fig%ps_unit,ne,el_type,el_in,elxy,nverts,ned,ed_type,ged2el,ged2led)
+!         ! Plot nodes      
+!         CALL plot_cb_nodes(fig%ps_unit,sol1%ctp,sol1%nbou,sol1%fbseg,sol1%fbnds,sol1%xy,sol1%bndxy,sol1%nepn,sol1%epn,sol1%el_in)
+!         CALL plot_elxy_nodes(fig%ps_unit,sol1%ne,sol1%el_type,sol1%el_in,nnds,sol1%elxy) 
+!         CALL plot_qpts(fig%ps_unit,sol1%ne,sol1%p,sol1%ctp,sol1%np,sol1%el_type,sol1%el_in,sol1%elxy,sol1%nverts,sol1%ned,sol1%ed_type,sol1%ged2el,sol1%ged2led)
               
       
-      CALL write_all_axes(fig%ps_unit,fig%axis_label_flag,fig%cbar_flag,fig%tbar_flag,t_snap,t_start,t_end)       
-      
-!       CALL write_latex_ps_body(fig%ps_unit)
+      ! Write axes and latexed labels
+      CALL write_all_axes(fig%ps_unit,fig%axis_label_flag,fig%cbar_flag,fig%tbar_flag,t_snap,t_start,t_end)             
       CALL write_char_array(fig%ps_unit,fig%nline_body,fig%latex_body)  
       
+      ! Finish up 
       CALL close_ps(filename,fig%ps_unit)
       CALL convert_ps(filename,frmt,density,fig%rm_ps)    
       
+      ! Create separate color scales 
       IF (fig%name /= "mesh" .and. fig%cbar_flag == 0) THEN
 !         CALL make_cscale_horz(fig,filename)
         CALL make_cscale_vert(fig,filename,t_snap,t_start,t_end)        
       ENDIF
-      
-!       STOP
       
       RETURN
       END SUBROUTINE make_plot
@@ -890,26 +887,18 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-      SUBROUTINE plot_filled_contours_adapt(file_unit,ne,ect,nverts,el_type,el_in,el_area,elxy,xyplt,pplt,nptri,npplt,rect,r,s,snap,fig)
+      SUBROUTINE plot_filled_contours_adapt(file_unit,sol,xyplt,pplt,nptri,npplt,rect,r,s,snap,fig)
       
       USE transformation, ONLY: init_vandermonde,element_transformation,xy2rs
-      USE basis, ONLY: element_basis,linear_basis           
-      USE read_dginp, ONLY: p,hbp,ctp   
-      USE plot_globals, ONLY: Z,hb,Qx,Qy      
+      USE basis, ONLY: element_basis,linear_basis              
       USE area_qpts_mod, ONLY: tri_cubature,area_qpts
       USE shape_functions_mod, ONLY: shape_functions_area_eval
       USE evaluate_mod, ONLY: evaluate_solution
       
       IMPLICIT NONE
       
-      INTEGER, INTENT(IN) :: file_unit
-      INTEGER, INTENT(IN) :: ne
-      INTEGER, DIMENSION(:,:), INTENT(IN) :: ect      
-      INTEGER, DIMENSION(:), INTENT(IN) :: nverts      
-      INTEGER, DIMENSION(:), INTENT(IN) :: el_type
-      INTEGER, DIMENSION(:), INTENT(IN) :: el_in
-      REAL(rp), DIMENSION(:), INTENT(IN) :: el_area
-      REAL(rp), DIMENSION(:,:,:), INTENT(IN) :: elxy
+      INTEGER, INTENT(IN) :: file_unit     
+      TYPE(solution_type), INTENT(IN) :: sol      
       REAL(rp), DIMENSION(:,:,:), INTENT(INOUT) :: xyplt 
       INTEGER, DIMENSION(:), INTENT(IN) :: pplt 
       INTEGER, DIMENSION(:), INTENT(IN) :: nptri
@@ -966,8 +955,8 @@
       
       
       ! quadrature points for elemental solution average
-      CALL area_qpts(1,p,ctp,nel_type,nqpta,mnqpta,wpta,qpta)      
-      ALLOCATE(phia((p+1)**2,mnqpta,nel_type))
+      CALL area_qpts(1,sol%p,sol%ctp,nel_type,nqpta,mnqpta,wpta,qpta)      
+      ALLOCATE(phia((sol%p+1)**2,mnqpta,nel_type))
 
       ! quadrature points for error integral
       qpt_order = 2
@@ -993,12 +982,12 @@
       
       
       ! shape functions for elemental solution average
-      mnp = maxval(np)      
+      mnp = maxval(sol%np)      
       mnnds = (mnp+1)**2     
       ALLOCATE(psi(mnnds,mnqpta,nel_type),dpsidr(mnnds,mnqpta,nel_type),dpsids(mnnds,mnqpta,nel_type))
       
       DO et = 1,nel_type         
-        CALL shape_functions_area_eval(et,np(et),nnds(et),nqpta(et),qpta(:,1,et),qpta(:,2,et), &
+        CALL shape_functions_area_eval(et,sol%np(et),nnd,nqpta(et),qpta(:,1,et),qpta(:,2,et), &
                                        psi(:,:,et),dpsidr(:,:,et),dpsids(:,:,et))
       ENDDO      
       
@@ -1007,7 +996,7 @@
       
       dc = (fig%sol_max-fig%sol_min)/real(ncolors-1,rp)      
       
-      CALL init_vandermonde(nel_type,np)      
+      CALL init_vandermonde(nel_type,sol%np)      
             
 !       rel_tol = 1d-1  
 !       abs_tol = 1d-1
@@ -1019,14 +1008,14 @@
       ne_total = 0
       pplt_max = 0
       
- elem:DO el = 1,ne
+ elem:DO el = 1,sol%ne
 
-        IF (el_in(el) == 0) THEN
+        IF (sol%el_in(el) == 0) THEN
           CYCLE elem
         ENDIF
         
-        et = el_type(el)       
-        nnd = nnds(et)        
+        et = sol%el_type(el)       
+        nnd = sol%nnds(et)        
           
         IF (et > 2) THEN
          pl = pc
@@ -1036,15 +1025,15 @@
         
         IF (adapt_option == 1) THEN           
           ! Find element average value for solution
-          CALL evaluate_solution(el,et,fig%type_flag,snap,sol_el,nqpta(et),qpta(:,1,et),qpta(:,2,et))
+          CALL evaluate_solution(el,fig%type_flag,snap,sol,sol_el,nqpta(et),qpta(:,1,et),qpta(:,2,et))
         
           sol_avg = 0d0
           DO pt = 1,nqpta(et)
-            CALL element_transformation(nnd,elxy(:,el,1),elxy(:,el,2),psi(:,pt,et),xpta,ypta, &
+            CALL element_transformation(nnd,sol%elxy(:,el,1),sol%elxy(:,el,2),psi(:,pt,et),xpta,ypta, &
                                         dpsidr(:,pt,et),dpsids(:,pt,et),drdx,drdy,dsdx,dsdy,detJ)                
             sol_avg = sol_avg + wpta(pt,et)*sol_el(pt)*detJ
           ENDDO
-          sol_avg = sol_avg/el_area(el)
+          sol_avg = sol_avg/sol%el_area(el)
              
           PRINT*, ""        
           PRINT "(A,I9,A,I9,A,F15.7)", "ELEMENT: ", el, "    et: ", et, "    sol_avg = ", sol_avg        
@@ -1056,13 +1045,13 @@
           
 
           DO pt = 1,npplt(i)              
-            CALL element_transformation(nnd,elxy(:,el,1),elxy(:,el,2),psic(:,pt,i),xyplt(pt,el,1),xyplt(pt,el,2))           
+            CALL element_transformation(nnd,sol%elxy(:,el,1),sol%elxy(:,el,2),psic(:,pt,i),xyplt(pt,el,1),xyplt(pt,el,2))           
           ENDDO                  
      
           ! Evaluate solution at plotting nodes    
           
-          CALL evaluate_solution(el,et,fig%type_flag,snap,fig%sol_val(:,el),npplt(i),phi_sol=phi_sol(:,:,i))           
-!           CALL evaluate_solution(el,et,fig%type_flag,snap,sol_lo,npplt(i),phi_sol=phi_sol(:,:,i),plim=1)
+          CALL evaluate_solution(el,fig%type_flag,snap,sol,fig%sol_val(:,el),npplt(i),phi_sol=phi_sol(:,:,i))           
+!           CALL evaluate_solution(el,fig%type_flag,snap,sol,sol_lo,npplt(i),phi_sol=phi_sol(:,:,i),plim=1)
 !           
 !           DO pt = 1,npplt(i)
 !             fig%sol_val(pt,el) = abs(fig%sol_val(pt,el)-sol_lo(pt))
@@ -1070,8 +1059,8 @@
      
 !           fig%sol_val(:,el) = -1d99
 !           DO k = snap_start,snap_end
-!             CALL evaluate_solution(el,et,fig%type_flag,k,sol_vec,npplt(i),phi_sol=phi_sol(:,:,i))           
-!             CALL evaluate_solution(el,et,fig%type_flag,k,sol_lo,npplt(i),phi_sol=phi_sol(:,:,i),plim=1)
+!             CALL evaluate_solution(el,fig%type_flag,k,sol,sol_vec,npplt(i),phi_sol=phi_sol(:,:,i))           
+!             CALL evaluate_solution(el,fig%type_flag,k,sol,sol_lo,npplt(i),phi_sol=phi_sol(:,:,i),plim=1)
 !           
 !             DO pt = 1,npplt(i)
 !               sol_vec(pt) = abs(sol_vec(pt)-sol_lo(pt))
@@ -1120,10 +1109,10 @@
             
             detJ = .25d0*((xv(2)-xv(1))*(yv(3)-yv(1))-(xv(3)-xv(1))*(yv(2)-yv(1)))
             
-            CALL xy2rs(et,np(et),elxy(:,el,1),elxy(:,el,2),nqpt,xpt,ypt,rpt,spt)   
+            CALL xy2rs(et,sol%np(et),sol%elxy(:,el,1),sol%elxy(:,el,2),nqpt,xpt,ypt,rpt,spt)   
             
             ! Evaluate DG solution at plotting element quadrature points
-            CALL evaluate_solution(el,et,fig%type_flag,snap,sol_el,nqpt,rpt,spt)
+            CALL evaluate_solution(el,fig%type_flag,snap,sol,sol_el,nqpt,rpt,spt)
 
             
             
@@ -1217,19 +1206,19 @@
       ENDIF
       
       
-!       ALLOCATE(el_list(ne),nd_list(ne),nd_flag(ne))
+!       ALLOCATE(el_list(sol%ne),nd_list(sol%ne),nd_flag(sol%ne))
 !       nd_flag = 0
 !       elcnt = 0
 !       ndcnt = 0
-!       DO el = 1,ne
+!       DO el = 1,sol%ne
 !       
-!         IF (el_in(el) == 0) THEN
+!         IF (sol%el_in(el) == 0) THEN
 !           CYCLE
 !         ENDIF      
 !       
 !         i = fig%el_plt(el)
-!         et = el_type(el)
-!         nv = nverts(et)
+!         et = sol%el_type(el)
+!         nv = sol%nverts(et)
 !         
 !         el_max = -1d99
 !         DO pt = 1,npplt(i)
@@ -1242,7 +1231,7 @@
 !           elcnt = elcnt + 1
 !           el_list(elcnt) = el
 !           DO j = 1,nv
-!             nd = ect(j,el)
+!             nd = sol%ect(j,el)
 !             IF (nd_flag(nd) == 0)THEN
 !               ndcnt = ndcnt + 1
 !               nd_list(ndcnt) = nd
@@ -1274,11 +1263,8 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!   
 
-      SUBROUTINE plot_line_contours(file_unit,ne,el_type,el_in,nptri,rect,xyplt,rre,sre,snap,fig)
-      
-      USE globals, ONLY: mndof,elxy,xy,ect,np,mnnds
-      USE plot_globals, ONLY: Z,hb,Qx,Qy
-      USE read_dginp, ONLY: p,hbp
+      SUBROUTINE plot_line_contours(file_unit,sol,nptri,rect,xyplt,rre,sre,snap,fig)
+
       USE basis, ONLY: element_basis,linear_basis,dgswem_basis
       USE transformation, ONLY: element_transformation
       USE shape_functions_mod, ONLY: shape_functions_area_eval, shape_functions_edge_eval
@@ -1286,9 +1272,7 @@
       IMPLICIT NONE
       
       INTEGER, INTENT(IN) :: file_unit
-      INTEGER, INTENT(IN) :: ne
-      INTEGER, DIMENSION(:), INTENT(IN) :: el_type
-      INTEGER, DIMENSION(:), INTENT(IN) :: el_in
+      TYPE(solution_type), INTENT(IN) :: sol
       INTEGER, DIMENSION(:), INTENT(IN) :: nptri
       INTEGER, DIMENSION(:,:,:), INTENT(IN) :: rect
       REAL(rp), DIMENSION(:,:,:), INTENT(IN) :: xyplt  
@@ -1313,8 +1297,8 @@
       REAL(rp) :: t,f,dfdr,dfds,dfdt,dt,t0
       INTEGER :: max_it
       INTEGER :: fail_flag
-      REAL(rp) :: phi(mndof,2),dpdr(mndof,1),dpds(mndof,1)
-      REAL(rp) :: l(mnnds,1)
+      REAL(rp) :: phi(sol%mndof,2),dpdr(sol%mndof,1),dpds(sol%mndof,1)
+      REAL(rp) :: l(sol%mnnds,1)
       REAL(rp) :: xv(3),yv(3)
       REAL(rp) :: rv(3),sv(3)
       REAL(rp) :: zeta,bathy,xmom,ymom,H
@@ -1331,7 +1315,7 @@
       
 
 
-      ALLOCATE(el_below(maxval(nptri),ne))
+      ALLOCATE(el_below(maxval(nptri),sol%ne))
       el_below = 0
       
        dc = (fig%sol_max-fig%sol_min)/real(nctick-1,rp)                  
@@ -1339,9 +1323,9 @@
        
 levels:DO lev = 1,nctick
       
-    elem:DO el = 1,ne
-           et = el_type(el)
-           IF (el_in(el) == 0) THEN
+    elem:DO el = 1,sol%ne
+           et = sol%el_type(el)
+           IF (sol%el_in(el) == 0) THEN
              CYCLE elem
            ENDIF
      
@@ -1419,17 +1403,17 @@ levels:DO lev = 1,nctick
 #ifdef adcirc                   
                      CALL linear_basis(ndf,1,re,se,phi,dpdr,dpds)
 #elif dgswem                       
-                     CALL dgswem_basis(hbp,ndf,1,re,se,phi,dpdr,dpds)   
+                     CALL dgswem_basis(sol%hbp,ndf,1,re,se,phi,dpdr,dpds)   
 #else
-                     CALL element_basis(et,hbp,ndf,1,re,se,phi,dpdr,dpds)   
+                     CALL element_basis(et,sol%hbp,ndf,1,re,se,phi,dpdr,dpds)   
 #endif                     
                      bathy = 0d0
                      dbdr = 0d0
                      dbds = 0d0
                      DO dof = 1,ndf
-                       bathy = bathy + phi(dof,1)*hb(dof,el,1)
-                       dbdr = dbdr + dpdr(dof,1)*hb(dof,el,1)
-                       dbds = dbds + dpds(dof,1)*hb(dof,el,1)
+                       bathy = bathy + phi(dof,1)*sol%hb(dof,el,1)
+                       dbdr = dbdr + dpdr(dof,1)*sol%hb(dof,el,1)
+                       dbds = dbds + dpds(dof,1)*sol%hb(dof,el,1)
                      ENDDO
                      IF (fig%type_flag == 2) THEN
                        f = bathy - sol_lev
@@ -1442,17 +1426,17 @@ levels:DO lev = 1,nctick
 #ifdef adcirc
                      CALL linear_basis(ndf,1,re,se,phi,dpdr,dpds)
 #elif dgswem
-                     CALL dgswem_basis(p,ndf,1,re,se,phi,dpdr,dpds)    
+                     CALL dgswem_basis(sol%p,ndf,1,re,se,phi,dpdr,dpds)    
 #else                     
-                     CALL element_basis(et,p,ndf,1,re,se,phi,dpdr,dpds)    
+                     CALL element_basis(et,sol%p,ndf,1,re,se,phi,dpdr,dpds)    
 #endif                     
                      zeta = 0d0
                      dzdr = 0d0
                      dzds = 0d0
                      DO dof = 1,ndf
-                       zeta = zeta + phi(dof,1)*Z(dof,el,snap)
-                       dzdr = dzdr + dpdr(dof,1)*Z(dof,el,snap)
-                       dzds = dzds + dpds(dof,1)*Z(dof,el,snap)
+                       zeta = zeta + phi(dof,1)*sol%Z(dof,el,snap)
+                       dzdr = dzdr + dpdr(dof,1)*sol%Z(dof,el,snap)
+                       dzds = dzds + dpds(dof,1)*sol%Z(dof,el,snap)
                      ENDDO
                      IF (fig%type_flag == 3) THEN
                        f = zeta - sol_lev
@@ -1469,12 +1453,12 @@ levels:DO lev = 1,nctick
                      dymdr = 0d0
                      dymds = 0d0
                      DO dof = 1,ndf
-                       xmom = xmom + phi(dof,1)*Qx(dof,el,snap)
-                       ymom = ymom + phi(dof,1)*Qy(dof,el,snap)
-                       dxmdr = dxmdr + dpdr(dof,1)*Qx(dof,el,snap)
-                       dxmds = dxmds + dpds(dof,1)*Qx(dof,el,snap)
-                       dymdr = dymdr + dpdr(dof,1)*Qy(dof,el,snap)
-                       dymds = dymds + dpds(dof,1)*Qy(dof,el,snap)
+                       xmom = xmom + phi(dof,1)*sol%Qx(dof,el,snap)
+                       ymom = ymom + phi(dof,1)*sol%Qy(dof,el,snap)
+                       dxmdr = dxmdr + dpdr(dof,1)*sol%Qx(dof,el,snap)
+                       dxmds = dxmds + dpds(dof,1)*sol%Qx(dof,el,snap)
+                       dymdr = dymdr + dpdr(dof,1)*sol%Qy(dof,el,snap)
+                       dymds = dymds + dpds(dof,1)*sol%Qy(dof,el,snap)
                      ENDDO
                      H = zeta + bathy          
                      dHdr = dzdr + dbdr
@@ -1534,8 +1518,8 @@ levels:DO lev = 1,nctick
                  se(1) = .5d0*(s1+s2)
                ENDIF
  
-               CALL shape_functions_area_eval(et,np(et),nnd,1,re,se,l)
-               CALL element_transformation(nnd,elxy(:,el,1),elxy(:,el,2),l(:,1),x(i),y(i))  
+               CALL shape_functions_area_eval(et,sol%np(et),nnd,1,re,se,l)
+               CALL element_transformation(nnd,sol%elxy(:,el,1),sol%elxy(:,el,2),l(:,1),x(i),y(i))  
                  
  
                !!!! Edge midpoint !!!!
@@ -2017,19 +2001,20 @@ edge:DO ed = 1,nbed
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
 
-      SUBROUTINE plot_qpts(file_unit,ne,el_type,el_in,elxy,nverts,ned,ed_type,ged2el,ged2led)
+      SUBROUTINE plot_qpts(file_unit,ne,p,ctp,np,el_type,el_in,elxy,nverts,ned,ed_type,ged2el,ged2led)
       
-      USE transformation, ONLY: element_transformation       
-      USE read_dginp, ONLY: p,ctp         
+      USE transformation, ONLY: element_transformation               
       USE area_qpts_mod, ONLY: area_qpts
       USE edge_qpts_mod, ONLY: edge_qpts
-      USE shape_functions_mod, ONLY: shape_functions_area_eval
-      USE evaluate_mod, ONLY: evaluate_solution      
+      USE shape_functions_mod, ONLY: shape_functions_area_eval 
       
       IMPLICIT NONE
       
       INTEGER, INTENT(IN) :: file_unit
       INTEGER, INTENT(IN) :: ne
+      INTEGER, INTENT(IN) :: p
+      INTEGER, INTENT(IN) :: ctp
+      INTEGER, DIMENSION(:), INTENT(IN) :: np
       INTEGER, DIMENSION(:), INTENT(IN) :: el_type
       INTEGER, DIMENSION(:), INTENT(IN) :: el_in
       REAL(rp), DIMENSION(:,:,:), INTENT(IN) :: elxy
@@ -2042,7 +2027,8 @@ edge:DO ed = 1,nbed
       INTEGER :: el,pt,nd,i,ged
       INTEGER :: et,nnd,edt,led
       INTEGER :: mnqpta,nqpta(nel_type)   
-      INTEGER :: mnqpte,nqpte(nel_type)       
+      INTEGER :: mnqpte,nqpte(nel_type)    
+      INTEGER :: nnds(nel_type)
       INTEGER :: mnnds,mnp
       REAL(rp) :: xpt,ypt
       REAL(rp), DIMENSION(:,:,:), ALLOCATABLE :: qpta
@@ -2384,17 +2370,15 @@ edge:DO ed = 1,nbed
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
 
-      SUBROUTINE setup_cbounds(ne,el_in,el_type,npplt,fig,snap_start,snap_end)
+      SUBROUTINE setup_cbounds(npplt,fig,sol,snap_start,snap_end)
       
       USE evaluate_mod, ONLY: evaluate_solution
       
       IMPLICIT NONE
       
-      INTEGER, INTENT(IN) :: ne
-      INTEGER, DIMENSION(:), INTENT(IN) :: el_in
-      INTEGER, DIMENSION(:), INTENT(IN) :: el_type
       INTEGER, DIMENSION(:), INTENT(iN) :: npplt
       TYPE(plot_type), INTENT(INOUT) :: fig
+      TYPE(solution_type), INTENT(IN) :: sol
       INTEGER, INTENT(IN) :: snap_start
       INTEGER, INTENT(IN) :: snap_end         
       
@@ -2403,33 +2387,37 @@ edge:DO ed = 1,nbed
       INTEGER :: start_snap,end_snap
       CHARACTER(:), ALLOCATABLE :: filename
 
-      
-      filename = TRIM(ADJUSTL(fig%name))//".cscale"      
-      
-      ALLOCATE(fig%cscale_vals(snap_end,3)) 
-      ALLOCATE(fig%sol_val(mnpp,ne))      
-      
+           
+      ! Early exit if figure is not being plotted, or if it is the mesh
       IF (fig%plot_sol_option == 0 .or. fig%type_flag == 1) THEN
         RETURN
       ENDIF
       
+      filename = TRIM(ADJUSTL(fig%name))//".cscale"      
+      
+      ALLOCATE(fig%cscale_vals(snap_end,3)) 
+      ALLOCATE(fig%sol_val(mnpp,sol%ne))       
+      
+      fig%num_cscale_vals = snap_end - snap_start + 1      
+      
+      ! Setup color scale bounds output file
       IF (fig%type_flag > 2) THEN   
         OPEN(unit=fig%cscale_unit,file=filename//".out")  
         WRITE(fig%cscale_unit,"(2I5)") snap_start-1,snap_end-1
       ENDIF      
       
-      fig%num_cscale_vals = snap_end - snap_start + 1
-      
+      ! Read in minimum and maximum solution values from file
       IF (fig%cscale_option == "file") THEN
-        OPEN(unit=fig%cscale_unit,file=filename)
-        READ(fig%cscale_unit,*) start_snap,end_snap
+        OPEN(unit=22,file=filename)
+        READ(22,*) start_snap,end_snap
         fig%num_cscale_vals = end_snap - start_snap + 1           
         DO snap = snap_start,snap_end
-          READ(fig%cscale_unit,*) fig%cscale_vals(snap,1),fig%cscale_vals(snap,2),fig%cscale_vals(snap,3)
+          READ(22,*) fig%cscale_vals(snap,1),fig%cscale_vals(snap,2),fig%cscale_vals(snap,3)
         ENDDO
-        CLOSE(fig%cscale_unit)
+        CLOSE(22)
       ENDIF
       
+      ! Set specified minimum and maximum values for all timesnaps
       IF (fig%cscale_option == "spec") THEN
         DO snap = 1,snap_end
           fig%cscale_vals(snap,2) = fig%cscale_min
@@ -2437,6 +2425,7 @@ edge:DO ed = 1,nbed
         ENDDO        
       ENDIF
       
+      ! Find minimum and maximum solution values for each timesnap
       IF (fig%cscale_option == "auto-snap" .or. fig%cscale_option == "auto-all") THEN
       
         DO snap = snap_start,snap_end        
@@ -2444,17 +2433,17 @@ edge:DO ed = 1,nbed
           fig%cscale_min = 1d10
           fig%cscale_max = -1d10      
     
-    elem: DO el = 1,ne
+    elem: DO el = 1,sol%ne
     
-            IF (el_in(el) == 0) THEN
+            IF (sol%el_in(el) == 0) THEN
               CYCLE elem
             ENDIF
             
-            et = el_type(el)
+            et = sol%el_type(el)
             i = (et-1)*nord+nord                 
             npts = npplt(i)       
             
-            CALL evaluate_solution(el,et,fig%type_flag,snap,fig%sol_val(:,el),npts,phi_sol=phi_sol(:,:,i))  
+            CALL evaluate_solution(el,fig%type_flag,snap,sol,fig%sol_val(:,el),npts,phi_sol=phi_sol(:,:,i))  
             
             DO pt = 1,npts
               IF (fig%sol_val(pt,el) > fig%cscale_max) THEN
@@ -2473,6 +2462,7 @@ edge:DO ed = 1,nbed
         ENDDO            
       ENDIF
       
+      ! Find overall minimum and maximum solution values
       IF (fig%cscale_option == "auto-all") THEN
         fig%cscale_min = 1d10
         fig%cscale_max = -1d10
