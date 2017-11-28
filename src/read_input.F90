@@ -440,7 +440,7 @@
           j = 0        
           DO opt = 1,nopt
             i = dginp_ind(opt)
-            IF (dginp(i)%flag == 0 .and. (dginp(i)%required .eqv. .false.)) THEN
+            IF ((dginp(i)%flag == 0) .and. (dginp(i)%required .eqv. .false.)) THEN
 
               j = j+1
               SELECT CASE (dginp(i)%vartype) 

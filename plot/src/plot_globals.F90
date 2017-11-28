@@ -2,7 +2,9 @@
       
       USE globals, ONLY: rp
       
+      INTEGER :: diff_option
       CHARACTER(100) :: input_path
+      CHARACTER(100) :: input_path2      
       CHARACTER(100) :: cmap_file
       CHARACTER(100) :: tsnap_spec
       CHARACTER(3) :: frmt
@@ -265,7 +267,6 @@
         REAL(rp) :: sol_min,sol_max
         REAL(rp) :: snap_min,snap_max
         INTEGER :: nsnap
-        INTEGER :: p
         INTEGER, DIMENSION(:), ALLOCATABLE :: el_plt
         REAL(rp), DIMENSION(:,:), ALLOCATABLE :: sol_val
         REAL(rp), DIMENSION(:), ALLOCATABLE :: t
@@ -326,60 +327,11 @@
       
       CONTAINS
       
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!         
-      
-!       SUBROUTINE sizes()
-!       
-!       USE globals, ONLY: nverts,ndof,mndof,np,mnp,nnds,mnnds
-!       USE read_dginp, ONLY: p,ctp,hbp
-!       
-!       IMPLICIT NONE
-!             
-!       ndof(1) = (p+1)*(p+2)/2
-!       ndof(2) = (p+1)**2
-!       ndof(3) = ndof(1)
-!       ndof(4) = ndof(2)      
-!       mndof = maxval(ndof)
-!       
-!       
-!       nverts(1) = 3
-!       nverts(2) = 4
-!       nverts(3) = 3
-!       nverts(4) = 4
-!       
-!       np(1) = 1
-!       np(2) = 1
-!       np(3) = ctp
-!       np(4) = ctp  
-!       mnp = maxval(np)+1
-! 
-!       nnds(1) = 3
-!       nnds(2) = 4
-!       nnds(3) = (ctp+1)*(ctp+2)/2
-!       nnds(4) = (ctp+1)*(ctp+1)      
-!       mnnds = maxval(nnds)   
-!       
-! !       pplt(1) = ps
-! !       pplt(2) = ps
-! !       pplt(3) = pc
-! !       pplt(4) = pc
-! 
-! !       npplt(1) = (ps+1)*(ps+2)/2
-! !       npplt(2) = (ps+1)*(ps+1)
-! !       npplt(3) = (pc+1)*(pc+2)/2
-! !       npplt(4) = (pc+1)*(pc+1)
-! !       mnpp = maxval(npplt)     
-! 
-!       mnpp = (p_high+1)**2
-!       
-!       END SUBROUTINE sizes
       
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
 
       SUBROUTINE setup_plot_types()
-      USE read_dginp, ONLY: h0,p,hbp   
       
       IMPLICIT NONE           
       
@@ -423,20 +375,7 @@
       IF (ntdec < 0) THEN
         zeta%tbar_flag = 0
         vel%tbar_flag = 0
-      ENDIF
-      
-!       mesh%axis_label_flag = 0
-!       mesh%cbar_flag = 0
-!       mesh%tbar_flag = 0
-!       bathy%axis_label_flag = 1
-!       bathy%cbar_flag = 1
-!       bathy%tbar_flag = 0
-!       zeta%axis_label_flag = 0
-!       zeta%cbar_flag = 0
-!       zeta%tbar_flag = 0
-!       vel%axis_label_flag = 0
-!       vel%cbar_flag = 0
-!       vel%tbar_flag = 0      
+      ENDIF          
       
       bathy%el_label_option = "off"
       bathy%nd_label_option = "off"
@@ -468,15 +407,10 @@
       bathy%cscale_unit = 31
       vel%cscale_unit = 32      
       
-      bathy%p = hbp
-      zeta%p = p
-      vel%p = p
-      cfl%p = hbp
-      
-!       cfl%cscale_option = "auto-snap"
-      cfl%cscale_option = "spec"      
-      cfl%cscale_min = 0.4d0
-      cfl%cscale_max = 7d0
+      cfl%cscale_option = "auto-snap"
+!       cfl%cscale_option = "spec"      
+!       cfl%cscale_min = 0.4d0
+!       cfl%cscale_max = 7d0
       
       END SUBROUTINE setup_plot_types
 

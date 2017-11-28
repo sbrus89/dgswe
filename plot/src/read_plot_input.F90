@@ -1,6 +1,7 @@
       SUBROUTINE read_plot_input()
 
-      USE plot_globals, ONLY: rp,input_path,cmap_file,ps,pc,p_low,p_high,p_skip, &
+      USE plot_globals, ONLY: rp,input_path,input_path2,diff_option, &
+                              cmap_file,ps,pc,p_low,p_high,p_skip, &
                               frmt,density, &
                               xbox_min,xbox_max,ybox_min,ybox_max, &
                               figure_width,figure_height, &
@@ -17,6 +18,7 @@
       INTEGER :: i,n
       INTEGER :: inp_read,skipped
       INTEGER :: rm_ps
+      INTEGER :: cind,slen
       CHARACTER(100) :: temp      
       CHARACTER(100) :: zbox  
       CHARACTER(100) :: ytick   
@@ -53,8 +55,20 @@
           inp_read = inp_read + 1
           SELECT CASE (inp_read)
             CASE (1)
-              input_path = TRIM(ADJUSTL(temp))
-              PRINT("(A,A)"), "input file path = ", input_path 
+            
+              cind = INDEX(temp,",")
+              slen = LEN(TRIM(ADJUSTL(temp)))
+              IF (cind == 0) THEN
+                input_path = TRIM(ADJUSTL(temp))
+                PRINT("(A,A)"), "input file path = ", input_path                 
+                diff_option = 0
+              ELSE
+                input_path = TRIM(ADJUSTL(temp(1:cind-1)))
+                input_path2 = TRIM(ADJUSTL(temp(cind+1:slen)))
+                PRINT("(A,A)"), "input file path = ", input_path                  
+                PRINT("(A,A)"), "diff input file path = ", input_path2  
+                diff_option = 1
+              ENDIF
               
             CASE(2)
               IF (TRIM(ADJUSTL(temp)) == "0") THEN

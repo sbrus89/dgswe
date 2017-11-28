@@ -44,7 +44,7 @@
       CALL version_information(6)
       
       CALL read_plot_input()
-      
+      CALL setup_plot_types()      
   
       
       IF (mesh%plot_sol_option == 0 .and. zeta%plot_sol_option == 0 .and. &
@@ -56,17 +56,20 @@
       
  
 
-      CALL read_dgsweinp(sol1,input_path,substitute_path,replace_path,sub_path)
-      
-      CALL sizes(sol1)     
-      
-      CALL setup_plot_types()
-
+      CALL read_dgsweinp(sol1,input_path,substitute_path,replace_path,sub_path)      
+      CALL sizes(sol1)           
       CALL read_grid(sol1)
-
       CALL connectivity(sol1)
-
       CALL curvilinear(sol1)
+      
+      IF (diff_option == 1) THEN
+        CALL read_dgsweinp(sol2,input_path2,substitute_path,replace_path,sub_path)      
+        CALL sizes(sol2)           
+        CALL read_grid(sol2)
+        CALL connectivity(sol2)
+        CALL curvilinear(sol2)    
+      ENDIF
+      
 
       
       PRINT("(A)"), "Calculating additional ploting point coordinates..."
@@ -157,7 +160,10 @@
       
           
 
-      CALL read_solutions(zeta,vel,bathy,sol1)             
+      CALL read_solutions(zeta,vel,bathy,sol1)   
+      IF (diff_option == 1) THEN
+        CALL read_solutions(zeta,vel,bathy,sol2)         
+      ENDIF
       
       CALL setup_cbounds(npplt,mesh,sol1,1,1)     
       CALL make_plot(1,0d0,mesh,sol1)  
@@ -173,7 +179,7 @@
       ENDIF      
       
       CALL setup_cbounds(npplt,bathy,sol1,1,1)      
-      CALL make_plot(1,t_snap,bathy,sol1)    
+      CALL make_plot(1,t_snap,bathy,sol1,sol2)    
       
       CALL setup_cbounds(npplt,cfl,sol1,1,1)      
       CALL make_plot(1,t_snap,cfl,sol1)          
@@ -213,11 +219,11 @@
         PRINT("(A,I5,A,I5,A,F20.5)"), "Time snap: ", snap-1,"/",snap_end," t = ", t_snap        
      
       
-        CALL make_plot(snap,t_snap,zeta,sol1)
+        CALL make_plot(snap,t_snap,zeta,sol1,sol2)
               
         PRINT("(A)"), " "        
 
-        CALL make_plot(snap,t_snap,vel,sol1)
+        CALL make_plot(snap,t_snap,vel,sol1,sol2)
         
 !         STOP
         

@@ -1,7 +1,7 @@
 SHELL = /bin/sh
 
 FC = ifort
-FFLAGS = -I$(ODIR) -g -traceback -C
+FFLAGS = -I$(ODIR) #-g -traceback -C
 
 VPATH := ../src/
 ODIR = odir/
@@ -80,7 +80,8 @@ plot_objects =  plot_globals.o globals.o quit.o basis.o read_input.o messenger2.
            read_solution.o system.o tripack.o initialize.o \
            edge_connectivity_mod.o curvilinear_nodes_mod.o bathymetry_interp_mod.o \
            vandermonde.o transformation.o shape_functions_mod.o triangulation.o \
-           area_qpts_mod.o edge_qpts_mod.o \
+           area_qpts_mod.o edge_qpts_mod.o\
+           find_element.o kdtree2.o sort_mod.o \
            plot_mod.o evaluate_mod.o axes_mod.o labels_mod.o version.o plot.o 
           
 plot_obj := $(patsubst %.o, $(ODIR)%.o,$(plot_objects))
@@ -137,7 +138,13 @@ clean :
         
 ########################################################################
 #                            File Targets                              #
-########################################################################        
+########################################################################      
+
+$(ODIR)kdtree2.o: ../../src/kdtree2.F90
+	$(FC) $(FFLAGS) -c $< -o $@
+	mv kdtree2_precision_module.mod $(ODIR)
+	mv kdtree2_module.mod $(ODIR)
+	mv kdtree2_priority_queue_module.mod $(ODIR)
 
 $(ODIR)plot_globals.o: plot_globals.F90                        $(ODIR)globals.o $(ODIR)read_input.o           
 	$(FC) $(FFLAGS) -c $< -o $@
@@ -193,7 +200,15 @@ $(ODIR)area_qpts_mod.o : ../../src/area_qpts_mod.F90            $(ODIR)globals.o
 
 $(ODIR)edge_qpts_mod.o : ../../src/edge_qpts_mod.F90            $(ODIR)globals.o 
 	$(FC) $(FFLAGS) -c $< -o $@
-	mv edge_qpts_mod.mod $(ODIR)		
+	mv edge_qpts_mod.mod $(ODIR)
+	
+$(ODIR)sort_mod.o : ../../src/sort_mod.F90                      $(ODIR)globals.o
+	$(FC) $(FFLAGS) -c $< -o $@
+	mv sort_mod.mod $(ODIR)	
+	
+$(ODIR)find_element.o: ../../src/find_element_mod.F90       $(ODIR)kdtree2.o  $(ODIR)globals.o $(ODIR)shape_functions_mod.o $(ODIR)transformation.o $(ODIR)vandermonde.o $(ODIR)sort_mod.o
+	$(FC) $(FFLAGS) -c $< -o $@
+	mv find_element.mod $(ODIR)
 	
 $(ODIR)tripack.o : ../../tripack/Src/Fortran77/Sp/src.f90                                
 	$(FC) $(FFLAGS) -c $< -o $@
@@ -241,7 +256,7 @@ $(ODIR)initialize.o: initialize.F90                          $(ODIR)globals.o $(
 	$(FC) $(FFLAGS) -c $< -o $@ 	
 	mv initialize.mod $(ODIR)	
 
-$(ODIR)plot_mod.o: plot_mod.F90                              $(ODIR)globals.o $(ODIR)plot_globals.o $(ODIR)evaluate_mod.o $(ODIR)labels_mod.o $(ODIR)axes_mod.o  $(ODIR)read_input.o $(ODIR)basis.o  $(ODIR)transformation.o $(ODIR)shape_functions_mod.o $(ODIR)area_qpts_mod.o $(ODIR)grid_file_mod.o $(ODIR)edge_qpts_mod.o
+$(ODIR)plot_mod.o: plot_mod.F90                              $(ODIR)globals.o $(ODIR)plot_globals.o $(ODIR)evaluate_mod.o $(ODIR)labels_mod.o $(ODIR)axes_mod.o  $(ODIR)read_input.o $(ODIR)basis.o  $(ODIR)transformation.o $(ODIR)shape_functions_mod.o $(ODIR)area_qpts_mod.o $(ODIR)grid_file_mod.o $(ODIR)edge_qpts_mod.o $(ODIR)find_element.o
 	$(FC) $(FFLAGS) -c $< -o $@ 	
 	mv plot_mod.mod $(ODIR)
 	

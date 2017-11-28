@@ -27,10 +27,13 @@
       CALL read_input(0,input_path)
       
       IF (substitute_path == 1) THEN
-        CALL substitute_partial_path(s%grid_file,replace_path,sub_path)
-        CALL substitute_partial_path(s%curve_file,replace_path,sub_path)    
-        CALL substitute_partial_path(s%stations_file,replace_path,sub_path)       
+        CALL substitute_partial_path(grid_file,replace_path,sub_path)
+        CALL substitute_partial_path(curve_file,replace_path,sub_path)    
+        CALL substitute_partial_path(stations_file,replace_path,sub_path)       
       ENDIF      
+      
+      sphi0 = sphi0*deg2rad  ! These are still being used in labels_mod.F90
+      slam0 = slam0*deg2rad  ! to determine if axis labels should be in lat/lon
       
       s%p = p
       s%ctp = ctp 
@@ -39,7 +42,7 @@
       s%grid_file = grid_file
       s%curve_file = curve_file
       s%bathy_file = bathy_file
-      s%out_direc = out_direc
+      s%out_direc = TRIM(ADJUSTL(input_path)) // TRIM(ADJUSTL(out_direc))
       s%stations_file = stations_file
       s%sta_opt = sta_opt
       s%sphi0 = sphi0*deg2rad
@@ -203,7 +206,7 @@
         ENDDO
       ENDIF
       IF (bathy%plot_sol_option == 1 .or. vel%plot_sol_option == 1) THEN
-        PRINT("(A)"), "Reading bathymetry solution..."       
+        PRINT("(A)"), "Reading bathymetry solution..."              
         ALLOCATE(s%hb(3,s%ne,1))
         DO el = 1,s%ne
           DO nd = 1,3
@@ -261,9 +264,9 @@
         ALLOCATE(s%Qx(1,1,1),s%Qy(1,1,1))
       ENDIF  
       IF (bathy%plot_sol_option == 1 .or. vel%plot_sol_option == 1) THEN
-        INQUIRE(file="hb.sol",exist=file_exists)
+        INQUIRE(file=s%out_direc//"hb.sol",exist=file_exists)
         IF (file_exists == .true.) THEN
-          PRINT("(A)"), "Reading bathymetry solution..."          
+          PRINT("(A)"), "Reading bathymetry solution..."            
           CALL read_solution_full(s%out_direc,"hb.sol","N",s%t,s%hb,s%nsnap_hb)  
         ELSE
           CALL read_bathy_file(0,s%bathy_file,s%hbp,s%ne,s%el_type,s%nverts,s%depth,s%ect,s%elhb,file_exists)

@@ -23,18 +23,19 @@
       IMPLICIT NONE
       
       INTEGER :: unit_count = 99   
-       
+      INTEGER, DIMENSION(:,:), ALLOCATABLE :: elpt_diff
+      REAL(rp), DIMENSION(:,:,:), ALLOCATABLE :: rspt_diff
       
       CONTAINS
       
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-      SUBROUTINE make_plot(snap,t_snap,fig,sol1)
+      SUBROUTINE make_plot(snap,t_snap,fig,sol1,sol2)
             
       USE globals, ONLY: nsta,xysta
       USE plot_globals, ONLY: t_start,t_end,xyplt,pplt,npplt,nptri,rect,r,s, &
-                              frmt,density,pc,el_area
+                              frmt,density,pc,el_area,diff_option
       USE labels_mod, ONLY: latex_axes_labels,run_latex,read_latex, & 
                             latex_element_labels,latex_node_labels, &
                             write_latex_ps_body,remove_latex_files, &
@@ -47,6 +48,7 @@
       REAL(rp), INTENT(IN) :: t_snap
       TYPE(plot_type), INTENT(INOUT) :: fig   
       TYPE(solution_type), INTENT(INOUT) :: sol1
+      TYPE(solution_type), INTENT(INOUT), OPTIONAL :: sol2
 
       INTEGER :: el,et
       INTEGER :: pe
@@ -104,7 +106,11 @@
       
       ! Plot solution
       IF (fig%type_flag > 1) THEN
-        CALL plot_filled_contours_adapt(fig%ps_unit,sol1,xyplt,pplt,nptri,npplt,rect,r,s,snap,fig)             
+        IF (PRESENT(sol2) .and. diff_option == 1) THEN
+          CALL plot_filled_contours_diff(fig%ps_unit,snap,fig,sol1,sol2)
+        ELSE
+          CALL plot_filled_contours_adapt(fig%ps_unit,sol1,xyplt,pplt,nptri,npplt,rect,r,s,snap,fig)             
+        ENDIF
       ENDIF
       IF (fig%plot_lines_option == 1) THEN
         CALL plot_line_contours(fig%ps_unit,sol1,nptri,rect,xyplt,r,s,snap,fig)          
@@ -1048,8 +1054,7 @@
             CALL element_transformation(nnd,sol%elxy(:,el,1),sol%elxy(:,el,2),psic(:,pt,i),xyplt(pt,el,1),xyplt(pt,el,2))           
           ENDDO                  
      
-          ! Evaluate solution at plotting nodes    
-          
+          ! Evaluate solution at plotting nodes              
           CALL evaluate_solution(el,fig%type_flag,snap,sol,fig%sol_val(:,el),npplt(i),phi_sol=phi_sol(:,:,i))           
 !           CALL evaluate_solution(el,fig%type_flag,snap,sol,sol_lo,npplt(i),phi_sol=phi_sol(:,:,i),plim=1)
 !           
@@ -1226,6 +1231,118 @@
               
 
       END SUBROUTINE plot_filled_contours_adapt
+      
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
+
+      SUBROUTINE find_diff_nodes(fig,sol1,sol2)
+            
+      USE plot_globals, ONLY: xyplt,npplt   
+      USE find_element, ONLY: in_element,find_element_init,find_element_final      
+            
+      IMPLICIT NONE      
+      
+      TYPE(plot_type), INTENT(IN) :: fig
+      TYPE(solution_type), INTENT(IN) :: sol1
+      TYPE(solution_type), INTENT(IN) :: sol2   
+      
+      INTEGER :: el,pt
+      INTEGER :: et,i,nnd
+      INTEGER :: elin
+      REAL(rp) :: xy(2)
+      REAL(rp) :: rs(2)    
+      
+      LOGICAL :: file_exists1,file_exists2          
+      
+      CALL find_element_init(sol2%nel_type,sol2%nverts,sol2%np,sol2%nnds,sol2%nn,sol2%xy,sol2%nepn,sol2%epn)
+      
+      ALLOCATE(elpt_diff(mnpp,sol1%ne),rspt_diff(2,mnpp,sol1%ne))
+      
+ elem:DO el = 1,sol1%ne
+      
+        IF (sol1%el_in(el) == 0) THEN
+          CYCLE elem
+        ENDIF
+      
+        et = sol1%el_type(el)
+        i = fig%el_plt(el)    
+        
+        DO pt = 1,npplt(i)          
+        
+          xy(1) = xyplt(pt,el,1)
+          xy(2) = xyplt(pt,el,2)
+          CALL in_element(xy,sol2%el_type,sol2%elxy,elin,rs) 
+          
+          elpt_diff(pt,el) = elin
+          rspt_diff(1,pt,el) = rs(1)
+          rspt_diff(2,pt,el) = rs(2)
+
+        ENDDO                       
+        
+      ENDDO elem
+      
+      CALL find_element_final()      
+      
+      RETURN
+      END SUBROUTINE find_diff_nodes
+      
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
+      
+      SUBROUTINE plot_filled_contours_diff(file_unit,snap,fig,sol1,sol2)
+      
+      USE plot_globals, ONLY: xyplt,npplt,nptri,rect
+      USE evaluate_mod, ONLY: evaluate_solution
+      
+      IMPLICIT NONE
+      
+      INTEGER, INTENT(IN) :: file_unit
+      INTEGER, INTENT(IN) :: snap
+      TYPE(plot_type), INTENT(INOUT) :: fig
+      TYPE(solution_type), INTENT(IN) :: sol1
+      TYPE(solution_type), INTENT(IN) :: sol2
+      
+      INTEGER :: el,pt
+      INTEGER :: et,i,nnd
+      INTEGER :: elin
+      REAL(rp) :: xy(2)
+      REAL(rp) :: rs(2),r(1),s(1)
+      REAL(rp) :: sol2_val(mnpp),val(1)
+      
+      ! Find the solution 2 elements each plotting node lies in and calculate local r,s coordinates
+      IF (.not. ALLOCATED(elpt_diff)) THEN
+        CALL find_diff_nodes(fig,sol1,sol2)
+      ENDIF      
+            
+      DO el = 1,sol1%ne
+      
+        ! Evaluate solution 2 at plotting nodes
+        i = fig%el_plt(el)    
+        DO pt = 1,npplt(i)              
+          elin = elpt_diff(pt,el)
+          r(1) = rspt_diff(1,pt,el)
+          s(1) = rspt_diff(2,pt,el) 
+          
+          CALL evaluate_solution(elin,fig%type_flag,snap,sol2,val,1,r,s)
+          sol2_val(pt) = val(1)
+        ENDDO                  
+     
+        ! Evaluate solution 1 at plotting nodes              
+        CALL evaluate_solution(el,fig%type_flag,snap,sol1,fig%sol_val(:,el),npplt(i),phi_sol=phi_sol(:,:,i))  
+        
+        ! Calculate solution difference 
+        DO pt = 1,npplt(i)
+          fig%sol_val(pt,el) = abs(fig%sol_val(pt,el) - sol2_val(pt))
+        ENDDO
+      
+        CALL contour_fill_element(file_unit,nptri(i),rect(:,:,i),fig%sol_min,fig%sol_max,fig%sol_val(:,el),xyplt(:,el,1),xyplt(:,el,2))
+        
+      ENDDO
+      
+      
+      RETURN
+      END SUBROUTINE plot_filled_contours_diff
       
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!   
