@@ -96,7 +96,12 @@
         
         ! Calculate basis function values and derivative values at area quadrature points
         m = 0
-        DO k = 0,p
+        
+!         DO i = 0,p             ! Old basis function order
+!           ii = real(i,rp)
+!           DO j = 0,p-i
+          
+        DO k = 0,p            ! Heirarchical basis function order
           DO i = k,0,-1
              j = k-i          
              
