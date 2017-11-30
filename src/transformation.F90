@@ -170,7 +170,7 @@
       REAL(rp), DIMENSION(:,:), ALLOCATABLE :: phi
         
       tol = 1d-10
-      maxit = 1000
+      maxit = 100
           
       mnnds = (p+1)**2      
       ALLOCATE(l(mnnds,npt),dldr(mnnds,npt),dlds(mnnds,npt))
