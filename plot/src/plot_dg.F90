@@ -15,7 +15,8 @@
                             sphi0,slam0, &
                             sta_opt,stations_file
       USE plot_mod, ONLY: read_colormap,setup_cbounds,plot_ref_el, &
-                          scale_factors,zoom_box,make_plot,make_movie                                                                           
+                          scale_factors,zoom_box,make_plot,make_movie, &
+                          plot_filled_contours
       USE evaluate_mod, ONLY: evaluate_basis
       USE labels_mod, ONLY: latex_axes_labels,run_latex,close_tex, &
                             latex_element_labels,latex_node_labels  
@@ -62,7 +63,7 @@
       CALL connectivity(sol1)
       CALL curvilinear(sol1)
       
-      IF (diff_option == 1) THEN
+      IF (sol_diff_option == 1) THEN
         CALL read_dgsweinp(sol2,input_path2,substitute_path,replace_path,sub_path)      
         CALL sizes(sol2)           
         CALL read_grid(sol2)
@@ -72,7 +73,7 @@
       
 
       
-      PRINT("(A)"), "Calculating additional ploting point coordinates..."
+      PRINT("(A)"), "Calculating additional ploting nodes..."
       nord = (p_high-p_low+1)/p_skip
       
       mnpp = (p_high+1)**2      
@@ -104,7 +105,8 @@
         ENDDO         
         
       ENDDO                                    
-           
+      
+      PRINT("(A)"), "Calculating additional ploting point coordinates..."      
       ALLOCATE(xyplt(mnpp,sol1%ne,2))
       DO el = 1,sol1%ne      
         et = sol1%el_type(el)                          
@@ -161,7 +163,7 @@
           
 
       CALL read_solutions(zeta,vel,bathy,sol1)   
-      IF (diff_option == 1) THEN
+      IF (sol_diff_option == 1) THEN
         CALL read_solutions(zeta,vel,bathy,sol2)         
       ENDIF
       
@@ -216,18 +218,40 @@
         
         t_snap = sol1%t(snap)      
         PRINT("(A)"), "---------------------------------------------"
-        PRINT("(A,I5,A,I5,A,F20.5)"), "Time snap: ", snap-1,"/",snap_end," t = ", t_snap        
+        PRINT("(A,I5,A,I5,A,F20.5)"), "Time snap: ", snap,"/",snap_end," t = ", t_snap        
      
-      
-        CALL make_plot(snap,t_snap,zeta,sol1,sol2)
+        IF (zeta%plot_max_option == 2) THEN
+          CALL plot_filled_contours(-1,snap,zeta,sol1,sol2)
+        ELSE
+          CALL make_plot(snap,t_snap,zeta,sol1,sol2)
+        ENDIF
               
         PRINT("(A)"), " "        
 
-        CALL make_plot(snap,t_snap,vel,sol1,sol2)
+        IF (vel%plot_max_option == 2) THEN
+          CALL plot_filled_contours(-1,snap,vel,sol1,sol2)
+        ELSE
+          CALL make_plot(snap,t_snap,vel,sol1,sol2)
+        ENDIF
         
-!         STOP
         
       ENDDO
+      
+      
+      
+      ! Plot maximums
+      PRINT("(A)"), "---------------------------------------------"   
+      snap = snap_end+1
+      IF (zeta%plot_max_option > 0) THEN
+        CALL make_plot(snap,t_snap,zeta,sol1,sol2)
+      ENDIF
+      PRINT("(A)"), " "        
+      IF (vel%plot_max_option > 0) THEN
+        CALL make_plot(snap,t_snap,vel,sol1,sol2)
+      ENDIF 
+      
+      
+      
       
       IF (adapt_option == 1) THEN
         CLOSE(998)
@@ -236,6 +260,6 @@
       CALL make_movie(zeta,frmt)
       CALL make_movie(vel,frmt)
   
-
+      PRINT("(A)"), " "      
       END PROGRAM plot_dg
       

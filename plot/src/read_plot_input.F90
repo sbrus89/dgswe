@@ -1,6 +1,7 @@
       SUBROUTINE read_plot_input()
 
-      USE plot_globals, ONLY: rp,input_path,input_path2,diff_option, &
+      USE plot_globals, ONLY: rp,input_path,input_path2, &
+                              sol_diff_option,ho_diff_option, &
                               cmap_file,ps,pc,p_low,p_high,p_skip, &
                               frmt,density, &
                               xbox_min,xbox_max,ybox_min,ybox_max, &
@@ -61,13 +62,17 @@
               IF (cind == 0) THEN
                 input_path = TRIM(ADJUSTL(temp))
                 PRINT("(A,A)"), "input file path = ", input_path                 
-                diff_option = 0
+                sol_diff_option = 0
               ELSE
                 input_path = TRIM(ADJUSTL(temp(1:cind-1)))
                 input_path2 = TRIM(ADJUSTL(temp(cind+1:slen)))
                 PRINT("(A,A)"), "input file path = ", input_path                  
                 PRINT("(A,A)"), "diff input file path = ", input_path2  
-                diff_option = 1
+                IF (input_path == input_path2) THEN
+                  ho_diff_option = 1
+                ELSE
+                  sol_diff_option = 1
+                ENDIF
               ENDIF
               
             CASE(2)
@@ -83,16 +88,18 @@
               ENDIF
               
             CASE (3)
-              READ(temp,*) zeta%plot_sol_option, zeta%plot_mesh_option, zeta%plot_lines_option 
+              READ(temp,*) zeta%plot_sol_option, zeta%plot_mesh_option, zeta%plot_lines_option, zeta%plot_max_option 
               PRINT("(A,I3)"), "zeta plot option = ", zeta%plot_sol_option 
               PRINT("(A,I3)"), "plot zeta mesh = ", zeta%plot_mesh_option  
               PRINT("(A,I3)"), "plot zeta contour lines = ", zeta%plot_lines_option               
+              PRINT("(A,I3)"), "plot zeta max = ", zeta%plot_max_option
               
             CASE (4)
-              READ(temp,*) vel%plot_sol_option, vel%plot_mesh_option, vel%plot_lines_option
+              READ(temp,*) vel%plot_sol_option, vel%plot_mesh_option, vel%plot_lines_option, vel%plot_max_option
               PRINT("(A,I3)"), "velocity plot option = ", vel%plot_sol_option
               PRINT("(A,I3)"), "plot velocity mesh = ", vel%plot_mesh_option
               PRINT("(A,I3)"), "plot velocity contour lines = ", vel%plot_lines_option     
+              PRINT("(A,I3)"), "plot velocity max = ", vel%plot_max_option
               
             CASE (5)
               READ(temp,*) bathy%plot_sol_option, bathy%plot_mesh_option, bathy%plot_lines_option
@@ -100,8 +107,8 @@
               PRINT("(A,I3)"), "plot bathymetry mesh = ", bathy%plot_mesh_option
               PRINT("(A,I3)"), "plot bathymetry contour lines = ", bathy%plot_lines_option              
               cfl%plot_sol_option = bathy%plot_sol_option
-              cfl%plot_mesh_option = cfl%plot_mesh_option
-              cfl%plot_lines_option = cfl%plot_lines_option
+              cfl%plot_mesh_option = bathy%plot_mesh_option
+              cfl%plot_lines_option = bathy%plot_lines_option
             CASE (6)
               READ(temp,*) mesh%plot_mesh_option
               mesh%plot_sol_option = mesh%plot_mesh_option
@@ -328,6 +335,20 @@
         PRINT("(A)"), "Error: the order of -values in zoom box is incorrect"
         STOP
       ENDIF
+      
+      IF (sol_diff_option == 1 .or. ho_diff_option == 1) THEN
+        IF (bathy%plot_lines_option == 1 .or. &
+            zeta%plot_lines_option == 1 .or.  &
+            vel%plot_lines_option == 1) THEN
+            
+          bathy%plot_lines_option = 0
+          zeta%plot_lines_option = 0
+          vel%plot_lines_option = 0
+          PRINT("(A)"), "Warning: Contour lines cannot be plotted with differences"
+        ENDIF
+      ENDIF
+      
+      
 
       CLOSE(15)
       

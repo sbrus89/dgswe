@@ -2,7 +2,8 @@
       
       USE globals, ONLY: rp
       
-      INTEGER :: diff_option
+      INTEGER :: sol_diff_option
+      INTEGER :: ho_diff_option
       CHARACTER(100) :: input_path
       CHARACTER(100) :: input_path2      
       CHARACTER(100) :: cmap_file
@@ -10,6 +11,9 @@
       CHARACTER(3) :: frmt
       CHARACTER(3) :: density
       CHARACTER(5) :: font
+      
+      REAL(rp), PARAMETER :: max_init = -1d10
+      REAL(rp), PARAMETER :: min_init =  1d10
       
       INTEGER :: substitute_path
       CHARACTER(100) :: replace_path
@@ -249,8 +253,12 @@
         INTEGER :: plot_mesh_option
         INTEGER :: plot_lines_option
         INTEGER :: plot_sta_option
+        INTEGER :: plot_max_option
+        INTEGER :: sol_diff_option
+        INTEGER :: ho_diff_option
         INTEGER :: sta_start
         INTEGER :: sta_end
+        INTEGER :: plim
         
         INTEGER :: cbar_flag
         INTEGER :: tbar_flag
@@ -269,6 +277,9 @@
         INTEGER :: nsnap
         INTEGER, DIMENSION(:), ALLOCATABLE :: el_plt
         REAL(rp), DIMENSION(:,:), ALLOCATABLE :: sol_val
+        REAL(rp), DIMENSION(:,:), ALLOCATABLE :: sol_maxval
+        REAL(rp) :: max_maxval
+        REAL(rp) :: min_maxval
         REAL(rp), DIMENSION(:), ALLOCATABLE :: t
         REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: phi     
         
@@ -375,7 +386,34 @@
       IF (ntdec < 0) THEN
         zeta%tbar_flag = 0
         vel%tbar_flag = 0
-      ENDIF          
+      ENDIF       
+      
+      mesh%sol_diff_option = 0
+      bathy%sol_diff_option = 0
+      zeta%sol_diff_option = 0
+      vel%sol_diff_option = 0
+      cfl%sol_diff_option = 0
+      IF (sol_diff_option == 1) THEN
+        bathy%sol_diff_option = 1
+        zeta%sol_diff_option = 1
+        vel%sol_diff_option = 1
+      ENDIF
+      
+      
+      mesh%ho_diff_option = 0
+      bathy%ho_diff_option = 0 
+      zeta%ho_diff_option = 0
+      vel%ho_diff_option = 0
+      cfl%ho_diff_option = 0
+      IF (ho_diff_option == 1) THEN
+        bathy%ho_diff_option = 1
+        zeta%ho_diff_option = 1
+        vel%ho_diff_option = 1
+        
+        bathy%plim = 1
+        zeta%plim = 1
+        vel%plim = 1
+      ENDIF
       
       bathy%el_label_option = "off"
       bathy%nd_label_option = "off"

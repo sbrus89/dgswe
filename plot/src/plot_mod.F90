@@ -16,9 +16,11 @@
                               ncolors,colors, &
                               mnpp,ps,pc,nord,adapt_option, &
                               phi_sol,ndof_sol, &
+                              sol_diff_option,ho_diff_option, &
                               ax,ay,bx,by, &
                               xbox_min,xbox_max,ybox_min,ybox_max, &
-                              snap_start,snap_end
+                              snap_start,snap_end, &
+                              max_init,min_init
       
       IMPLICIT NONE
       
@@ -35,7 +37,7 @@
             
       USE globals, ONLY: nsta,xysta
       USE plot_globals, ONLY: t_start,t_end,xyplt,pplt,npplt,nptri,rect,r,s, &
-                              frmt,density,pc,el_area,diff_option
+                              frmt,density,pc,el_area
       USE labels_mod, ONLY: latex_axes_labels,run_latex,read_latex, & 
                             latex_element_labels,latex_node_labels, &
                             write_latex_ps_body,remove_latex_files, &
@@ -63,25 +65,43 @@
                 
       PRINT("(A)"), "Ploting "//fig%name         
                 
+      ! Initialize element plotting order          
       IF (.not. ALLOCATED(fig%el_plt)) THEN
         ALLOCATE(fig%el_plt(sol1%ne))
       ENDIF                                 
       DO el = 1,sol1%ne
         et = sol1%el_type(el)
         fig%el_plt(el) = (et-1)*nord + nord
-      ENDDO              
+      ENDDO          
+      
+      ! Initialize things for max plot
+      IF (fig%plot_max_option > 0 .and. snap > snap_end) THEN
+        IF (fig%cscale_option /= "spec") THEN
+          fig%cscale_vals(snap,2) = fig%min_maxval
+          fig%cscale_vals(snap,3) = fig%max_maxval
+        ENDIF
+        fig%sol_label = "max "//TRIM(ADJUSTL(fig%sol_label))
+        fig%plot_lines_option = 0        
+      ENDIF
 
       ! Set minimum and maximum value range for colorbar
       IF (fig%name /= "mesh")  THEN
         fig%sol_min = fig%cscale_vals(snap,2)
         fig%sol_max = fig%cscale_vals(snap,3)                                                            
         PRINT("(2(A,F10.5))"), "  min value = ", fig%sol_min, "  max value = ", fig%sol_max
+        IF (fig%type_flag == 3 .or. fig%type_flag == 4) THEN
+          WRITE(fig%cscale_unit,"(3(e24.17,1x))") t_snap,fig%sol_min,fig%sol_max              
+        ENDIF
       ENDIF
        
-      IF (fig%type_flag == 3 .or. fig%type_flag == 4) THEN 
-        WRITE(snap_char,"(I4.4)") snap           
-        filename = TRIM(ADJUSTL(fig%name))//"_"//snap_char
-        WRITE(fig%cscale_unit,"(3(e24.17,1x))") t_snap,fig%sol_min,fig%sol_max        
+      ! Create name for PS output file
+      IF (fig%type_flag == 3 .or. fig%type_flag == 4) THEN
+        IF (snap <= snap_end) THEN
+          WRITE(snap_char,"(I4.4)") snap           
+          filename = TRIM(ADJUSTL(fig%name))//"_"//snap_char  
+        ELSE
+          filename = TRIM(ADJUSTL(fig%name))//"_max"          
+        ENDIF
       ELSE
         filename = TRIM(ADJUSTL(fig%name))
       ENDIF
@@ -105,12 +125,9 @@
       CALL plot_background(fig%ps_unit,.75d0,.75d0,.75d0)
       
       ! Plot solution
-      IF (fig%type_flag > 1) THEN
-        IF (PRESENT(sol2) .and. diff_option == 1) THEN
-          CALL plot_filled_contours_diff(fig%ps_unit,snap,fig,sol1,sol2)
-        ELSE
-          CALL plot_filled_contours_adapt(fig%ps_unit,sol1,xyplt,pplt,nptri,npplt,rect,r,s,snap,fig)             
-        ENDIF
+      IF (fig%type_flag > 1) THEN       
+        CALL plot_filled_contours(fig%ps_unit,snap,fig,sol1,sol2)
+!         CALL plot_filled_contours_adapt(fig%ps_unit,sol1,xyplt,pplt,nptri,npplt,rect,snap,fig)             
       ENDIF
       IF (fig%plot_lines_option == 1) THEN
         CALL plot_line_contours(fig%ps_unit,sol1,nptri,rect,xyplt,r,s,snap,fig)          
@@ -127,46 +144,39 @@
         CALL write_char_array(999,fig%nline_body,fig%latex_body)        
         CALL convert_ps(filename//"_pltmesh",frmt,density,fig%rm_ps)
         CLOSE(999)
-      ENDIF 
-      
-!       ! Plot decomposed mesh        
-!       IF (fig%plot_mesh_option == 1 .and. fig%name == "mesh") THEN
-!         CALL SYSTEM("cp "//filename//".ps "//filename//"_decomp.ps")
-!         OPEN(UNIT=998,FILE=filename//"_decomp.ps",POSITION="APPEND")
-!         CALL fill_elements(998,sol1%ne,sol1%nverts,fig%el_plt,pplt,sol1%el_type,sol1%el_in,sol1%xy,sol1%ect,xyplt)        
-!         CALL plot_decomp_mesh(998,sol1%nverts)
-!         CALL write_all_axes(998,fig%axis_label_flag,fig%cbar_flag,fig%tbar_flag,t_snap,t_start,t_end)
-!         CALL write_char_array(998,fig%nline_body,fig%latex_body)        
-!         CALL convert_ps(filename//"_decomp",frmt,density,fig%rm_ps)         
-!         CLOSE(998)
-!       ENDIF       
+      ENDIF            
       
       
       ! Plot mesh 
-      IF (fig%plot_mesh_option == 1) THEN
-        IF (fig%name == "mesh") THEN
-          CALL fill_elements(fig%ps_unit,sol1%ne,sol1%nverts,fig%el_plt,pplt,sol1%el_type,sol1%el_in,sol1%xy,sol1%ect,xyplt)        
-        ENDIF                
+      IF (fig%name == "mesh") THEN
+        CALL fill_elements(fig%ps_unit,sol1%ne,sol1%nverts,fig%el_plt,pplt,sol1%el_type,sol1%el_in,sol1%xy,sol1%ect,xyplt)        
+      ENDIF        
+      
+      IF (fig%plot_mesh_option == 1) THEN              
        
         CALL plot_mesh(fig%ps_unit,sol1%ne,sol1%nverts,fig%el_plt,pplt,sol1%el_type,sol1%el_in,sol1%xy,sol1%ect,xyplt)  
 !         CALL plot_nodestring(fig%ps_unit,sol1%nbou,sol1%nvel,sol1%fbseg,sol1%fbnds,sol1%xy)
 !         CALL plot_qpts(fig%ps_unit,sol1%ne,sol1%p,sol1%ctp,sol1%np,sol1%el_type,sol1%el_in,sol1%elxy,sol1%nverts,sol1%ned,sol1%ed_type,sol1%ged2el,sol1%ged2led)
-        IF (fig%name == "mesh" .and. fig%plot_sta_option == 1) THEN
-          CALL plot_stations(fig%ps_unit,fig%sta_start,fig%sta_end,xysta)        
-        ENDIF
+
       ELSE IF (fig%plot_mesh_option == 2) THEN
-      
-        IF (fig%name == "mesh") THEN
-          CALL fill_elements(fig%ps_unit,sol1%ne,sol1%nverts,fig%el_plt,pplt,sol1%el_type,sol1%el_in,sol1%xy,sol1%ect,xyplt)        
-        ENDIF          
-        pe = (et-1)*nord + nord
+            
         CALL plot_boundaries(fig%ps_unit,sol1%nverts,fig%el_plt,pplt,sol1%nobed,sol1%obedn,sol1%ged2el,sol1%ged2led,sol1%el_type,sol1%el_in,sol1%ect,sol1%xy,xyplt)       
         CALL plot_boundaries(fig%ps_unit,sol1%nverts,fig%el_plt,pplt,sol1%nnfbed,sol1%nfbedn,sol1%ged2el,sol1%ged2led,sol1%el_type,sol1%el_in,sol1%ect,sol1%xy,xyplt)        
         CALL plot_boundaries(fig%ps_unit,sol1%nverts,fig%el_plt,pplt,sol1%nfbed,sol1%fbedn,sol1%ged2el,sol1%ged2led,sol1%el_type,sol1%el_in,sol1%ect,sol1%xy,xyplt)          
-        IF (fig%name == "mesh" .and. fig%plot_sta_option == 1) THEN
-          CALL plot_stations(fig%ps_unit,fig%sta_start,fig%sta_end,xysta)        
-        ENDIF        
+      
+        
+      ELSE IF (fig%plot_mesh_option == 3) THEN
+             
+        CALL plot_decomp_mesh(fig%ps_unit,sol1%nverts)
+        
       ENDIF 
+      
+      
+      
+      ! Plot stations
+      IF (fig%name == "mesh" .and. fig%plot_sta_option == 1) THEN
+        CALL plot_stations(fig%ps_unit,fig%sta_start,fig%sta_end,xysta)        
+      ENDIF        
       
 !         ! Plot nodes      
 !         CALL plot_cb_nodes(fig%ps_unit,sol1%ctp,sol1%nbou,sol1%fbseg,sol1%fbnds,sol1%xy,sol1%bndxy,sol1%nepn,sol1%epn,sol1%el_in)
@@ -887,13 +897,136 @@
 !       CALL SYSTEM("ps2eps -B -C < "//filename//".ps > "//filename//".eps")
       
       RETURN
-      END SUBROUTINE close_ps                           
+      END SUBROUTINE close_ps        
+      
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
+
+      SUBROUTINE plot_filled_contours(file_unit,snap,fig,sol1,sol2)
+     
+      USE plot_globals, ONLY: xyplt,npplt,nptri,rect
+      USE evaluate_mod, ONLY: evaluate_solution         
+     
+      IMPLICIT NONE
+      
+      INTEGER, INTENT(IN) :: file_unit
+      INTEGER, INTENT(IN) :: snap
+      TYPE(plot_type), INTENT(INOUT) :: fig
+      TYPE(solution_type), INTENT(IN) :: sol1      
+      TYPE(solution_type), INTENT(IN) :: sol2
+      
+      INTEGER :: el,pt
+      INTEGER :: et,i,nnd
+      INTEGER :: elin
+      REAL(rp) :: xy(2)
+      REAL(rp) :: rs(2),r(1),s(1)
+      REAL(rp) :: sol2_val(mnpp),val(1)      
+      
+      
+      ! Allocate and initialize max array (if needed)
+      IF (fig%plot_max_option > 0) THEN
+        IF (.not. ALLOCATED(fig%sol_maxval)) THEN
+          ALLOCATE(fig%sol_maxval(mnpp,sol1%ne))
+          fig%sol_maxval = max_init
+          fig%max_maxval = max_init
+          fig%min_maxval = min_init
+        ENDIF
+      ENDIF 
+      
+      ! Find the solution 2 elements each plotting node lies in and calculate local r,s coordinates
+      IF (sol_diff_option == 1) THEN      
+        IF (.not. ALLOCATED(elpt_diff)) THEN
+          CALL find_diff_nodes(fig,sol1,sol2)
+        ENDIF        
+      ENDIF
+      
+      
+ elem:DO el = 1,sol1%ne
+      
+        ! Skip elements not in the specified zoom box
+        IF (sol1%el_in(el) == 0) THEN
+          CYCLE elem
+        ENDIF                             
+        
+        ! Determine element plotting node order
+        et = sol1%el_type(el)
+        i = (et-1)*nord + nord             
+                              
+        IF (snap <= snap_end) THEN
+        
+          ! Evaluate solution 1 at plotting nodes, using pre-calculated basis functions         
+          CALL evaluate_solution(el,fig%type_flag,snap,sol1,fig%sol_val(:,el),npplt(i),phi_sol=phi_sol(:,:,i))         
+
+          
+          
+        
+          ! Evaluate solution 1 at plotting nodes, truncating high-order terms (if needed)
+          IF (fig%ho_diff_option == 1) THEN
+            CALL evaluate_solution(el,fig%type_flag,snap,sol1,sol2_val,npplt(i),phi_sol=phi_sol(:,:,i),plim=fig%plim)        
+          ENDIF
+        
+          ! Evaluate solution 2 at plotting nodes (if needed)
+          IF (fig%sol_diff_option == 1) THEN
+            DO pt = 1,npplt(i)              
+              elin = elpt_diff(pt,el)    
+              r(1) = rspt_diff(1,pt,el)
+              s(1) = rspt_diff(2,pt,el) 
+          
+              CALL evaluate_solution(elin,fig%type_flag,snap,sol2,val,1,r,s)
+              sol2_val(pt) = val(1)
+            ENDDO                                     
+          ENDIF
+        
+          ! Calculate solution difference (if_needed)
+          IF (fig%sol_diff_option == 1 .or. fig%ho_diff_option == 1) THEN
+            DO pt = 1,npplt(i)
+              fig%sol_val(pt,el) = abs(fig%sol_val(pt,el) - sol2_val(pt))
+            ENDDO          
+          ENDIF
+          
+          ! Determine maximums (if needed)       
+          IF (fig%plot_max_option > 0) THEN
+           DO pt = 1,npplt(i)
+              IF (fig%sol_val(pt,el) > fig%sol_maxval(pt,el)) THEN
+                fig%sol_maxval(pt,el) = fig%sol_val(pt,el)
+              ENDIF   
+              IF (fig%sol_val(pt,el) > fig%max_maxval) THEN
+                fig%max_maxval = fig%sol_val(pt,el)
+              ENDIF
+              IF (fig%sol_val(pt,el) < fig%min_maxval .and. fig%sol_val(pt,el) > max_init) THEN
+                fig%min_maxval = fig%sol_val(pt,el)
+              ENDIF
+            ENDDO
+          ENDIF          
+          
+        ELSE 
+        
+          ! Set the plotting array to max values (when called with: snap = snap_end+1)
+          IF (fig%plot_max_option > 0) THEN
+              DO pt = 1,npplt(i)
+                fig%sol_val(pt,el) = fig%sol_maxval(pt,el)
+              ENDDO
+          ENDIF        
+          
+        ENDIF
+       
+        
+      
+        ! Write the PS code to contour fill the element
+        IF (file_unit > 0) THEN
+          CALL contour_fill_element(file_unit,nptri(i),rect(:,:,i),fig%sol_min,fig%sol_max,fig%sol_val(:,el),xyplt(:,el,1),xyplt(:,el,2))
+        ENDIF
+        
+      ENDDO elem     
+     
+      RETURN
+      END SUBROUTINE plot_filled_contours
       
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-      SUBROUTINE plot_filled_contours_adapt(file_unit,sol,xyplt,pplt,nptri,npplt,rect,r,s,snap,fig)
+      SUBROUTINE plot_filled_contours_adapt(file_unit,sol,xyplt,pplt,nptri,npplt,rect,snap,fig)
       
       USE transformation, ONLY: init_vandermonde,element_transformation,xy2rs
       USE basis, ONLY: element_basis,linear_basis              
@@ -910,8 +1043,6 @@
       INTEGER, DIMENSION(:), INTENT(IN) :: nptri
       INTEGER, DIMENSION(:), INTENT(IN) :: npplt      
       INTEGER, DIMENSION(:,:,:), INTENT(IN) :: rect 
-      REAL(rp), DIMENSION(:,:), INTENT(IN) :: r
-      REAL(rp), DIMENSION(:,:), INTENT(IN) :: s
       INTEGER, INTENT(IN) :: snap      
       TYPE(plot_type), INTENT(INOUT) :: fig
 
@@ -924,8 +1055,7 @@
       INTEGER :: nptri_total
       INTEGER :: ne_total
       INTEGER :: pplt_max
-      REAL(rp) :: sol_lev
-      REAL(rp) :: dc      
+      REAL(rp) :: sol_lev    
       REAL(rp), DIMENSION(:,:), ALLOCATABLE :: qpt
       REAL(rp), DIMENSION(:), ALLOCATABLE :: wpt
       REAL(rp), DIMENSION(:,:,:), ALLOCATABLE :: qpta
@@ -933,7 +1063,7 @@
       REAL(rp), DIMENSION(:,:), ALLOCATABLE :: l
       REAL(rp), DIMENSION(:), ALLOCATABLE :: xpt,ypt
       REAL(rp), DIMENSION(:), ALLOCATABLE :: rpt,spt
-      REAL(rp), DIMENSION(:), ALLOCATABLE :: sol_lin,sol_el,sol_lo  
+      REAL(rp), DIMENSION(:), ALLOCATABLE :: sol_lin,sol_el  
       REAL(rp), DIMENSION(:,:,:), ALLOCATABLE :: phia
       REAL(rp), DIMENSION(:,:,:), ALLOCATABLE :: psi,dpsidr,dpsids      
       REAL(rp) :: xpta,ypta
@@ -947,11 +1077,6 @@
    
       REAL(rp) :: color_val(3)
       REAL(rp) :: err,max_err
-!       REAL(rp) :: rel_tol,abs_tol
-      
-      REAL(rp), DIMENSION(:), ALLOCATABLE :: hb_val,zeta_val,Qx_val,Qy_val     
-      REAL(rp), DIMENSION(:), ALLOCATABLE :: hb_sol,zeta_sol,Qx_sol,Qy_sol 
-      REAL(rp), DIMENSION(:), ALLOCATABLE :: sol_vec
       
       INTEGER :: elcnt,ndcnt
       REAL(rp) :: el_max
@@ -968,16 +1093,12 @@
       qpt_order = 2
       CALL tri_cubature(qpt_order,nqpt,qpts)      
       mnqpta = max(mnqpta,nqpt)
-      
-      ALLOCATE(hb_val(mnpp),zeta_val(mnpp),Qx_val(mnpp),Qy_val(mnpp))
-      ALLOCATE(hb_sol(mnqpta),zeta_sol(mnqpta),Qx_sol(mnqpta),Qy_sol(mnqpta))      
+         
       ALLOCATE(qpt(mnqpta,2),wpt(mnqpta))
       ALLOCATE(l(3,mnqpta))
       ALLOCATE(xpt(mnqpta),ypt(mnqpta))
       ALLOCATE(rpt(mnqpta),spt(mnqpta))
-      ALLOCATE(sol_lin(mnqpta),sol_el(mnqpta))
-      ALLOCATE(sol_vec(mnpp))      
-      ALLOCATE(sol_lo(mnpp))
+      ALLOCATE(sol_lin(mnqpta),sol_el(mnqpta))    
       
       DO pt = 1,nqpt
         qpt(pt,1) = qpts(pt,1)
@@ -999,16 +1120,12 @@
       
       
       
-      
-      dc = (fig%sol_max-fig%sol_min)/real(ncolors-1,rp)      
+       
       
       CALL init_vandermonde(nel_type,sol%np)      
             
-!       rel_tol = 1d-1  
-!       abs_tol = 1d-1
-      
-      
 
+            
       nptri_total = 0
       error_total = 0d0
       ne_total = 0
@@ -1056,27 +1173,6 @@
      
           ! Evaluate solution at plotting nodes              
           CALL evaluate_solution(el,fig%type_flag,snap,sol,fig%sol_val(:,el),npplt(i),phi_sol=phi_sol(:,:,i))           
-!           CALL evaluate_solution(el,fig%type_flag,snap,sol,sol_lo,npplt(i),phi_sol=phi_sol(:,:,i),plim=1)
-!           
-!           DO pt = 1,npplt(i)
-!             fig%sol_val(pt,el) = abs(fig%sol_val(pt,el)-sol_lo(pt))
-!           ENDDO
-     
-!           fig%sol_val(:,el) = -1d99
-!           DO k = snap_start,snap_end
-!             CALL evaluate_solution(el,fig%type_flag,k,sol,sol_vec,npplt(i),phi_sol=phi_sol(:,:,i))           
-!             CALL evaluate_solution(el,fig%type_flag,k,sol,sol_lo,npplt(i),phi_sol=phi_sol(:,:,i),plim=1)
-!           
-!             DO pt = 1,npplt(i)
-!               sol_vec(pt) = abs(sol_vec(pt)-sol_lo(pt))
-!             ENDDO    
-!             
-!             DO j = 1,npplt(i)
-!               IF (sol_vec(j) > fig%sol_val(j,el)) THEN
-!                 fig%sol_val(j,el) = sol_vec(j)
-!               ENDIF
-!             ENDDO
-!           ENDDO
 
           IF (adapt_option == 0) THEN
             EXIT order
@@ -1284,65 +1380,7 @@
       CALL find_element_final()      
       
       RETURN
-      END SUBROUTINE find_diff_nodes
-      
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
-      
-      SUBROUTINE plot_filled_contours_diff(file_unit,snap,fig,sol1,sol2)
-      
-      USE plot_globals, ONLY: xyplt,npplt,nptri,rect
-      USE evaluate_mod, ONLY: evaluate_solution
-      
-      IMPLICIT NONE
-      
-      INTEGER, INTENT(IN) :: file_unit
-      INTEGER, INTENT(IN) :: snap
-      TYPE(plot_type), INTENT(INOUT) :: fig
-      TYPE(solution_type), INTENT(IN) :: sol1
-      TYPE(solution_type), INTENT(IN) :: sol2
-      
-      INTEGER :: el,pt
-      INTEGER :: et,i,nnd
-      INTEGER :: elin
-      REAL(rp) :: xy(2)
-      REAL(rp) :: rs(2),r(1),s(1)
-      REAL(rp) :: sol2_val(mnpp),val(1)
-      
-      ! Find the solution 2 elements each plotting node lies in and calculate local r,s coordinates
-      IF (.not. ALLOCATED(elpt_diff)) THEN
-        CALL find_diff_nodes(fig,sol1,sol2)
-      ENDIF      
-            
-      DO el = 1,sol1%ne
-      
-        ! Evaluate solution 2 at plotting nodes
-        i = fig%el_plt(el)    
-        DO pt = 1,npplt(i)              
-          elin = elpt_diff(pt,el)
-          r(1) = rspt_diff(1,pt,el)
-          s(1) = rspt_diff(2,pt,el) 
-          
-          CALL evaluate_solution(elin,fig%type_flag,snap,sol2,val,1,r,s)
-          sol2_val(pt) = val(1)
-        ENDDO                  
-     
-        ! Evaluate solution 1 at plotting nodes              
-        CALL evaluate_solution(el,fig%type_flag,snap,sol1,fig%sol_val(:,el),npplt(i),phi_sol=phi_sol(:,:,i))  
-        
-        ! Calculate solution difference 
-        DO pt = 1,npplt(i)
-          fig%sol_val(pt,el) = abs(fig%sol_val(pt,el) - sol2_val(pt))
-        ENDDO
-      
-        CALL contour_fill_element(file_unit,nptri(i),rect(:,:,i),fig%sol_min,fig%sol_max,fig%sol_val(:,el),xyplt(:,el,1),xyplt(:,el,2))
-        
-      ENDDO
-      
-      
-      RETURN
-      END SUBROUTINE plot_filled_contours_diff
+      END SUBROUTINE find_diff_nodes      
       
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!   
@@ -2541,15 +2579,16 @@ edge:DO ed = 1,nbed
         RETURN
       ENDIF
       
-      filename = TRIM(ADJUSTL(fig%name))//".cscale"      
+  
       
-      ALLOCATE(fig%cscale_vals(snap_end,3)) 
+      ALLOCATE(fig%cscale_vals(snap_end+1,3)) 
       ALLOCATE(fig%sol_val(mnpp,sol%ne))       
       
       fig%num_cscale_vals = snap_end - snap_start + 1      
       
       ! Setup color scale bounds output file
       IF (fig%type_flag > 2) THEN   
+        filename = TRIM(ADJUSTL(fig%name))//".cscale"          
         OPEN(unit=fig%cscale_unit,file=filename//".out")  
         WRITE(fig%cscale_unit,"(2I5)") snap_start-1,snap_end-1
       ENDIF      
@@ -2567,10 +2606,10 @@ edge:DO ed = 1,nbed
       
       ! Set specified minimum and maximum values for all timesnaps
       IF (fig%cscale_option == "spec") THEN
-        DO snap = 1,snap_end
+        DO snap = 1,snap_end+1
           fig%cscale_vals(snap,2) = fig%cscale_min
           fig%cscale_vals(snap,3) = fig%cscale_max
-        ENDDO        
+        ENDDO             
       ENDIF
       
       ! Find minimum and maximum solution values for each timesnap
@@ -2578,8 +2617,8 @@ edge:DO ed = 1,nbed
       
         DO snap = snap_start,snap_end        
     
-          fig%cscale_min = 1d10
-          fig%cscale_max = -1d10      
+          fig%cscale_min = min_init
+          fig%cscale_max = max_init   
     
     elem: DO el = 1,sol%ne
     
@@ -2612,8 +2651,8 @@ edge:DO ed = 1,nbed
       
       ! Find overall minimum and maximum solution values
       IF (fig%cscale_option == "auto-all") THEN
-        fig%cscale_min = 1d10
-        fig%cscale_max = -1d10
+        fig%cscale_min = min_init
+        fig%cscale_max = max_init
         DO snap = snap_start,snap_end
           IF (fig%cscale_vals(snap,3) > fig%cscale_max) THEN
             fig%cscale_max = fig%cscale_vals(snap,3)
