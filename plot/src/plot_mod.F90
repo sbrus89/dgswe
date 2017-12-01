@@ -52,7 +52,7 @@
       TYPE(solution_type), INTENT(INOUT) :: sol1
       TYPE(solution_type), INTENT(INOUT), OPTIONAL :: sol2
 
-      INTEGER :: el,et
+      INTEGER :: el,et,i
       INTEGER :: pe
       INTEGER, DIMENSION(:), ALLOCATABLE :: el_in_all
       CHARACTER(:), ALLOCATABLE :: filename
@@ -154,7 +154,10 @@
       
       IF (fig%plot_mesh_option == 1) THEN              
        
-        CALL plot_mesh(fig%ps_unit,sol1%ne,sol1%nverts,fig%el_plt,pplt,sol1%el_type,sol1%el_in,sol1%xy,sol1%ect,xyplt)  
+        CALL plot_mesh(fig%ps_unit,sol1%ne,sol1%nverts,sol1%nnds,pplt,sol1%el_type,sol1%el_in,sol1%elxy,sol1%mesh_line_color)
+        IF (fig%sol_diff_option == 1) THEN
+          CALL plot_mesh(fig%ps_unit,sol2%ne,sol2%nverts,sol2%nnds,pplt,sol2%el_type,sol2%el_in,sol2%elxy,sol2%mesh_line_color)         
+        ENDIF
 !         CALL plot_nodestring(fig%ps_unit,sol1%nbou,sol1%nvel,sol1%fbseg,sol1%fbnds,sol1%xy)
 !         CALL plot_qpts(fig%ps_unit,sol1%ne,sol1%p,sol1%ctp,sol1%np,sol1%el_type,sol1%el_in,sol1%elxy,sol1%nverts,sol1%ned,sol1%ed_type,sol1%ged2el,sol1%ged2led)
 
@@ -350,15 +353,18 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
 
-      SUBROUTINE zoom_box(ne,nord,npplt,el_type,xyplt,xbox_min,xbox_max,ybox_min,ybox_max,xmin,xmax,ymin,ymax,el_in)
+      SUBROUTINE zoom_box(ne,nord,npplt,nnds,el_type,elxy,xbox_min,xbox_max,ybox_min,ybox_max,xmin,xmax,ymin,ymax,el_in)
+      
+      USE transformation, ONLY: element_transformation
       
       IMPLICIT NONE
       
       INTEGER, INTENT(IN) :: ne
       INTEGER, INTENT(IN) :: nord
-      INTEGER, DIMENSION(:), INTENT(IN) :: npplt      
+      INTEGER, DIMENSION(:), INTENT(IN) :: npplt    
+      INTEGER, DIMENSION(:), INTENT(IN) :: nnds
       INTEGER, DIMENSION(:), INTENT(IN) :: el_type
-      REAL(rp), DIMENSION(:,:,:), INTENT(IN) :: xyplt
+      REAL(rp), DIMENSION(:,:,:), INTENT(IN) :: elxy
       REAL(rp), INTENT(IN) :: xbox_min
       REAL(rp), INTENT(IN) :: xbox_max
       REAL(rp), INTENT(IN) :: ybox_min
@@ -370,17 +376,17 @@
       INTEGER, DIMENSION(:), ALLOCATABLE, INTENT(OUT) :: el_in
       
       INTEGER :: el,pt
-      INTEGER :: et,npts
+      INTEGER :: i,et,npts,nnd
       INTEGER :: mnpts
       INTEGER, DIMENSION(:), ALLOCATABLE :: outside
       INTEGER :: in_flag
       REAL(rp) :: xpt,ypt     
       
       
-      xmax = -1d10
-      ymax = -1d10
-      xmin = 1d10
-      ymin = 1d10      
+      xmax = max_init
+      ymax = max_init
+      xmin = min_init
+      ymin = min_init      
       
       ALLOCATE(outside(maxval(npplt)))
       
@@ -388,14 +394,15 @@
       el_in = 1
       
       DO el = 1,ne      
-        et = el_type(el)                          
-        npts = npplt((et-1)*nord+nord)
+        et = el_type(el)                
+        i = (et-1)*nord+nord
+        npts = npplt(i)
+        nnd = nnds(et)
         outside = 0
         DO pt = 1,npts  
         
-          xpt = xyplt(pt,el,1)
-          ypt = xyplt(pt,el,2)
-        
+          CALL element_transformation(nnd,elxy(:,el,1),elxy(:,el,2),psic(:,pt,i),xpt,ypt)             
+                
           IF (xpt > xmax) THEN
             xmax = xpt
           ENDIF
@@ -1736,30 +1743,32 @@ levels:DO lev = 1,nctick
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
 
-      SUBROUTINE plot_mesh(file_unit,ne,nverts,el_plt,pplt,el_type,el_in,xy,ect,xyplt)
+      SUBROUTINE plot_mesh(file_unit,ne,nverts,nnds,pplt,el_type,el_in,elxy,line_color)
+      
+      USE transformation, ONLY: element_transformation
       
       IMPLICIT NONE
       
       INTEGER, INTENT(IN) :: file_unit
       INTEGER, INTENT(IN) :: ne
       INTEGER, DIMENSION(:), INTENT(IN) :: nverts
-      INTEGER, DIMENSION(:), INTENT(IN) :: el_plt
+      INTEGER, DIMENSION(:), INTENT(IN) :: nnds
       INTEGER, DIMENSION(:), INTENT(IN) :: pplt
       INTEGER, DIMENSION(:), INTENT(IN) :: el_type
       INTEGER, DIMENSION(:), INTENT(IN) :: el_in      
-      REAL(rp), DIMENSION(:,:), INTENT(IN) :: xy
-      INTEGER, DIMENSION(:,:), INTENT(IN) :: ect
-      REAL(rp), DIMENSION(:,:,:), INTENT(IN) :: xyplt
+      REAL(rp), DIMENSION(:,:,:), INTENT(IN) :: elxy
+      REAL(rp), DIMENSION(:), INTENT(IN) :: line_color
 
       INTEGER :: el,nd
-      INTEGER :: et
-      REAL(rp) :: line_color(3)
+      INTEGER :: i,et
+      INTEGER :: nnd,npts
+      REAL(rp), DIMENSION(:), ALLOCATABLE :: xpt,ypt            
       
-      line_color = 0
+      ALLOCATE(xpt(mnpp),ypt(mnpp))
 
       
- elem:DO el = 1,ne
-        
+ elem:DO el = 1,ne              
+      
         IF (el_in(el) == 0) THEN
           CYCLE elem
         ENDIF
@@ -1769,20 +1778,26 @@ levels:DO lev = 1,nctick
         IF (et == 1) THEN         
           WRITE(file_unit,"(3(F9.5,1x))")  line_color(1), line_color(2), line_color(3)      
           DO nd = 1,nverts(et)       
-            WRITE(file_unit,"(2(F9.5,1x))") ax*xy(1,ect(nd,el))+bx,ay*xy(2,ect(nd,el))+by    
+            WRITE(file_unit,"(2(F9.5,1x))") ax*elxy(nd,el,1)+bx,ay*elxy(nd,el,2)+by    
           ENDDO                 
           WRITE(file_unit,"(A)") "draw-tri-element-color"              
         ELSE IF (et == 2) THEN
           WRITE(file_unit,"(3(F9.5,1x))")  line_color(1), line_color(2), line_color(3)          
           DO nd = 1,nverts(et)
-            WRITE(file_unit,"(2(F9.5,1x))") ax*xy(1,ect(nd,el))+bx,ay*xy(2,ect(nd,el))+by    
+            WRITE(file_unit,"(2(F9.5,1x))") ax*elxy(nd,el,1)+bx,ay*elxy(nd,el,2)+by    
           ENDDO                
           WRITE(file_unit,"(A)") "draw-quad-element-color"           
         ELSE
+          i = (et-1)*nord+nord 
+          npts = nverts(et)*pplt(i)
+          nnd = nnds(et)
+          DO nd = 1,npts
+            CALL element_transformation(nnd,elxy(:,el,1),elxy(:,el,2),psic(:,nd,i),xpt(nd),ypt(nd))
+          ENDDO
           WRITE(file_unit,"(A)") "newpath"
-          WRITE(file_unit,"(2(F9.5,1x),A)") ax*xyplt(1,el,1)+bx,ay*xyplt(1,el,2)+by,"moveto" 
-          DO nd = 2,nverts(et)*pplt(el_plt(el))
-            WRITE(file_unit,"(2(F9.5,1x),A)") ax*xyplt(nd,el,1)+bx,ay*xyplt(nd,el,2)+by, "lineto"
+          WRITE(file_unit,"(2(F9.5,1x),A)") ax*xpt(1)+bx,ay*ypt(1)+by,"moveto" 
+          DO nd = 2,npts
+            WRITE(file_unit,"(2(F9.5,1x),A)") ax*xpt(nd)+bx,ay*ypt(nd)+by, "lineto"
           ENDDO
           WRITE(file_unit,"(A)") "closepath"
           WRITE(file_unit,"(A)") ".5 setlinewidth 2 setlinejoin"          

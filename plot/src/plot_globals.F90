@@ -183,7 +183,8 @@
         REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: elxy
         REAL(rp), ALLOCATABLE, DIMENSION(:) :: depth
         REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: elhb
-        REAL(rp), ALLOCATABLE, DIMENSION(:,:,:,:) :: bndxy    
+        REAL(rp), ALLOCATABLE, DIMENSION(:,:,:,:) :: bndxy   
+        REAL(rp) :: mesh_line_color(3)        
                
         INTEGER, ALLOCATABLE, DIMENSION(:,:) :: ect
         INTEGER, ALLOCATABLE, DIMENSION(:) :: el_type
@@ -396,6 +397,7 @@
         bathy%sol_diff_option = 1
         zeta%sol_diff_option = 1
         vel%sol_diff_option = 1
+        mesh%sol_diff_option = 1
       ENDIF
       
       
@@ -448,6 +450,9 @@
 !       cfl%cscale_option = "spec"      
 !       cfl%cscale_min = 0.4d0
 !       cfl%cscale_max = 7d0
+
+      sol1%mesh_line_color = (/  0d0,  0d0,  0d0 /)
+      sol2%mesh_line_color = (/ .5d0, .5d0, .5d0 /)
       
       END SUBROUTINE setup_plot_types
 

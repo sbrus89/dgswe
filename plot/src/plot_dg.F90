@@ -132,8 +132,13 @@
       
       
       PRINT("(A)"), "Finding zoom box..."
-      CALL zoom_box(sol1%ne,nord,npplt,sol1%el_type,xyplt,xbox_min,xbox_max,ybox_min,ybox_max, &
-                                                     xmin,xmax,ymin,ymax,sol1%el_in)
+      CALL zoom_box(sol1%ne,nord,npplt,sol1%nnds,sol1%el_type,sol1%elxy,xbox_min,xbox_max,ybox_min,ybox_max, &
+                                                                        xmin,xmax,ymin,ymax,sol1%el_in)
+      IF (sol_diff_option == 1) THEN
+        PRINT("(A)"), "Finding zoom box..."      
+        CALL zoom_box(sol2%ne,nord,npplt,sol2%nnds,sol2%el_type,sol2%elxy,xbox_min,xbox_max,ybox_min,ybox_max, &      
+                                                                          xmin,xmax,ymin,ymax,sol2%el_in)      
+      ENDIF
 
                                                      
       PRINT("(A)"), "Scaling coordinates..."
@@ -166,7 +171,7 @@
       ENDIF
       
       CALL setup_cbounds(npplt,mesh,sol1,1,1)     
-      CALL make_plot(1,0d0,mesh,sol1)  
+      CALL make_plot(1,0d0,mesh,sol1,sol2)  
       
 
       IF (zeta%plot_sol_option == 0 .and. vel%plot_sol_option == 0 .and. bathy%plot_sol_option == 0) THEN
