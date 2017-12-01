@@ -156,11 +156,9 @@
       
       t_start = 0d0
       t_end = tf*86400d0 
-      t_snap = 0d0
-      
-      snap_char = "0000"      
-      
-          
+      t_snap = 0d0         
+
+
 
       CALL read_solutions(zeta,vel,bathy,sol1)   
       IF (sol_diff_option == 1) THEN

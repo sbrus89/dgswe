@@ -928,9 +928,9 @@
         IF (.not. ALLOCATED(fig%sol_maxval)) THEN
           ALLOCATE(fig%sol_maxval(mnpp,sol1%ne))
           fig%sol_maxval = max_init
-          fig%max_maxval = max_init
-          fig%min_maxval = min_init
         ENDIF
+        fig%max_maxval = max_init
+        fig%min_maxval = min_init        
       ENDIF 
       
       ! Find the solution 2 elements each plotting node lies in and calculate local r,s coordinates
@@ -980,7 +980,7 @@
           ! Calculate solution difference (if_needed)
           IF (fig%sol_diff_option == 1 .or. fig%ho_diff_option == 1) THEN
             DO pt = 1,npplt(i)
-              fig%sol_val(pt,el) = abs(fig%sol_val(pt,el) - sol2_val(pt))
+              fig%sol_val(pt,el) = abs(fig%sol_val(pt,el) - sol2_val(pt))        
             ENDDO          
           ENDIF
           
@@ -990,11 +990,11 @@
               IF (fig%sol_val(pt,el) > fig%sol_maxval(pt,el)) THEN
                 fig%sol_maxval(pt,el) = fig%sol_val(pt,el)
               ENDIF   
-              IF (fig%sol_val(pt,el) > fig%max_maxval) THEN
-                fig%max_maxval = fig%sol_val(pt,el)
+              IF (fig%sol_maxval(pt,el) > fig%max_maxval) THEN
+                fig%max_maxval = fig%sol_maxval(pt,el)
               ENDIF
-              IF (fig%sol_val(pt,el) < fig%min_maxval .and. fig%sol_val(pt,el) > max_init) THEN
-                fig%min_maxval = fig%sol_val(pt,el)
+              IF (fig%sol_maxval(pt,el) < fig%min_maxval .and. fig%sol_val(pt,el) > max_init) THEN
+                fig%min_maxval = fig%sol_maxval(pt,el)
               ENDIF
             ENDDO
           ENDIF          

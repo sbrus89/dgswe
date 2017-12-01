@@ -138,8 +138,7 @@
       INTEGER :: nsnap_hb
       
       INTEGER :: tex_unit   
-           
-      CHARACTER(4) :: snap_char     
+               
       CHARACTER(3) :: start_num
       CHARACTER(3) :: nframes
       
