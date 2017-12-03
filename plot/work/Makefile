@@ -77,7 +77,7 @@ endif
 
 plot_objects =  plot_globals.o globals.o quit.o basis.o read_input.o messenger2.o \
            read_plot_input.o grid_file_mod.o read_write_output.o read_stations.o \
-           read_solution.o system.o tripack.o initialize.o \
+           system.o tripack.o initialize.o \
            edge_connectivity_mod.o curvilinear_nodes_mod.o bathymetry_interp_mod.o \
            vandermonde.o transformation.o shape_functions_mod.o triangulation.o \
            area_qpts_mod.o edge_qpts_mod.o\

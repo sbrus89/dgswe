@@ -930,6 +930,8 @@
       REAL(rp) :: sol2_val(mnpp),val(1)      
       
       
+      
+      
       ! Allocate and initialize max array (if needed)
       IF (fig%plot_max_option > 0) THEN
         IF (.not. ALLOCATED(fig%sol_maxval)) THEN
@@ -1090,7 +1092,7 @@
       INTEGER, DIMENSION(:), ALLOCATABLE :: el_list,nd_list,nd_flag
       
       err = 0d0
-      
+              
       
       ! quadrature points for elemental solution average
       CALL area_qpts(1,sol%p,sol%ctp,nel_type,nqpta,mnqpta,wpta,qpta)      
@@ -1490,6 +1492,7 @@
       REAL(rp) :: t,f,dfdr,dfds,dfdt,dt,t0
       INTEGER :: max_it
       INTEGER :: fail_flag
+      INTEGER :: sol_snap
       REAL(rp) :: phi(sol%mndof,2),dpdr(sol%mndof,1),dpds(sol%mndof,1)
       REAL(rp) :: l(sol%mnnds,1)
       REAL(rp) :: xv(3),yv(3)
@@ -1507,6 +1510,14 @@
       max_it = 1000
       
 
+      ! Account for initial condition in dgswe output      
+      IF (sol%output_type == "dgswe") THEN
+        sol_snap = snap + 1
+      ELSE 
+        sol_snap = snap
+      ENDIF      
+      
+      
 
       ALLOCATE(el_below(maxval(nptri),sol%ne))
       el_below = 0
@@ -1593,13 +1604,15 @@ levels:DO lev = 1,nctick
                    se(1) = s            
                    
                    IF (fig%type_flag == 2 .or. fig%type_flag == 4) THEN
-#ifdef adcirc                   
-                     CALL linear_basis(ndf,1,re,se,phi,dpdr,dpds)
-#elif dgswem                       
-                     CALL dgswem_basis(sol%hbp,ndf,1,re,se,phi,dpdr,dpds)   
-#else
-                     CALL element_basis(et,sol%hbp,ndf,1,re,se,phi,dpdr,dpds)   
-#endif                     
+                   
+                     IF (sol%output_type == "adcirc") THEN
+                       CALL linear_basis(ndf,1,re,se,phi,dpdr,dpds)
+                     ELSE IF (sol%output_type == "dgswem") THEN
+                       CALL dgswem_basis(sol%hbp,ndf,1,re,se,phi,dpdr,dpds)   
+                     ELSE IF (sol%output_type == "dgswe") THEN
+                       CALL element_basis(et,sol%hbp,ndf,1,re,se,phi,dpdr,dpds)   
+                     ENDIF 
+                                         
                      bathy = 0d0
                      dbdr = 0d0
                      dbds = 0d0
@@ -1616,20 +1629,22 @@ levels:DO lev = 1,nctick
                    ENDIF
                    
                    IF (fig%type_flag == 3 .or. fig%type_flag == 4) THEN
-#ifdef adcirc
-                     CALL linear_basis(ndf,1,re,se,phi,dpdr,dpds)
-#elif dgswem
-                     CALL dgswem_basis(sol%p,ndf,1,re,se,phi,dpdr,dpds)    
-#else                     
-                     CALL element_basis(et,sol%p,ndf,1,re,se,phi,dpdr,dpds)    
-#endif                     
+                   
+                     IF (sol%output_type == "adcirc") THEN
+                       CALL linear_basis(ndf,1,re,se,phi,dpdr,dpds)
+                     ELSE IF (sol%output_type == "dgswem") THEN
+                       CALL dgswem_basis(sol%p,ndf,1,re,se,phi,dpdr,dpds)    
+                     ELSE IF (sol%output_type == "dgswe") THEN                
+                       CALL element_basis(et,sol%p,ndf,1,re,se,phi,dpdr,dpds)    
+                     ENDIF
+                     
                      zeta = 0d0
                      dzdr = 0d0
                      dzds = 0d0
                      DO dof = 1,ndf
-                       zeta = zeta + phi(dof,1)*sol%Z(dof,el,snap)
-                       dzdr = dzdr + dpdr(dof,1)*sol%Z(dof,el,snap)
-                       dzds = dzds + dpds(dof,1)*sol%Z(dof,el,snap)
+                       zeta = zeta + phi(dof,1)*sol%Z(dof,el,sol_snap)
+                       dzdr = dzdr + dpdr(dof,1)*sol%Z(dof,el,sol_snap)
+                       dzds = dzds + dpds(dof,1)*sol%Z(dof,el,sol_snap)
                      ENDDO
                      IF (fig%type_flag == 3) THEN
                        f = zeta - sol_lev
@@ -1646,12 +1661,12 @@ levels:DO lev = 1,nctick
                      dymdr = 0d0
                      dymds = 0d0
                      DO dof = 1,ndf
-                       xmom = xmom + phi(dof,1)*sol%Qx(dof,el,snap)
-                       ymom = ymom + phi(dof,1)*sol%Qy(dof,el,snap)
-                       dxmdr = dxmdr + dpdr(dof,1)*sol%Qx(dof,el,snap)
-                       dxmds = dxmds + dpds(dof,1)*sol%Qx(dof,el,snap)
-                       dymdr = dymdr + dpdr(dof,1)*sol%Qy(dof,el,snap)
-                       dymds = dymds + dpds(dof,1)*sol%Qy(dof,el,snap)
+                       xmom = xmom + phi(dof,1)*sol%Qx(dof,el,sol_snap)
+                       ymom = ymom + phi(dof,1)*sol%Qy(dof,el,sol_snap)
+                       dxmdr = dxmdr + dpdr(dof,1)*sol%Qx(dof,el,sol_snap)
+                       dxmds = dxmds + dpds(dof,1)*sol%Qx(dof,el,sol_snap)
+                       dymdr = dymdr + dpdr(dof,1)*sol%Qy(dof,el,sol_snap)
+                       dymds = dymds + dpds(dof,1)*sol%Qy(dof,el,sol_snap)
                      ENDDO
                      H = zeta + bathy          
                      dHdr = dzdr + dbdr
@@ -2586,6 +2601,7 @@ edge:DO ed = 1,nbed
       INTEGER :: i,snap,el,pt
       INTEGER :: et,npts
       INTEGER :: start_snap,end_snap
+      INTEGER :: sol_snap
       CHARACTER(:), ALLOCATABLE :: filename
 
            
@@ -2594,6 +2610,8 @@ edge:DO ed = 1,nbed
         RETURN
       ENDIF
       
+     
+            
   
       
       ALLOCATE(fig%cscale_vals(snap_end+1,3)) 
@@ -2633,7 +2651,8 @@ edge:DO ed = 1,nbed
         DO snap = snap_start,snap_end        
     
           fig%cscale_min = min_init
-          fig%cscale_max = max_init   
+          fig%cscale_max = max_init  
+                 
     
     elem: DO el = 1,sol%ne
     

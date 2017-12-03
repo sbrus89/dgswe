@@ -155,6 +155,7 @@
         CHARACTER(:),ALLOCATABLE :: curve_file 
         CHARACTER(:),ALLOCATABLE :: bathy_file    
         CHARACTER(:),ALLOCATABLE :: stations_file
+        CHARACTER(:),ALLOCATABLE :: output_type
         INTEGER :: sta_opt              
       
         INTEGER :: p

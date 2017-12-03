@@ -62,6 +62,7 @@
       CALL read_grid(sol1)
       CALL connectivity(sol1)
       CALL curvilinear(sol1)
+      CALL find_output_type(so1)
       
       IF (sol_diff_option == 1) THEN
         CALL read_dgsweinp(sol2,input_path2,substitute_path,replace_path,sub_path)      
@@ -69,6 +70,7 @@
         CALL read_grid(sol2)
         CALL connectivity(sol2)
         CALL curvilinear(sol2)    
+        CALL find_output_type(sol2)        
       ENDIF
       
 
@@ -145,19 +147,8 @@
       CALL scale_factors(figure_width,figure_height,xmin,xmax,ymin,ymax,ax,bx,ay,by)
           
       
-#ifdef adcirc 
-
-#elif dgswem
-
-#else 
-      snap_start = snap_start + 1
-      snap_end = snap_end + 1      
-#endif      
+    
       
-      nsnap_Z = snap_end
-      nsnap_Qx = snap_end
-      nsnap_Qy = snap_end
-      nsnap_hb = 1
       
       t_start = 0d0
       t_end = tf*86400d0 
@@ -197,12 +188,12 @@
       
              
          
-      IF ((snap_start > nsnap_Z) .or. (snap_start > nsnap_Qx) .or. (snap_start > nsnap_Qy)) THEN
-        snap_start = MIN(nsnap_Z,nsnap_Qx,nsnap_Qy)
+      IF ((snap_start > sol1%nsnap_Z) .or. (snap_start > sol1%nsnap_Qx) .or. (snap_start > sol1%nsnap_Qy)) THEN
+        snap_start = MIN(sol1%nsnap_Z,sol1%nsnap_Qx,sol1%nsnap_Qy)
       ENDIF                  
       
-      IF ((snap_end > nsnap_Z) .or. (snap_end > nsnap_Qx) .or. (snap_end > nsnap_Qy)) THEN
-        snap_end = MIN(nsnap_Z,nsnap_Qx,nsnap_Qy)
+      IF ((snap_end > sol1%nsnap_Z) .or. (snap_end > sol1%nsnap_Qx) .or. (snap_end > sol1%nsnap_Qy)) THEN
+        snap_end = MIN(sol1%nsnap_Z,sol1%nsnap_Qx,sol1%nsnap_Qy)
       ENDIF
       
       

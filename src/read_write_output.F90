@@ -392,6 +392,13 @@
       REAL(rp) :: ttemp
       CHARACTER(200) :: line 
       CHARACTER(1) :: last_only      
+      LOGICAL :: file_exists
+      
+      INQUIRE(FILE=TRIM(ADJUSTL(out_direc)) // 'fort.'//num, EXIST=file_exists)
+      IF(file_exists .eqv. .FALSE.) THEN
+        PRINT*, "file does not exist"
+        STOP        
+      ENDIF            
       
       OPEN(UNIT=63,file=TRIM(ADJUSTL(out_direc)) // 'fort.'//num)      
       
@@ -479,6 +486,13 @@
       REAL(rp) :: ttemp
       CHARACTER(200) :: line   
       CHARACTER(1) :: last_only
+      LOGICAL :: file_exists
+
+      INQUIRE(FILE=TRIM(ADJUSTL(out_direc)) // 'fort.'//num, EXIST=file_exists)
+      IF(file_exists .eqv. .FALSE.) THEN
+        PRINT*, "file does not exist"
+        STOP        
+      ENDIF       
       
       OPEN(UNIT=64,file=TRIM(ADJUSTL(out_direc)) // 'fort.'//num)      
       
@@ -574,6 +588,13 @@
       REAL(rp) :: ttemp
       CHARACTER(200) :: line 
       CHARACTER(1) :: last_only      
+      LOGICAL :: file_exists
+
+      INQUIRE(FILE=TRIM(ADJUSTL(out_direc)) // 'DG.63', EXIST=file_exists)
+      IF(file_exists .eqv. .FALSE.) THEN
+        PRINT*, "file does not exist"
+        STOP        
+      ENDIF       
       
       OPEN(UNIT=63,file=TRIM(ADJUSTL(out_direc)) // 'DG.63')      
       
@@ -665,6 +686,13 @@
       REAL(rp) :: ttemp
       CHARACTER(200) :: line   
       CHARACTER(1) :: last_only
+      LOGICAL :: file_exists
+
+      INQUIRE(FILE=TRIM(ADJUSTL(out_direc)) // 'DG.64', EXIST=file_exists)
+      IF(file_exists .eqv. .FALSE.) THEN
+        PRINT*, "file does not exist"
+        STOP        
+      ENDIF        
       
       OPEN(UNIT=64,file=TRIM(ADJUSTL(out_direc)) // 'DG.64')      
       

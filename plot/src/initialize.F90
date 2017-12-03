@@ -171,6 +171,56 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+      SUBROUTINE find_output_type(sol)
+      
+      IMPLICIT NONE
+      
+      TYPE(solution_type), INTENT(INOUT) :: sol
+      
+      LOGICAL :: zeta_file_exists
+      LOGICAL :: vel_file_exists
+      LOGICAL :: bathy_file_exists
+      INTEGER :: found
+      
+      found = 0
+      
+      ! Check for adcirc output
+      INQUIRE(FILE=sol%out_direc//"fort.63", EXIST=zeta_file_exists)      
+      INQUIRE(FILE=sol%out_direc//"fort.64", EXIST=vel_file_exists)
+      IF (zeta_file_exists .or. vel_file_exists) THEN
+        sol%output_type = "adcirc"
+        found = 1
+      ENDIF
+
+      ! Check for DG-SWEM output
+      INQUIRE(FILE=sol%out_direc//"DG.63", EXIST=zeta_file_exists)
+      INQUIRE(FILE=sol%out_direc//"DG.64", EXIST=vel_file_exists)
+      IF (zeta_file_exists .or. vel_file_exists) THEN
+        sol%output_type = "dgswem"
+        found = 1
+      ENDIF
+
+      ! Check for dgswe output
+      INQUIRE(FILE=sol%out_direc//"Z.sol", EXIST=zeta_file_exists)
+      INQUIRE(FILE=sol%out_direc//"Qx.sol", EXIST=vel_file_exists)
+      INQUIRE(FILE=sol%out_direc//"hb.sol", EXIST=bathy_file_exists)      
+      IF (zeta_file_exists .or. vel_file_exists .or. bathy_file_exists) THEN
+        sol%output_type = "dgswe"
+        found = 1
+      ENDIF            
+      
+      ! Default to dgswe
+      IF (found == 0) THEN
+        sol%output_type = "dgswe"
+      ENDIF
+      
+      RETURN
+      END SUBROUTINE find_output_type
+      
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
       SUBROUTINE read_solutions(zeta,vel,bathy,s)          
      
       USE read_write_output, ONLY: read_solution_full,read_fort6163,read_fort6264, &
@@ -190,94 +240,97 @@
       INTEGER :: el,nd,snap
       REAL(rp) :: H
       LOGICAL :: file_exists
-     
-#ifdef adcirc        
       
-      IF (zeta%plot_sol_option == 1 .or. vel%plot_sol_option == 1) THEN
-        PRINT("(A)"), "Reading zeta solution..."          
-        CALL read_fort6163(s%out_direc,"63",s%t,eta,s%nsnap_Z) 
-        ALLOCATE(s%Z(3,s%ne,s%nsnap_Z))
-        DO snap = 1,s%nsnap_Z
-          DO el = 1,s%ne
-            DO nd = 1,3
-              s%Z(nd,el,snap) = s%eta(s%ect(nd,el),snap)
+      REAL(rp), DIMENSION(:,:), ALLOCATABLE :: eta
+      REAL(rp), DIMENSION(:,:), ALLOCATABLE :: uu2,vv2
+      REAL(rp), DIMENSION(:,:), ALLOCATABLE :: hbm      
+     
+      IF (s%output_type == "adcirc") THEN       
+      
+        IF (zeta%plot_sol_option == 1 .or. vel%plot_sol_option == 1) THEN
+          PRINT("(A)"), "Reading zeta solution..."          
+          CALL read_fort6163(s%out_direc,"63",s%t,eta,s%nsnap_Z) 
+          ALLOCATE(s%Z(3,s%ne,s%nsnap_Z))
+          DO snap = 1,s%nsnap_Z
+            DO el = 1,s%ne
+              DO nd = 1,3
+                s%Z(nd,el,snap) = s%eta(s%ect(nd,el),snap)
+              ENDDO
             ENDDO
           ENDDO
-        ENDDO
-      ENDIF
-      IF (bathy%plot_sol_option == 1 .or. vel%plot_sol_option == 1) THEN
-        PRINT("(A)"), "Reading bathymetry solution..."              
-        ALLOCATE(s%hb(3,s%ne,1))
-        DO el = 1,s%ne
-          DO nd = 1,3
-            s%hb(nd,el,1) = s%depth(s%ect(nd,el))
-          ENDDO
-        ENDDO
-      ENDIF        
-      IF (vel%plot_sol_option == 1) THEN
-        PRINT("(A)"), "Reading u and v solutions..."       
-        CALL read_fort6264(s%out_direc,"64",s%t,s%uu2,s%vv2,s%nsnap_Qx)
-        ALLOCATE(s%Qx(3,s%ne,s%nsnap_Qx))
-        ALLOCATE(s%Qy(3,s%ne,s%nsnap_Qx))        
-        DO snap = 1,s%nsnap_Qx
-          DO el = 1,s%ne
-            DO nd = 1,3
-              H = s%Z(nd,el,snap)+s%hb(nd,el,1)
-              s%Qx(nd,el,snap) = s%uu2(ect(nd,el),snap)*H
-              s%Qy(nd,el,snap) = s%vv2(ect(nd,el),snap)*H
-            ENDDO
-          ENDDO
-        ENDDO                
-      ELSE 
-        ALLOCATE(s%Qx(1,1,1),s%Qy(1,1,1))
-      ENDIF             
-      
-#elif dgswem
-
-      IF (zeta%plot_sol_option == 1 .or. vel%plot_sol_option == 1) THEN
-        PRINT("(A)"), "Reading zeta solution..."          
-        CALL read_DG63(s%out_direc,s%ne,s%t,s%Z,s%nsnap_Z) 
-      ENDIF
-      IF (vel%plot_sol_option == 1) THEN
-        PRINT("(A)"), "Reading Qx and Qy solutions..."       
-        CALL read_DG64(s%out_direc,s%ne,s%t,s%Qx,s%Qy,s%nsnap_Qx)        
-      ELSE 
-        ALLOCATE(s%Qx(1,1,1),s%Qy(1,1,1))
-      ENDIF  
-      IF (bathy%plot_sol_option == 1 .or. vel%plot_sol_option == 1) THEN
-        ALLOCATE(s%hb(3,s%ne,1))
-        CALL dgswem_bathymetry_nodal2modal(s%ne,s%ect,s%depth,s%hbm)
-        s%hb(:,:,1) = s%hbm(:,:)
-      ENDIF  
-     
-#else
-
-      IF (zeta%plot_sol_option == 1 .or. vel%plot_sol_option == 1) THEN
-        PRINT("(A)"), "Reading zeta solution..."          
-        CALL read_solution_full(s%out_direc,"Z.sol","N",s%t,s%Z,s%nsnap_Z) 
-      ENDIF
-      IF (vel%plot_sol_option == 1) THEN
-        PRINT("(A)"), "Reading Qx and Qy solutions..."       
-        CALL read_solution_full(s%out_direc,"Qx.sol","N",s%t,s%Qx,s%nsnap_Qx)        
-        CALL read_solution_full(s%out_direc,"Qy.sol","N",s%t,s%Qy,s%nsnap_Qy) 
-      ELSE 
-        ALLOCATE(s%Qx(1,1,1),s%Qy(1,1,1))
-      ENDIF  
-      IF (bathy%plot_sol_option == 1 .or. vel%plot_sol_option == 1) THEN
-        INQUIRE(file=s%out_direc//"hb.sol",exist=file_exists)
-        IF (file_exists == .true.) THEN
-          PRINT("(A)"), "Reading bathymetry solution..."            
-          CALL read_solution_full(s%out_direc,"hb.sol","N",s%t,s%hb,s%nsnap_hb)  
-        ELSE
-          CALL read_bathy_file(0,s%bathy_file,s%hbp,s%ne,s%el_type,s%nverts,s%depth,s%ect,s%elhb,file_exists)
-          ALLOCATE(s%hb(s%mndof,s%ne,1))
-          CALL bathymetry_nodal2modal(s%hbp,s%mndof,s%ne,s%el_type,s%elhb,s%hbm)
-          s%hb(:,:,1) = s%hbm(:,:)
         ENDIF
-      ENDIF    
+        IF (bathy%plot_sol_option == 1 .or. vel%plot_sol_option == 1) THEN
+          PRINT("(A)"), "Reading bathymetry solution..."              
+          ALLOCATE(s%hb(3,s%ne,1))
+          DO el = 1,s%ne
+            DO nd = 1,3
+              s%hb(nd,el,1) = s%depth(s%ect(nd,el))
+            ENDDO
+          ENDDO
+        ENDIF        
+        IF (vel%plot_sol_option == 1) THEN
+          PRINT("(A)"), "Reading u and v solutions..."       
+          CALL read_fort6264(s%out_direc,"64",s%t,s%uu2,s%vv2,s%nsnap_Qx)
+          ALLOCATE(s%Qx(3,s%ne,s%nsnap_Qx))
+          ALLOCATE(s%Qy(3,s%ne,s%nsnap_Qx))        
+          DO snap = 1,s%nsnap_Qx
+            DO el = 1,s%ne
+              DO nd = 1,3
+                H = s%Z(nd,el,snap)+s%hb(nd,el,1)
+                s%Qx(nd,el,snap) = s%uu2(s%ect(nd,el),snap)*H
+                s%Qy(nd,el,snap) = s%vv2(s%ect(nd,el),snap)*H
+              ENDDO
+            ENDDO
+          ENDDO                
+        ELSE 
+          ALLOCATE(s%Qx(1,1,1),s%Qy(1,1,1))
+        ENDIF             
+      
+      ELSE IF (s%output_type == "dgswem") THEN
 
-#endif
-           
+        IF (zeta%plot_sol_option == 1 .or. vel%plot_sol_option == 1) THEN
+          PRINT("(A)"), "Reading zeta solution..."          
+          CALL read_DG63(s%out_direc,s%ne,s%t,s%Z,s%nsnap_Z) 
+        ENDIF
+        IF (vel%plot_sol_option == 1) THEN
+          PRINT("(A)"), "Reading Qx and Qy solutions..."       
+          CALL read_DG64(s%out_direc,s%ne,s%t,s%Qx,s%Qy,s%nsnap_Qx)        
+        ELSE 
+          ALLOCATE(s%Qx(1,1,1),s%Qy(1,1,1))
+        ENDIF  
+        IF (bathy%plot_sol_option == 1 .or. vel%plot_sol_option == 1) THEN
+          ALLOCATE(s%hb(3,s%ne,1))
+          CALL dgswem_bathymetry_nodal2modal(s%ne,s%ect,s%depth,s%hbm)
+          s%hb(:,:,1) = s%hbm(:,:)
+        ENDIF  
+     
+      ELSE IF (s%output_type == "dgswe") THEN
+
+        IF (zeta%plot_sol_option == 1 .or. vel%plot_sol_option == 1) THEN
+          PRINT("(A)"), "Reading zeta solution..."          
+          CALL read_solution_full(s%out_direc,"Z.sol","N",s%t,s%Z,s%nsnap_Z) 
+        ENDIF
+        IF (vel%plot_sol_option == 1) THEN
+          PRINT("(A)"), "Reading Qx and Qy solutions..."       
+          CALL read_solution_full(s%out_direc,"Qx.sol","N",s%t,s%Qx,s%nsnap_Qx)        
+          CALL read_solution_full(s%out_direc,"Qy.sol","N",s%t,s%Qy,s%nsnap_Qy) 
+        ELSE 
+          ALLOCATE(s%Qx(1,1,1),s%Qy(1,1,1))
+        ENDIF  
+        IF (bathy%plot_sol_option == 1 .or. vel%plot_sol_option == 1) THEN
+          INQUIRE(file=s%out_direc//"hb.sol",exist=file_exists)
+          IF (file_exists == .true.) THEN
+            PRINT("(A)"), "Reading bathymetry solution..."            
+            CALL read_solution_full(s%out_direc,"hb.sol","N",s%t,s%hb,s%nsnap_hb)  
+          ELSE
+            CALL read_bathy_file(0,s%bathy_file,s%hbp,s%ne,s%el_type,s%nverts,s%depth,s%ect,s%elhb,file_exists)
+            ALLOCATE(s%hb(s%mndof,s%ne,1))
+            CALL bathymetry_nodal2modal(s%hbp,s%mndof,s%ne,s%el_type,s%elhb,s%hbm)
+            s%hb(:,:,1) = s%hbm(:,:)
+          ENDIF
+        ENDIF    
+
+     ENDIF           
      
      RETURN
      END SUBROUTINE read_solutions
