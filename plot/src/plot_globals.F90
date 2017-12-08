@@ -173,8 +173,19 @@
         INTEGER :: mnp
         INTEGER :: nnds(4)
         INTEGER :: mnnds
+
+        INTEGER :: nord
+        INTEGER :: mnpp
+        INTEGER, DIMENSION(:), ALLOCATABLE :: pplt
+        INTEGER, DIMENSION(:), ALLOCATABLE :: npplt
+        INTEGER, DIMENSION(:), ALLOCATABLE :: nptri
+        INTEGER, DIMENSION(:,:,:), ALLOCATABLE :: rect
         
-        REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: psiv        
+        
+        REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: r
+        REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: s
+        REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: psic   
+        REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: psiv         
         
         REAL(rp) :: sphi0
         REAL(rp) :: slam0
@@ -233,10 +244,10 @@
         REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: Qx
         REAL(rp), ALLOCATABLE, DIMENSION(:,:,:) :: Qy 
         
-        REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: hbm            
-        REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: eta
-        REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: uu2
-        REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: vv2          
+!         REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: hbm            
+!         REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: eta
+!         REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: uu2
+!         REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: vv2          
         
         INTEGER :: nsnap_Z
         INTEGER :: nsnap_Qx

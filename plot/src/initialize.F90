@@ -254,7 +254,7 @@
           DO snap = 1,s%nsnap_Z
             DO el = 1,s%ne
               DO nd = 1,3
-                s%Z(nd,el,snap) = s%eta(s%ect(nd,el),snap)
+                s%Z(nd,el,snap) = eta(s%ect(nd,el),snap)
               ENDDO
             ENDDO
           ENDDO
@@ -270,15 +270,15 @@
         ENDIF        
         IF (vel%plot_sol_option == 1) THEN
           PRINT("(A)"), "Reading u and v solutions..."       
-          CALL read_fort6264(s%out_direc,"64",s%t,s%uu2,s%vv2,s%nsnap_Qx)
+          CALL read_fort6264(s%out_direc,"64",s%t,uu2,vv2,s%nsnap_Qx)
           ALLOCATE(s%Qx(3,s%ne,s%nsnap_Qx))
           ALLOCATE(s%Qy(3,s%ne,s%nsnap_Qx))        
           DO snap = 1,s%nsnap_Qx
             DO el = 1,s%ne
               DO nd = 1,3
                 H = s%Z(nd,el,snap)+s%hb(nd,el,1)
-                s%Qx(nd,el,snap) = s%uu2(s%ect(nd,el),snap)*H
-                s%Qy(nd,el,snap) = s%vv2(s%ect(nd,el),snap)*H
+                s%Qx(nd,el,snap) = uu2(s%ect(nd,el),snap)*H
+                s%Qy(nd,el,snap) = vv2(s%ect(nd,el),snap)*H
               ENDDO
             ENDDO
           ENDDO                
@@ -300,8 +300,8 @@
         ENDIF  
         IF (bathy%plot_sol_option == 1 .or. vel%plot_sol_option == 1) THEN
           ALLOCATE(s%hb(3,s%ne,1))
-          CALL dgswem_bathymetry_nodal2modal(s%ne,s%ect,s%depth,s%hbm)
-          s%hb(:,:,1) = s%hbm(:,:)
+          CALL dgswem_bathymetry_nodal2modal(s%ne,s%ect,s%depth,hbm)
+          s%hb(:,:,1) = hbm(:,:)
         ENDIF  
      
       ELSE IF (s%output_type == "dgswe") THEN
@@ -325,8 +325,8 @@
           ELSE
             CALL read_bathy_file(0,s%bathy_file,s%hbp,s%ne,s%el_type,s%nverts,s%depth,s%ect,s%elhb,file_exists)
             ALLOCATE(s%hb(s%mndof,s%ne,1))
-            CALL bathymetry_nodal2modal(s%hbp,s%mndof,s%ne,s%el_type,s%elhb,s%hbm)
-            s%hb(:,:,1) = s%hbm(:,:)
+            CALL bathymetry_nodal2modal(s%hbp,s%mndof,s%ne,s%el_type,s%elhb,hbm)
+            s%hb(:,:,1) = hbm(:,:)
           ENDIF
         ENDIF    
 

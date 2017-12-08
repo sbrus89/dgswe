@@ -1,7 +1,7 @@
 SHELL = /bin/sh
 
 FC = ifort
-FFLAGS = -I$(ODIR) #-g -traceback -C
+FFLAGS = -I$(ODIR) -g -traceback -C
 
 VPATH := ../src/
 ODIR = odir/
@@ -252,7 +252,7 @@ $(ODIR)convert.o: convert2cartesian.F90                      $(ODIR)globals.o $(
 $(ODIR)read_stations.o: ../../src/read_stations.F90          $(ODIR)globals.o $(ODIR)read_input.o $(ODIR)messenger2.o $(ODIR)quit.o 
 	$(FC) $(FFLAGS) -c $< -o $@        
 	
-$(ODIR)initialize.o: initialize.F90                          $(ODIR)globals.o $(ODIR)plot_globals.o $(ODIR)read_input.o $(ODIR)grid_file_mod.o $(ODIR)edge_connectivity_mod.o $(ODIR)transformation.o $(ODIR)curvilinear_nodes_mod.o
+$(ODIR)initialize.o: initialize.F90                          $(ODIR)globals.o $(ODIR)plot_globals.o $(ODIR)read_input.o $(ODIR)grid_file_mod.o $(ODIR)edge_connectivity_mod.o $(ODIR)transformation.o $(ODIR)curvilinear_nodes_mod.o $(ODIR)bathymetry_interp_mod.o
 	$(FC) $(FFLAGS) -c $< -o $@ 	
 	mv initialize.mod $(ODIR)	
 
@@ -264,7 +264,7 @@ $(ODIR)read_solution.o: read_solution.F90                    $(ODIR)plot_globals
 	$(FC) $(FFLAGS) -c $< -o $@ 	
 	mv read_solution.mod $(ODIR)	
 	
-$(ODIR)evaluate_mod.o: evaluate_mod.F90                      $(ODIR)plot_globals.o $(ODIR)globals.o $(ODIR)basis.o  
+$(ODIR)evaluate_mod.o: evaluate_mod.F90                      $(ODIR)plot_globals.o $(ODIR)globals.o $(ODIR)basis.o  $(ODIR)shape_functions_mod.o $(ODIR)triangulation.o
 	$(FC) $(FFLAGS) -c $< -o $@ 	
 	mv evaluate_mod.mod $(ODIR)	
 	

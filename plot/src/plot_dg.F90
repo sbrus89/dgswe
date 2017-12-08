@@ -17,12 +17,10 @@
       USE plot_mod, ONLY: read_colormap,setup_cbounds,plot_ref_el, &
                           scale_factors,zoom_box,make_plot,make_movie, &
                           plot_filled_contours
-      USE evaluate_mod, ONLY: evaluate_basis
+      USE evaluate_mod, ONLY: evaluate_basis,evaluate_plotting_nodes
       USE labels_mod, ONLY: latex_axes_labels,run_latex,close_tex, &
                             latex_element_labels,latex_node_labels  
-      USE axes_mod, ONLY: write_all_axes                            
-                          
-      USE triangulation, ONLY: reference_element_delaunay                            
+      USE axes_mod, ONLY: write_all_axes                                                                               
       USE edge_connectivity_mod
       USE curvilinear_nodes_mod
       USE transformation
@@ -62,7 +60,7 @@
       CALL read_grid(sol1)
       CALL connectivity(sol1)
       CALL curvilinear(sol1)
-      CALL find_output_type(so1)
+      CALL find_output_type(sol1)
       
       IF (sol_diff_option == 1) THEN
         CALL read_dgsweinp(sol2,input_path2,substitute_path,replace_path,sub_path)      
@@ -76,37 +74,21 @@
 
       
       PRINT("(A)"), "Calculating additional ploting nodes..."
-      nord = (p_high-p_low+1)/p_skip
-      
+      nord = (p_high-p_low+1)/p_skip      
       mnpp = (p_high+1)**2      
-      ALLOCATE(r(mnpp,sol1%nel_type*nord),s(mnpp,sol1%nel_type*nord))      
-      ALLOCATE(psic(sol1%mnnds,mnpp,sol1%nel_type*nord))
-      ALLOCATE(rect(3,3*mnpp,sol1%nel_type*nord))      
-      ALLOCATE(nptri(sol1%nel_type*nord),npplt(sol1%nel_type*nord),pplt(sol1%nel_type*nord))
-      ncall = 0 
-      DO et = 1,sol1%nel_type 
-              
-        DO ord = 1,nord
-          i = (et-1)*nord+ord
-          pplt(i) = (ord-1)*p_skip+p_low
-          CALL element_nodes(et,space,pplt(i),npplt(i),r(:,i),s(:,i))                  
-          CALL shape_functions_area_eval(et,sol1%np(et),nnd,npplt(i),r(:,i),s(:,i),psic(:,:,i))  
-          CALL reference_element_delaunay(et,pplt(i),npplt(i),r(:,i),s(:,i),nptri(i),rect(:,:,i))        
-          
-          PRINT("(4(A,I4))"), "  number of additional nodes/sub-triangles: ", npplt(i),"/",nptri(i) 
-          
-!           ncall = ncall + 1
-!           WRITE(nout,"(I3.3)") ncall 
-!           fname = "ref_el_"//nout//".ps"
-!           CALL plot_ref_el(fname,figure_width,et,np(et),nptri(i),rect(:,:,i),r(:,i),s(:,i))
-          
-!           DO el = 1,nptri(i)
-!             PRINT "(4(I5))", el,(rect(nd,el,i), nd=1,3)
-!           ENDDO
-!           PRINT*, "" 
-        ENDDO         
-        
-      ENDDO                                    
+      sol1%nord = 1
+      sol1%mnpp = mnpp
+      CALL evaluate_plotting_nodes(sol1%nel_type,p_high,p_skip,sol1%nord,sol1%mnpp,sol1%np,sol1%mnnds, &
+                                   sol1%pplt,sol1%npplt,sol1%r,sol1%s,sol1%psic,sol1%nptri,sol1%rect)                                
+      IF (sol_diff_option == 1) THEN
+        PRINT("(A)"), "Calculating additional ploting nodes..."
+        sol2%nord = 1
+        sol2%mnpp = mnpp
+        CALL evaluate_plotting_nodes(sol2%nel_type,p_high,p_skip,sol2%nord,sol2%mnpp,sol2%np,sol1%mnnds, &
+                                     sol2%pplt,sol2%npplt,sol2%r,sol2%s,sol2%psic,sol2%nptri,sol2%rect)    
+      ENDIF
+
+
       
       PRINT("(A)"), "Calculating additional ploting point coordinates..."      
       ALLOCATE(xyplt(mnpp,sol1%ne,2))
@@ -114,9 +96,9 @@
         et = sol1%el_type(el)                          
         nnd = sol1%nnds(et)
         i = (et-1)*nord+nord
-        npts = npplt(i)
+        npts = sol1%npplt(i)
         DO pt = 1,npts              
-          CALL element_transformation(nnd,sol1%elxy(:,el,1),sol1%elxy(:,el,2),psic(:,pt,i),xpt,ypt)           
+          CALL element_transformation(nnd,sol1%elxy(:,el,1),sol1%elxy(:,el,2),sol1%psic(:,pt,i),xpt,ypt)           
           xyplt(pt,el,1) = xpt
           xyplt(pt,el,2) = ypt
         ENDDO
@@ -126,7 +108,7 @@
              
       
       PRINT("(A)"), "Evaluating reference element coordinate information..."
-      CALL evaluate_basis(sol1%p,nord,mnpp,sol1%mndof,sol1%nel_type,npplt,r,s,ndof_sol,phi_sol)   
+      CALL evaluate_basis(sol1%output_type,sol1%p,sol1%nord,mnpp,sol1%mndof,sol1%nel_type,sol1%npplt,sol1%r,sol1%s,ndof_sol,phi_sol)   
       
       
       CALL read_colormap(cmap_file)
@@ -134,11 +116,11 @@
       
       
       PRINT("(A)"), "Finding zoom box..."
-      CALL zoom_box(sol1%ne,nord,npplt,sol1%nnds,sol1%el_type,sol1%elxy,xbox_min,xbox_max,ybox_min,ybox_max, &
+      CALL zoom_box(sol1%ne,sol1%npplt,sol1%nnds,sol1%el_type,sol1%psic,sol1%elxy,xbox_min,xbox_max,ybox_min,ybox_max, &
                                                                         xmin,xmax,ymin,ymax,sol1%el_in)
       IF (sol_diff_option == 1) THEN
         PRINT("(A)"), "Finding zoom box..."      
-        CALL zoom_box(sol2%ne,nord,npplt,sol2%nnds,sol2%el_type,sol2%elxy,xbox_min,xbox_max,ybox_min,ybox_max, &      
+        CALL zoom_box(sol2%ne,sol1%npplt,sol2%nnds,sol2%el_type,sol2%psic,sol2%elxy,xbox_min,xbox_max,ybox_min,ybox_max, &      
                                                                           xmin,xmax,ymin,ymax,sol2%el_in)      
       ENDIF
 

@@ -222,6 +222,91 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+      SUBROUTINE evaluate_plotting_nodes(nel_type,pplt_low,pplt_skip,nord,mnpp,np,mnnds,pplt,npplt,r,s,psic,nptri,rect)
 
+      USE plot_globals, ONLY: figure_width
+      USE basis, ONLY: element_nodes
+      USE shape_functions_mod, ONLY: shape_functions_area_eval
+      USE triangulation, ONLY: reference_element_delaunay
+
+      IMPLICIT NONE
+      
+      INTEGER, INTENT(IN) :: nel_type
+      INTEGER, INTENT(IN) :: pplt_low
+      INTEGER, INTENT(IN) :: pplt_skip
+      INTEGER, INTENT(IN) :: nord
+      INTEGER, INTENT(IN) :: mnpp
+      INTEGER, DIMENSION(:), INTENT(IN) :: np
+      INTEGER, INTENT(IN) :: mnnds
+      INTEGER, DIMENSION(:), ALLOCATABLE, INTENT(OUT) :: pplt
+      INTEGER, DIMENSION(:), ALLOCATABLE, INTENT(OUT) :: npplt
+      REAL(rp), DIMENSION(:,:), ALLOCATABLE, INTENT(OUT) :: r,s
+      REAL(rp), DIMENSION(:,:,:), ALLOCATABLE, INTENT(OUT) :: psic
+      INTEGER, DIMENSION(:), ALLOCATABLE, INTENT(OUT) :: nptri
+      INTEGER, DIMENSION(:,:,:), ALLOCATABLE, INTENT(OUT) :: rect
+
+      INTEGER :: ord,et
+      INTEGER :: el,nd
+      INTEGER :: space
+      INTEGER :: i,nnd
+      INTEGER :: ncall
+      INTEGER :: plot 
+      CHARACTER(3) :: nout
+      CHARACTER(25) :: fname
+
+      ! Order of plotting nodal set, and corresponding number of nodes
+      ALLOCATE(pplt(nel_type*nord),npplt(nel_type*nord)) 
+      
+      ! Reference element coordinates for plotting nodes
+      ALLOCATE(r(mnpp,nel_type*nord),s(mnpp,nel_type*nord))         
+
+      ! Shape functions evaluated at plotting nodes
+      ALLOCATE(psic(mnnds,mnpp,nel_type*nord))
+
+      ! Sub-element connectivity table for reference element plotting nodes
+      ALLOCATE(rect(3,3*mnpp,nel_type*nord))      
+
+      ! Number of plotting sub-elements 
+      ALLOCATE(nptri(nel_type*nord))
+
+      plot = 0
+      ncall = 0 
+      DO et = 1,nel_type 
+              
+        DO ord = 1,nord
+
+          i = (et-1)*nord+ord
+          pplt(i) = (ord-1)*pplt_skip+pplt_low
+
+          CALL element_nodes(et,space,pplt(i),npplt(i),r(:,i),s(:,i))                  
+          CALL shape_functions_area_eval(et,np(et),nnd,npplt(i),r(:,i),s(:,i),psic(:,:,i))  
+          CALL reference_element_delaunay(et,pplt(i),npplt(i),r(:,i),s(:,i),nptri(i),rect(:,:,i))        
+          
+          PRINT("(4(A,I4))"), "  number of additional nodes/sub-triangles: ", npplt(i),"/",nptri(i) 
+          
+
+!           ! Plot reference element triangularization
+!           IF (plot == 1) THEN
+!             ncall = ncall + 1
+!             WRITE(nout,"(I3.3)") ncall 
+!             fname = "ref_el_"//nout//".ps"
+!             CALL plot_ref_el(fname,figure_width,et,np(et),nptri(i),rect(:,:,i),r(:,i),s(:,i))
+! 
+!             DO el = 1,nptri(i)
+!               PRINT "(4(I5))", el,(rect(nd,el,i), nd=1,3)
+!             ENDDO
+!             PRINT*, "" 
+!           ENDIF
+          
+
+        ENDDO         
+        
+      ENDDO                                    
+      RETURN
+      END SUBROUTINE evaluate_plotting_nodes
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
 
       END MODULE evaluate_mod
