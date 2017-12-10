@@ -51,7 +51,7 @@
       REAL(rp), INTENT(IN) :: t_snap
       TYPE(plot_type), INTENT(INOUT) :: fig   
       TYPE(solution_type), INTENT(INOUT) :: sol1
-      TYPE(solution_type), INTENT(INOUT), OPTIONAL :: sol2
+      TYPE(solution_type), INTENT(INOUT) :: sol2
 
       INTEGER :: el,et,i
       INTEGER :: pe
@@ -128,10 +128,10 @@
       ! Plot solution
       IF (fig%type_flag > 1) THEN       
         CALL plot_filled_contours(fig%ps_unit,snap,fig,sol1,sol2)
-!         CALL plot_filled_contours_adapt(fig%ps_unit,sol1,xyplt,pplt,nptri,npplt,rect,snap,fig)             
+!         CALL plot_filled_contours_adapt(fig%ps_unit,sol1,xyplt,snap,fig)             
       ENDIF
       IF (fig%plot_lines_option == 1) THEN
-        CALL plot_line_contours(fig%ps_unit,sol1,nptri,rect,xyplt,r,s,snap,fig)          
+        CALL plot_line_contours(fig%ps_unit,sol1,sol1%nptri,sol1%rect,xyplt,sol1%r,sol1%s,snap,fig)          
       ENDIF      
       
 
@@ -139,7 +139,7 @@
       IF (adapt_option == 1 .and. fig%type_flag > 1) THEN
         CALL SYSTEM("cp "//filename//".ps "//filename//"_pltmesh.ps")
         OPEN(UNIT=999,FILE=filename//"_pltmesh.ps",POSITION="APPEND")
-        CALL plot_vis_mesh(999,sol1%ne,sol1%el_type,sol1%el_in,xyplt,nptri,rect,fig)         
+        CALL plot_vis_mesh(999,sol1%ne,sol1%el_type,sol1%el_in,xyplt,sol1%nptri,sol1%rect,fig)         
         CALL write_all_axes(999,fig%axis_label_flag,fig%cbar_flag,fig%tbar_flag,t_snap,t_start,t_end)
 !         CALL plot_elxy_nodes(999,sol1%ne,sol1%el_type,sol1%el_in,nnds,sol1%elxy)              
         CALL write_char_array(999,fig%nline_body,fig%latex_body)        
@@ -912,7 +912,7 @@
 
       SUBROUTINE plot_filled_contours(file_unit,snap,fig,sol1,sol2)
      
-      USE plot_globals, ONLY: xyplt,npplt,nptri,rect
+      USE plot_globals, ONLY: xyplt
       USE evaluate_mod, ONLY: evaluate_solution         
      
       IMPLICIT NONE
@@ -926,6 +926,7 @@
       INTEGER :: el,pt
       INTEGER :: et,i,nnd
       INTEGER :: elin
+      INTEGER :: sol_snap
       REAL(rp) :: xy(2)
       REAL(rp) :: rs(2),r(1),s(1)
       REAL(rp) :: sol2_val(mnpp),val(1)      
@@ -949,6 +950,7 @@
           CALL find_diff_nodes(fig,sol1,sol2)
         ENDIF        
       ENDIF
+           
       
       
  elem:DO el = 1,sol1%ne
@@ -959,25 +961,24 @@
         ENDIF                             
         
         ! Determine element plotting node order
-        et = sol1%el_type(el)
-        i = (et-1)*nord + nord             
+        et = sol1%el_type(el)            
                               
         IF (snap <= snap_end) THEN
         
           ! Evaluate solution 1 at plotting nodes, using pre-calculated basis functions         
-          CALL evaluate_solution(el,fig%type_flag,snap,sol1,fig%sol_val(:,el),npplt(i),phi_sol=phi_sol(:,:,i))         
+          CALL evaluate_solution(el,fig%type_flag,snap,sol1,fig%sol_val(:,el),sol1%npplt(et),phi_sol=phi_sol(:,:,et))         
 
           
           
         
           ! Evaluate solution 1 at plotting nodes, truncating high-order terms (if needed)
           IF (fig%ho_diff_option == 1) THEN
-            CALL evaluate_solution(el,fig%type_flag,snap,sol1,sol2_val,npplt(i),phi_sol=phi_sol(:,:,i),plim=fig%plim)        
+            CALL evaluate_solution(el,fig%type_flag,snap,sol1,sol2_val,sol1%npplt(et),phi_sol=phi_sol(:,:,et),plim=fig%plim)        
           ENDIF
         
           ! Evaluate solution 2 at plotting nodes (if needed)
           IF (fig%sol_diff_option == 1) THEN
-            DO pt = 1,npplt(i)              
+            DO pt = 1,sol1%npplt(et)              
               elin = elpt_diff(pt,el)    
               r(1) = rspt_diff(1,pt,el)
               s(1) = rspt_diff(2,pt,el) 
@@ -989,14 +990,14 @@
         
           ! Calculate solution difference (if_needed)
           IF (fig%sol_diff_option == 1 .or. fig%ho_diff_option == 1) THEN
-            DO pt = 1,npplt(i)
+            DO pt = 1,sol1%npplt(et)
               fig%sol_val(pt,el) = abs(fig%sol_val(pt,el) - sol2_val(pt))        
             ENDDO          
           ENDIF
           
           ! Determine maximums (if needed)       
           IF (fig%plot_max_option > 0) THEN
-           DO pt = 1,npplt(i)
+           DO pt = 1,sol1%npplt(et)
               IF (fig%sol_val(pt,el) > fig%sol_maxval(pt,el)) THEN
                 fig%sol_maxval(pt,el) = fig%sol_val(pt,el)
               ENDIF   
@@ -1013,7 +1014,7 @@
         
           ! Set the plotting array to max values (when called with: snap = snap_end+1)
           IF (fig%plot_max_option > 0) THEN
-              DO pt = 1,npplt(i)
+              DO pt = 1,sol1%npplt(et)
                 fig%sol_val(pt,el) = fig%sol_maxval(pt,el)
               ENDDO
           ENDIF        
@@ -1024,7 +1025,7 @@
       
         ! Write the PS code to contour fill the element
         IF (file_unit > 0) THEN
-          CALL contour_fill_element(file_unit,nptri(i),rect(:,:,i),fig%sol_min,fig%sol_max,fig%sol_val(:,el),xyplt(:,el,1),xyplt(:,el,2))
+          CALL contour_fill_element(file_unit,sol1%nptri(et),sol1%rect(:,:,et),fig%sol_min,fig%sol_max,fig%sol_val(:,el),xyplt(:,el,1),xyplt(:,el,2))
         ENDIF
         
       ENDDO elem     
@@ -1350,7 +1351,7 @@
 
       SUBROUTINE find_diff_nodes(fig,sol1,sol2)
             
-      USE plot_globals, ONLY: xyplt,npplt   
+      USE plot_globals, ONLY: xyplt   
       USE find_element, ONLY: in_element,find_element_init,find_element_final      
             
       IMPLICIT NONE      
@@ -1380,7 +1381,7 @@
         et = sol1%el_type(el)
         i = fig%el_plt(el)    
         
-        DO pt = 1,npplt(i)          
+        DO pt = 1,sol1%npplt(i)          
         
           xy(1) = xyplt(pt,el,1)
           xy(2) = xyplt(pt,el,2)
@@ -2617,13 +2618,12 @@ edge:DO ed = 1,nbed
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
 
-      SUBROUTINE setup_cbounds(npplt,fig,sol,snap_start,snap_end)
+      SUBROUTINE setup_cbounds(fig,sol,snap_start,snap_end)
       
       USE evaluate_mod, ONLY: evaluate_solution
       
       IMPLICIT NONE
       
-      INTEGER, DIMENSION(:), INTENT(iN) :: npplt
       TYPE(plot_type), INTENT(INOUT) :: fig
       TYPE(solution_type), INTENT(IN) :: sol
       INTEGER, INTENT(IN) :: snap_start
@@ -2691,11 +2691,10 @@ edge:DO ed = 1,nbed
               CYCLE elem
             ENDIF
             
-            et = sol%el_type(el)
-            i = (et-1)*nord+nord                 
-            npts = npplt(i)       
+            et = sol%el_type(el)           
+            npts = sol%npplt(et)       
             
-            CALL evaluate_solution(el,fig%type_flag,snap,sol,fig%sol_val(:,el),npts,phi_sol=phi_sol(:,:,i))  
+            CALL evaluate_solution(el,fig%type_flag,snap,sol,fig%sol_val(:,el),npts,phi_sol=phi_sol(:,:,et))  
             
             DO pt = 1,npts
               IF (fig%sol_val(pt,el) > fig%cscale_max) THEN

@@ -32,6 +32,7 @@
       
       INTEGER :: ord
       INTEGER :: start_snap,end_snap
+      INTEGER :: sol_snap
       INTEGER :: ncall
       CHARACTER(3) :: nout
       CHARACTER(25) :: fname
@@ -84,7 +85,7 @@
         PRINT("(A)"), "Calculating additional ploting nodes..."
         sol2%nord = 1
         sol2%mnpp = mnpp
-        CALL evaluate_plotting_nodes(sol2%nel_type,p_high,p_skip,sol2%nord,sol2%mnpp,sol2%np,sol1%mnnds, &
+        CALL evaluate_plotting_nodes(sol2%nel_type,p_high,p_skip,sol2%nord,sol2%mnpp,sol2%np,sol2%mnnds, &
                                      sol2%pplt,sol2%npplt,sol2%r,sol2%s,sol2%psic,sol2%nptri,sol2%rect)    
       ENDIF
 
@@ -95,10 +96,9 @@
       DO el = 1,sol1%ne      
         et = sol1%el_type(el)                          
         nnd = sol1%nnds(et)
-        i = (et-1)*nord+nord
-        npts = sol1%npplt(i)
+        npts = sol1%npplt(et)
         DO pt = 1,npts              
-          CALL element_transformation(nnd,sol1%elxy(:,el,1),sol1%elxy(:,el,2),sol1%psic(:,pt,i),xpt,ypt)           
+          CALL element_transformation(nnd,sol1%elxy(:,el,1),sol1%elxy(:,el,2),sol1%psic(:,pt,et),xpt,ypt)           
           xyplt(pt,el,1) = xpt
           xyplt(pt,el,2) = ypt
         ENDDO
@@ -120,7 +120,7 @@
                                                                         xmin,xmax,ymin,ymax,sol1%el_in)
       IF (sol_diff_option == 1) THEN
         PRINT("(A)"), "Finding zoom box..."      
-        CALL zoom_box(sol2%ne,sol1%npplt,sol2%nnds,sol2%el_type,sol2%psic,sol2%elxy,xbox_min,xbox_max,ybox_min,ybox_max, &      
+        CALL zoom_box(sol2%ne,sol2%npplt,sol2%nnds,sol2%el_type,sol2%psic,sol2%elxy,xbox_min,xbox_max,ybox_min,ybox_max, &      
                                                                           xmin,xmax,ymin,ymax,sol2%el_in)      
       ENDIF
 
@@ -143,7 +143,7 @@
         CALL read_solutions(zeta,vel,bathy,sol2)         
       ENDIF
       
-      CALL setup_cbounds(npplt,mesh,sol1,1,1)     
+      CALL setup_cbounds(mesh,sol1,1,1)     
       CALL make_plot(1,0d0,mesh,sol1,sol2)  
       
 
@@ -156,11 +156,11 @@
         WRITE(998,"(A)") "name     snap     error_total     nptri_total     pplt_max     ne_total"
       ENDIF      
       
-      CALL setup_cbounds(npplt,bathy,sol1,1,1)      
+      CALL setup_cbounds(bathy,sol1,1,1)      
       CALL make_plot(1,t_snap,bathy,sol1,sol2)    
       
-      CALL setup_cbounds(npplt,cfl,sol1,1,1)      
-      CALL make_plot(1,t_snap,cfl,sol1)          
+      CALL setup_cbounds(cfl,sol1,1,1)      
+      CALL make_plot(1,t_snap,cfl,sol1,sol2)          
       
       
       IF (zeta%plot_sol_option == 0 .and. vel%plot_sol_option == 0) THEN
@@ -182,8 +182,8 @@
       
 
 
-      CALL setup_cbounds(npplt,zeta,sol1,snap_start,snap_end)
-      CALL setup_cbounds(npplt,vel,sol1,snap_start,snap_end)
+      CALL setup_cbounds(zeta,sol1,snap_start,snap_end)
+      CALL setup_cbounds(vel,sol1,snap_start,snap_end)
 
       
       PRINT("(A)"), " "
@@ -191,8 +191,14 @@
       
       DO snap = snap_start,snap_end
       
+        ! Account for initial condition in dgswe output              
+        IF (sol1%output_type == "dgswe") THEN        
+          sol_snap = snap + 1        
+        ELSE         
+          sol_snap = snap        
+        ENDIF        
         
-        t_snap = sol1%t(snap)      
+        t_snap = sol1%t(sol_snap)      
         PRINT("(A)"), "---------------------------------------------"
         PRINT("(A,I5,A,I5,A,F20.5)"), "Time snap: ", snap,"/",snap_end," t = ", t_snap        
      

@@ -88,6 +88,7 @@
         IF (vel%plot_sol_option == 1) THEN
           PRINT("(A)"), "Reading u and v solutions..."       
           CALL read_fort6264(sol%out_direc,"64",sol%t,uu2,vv2,sol%nsnap_Qx)
+          sol%nsnap_Qy = sol%nsnap_Qx
           ALLOCATE(sol%Qx(3,sol%ne,sol%nsnap_Qx))
           ALLOCATE(sol%Qy(3,sol%ne,sol%nsnap_Qx))        
           DO snap = 1,sol%nsnap_Qx
@@ -111,7 +112,8 @@
         ENDIF
         IF (vel%plot_sol_option == 1) THEN
           PRINT("(A)"), "Reading Qx and Qy solutions..."       
-          CALL read_DG64(sol%out_direc,sol%ne,sol%t,sol%Qx,sol%Qy,sol%nsnap_Qx)        
+          CALL read_DG64(sol%out_direc,sol%ne,sol%t,sol%Qx,sol%Qy,sol%nsnap_Qx)   
+          sol%nsnap_Qy = sol%nsnap_Qx
         ELSE 
           ALLOCATE(sol%Qx(1,1,1),sol%Qy(1,1,1))
         ENDIF  

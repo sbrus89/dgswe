@@ -23,12 +23,12 @@
       INTEGER :: length,ind,sind,eind        
 
       gitBranch = "master" 
-      gitSHA = "b6b7d91a77e0e05c32864f555288a851847fe10d +" 
-      compiler_version = "ifort version 12.1.3" 
-      compiler_flags = "-Iodir/ -g -traceback -C" 
-      modified_files = "../src/evaluate_mod.F90 ../src/initialize.F90 ../src/plot_dg.F90 ../src/plot_globals.F90 ../src/plot_mod.F90 Makefile" 
-      compile_date = "Thu Dec  7 16:10:13 EST 2017" 
-      host = "sbrus-laptop" 
+      gitSHA = "6031512e1f897700b7c52593e714446cde508359 +" 
+      compiler_version = "ifort version 14.0.0" 
+      compiler_flags = "-Iodir/ -O3 " 
+      modified_files = "../src/initialize.F90 ../src/plot_dg.F90 ../src/plot_mod.F90 ../src/read_solution.F90 Makefile" 
+      compile_date = "Sun Dec 10 13:01:09 EST 2017" 
+      host = "chl-tilos" 
 
       
       length = LEN(TRIM(ADJUSTL(modified_files)))
