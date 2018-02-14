@@ -146,7 +146,12 @@
         CHARACTER(:),ALLOCATABLE :: line
       END TYPE
             
-      
+      INTEGER, DIMENSION(:,:,:), ALLOCATABLE :: map
+      INTEGER :: map_width
+      INTEGER :: map_height
+      REAL(rp) :: map_res
+      REAL(rp) :: lamc
+      REAL(rp) :: phic
 
       TYPE :: solution_type
         CHARACTER(100) :: input_path      

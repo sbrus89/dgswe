@@ -1,7 +1,7 @@
 SHELL = /bin/sh
 
 FC = ifort
-FFLAGS = -I$(ODIR) -O3 #-g -traceback -C
+FFLAGS = -I$(ODIR) -O3 -g -traceback -C
 
 VPATH := ../src/
 ODIR = odir/
@@ -82,7 +82,8 @@ plot_objects =  plot_globals.o globals.o quit.o basis.o read_input.o messenger2.
            vandermonde.o transformation.o shape_functions_mod.o triangulation.o \
            area_qpts_mod.o edge_qpts_mod.o\
            find_element.o kdtree2.o sort_mod.o \
-           plot_mod.o evaluate_mod.o axes_mod.o labels_mod.o version.o plot.o 
+           plot_mod.o evaluate_mod.o axes_mod.o labels_mod.o version.o plot.o \
+           ppm.o google_map.o
           
 plot_obj := $(patsubst %.o, $(ODIR)%.o,$(plot_objects))
 
@@ -145,6 +146,10 @@ $(ODIR)kdtree2.o: ../../src/kdtree2.F90
 	mv kdtree2_precision_module.mod $(ODIR)
 	mv kdtree2_module.mod $(ODIR)
 	mv kdtree2_priority_queue_module.mod $(ODIR)
+	
+$(ODIR)ppm.o: ppm.F90                                   
+	$(FC) $(FFLAGS) -c $< -o $@
+	mv ppm.mod $(ODIR)  	
 
 $(ODIR)plot_globals.o: plot_globals.F90                        $(ODIR)globals.o $(ODIR)read_input.o           
 	$(FC) $(FFLAGS) -c $< -o $@
@@ -256,7 +261,7 @@ $(ODIR)initialize.o: initialize.F90                          $(ODIR)globals.o $(
 	$(FC) $(FFLAGS) -c $< -o $@ 	
 	mv initialize.mod $(ODIR)	
 
-$(ODIR)plot_mod.o: plot_mod.F90                              $(ODIR)globals.o $(ODIR)plot_globals.o $(ODIR)evaluate_mod.o $(ODIR)labels_mod.o $(ODIR)axes_mod.o  $(ODIR)read_input.o $(ODIR)basis.o  $(ODIR)transformation.o $(ODIR)shape_functions_mod.o $(ODIR)area_qpts_mod.o $(ODIR)grid_file_mod.o $(ODIR)edge_qpts_mod.o $(ODIR)find_element.o
+$(ODIR)plot_mod.o: plot_mod.F90                              $(ODIR)globals.o $(ODIR)plot_globals.o $(ODIR)evaluate_mod.o $(ODIR)labels_mod.o $(ODIR)axes_mod.o  $(ODIR)read_input.o $(ODIR)basis.o  $(ODIR)transformation.o $(ODIR)shape_functions_mod.o $(ODIR)area_qpts_mod.o $(ODIR)grid_file_mod.o $(ODIR)edge_qpts_mod.o $(ODIR)find_element.o $(ODIR)google_map.o
 	$(FC) $(FFLAGS) -c $< -o $@ 	
 	mv plot_mod.mod $(ODIR)
 	
@@ -276,6 +281,10 @@ $(ODIR)axes_mod.o: axes_mod.F90                              $(ODIR)globals.o $(
 	$(FC) $(FFLAGS) -c $< -o $@ 	
 	mv axes_mod.mod $(ODIR)	
 	
+$(ODIR)google_map.o: google_map.F90                          $(ODIR)globals.o $(ODIR)ppm.o
+	$(FC) $(FFLAGS) -c $< -o $@
+	mv google_map.mod $(ODIR) 
+	
 $(ODIR)stats.o: stats.F90                                    $(ODIR)globals.o 
 	$(FC) $(FFLAGS) -c $< -o $@ 	
 	mv stats.mod $(ODIR)
@@ -284,7 +293,7 @@ $(ODIR)station_plot_types.o: station_plot_types.F90          $(ODIR)plot_globals
 	$(FC) $(FFLAGS) -c $< -o $@ 	
 	mv station_plot_types.mod $(ODIR)
 	
-$(ODIR)plot.o: plot_dg.F90                                   $(ODIR)plot_globals.o $(ODIR)globals.o $(ODIR)grid_file_mod.o $(ODIR)plot_mod.o $(ODIR)evaluate_mod.o $(ODIR)labels_mod.o $(ODIR)basis.o $(ODIR)read_write_output.o $(ODIR)read_input.o $(ODIR)triangulation.o $(ODIR)version.o $(ODIR)initialize.o
+$(ODIR)plot.o: plot_dg.F90                                   $(ODIR)plot_globals.o $(ODIR)globals.o $(ODIR)grid_file_mod.o $(ODIR)plot_mod.o $(ODIR)evaluate_mod.o $(ODIR)labels_mod.o $(ODIR)basis.o $(ODIR)read_write_output.o $(ODIR)read_input.o $(ODIR)triangulation.o $(ODIR)version.o $(ODIR)initialize.o $(ODIR)google_map.o
 	$(FC) $(FFLAGS) -c $< -o $@       
 
 $(ODIR)plot_stations.o: plot_stations.F90                    $(ODIR)plot_globals.o $(ODIR)globals.o $(ODIR)grid_file_mod.o $(ODIR)plot_mod.o $(ODIR)evaluate_mod.o $(ODIR)labels_mod.o $(ODIR)basis.o $(ODIR)read_write_output.o $(ODIR)read_input.o $(ODIR)triangulation.o $(ODIR)version.o 

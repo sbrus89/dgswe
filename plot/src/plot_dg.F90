@@ -20,13 +20,14 @@
       USE evaluate_mod, ONLY: evaluate_basis,evaluate_plotting_nodes
       USE labels_mod, ONLY: latex_axes_labels,run_latex,close_tex, &
                             latex_element_labels,latex_node_labels  
-      USE axes_mod, ONLY: write_all_axes                                                                               
+      USE axes_mod, ONLY: write_all_axes   
       USE edge_connectivity_mod
       USE curvilinear_nodes_mod
       USE transformation
       USE shape_functions_mod
       USE version
       USE initialize
+      USE google_map
       
       IMPLICIT NONE
       
@@ -38,8 +39,11 @@
       CHARACTER(25) :: fname
       REAL(rp) :: H
       LOGICAL :: file_exists
+
       
       space = 0        
+      
+
       
       CALL version_information(6)
       
@@ -127,9 +131,11 @@
                                                      
       PRINT("(A)"), "Scaling coordinates..."
       CALL scale_factors(figure_width,figure_height,xmin,xmax,ymin,ymax,ax,bx,ay,by)
-          
-      
-    
+                    
+      IF (abs(sol1%slam0) > 0d0 .and. abs(sol1%sphi0) > 0d0) THEN
+        PRINT("(A)"), "Downloading and satellite image from Google Maps..."
+        CALL get_map(xmin,xmax,ymin,ymax,sol1%slam0,sol1%sphi0,lamc,phic,map,map_height,map_width,map_res)    
+      ENDIF
       
       
       t_start = 0d0
