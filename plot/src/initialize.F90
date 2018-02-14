@@ -32,6 +32,7 @@
         CALL substitute_partial_path(stations_file,replace_path,sub_path)       
       ENDIF      
       
+      
       sphi0 = sphi0*deg2rad  ! These are still being used in labels_mod.F90
       slam0 = slam0*deg2rad  ! to determine if axis labels should be in lat/lon
       
@@ -45,10 +46,9 @@
       s%out_direc = TRIM(ADJUSTL(input_path)) // TRIM(ADJUSTL(out_direc))
       s%stations_file = stations_file
       s%sta_opt = sta_opt
-      s%sphi0 = sphi0*deg2rad
-      s%slam0 = slam0*deg2rad
+      s%sphi0 = sphi0
+      s%slam0 = slam0
       s%h0 = h0
-      
       
       RETURN      
       END SUBROUTINE

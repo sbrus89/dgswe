@@ -108,7 +108,7 @@
               PRINT("(A,I3)"), "plot bathymetry contour lines = ", bathy%plot_lines_option              
               cfl%plot_sol_option = bathy%plot_sol_option
               cfl%plot_mesh_option = bathy%plot_mesh_option
-              cfl%plot_lines_option = bathy%plot_lines_option
+              cfl%plot_lines_option = 0
             CASE (6)
               READ(temp,*) mesh%plot_mesh_option
               mesh%plot_sol_option = mesh%plot_mesh_option
