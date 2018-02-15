@@ -169,7 +169,7 @@
           DO k = 1,4
             WRITE(file_unit,"(2(F9.5,1x))") ax*x(k)+bx,ay*y(k)+by
           ENDDO
-          WRITE(file_unit,"(A)") "fill-quad-element"
+          WRITE(file_unit,"(A)") "fill-pixel"
           
         ENDDO
       ENDDO
