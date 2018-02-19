@@ -40,7 +40,7 @@
       USE plot_globals, ONLY: t_start,t_end,xyplt,pplt,npplt,nptri,rect,r,s, &
                               frmt,density,pc,el_area, &
                               map,map_width,map_height,map_res, &
-                              lamc,phic
+                              lamc,phic,plot_google_map
       USE labels_mod, ONLY: latex_axes_labels,run_latex,read_latex, & 
                             latex_element_labels,latex_node_labels, &
                             write_latex_ps_body,remove_latex_files, &
@@ -129,7 +129,7 @@
       CALL plot_background(fig%ps_unit,.75d0,.75d0,.75d0)
       
       ! Plot satellite image 
-      IF (abs(sol1%sphi0) > 0d0 .and. abs(sol1%slam0) > 0d0) THEN
+      IF (plot_google_map == 1 .and. (abs(sol1%sphi0) > 0d0 .and. abs(sol1%slam0) > 0d0)) THEN
         CALL write_map(fig%ps_unit,lamc,phic,ax,bx,ay,by,sol1%slam0,sol1%sphi0,map,map_height,map_width,map_res)
       ENDIF
       

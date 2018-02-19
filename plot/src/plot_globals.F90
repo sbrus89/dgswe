@@ -12,6 +12,8 @@
       CHARACTER(3) :: density
       CHARACTER(5) :: font
       
+      INTEGER :: plot_google_map
+      
       REAL(rp), PARAMETER :: max_init = -1d10
       REAL(rp), PARAMETER :: min_init =  1d10
       

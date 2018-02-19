@@ -42,7 +42,7 @@
 
       
       space = 0        
-      
+      plot_google_map = 1
 
       
       CALL version_information(6)
@@ -131,11 +131,12 @@
                                                      
       PRINT("(A)"), "Scaling coordinates..."
       CALL scale_factors(figure_width,figure_height,xmin,xmax,ymin,ymax,ax,bx,ay,by)
-                    
-      IF (abs(sol1%slam0) > 0d0 .and. abs(sol1%sphi0) > 0d0) THEN
+                   
+      IF (plot_google_map == 1 .and. (abs(sol1%slam0) > 0d0 .and. abs(sol1%sphi0) > 0d0)) THEN
         PRINT("(A)"), "Downloading and satellite image from Google Maps..."
         CALL get_map(xmin,xmax,ymin,ymax,sol1%slam0,sol1%sphi0,lamc,phic,map,map_height,map_width,map_res)    
       ENDIF
+      
       
       
       t_start = 0d0
