@@ -38,7 +38,9 @@
       REAL(rp) :: rmin_cbar,rmax_cbar
       REAL(rp) :: smin_cbar,smax_cbar   
       REAL(rp) :: rmin_tbar,rmax_tbar
-      REAL(rp) :: smin_tbar,smax_tbar        
+      REAL(rp) :: smin_tbar,smax_tbar   
+      REAL(rp) :: rmin_scale,rmax_scale
+      REAL(rp) :: smin_scale,smax_scale
       REAL(rp) :: ax,bx  
       REAL(rp) :: ay,by      
       
@@ -50,6 +52,7 @@
       REAL(rp) :: xlabel_pad,ylabel_pad  
       REAL(rp) :: cticklabel_pad
       REAL(rp) :: clabel_pad     
+      REAL(rp) :: scale_pad
       REAL(rp) :: dr_xlabel,ds_ylabel,ds_clabel
       
       REAL(rp) :: rmin_page = 0d0
@@ -65,6 +68,8 @@
       INTEGER :: nydec
       INTEGER :: ncdec
       INTEGER :: ntdec
+      
+      INTEGER :: scale_label
       
       
       CHARACTER(100) :: main_font = "/Times-Roman"

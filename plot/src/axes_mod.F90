@@ -6,8 +6,10 @@
                               rmin_axes,rmax_axes,smin_axes,smax_axes, &
                               rmin_cbar,rmax_cbar,smin_cbar,smax_cbar, &
                               rmin_tbar,rmax_tbar,smin_tbar,smax_tbar, &
+                              rmin_scale,rmax_scale,smin_scale,scale_label, &                              
                               nxtick,nytick,nctick, &
                               ncolors,colors
+      USE read_dginp, ONLY: sphi0,slam0 
 
       IMPLICIT NONE
 
@@ -37,7 +39,11 @@
       ENDIF
       IF (time_bar == 1) THEN
         CALL write_tbar(file_unit,t_snap,t_start,t_end)
-      ENDIF            
+      ENDIF 
+      
+      IF (abs(sphi0) > 0d0 .and. abs(slam0) > 0d0) THEN
+        CALL write_distance_scale(file_unit)
+      ENDIF
       
       RETURN
       END SUBROUTINE write_all_axes      
@@ -335,7 +341,50 @@
       END SUBROUTINE write_tbar                  
       
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!       
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
+
+      SUBROUTINE write_distance_scale(file_unit)
+      
+      IMPLICIT NONE
+      
+      INTEGER, INTENT(IN) :: file_unit   
+      REAL(rp) :: dx,ii
+      INTEGER :: i
+      INTEGER :: div
+      INTEGER :: expt
+      
+      WRITE(file_unit,"(A)") "gsave"
+      WRITE(file_unit,"(A)") "1 setlinewidth 2 setlinejoin"      
+      WRITE(file_unit,"(A)") "newpath"       
+      WRITE(file_unit,"(2(F9.5,1x),A)") rmin_scale,smin_scale+2*dash, "moveto"
+      WRITE(file_unit,"(2(F9.5,1x),A)") rmin_scale,smin_scale, "lineto"
+      WRITE(file_unit,"(2(F9.5,1x),A)") rmax_scale,smin_scale, "lineto" 
+      WRITE(file_unit,"(2(F9.5,1x),A)") rmax_scale,smin_scale+2*dash, "lineto"          
+      WRITE(file_unit,"(A)") "stroke"       
+      WRITE(file_unit,"(A)") "grestore"  
+      
+      expt = INT(LOG10(REAL(scale_label,rp)))
+      IF (INT(scale_label/(10**expt)) == 1) THEN
+        div = 0
+      ELSE IF (INT(scale_label/(10**expt)) == 2) THEN
+        div = 2
+      ELSE IF (INT(scale_label/(10**expt)) == 5) THEN
+        div = 5
+      ENDIF
+            
+      DO i = 1,div-1      
+        ii = real(i,rp)
+        dx = (rmax_scale-rmin_scale)/real(div,rp)        
+        WRITE(file_unit,"(2(F9.5,1x))") rmin_scale+ii*dx,smin_scale
+        WRITE(file_unit,"(2(F9.5,1x))") rmin_scale+ii*dx,smin_scale+dash        
+        WRITE(file_unit,"(A)") "draw-line"         
+      ENDDO
+      
+      RETURN
+      END SUBROUTINE write_distance_scale
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 
       END MODULE axes_mod

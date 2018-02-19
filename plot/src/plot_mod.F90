@@ -8,8 +8,9 @@
                               rmin_axes,rmax_axes,smin_axes,smax_axes, &
                               rmin_cbar,rmax_cbar,smin_cbar,smax_cbar, &
                               rmin_tbar,rmax_tbar,smin_tbar,smax_tbar, &
+                              rmin_scale,smin_scale, &                             
                               xticklabel_pad,yticklabel_pad,cticklabel_pad, &
-                              xlabel_pad,ylabel_pad,clabel_pad, &
+                              xlabel_pad,ylabel_pad,clabel_pad,scale_pad, &
                               nxtick,nytick,nctick, &
                               nxdec,nydec,ncdec,ntdec, &
                               dr_xlabel,ds_ylabel,ds_clabel,main_font, &
@@ -21,7 +22,7 @@
                               xbox_min,xbox_max,ybox_min,ybox_max, &
                               snap_start,snap_end, &
                               max_init,min_init, &
-                              p_low,p_high,p_skip
+                              p_low,p_high,p_skip                             
       
       IMPLICIT NONE
       
@@ -497,6 +498,7 @@
       ylabel_pad = 15d0*dash        
       cticklabel_pad = 2d0*dash
       clabel_pad = 15d0*dash 
+      scale_pad = 5d0*dash
       
 
          
@@ -507,8 +509,7 @@
       smin_axes = smin_page + lr_margin
       smax_axes = smax_page      
       
-    
-            
+                
       ax = ((rmax_axes-rmin_axes)/(xmax-xmin))
       bx = (rmin_axes*xmax-rmax_axes*xmin)/(xmax-xmin)
       
@@ -534,6 +535,9 @@
       rmax_tbar = rmin_tbar + clabel_pad
       smin_tbar = smax_axes - 2d0*cscale_width
       smax_tbar = smin_tbar + cscale_width   
+      
+      rmin_scale = rmin_axes + scale_pad
+      smin_scale = smin_axes + scale_pad
       
       RETURN
       END SUBROUTINE scale_factors

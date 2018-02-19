@@ -6,6 +6,7 @@
                               rmin_axes,rmax_axes,smin_axes,smax_axes, &
                               rmin_cbar,rmax_cbar,smin_cbar,smax_cbar, &
                               rmin_tbar,rmax_tbar,smin_tbar,smax_tbar, &
+                              rmin_scale,rmax_scale,smin_scale,scale_label, &
                               xticklabel_pad,yticklabel_pad,cticklabel_pad, &
                               xlabel_pad,ylabel_pad,clabel_pad, &
                               nxtick,nytick,nctick, &
@@ -126,7 +127,11 @@
       ENDIF
       IF (fig%tbar_flag == 1) THEN
         CALL write_tbar_labels(t_snap)
-      ENDIF                
+      ENDIF  
+      
+      IF (abs(sphi0) > 0d0 .and. abs(slam0) > 0d0) THEN
+        CALL write_scale_label()
+      ENDIF
           
       
       RETURN
@@ -476,6 +481,54 @@
       
       RETURN
       END SUBROUTINE write_tbar_labels    
+      
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+      SUBROUTINE write_scale_label()
+      
+      IMPLICIT NONE
+      
+      CHARACTER(20) :: scale_label_char
+      CHARACTER(2) :: dist_unit
+      REAL(rp) :: xmax_scale
+      REAL(rp) :: expt
+      REAL(rp) :: left,right
+      REAL(rp) :: ticks(3)
+      INTEGER :: i
+      
+      ticks = (/ 5d0, 2d0, 1d0/)
+      
+      xmax_scale = FLOOR(.25d0*(xmax-xmin))
+      expt = FLOOR(LOG10(xmax_scale))
+      
+      DO i = 1,3
+        IF ( xmax_scale > ticks(i)*10d0**expt ) THEN
+            xmax_scale = ticks(i)*10d0**expt
+            EXIT
+        ENDIF
+      ENDDO
+      
+      IF (expt >= 3d0) THEN
+        scale_label = NINT(xmax_scale/1d3)
+        WRITE(scale_label_char,"(I7)") scale_label         
+        dist_unit = "km"
+      ELSE
+        scale_label = NINT(xmax_scale)
+        WRITE(scale_label_char,"(I7)") scale_label
+        dist_unit = "m"
+      ENDIF
+      scale_label_char = TRIM(ADJUSTL(scale_label_char)) // " " // dist_unit      
+      
+      rmax_scale = ax*xmax_scale + rmin_scale
+      
+      
+      WRITE(tex_unit,"(A,F9.5,A,F9.5,A)") "\begin{textblock}{600}[0.5,0](",(rmax_scale+rmin_scale)/2d0,",",smax_page-smin_scale+xticklabel_pad,")"
+      WRITE(tex_unit,"(A)") "\centerline{"//TRIM(scale_label_char)//"}"        
+      WRITE(tex_unit,"(A)") "\end{textblock}"        
+      
+      RETURN
+      END SUBROUTINE write_scale_label
       
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
