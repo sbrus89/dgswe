@@ -130,7 +130,8 @@
       
       ! Plot satellite image 
       IF (plot_google_map == 1 .and. (abs(sol1%sphi0) > 0d0 .and. abs(sol1%slam0) > 0d0)) THEN
-        CALL write_map(fig%ps_unit,lamc,phic,ax,bx,ay,by,sol1%slam0,sol1%sphi0,map,map_height,map_width,map_res)
+        CALL write_map(fig%ps_unit,lamc,phic,xbox_min,xbox_max,ybox_min,ybox_max,ax,bx,ay,by,sol1%slam0,sol1%sphi0, &
+                       map,map_height,map_width,map_res)
       ENDIF
       
       ! Plot solution

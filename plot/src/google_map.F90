@@ -93,13 +93,18 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-      SUBROUTINE write_map(file_unit,lamc_deg,phic_deg,ax,bx,ay,by,slam0,sphi0,map,map_height,map_width,map_res)
+      SUBROUTINE write_map(file_unit,lamc_deg,phic_deg,xmin,xmax,ymin,ymax,ax,bx,ay,by,slam0,sphi0, &
+                           map,map_height,map_width,map_res)
       
       IMPLICIT NONE
       
       INTEGER, INTENT(IN) :: file_unit
-      REAL(rp), INTENT(INOUT) :: lamc_deg
+      REAL(rp), INTENT(INOUT) :: lamc_deg      
       REAL(rp), INTENT(INOUT) :: phic_deg
+      REAL(rp), INTENT(IN) :: xmin
+      REAL(rp), INTENT(IN) :: xmax
+      REAL(rp), INTENT(IN) :: ymin
+      REAL(rp), INTENT(IN) :: ymax
       REAL(rp), INTENT(IN) :: ax
       REAL(rp), INTENT(IN) :: bx
       REAL(rp), INTENT(IN) :: ay
@@ -114,6 +119,7 @@
       INTEGER :: i,j,k
       REAL(rp) :: xc,yc   
       INTEGER :: xpixc,ypixc
+      INTEGER :: inside
       REAL(rp) :: lamc,phic
       REAL(rp) :: xo,yo
       REAL(rp) :: ii,jj
@@ -162,14 +168,23 @@
           DO k = 1,4         
             x(k) = r_earth*(lon(k)-slam0)*cos(sphi0)
             y(k) = lat(k)*r_earth
-          ENDDO         
+          ENDDO      
+          
+          ! Decide if pixel is inside plot box
+          inside = 0
+          IF (y(4) > ymin .and. y(1) < ymax .and. &
+              x(2) > xmin .and. x(1) < xmax ) THEN              
+           inside = 1
+          ENDIF
           
           ! Write the PS code to fill the pixel
-          WRITE(file_unit,"(3(F9.5,1x))") (real(map(k,i,j),rp)/255d0, k = 1,3)
-          DO k = 1,4
-            WRITE(file_unit,"(2(F9.5,1x))") ax*x(k)+bx,ay*y(k)+by
-          ENDDO
-          WRITE(file_unit,"(A)") "fill-pixel"
+          IF(inside == 1) THEN
+            WRITE(file_unit,"(3(F9.5,1x))") (real(map(k,i,j),rp)/255d0, k = 1,3)
+            DO k = 1,4
+              WRITE(file_unit,"(2(F9.5,1x))") ax*x(k)+bx,ay*y(k)+by
+            ENDDO
+            WRITE(file_unit,"(A)") "fill-pixel"
+          ENDIF
           
         ENDDO
       ENDDO
