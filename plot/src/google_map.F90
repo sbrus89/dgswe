@@ -84,7 +84,7 @@
       CALL SYSTEM("convert map.jpg map.ppm")      
       CALL loadppm("map.ppm",img,img_width,img_height)
 
-      
+      CALL lighten_image(1.25d0,img_width,img_height,img)      
 !       CALL convert2grayscale(img_width,img_height,img)      
       CALL saveppm("out.ppm",img)
 
@@ -200,6 +200,38 @@
         ENDDO
       ENDDO      
       
+      END SUBROUTINE
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!'
+
+      SUBROUTINE lighten_image(factor,img_width,img_height,img)
+      
+      IMPLICIT NONE
+      
+      REAL(rp), INTENT(IN) :: factor      
+      INTEGER, INTENT(IN) :: img_width
+      INTEGER, INTENT(IN) :: img_height
+      INTEGER, DIMENSION(:,:,:), INTENT(INOUT) :: img     
+      
+      INTEGER :: i,j,k
+      REAL(rp) :: new_color
+      
+      DO j = 1,img_height
+        DO i = 1,img_width
+         DO k = 1,3
+           
+           new_color = INT(real(img(k,i,j),rp)*factor)
+           IF (new_color <= 255) THEN
+             img(k,i,j) = new_color
+           ELSE
+             img(k,i,j) = 255
+           ENDIF
+         ENDDO
+        ENDDO
+      ENDDO            
+      
+      RETURN
       END SUBROUTINE
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
