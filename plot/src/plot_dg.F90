@@ -43,6 +43,7 @@
       
       space = 0        
       plot_google_map = 1
+      scale_loc = "SE"      
 
       
       CALL version_information(6)

@@ -8,7 +8,7 @@
                               rmin_axes,rmax_axes,smin_axes,smax_axes, &
                               rmin_cbar,rmax_cbar,smin_cbar,smax_cbar, &
                               rmin_tbar,rmax_tbar,smin_tbar,smax_tbar, &
-                              rmin_scale,smin_scale, &                             
+                              rmin_scale,rmax_scale,smin_scale,scale_loc, &                             
                               xticklabel_pad,yticklabel_pad,cticklabel_pad, &
                               xlabel_pad,ylabel_pad,clabel_pad,scale_pad, &
                               nxtick,nytick,nctick, &
@@ -536,8 +536,25 @@
       smin_tbar = smax_axes - 2d0*cscale_width
       smax_tbar = smin_tbar + cscale_width   
       
-      rmin_scale = rmin_axes + scale_pad
-      smin_scale = smin_axes + scale_pad
+      IF (scale_loc == "SW") THEN
+        rmin_scale = rmin_axes + scale_pad
+        smin_scale = smin_axes + scale_pad
+      ELSE IF (scale_loc == "W") THEN
+        rmin_scale = rmin_axes + scale_pad
+        smin_scale = .5d0*(smax_axes+smin_axes)
+      ELSE IF (scale_loc == "NW") THEN
+        rmin_scale = rmin_axes + scale_pad
+        smin_scale = smax_axes - scale_pad      
+      ELSE IF (scale_loc == "NE") THEN
+        rmax_scale = rmax_axes - scale_pad
+        smin_scale = smax_axes - scale_pad      
+      ELSE IF (scale_loc == "E") THEN
+        rmax_scale = rmax_axes - scale_pad
+        smin_scale = .5d0*(smax_axes+smin_axes)      
+      ELSE IF (scale_loc == "SE") THEN
+        rmax_scale = rmax_axes - scale_pad
+        smin_scale = smin_axes + scale_pad      
+      ENDIF
       
       RETURN
       END SUBROUTINE scale_factors

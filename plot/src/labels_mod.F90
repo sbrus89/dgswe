@@ -6,7 +6,8 @@
                               rmin_axes,rmax_axes,smin_axes,smax_axes, &
                               rmin_cbar,rmax_cbar,smin_cbar,smax_cbar, &
                               rmin_tbar,rmax_tbar,smin_tbar,smax_tbar, &
-                              rmin_scale,rmax_scale,smin_scale,scale_label, &
+                              rmin_scale,rmax_scale,smin_scale, &
+                              scale_label,scale_loc, &
                               xticklabel_pad,yticklabel_pad,cticklabel_pad, &
                               xlabel_pad,ylabel_pad,clabel_pad, &
                               nxtick,nytick,nctick, &
@@ -492,6 +493,7 @@
       CHARACTER(20) :: scale_label_char
       CHARACTER(2) :: dist_unit
       REAL(rp) :: xmax_scale
+      REAL(rp) :: scale_width
       REAL(rp) :: expt
       REAL(rp) :: left,right
       REAL(rp) :: ticks(3)
@@ -499,28 +501,32 @@
       
       ticks = (/ 5d0, 2d0, 1d0/)
       
-      xmax_scale = FLOOR(.25d0*(xmax-xmin))
-      expt = FLOOR(LOG10(xmax_scale))
+      scale_width = FLOOR(.25d0*(xmax-xmin))
+      expt = FLOOR(LOG10(scale_width))
       
       DO i = 1,3
-        IF ( xmax_scale > ticks(i)*10d0**expt ) THEN
-            xmax_scale = ticks(i)*10d0**expt
+        IF ( scale_width > ticks(i)*10d0**expt ) THEN
+            scale_width = ticks(i)*10d0**expt
             EXIT
         ENDIF
       ENDDO
       
       IF (expt >= 3d0) THEN
-        scale_label = NINT(xmax_scale/1d3)
+        scale_label = NINT(scale_width/1d3)
         WRITE(scale_label_char,"(I7)") scale_label         
         dist_unit = "km"
       ELSE
-        scale_label = NINT(xmax_scale)
+        scale_label = NINT(scale_width)
         WRITE(scale_label_char,"(I7)") scale_label
         dist_unit = "m"
       ENDIF
       scale_label_char = TRIM(ADJUSTL(scale_label_char)) // " " // dist_unit      
       
-      rmax_scale = ax*xmax_scale + rmin_scale
+      IF (scale_loc == "NE" .or. scale_loc == "E" .or. scale_loc == "SE") THEN
+        rmin_scale = rmax_scale - ax*scale_width
+      ELSE
+        rmax_scale = ax*scale_width + rmin_scale
+      ENDIF
       
       
       WRITE(tex_unit,"(A,F9.5,A,F9.5,A)") "\begin{textblock}{600}[0.5,0](",(rmax_scale+rmin_scale)/2d0,",",smax_page-smin_scale+xticklabel_pad,")"

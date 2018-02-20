@@ -70,6 +70,7 @@
       INTEGER :: ntdec
       
       INTEGER :: scale_label
+      CHARACTER(2) :: scale_loc      
       
       
       CHARACTER(100) :: main_font = "/Times-Roman"
