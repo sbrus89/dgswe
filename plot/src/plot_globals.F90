@@ -69,6 +69,7 @@
       INTEGER :: ncdec
       INTEGER :: ntdec
       
+      INTEGER :: scale_flag
       INTEGER :: scale_label
       CHARACTER(2) :: scale_loc      
       
@@ -154,6 +155,7 @@
         CHARACTER(:),ALLOCATABLE :: line
       END TYPE
             
+      INTEGER :: spherical_flag     
       INTEGER, DIMENSION(:,:,:), ALLOCATABLE :: map
       INTEGER :: map_width
       INTEGER :: map_height

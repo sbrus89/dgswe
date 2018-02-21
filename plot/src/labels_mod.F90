@@ -7,7 +7,7 @@
                               rmin_cbar,rmax_cbar,smin_cbar,smax_cbar, &
                               rmin_tbar,rmax_tbar,smin_tbar,smax_tbar, &
                               rmin_scale,rmax_scale,smin_scale, &
-                              scale_label,scale_loc, &
+                              scale_flag,scale_label,scale_loc, &
                               xticklabel_pad,yticklabel_pad,cticklabel_pad, &
                               xlabel_pad,ylabel_pad,clabel_pad, &
                               nxtick,nytick,nctick, &
@@ -15,7 +15,7 @@
                               dr_xlabel,ds_ylabel,ds_clabel, &
                               plot_type,char_array, &
                               xmin,xmax,ymin,ymax, &
-                              solution_type
+                              solution_type,spherical_flag
       USE read_dginp, ONLY: sphi0,slam0                              
 
       IMPLICIT NONE
@@ -114,7 +114,7 @@
       CALL write_texheader()        
       
       IF (fig%axis_label_flag == 1) THEN
-        IF (abs(sphi0) > 0d0 .and. abs(slam0) > 0d0) THEN
+        IF (spherical_flag == 1) THEN
           CALL write_xyaxis_labels("ll")  
         ELSE IF (abs(xmin+1d0)<tol .and. abs(xmax-1d0)<tol .and. abs(ymin+1d0)<tol .and. abs(ymax-1d0)<tol)THEN
           CALL write_xyaxis_labels("rs")            
@@ -130,7 +130,7 @@
         CALL write_tbar_labels(t_snap)
       ENDIF  
       
-      IF (abs(sphi0) > 0d0 .and. abs(slam0) > 0d0) THEN
+      IF (scale_flag == 1 .and. spherical_flag == 1) THEN
         CALL write_scale_label()
       ENDIF
           

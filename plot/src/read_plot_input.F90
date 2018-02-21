@@ -11,11 +11,12 @@
                               fontsize,font,nxtick,nytick,nctick, &
                               nxdec,nydec,ncdec,ntdec, &
                               substitute_path,replace_path,sub_path, &
-                              adapt_option
+                              adapt_option, &
+                              plot_google_map,scale_flag,scale_loc
 
       IMPLICIT NONE
       
-      INTEGER, PARAMETER :: ninp = 34
+      INTEGER, PARAMETER :: ninp = 36
       INTEGER :: i,n
       INTEGER :: inp_read,skipped
       INTEGER :: rm_ps
@@ -282,7 +283,16 @@
               READ(temp,*) ntdec
               PRINT("(A,I3)"), "number of t decimals = ", ntdec
               
-            CASE (32)
+            CASE(32)  
+              READ(temp,*) plot_google_map
+              PRINT("(A,I3)"), "plot google map = ", plot_google_map
+              
+            CASE(33)
+              READ(temp,*) scale_flag,scale_loc
+              PRINT("(A,I3)"), "scale flag = ", scale_flag
+              PRINT("(A,A)"), "scale location = ", scale_loc
+              
+            CASE (34)
               READ(temp,*) frmt,rm_ps
               PRINT("(A,A)"), "additional file format = ", frmt
               PRINT("(A,I3)"), "remove PostScript files = ", rm_ps
@@ -291,11 +301,11 @@
               zeta%rm_ps = rm_ps
               vel%rm_ps = rm_ps
               cfl%rm_ps = rm_ps
-            CASE (33)
+            CASE (35)
               READ(temp,*) density
               PRINT("(A,A)"), "density of raster format = ", density 
               
-            CASE (34)
+            CASE (36)
               READ(temp,*) zeta%movie_flag
               vel%movie_flag = zeta%movie_flag
               PRINT("(A,I5)"), "movie flag = ", zeta%movie_flag

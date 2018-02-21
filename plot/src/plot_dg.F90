@@ -41,9 +41,7 @@
       LOGICAL :: file_exists
 
       
-      space = 0        
-      plot_google_map = 1
-      scale_loc = "SE"      
+      space = 0            
 
       
       CALL version_information(6)
@@ -77,7 +75,10 @@
         CALL find_output_type(sol2)        
       ENDIF
       
-
+      spherical_flag = 0
+      IF (abs(sol1%slam0) > 0d0 .and. abs(sol1%sphi0) > 0d0) THEN
+        spherical_flag = 1
+      ENDIF
       
       PRINT("(A)"), "Calculating additional ploting nodes..."
       nord = (p_high-p_low+1)/p_skip      
@@ -133,7 +134,7 @@
       PRINT("(A)"), "Scaling coordinates..."
       CALL scale_factors(figure_width,figure_height,xmin,xmax,ymin,ymax,ax,bx,ay,by)
                    
-      IF (plot_google_map == 1 .and. (abs(sol1%slam0) > 0d0 .and. abs(sol1%sphi0) > 0d0)) THEN
+      IF (plot_google_map == 1 .and. spherical_flag == 1) THEN
         PRINT("(A)"), "Downloading and satellite image from Google Maps..."
         CALL get_map(xmin,xmax,ymin,ymax,sol1%slam0,sol1%sphi0,lamc,phic,map,map_height,map_width,map_res)    
       ENDIF

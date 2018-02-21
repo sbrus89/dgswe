@@ -277,7 +277,7 @@ $(ODIR)labels_mod.o: labels_mod.F90                          $(ODIR)globals.o $(
 	$(FC) $(FFLAGS) -c $< -o $@ 	
 	mv labels_mod.mod $(ODIR)
 	
-$(ODIR)axes_mod.o: axes_mod.F90                              $(ODIR)globals.o $(ODIR)plot_globals.o $(ODIR)read_input.o
+$(ODIR)axes_mod.o: axes_mod.F90                              $(ODIR)globals.o $(ODIR)plot_globals.o 
 	$(FC) $(FFLAGS) -c $< -o $@ 	
 	mv axes_mod.mod $(ODIR)	
 	

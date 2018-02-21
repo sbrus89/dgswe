@@ -6,10 +6,11 @@
                               rmin_axes,rmax_axes,smin_axes,smax_axes, &
                               rmin_cbar,rmax_cbar,smin_cbar,smax_cbar, &
                               rmin_tbar,rmax_tbar,smin_tbar,smax_tbar, &
-                              rmin_scale,rmax_scale,smin_scale,scale_label, &                              
+                              rmin_scale,rmax_scale,smin_scale, &
+                              scale_flag, scale_label, &                              
                               nxtick,nytick,nctick, &
-                              ncolors,colors
-      USE read_dginp, ONLY: sphi0,slam0 
+                              ncolors,colors, &
+                              spherical_flag
 
       IMPLICIT NONE
 
@@ -41,7 +42,7 @@
         CALL write_tbar(file_unit,t_snap,t_start,t_end)
       ENDIF 
       
-      IF (abs(sphi0) > 0d0 .and. abs(slam0) > 0d0) THEN
+      IF (scale_flag == 1 .and. spherical_flag == 1) THEN
         CALL write_distance_scale(file_unit)
       ENDIF
       
