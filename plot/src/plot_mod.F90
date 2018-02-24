@@ -710,8 +710,9 @@
       WRITE(file_unit,"(A)") "lineto"
       WRITE(file_unit,"(A)") "lineto"
       WRITE(file_unit,"(A)") "closepath"
+      WRITE(file_unit,"(A)") "3 copy"            
       WRITE(file_unit,"(A)") "gsave setrgbcolor fill grestore"     
-!       WRITE(file_unit,"(A)") "gsave 1 1 1 setrgbcolor fill grestore"         
+      WRITE(file_unit,"(A)") "gsave setrgbcolor 0 setlinewidth stroke grestore"        
       WRITE(file_unit,"(A)") "} def" 
       
       WRITE(file_unit,"(A)") "/fill-quad-element {"
@@ -720,9 +721,10 @@
       WRITE(file_unit,"(A)") "lineto"
       WRITE(file_unit,"(A)") "lineto"
       WRITE(file_unit,"(A)") "lineto"      
-      WRITE(file_unit,"(A)") "closepath"     
+      WRITE(file_unit,"(A)") "closepath"   
+      WRITE(file_unit,"(A)") "3 copy"            
       WRITE(file_unit,"(A)") "gsave setrgbcolor fill grestore"         
-!       WRITE(file_unit,"(A)") "gsave 1 1 1 setrgbcolor fill grestore"        
+      WRITE(file_unit,"(A)") "gsave setrgbcolor 0 setlinewidth stroke grestore"         
       WRITE(file_unit,"(A)") "} def"       
       
       WRITE(file_unit,"(A)") "/draw-box {"
