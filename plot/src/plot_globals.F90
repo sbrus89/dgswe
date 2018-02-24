@@ -71,7 +71,10 @@
       
       INTEGER :: scale_flag
       INTEGER :: scale_label
-      CHARACTER(2) :: scale_loc      
+      CHARACTER(2) :: scale_loc  
+      
+      INTEGER :: region_box_option
+      REAL(rp) :: region_box(4)
       
       
       CHARACTER(100) :: main_font = "/Times-Roman"

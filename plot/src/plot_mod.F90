@@ -41,7 +41,8 @@
       USE plot_globals, ONLY: t_start,t_end,xyplt,pplt,npplt,nptri,rect,r,s, &
                               frmt,density,pc,el_area, &
                               map,map_width,map_height,map_res, &
-                              lamc,phic,plot_google_map,spherical_flag
+                              lamc,phic,plot_google_map,spherical_flag, &
+                              region_box_option,region_box
       USE labels_mod, ONLY: latex_axes_labels,run_latex,read_latex, & 
                             latex_element_labels,latex_node_labels, &
                             write_latex_ps_body,remove_latex_files, &
@@ -185,7 +186,10 @@
         
       ENDIF 
       
-      
+      ! Plot region box
+      IF (fig%name == "mesh" .and. region_box_option == 1) THEN
+        CALL plot_region_box(fig%ps_unit,region_box)
+      ENDIF
       
       ! Plot stations
       IF (fig%name == "mesh" .and. fig%plot_sta_option == 1) THEN
@@ -200,7 +204,7 @@
       
       ! Write axes and latexed labels
       CALL write_all_axes(fig%ps_unit,fig%axis_label_flag,fig%cbar_flag,fig%tbar_flag,t_snap,t_start,t_end)             
-      CALL write_char_array(fig%ps_unit,fig%nline_body,fig%latex_body)  
+      CALL write_char_array(fig%ps_unit,fig%nline_body,fig%latex_body)       
       
       ! Finish up 
       CALL close_ps(filename,fig%ps_unit)
@@ -802,23 +806,7 @@
       WRITE(file_unit,"(A)") "gsave setrgbcolor 0 setlinewidth stroke grestore"              
       WRITE(file_unit,"(A)") "} def"         
       
-      WRITE(file_unit,"(A)") "/scale-box{"    
-      WRITE(file_unit,"(A)") "/ymax exch def" 
-      WRITE(file_unit,"(A)") "/ymin exch def"   
-      WRITE(file_unit,"(A)") "/xmax exch def"    
-      WRITE(file_unit,"(A)") "/xmin exch def" 
-      WRITE(file_unit,"(A,F20.5,A)") "/ax ",ax, " def"     
-      WRITE(file_unit,"(A,F20.5,A)") "/bx ",bx, " def" 
-      WRITE(file_unit,"(A,F20.5,A)") "/ay ",ay, " def"  
-      WRITE(file_unit,"(A,F20.5,A)") "/by ",by, " def"    
-      WRITE(file_unit,"(A)") "xmin ax mul bx add" 
-      WRITE(file_unit,"(A)") "ymin ay mul by add" 
-      WRITE(file_unit,"(A)") "xmax ax mul bx add"    
-      WRITE(file_unit,"(A)") "ymin ay mul by add" 
-      WRITE(file_unit,"(A)") "xmax ax mul bx add" 
-      WRITE(file_unit,"(A)") "ymax ay mul by add"    
-      WRITE(file_unit,"(A)") "xmin ax mul bx add" 
-      WRITE(file_unit,"(A)") "ymax ay mul by add"       
+      WRITE(file_unit,"(A)") "/region-box{"      
       WRITE(file_unit,"(A)") "newpath" 
       WRITE(file_unit,"(A)") "moveto" 
       WRITE(file_unit,"(A)") "lineto" 
@@ -2535,6 +2523,25 @@ edge:DO ed = 1,nbed
       
       END SUBROUTINE plot_stations
 
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
+
+      SUBROUTINE plot_region_box(file_unit,region_box)
+      
+      IMPLICIT NONE
+      
+      INTEGER, INTENT(IN) :: file_unit
+      REAL(rp), INTENT(IN) :: region_box(4)
+      
+      
+      WRITE(file_unit,"(2(F9.5,1x))") ax*region_box(1)+bx,ay*region_box(3)+by        
+      WRITE(file_unit,"(2(F9.5,1x))") ax*region_box(2)+bx,ay*region_box(3)+by                    
+      WRITE(file_unit,"(2(F9.5,1x))") ax*region_box(2)+bx,ay*region_box(4)+by        
+      WRITE(file_unit,"(2(F9.5,1x))") ax*region_box(1)+bx,ay*region_box(4)+by              
+      WRITE(file_unit,"(A)") "region-box"       
+      
+      END SUBROUTINE plot_region_box
+      
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
 

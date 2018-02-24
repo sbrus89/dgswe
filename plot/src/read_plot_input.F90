@@ -12,11 +12,12 @@
                               nxdec,nydec,ncdec,ntdec, &
                               substitute_path,replace_path,sub_path, &
                               adapt_option, &
-                              plot_google_map,scale_flag,scale_loc
+                              plot_google_map,scale_flag,scale_loc, &
+                              region_box_option,region_box
 
       IMPLICIT NONE
       
-      INTEGER, PARAMETER :: ninp = 36
+      INTEGER, PARAMETER :: ninp = 37
       INTEGER :: i,n
       INTEGER :: inp_read,skipped
       INTEGER :: rm_ps
@@ -292,7 +293,16 @@
               PRINT("(A,I3)"), "scale flag = ", scale_flag
               PRINT("(A,A)"), "scale location = ", scale_loc
               
-            CASE (34)
+            CASE(34)
+              PRINT("(A,A)"), "region box = ", TRIM(ADJUSTL(temp))
+              IF (TRIM(ADJUSTL(temp)) == "0") THEN              
+                region_box_option = 0
+              ELSE
+                region_box_option = 1
+                READ(temp,*) region_box(1),region_box(2),region_box(3),region_box(4)
+              ENDIF
+              
+            CASE (35)
               READ(temp,*) frmt,rm_ps
               PRINT("(A,A)"), "additional file format = ", frmt
               PRINT("(A,I3)"), "remove PostScript files = ", rm_ps
@@ -301,11 +311,11 @@
               zeta%rm_ps = rm_ps
               vel%rm_ps = rm_ps
               cfl%rm_ps = rm_ps
-            CASE (35)
+            CASE (36)
               READ(temp,*) density
               PRINT("(A,A)"), "density of raster format = ", density 
               
-            CASE (36)
+            CASE (37)
               READ(temp,*) zeta%movie_flag
               vel%movie_flag = zeta%movie_flag
               PRINT("(A,I5)"), "movie flag = ", zeta%movie_flag

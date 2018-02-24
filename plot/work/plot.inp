@@ -31,6 +31,7 @@ auto                                                                            
 3                                                                                                    ! number of t decimal places (< 0 turns off time bar)
 0                                                                                                    ! plot Google Map
 0,SW                                                                                                 ! plot map scale, location
+0                                                                                                    ! plot region box 
 jpg,1                                                                                                ! raster file format (png,jpg,tif), remove ps file option (1 = delete ps file, 0 = keep ps file)
 250                                                                                                  ! raster density 
 0                                                                                                    ! movie flag 
