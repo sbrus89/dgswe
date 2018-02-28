@@ -23,11 +23,11 @@
       INTEGER :: length,ind,sind,eind        
 
       gitBranch = "master" 
-      gitSHA = "72709f1f99fa52c4a1616bfa7a59a097a38fa914 +" 
+      gitSHA = "65672f2934d76d48474e605ac989dff956cc6baf +" 
       compiler_version = "ifort version 14.0.0" 
       compiler_flags = "-Iodir/ -O3 -g -traceback -C" 
-      modified_files = "../src/plot_mod.F90" 
-      compile_date = "Sat Feb 24 12:37:28 EST 2018" 
+      modified_files = "../src/evaluate_mod.F90 ../src/plot_mod.F90" 
+      compile_date = "Wed Feb 28 17:29:34 EST 2018" 
       host = "chl-tilos" 
 
       

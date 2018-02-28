@@ -1501,7 +1501,7 @@
 
       SUBROUTINE plot_line_contours(file_unit,sol,nptri,rect,xyplt,rre,sre,snap,fig)
 
-      USE basis, ONLY: element_basis,linear_basis,dgswem_basis
+      USE evaluate_mod, ONLY: contour_line_newton,contour_line_linear
       USE transformation, ONLY: element_transformation
       USE shape_functions_mod, ONLY: shape_functions_area_eval, shape_functions_edge_eval
       
@@ -1520,35 +1520,24 @@
       
       INTEGER :: i,j,vrt,it
       INTEGER :: el,nd,dof,lev,tri,ig
-      INTEGER :: et,nv,ndf,ntry,nnd,ord    
+      INTEGER :: et,nv,nnd,ord    
       REAL(rp) :: sol_lev
       REAL(rp) :: dc
       INTEGER :: above(3)
       INTEGER, DIMENSION(:,:), ALLOCATABLE :: el_below
       INTEGER :: n1,n2
       INTEGER :: nd1,nd2
+      REAL(rp) :: r1,r2,s1,s2,f1,f2
       REAL(rp) :: x(2),y(2)
-      REAL(rp) :: r,s,re(1),se(1)
-      REAL(rp) :: r1,r2,s1,s2
-      REAL(rp) :: t,f,dfdr,dfds,dfdt,dt,t0
-      INTEGER :: max_it
+      REAL(rp) :: re(1),se(1)
       INTEGER :: fail_flag
       INTEGER :: sol_snap
-      REAL(rp) :: phi(sol%mndof,2),dpdr(sol%mndof,1),dpds(sol%mndof,1)
       REAL(rp) :: l(sol%mnnds,1)
       REAL(rp) :: xv(3),yv(3)
-      REAL(rp) :: rv(3),sv(3)
-      REAL(rp) :: zeta,bathy,xmom,ymom,H
-      REAL(rp) :: dzdr,dzds,dbdr,dbds,dHdr,dHds
-      REAL(rp) :: dxmdr,dxmds,dymdr,dymds
-      REAL(rp) :: uvel,vvel
-      REAL(rp) :: tol
+      REAL(rp) :: rv(3),sv(3),fv(3)
       REAL(rp) :: hbe(2),Ze(2),ve(2),fe(2)
       REAL(rp) :: e,a,b,c,w,u,v
       
-      tol = 1d-8
-      ntry = 20
-      max_it = 1000
       
 
       ! Account for initial condition in dgswe output      
@@ -1611,6 +1600,7 @@ levels:DO lev = 1,nctick
                nd = rect(i,tri,ord)
                rv(i) = rre(nd,ord)
                sv(i) = sre(nd,ord)
+               fv(i) = fig%sol_val(nd,el)
              ENDDO
 
              
@@ -1629,143 +1619,14 @@ levels:DO lev = 1,nctick
                r2 = rv(n2)
                s1 = sv(n1)
                s2 = sv(n2)   
+               f1 = fv(n1)
+               f2 = fv(n2)
+               
+!                CALL contour_line_newton(sol,fig%type_flag,sol_lev,el,et,sol_snap,r1,r2,s1,s2,re,se)
+               
+               CALL contour_line_linear(f1,f2,sol_lev,r1,r2,s1,s2,re,se)
                  
-               dt = 1d0/real(ntry,rp)
-               t0 = 0d0
-               fail_flag = 1
-      guesses: DO ig = 1,2*ntry+1
-                 
-                 t = t0                 
-                 it = 0
-         newton: DO 
-         
-                   r = .5d0*((1d0-t)*r1 + (1d0+t)*r2)
-                   s = .5d0*((1d0-t)*s1 + (1d0+t)*s2)
-                   re(1) = r
-                   se(1) = s            
-                   
-                   IF (fig%type_flag == 2 .or. fig%type_flag == 4) THEN
-                   
-                     IF (sol%output_type == "adcirc") THEN
-                       CALL linear_basis(ndf,1,re,se,phi,dpdr,dpds)
-                     ELSE IF (sol%output_type == "dgswem") THEN
-                       CALL dgswem_basis(sol%hbp,ndf,1,re,se,phi,dpdr,dpds)   
-                     ELSE IF (sol%output_type == "dgswe") THEN
-                       CALL element_basis(et,sol%hbp,ndf,1,re,se,phi,dpdr,dpds)   
-                     ENDIF 
-                                         
-                     bathy = 0d0
-                     dbdr = 0d0
-                     dbds = 0d0
-                     DO dof = 1,ndf
-                       bathy = bathy + phi(dof,1)*sol%hb(dof,el,1)
-                       dbdr = dbdr + dpdr(dof,1)*sol%hb(dof,el,1)
-                       dbds = dbds + dpds(dof,1)*sol%hb(dof,el,1)
-                     ENDDO
-                     IF (fig%type_flag == 2) THEN
-                       f = bathy - sol_lev
-                       dfdr = dbdr
-                       dfds = dbds
-                     ENDIF
-                   ENDIF
-                   
-                   IF (fig%type_flag == 3 .or. fig%type_flag == 4) THEN
-                   
-                     IF (sol%output_type == "adcirc") THEN
-                       CALL linear_basis(ndf,1,re,se,phi,dpdr,dpds)
-                     ELSE IF (sol%output_type == "dgswem") THEN
-                       CALL dgswem_basis(sol%p,ndf,1,re,se,phi,dpdr,dpds)    
-                     ELSE IF (sol%output_type == "dgswe") THEN                
-                       CALL element_basis(et,sol%p,ndf,1,re,se,phi,dpdr,dpds)    
-                     ENDIF
-                     
-                     zeta = 0d0
-                     dzdr = 0d0
-                     dzds = 0d0
-                     DO dof = 1,ndf
-                       zeta = zeta + phi(dof,1)*sol%Z(dof,el,sol_snap)
-                       dzdr = dzdr + dpdr(dof,1)*sol%Z(dof,el,sol_snap)
-                       dzds = dzds + dpds(dof,1)*sol%Z(dof,el,sol_snap)
-                     ENDDO
-                     IF (fig%type_flag == 3) THEN
-                       f = zeta - sol_lev
-                       dfdr = dzdr
-                       dfds = dzds
-                       ENDIF
-                   ENDIF    
-                     
-                   IF (fig%type_flag == 4) THEN
-                     xmom = 0d0
-                     ymom = 0d0
-                     dxmdr = 0d0
-                     dxmds = 0d0
-                     dymdr = 0d0
-                     dymds = 0d0
-                     DO dof = 1,ndf
-                       xmom = xmom + phi(dof,1)*sol%Qx(dof,el,sol_snap)
-                       ymom = ymom + phi(dof,1)*sol%Qy(dof,el,sol_snap)
-                       dxmdr = dxmdr + dpdr(dof,1)*sol%Qx(dof,el,sol_snap)
-                       dxmds = dxmds + dpds(dof,1)*sol%Qx(dof,el,sol_snap)
-                       dymdr = dymdr + dpdr(dof,1)*sol%Qy(dof,el,sol_snap)
-                       dymds = dymds + dpds(dof,1)*sol%Qy(dof,el,sol_snap)
-                     ENDDO
-                     H = zeta + bathy          
-                     dHdr = dzdr + dbdr
-                     dHds = dzds + dbds
-                     uvel = xmom/H
-                     vvel = ymom/H
-                     f = uvel**2 + vvel**2 - sol_lev**2
-                     dfdr = 2d0*(uvel*(dxmdr*H-dHdr*xmom)/H**2 + vvel*(dymdr*H-dHdr*ymom)/H**2)
-                     dfds = 2d0*(uvel*(dxmds*H-dHds*xmom)/H**2 + vvel*(dymds*H-dHds*ymom)/H**2)
-                   ENDIF
-                   
-                   
-                   dfdt = .5d0*(dfdr*(r2-r1) + dfds*(s2-s1))
-                 
-                   t = t - f/dfdt
-                   it = it + 1
-                   
-                   
-                   IF (abs(f) < tol) THEN
-
-
-                     IF (t <= 1d0+tol .and. t >= -(1d0+tol)) THEN
-                       r = .5d0*((1d0-t)*r1 + (1d0+t)*r2)
-                       s = .5d0*((1d0-t)*s1 + (1d0+t)*s2)                   
-                       fail_flag = 0           
-!                        PRINT*, "Iteration successful"
-                       EXIT guesses
-                     ELSE                 
-!                        PRINT("(4(A,I9))"), "  Point outside edge     lev = ", lev, " el = ", el, " tri = ",tri, " vrt = ",vrt
-!                        PRINT("(A,F12.6,A,I5,A,E24.17,A,E24.17)"), "      t0 = ", t0, "  it = ", it,"  t = ", t, "  f = ", f
-!                        PRINT*, ""     
-                       EXIT newton
-                     ENDIF
-                   ENDIF
-                   
-                   IF (it > max_it) THEN     
-!                    PRINT*, "  Max iterations exceeded"
-                     EXIT newton
-                   ENDIF
-                   
-                 ENDDO newton
-                 
-               t0 = t0*-1d0                 
-               IF (mod(ig,2) == 1) THEN
-                 t0 = t0 + dt
-               ENDIF
-                 
-               ENDDO guesses
-                 
-               i = i + 1
-               IF (fail_flag == 0) THEN
-                 re(1) = r
-                 se(1) = s
-               ELSE                
-                 PRINT*, "  iteration failed ", "r = ",r, " s = ",s 
-                 re(1) = .5d0*(r1+r2)
-                 se(1) = .5d0*(s1+s2)
-               ENDIF
+               i = i + 1                 
  
                CALL shape_functions_area_eval(et,sol%np(et),nnd,1,re,se,l)
                CALL element_transformation(nnd,sol%elxy(:,el,1),sol%elxy(:,el,2),l(:,1),x(i),y(i))  
