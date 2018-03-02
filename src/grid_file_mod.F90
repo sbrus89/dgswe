@@ -307,7 +307,8 @@
         
         IF (btype == 0  .OR. btype == 1  .OR. btype == 2  .OR. &
             btype == 10 .OR. btype == 11 .OR. btype == 12 .OR. &
-            btype == 20 .OR. btype == 21 .OR. btype == 22 ) THEN
+            btype == 20 .OR. btype == 21 .OR. btype == 22 .OR. &
+            btype == 30                                         ) THEN
             
           DO j = 1,nbseg
             READ(14,*), fbnds(j,i)  ! read in normal flow boundary node numbers
