@@ -86,8 +86,7 @@
           fig%cscale_vals(snap,2) = fig%min_maxval
           fig%cscale_vals(snap,3) = fig%max_maxval
         ENDIF
-        fig%sol_label = "max "//TRIM(ADJUSTL(fig%sol_label))
-        fig%plot_lines_option = 0        
+        fig%sol_label = "max "//TRIM(ADJUSTL(fig%sol_label))      
       ENDIF
 
       ! Set minimum and maximum value range for colorbar

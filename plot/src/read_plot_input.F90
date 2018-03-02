@@ -110,7 +110,7 @@
               PRINT("(A,I3)"), "plot bathymetry contour lines = ", bathy%plot_lines_option              
               cfl%plot_sol_option = bathy%plot_sol_option
               cfl%plot_mesh_option = bathy%plot_mesh_option
-              cfl%plot_lines_option = 0
+              cfl%plot_lines_option = bathy%plot_lines_option
             CASE (6)
               READ(temp,*) mesh%plot_mesh_option
               mesh%plot_sol_option = mesh%plot_mesh_option
@@ -354,19 +354,7 @@
       IF (ybox_min >= ybox_max) THEN
         PRINT("(A)"), "Error: the order of -values in zoom box is incorrect"
         STOP
-      ENDIF
-      
-      IF (sol_diff_option == 1 .or. ho_diff_option == 1) THEN
-        IF (bathy%plot_lines_option == 1 .or. &
-            zeta%plot_lines_option == 1 .or.  &
-            vel%plot_lines_option == 1) THEN
-            
-          bathy%plot_lines_option = 0
-          zeta%plot_lines_option = 0
-          vel%plot_lines_option = 0
-          PRINT("(A)"), "Warning: Contour lines cannot be plotted with differences"
-        ENDIF
-      ENDIF
+      ENDIF      
       
       
 
