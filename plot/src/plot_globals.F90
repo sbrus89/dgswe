@@ -403,7 +403,7 @@
         bathy%axis_label_flag = 0
         zeta%axis_label_flag = 0
         vel%axis_label_flag = 0   
-        cfl%axis_label_flag = 0
+        cfl%axis_label_flag = 0        
       ENDIF
       
       IF (ncdec < 0) THEN
@@ -411,6 +411,7 @@
         zeta%cbar_flag = 0
         vel%cbar_flag = 0
         cfl%cbar_flag = 0
+        ncdec = abs(ncdec)
       ENDIF
       
       IF (ntdec < 0) THEN
@@ -482,6 +483,7 @@
 !       cfl%cscale_max = 7d0
 
       sol1%mesh_line_color = (/  0d0,  0d0,  0d0 /)
+!       sol1%mesh_line_color = (/  .35d0,  .35d0,  .35d0 /)      
       sol2%mesh_line_color = (/ .5d0, .5d0, .5d0 /)
       
       END SUBROUTINE setup_plot_types

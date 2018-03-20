@@ -211,8 +211,8 @@
       
       ! Create separate color scales 
       IF (fig%name /= "mesh" .and. fig%cbar_flag == 0) THEN
-!         CALL make_cscale_horz(fig,filename)
-        CALL make_cscale_vert(fig,filename,t_snap,t_start,t_end)        
+        CALL make_cscale_horz(fig,filename)
+!         CALL make_cscale_vert(fig,filename,t_snap,t_start,t_end)        
       ENDIF
       
       RETURN
@@ -275,7 +275,7 @@
       REAL(rp), INTENT(IN) :: t_start
       REAL(rp), INTENT(IN) :: t_end      
         
-      filename = TRIM(ADJUSTL(file))//"_horz_cscale"         
+      filename = TRIM(ADJUSTL(file))//"_vert_cscale"         
       CALL write_texheader()
       CALL write_caxis_labels(fig%tbar_flag,fig%sol_min,fig%sol_max,fig%sol_label)
       IF (fig%tbar_flag == 1) THEN
@@ -540,7 +540,7 @@
       smax_tbar = smin_tbar + cscale_width   
       
       IF (scale_loc == "SW") THEN
-        rmin_scale = rmin_axes + scale_pad
+        rmin_scale = rmin_axes + scale_pad !3*scale_pad
         smin_scale = smin_axes + scale_pad
       ELSE IF (scale_loc == "W") THEN
         rmin_scale = rmin_axes + scale_pad
@@ -814,8 +814,8 @@
       WRITE(file_unit,"(A)") "lineto" 
       WRITE(file_unit,"(A)") "lineto"
       WRITE(file_unit,"(A)") "closepath"   
-!       WRITE(file_unit,"(A)") "gsave 3 setlinewidth 2 setlinejoin 0 0 0 setrgbcolor stroke grestore"         
-      WRITE(file_unit,"(A)") "gsave 3 setlinewidth 2 setlinejoin 0.81 0.1 0.11 setrgbcolor stroke grestore"      
+      WRITE(file_unit,"(A)") "gsave 3 setlinewidth 2 setlinejoin 0 0 0 setrgbcolor stroke grestore"         
+!       WRITE(file_unit,"(A)") "gsave 3 setlinewidth 2 setlinejoin 0.81 0.1 0.11 setrgbcolor stroke grestore"      
       WRITE(file_unit,"(A)") "} def"   
         
       
@@ -2506,17 +2506,30 @@ edge:DO ed = 1,nbed
       
       INQUIRE(file=TRIM(ADJUSTL(cmap_file)),exist=file_exists)
       IF (file_exists == .FALSE.) THEN
-        PRINT*, "colormap file does not exist"
-        STOP
+        PRINT*, "colormap file does not exist: using default2 colormap"
+        ncolors = 12
+        ALLOCATE(colors(ncolors,3))        
+        colors(1,:)  = (/ 0d0  , 0d0  , 139d0 /)
+        colors(2,:)  = (/ 0d0  , 0d0  , 255d0 /)
+        colors(3,:)  = (/ 125d0, 158d0, 192d0 /)
+        colors(4,:)  = (/ 98d0 , 221d0, 221d0 /)
+        colors(5,:)  = (/ 0d0  , 210d0, 0d0   /)
+        colors(6,:)  = (/ 255d0, 255d0, 0d0   /)
+        colors(7,:)  = (/ 255d0, 215d0, 0d0   /)
+        colors(8,:)  = (/ 255d0, 104d0, 32d0  /)
+        colors(9,:)  = (/ 251d0, 57d0 , 30d0  /)
+        colors(10,:) = (/ 232d0, 0d0  , 0d0   /)
+        colors(11,:) = (/ 179d0, 0d0  , 0d0   /)
+        colors(12,:) = (/ 221d0, 0d0  , 221d0 /)        
+      ELSE      
+        OPEN(UNIT=101,FILE=TRIM(ADJUSTL(cmap_file)))
+        READ(101,*) ncolors
+        ALLOCATE(colors(ncolors,3))
+        DO lev = 1,ncolors
+          READ(101,*) (colors(lev,j), j=1,3)
+        ENDDO
+        CLOSE(101)
       ENDIF
-      
-      OPEN(UNIT=101,FILE=TRIM(ADJUSTL(cmap_file)))
-      READ(101,*) ncolors
-      ALLOCATE(colors(ncolors,3))
-      DO lev = 1,ncolors
-        READ(101,*) (colors(lev,j), j=1,3)
-      ENDDO
-      CLOSE(101)
       
       cmax = MAXVAL(colors)
       IF (cmax > 1d0+1d-12) THEN
@@ -2590,7 +2603,7 @@ edge:DO ed = 1,nbed
       ! Find minimum and maximum solution values for each timesnap
       IF (fig%cscale_option == "auto-snap" .or. fig%cscale_option == "auto-all") THEN
       
-        DO snap = snap_start,snap_end        
+        DO snap = snap_start,snap_end 
     
           fig%cscale_min = min_init
           fig%cscale_max = max_init  

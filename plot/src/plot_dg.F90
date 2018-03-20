@@ -179,17 +179,16 @@
       
              
          
-      IF ((snap_start > sol1%nsnap_Z) .or. (snap_start > sol1%nsnap_Qx) .or. (snap_start > sol1%nsnap_Qy)) THEN
-        snap_start = MIN(sol1%nsnap_Z,sol1%nsnap_Qx,sol1%nsnap_Qy)
-      ENDIF                  
+!       IF ((snap_start > sol1%nsnap_Z) .or. (snap_start > sol1%nsnap_Qx) .or. (snap_start > sol1%nsnap_Qy)) THEN
+!         snap_start = MIN(sol1%nsnap_Z,sol1%nsnap_Qx,sol1%nsnap_Qy)
+!       ENDIF                  
+!       
+!       IF ((snap_end > sol1%nsnap_Z) .or. (snap_end > sol1%nsnap_Qx) .or. (snap_end > sol1%nsnap_Qy)) THEN
+!         snap_end = MIN(sol1%nsnap_Z,sol1%nsnap_Qx,sol1%nsnap_Qy)
+!       ENDIF
       
-      IF ((snap_end > sol1%nsnap_Z) .or. (snap_end > sol1%nsnap_Qx) .or. (snap_end > sol1%nsnap_Qy)) THEN
-        snap_end = MIN(sol1%nsnap_Z,sol1%nsnap_Qx,sol1%nsnap_Qy)
-      ENDIF
       
       
-      
-
 
       CALL setup_cbounds(zeta,sol1,snap_start,snap_end)
       CALL setup_cbounds(vel,sol1,snap_start,snap_end)

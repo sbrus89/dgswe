@@ -1,18 +1,18 @@
-./                                                                                                   ! dgswe.inp file path 
+./                                                                                                   ! dgswe.inp file path      (for diff plots: separate the paths by a comma, if they are the same, then a high-order truncation plot is produced)
 0                                                                                                    ! dgswe.inp path substitution 
-1,0,1                                                                                                ! zeta plot options:       plot solution (0 = off; 1 = on), plot mesh (0 = off, 1 = mesh, 2 = boundaries), plot contour lines (0 = off, 1 = on), plot max (0 = off, 1 = on, 2 = max only)
-1,0,1                                                                                                ! velocity plot options:   plot solution (0 = off; 1 = on), plot mesh (0 = off, 1 = mesh, 2 = boundaries), plot contour lines (0 = off, 1 = on), plot max (0 = off, 1 = on, 2 = max only)
+1,0,1,0                                                                                              ! zeta plot options:       plot solution (0 = off; 1 = on), plot mesh (0 = off, 1 = mesh, 2 = boundaries), plot contour lines (0 = off, 1 = on), plot max (0 = off, 1 = on, 2 = max only)
+1,0,1,0                                                                                              ! velocity plot options:   plot solution (0 = off; 1 = on), plot mesh (0 = off, 1 = mesh, 2 = boundaries), plot contour lines (0 = off, 1 = on), plot max (0 = off, 1 = on, 2 = max only)
 1,0,1                                                                                                ! bathymetry plot options: plot solution (0 = off; 1 = on), plot mesh (0 = off, 1 = mesh, 2 = boundaries), plot contour lines (0 = off, 1 = on) 
-1                                                                                                    ! mesh plot option (0 = off, 1 = mesh, 2 = boundaries, 3 = decomposed mesh) 
+1                                                                                                    ! mesh plot option         (0 = off, 1 = mesh, 2 = boundaries, 3 = decomposed mesh) 
 0,1,48                                                                                               ! station plot option 
 off                                                                                                  ! mesh plot element labels 
 off                                                                                                  ! mesh plot node lables 
-1,30,2                                                                                               ! order of nodal set for plotting straight elements 
-2                                                                                                    ! order of nodal set for plotting curved elements 
+10,10,1                                                                                              ! order of nodal set for plotting straight elements 
+1                                                                                                    ! order of nodal set for plotting curved elements 
 1d-1,1d-1                                                                                            ! zeta error tolerances: absolute, relative
 1d-1,1d-1                                                                                            ! velocity error tolerances: absolute, relative
 1d-1,1d-1                                                                                            ! bathymetry error tolerance: absolute, relative
-1                                                                                                    ! adaptive plotting option
+0                                                                                                    ! adaptive plotting option
 all                                                                                                  ! zoom box               
 7                                                                                                    ! figure width 
 1,50                                                                                                 ! timesnap range 
