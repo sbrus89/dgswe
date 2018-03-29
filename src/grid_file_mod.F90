@@ -12,13 +12,16 @@
         CHARACTER(100) :: grid_file                   ! name of fort.14 file 
         
         INTEGER :: ne                                 ! number of elements
-        INTEGER :: nn                                 ! number of nodes                
+        INTEGER :: nn                                 ! number of nodes
       
         INTEGER, ALLOCATABLE, DIMENSION(:) :: el_type      
       
         INTEGER, ALLOCATABLE, DIMENSION(:,:) :: ect   ! element connectivity table
         REAL(rp), ALLOCATABLE, DIMENSION(:,:) :: xy   ! x,y coordinates of nodes
         REAL(rp), ALLOCATABLE, DIMENSION(:) :: depth  ! depth at each node
+        
+        INTEGER :: ctp        
+        REAL(rp), ALLOCATABLE, DIMENSION(:,:,:,:) :: bndxy
  
         INTEGER :: nope                               ! number of open boundary segents
         INTEGER, ALLOCATABLE, DIMENSION(:) :: obseg   ! number of nodes in each open boundary segment
@@ -825,19 +828,23 @@
           
           ! calculate radius of smallest inscribed circle for triangles
           r = sqrt(psml/s)       
+          h(el) = 2d0*r          
                                
         ELSE IF (mod(et,2) == 0) THEN  
           
-          !calculate radius of circle with equal area for quadrilaterals
-          alpha = angle(x(4),y(4),x(1),y(1),x(2),y(2))
-          gamma = angle(x(2),y(2),x(3),y(3),x(4),y(4))
-          area = sqrt(psml-.5d0*pl*(1d0+cos(alpha+gamma))) ! Bretschneider's formula          
+!           !calculate radius of circle with equal area for quadrilaterals
+!           alpha = angle(x(4),y(4),x(1),y(1),x(2),y(2))
+!           gamma = angle(x(2),y(2),x(3),y(3),x(4),y(4))
+!           area = sqrt(psml-.5d0*pl*(1d0+cos(alpha+gamma))) ! Bretschneider's formula          
+!           
+!           r = sqrt(area/pi)
+!           h(el) = 2d0*r          
           
-          r = sqrt(area/pi)
+          h(el) = minval(l)
           
         ENDIF
+
         
-        h(el) = 2d0*r
       ENDDO
 
       RETURN
@@ -976,7 +983,7 @@ elsrch: DO k = 1,nepn(n1)
       INTEGER :: el_min
       REAL(rp) :: hb
       REAL(rp) :: c
-      REAL(rp) :: dt,dtmin
+      REAL(rp) :: dt,dtmin,dtmin_all
       
       dtmin = 9999d0
       
@@ -1010,9 +1017,18 @@ elsrch: DO k = 1,nepn(n1)
           
       ENDDO
       
-      PRINT ("(A,F6.3,A,F6.3,A,F18.3,A)"), "Rough max timestep based on CFL = ",cfl, " and u = ", u, ": ", dtmin, " sec"
-      PRINT*, "Element corresponding to minimum timestep: ", el_min
-      PRINT*,""
+! #ifdef CMPI
+!       cnt = 1
+!       CALL MPI_ALLREDUCE(dtmin,dtmin_all,cnt,MPI_DOUBLE,MPI_MIN,MPI_COMM_WORLD,ierr)      
+! #else          
+!       dtmin_all = dtmin 
+! #endif      
+      
+!       IF (myrank == 0) THEN
+        PRINT ("(A,F6.3,A,F6.3,A,F18.3,A)"), "Rough max timestep based on CFL = ",cfl, " and u = ", u, ": ", dtmin, " sec"
+        PRINT*, "Element corresponding to minimum timestep: ", el_min
+        PRINT*,""
+!       ENDIF
       
       RETURN
       END SUBROUTINE
@@ -1208,5 +1224,71 @@ elsrch: DO k = 1,nepn(n1)
       
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
+
+      SUBROUTINE write_cb_file(mesh)    
+          
+!       USE version, ONLY: version_information
+      
+      IMPLICIT NONE
+      
+      TYPE(grid_type) :: mesh
+      INTEGER :: bou,nd,pt
+      INTEGER :: n1,n2
+      INTEGER :: nbnds,btype
+      INTEGER :: eind      
+      CHARACTER(100) :: name
+      CHARACTER(1) :: ctp_char      
+      
+      eind = INDEX(ADJUSTL(TRIM(mesh%grid_file)),".",.false.)   
+      name = ADJUSTL(TRIM(mesh%grid_file(1:eind-1)))
+      WRITE(ctp_char,"(I1)") mesh%ctp       
+      
+      OPEN(unit=40,file=ADJUSTL(TRIM(name)) // "_ctp" // ctp_char // ".cb")    
+      
+!       CALL version_information(40)
+!       
+!       WRITE(40,"(A)") "-----------------------------------------------------------------------"           
+!       
+!       CALL write_input(40)           
+      
+      WRITE(40,"(A)") "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"      
+      
+      WRITE(40,"(I8,19x,A)") mesh%nbou, "! total number of normal flow boundaries"
+      WRITE(40,"(2(I8),19x,A)") mesh%nvel,mesh%ctp, "! max number of normal flow nodes, ctp order"        
+      
+      DO bou = 1,mesh%nbou
+      
+        nbnds = mesh%fbseg(1,bou)
+        btype = mesh%fbseg(2,bou)
+        IF( btype == 0 .OR. btype == 10 .OR. btype == 20  .OR. &   ! land boundaries
+             btype == 1 .OR. btype == 11 .OR. btype == 21 ) THEN    ! island boundaries 
+             
+          WRITE(40,"(2(I8),19x,A)") nbnds,btype, "! number of nodes in boundary, boundary type"               
+             
+          IF (nbnds > 0) THEN   
+            DO nd = 1,nbnds-1
+              n1 = mesh%fbnds(nd,bou)            
+              WRITE(40,"(I8,1X,10(E24.17,1X))") n1, mesh%xy(1,n1), (mesh%bndxy(1,pt,nd,bou), pt=1,mesh%ctp-1)
+              WRITE(40,"(I8,1X,10(E24.17,1X))") n1, mesh%xy(2,n1), (mesh%bndxy(2,pt,nd,bou), pt=1,mesh%ctp-1)             
+            ENDDO
+            n2 = mesh%fbnds(nbnds,bou)
+            WRITE(40,"(I8,1X,10(E24.17,1X))") n2, mesh%xy(1,n2)
+            WRITE(40,"(I8,1X,10(E24.17,1X))") n2, mesh%xy(2,n2) 
+          
+          ENDIF
+        ELSE
+        
+          WRITE(40,"(2(I8),19x,A)") 0,btype, "! Flow-specified normal flow boundary"        
+        
+        ENDIF
+      ENDDO
+      
+      CLOSE(40)
+      
+      RETURN
+      END SUBROUTINE write_cb_file 
+      
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!       
 
       END MODULE grid_file_mod
