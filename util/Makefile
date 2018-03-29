@@ -58,6 +58,14 @@ adjust_obj := $(patsubst %.o, $(ODIR)%.o,$(adjust_objects))
 
 ########################################################################
 
+equad_objects =  globals.o  quit.o \
+           grid_file_mod.o basis.o\
+           elongated_quad_channel.o 
+          
+equad_obj := $(patsubst %.o, $(ODIR)%.o,$(equad_objects))
+
+########################################################################
+
 convert_bou_objects =  globals.o  quit.o \
            grid_file_mod.o \
            convert_open_bou.o 
@@ -157,6 +165,10 @@ adjust:  $(ODIR) $(adjust_obj)
 	@echo "\n\n"
 	$(FC) $(FFLAGS) -o adjust $(adjust_obj)
 	
+equad:  $(ODIR) $(equad_obj)
+	@echo "\n\n"
+	$(FC) $(FFLAGS) -o equad $(equad_obj)	$(LAPACK_LIB)
+	
 convert_bou: $(ODIR) $(convert_bou_obj)
 	@echo "\n\n"
 	$(FC) $(FFLAGS) -o convert_bou $(convert_bou_obj)
@@ -228,7 +240,7 @@ version :
 .PHONY : clean
 
 clean : 
-	rm -r convert adjust odir refine copy consolidate cfl_checker remove_bou write_bou find_const create_fort13
+	rm -r convert adjust equad odir refine copy consolidate cfl_checker remove_bou write_bou find_const create_fort13
         
 ########################################################################
 #                            File Targets                              #
@@ -331,6 +343,9 @@ $(ODIR)convert.o: convert2cartesian.F90                      $(ODIR)globals.o $(
         
 $(ODIR)adjust.o: adjust_channel_boundaries.f90               $(ODIR)globals.o $(ODIR)grid_file_mod.o 
 	$(FC) $(FFLAGS) -c $< -o $@       
+	
+$(ODIR)elongated_quad_channel.o: elongated_quad_channel.F90  $(ODIR)globals.o $(ODIR)grid_file_mod.o $(ODIR)basis.o
+	$(FC) $(FFLAGS) -c $< -o $@       	
 	
 $(ODIR)convert_open_bou.o: convert_open_boundaries.F90       $(ODIR)globals.o $(ODIR)grid_file_mod.o
 	$(FC) $(FFLAGS) -c $< -o $@
