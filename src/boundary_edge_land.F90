@@ -8,9 +8,7 @@
                          rhsZ,rhsQx,rhsQy, &
                          phie,phie_int, &
                          Exx,Eyy,Exy,Eyx, &                         
-                         Exxqpt,Eyyqpt,Exyqpt,Eyxqpt
-                         
-      USE read_dginp, ONLY: ctp                         
+                         Exxqpt,Eyyqpt,Exyqpt,Eyxqpt                                            
                          
 
       IMPLICIT NONE
@@ -46,7 +44,7 @@
           ny2 = ny*ny
           nxny = nx*ny
 
-          IF (ctp <= 2) THEN
+          IF (et <= 2) THEN
             Z_in = Zqpt(el_in,gp_in)
             Qx_in = Qxqpt(el_in,gp_in)
             Qy_in = Qyqpt(el_in,gp_in)
@@ -126,9 +124,7 @@
                          Qx,Qy,phie,phie_int, &                         
                          Zqpt,Qxqpt,Qyqpt, &
                          Exxqpt,Eyyqpt,Exyqpt,Eyxqpt, &
-                         rhsExx,rhsEyy,rhsExy,rhsEyx
-                         
-      USE read_dginp, ONLY: ctp                          
+                         rhsExx,rhsEyy,rhsExy,rhsEyx                        
       
       IMPLICIT NONE
       
