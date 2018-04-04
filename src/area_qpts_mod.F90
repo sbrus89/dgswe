@@ -94,7 +94,17 @@
       INTEGER, INTENT(OUT) :: nqpta
       REAL(rp), DIMENSION(:,:), INTENT(OUT) :: qpta
       
-        SELECT CASE( p ) 
+      INTEGER :: pp
+      
+      IF (p > 16) THEN
+        pp = 16
+        PRINT*, "*** WARNING: Requested area quadrature order too high."
+        PRINT*, "             Using highest availiable set..."
+      ELSE  
+        pp = p
+      ENDIF
+      
+        SELECT CASE( pp ) 
           case( 1 )
             nqpta = 1
             qpta( 1, :) = (/ -3.333333333333330d-01,  -3.333333333333330d-01, 2.000000000000000d+00 /) ; 

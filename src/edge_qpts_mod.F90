@@ -138,11 +138,21 @@
       INTEGER, INTENT(OUT) :: nqpte
       REAL(rp), DIMENSION(:), INTENT(OUT) :: wpte
       REAL(rp), DIMENSION(:), INTENT(OUT) :: qpte
+      
+      INTEGER :: pp
 
       wpte = 0d0
       qpte = 0d0
       
-      SELECT CASE(p)
+      IF (p > 13) THEN
+        pp = 13
+        PRINT*, "*** WARNING: Requested edge quadrature order too high."
+        PRINT*, "             Using highest availiable set..."
+      ELSE  
+        pp = p
+      ENDIF      
+      
+      SELECT CASE(pp)
 
       CASE(2)
          nqpte = 2
