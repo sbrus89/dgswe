@@ -1157,7 +1157,7 @@ elsrch: DO k = 1,nepn(n1)
 
       DO i = 1,nope      
         nbseg = obseg(i)
-        WRITE(14,"(I8,10x,A,1x,I8)"), nbseg, "! number of nodes in open boundary", i
+        WRITE(14,"(I8,1x,I8,10x,A,1x,I8)"), nbseg,0, "! number of nodes in open boundary", i
         DO j = 1,nbseg
           WRITE(14,"(I8)") obnds(j,i) ! write out open boundary node numbers
         ENDDO
