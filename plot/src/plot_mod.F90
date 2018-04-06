@@ -197,7 +197,7 @@
       
 !         ! Plot nodes      
 !         CALL plot_cb_nodes(fig%ps_unit,sol1%ctp,sol1%nbou,sol1%fbseg,sol1%fbnds,sol1%xy,sol1%bndxy,sol1%nepn,sol1%epn,sol1%el_in)
-!         CALL plot_elxy_nodes(fig%ps_unit,sol1%ne,sol1%el_type,sol1%el_in,nnds,sol1%elxy) 
+!         CALL plot_elxy_nodes(fig%ps_unit,sol1%ne,sol1%el_type,sol1%el_in,sol1%nnds,sol1%elxy) 
 !         CALL plot_qpts(fig%ps_unit,sol1%ne,sol1%p,sol1%ctp,sol1%np,sol1%el_type,sol1%el_in,sol1%elxy,sol1%nverts,sol1%ned,sol1%ed_type,sol1%ged2el,sol1%ged2led)
               
       

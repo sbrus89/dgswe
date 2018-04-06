@@ -619,6 +619,66 @@
 
         RETURN
       END SUBROUTINE
+      
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+      SUBROUTINE linear_quad_basis(ndof,n,r,s,phil,dpdr,dpds)     
+
+        IMPLICIT NONE
+        
+
+        INTEGER, INTENT(OUT) :: ndof
+        INTEGER, INTENT(IN) :: n
+        REAL(rp), DIMENSION(:), INTENT(IN) :: r,s
+        REAL(rp), DIMENSION(:,:), INTENT(OUT) :: phil        
+        REAL(rp), DIMENSION(:,:), OPTIONAL, INTENT(OUT) :: dpdr,dpds
+        
+        
+        INTEGER :: pt
+        INTEGER :: calc_deriv  
+        
+        REAL(rp) :: phir1,phir2
+        REAL(rp) :: phis1,phis2
+
+        IF (PRESENT(dpdr) .AND. PRESENT(dpds)) THEN
+          calc_deriv = 1
+        ELSE
+          calc_deriv = 0
+        ENDIF        
+        
+        ndof = 4
+        
+        DO pt = 1,n
+
+          phir1 = .5d0*(1d0-r(pt))
+          phir2 = .5d0*(1d0+r(pt))
+          
+          phis1 = .5d0*(1d0-s(pt))
+          phis2 = .5d0*(1d0+s(pt))  
+        
+          phil(1,pt) = phir1*phis1
+          phil(2,pt) = phir2*phis1
+          phil(3,pt) = phir2*phis2
+          phil(4,pt) = phir1*phis2        
+          
+          IF (calc_deriv == 1) THEN
+          
+            dpdr(1,pt) = .25d0*(-1d0+s(pt))
+            dpdr(2,pt) = .25d0*( 1d0-s(pt))
+            dpdr(3,pt) = .25d0*( 1d0+s(pt))
+            dpdr(4,pt) = .25d0*(-1d0-s(pt))
+            
+            dpds(1,pt) = .25d0*(-1d0+r(pt))
+            dpds(2,pt) = .25d0*(-1d0-r(pt))
+            dpds(3,pt) = .25d0*( 1d0+r(pt))
+            dpds(4,pt) = .25d0*( 1d0-r(pt))           
+          ENDIF
+          
+        ENDDO
+
+        RETURN
+      END SUBROUTINE      
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

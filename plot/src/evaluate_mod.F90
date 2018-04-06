@@ -13,7 +13,7 @@
 
       SUBROUTINE evaluate_solution(el,sol_type,snap,sol,sol_val,npts,r,s,phi_sol,plim)
 
-      USE basis, ONLY: element_basis,linear_basis,dgswem_basis        
+      USE basis, ONLY: element_basis,linear_basis,linear_quad_basis,dgswem_basis        
       
       IMPLICIT NONE
       
@@ -47,7 +47,11 @@
        
         ALLOCATE(phis(mndf,npts))           
         IF (sol%output_type == "adcirc") THEN
-          CALL linear_basis(ndfs,npts,r,s,phis) 
+          IF (mod(et,2) == 1) THEN          
+            CALL linear_basis(ndfs,npts,r,s,phis) 
+          ELSE IF (mod(et,2) == 0) THEN
+            CALL linear_quad_basis(ndfs,npts,r,s,phis)           
+          ENDIF
         ELSE IF (sol%output_type == "dgswem") THEN
           CALL dgswem_basis(sol%p,ndfs,npts,r,s,phis)  
         ELSE IF (sol%output_type == "dgswe") THEN
@@ -176,7 +180,7 @@
 
       SUBROUTINE evaluate_basis(output_type,p,nord,mnpp,mndof,nel_type,npplt,r,s,ndof,phi)
       
-      USE basis, ONLY: element_basis,linear_basis,dgswem_basis
+      USE basis, ONLY: element_basis,linear_basis,linear_quad_basis,dgswem_basis
       
       IMPLICIT NONE
       
@@ -206,7 +210,11 @@
           i = (et-1)*nord+ord
            
           IF (output_type == "adcirc") THEN
-            CALL linear_basis(ndof(et),npplt(i),r(:,i),s(:,i),phi(:,:,i))             
+            IF (mod(et,2) == 1) THEN
+              CALL linear_basis(ndof(et),npplt(i),r(:,i),s(:,i),phi(:,:,i))             
+            ELSE IF (mod(et,2) == 0) THEN
+              CALL linear_quad_basis(ndof(et),npplt(i),r(:,i),s(:,i),phi(:,:,i))            
+            ENDIF
           ELSE IF (output_type == "dgswem") THEN
             CALL dgswem_basis(p,ndof(et),npplt(i),r(:,i),s(:,i),phi(:,:,i))          
           ELSE IF (output_type == "dgswe") THEN

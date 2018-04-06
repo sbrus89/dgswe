@@ -25,6 +25,7 @@
       INTEGER :: snap
       INTEGER :: el
       INTEGER :: nd
+      INTEGER :: nv
       
       REAL(rp) :: H
       REAL(rp), DIMENSION(:,:), ALLOCATABLE :: eta
@@ -67,10 +68,11 @@
         IF (zeta%plot_sol_option == 1 .or. vel%plot_sol_option == 1) THEN
           PRINT("(A)"), "Reading zeta solution..."          
           CALL read_fort6163(sol%out_direc,"63",sol%t,eta,sol%nsnap_Z) 
-          ALLOCATE(sol%Z(3,sol%ne,sol%nsnap_Z))
+          ALLOCATE(sol%Z(4,sol%ne,sol%nsnap_Z))
           DO snap = 1,sol%nsnap_Z
             DO el = 1,sol%ne
-              DO nd = 1,3
+              nv = sol%nverts(sol%el_type(el))
+              DO nd = 1,nv
                 sol%Z(nd,el,snap) = eta(sol%ect(nd,el),snap)
               ENDDO
             ENDDO
@@ -78,9 +80,10 @@
         ENDIF
         IF (bathy%plot_sol_option == 1 .or. vel%plot_sol_option == 1) THEN
           PRINT("(A)"), "Reading bathymetry solution..."       
-          ALLOCATE(sol%hb(3,sol%ne,1))
+          ALLOCATE(sol%hb(4,sol%ne,1))
           DO el = 1,sol%ne
-            DO nd = 1,3
+            nv = sol%nverts(sol%el_type(el))
+            DO nd = 1,nv
               sol%hb(nd,el,1) = sol%depth(sol%ect(nd,el))
             ENDDO
           ENDDO
@@ -89,11 +92,12 @@
           PRINT("(A)"), "Reading u and v solutions..."       
           CALL read_fort6264(sol%out_direc,"64",sol%t,uu2,vv2,sol%nsnap_Qx)
           sol%nsnap_Qy = sol%nsnap_Qx
-          ALLOCATE(sol%Qx(3,sol%ne,sol%nsnap_Qx))
-          ALLOCATE(sol%Qy(3,sol%ne,sol%nsnap_Qx))        
+          ALLOCATE(sol%Qx(4,sol%ne,sol%nsnap_Qx))
+          ALLOCATE(sol%Qy(4,sol%ne,sol%nsnap_Qx))        
           DO snap = 1,sol%nsnap_Qx
             DO el = 1,sol%ne
-              DO nd = 1,3
+              nv = sol%nverts(sol%el_type(el))
+              DO nd = 1,nv
                 H = sol%Z(nd,el,snap)+sol%hb(nd,el,1)
                 sol%Qx(nd,el,snap) = uu2(ect(nd,el),snap)*H
                 sol%Qy(nd,el,snap) = vv2(ect(nd,el),snap)*H
