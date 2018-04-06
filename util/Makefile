@@ -1,7 +1,7 @@
 SHELL = /bin/sh
 
 FC = ifort
-FFLAGS = -I$(ODIR) #-traceback -g -C
+FFLAGS = -I$(ODIR) -traceback -g -C
 
 ODIR = odir/
 FULLNAME := $(shell hostname)
