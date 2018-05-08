@@ -94,7 +94,7 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!      
       
 
-      SUBROUTINE in_element(xy,el_type,elxy,el_found,rs,closest_eds,closest_vertex,closest_els,found_flag)
+      SUBROUTINE in_element(xy,el_type,elxy,el_found,rs,closest_eds,closest_vertex,closest_node,closest_els,found_flag)
 
       IMPLICIT NONE
               
@@ -106,6 +106,7 @@
       INTEGER, INTENT(OUT), OPTIONAL :: closest_eds(4)      
       INTEGER, INTENT(OUT), OPTIONAL :: closest_vertex 
       INTEGER, INTENT(OUT), DIMENSION(:), ALLOCATABLE, OPTIONAL :: closest_els
+      INTEGER, INTENT(OUT), OPTIONAL :: closest_node
       INTEGER, INTENT(OUT), OPTIONAL :: found_flag
      
             
@@ -195,7 +196,11 @@ search: DO srch = 1,srchdp
 
           CALL sub_element(xy,el_found,el_type,elxy,diff,leds,vert,rs)           
           
-        ENDIF    
+        ENDIF   
+        
+        IF (PRESENT(closest_node)) THEN
+          closest_node = closest(1)%idx
+        ENDIF
         
         IF (PRESENT(closest_vertex) ) THEN
           closest_vertex = vert
