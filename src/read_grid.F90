@@ -43,7 +43,7 @@
       
       cfl = 1d0
       u = 0d0
-      !CALL courant(p,ne,u,cfl,el_type,nverts,nnds,elhb,el_size)
+      CALL courant(p,ne,u,cfl,el_type,nverts,nnds,elhb,el_size)
   
       
 
