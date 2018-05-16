@@ -35,7 +35,7 @@
       OPEN(UNIT=10,FILE='equad.in')
       READ(10,*) nx
       READ(10,*) ny     
-      READ(10,*) mesh%ctp
+      READ(10,*) mesh%ctp ! ctp = 0 for adcirc
       
       WRITE(nx_char,"(I2)") nx
       WRITE(ny_char,"(I2)") ny      
@@ -234,7 +234,7 @@
       WRITE(15,*) 0d0,1d0,0d0
       
       IF (mesh%ctp == 0) THEN
-        flow = 10d0
+        flow = 10d0  ! double flux for adcirc criss-cross
       ELSE
         flow = 5d0
       ENDIF
