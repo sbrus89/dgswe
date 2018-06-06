@@ -89,7 +89,7 @@
       
       CALL SYSTEM("latex labels.tex >/dev/null")
       INQUIRE(FILE="labels.dvi",EXIST=tex_file_exists)
-      IF (tex_file_exists == .TRUE.) THEN
+      IF (tex_file_exists .eqv. .TRUE.) THEN
         CALL SYSTEM("dvips -q -o labels.ps labels.dvi")        
       ENDIF
       
@@ -195,7 +195,8 @@
 !         WRITE(tex_unit,"(A,2(1x,F9.5))")  "("//TRIM(ADJUSTL(sol_label))//")",rmax_cbar+clabel_pad,(smin_axes+smax_axes)/2d0       
 !         WRITE(tex_unit,"(A)") "caxis-labels"     
         
-      WRITE(tex_unit,"(A,F9.5,A,F9.5,A)") "\begin{textblock}{50}[0,0.5](",-50+rmax_cbar+clabel_pad,",",smax_page-(smax_cbar+smin_cbar)/2d0,")"
+      WRITE(tex_unit,"(A,F9.5,A,F9.5,A)") "\begin{textblock}{50}[0,0.5](",-50+rmax_cbar+clabel_pad,", &
+                                                                        ",smax_page-(smax_cbar+smin_cbar)/2d0,")"
       WRITE(tex_unit,"(A)") "\hfill \rotatebox[origin=c]{90}{"//TRIM(ADJUSTL(sol_label))//"}\vskip-\TPboxrulesize"       
       WRITE(tex_unit,"(A)") "\end{textblock}"         
       
@@ -242,7 +243,8 @@
         r0 = r0 + dr
       ENDDO       
         
-      WRITE(tex_unit,"(A,F9.5,A,F9.5,A)") "\begin{textblock}{400}[0.5,0](",(rmax_axes+rmin_axes)/2d0,",",smax_page-smin_axes+xlabel_pad,")"
+      WRITE(tex_unit,"(A,F9.5,A,F9.5,A)") "\begin{textblock}{400}[0.5,0](",(rmax_axes+rmin_axes)/2d0,", &
+                                                                         ",smax_page-smin_axes+xlabel_pad,")"
       WRITE(tex_unit,"(A)") "\centerline{"//TRIM(sol_label)//"}"       
       WRITE(tex_unit,"(A)") "\end{textblock}"         
       
@@ -344,7 +346,7 @@
         ENDIF
         
         IF (abs(xval) < 1d-10 .and. xval < 0d0) THEN    ! prevent -0.0
-          xval = xval*-1d0
+          xval = xval*(-1d0)
         ENDIF        
         
         CALL format_number(nxdec,xval,expnt,xchar)        
@@ -360,7 +362,8 @@
       ENDDO
       
       
-      WRITE(tex_unit,"(A,F9.5,A,F9.5,A)") "\begin{textblock}{600}[0.5,0](",(rmax_axes+rmin_axes)/2d0,",",smax_page-smin_axes+xlabel_pad,")"
+      WRITE(tex_unit,"(A,F9.5,A,F9.5,A)") "\begin{textblock}{600}[0.5,0](",(rmax_axes+rmin_axes)/2d0,", &
+                                                                         ",smax_page-smin_axes+xlabel_pad,")"
       WRITE(tex_unit,"(A)") "\centerline{"//TRIM(xlabel)//"}"        
       WRITE(tex_unit,"(A)") "\end{textblock}"  
       
@@ -371,7 +374,8 @@
  
       
       IF (expnt /= 0) THEN      
-        WRITE(tex_unit,"(A,F9.5,A,F9.5,A)") "\begin{textblock}{400}[0,0](",rmin_axes+(nxtick-1)*dr_xlabel,",",smax_page-smin_axes+xticklabel_pad+xlabel_pad/2d0,")"
+        WRITE(tex_unit,"(A,F9.5,A,F9.5,A)") "\begin{textblock}{400}[0,0](",rmin_axes+(nxtick-1)*dr_xlabel,", &
+                                                                         ",smax_page-smin_axes+xticklabel_pad+xlabel_pad/2d0,")"
         WRITE(tex_unit,"(A,I5,A)") "$\times10^{",expnt,"}$"        
         WRITE(tex_unit,"(A)") "\end{textblock}"         
       ENDIF
@@ -426,7 +430,7 @@
         ENDIF
         
         IF (abs(yval) < 1d-10 .and. yval < 0d0) THEN    ! prevent -0.0
-          yval = yval*-1d0
+          yval = yval*(-1d0)
         ENDIF
         
         CALL format_number(nydec,yval,expnt,ychar) 
@@ -442,7 +446,8 @@
       
       ENDDO         
       
-      WRITE(tex_unit,"(A,F9.5,A,F9.5,A)") "\begin{textblock}{50}[0,0.5](",rmin_axes-ylabel_pad,",",smax_page-(smax_axes+smin_axes)/2d0,")"
+      WRITE(tex_unit,"(A,F9.5,A,F9.5,A)") "\begin{textblock}{50}[0,0.5](",rmin_axes-ylabel_pad,", &
+                                                                        ",smax_page-(smax_axes+smin_axes)/2d0,")"
       WRITE(tex_unit,"(A)") "\rotatebox[origin=c]{90}{"//TRIM(ylabel)//"}"//"\vskip-\TPboxrulesize"        
       WRITE(tex_unit,"(A)") "\end{textblock}"  
       
@@ -530,7 +535,8 @@
       ENDIF
       
       
-      WRITE(tex_unit,"(A,F9.5,A,F9.5,A)") "\begin{textblock}{600}[0.5,0](",(rmax_scale+rmin_scale)/2d0,",",smax_page-smin_scale+xticklabel_pad,")"
+      WRITE(tex_unit,"(A,F9.5,A,F9.5,A)") "\begin{textblock}{600}[0.5,0](",(rmax_scale+rmin_scale)/2d0,",&
+                                          ",smax_page-smin_scale+xticklabel_pad,")"
       WRITE(tex_unit,"(A)") "\centerline{"//TRIM(scale_label_char)//"}"        
       WRITE(tex_unit,"(A)") "\end{textblock}"        
       
@@ -794,7 +800,7 @@
       nhead = 0
       nbody = 0
       
-      IF (tex_file_exists == .FALSE.) THEN
+      IF (tex_file_exists .eqv. .FALSE.) THEN
         RETURN
       ENDIF
       

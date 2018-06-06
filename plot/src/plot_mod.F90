@@ -115,7 +115,8 @@
       ! Initialize axes labels    
       CALL latex_axes_labels(fig,t_snap,t_start,t_end)  
       IF (fig%el_label_option /= "off") THEN
-        CALL latex_element_labels(fig%el_label_option,sol1%ne,sol1%el_type,sol1%el_in,sol1%nverts,sol1%xy,sol1%ect,sol1%nnfbed,sol1%nfbedn,sol1%ged2el)
+        CALL latex_element_labels(fig%el_label_option,sol1%ne,sol1%el_type,sol1%el_in,sol1%nverts,sol1%xy,sol1%ect, &
+                                  sol1%nnfbed,sol1%nfbedn,sol1%ged2el)
       ENDIF
       IF (fig%nd_label_option /= "off") THEN
         CALL latex_node_labels(fig%nd_label_option,sol1%nn,sol1%xy,sol1%nbou,sol1%fbseg,sol1%fbnds)
@@ -165,18 +166,23 @@
       
       IF (fig%plot_mesh_option == 1) THEN              
        
-        CALL plot_mesh(fig%ps_unit,sol1%ne,sol1%nverts,sol1%nnds,sol1%pplt,sol1%el_type,sol1%el_in,sol1%psic,sol1%elxy,sol1%mesh_line_color)
+        CALL plot_mesh(fig%ps_unit,sol1%ne,sol1%nverts,sol1%nnds,sol1%pplt,& 
+                       sol1%el_type,sol1%el_in,sol1%psic,sol1%elxy,sol1%mesh_line_color)
         IF (fig%sol_diff_option == 1) THEN
-          CALL plot_mesh(fig%ps_unit,sol2%ne,sol2%nverts,sol2%nnds,sol2%pplt,sol2%el_type,sol2%el_in,sol2%psic,sol2%elxy,sol2%mesh_line_color)         
+          CALL plot_mesh(fig%ps_unit,sol2%ne,sol2%nverts,sol2%nnds,sol2%pplt, &
+                         sol2%el_type,sol2%el_in,sol2%psic,sol2%elxy,sol2%mesh_line_color)         
         ENDIF
 !         CALL plot_nodestring(fig%ps_unit,sol1%nbou,sol1%nvel,sol1%fbseg,sol1%fbnds,sol1%xy)
 !         CALL plot_qpts(fig%ps_unit,sol1%ne,sol1%p,sol1%ctp,sol1%np,sol1%el_type,sol1%el_in,sol1%elxy,sol1%nverts,sol1%ned,sol1%ed_type,sol1%ged2el,sol1%ged2led)
 
       ELSE IF (fig%plot_mesh_option == 2) THEN
             
-        CALL plot_boundaries(fig%ps_unit,sol1%nverts,sol1%nnds,sol1%pplt,sol1%nobed,sol1%obedn,sol1%ged2el,sol1%ged2led,sol1%el_type,sol1%el_in,sol1%psic,sol1%elxy)       
-        CALL plot_boundaries(fig%ps_unit,sol1%nverts,sol1%nnds,sol1%pplt,sol1%nnfbed,sol1%nfbedn,sol1%ged2el,sol1%ged2led,sol1%el_type,sol1%el_in,sol1%psic,sol1%elxy)        
-        CALL plot_boundaries(fig%ps_unit,sol1%nverts,sol1%nnds,sol1%pplt,sol1%nfbed,sol1%fbedn,sol1%ged2el,sol1%ged2led,sol1%el_type,sol1%el_in,sol1%psic,sol1%elxy)          
+        CALL plot_boundaries(fig%ps_unit,sol1%nverts,sol1%nnds,sol1%pplt,sol1%nobed,sol1%obedn, &
+                             sol1%ged2el,sol1%ged2led,sol1%el_type,sol1%el_in,sol1%psic,sol1%elxy)       
+        CALL plot_boundaries(fig%ps_unit,sol1%nverts,sol1%nnds,sol1%pplt,sol1%nnfbed,sol1%nfbedn, &
+                             sol1%ged2el,sol1%ged2led,sol1%el_type,sol1%el_in,sol1%psic,sol1%elxy)        
+        CALL plot_boundaries(fig%ps_unit,sol1%nverts,sol1%nnds,sol1%pplt,sol1%nfbed,sol1%fbedn, &
+                             sol1%ged2el,sol1%ged2led,sol1%el_type,sol1%el_in,sol1%psic,sol1%elxy)          
       
         
       ELSE IF (fig%plot_mesh_option == 3) THEN
@@ -1056,7 +1062,8 @@
       
         ! Write the PS code to contour fill the element
         IF (file_unit > 0) THEN
-          CALL contour_fill_element(file_unit,sol1%nptri(et),sol1%rect(:,:,et),fig%sol_min,fig%sol_max,fig%sol_val(:,el),xyplt(:,el,1),xyplt(:,el,2))
+          CALL contour_fill_element(file_unit,sol1%nptri(et),sol1%rect(:,:,et),fig%sol_min,fig%sol_max, &
+                                    fig%sol_val(:,el),xyplt(:,el,1),xyplt(:,el,2))
         ENDIF
         
       ENDDO elem     
@@ -1304,7 +1311,8 @@
         
         
          
-        CALL contour_fill_element(file_unit,nptri(ord),rect(:,:,ord),fig%sol_min,fig%sol_max,fig%sol_val(:,el),xyplt(:,el,1),xyplt(:,el,2))
+        CALL contour_fill_element(file_unit,nptri(ord),rect(:,:,ord),fig%sol_min,fig%sol_max, &
+                                  fig%sol_val(:,el),xyplt(:,el,1),xyplt(:,el,2))
 
         
         
@@ -2505,7 +2513,7 @@ edge:DO ed = 1,nbed
       LOGICAL :: file_exists
       
       INQUIRE(file=TRIM(ADJUSTL(cmap_file)),exist=file_exists)
-      IF (file_exists == .FALSE.) THEN
+      IF (file_exists .eqv. .FALSE.) THEN
         PRINT*, "colormap file does not exist: using default2 colormap"
         ncolors = 12
         ALLOCATE(colors(ncolors,3))        

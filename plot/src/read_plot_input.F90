@@ -34,7 +34,7 @@
       vel%cscale_unit = 21
       
       INQUIRE(file='plot.inp',exist=file_exists)
-      IF (file_exists == .FALSE.) THEN
+      IF (file_exists .eqv. .FALSE.) THEN
         PRINT*, "plot.inp file does not exist"
         STOP
       ENDIF      
@@ -125,7 +125,7 @@
               PRINT("(A,A)"), "mesh plot element labels = ", mesh%el_label_option     
               IF (mesh%el_label_option == "file") THEN
                 INQUIRE(file="element.label",exist=file_exists)
-                IF (file_exists /= .true.) THEN
+                IF (file_exists .neqv. .true.) THEN
                   PRINT("(A)"), "Error: Mesh plot element label file (element.label) not found"
                   STOP
                 ENDIF              
@@ -136,7 +136,7 @@
               PRINT("(A,A)"), "mesh plot node labels = ", mesh%nd_label_option   
               IF (mesh%nd_label_option == "file") THEN
                 INQUIRE(file="node.label",exist=file_exists)
-                IF (file_exists /= .true.) THEN
+                IF (file_exists .neqv.  .true.) THEN
                   PRINT("(A)"), "Error: Mesh plot node label file (node.label) not found"
                   STOP
                 ENDIF              
@@ -202,7 +202,7 @@
               
               ELSEIF (TRIM(ADJUSTL(zeta%cscale_option)) == "file") THEN
                 INQUIRE(file='zeta.cscale',exist=file_exists)
-                IF(file_exists /= .true.) THEN
+                IF(file_exists .neqv. .true.) THEN
                   PRINT("(A)"), "Error: zeta color scale file not found"
                   STOP
                 ENDIF
@@ -218,7 +218,7 @@
               
               ELSEIF (TRIM(ADJUSTL(vel%cscale_option)) == "file") THEN
                 INQUIRE(file='vel.cscale',exist=file_exists)
-                IF(file_exists /= .true.) THEN                     
+                IF(file_exists .neqv. .true.) THEN                     
                   PRINT("(A)"), "Error: velocity color scale file not found"
                   STOP
                 ENDIF

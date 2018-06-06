@@ -97,7 +97,9 @@
 
       SUBROUTINE read_grid(s)
       
-      USE grid_file_mod
+      USE grid_file_mod, ONLY: read_header,read_coords,read_connectivity,init_element_coordinates, &
+                               read_open_boundaries,read_flow_boundaries,grid_size,read_curve_file, &
+                               print_grid_info
       USE transformation, ONLY: element_area
       
       IMPLICIT NONE
@@ -324,7 +326,7 @@
         ENDIF  
         IF (bathy%plot_sol_option == 1 .or. vel%plot_sol_option == 1) THEN
           INQUIRE(file=s%out_direc//"hb.sol",exist=file_exists)
-          IF (file_exists == .true.) THEN
+          IF (file_exists .eqv. .true.) THEN
             PRINT("(A)"), "Reading bathymetry solution..."            
             CALL read_solution_full(s%out_direc,"hb.sol","N",s%t,s%hb,s%nsnap_hb)  
           ELSE

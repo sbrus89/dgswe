@@ -474,7 +474,7 @@ guess:DO ig = 1,2*ntry+1
                    
         ENDDO newton
                  
-        t0 = t0*-1d0                 
+        t0 = t0*(-1d0)                 
         IF (mod(ig,2) == 1) THEN
           t0 = t0 + dt
         ENDIF
