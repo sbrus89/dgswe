@@ -10,7 +10,9 @@
                             cb_file_exists,hb_file_exists, &
                             p,ctp,hbp,h0,coord_sys,slam0,sphi0
       USE spherical_mod, ONLY: cpp_transformation                                                        
-      USE grid_file_mod                            
+      USE grid_file_mod, ONLY: read_header,read_coords,read_connectivity,init_element_coordinates, &
+                               read_open_boundaries,read_flow_boundaries, &
+                               read_bathy_file,read_curve_file,print_grid_info,grid_size,courant                            
 
       IMPLICIT NONE
 

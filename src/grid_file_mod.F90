@@ -107,10 +107,10 @@
       OPEN(UNIT=14, FILE=grid_file)                 
                        
       ! read in name of grid
-      READ(14,"(A)"), grid_name                                         
+      READ(14,"(A)") grid_name                                         
 
       ! read in number of elements and number of nodes
-      READ(14,*), ne, nn       
+      READ(14,*) ne, nn       
 
       RETURN
       END SUBROUTINE read_header
@@ -143,7 +143,7 @@
       
       ! read in node coordinates and depths
       DO i = 1,nn                                                      
-        READ(14,*), j, xy(1,j), xy(2,j), depth(j)        
+        READ(14,*) j, xy(1,j), xy(2,j), depth(j)        
       ENDDO
       
       
@@ -250,7 +250,7 @@
       ENDIF          
 
       DO i = 1,nope                                                     
-        READ(14,*), nbseg  ! read in # of nodes in segment, boundary type
+        READ(14,*) nbseg  ! read in # of nodes in segment, boundary type
         obseg(i) = nbseg
         DO j = 1,nbseg
           READ(14,*) obnds(j,i) ! read in open boundary node numbers
@@ -304,7 +304,7 @@
 
       DO i = 1,nbou
       
-        READ(14,*), nbseg, btype ! read in # of nodes in segment, boundary type
+        READ(14,*) nbseg, btype ! read in # of nodes in segment, boundary type
         fbseg(1,i) = nbseg
         fbseg(2,i) = btype
         
@@ -314,17 +314,17 @@
             btype == 30                                         ) THEN
             
           DO j = 1,nbseg
-            READ(14,*), fbnds(j,i)  ! read in normal flow boundary node numbers
+            READ(14,*) fbnds(j,i)  ! read in normal flow boundary node numbers
           ENDDO
         ENDIF
         
         IF (btype == 4 .OR. btype == 24) THEN
-          IF (NOT(ALLOCATED(inbconn))) THEN
+          IF (.NOT.(ALLOCATED(inbconn))) THEN
             ALLOCATE(inbconn(nvel,nbou),barinht(nvel,nbou),barincfsb(nvel,nbou),barincfsp(nvel,nbou))            
           ENDIF
           
           DO j = 1,nbseg
-            READ(14,*), fbnds(j,i), inbconn(j,i), barinht(j,i), barincfsb(j,i), barincfsp(j,i)
+            READ(14,*) fbnds(j,i), inbconn(j,i), barinht(j,i), barincfsb(j,i), barincfsp(j,i)
           ENDDO        
         ENDIF
         
@@ -1075,10 +1075,10 @@ elsrch: DO k = 1,nepn(n1)
       OPEN(UNIT=14, FILE=TRIM(grid_file))                 
                        
       ! write out name of grid
-      WRITE(14,"(A)"), TRIM(grid_name)                                         
+      WRITE(14,"(A)") TRIM(grid_name)                                         
 
       ! read in number of elements and number of nodes
-      WRITE(14,"(2(I8,1x))"), ne, nn       
+      WRITE(14,"(2(I8,1x))") ne, nn       
 
       RETURN
       END SUBROUTINE write_header
@@ -1100,8 +1100,8 @@ elsrch: DO k = 1,nepn(n1)
 
       ! write out node coordinates and depths
       DO i = 1,nn                                                      
-!         WRITE(14,"(I8,1X,3(D24.17,1X))"), i, xy(1,i), xy(2,i), depth(i)
-        WRITE(14,"(I8,1X,3(E24.17,1X))"), i, xy(1,i), xy(2,i), depth(i)           
+!         WRITE(14,"(I8,1X,3(D24.17,1X))") i, xy(1,i), xy(2,i), depth(i)
+        WRITE(14,"(I8,1X,3(E24.17,1X))") i, xy(1,i), xy(2,i), depth(i)           
       ENDDO 
       
       RETURN
@@ -1157,7 +1157,7 @@ elsrch: DO k = 1,nepn(n1)
 
       DO i = 1,nope      
         nbseg = obseg(i)
-        WRITE(14,"(I8,1x,I8,10x,A,1x,I8)"), nbseg,0, "! number of nodes in open boundary", i
+        WRITE(14,"(I8,1x,I8,10x,A,1x,I8)") nbseg,0, "! number of nodes in open boundary", i
         DO j = 1,nbseg
           WRITE(14,"(I8)") obnds(j,i) ! write out open boundary node numbers
         ENDDO
@@ -1194,21 +1194,21 @@ elsrch: DO k = 1,nepn(n1)
       
         nbseg = fbseg(1,i)
         btype = fbseg(2,i)      
-        WRITE(14,"(I8,1x,I8,10x,A,1x,I8)"), nbseg, btype, "! number of nodes in normal flow boundary", i
+        WRITE(14,"(I8,1x,I8,10x,A,1x,I8)") nbseg, btype, "! number of nodes in normal flow boundary", i
         
         IF (btype == 0  .OR. btype == 1  .OR. btype == 2  .OR. &
             btype == 10 .OR. btype == 11 .OR. btype == 12 .OR. &
             btype == 20 .OR. btype == 21 .OR. btype == 22 ) THEN     
             
           DO j = 1,nbseg
-            WRITE(14,"(I8)"), fbnds(j,i)  ! write out normal flow boundary node numbers          
+            WRITE(14,"(I8)") fbnds(j,i)  ! write out normal flow boundary node numbers          
           ENDDO
         ENDIF
         
         IF (btype == 4 .OR. btype == 24) THEN
           
           DO j = 1,nbseg
-            WRITE(14,"(I8,1x,I8,1x,3(E24.17,1X))"), fbnds(j,i), inbconn(j,i), barinht(j,i), barincfsb(j,i), barincfsp(j,i)
+            WRITE(14,"(I8,1x,I8,1x,3(E24.17,1X))") fbnds(j,i), inbconn(j,i), barinht(j,i), barincfsb(j,i), barincfsp(j,i)
           ENDDO        
         ENDIF 
         

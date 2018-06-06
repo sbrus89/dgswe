@@ -21,7 +21,7 @@ ifeq ($(findstring default,$(OPTS)),default)
   FLAG_TYPE += default  
 endif
 
-FFLAGS ?= -O3 -xHost
+FFLAGS ?= -O3 #-xHost
 FLAG_TYPE ?= optimized
 
 ifeq ($(findstring prof,$(OPTS)),prof)
@@ -63,8 +63,8 @@ OPT_REPORT = #-vec_report6
 # OPT_REPORT = -qopt-report -qopt-report-phase=vec
 
 ifeq ($(BUILDTYPE),dgswe)
-  FC := ifort
-#   FC := gfortran
+  #FC := ifort
+  FC := gfortran
   ODIR = odir_dgswe/
 
   EXE_NAME = dgswe
@@ -126,6 +126,11 @@ ifeq ($(NAME),chl-tilos)
   LAPACK_LIB = -llapack
   NC_LIB = -lnetcdf -lnetcdff 
   NC_INC = -I/usr/local/include
+endif
+
+ifeq ($(NAME),pn1808279 lanl gov)
+  LAPACK_LIB = -llapack
+  FFLAGS += -DMAC
 endif
 
 ifeq ($(NAME),sbrus-laptop)
@@ -282,13 +287,15 @@ $(ODIR) :
 	mkdir -p $@
 	
 version :
-	@sed -i '25 c \      gitBranch = "$(GIT_BRANCH)" ' $(VPATH)version.F90
-	@sed -i '26 c \      gitSHA = "$(GIT_SHA) $(GIT_MOD)" ' $(VPATH)version.F90
-	@sed -i '27 c \      compiler_version = "$(FC_VERSION)" ' $(VPATH)version.F90
-	@sed -i '28 c \      compiler_flags = "$(FFLAGS)" ' $(VPATH)version.F90
-# 	@sed -i '29 c \      modified_files = "$(GIT_MFILES)" ' $(VPATH)version.F90
-	@sed -i '30 c \      compile_date = "$(DATE)" ' $(VPATH)version.F90
-	@sed -i '31 c \      host = "$(NAME)" ' $(VPATH)version.F90	
+	@python version.py "$(GIT_BRANCH)" "$(GIT_SHA) $(GIT_MOD)" "$(FC_VERSION)" "$(FFLAGS)" "$(GIT_MFILES)" "$(DATE)" "$(NAME)"
+
+#	@sed -i '' '25 c \      gitBranch = "$(GIT_BRANCH)" ' $(VPATH)version.F90
+#	@sed -i '' '26 c \      gitSHA = "$(GIT_SHA) $(GIT_MOD)" ' $(VPATH)version.F90
+#	@sed -i '' '27 c \      compiler_version = "$(FC_VERSION)" ' $(VPATH)version.F90
+#	@sed -i '' '28 c \      compiler_flags = "$(FFLAGS)" ' $(VPATH)version.F90
+## 	@sed -i '' '29 c \      modified_files = "$(GIT_MFILES)" ' $(VPATH)version.F90
+#	@sed -i '' '30 c \      compile_date = "$(DATE)" ' $(VPATH)version.F90
+#	@sed -i '' '31 c \      host = "$(NAME)" ' $(VPATH)version.F90	
 	
 ########################################################################
 #                            Clean Targets                             #

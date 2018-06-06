@@ -1,6 +1,7 @@
 
 # Which compiler to use
-CC = icc
+#CC = icc
+CC = gcc
 
 # What optimization level to use
 OPTFLAGS = -O2 #-mmic

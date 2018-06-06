@@ -30,7 +30,11 @@
       
       INQUIRE(FILE=file_name,EXIST=file_exists)
       IF (file_exists) THEN
+#ifdef MAC
+        CALL EXECUTE_COMMAND_LINE("md5 -r "//TRIM(ADJUSTL(file_name))//" > "//TRIM(ADJUSTL(out_dir))//"sha1.out")    
+#else
         CALL EXECUTE_COMMAND_LINE("sha1sum "//TRIM(ADJUSTL(file_name))//" > "//TRIM(ADJUSTL(out_dir))//"sha1.out")    
+#endif
         OPEN(UNIT=9, FILE=TRIM(ADJUSTL(out_dir))//"sha1.out")
         READ(9,"(A)") sha1
         CLOSE(9, STATUS='DELETE')              

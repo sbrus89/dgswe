@@ -22,13 +22,13 @@
       INTEGER, INTENT(IN) :: unit
       INTEGER :: length,ind,sind,eind        
 
-      gitBranch = "master" 
-      gitSHA = "9a71d760e96eb9f353fd80c4c6c5fdd59ca3ee9d +" 
-      compiler_version = "ifort version 14.0.0" 
-      compiler_flags = "-Iodir/ -O3 -g -traceback -C" 
+      gitBranch = "master"
+      gitSHA = "8b555ec4b6c5c54c6b8b3c4802a7908430a17bbc +"
+      compiler_version = "Using built-in specs. COLLECT_GCC=gfortran"
+      compiler_flags =  "-O3  -Iodir_dgswe/ -DMAC"
       modified_files = "../src/plot_mod.F90 ../src/read_plot_input.F90" 
-      compile_date = "Fri Mar  2 10:20:11 EST 2018" 
-      host = "chl-tilos" 
+      compile_date =  "Wed Jun  6 15:32:23 MDT 2018"
+      host =  "pn1808279 lanl gov"
 
       
       length = LEN(TRIM(ADJUSTL(modified_files)))
