@@ -1,14 +1,15 @@
 SHELL = /bin/sh
 
-FC = ifort
-FFLAGS = -I$(ODIR) -O3 -g -traceback -C
+#FC = ifort
+FC = gfortran
+FFLAGS = -I$(ODIR) -O3 #-g -traceback -C
 
 VPATH := ../src/
 ODIR = odir/
 
 FULLNAME := $(shell hostname)
 NAME := $(strip $(subst ., , $(FULLNAME)))
-FC_VERSION := $(shell $(FC) -v 2>&1)
+FC_VERSION := $(shell $(FC) -v 2>&1 | head -2)
 DATE := $(shell date)
 GIT_CHK := $(shell git checkout -- ../../src/version.F90)
 GIT_SHA := $(shell git rev-parse HEAD)
@@ -43,6 +44,11 @@ ifeq ($(NAME),chl-tilos)
   LAPACK_LIB = -llapack
   NC_LIB = -lnetcdf -lnetcdff 
   NC_INC = -I/usr/local/include
+endif
+
+ifeq ($(NAME),pn1808279 lanl gov)
+  LAPACK_LIB = -llapack
+  FFLAGS += -DMAC
 endif
 
 ifeq ($(NAME),sbrus-laptop)
@@ -112,13 +118,15 @@ plot_sta:  version $(ODIR) $(plot_sta_obj)
 	$(FC) $(FFLAGS) -o plot_sta $(plot_sta_obj) $(LAPACK_LIB)	
 	
 version :
-	@sed -i '25 c \      gitBranch = "$(GIT_BRANCH)" ' ../../src/version.F90
-	@sed -i '26 c \      gitSHA = "$(GIT_SHA) $(GIT_MOD)" ' ../../src/version.F90
-	@sed -i '27 c \      compiler_version = "$(FC_VERSION)" ' ../../src/version.F90
-	@sed -i '28 c \      compiler_flags = "$(FFLAGS)" ' ../../src/version.F90
-	@sed -i '29 c \      modified_files = "$(GIT_MFILES)" ' ../../src/version.F90
-	@sed -i '30 c \      compile_date = "$(DATE)" ' ../../src/version.F90
-	@sed -i '31 c \      host = "$(NAME)" ' ../../src/version.F90		
+	@python ../../work/version.py "$(GIT_BRANCH)" "$(GIT_SHA) $(GIT_MOD)" "$(FC_VERSION)" "$(FFLAGS)" "$(GIT_MFILES)" "$(DATE)" "$(NAME)"
+
+#	@sed -i '25 c \      gitBranch = "$(GIT_BRANCH)" ' ../../src/version.F90
+#	@sed -i '26 c \      gitSHA = "$(GIT_SHA) $(GIT_MOD)" ' ../../src/version.F90
+#	@sed -i '27 c \      compiler_version = "$(FC_VERSION)" ' ../../src/version.F90
+#	@sed -i '28 c \      compiler_flags = "$(FFLAGS)" ' ../../src/version.F90
+#	@sed -i '29 c \      modified_files = "$(GIT_MFILES)" ' ../../src/version.F90
+#	@sed -i '30 c \      compile_date = "$(DATE)" ' ../../src/version.F90
+#	@sed -i '31 c \      host = "$(NAME)" ' ../../src/version.F90		
         
 ########################################################################
 #                      Premilinary Targets                             #

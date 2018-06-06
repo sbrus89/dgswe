@@ -1,5 +1,10 @@
 import subprocess
 import sys
+import os
+
+abspath = os.path.abspath(__file__)
+dname = os.path.dirname(abspath)
+os.chdir(dname)
 
 f = open("../src/version.F90","r+")
 lines = f.read().splitlines()
