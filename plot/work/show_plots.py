@@ -7,7 +7,7 @@ import curses
 
 interactive(True)
 
-frmt = 'jpg'
+frmt = 'png'
 sol = 'vel'
 
 direc_ls = [
@@ -60,10 +60,14 @@ direc_ls = [
             #'/home/sbrus/data-drive/galveston_spline_flux_fix/galveston_tri/p1/ctp2/hbp1/plots/inlet/',             
             #'/home/sbrus/data-drive/galveston_spline_flux_fix/galveston_tri/adcirc/ESL0/plots/inlet/',        
             
-            '/home/sbrus/data-drive/galveston_SL18_tides/coarse_x2/esl.5/p3/ctp3/hbp3/rk45/plots/upper/',
-            '/home/sbrus/data-drive/galveston_SL18_tides/coarse_x2/esl.5/p3/ctp1/hbp1/rk45/plots/upper/',
-            '/home/sbrus/data-drive/galveston_SL18_tides/coarse_x2/esl1/adcirc/plots/upper/',
-            '/home/sbrus/data-drive/galveston_SL18_tides/galveston_SL18_cart/esl1/adcirc/plots/upper/',   
+            #'/home/sbrus/data-drive/galveston_SL18_tides/coarse_x2/esl.5/p3/ctp3/hbp3/rk45/plots/upper/',
+            #'/home/sbrus/data-drive/galveston_SL18_tides/coarse_x2/esl.5/p3/ctp1/hbp1/rk45/plots/upper/',
+            #'/home/sbrus/data-drive/galveston_SL18_tides/coarse_x2/esl1/adcirc/plots/upper/',
+            #'/home/sbrus/data-drive/galveston_SL18_tides/galveston_SL18_cart/esl1/adcirc/plots/upper/',   
+
+            '/Users/sbrus/Data/galveston_SL18_tides/galveston_SL18_cart/esl1/adcirc/plots/paper/upper/',   
+            '/Users/sbrus/Data/galveston_SL18_tides/galveston_SL18_cart/esl.5/p1/ctp2/hbp1/plots/upper/',   
+            
             
             #'/home/sbrus/data-drive/galveston_SL18_tides/coarse_x2/esl.5/p3/ctp3/hbp3/rk45/plots/inlet/',
             #'/home/sbrus/data-drive/galveston_SL18_tides/coarse_x2/esl.5/p3/ctp1/hbp1/rk45/plots/inlet/',
@@ -77,11 +81,11 @@ direc_ls = [
 
 offset = []
 for direc in direc_ls:
-  if 'adcirc' in direc:
-    offset.append(0)
-  else:
-    offset.append(1)
-    
+#  if 'adcirc' in direc:
+#    offset.append(0)
+#  else:
+#    offset.append(1)
+  offset.append(0)
     
 keep_going = True  
 snap = 1
@@ -90,12 +94,14 @@ while keep_going:
   for i,direc in enumerate(direc_ls):         
   
     snap_str = "%04d" % (snap+offset[i])  
-
+ 
     im_file = direc + sol + '_' + snap_str + '.' + frmt 
+    file_found = True
     if not os.path.isfile(im_file):
-      keep_going = False
+      file_found = False
       break
-  
+     
+    print snap  
     fig = plt.figure(i)
     fig.canvas.set_window_title(direc)
     img=mpimg.imread(im_file)      
@@ -103,13 +109,17 @@ while keep_going:
     plt.tight_layout()
     plt.axis('off')
 
-
-  inp = raw_input("Next image: >, Previous image: <  ")   
-  while inp != ',' and inp != '.':
-    inp = raw_input("Next image: >, Previous image: <  ") 
+  if file_found == True:
+    inp = raw_input("Next image: >, Previous image: <  ")   
+    while inp != ',' and inp != '.':
+      inp = raw_input("Next image: >, Previous image: <  ") 
     
-  if inp == '.':
+    if inp == '.':
+      snap = snap + 1
+    elif inp == ',' and snap > 1:
+      snap = snap - 1
+  else:
     snap = snap + 1
-  elif inp == ',' and snap > 1:
-    snap = snap - 1
 
+  if snap > 100:
+    keep_going = False
