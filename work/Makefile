@@ -88,7 +88,8 @@ ifeq ($(findstring omp,$(OPTS)),omp)
 endif
 
 ifeq ($(BUILDTYPE),dgprep)
-  FC := ifort
+  #FC := ifort
+  FC := gfortran
   ODIR = odir_dgprep/
 
   EXE_NAME = dgprep
@@ -96,7 +97,8 @@ ifeq ($(BUILDTYPE),dgprep)
 endif
 
 ifeq ($(BUILDTYPE),dgpost)
-  FC := ifort
+  #FC := ifort
+  FC := gfortran
   ODIR = odir_dgpost/
 
   EXE_NAME = dgpost
@@ -301,7 +303,6 @@ version :
 #                            Clean Targets                             #
 ########################################################################	
 	
-	'"' + 
 clean : 
 	@printf "\n\n"
 	rm odir*/*.o odir*/*.mod

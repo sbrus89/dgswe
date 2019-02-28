@@ -490,7 +490,8 @@
             IF(segtype == 1 .OR. segtype == 11 .OR. segtype == 21) THEN 
               IF(lfbseg(1,lbou,pe) /= fbseg(1,bnd)) THEN  ! if the entire island boundary is not contained in the subdomain
                 lfbseg(2,lbou,pe) = 10                    ! change it to a land boundary              
-                PRINT("(A,I7,A,I7,A,I7,A,I7,A)"), "Island boundary: ", lbou," / ",lnbou(pe), " on PE: ", pe-1, " changed to land (Global boundary ", bnd, ")"
+                PRINT("(A,I7,A,I7,A,I7,A,I7,A)"), "Island boundary: ", lbou," / ",lnbou(pe), " on PE: ", pe-1, &
+                                                  " changed to land (Global boundary ", bnd, ")"
               ENDIF         
             ENDIF
             

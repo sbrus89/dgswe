@@ -221,7 +221,7 @@
       ENDIF
       
       INQUIRE(FILE=dirname(1:lname)//'/'//'fort.18', EXIST = file_exists)
-      IF(file_exists == .FALSE.) THEN
+      IF(file_exists .eqv. .FALSE.) THEN
         PRINT*, "fort.18 file does not exist for process", myrank
         CALL abort()
       ENDIF     
@@ -274,7 +274,7 @@
                                                          info,reorder,comm_dist_graph,ierr)      
       
       INQUIRE(FILE=dirname(1:lname)//'/'//'fort.80', EXIST = file_exists)
-      IF(file_exists == .FALSE.) THEN
+      IF(file_exists .eqv. .FALSE.) THEN
         PRINT*, "fort.80 file does not exist for process", myrank
         CALL abort()
       ENDIF   
