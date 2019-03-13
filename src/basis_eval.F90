@@ -38,14 +38,8 @@
           ENDDO
         
           
-          
-        ENDDO                
-        
-        CALL modal2nodal()
-        
-        IF (myrank == 0) THEN
-          DO et = 1,nel_type
-          
+          IF (myrank == 0) THEN
+            
             PRINT "(A)", "---------------------------------------------"
             PRINT "(A)", "         Basis Function Information          "
             PRINT "(A)", "---------------------------------------------"
@@ -58,7 +52,7 @@
 
             PRINT "(A)", 'Mass matrix'
             DO i = 1,ndf
-              PRINT "(100(F10.3))", (mm(i,j),j=1,ndof(et))
+              PRINT "(100(F10.3))", (mm(i,j),j=1,ndf)
             ENDDO
             PRINT "(A)", ' '
 
@@ -67,9 +61,13 @@
 !               PRINT "(100(F10.3))", (phia(i,j,et),j=1,nqpta(et))
 !             ENDDO
 !             PRINT "(A)", ' '             
-            
-          ENDDO
-        ENDIF
+              
+          ENDIF
+          
+        ENDDO                
+        
+        CALL modal2nodal()
+        
 
 
         RETURN
