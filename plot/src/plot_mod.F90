@@ -119,7 +119,8 @@
                                   sol1%nnfbed,sol1%nfbedn,sol1%ged2el)
       ENDIF
       IF (fig%nd_label_option /= "off") THEN
-        CALL latex_node_labels(fig%nd_label_option,sol1%nn,sol1%xy,sol1%nbou,sol1%fbseg,sol1%fbnds)
+        CALL latex_node_labels(fig%nd_label_option,sol1%nn,sol1%xy,sol1%nbou,sol1%fbseg,sol1%fbnds, &
+                                                                   sol1%nope,sol1%obseg,sol1%obnds)
       ENDIF
       CALL run_latex(fig%tex_file_exists)      
       CALL read_latex(fig%tex_file_exists,fig%latex_header,fig%nline_header,fig%latex_body,fig%nline_body)

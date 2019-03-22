@@ -659,7 +659,7 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!   
 
-      SUBROUTINE latex_node_labels(label_option,nn,xy,nbou,fbseg,fbnds)
+      SUBROUTINE latex_node_labels(label_option,nn,xy,nbou,fbseg,fbnds,nope,obseg,obnds)
       
       IMPLICIT NONE
 
@@ -669,13 +669,17 @@
       INTEGER, INTENT(IN) :: nbou
       INTEGER, DIMENSION(:,:), INTENT(IN) :: fbseg
       INTEGER, DIMENSION(:,:), INTENT(IN) :: fbnds
+      INTEGER, INTENT(IN) :: nope
+      INTEGER, DIMENSION(:), INTENT(IN) :: obseg
+      INTEGER, DIMENSION(:,:), INTENT(IN) :: obnds
       
       INTEGER :: i
       INTEGER :: nd,bou
       INTEGER :: label_unit = 21
       INTEGER :: nn_list
       INTEGER, DIMENSION(:), ALLOCATABLE :: nd_list
-      REAL(rp) rpt,spt
+      REAL(rp) :: rpt,spt
+      REAL(rp) :: tol 
       CHARACTER(20) :: ndchar   
       LOGICAL :: file_exists
       
@@ -701,9 +705,14 @@
         ENDDO
         
       ELSE IF (TRIM(ADJUSTL(label_option)) == "bou") THEN
-      
         ALLOCATE(nd_list(nn))
         nn_list = 0
+        DO bou = 1,nope
+          DO nd = 1,obseg(bou)          
+            nn_list = nn_list + 1
+            nd_list(nn_list) = obnds(nd,bou)          
+          ENDDO
+        ENDDO
         DO bou = 1,nbou
           DO nd = 1,fbseg(1,bou)          
             nn_list = nn_list + 1
@@ -725,15 +734,16 @@
         RETURN
       ENDIF      
       
-      
+      tol = 1d-4
+ 
       DO i = 1,nn_list
         nd = nd_list(i)
 
         rpt = ax*xy(1,nd)+bx
         spt = ay*xy(2,nd)+by
         
-        IF ((rpt > rmin_axes .and. rpt < rmax_axes) .and. &
-            (spt > smin_axes .and. spt < smax_axes) ) THEN
+        IF ((rpt > rmin_axes-tol .and. rpt < rmax_axes+tol) .and. &
+            (spt > smin_axes-tol .and. spt < smax_axes+tol) ) THEN
             
           WRITE(ndchar,"(I20)") nd     
           WRITE(tex_unit,"(A,F9.5,A,F9.5,A)") "\begin{textblock}{400}[0,0](",rpt,",",smax_page-spt,")"
