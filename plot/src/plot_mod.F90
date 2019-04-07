@@ -1487,7 +1487,7 @@
             color_val(1) = colors(lev,1)
             color_val(2) = colors(lev,2)
             color_val(3) = colors(lev,3)
-          ELSE IF (sol_val(nd) > sol_max) THEN
+          ELSE IF (sol_val(nd) >= sol_max) THEN
             lev = ncolors
             color_val(1) = colors(lev,1)
             color_val(2) = colors(lev,2)
