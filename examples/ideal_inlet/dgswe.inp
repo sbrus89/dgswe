@@ -1,0 +1,12 @@
+grid_file = inlet1.grd                                         ! grid file
+forcing_file = inlet1.bfr                                      ! forcing file
+p = 3                                                          ! polynomial order
+ctp = 1                                                        ! parametric coordinate transformation order
+hbp = 1                                                        ! bathymetry order
+rk = 22                                                        ! rk order
+dt = .5d0                                                      ! timestep
+tf = 1d0                                                       ! final time (days)
+dramp = .5d0                                                   ! ramping parameter (days)
+cf = .003d0                                                    ! friction coefficient
+sol_opt = 1                                                    ! sol_opt - solution output option
+sol_snap = 10d0                                                ! sol_snap - solution output interval (total number of output times)

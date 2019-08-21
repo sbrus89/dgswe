@@ -1,0 +1,37 @@
+./                                                                                                   ! dgswe.inp file path      (for diff plots: separate the paths by a comma, if they are the same, then a high-order truncation plot is produced)
+0                                                                                                    ! dgswe.inp path substitution 
+1,2,1,0                                                                                              ! zeta plot options:       plot solution (0 = off; 1 = on), plot mesh (0 = off, 1 = mesh, 2 = boundaries), plot contour lines (0 = off, 1 = on), plot max (0 = off, 1 = on, 2 = max only)
+1,2,1,0                                                                                              ! velocity plot options:   plot solution (0 = off; 1 = on), plot mesh (0 = off, 1 = mesh, 2 = boundaries), plot contour lines (0 = off, 1 = on), plot max (0 = off, 1 = on, 2 = max only)
+1,2,1                                                                                                ! bathymetry plot options: plot solution (0 = off; 1 = on), plot mesh (0 = off, 1 = mesh, 2 = boundaries), plot contour lines (0 = off, 1 = on) 
+1                                                                                                    ! mesh plot option         (0 = off, 1 = mesh, 2 = boundaries, 3 = decomposed mesh) 
+0,1,48                                                                                               ! station plot option 
+off                                                                                                  ! mesh plot element labels 
+off                                                                                                  ! mesh plot node lables 
+10,10,1                                                                                              ! order of nodal set for plotting straight elements 
+1                                                                                                    ! order of nodal set for plotting curved elements 
+1d-1,1d-1                                                                                            ! zeta error tolerances: absolute, relative
+1d-1,1d-1                                                                                            ! velocity error tolerances: absolute, relative
+1d-1,1d-1                                                                                            ! bathymetry error tolerance: absolute, relative
+0                                                                                                    ! adaptive plotting option
+2.95e5,3.12e5,3.283e6,3.298e6                                                                        ! zoom box               
+7                                                                                                    ! figure width 
+24,48                                                                                                ! timesnap range 
+/home/sbrus/Codes/dgswe/plot/work/default2.cmap                                                      ! colormap path 
+auto-snap                                                                                            ! zeta colorscale limits      (min,max = specified range, auto-snap = choose range from each timesnap, auto-all = choose range over all timesnaps, file = ranges for each timesnap specified in a file) 
+auto-all                                                                                             ! velocity colorscale limits   
+auto-snap                                                                                            ! bathymetry colorscale limits
+11                                                                                                   ! font size 
+cm                                                                                                   ! font (cm,times,sans)
+4                                                                                                    ! number of x ticks 
+auto                                                                                                 ! number of y ticks 
+10                                                                                                   ! number of c ticks 
+2                                                                                                    ! number of x decimal places (< 0 turns off x and y axis labels)
+2                                                                                                    ! number of y decimal places (< 0 turns off x and y axis labels)
+2                                                                                                    ! number of c decimal places (< 0 turns off color bar)
+2                                                                                                    ! number of t decimal places (< 0 turns off time bar)
+0                                                                                                    ! plot Google Map
+0,SW                                                                                                 ! plot map scale, location
+0                                                                                                    ! plot region box 
+jpg,1                                                                                                ! raster file format (png,jpg,tif), remove ps file option (1 = delete ps file, 0 = keep ps file)
+250                                                                                                  ! raster density 
+0                                                                                                    ! movie flag 
