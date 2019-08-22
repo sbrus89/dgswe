@@ -1,0 +1,27 @@
+ 0                                     ! NBFR - TOTAL NUMBER OF FORCING FREQUENCIES ON OPEN BOUNDARIES
+1                                      ! NFFR
+ M2                                    ! BOUNTAG - ALPHA NUMERIC DESCRIPTOR
+ 0.000140518902509   1.000  0.000      ! FREQUENCY, NODAL FACTOR, EQUILIBRIUM ARGUMENT (DEG)
+   M2                                  ! ALPHANUMERIC DESCRIPTION OF OPEN BOUNDARY FORCING DATA SET 
+      0.75          0
+      0.75          0
+      0.75          0
+      0.75          0
+	0.75          0
+	0.75          0
+	0.75          0
+	0.75          0
+      0.75          0
+      0.75          0
+      0.75          0
+      0.75          0
+      0.75          0
+      0.75          0
+	0.75          0
+	0.75          0
+	0.75          0
+	0.75          0
+      0.75          0
+      0.75          0
+      0.75          0
+0
