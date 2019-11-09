@@ -51,7 +51,8 @@
   
       
       IF (mesh%plot_sol_option == 0 .and. zeta%plot_sol_option == 0 .and. &
-          bathy%plot_sol_option == 0 .and. vel%plot_sol_option == 0) THEN
+          bathy%plot_sol_option == 0 .and. vel%plot_sol_option == 0 .and. & 
+          mesh_size%plot_sol_option == 0) THEN
         
         PRINT("(A)"), "No plot options have been specified"
         STOP
@@ -154,6 +155,8 @@
       
       CALL setup_cbounds(mesh,sol1,1,1)     
       CALL make_plot(1,0d0,mesh,sol1,sol2)  
+      CALL setup_cbounds(mesh_size,sol1,1,1)     
+      CALL make_plot(1,0d0,mesh_size,sol1,sol2)  
       
 
       IF (zeta%plot_sol_option == 0 .and. vel%plot_sol_option == 0 .and. bathy%plot_sol_option == 0) THEN

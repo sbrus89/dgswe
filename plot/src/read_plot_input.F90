@@ -7,7 +7,7 @@
                               xbox_min,xbox_max,ybox_min,ybox_max, &
                               figure_width,figure_height, &
                               snap_start,snap_end, &
-                              zeta,bathy,vel,mesh,cfl, &
+                              zeta,bathy,vel,mesh,cfl,mesh_size, &
                               fontsize,font,nxtick,nytick,nctick, &
                               nxdec,nydec,ncdec,ntdec, &
                               substitute_path,replace_path,sub_path, &
@@ -115,6 +115,14 @@
               READ(temp,*) mesh%plot_mesh_option
               mesh%plot_sol_option = mesh%plot_mesh_option
               PRINT("(A,I3)"), "mesh plot option = ", mesh%plot_mesh_option  
+              IF (mesh%plot_mesh_option == 4) THEN
+                mesh%plot_sol_option = 0
+                mesh_size%plot_sol_option = 1 
+                mesh_size%plot_mesh_option = 0 
+                mesh_size%plot_lines_option = 0
+              ELSE
+                mesh_size%plot_sol_option = 0
+              ENDIF 
               
             CASE (7)
               READ(temp,*) mesh%plot_sta_option, mesh%sta_start, mesh%sta_end

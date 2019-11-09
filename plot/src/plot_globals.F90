@@ -344,6 +344,7 @@
       TYPE(plot_type) :: bathy
       TYPE(plot_type) :: mesh  
       TYPE(plot_type) :: cfl
+      TYPE(plot_type) :: mesh_size 
       
 !       TYPE(plot_type), DIMENSION(:), ALLOCATABLE :: zeta_sta
 !       TYPE(plot_type), DIMENSION(:), ALLOCATABLE :: vel_sta
@@ -381,6 +382,7 @@
       zeta%type_flag = 3     
       vel%type_flag = 4
       cfl%type_flag = 5
+      mesh_size%type_flag = 6     
       
       mesh%axis_label_flag = 1
       mesh%cbar_flag = 0
@@ -397,6 +399,9 @@
       cfl%axis_label_flag = 1
       cfl%cbar_flag = 1
       cfl%tbar_flag = 0
+      mesh_size%axis_label_flag = 1
+      mesh_size%cbar_flag = 1
+      mesh_size%tbar_flag = 0
       
       IF (nxdec < 0 .or. nydec < 0) THEN
         mesh%axis_label_flag = 0
@@ -404,6 +409,7 @@
         zeta%axis_label_flag = 0
         vel%axis_label_flag = 0   
         cfl%axis_label_flag = 0        
+        mesh_size%axis_label_flag = 0        
       ENDIF
       
       IF (ncdec < 0) THEN
@@ -411,6 +417,7 @@
         zeta%cbar_flag = 0
         vel%cbar_flag = 0
         cfl%cbar_flag = 0
+        mesh_size%cbar_flag = 0
         ncdec = abs(ncdec)
       ENDIF
       
@@ -424,11 +431,13 @@
       zeta%sol_diff_option = 0
       vel%sol_diff_option = 0
       cfl%sol_diff_option = 0
+      mesh_size%sol_diff_option = 0
       IF (sol_diff_option == 1) THEN
         bathy%sol_diff_option = 1
         zeta%sol_diff_option = 1
         vel%sol_diff_option = 1
         mesh%sol_diff_option = 1
+        mesh_size%sol_diff_option = 1
       ENDIF
       
       
@@ -437,6 +446,7 @@
       zeta%ho_diff_option = 0
       vel%ho_diff_option = 0
       cfl%ho_diff_option = 0
+      mesh_size%ho_diff_option = 0
       IF (ho_diff_option == 1) THEN
         bathy%ho_diff_option = 1
         zeta%ho_diff_option = 1
@@ -455,6 +465,8 @@
       vel%nd_label_option = "off"
       cfl%el_label_option = "off"
       cfl%nd_label_option = "off"
+      mesh_size%el_label_option = "off"
+      mesh_size%nd_label_option = "off"
       
       mesh%sol_label = "mesh"
       mesh%name = "mesh"
@@ -466,21 +478,27 @@
       bathy%name = "bathy"       
       cfl%sol_label = "Courant number"
       cfl%name = "cfl"      
+      mesh_size%sol_label = "mesh size"
+      mesh_size%name = "mesh_size"
       
       mesh%t_snap => t_snap
       bathy%t_snap => t_snap
       zeta%t_snap => t_snap
       vel%t_snap => t_snap 
       cfl%t_snap => t_snap
+      mesh_size%t_snap => t_snap
       
       zeta%cscale_unit = 30
       bathy%cscale_unit = 31
       vel%cscale_unit = 32      
+      cfl%cscale_unit = 33
+      mesh_size%cscale_unit = 34
       
       cfl%cscale_option = "auto-snap"
 !       cfl%cscale_option = "spec"      
 !       cfl%cscale_min = 0.4d0
 !       cfl%cscale_max = 7d0
+      mesh_size%cscale_option = "auto-snap"
 
       sol1%mesh_line_color = (/  0d0,  0d0,  0d0 /)
 !       sol1%mesh_line_color = (/  .35d0,  .35d0,  .35d0 /)      

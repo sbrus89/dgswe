@@ -169,6 +169,13 @@
 
       ENDIF
       
+      IF (sol_type == 6) THEN
+
+        DO pt = 1,npts 
+          sol_val(pt) = sol%el_size(el)                    
+        ENDDO        
+
+      ENDIF
           
       
       RETURN
